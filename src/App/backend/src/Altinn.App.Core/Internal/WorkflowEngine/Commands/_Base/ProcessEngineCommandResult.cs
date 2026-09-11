@@ -1,6 +1,6 @@
-namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Features.Process;
 
-internal abstract class ProcessEngineCommandResult { }
+namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineCommandResult
 {

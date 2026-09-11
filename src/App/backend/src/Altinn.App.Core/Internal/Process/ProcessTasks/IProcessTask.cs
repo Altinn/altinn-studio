@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -6,9 +7,23 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// Implement this interface to create a new type of task for the process engine.
 /// </summary>
 /// <remarks>
-/// When migrating from the legacy task lifecycle interfaces, move start/end/abandon logic into this interface and
-/// use <see cref="IInstanceDataAccessor.Instance" /> on <see cref="ProcessTaskContext.InstanceDataMutator" /> to access
-/// the instance. Use the data mutator for any data changes that should be persisted by the process engine.
+/// <para>
+/// A task type declares what happens when a task of that type is entered, ended or abandoned as lists of
+/// <see cref="IWorkflowEngineCommand"/> references. Each declared command runs as a durable step of its own in the
+/// workflow engine: it commits its data changes when it completes, and a failed command is retried without
+/// re-running the commands before it. A task that has nothing to do in a phase declares nothing, and the
+/// transition has no step for it.
+/// </para>
+/// <para>
+/// The lists are validated at app startup and fixed when a transition is enqueued, so they must depend on
+/// the task's configuration alone: never on instance data, the clock, or anything that can differ between those
+/// reads. The BPMN task's element id is provided so a task type can declare different commands for
+/// differently configured tasks.
+/// </para>
+/// <para>
+/// The app-facing lifecycle hooks (<see cref="IOnTaskStartingHandler"/> and its siblings) are separate: they
+/// run per task id for any task type, before a task type's own start commands and after its end commands.
+/// </para>
 /// </remarks>
 [ImplementableByApps]
 public interface IProcessTask
@@ -19,45 +34,29 @@ public interface IProcessTask
     string Type { get; }
 
     /// <summary>
-    /// Any logic to be executed when a task is started should be put in this method.
+    /// Validates the configuration of one BPMN task of this type when the app starts. Return one finding per
+    /// problem; any finding fails startup with the findings listed. Called once per BPMN task, never at runtime.
     /// </summary>
-    /// <param name="context">A context object with relevant parameters and data.</param>
-    Task Start(ProcessTaskContext context)
-    {
-        return Task.CompletedTask;
-    }
+    IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => [];
 
     /// <summary>
-    /// Any logic to be executed when a task is ended should be put in this method.
+    /// The commands that run, in order, when a task of this type is entered. They run before the process state
+    /// commits, after the app's <see cref="IOnTaskStartingHandler"/> for the task.
     /// </summary>
-    /// <param name="context">A context object with relevant parameters and data.</param>
-    Task End(ProcessTaskContext context)
-    {
-        return Task.CompletedTask;
-    }
+    /// <param name="taskId">The BPMN element id of the task being entered.</param>
+    IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [];
 
     /// <summary>
-    /// Any logic to be executed when a task is abandoned should be put in this method.
+    /// The commands that run, in order, when a task of this type is ended. They run before the app's
+    /// <see cref="IOnTaskEndingHandler"/> for the task and before the task's data is locked.
     /// </summary>
-    /// <param name="context">A context object with relevant parameters and data.</param>
-    Task Abandon(ProcessTaskContext context)
-    {
-        return Task.CompletedTask;
-    }
-}
-
-/// <summary>
-/// Parameters for process task lifecycle execution.
-/// </summary>
-public sealed class ProcessTaskContext
-{
-    /// <summary>
-    /// An instance data mutator that can be used to access and modify instance data. Changes made will be automatically saved if task execution is successful.
-    /// </summary>
-    public required IInstanceDataMutator InstanceDataMutator { get; init; }
+    /// <param name="taskId">The BPMN element id of the task being left.</param>
+    IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [];
 
     /// <summary>
-    /// Cancellation token for the task lifecycle operation.
+    /// The commands that run, in order, when a task of this type is abandoned (the process is moved backwards
+    /// out of it). They run before the app's <see cref="IOnTaskAbandonHandler"/> for the task.
     /// </summary>
-    public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
+    /// <param name="taskId">The BPMN element id of the task being left.</param>
+    IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) => [];
 }

@@ -1,13 +1,18 @@
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -24,6 +29,210 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 public class WorkflowCallbackStateTests
 {
+    [Theory]
+    [InlineData("signee-state")]
+    [InlineData("payment-data")]
+    public async Task CaptureRestore_TaskState_PreservesExactBytesAndVersionsWithoutCarryingOtherBinaries(
+        string dataTypeId
+    )
+    {
+        byte[] bytes = "{\"$id\":\"1\",\"$values\":[]}\n"u8.ToArray();
+        DataElement stateElement = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = dataTypeId,
+            ContentType = "application/json",
+            BlobVersionId = "state-version",
+        };
+        Instance instance = new()
+        {
+            Id = $"1337/{Guid.NewGuid()}",
+            Org = "ttd",
+            AppId = "ttd/test-app",
+            InstanceOwner = new() { PartyId = "1337" },
+            Data =
+            [
+                stateElement,
+                new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DataType = "receipt",
+                    ContentType = "application/pdf",
+                },
+                new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DataType = "arbitrary-json",
+                    ContentType = "application/json",
+                },
+            ],
+            Process = new()
+            {
+                Status = ProcessStatus.Processing,
+                CurrentTask = new() { ElementId = "Task_1" },
+            },
+        };
+        var metadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes = [new() { Id = dataTypeId }, new() { Id = "receipt" }, new() { Id = "arbitrary-json" }],
+        };
+        var appMetadata = new Mock<IAppMetadata>();
+        appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(metadata);
+        var dataClient = new Mock<IDataClient>(MockBehavior.Strict);
+        var storage = dataClient.As<IDataClientWithStorageMetadata>();
+        storage
+            .Setup(x =>
+                x.GetDataBytesWithExpectedBlobVersionId(
+                    1337,
+                    new InstanceIdentifier(instance).InstanceGuid,
+                    Guid.Parse(stateElement.Id),
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    "state-version",
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(bytes);
+        var initializer = CreateUnitOfWorkInitializer(appMetadata.Object, dataClient);
+        var stateSigner = CreateStateSigner();
+        var reader = new Mock<IProcessReader>(MockBehavior.Strict);
+        reader
+            .Setup(x => x.GetProcessTasks())
+            .Returns([
+                new ProcessTask
+                {
+                    Id = "Task_1",
+                    ExtensionElements = new ExtensionElements
+                    {
+                        TaskExtension = new AltinnTaskExtension
+                        {
+                            SignatureConfiguration = new()
+                            {
+                                SigneeStatesDataTypeId = "signee-state",
+                                SigningPdfDataType = "receipt",
+                            },
+                            PaymentConfiguration = new()
+                            {
+                                PaymentDataType = "payment-data",
+                                PaymentReceiptPdfDataType = "receipt",
+                            },
+                        },
+                    },
+                },
+            ]);
+        var service = new WorkflowCallbackStateService(
+            initializer,
+            new ModelSerializationService(null!),
+            appMetadata.Object,
+            Mock.Of<IAppModel>(),
+            stateSigner,
+            reader.Object
+        );
+        InstanceDataUnitOfWork initial = await initializer.Init(
+            instance,
+            new StorageVersionMetadata(12, 3),
+            "Task_1",
+            "nb"
+        );
+
+        string captured = await service.CaptureState(initial);
+        WorkflowCallbackState transported = JsonSerializer.Deserialize<WorkflowCallbackState>(
+            stateSigner.Verify(captured, SigningDomain.CallbackState)
+        )!;
+        TaskStateDataEntry entry = Assert.Single(transported.TaskStateData!);
+        Assert.Equal(stateElement.Id, entry.Id);
+        Assert.Equal(stateElement.BlobVersionId, entry.BlobVersionId);
+        Assert.Equal(bytes, entry.Data);
+        storage
+            .Setup(x =>
+                x.GetDataBytesWithExpectedBlobVersionId(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.PreconditionFailed, "The stored blob has advanced."));
+        storage.Invocations.Clear();
+
+        InstanceDataUnitOfWork restored = (
+            await service.RestoreState(new InstanceIdentifier(instance), captured, "nb")
+        ).UnitOfWork;
+        Assert.Equal(bytes, (await restored.GetBinaryData(stateElement)).ToArray());
+        Assert.Equal(new StorageVersionMetadata(12, 3), restored.StorageVersions);
+        string recaptured = await service.CaptureState(restored);
+        TaskStateDataEntry recapturedEntry = Assert.Single(
+            JsonSerializer
+                .Deserialize<WorkflowCallbackState>(stateSigner.Verify(recaptured, SigningDomain.CallbackState))!
+                .TaskStateData!
+        );
+        Assert.Equal(bytes, recapturedEntry.Data);
+        Assert.Equal("state-version", recapturedEntry.BlobVersionId);
+        storage.VerifyNoOtherCalls();
+        reader.Verify(x => x.GetProcessTasks(), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("element")]
+    [InlineData("type")]
+    [InlineData("blob")]
+    [InlineData("duplicate")]
+    public async Task RestoreState_TaskStateMetadataMismatch_IsRejected(string mismatch)
+    {
+        DataElement element = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "signee-state",
+            BlobVersionId = "current",
+        };
+        Instance instance = new()
+        {
+            Id = $"1337/{Guid.NewGuid()}",
+            Org = "ttd",
+            AppId = "ttd/test-app",
+            Data = [element],
+        };
+        TaskStateDataEntry entry = new()
+        {
+            Id = mismatch == "element" ? Guid.NewGuid().ToString() : element.Id,
+            DataType = mismatch == "type" ? "other" : element.DataType,
+            BlobVersionId = mismatch == "blob" ? "wrong" : element.BlobVersionId,
+            Data = "[]"u8.ToArray(),
+        };
+        var stateSigner = CreateStateSigner();
+        string captured = stateSigner.Sign(
+            JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = instance,
+                    InstanceVersion = 12,
+                    ProcessStateVersion = 3,
+                    FormData = [],
+                    TaskStateData = mismatch == "duplicate" ? [entry, entry] : [entry],
+                }
+            ),
+            SigningDomain.CallbackState
+        );
+        var metadata = new Mock<IAppMetadata>();
+        metadata
+            .Setup(x => x.GetApplicationMetadata())
+            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = [new() { Id = "signee-state" }] });
+        var reader = new Mock<IProcessReader>();
+        reader.Setup(x => x.GetProcessTasks()).Returns([]);
+        var service = new WorkflowCallbackStateService(
+            CreateUnitOfWorkInitializer(metadata.Object),
+            new ModelSerializationService(null!),
+            metadata.Object,
+            Mock.Of<IAppModel>(),
+            stateSigner,
+            reader.Object
+        );
+        await Assert.ThrowsAsync<WorkflowCallbackStateException>(() =>
+            service.RestoreState(new InstanceIdentifier(instance), captured, "nb")
+        );
+    }
+
     [Fact]
     public async Task CaptureState_PreservesStorageVersionsAndInstanceBlobVersionId()
     {
@@ -50,7 +259,10 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             null!,
             null!,
-            stateSigner
+            stateSigner,
+            Mock.Of<IProcessReader>(reader =>
+                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
+            )
         );
 
         string state = await service.CaptureState(unitOfWork);
@@ -94,7 +306,10 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             appMetadata.Object,
             Mock.Of<IAppModel>(),
-            stateSigner
+            stateSigner,
+            Mock.Of<IProcessReader>(reader =>
+                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
+            )
         );
         string captured = await service.CaptureState(CreateUnitOfWork(instance, versions));
         (InstanceDataUnitOfWork restored, _) = await service.RestoreState(
@@ -145,7 +360,8 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             null!,
             null!,
-            new WorkflowStateSigner(secretProviderMock.Object)
+            new WorkflowStateSigner(secretProviderMock.Object),
+            Mock.Of<IProcessReader>()
         );
 
         InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -201,7 +417,10 @@ public class WorkflowCallbackStateTests
             new ModelSerializationService(null!),
             appMetadataMock.Object,
             Mock.Of<IAppModel>(),
-            stateSigner
+            stateSigner,
+            Mock.Of<IProcessReader>(reader =>
+                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
+            )
         );
 
         (InstanceDataUnitOfWork unitOfWork, _) = await service.RestoreState(
@@ -277,7 +496,14 @@ public class WorkflowCallbackStateTests
                 throw new ArgumentOutOfRangeException(nameof(malformedValue), malformedValue, null);
         }
         string state = stateSigner.Sign(payload.ToJsonString(), SigningDomain.CallbackState);
-        var service = new WorkflowCallbackStateService(null!, null!, null!, null!, stateSigner);
+        var service = new WorkflowCallbackStateService(
+            null!,
+            null!,
+            null!,
+            null!,
+            stateSigner,
+            Mock.Of<IProcessReader>()
+        );
 
         WorkflowCallbackStateException exception = await Assert.ThrowsAsync<WorkflowCallbackStateException>(() =>
             service.RestoreState(new InstanceIdentifier(1337, instanceGuid), state, "nb")
@@ -391,7 +617,10 @@ public class WorkflowCallbackStateTests
             modelSerializationService,
             appMetadataMock.Object,
             appModelMock.Object,
-            stateSigner
+            stateSigner,
+            Mock.Of<IProcessReader>(reader =>
+                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
+            )
         );
 
         (InstanceDataUnitOfWork unitOfWork, _) = await service.RestoreState(

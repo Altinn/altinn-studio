@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -24,6 +25,7 @@ public class MutateProcessStateTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
             Payload = new AppCallbackPayload
             {
                 CommandKey = MutateProcessState.Key,
@@ -105,7 +107,7 @@ public class MutateProcessStateTests
 
         // Assert
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.Equal("MutateProcessState payload is missing or invalid", failed.ErrorMessage);
+        Assert.Equal("MutateProcessState payload is missing or invalid: is missing", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
     }
 
@@ -127,7 +129,7 @@ public class MutateProcessStateTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("MutateProcessState payload is missing or invalid", failed.ErrorMessage);
+        Assert.StartsWith("MutateProcessState payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
         Assert.Same(originalProcess, instance.Process);
     }

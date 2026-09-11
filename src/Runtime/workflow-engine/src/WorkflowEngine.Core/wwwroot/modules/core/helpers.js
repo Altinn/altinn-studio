@@ -224,20 +224,47 @@ export const lineDiff = (oldText, newText) => {
 /* ── JSON utilities (expand embedded JSON strings + syntax highlighting) ── */
 
 /**
+ * A string that is JSON, either directly or as base64-encoded UTF-8 text. Apps carry some documents in the
+ * state snapshot as raw bytes (for example a signing task's signee state, kept byte-exact for replay), which
+ * serialize as base64; showing those as JSON is display-only and never changes what the engine stores.
+ * @param {string} text
+ * @returns {unknown | undefined} the parsed value, or undefined when the string is not JSON in either form
+ */
+const parseEmbeddedJson = (text) => {
+    const t = text.trim();
+    if ((t[0] === '{' && t.at(-1) === '}') || (t[0] === '[' && t.at(-1) === ']')) {
+        try {
+            return JSON.parse(t);
+        } catch {
+            /* not valid JSON */
+        }
+        return undefined;
+    }
+    if (t.length >= 16 && t.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(t)) {
+        try {
+            const bytes = Uint8Array.from(atob(t), (c) => c.charCodeAt(0));
+            const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes).trim();
+            if (
+                (decoded[0] === '{' && decoded.at(-1) === '}') ||
+                (decoded[0] === '[' && decoded.at(-1) === ']')
+            ) {
+                return JSON.parse(decoded);
+            }
+        } catch {
+            /* not base64, not UTF-8, or not JSON */
+        }
+    }
+    return undefined;
+};
+
+/**
  * @param {unknown} obj
  * @returns {unknown}
  */
 export const expandJsonStrings = (obj) => {
     if (typeof obj === 'string') {
-        const t = obj.trim();
-        if ((t[0] === '{' && t.at(-1) === '}') || (t[0] === '[' && t.at(-1) === ']')) {
-            try {
-                return expandJsonStrings(JSON.parse(t));
-            } catch {
-                /* not valid JSON */
-            }
-        }
-        return obj;
+        const parsed = parseEmbeddedJson(obj);
+        return parsed === undefined ? obj : expandJsonStrings(parsed);
     }
     if (Array.isArray(obj)) return obj.map(expandJsonStrings);
     if (obj && typeof obj === 'object') {

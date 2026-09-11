@@ -1,0 +1,44 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "input-one",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "property1"
+        },
+        "textResourceBindings": {
+          "title": "data.property1"
+        }
+      },
+      {
+        "id": "input-two",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "property2"
+        },
+        "textResourceBindings": {
+          "title": "data.property2"
+        }
+      },
+      {
+        "id": "input-three",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "property3"
+        },
+        "textResourceBindings": {
+          "title": "data.property3"
+        }
+      },
+      {
+        "id": "next",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "data.next"
+        }
+      }
+    ]
+  }
+}

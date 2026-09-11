@@ -116,6 +116,13 @@ namespace Altinn.App.Core.Constants
         public const string RuntimeCookieName = "AltinnStudioRuntime";
         public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
     }
+    public enum HostingEnvironment
+    {
+        Unknown = 0,
+        Development = 1,
+        Production = 2,
+        Staging = 3,
+    }
 }
 namespace Altinn.App.Core.EFormidling.Configuration
 {
@@ -2350,6 +2357,12 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task ForwardReply(System.Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IWorkflowEngineCommand
+    {
+        Altinn.App.Core.Features.Process.ProcessStepOptions? DefaultStepOptions { get; }
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ProcessEngineCommandResult> Execute(Altinn.App.Core.Features.Process.ProcessEngineCommandContext context);
+        string GetKey();
+    }
     public enum MailboxClosedReason
     {
         Request = 0,
@@ -2388,6 +2401,20 @@ namespace Altinn.App.Core.Features.Process
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
     }
+    public struct ProcessEngineCommandContext
+    {
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public string? CommandPayload { get; init; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public System.Guid StepId { get; init; }
+        public System.Guid WorkflowId { get; init; }
+    }
+    public abstract class ProcessEngineCommandResult
+    {
+        public static Altinn.App.Core.Features.Process.ProcessEngineCommandResult Completed() { }
+        public static Altinn.App.Core.Features.Process.ProcessEngineCommandResult FailedPermanent(string errorMessage, string? errorCode = null) { }
+        public static Altinn.App.Core.Features.Process.ProcessEngineCommandResult FailedRetryable(string errorMessage, string? errorCode = null) { }
+    }
     public enum ProcessStepBackoffType
     {
         Constant = 0,
@@ -2413,6 +2440,13 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Exponential(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
+    }
+    public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
+    {
+        public ProcessTaskValidationContext() { }
+        public required Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; init; }
+        public required Altinn.App.Core.Constants.HostingEnvironment Environment { get; init; }
+        public required string TaskId { get; init; }
     }
     public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
     {
@@ -2533,6 +2567,12 @@ namespace Altinn.App.Core.Features.Process
     public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
     {
         public SuccessfulHookResult() { }
+    }
+    public sealed class WorkflowCommandRef : System.IEquatable<Altinn.App.Core.Features.Process.WorkflowCommandRef>
+    {
+        public WorkflowCommandRef(string Key, string? Payload = null) { }
+        public string Key { get; init; }
+        public string? Payload { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Redirect
@@ -4199,32 +4239,24 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     {
         public ConfirmationProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
     }
     public class DataProcessTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         public DataProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
     }
     public class FeedbackProcessTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
         public FeedbackProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
     }
     public interface IProcessTask
     {
         string Type { get; }
-        System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
-        System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
-        System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.WorkflowCommandRef> GetAbandonCommands(string taskId);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.WorkflowCommandRef> GetEndCommands(string taskId);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Process.WorkflowCommandRef> GetStartCommands(string taskId);
+        System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
     public interface IProcessTaskDataLocker
     {
@@ -4235,15 +4267,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     {
         public NullTypeProcessTask() { }
         public string Type { get; }
-        public System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-        public System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context) { }
-    }
-    public sealed class ProcessTaskContext
-    {
-        public ProcessTaskContext() { }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public class ProcessTaskDataLocker : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTaskDataLocker
     {

@@ -84,7 +84,9 @@ public class WorkflowEnginePipelineTests(ITestOutputHelper output, AppFixtureCla
         {
             using var engineClient = new HttpClient
             {
-                BaseAddress = new Uri("http://workflow-engine.local.altinn.cloud:8000"),
+                BaseAddress = new Uri(
+                    $"http://workflow-engine.local.altinn.cloud:{AppFixture.StudioctlLocaltestHostPort}"
+                ),
             };
             string ns = Uri.EscapeDataString(instance.Data.Model.AppId);
             string collectionKey = instance.Data.Model.Id.Split('/')[1];

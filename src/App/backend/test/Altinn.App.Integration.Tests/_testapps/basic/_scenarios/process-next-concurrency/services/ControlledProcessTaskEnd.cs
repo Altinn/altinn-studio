@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +12,7 @@ using TestApp.Shared;
 
 namespace Altinn.App.Integration.Tests.Scenarios.ProcessNextConcurrency;
 
-public sealed class ControlledProcessTaskEnd : IProcessTask
+public sealed class ControlledProcessTaskEnd : IProcessTask, IWorkflowEngineCommand
 {
     private static TaskCompletionSource _entered = CreateSignal();
     private static TaskCompletionSource _release = CreateSignal();
@@ -18,11 +20,16 @@ public sealed class ControlledProcessTaskEnd : IProcessTask
 
     public string Type => AltinnTaskTypes.Data;
 
-    public async Task End(ProcessTaskContext context)
+    public string GetKey() => "ControlledProcessTaskEnd";
+
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [new(GetKey())];
+
+    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         Interlocked.Increment(ref _taskEndInvocations);
         _entered.TrySetResult();
-        await _release.Task;
+        await _release.Task.WaitAsync(context.CancellationToken);
+        return ProcessEngineCommandResult.Completed();
     }
 
     public static void Release()
@@ -89,6 +96,7 @@ public static class ServiceRegistration
     public static void RegisterServices(IServiceCollection services)
     {
         services.AddTransient<IProcessTask, ControlledProcessTaskEnd>();
+        services.AddTransient<IWorkflowEngineCommand, ControlledProcessTaskEnd>();
         services.AddSingleton<IEndpointConfigurator, ControlledProcessTaskEndEndpoints>();
     }
 }

@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -71,7 +72,10 @@ public class WorkflowCallbackStateCarryTests
             null!,
             appMetadata,
             Mock.Of<IAppModel>(),
-            signer ?? CreateSigner()
+            signer ?? CreateSigner(),
+            Mock.Of<IProcessReader>(reader =>
+                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
+            )
         );
     }
 

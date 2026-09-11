@@ -538,6 +538,8 @@ export function nn() {
     'signing.delegation_error_panel_title': 'Klarte ikkje gi tilgang til skjema',
     'signing.delegation_error_panel_description':
       'Ein eller fleire av signatarane er ugyldige og har ikkje fått tilgang til skjemaet. Gå tilbake for å prøve å rette opp feilen eller kontakt skjemaeigar.',
+    'signing.delegation_error_panel_description_rejected':
+      'Plattforma kunne ikkje gi ein eller fleire signatarar tilgang til å signere. Prøv igjen seinare, eller kontakt eigaren av skjemaet eller brukarstøtte.',
     'signing.wrong_task_error': '{0}-komponenten er berre tilgjengeleg i eit signeringssteg.',
     'signing.error_missing_signing_rights':
       'Noko gjekk gale. Den noverande brukaren skal signere, men har ikkje rettar til å gjere det.',
@@ -555,6 +557,10 @@ export function nn() {
     'signee_list.signee_status_waiting': 'Ventar på signering',
     'signee_list.signee_status_delegation_failed': 'Delegering mislukkast',
     'signee_list.signee_status_notification_failed': 'Varsling mislukkast',
+    'signee_list.notification_failed_hint_configuration':
+      'Varselet kunne ikkje sendast fordi appen ikkje er sett opp for å sende meldingar i dette miljøet. Kontakt eigaren av skjemaet.',
+    'signee_list.notification_failed_hint_rejected':
+      'Varselet kunne ikkje sendast. Kontakt eigaren av skjemaet eller brukarstøtte.',
     'signee_list.header_name': 'Namn',
     'signee_list.header_on_behalf_of': 'På vegne av',
     'signee_list.header_status': 'Status',

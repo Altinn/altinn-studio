@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
@@ -532,7 +533,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         if (!repollAfterAbandonCasLoss)
                         {
                             InstanceWithStorageMetadata freshInstance =
-                                await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
+                                await _instanceClient.GetInstanceWithStorageMetadata(
+                                    instance,
+                                    StorageAuthenticationMethod.ServiceOwner(),
+                                    ct
+                                );
                             bool processStateChanged = HasCommittedProcessState(currentChain);
                             return new ProcessNextWorkflowResult(
                                 freshInstance.Instance,
@@ -572,7 +577,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     if (anchoredChainParked && HasCommittedProcessState(currentChain))
                     {
                         InstanceWithStorageMetadata freshInstance =
-                            await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
+                            await _instanceClient.GetInstanceWithStorageMetadata(
+                                instance,
+                                StorageAuthenticationMethod.ServiceOwner(),
+                                ct
+                            );
                         return new ProcessNextWorkflowResult(
                             freshInstance.Instance,
                             freshInstance.Metadata,
@@ -604,7 +613,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
             instance,
-            ct: ct
+            StorageAuthenticationMethod.ServiceOwner(),
+            ct
         );
         if (lastObservedCollectionWorkflows.Count == 0)
         {

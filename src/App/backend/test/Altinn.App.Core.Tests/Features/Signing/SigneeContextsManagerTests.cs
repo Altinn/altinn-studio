@@ -1,4 +1,7 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing;
@@ -11,6 +14,7 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -452,6 +456,64 @@ public sealed class SigneeContextsManagerTests : IDisposable
         );
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.TooManyRequests, true)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, true)]
+    [InlineData(HttpStatusCode.BadRequest, false)]
+    [InlineData(HttpStatusCode.NotFound, false)]
+    public async Task GenerateSigneeContexts_PartyLookupFailure_OnlyRetriesTransientErrors(
+        HttpStatusCode status,
+        bool transient
+    )
+    {
+        const string socialSecurityNumber = "12345678901";
+        var exception = new HttpRequestException($"Lookup failed for {socialSecurityNumber}", null, status);
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .ThrowsAsync(exception);
+        _signeeProvider.Setup(x => x.Id).Returns("testProvider");
+        _signeeProvider
+            .Setup(x => x.GetSignees(It.IsAny<GetSigneesParameters>()))
+            .ReturnsAsync(
+                new SigneeProviderResult
+                {
+                    Signees =
+                    [
+                        new ProvidedPerson { SocialSecurityNumber = socialSecurityNumber, FullName = "Test Person" },
+                    ],
+                }
+            );
+        var mutator = new Mock<IInstanceDataMutator>();
+        mutator
+            .Setup(x => x.Instance)
+            .Returns(
+                new Instance
+                {
+                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+                }
+            );
+        var configuration = new AltinnSignatureConfiguration
+        {
+            SigneeProviderId = "testProvider",
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        Exception? actual = await Record.ExceptionAsync(() =>
+            _signeeContextsManager.GenerateSigneeContexts(mutator.Object, configuration, CancellationToken.None)
+        );
+
+        if (transient)
+        {
+            Assert.Same(exception, actual);
+        }
+        else
+        {
+            var permanent = Assert.IsType<SigneeInitializationPermanentException>(actual);
+            Assert.Contains("Correct the signee data", permanent.Message);
+            Assert.DoesNotContain(socialSecurityNumber, permanent.Message);
+        }
+    }
+
     [Fact]
     public async Task GetSigneeContexts_WithNoSigneeStatesDataTypeId_ReturnsEmptyList()
     {
@@ -684,5 +746,476 @@ public sealed class SigneeContextsManagerTests : IDisposable
         var additionalActions = result[0].AdditionalActionsToDelegate;
         Assert.NotNull(additionalActions);
         Assert.Equal("reject", Assert.Single(additionalActions));
+    }
+
+    [Fact]
+    public void FindTaskSigneeStateElement_TaggedElementExists_ReturnsIt()
+    {
+        const string taskId = "Task_1";
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        DataElement taggedElement = CreateTaggedSigneeStateElement(taskId);
+        DataElement untaggedElement = CreateSigneeStateElement();
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [taggedElement, untaggedElement],
+        };
+
+        var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessor.Setup(x => x.Instance).Returns(instance);
+
+        DataElement? result = _signeeContextsManager.FindTaskSigneeStateElement(
+            instanceDataAccessor.Object,
+            signatureConfiguration,
+            taskId
+        );
+
+        Assert.Same(taggedElement, result);
+    }
+
+    [Fact]
+    public void FindTaskSigneeStateElement_NoTaggedElement_ReturnsNull()
+    {
+        const string taskId = "Task_1";
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        DataElement untaggedElement = CreateSigneeStateElement();
+        DataElement otherTaskElement = CreateTaggedSigneeStateElement("Task_2");
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [untaggedElement, otherTaskElement],
+        };
+
+        var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessor.Setup(x => x.Instance).Returns(instance);
+
+        DataElement? result = _signeeContextsManager.FindTaskSigneeStateElement(
+            instanceDataAccessor.Object,
+            signatureConfiguration,
+            taskId
+        );
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void FindTaskSigneeStateElement_TwoTaggedElements_ReturnsMostRecentlyChanged()
+    {
+        const string taskId = "Task_1";
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        DataElement older = CreateTaggedSigneeStateElement(taskId);
+        older.LastChanged = DateTime.UtcNow.AddMinutes(-10);
+        DataElement newer = CreateTaggedSigneeStateElement(taskId);
+        newer.LastChanged = DateTime.UtcNow;
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [older, newer],
+        };
+
+        var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessor.Setup(x => x.Instance).Returns(instance);
+
+        DataElement? result = _signeeContextsManager.FindTaskSigneeStateElement(
+            instanceDataAccessor.Object,
+            signatureConfiguration,
+            taskId
+        );
+
+        Assert.Same(newer, result);
+    }
+
+    [Fact]
+    public void RemoveOtherSigneeStateElements_RemovesUntaggedAndOtherTaskElements_KeepsOwnTask()
+    {
+        const string taskId = "Task_1";
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        DataElement ownElement = CreateTaggedSigneeStateElement(taskId);
+        DataElement untaggedElement = CreateSigneeStateElement();
+        DataElement otherTaskElement = CreateTaggedSigneeStateElement("Task_2");
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [ownElement, untaggedElement, otherTaskElement],
+        };
+
+        var instanceDataMutator = new Mock<IInstanceDataMutator>();
+        instanceDataMutator.Setup(x => x.Instance).Returns(instance);
+
+        _signeeContextsManager.RemoveOtherSigneeStateElements(
+            instanceDataMutator.Object,
+            signatureConfiguration,
+            taskId
+        );
+
+        instanceDataMutator.Verify(x => x.RemoveDataElement(untaggedElement), Times.Once);
+        instanceDataMutator.Verify(x => x.RemoveDataElement(otherTaskElement), Times.Once);
+        instanceDataMutator.Verify(x => x.RemoveDataElement(ownElement), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoadSigneeContexts_RoundTripsPersistedSigneeContexts()
+    {
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+        DataElement signeeStateDataElement = CreateSigneeStateElement();
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [signeeStateDataElement],
+        };
+
+        List<SigneeContext> signeeContexts = [CreateMinimalSigneeContext("Task_1")];
+        signeeContexts[0].SigneeState.IsAccessDelegated = true;
+
+        byte[] serializedData = JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions);
+
+        var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessor.Setup(x => x.Instance).Returns(instance);
+        instanceDataAccessor
+            .Setup(x => x.GetBinaryData(signeeStateDataElement))
+            .ReturnsAsync(new ReadOnlyMemory<byte>(serializedData));
+
+        List<SigneeContext> result = await _signeeContextsManager.LoadSigneeContexts(
+            instanceDataAccessor.Object,
+            signatureConfiguration,
+            signeeStateDataElement
+        );
+
+        SigneeContext context = Assert.Single(result);
+        Assert.Equal("Task_1", context.TaskId);
+        Assert.True(context.SigneeState.IsAccessDelegated);
+
+        instanceDataAccessor.Verify(
+            m =>
+                m.OverrideAuthenticationMethod(
+                    It.Is<DataType>(dt => dt.Id == SigneeStatesDataTypeId),
+                    StorageAuthenticationMethod.ServiceOwner()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task PersistSigneeContexts_ExistingTaggedElement_UpdatesIt()
+    {
+        const string taskId = "Task_1";
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        DataElement existingElement = CreateTaggedSigneeStateElement(taskId);
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [existingElement],
+        };
+
+        var instanceDataMutator = new Mock<IInstanceDataMutator>();
+        instanceDataMutator.Setup(x => x.Instance).Returns(instance);
+        instanceDataMutator
+            .Setup(x =>
+                x.UpdateBinaryDataElement(existingElement, "application/json", It.IsAny<ReadOnlyMemory<byte>>())
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Updated,
+                    new DataType { Id = SigneeStatesDataTypeId },
+                    "application/json",
+                    existingElement,
+                    null,
+                    ReadOnlyMemory<byte>.Empty,
+                    taskId
+                )
+            );
+
+        List<SigneeContext> signeeContexts = [CreateMinimalSigneeContext(taskId)];
+
+        await _signeeContextsManager.PersistSigneeContexts(
+            instanceDataMutator.Object,
+            signatureConfiguration,
+            taskId,
+            signeeContexts
+        );
+
+        instanceDataMutator.Verify(
+            x => x.UpdateBinaryDataElement(existingElement, "application/json", It.IsAny<ReadOnlyMemory<byte>>()),
+            Times.Once
+        );
+        instanceDataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task PersistSigneeContexts_NoExistingElement_AddsNewOneTaggedWithTask()
+    {
+        const string taskId = "Task_1";
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = [],
+        };
+
+        var instanceDataMutator = new Mock<IInstanceDataMutator>();
+        instanceDataMutator.Setup(x => x.Instance).Returns(instance);
+        instanceDataMutator
+            .Setup(x =>
+                x.AddBinaryDataElement(
+                    SigneeStatesDataTypeId,
+                    "application/json",
+                    null,
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    taskId,
+                    null
+                )
+            )
+            .Returns(
+                new BinaryDataChange(
+                    ChangeType.Created,
+                    new DataType { Id = SigneeStatesDataTypeId },
+                    "application/json",
+                    null,
+                    null,
+                    ReadOnlyMemory<byte>.Empty,
+                    taskId
+                )
+            );
+
+        List<SigneeContext> signeeContexts = [CreateMinimalSigneeContext(taskId)];
+
+        await _signeeContextsManager.PersistSigneeContexts(
+            instanceDataMutator.Object,
+            signatureConfiguration,
+            taskId,
+            signeeContexts
+        );
+
+        instanceDataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    SigneeStatesDataTypeId,
+                    "application/json",
+                    null,
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    taskId,
+                    null
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetSigneeContexts_FixtureWithoutFailureProperties_DeserializesWithNullFailures()
+    {
+        // A fixture written before DelegationFailure/NotificationFailure existed on SigneeContextState:
+        // the properties are absent from the JSON entirely, not merely null.
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+        DataElement signeeStateDataElement = CreateSigneeStateElement();
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [signeeStateDataElement],
+        };
+
+        List<SigneeContext> signeeContexts = [CreateMinimalSigneeContext("Task_1")];
+        string json = JsonSerializer.Serialize(signeeContexts, _jsonSerializerOptions);
+        string legacyJson = RemoveJsonProperties(json, "delegationFailure", "notificationFailure");
+
+        Assert.DoesNotContain("delegationFailure", legacyJson);
+        Assert.DoesNotContain("notificationFailure", legacyJson);
+        Assert.Contains("\"$id\"", legacyJson);
+        Assert.Contains("\"$values\"", legacyJson);
+
+        var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessor.Setup(x => x.Instance).Returns(instance);
+        instanceDataAccessor
+            .Setup(x => x.GetBinaryData(signeeStateDataElement))
+            .ReturnsAsync(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(legacyJson)));
+
+        List<SigneeContext> result = await _signeeContextsManager.GetSigneeContexts(
+            instanceDataAccessor.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        SigneeContext context = Assert.Single(result);
+        Assert.Null(context.SigneeState.DelegationFailure);
+        Assert.Null(context.SigneeState.NotificationFailure);
+    }
+
+    [Fact]
+    public async Task GetSigneeContexts_FixtureWithUnrecognisedDelegationFailureValue_DeserializesAsUnknown()
+    {
+        // A fixture carrying a delegationFailure value from a newer app-lib version than this one knows about.
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
+        };
+        DataElement signeeStateDataElement = CreateSigneeStateElement();
+
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [signeeStateDataElement],
+        };
+
+        List<SigneeContext> signeeContexts = [CreateMinimalSigneeContext("Task_1")];
+        string json = JsonSerializer.Serialize(signeeContexts, _jsonSerializerOptions);
+        string fixtureJson = SetJsonProperty(json, "delegationFailure", "somethingNew");
+
+        Assert.Contains("\"somethingNew\"", fixtureJson);
+
+        var instanceDataAccessor = new Mock<IInstanceDataAccessor>();
+        instanceDataAccessor.Setup(x => x.Instance).Returns(instance);
+        instanceDataAccessor
+            .Setup(x => x.GetBinaryData(signeeStateDataElement))
+            .ReturnsAsync(new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(fixtureJson)));
+
+        List<SigneeContext> result = await _signeeContextsManager.GetSigneeContexts(
+            instanceDataAccessor.Object,
+            signatureConfiguration,
+            CancellationToken.None
+        );
+
+        SigneeContext context = Assert.Single(result);
+        Assert.Equal(DelegationFailureCode.Unknown, context.SigneeState.DelegationFailure);
+    }
+
+    private static DataElement CreateSigneeStateElement() =>
+        new() { Id = Guid.NewGuid().ToString(), DataType = SigneeStatesDataTypeId };
+
+    private static DataElement CreateTaggedSigneeStateElement(string taskId) =>
+        new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = SigneeStatesDataTypeId,
+            References =
+            [
+                new Reference
+                {
+                    Relation = RelationType.GeneratedFrom,
+                    ValueType = ReferenceType.Task,
+                    Value = taskId,
+                },
+            ],
+        };
+
+    private static SigneeContext CreateMinimalSigneeContext(string taskId) =>
+        new()
+        {
+            TaskId = taskId,
+            SigneeState = new SigneeContextState(),
+            Signee = new InternalPersonSignee
+            {
+                FullName = "Test Person",
+                SocialSecurityNumber = "12345678901",
+                Party = new Party { SSN = "12345678901", Name = "Test Person" },
+            },
+        };
+
+    private static string RemoveJsonProperties(string json, params string[] propertyNames)
+    {
+        JsonNode node = JsonNode.Parse(json) ?? throw new InvalidOperationException("Failed to parse JSON fixture.");
+        RemoveJsonPropertiesRecursive(node, propertyNames);
+        return node.ToJsonString();
+    }
+
+    private static void RemoveJsonPropertiesRecursive(JsonNode? node, string[] propertyNames)
+    {
+        switch (node)
+        {
+            case JsonObject jsonObject:
+                foreach (string propertyName in propertyNames)
+                {
+                    jsonObject.Remove(propertyName);
+                }
+
+                foreach (KeyValuePair<string, JsonNode?> property in jsonObject)
+                {
+                    RemoveJsonPropertiesRecursive(property.Value, propertyNames);
+                }
+                break;
+            case JsonArray jsonArray:
+                foreach (JsonNode? item in jsonArray)
+                {
+                    RemoveJsonPropertiesRecursive(item, propertyNames);
+                }
+                break;
+        }
+    }
+
+    private static string SetJsonProperty(string json, string propertyName, string value)
+    {
+        JsonNode node = JsonNode.Parse(json) ?? throw new InvalidOperationException("Failed to parse JSON fixture.");
+        SetJsonPropertyRecursive(node, propertyName, value);
+        return node.ToJsonString();
+    }
+
+    private static void SetJsonPropertyRecursive(JsonNode? node, string propertyName, string value)
+    {
+        switch (node)
+        {
+            case JsonObject jsonObject:
+                if (jsonObject.ContainsKey(propertyName))
+                {
+                    jsonObject[propertyName] = value;
+                }
+
+                foreach (KeyValuePair<string, JsonNode?> property in jsonObject)
+                {
+                    SetJsonPropertyRecursive(property.Value, propertyName, value);
+                }
+                break;
+            case JsonArray jsonArray:
+                foreach (JsonNode? item in jsonArray)
+                {
+                    SetJsonPropertyRecursive(item, propertyName, value);
+                }
+                break;
+        }
     }
 }

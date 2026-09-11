@@ -1,10 +1,5 @@
-using Altinn.App.Core.Internal.WorkflowEngine;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.AltinnEvents;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
+using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,76 +8,127 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.DependencyInjection;
 public class WorkflowEngineCommandValidatorTests
 {
     [Fact]
-    public void Validate_AllCommandsRegistered_DoesNotThrow()
+    public async Task Validate_FactoryAndScopedRegistrationsWithoutStaticKeys_AreIncluded()
     {
-        // Arrange
         var services = new ServiceCollection();
-        RegisterAllCommands(services);
+        foreach (string key in WorkflowEngineCommandValidator.FrameworkCommandKeys)
+        {
+            services.AddScoped<IWorkflowEngineCommand>(_ => new Command(key));
+        }
+        services.AddScoped<IWorkflowEngineCommand>(_ => new Command("CustomerCommand"));
+        await using ServiceProvider provider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true }
+        );
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
 
-        // Act & Assert - should not throw
-        WorkflowEngineCommandValidator.Validate(services);
+        IReadOnlySet<string> keys = WorkflowEngineCommandValidator.Validate(
+            scope.ServiceProvider.GetServices<IWorkflowEngineCommand>().ToList()
+        );
+
+        Assert.Contains("CustomerCommand", keys);
+        Assert.Contains("CommitProcessState", keys);
     }
 
     [Fact]
-    public void Validate_MissingCommand_ThrowsInvalidOperationException()
+    public void Validate_MissingFrameworkCommand_Fails()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        // Intentionally NOT registering all commands
-        services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
+        IWorkflowEngineCommand[] commands = AllCommands().Where(c => c.GetKey() != "OnTaskStartingHook").ToArray();
 
-        // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            WorkflowEngineCommandValidator.Validate(services)
+        ApplicationConfigException exception = Assert.Throws<ApplicationConfigException>(() =>
+            WorkflowEngineCommandValidator.Validate(commands)
         );
 
-        Assert.Contains("not registered", exception.Message);
-        Assert.Contains("OnTaskStartingHook", exception.Message);
+        Assert.Contains("Required workflow command 'OnTaskStartingHook' is not registered", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("CustomerCommand")]
+    [InlineData("CommitProcessState")]
+    public void Validate_DuplicateOrdinaryOrFrameworkKey_Fails(string key)
+    {
+        List<IWorkflowEngineCommand> commands = AllCommands().ToList();
+        if (key == "CustomerCommand")
+            commands.Add(new Command(key));
+        commands.Add(new Command(key));
+
+        ApplicationConfigException exception = Assert.Throws<ApplicationConfigException>(() =>
+            WorkflowEngineCommandValidator.Validate(commands)
+        );
+
+        Assert.Contains($"same key: '{key}'", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_EmptyKey_Fails(string key)
+    {
+        ApplicationConfigException exception = Assert.Throws<ApplicationConfigException>(() =>
+            WorkflowEngineCommandValidator.Validate([.. AllCommands(), new Command(key)])
+        );
+
+        Assert.Contains("empty key", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("Customer/Submit")]
+    [InlineData("Notify?mode=1")]
+    [InlineData("Notify#fragment")]
+    [InlineData("Customer:Submit")]
+    [InlineData("Two Words")]
+    [InlineData("Notify\nAgain")]
+    [InlineData("Ærlig")]
+    [InlineData("NotifyÆrlig")]
+    [InlineData(".")]
+    [InlineData("..")]
+    [InlineData("7Submit")]
+    [InlineData("_Submit")]
+    [InlineData("Notify%2FSubmit")]
+    [InlineData("Notify\\Submit")]
+    public void Validate_KeyCannotBeUsedAsOneCallbackUrlSegment_FailsBeforeEnqueue(string key)
+    {
+        ApplicationConfigException exception = Assert.Throws<ApplicationConfigException>(() =>
+            WorkflowEngineCommandValidator.Validate([.. AllCommands(), new Command(key)])
+        );
+
+        Assert.Contains("invalid key", exception.Message);
+        Assert.Contains("ASCII letter", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("A")]
+    [InlineData("Customer.Submit")]
+    [InlineData("Customer_Submit-2.v1")]
+    public void Validate_UriSafeKey_Succeeds(string key)
+    {
+        IReadOnlySet<string> keys = WorkflowEngineCommandValidator.Validate([.. AllCommands(), new Command(key)]);
+
+        Assert.Contains(key, keys);
     }
 
     [Fact]
-    public void Validate_MutateProcessStateNotRegistered_ThrowsInvalidOperationException()
+    public void Validate_InvalidDefaultOptions_Fails()
     {
-        var services = new ServiceCollection();
-        RegisterAllCommands(services);
-        ServiceDescriptor registration = Assert.Single(
-            services,
-            descriptor => descriptor.ImplementationType == typeof(MutateProcessState)
-        );
-        services.Remove(registration);
+        var command = new Command("CustomerCommand", new ProcessStepOptions { MaxExecutionTime = TimeSpan.Zero });
 
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            WorkflowEngineCommandValidator.Validate(services)
+        ApplicationConfigException exception = Assert.Throws<ApplicationConfigException>(() =>
+            WorkflowEngineCommandValidator.Validate([.. AllCommands(), command])
         );
 
-        Assert.Contains("'MutateProcessState'", exception.Message);
+        Assert.Contains("default step options", exception.Message);
+        Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), exception.Message);
     }
 
-    private static void RegisterAllCommands(IServiceCollection services)
+    private static IEnumerable<IWorkflowEngineCommand> AllCommands() =>
+        WorkflowEngineCommandValidator.FrameworkCommandKeys.Select(key => new Command(key));
+
+    private sealed class Command(string key, ProcessStepOptions? options = null) : IWorkflowEngineCommand
     {
-        // Register all commands that are referenced in ProcessEventCommands
-        services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
-        services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
-        services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
-        services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
-        services.AddTransient<IWorkflowEngineCommand, StartTask>();
-        services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
-        services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
-        services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
-        services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
-        services.AddTransient<IWorkflowEngineCommand, EndTask>();
-        services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
-        services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
-        services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
-        services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
-        services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
-        services.AddTransient<IWorkflowEngineCommand, OnProcessEndingHook>();
-        services.AddTransient<IWorkflowEngineCommand, EndProcessLegacyHook>();
-        services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
-        services.AddTransient<IWorkflowEngineCommand, AcquireProcessingStatus>();
-        services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
-        services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
-        services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
-        services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
+        public string GetKey() => key;
+
+        public ProcessStepOptions? DefaultStepOptions => options;
+
+        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context) =>
+            throw new NotSupportedException("Validation must not execute a workflow command.");
     }
 }

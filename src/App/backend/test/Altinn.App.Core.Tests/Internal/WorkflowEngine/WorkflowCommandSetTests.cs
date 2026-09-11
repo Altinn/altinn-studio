@@ -38,13 +38,7 @@ public class WorkflowCommandSetTests
         );
 
         Assert.Equal(
-            [
-                UnlockTaskData.Key,
-                CleanupGeneratedFromTask.Key,
-                OnTaskStartingHook.Key,
-                CommonTaskInitialization.Key,
-                StartTask.Key,
-            ],
+            [UnlockTaskData.Key, CleanupGeneratedFromTask.Key, OnTaskStartingHook.Key, CommonTaskInitialization.Key],
             Keys(commandSet.Commands)
         );
 
@@ -92,12 +86,9 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1");
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1", []);
 
-        Assert.Equal(
-            [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(commandSet.Commands)
-        );
+        Assert.Equal([CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
         Assert.Empty(commandSet.SideEffectCommands);
     }
@@ -105,11 +96,83 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskAbandonSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps();
+        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps("Task_1", []);
 
-        Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
+        Assert.Equal([OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.CriticalPostCommitCommands);
         Assert.Empty(commandSet.SideEffectCommands);
+    }
+
+    [Theory]
+    [InlineData("start")]
+    [InlineData("end")]
+    [InlineData("abandon")]
+    public void TaskPhaseSteps_CarryTheTaskAndPhaseAsStepLabels(string phase)
+    {
+        // The dashboard brackets a transition's steps by these labels, so every step of the task phase must
+        // carry them: the lifecycle steps and the task type's own declared commands alike.
+        WorkflowCommandRef[] declarations = [new("FirstCommand"), new("SecondCommand")];
+        WorkflowCommandSet commandSet = phase switch
+        {
+            "start" => WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    TaskId = "Task_1",
+                    ServiceTask = null,
+                    IsInitialTaskStart = false,
+                    StartCommands = declarations,
+                    RegisterEvents = true,
+                }
+            ),
+            "end" => WorkflowCommandSet.GetTaskEndSteps("Task_1", declarations),
+            _ => WorkflowCommandSet.GetTaskAbandonSteps("Task_1", declarations),
+        };
+
+        Assert.NotEmpty(commandSet.Commands);
+        Assert.All(
+            commandSet.Commands,
+            step =>
+            {
+                Assert.NotNull(step.Labels);
+                Assert.Equal("Task_1", step.Labels[WorkflowCommandSet.ProcessTaskLabel]);
+                Assert.Equal(phase, step.Labels[WorkflowCommandSet.ProcessTaskPhaseLabel]);
+            }
+        );
+        // Side effects run as their own workflows and belong to no task phase.
+        Assert.All(commandSet.SideEffectCommands, step => Assert.Null(step.Labels));
+    }
+
+    [Theory]
+    [InlineData("start")]
+    [InlineData("end")]
+    [InlineData("abandon")]
+    public void LifecycleCommands_UseTheirOwnWireKeysAndPreserveSerializedPayloads(string phase)
+    {
+        const string payload = "{ \"taskId\": \"Task_1\", \"extra\": { \"version\": 2 } }";
+        WorkflowCommandRef[] declarations = [new("FirstCommand", payload), new("SecondCommand")];
+        WorkflowCommandSet commandSet = phase switch
+        {
+            "start" => WorkflowCommandSet.GetTaskStartSteps(
+                new TaskStartContext
+                {
+                    TaskId = "Task_1",
+                    ServiceTask = null,
+                    IsInitialTaskStart = false,
+                    StartCommands = declarations,
+                }
+            ),
+            "end" => WorkflowCommandSet.GetTaskEndSteps("Task_1", declarations),
+            _ => WorkflowCommandSet.GetTaskAbandonSteps("Task_1", declarations),
+        };
+        List<string> keys = Keys(commandSet.Commands);
+        Assert.Equal(keys.IndexOf("FirstCommand") + 1, keys.IndexOf("SecondCommand"));
+        Assert.DoesNotContain("ExecuteProcessTaskCommand", keys);
+        StepRequest first = Assert.Single(commandSet.Commands, s => s.CommandKey == "FirstCommand");
+        StepRequest second = Assert.Single(commandSet.Commands, s => s.CommandKey == "SecondCommand");
+        Assert.Equal("FirstCommand", first.OperationId);
+        Assert.Equal("SecondCommand", second.OperationId);
+        Assert.Equal(payload, JsonSerializer.Deserialize<AppCommandData>(first.Command.Data!.Value)!.Payload);
+        Assert.Null(JsonSerializer.Deserialize<AppCommandData>(second.Command.Data!.Value)!.Payload);
     }
 
     // ---------------------------------------------------------------------------------------------

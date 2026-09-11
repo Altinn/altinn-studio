@@ -1,16 +1,10 @@
-using System.Text.Json;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Payment.Exceptions;
-using Altinn.App.Core.Features.Payment.Models;
-using Altinn.App.Core.Features.Payment.Processors;
-using Altinn.App.Core.Features.Payment.Services;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -18,35 +12,21 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// <summary>
 /// Represents the process task responsible for collecting user payment.
 /// </summary>
+/// <remarks>
+/// Declares its work as commands: any earlier payment is cleaned up when the task is entered and when it is
+/// abandoned, and the payment is verified and its receipt generated when the task is ended.
+/// </remarks>
 internal sealed class PaymentProcessTask : IProcessTask
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
-
-    private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
-    private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IAppMetadata _appMetadata;
     private readonly IHostEnvironment _hostEnvironment;
-
-    private const string PdfContentType = "application/pdf";
-    private const string ReceiptFileName = "Betalingskvittering.pdf";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaymentProcessTask"/> class.
     /// </summary>
-    public PaymentProcessTask(
-        IPdfService pdfService,
-        IProcessReader processReader,
-        IPaymentService paymentService,
-        AppImplementationFactory appImplementationFactory,
-        IAppMetadata appMetadata,
-        IHostEnvironment hostEnvironment
-    )
+    public PaymentProcessTask(IProcessReader processReader, IHostEnvironment hostEnvironment)
     {
-        _pdfService = pdfService;
         _processReader = processReader;
-        _appImplementationFactory = appImplementationFactory;
-        _appMetadata = appMetadata;
         _hostEnvironment = hostEnvironment;
     }
 
@@ -54,146 +34,73 @@ internal sealed class PaymentProcessTask : IProcessTask
     public string Type => AltinnTaskTypes.Payment;
 
     /// <inheritdoc/>
-    public async Task Start(ProcessTaskContext context)
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
     {
-        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        Instance instance = dataMutator.Instance;
-        string taskId = GetTaskId(dataMutator);
-        ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
+        ValidAltinnPaymentConfiguration? paymentConfiguration = null;
+        string? configurationFinding = null;
+        try
+        {
+            paymentConfiguration = PaymentTaskConfiguration.Get(_processReader, context.TaskId);
+        }
+        catch (ApplicationConfigException e)
+        {
+            configurationFinding = $"Task '{context.TaskId}': {e.Message}";
+        }
 
+        if (configurationFinding is not null || paymentConfiguration is null)
+        {
+            yield return configurationFinding ?? $"Task '{context.TaskId}': payment configuration is missing.";
+            yield break;
+        }
+
+        // The payment data type should be app owned, so that the end user can't manipulate the data. Tell the
+        // developer during development if this is not the case.
         if (_hostEnvironment.IsDevelopment())
         {
-            ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
-            AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
-        }
-
-        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration);
-    }
-
-    /// <inheritdoc/>
-    public async Task End(ProcessTaskContext context)
-    {
-        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
-        string taskId = GetTaskId(dataMutator);
-        AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-
-        PaymentStatus paymentStatus = await GetPaymentStatus(dataMutator, paymentConfiguration.Validate());
-
-        if (paymentStatus == PaymentStatus.Skipped)
-            return;
-
-        if (paymentStatus != PaymentStatus.Paid)
-            throw new PaymentException("The payment is not completed.");
-
-        await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
-        using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, ct);
-
-        ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
-        dataMutator.AddBinaryDataElement(
-            validatedPaymentConfiguration.PaymentReceiptPdfDataType,
-            PdfContentType,
-            ReceiptFileName,
-            memoryStream.ToArray(),
-            generatedFromTask: taskId
-        );
-    }
-
-    /// <inheritdoc/>
-    public async Task Abandon(ProcessTaskContext context)
-    {
-        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        Instance instance = dataMutator.Instance;
-        string taskId = GetTaskId(dataMutator);
-        AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate());
-    }
-
-    private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
-        dataAccessor.TaskId
-        ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
-        ?? throw new InvalidOperationException("Process task requires a current task id.");
-
-    private static async Task<PaymentStatus> GetPaymentStatus(
-        IInstanceDataAccessor dataAccessor,
-        ValidAltinnPaymentConfiguration paymentConfiguration
-    )
-    {
-        DataElement? paymentDataElement = dataAccessor
-            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
-            .SingleOrDefault();
-        if (paymentDataElement is null)
-        {
-            throw new PaymentException("Payment information not found.");
-        }
-
-        ReadOnlyMemory<byte> paymentData = await dataAccessor.GetBinaryData(paymentDataElement);
-        PaymentInformation paymentInformation =
-            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
-            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
-
-        return paymentInformation.Status;
-    }
-
-    private async Task CleanupAnyExistingPayment(
-        IInstanceDataMutator dataMutator,
-        ValidAltinnPaymentConfiguration paymentConfiguration
-    )
-    {
-        DataElement? paymentDataElement = dataMutator
-            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
-            .SingleOrDefault();
-        if (paymentDataElement is null)
-        {
-            return;
-        }
-
-        ReadOnlyMemory<byte> paymentData = await dataMutator.GetBinaryData(paymentDataElement);
-        PaymentInformation paymentInformation =
-            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
-            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
-
-        if (paymentInformation.Status == PaymentStatus.Paid)
-        {
-            return;
-        }
-
-        if (paymentInformation.Status != PaymentStatus.Skipped)
-        {
-            string paymentProcessorId = paymentInformation.OrderDetails.PaymentProcessorId;
-            IPaymentProcessor paymentProcessor =
-                _appImplementationFactory
-                    .GetAll<IPaymentProcessor>()
-                    .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
-                ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
-
-            bool success = await paymentProcessor.TerminatePayment(dataMutator.Instance, paymentInformation);
-            string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
-            if (!success)
+            string? finding = null;
+            try
             {
-                throw new PaymentException(
-                    $"Unable to cancel existing {paymentProcessorId} payment with ID: {paymentId}."
+                AllowedContributorsHelper.EnsureDataTypeIsAppOwned(
+                    context.ApplicationMetadata,
+                    paymentConfiguration.Value.PaymentDataType
                 );
             }
-        }
+            catch (ApplicationConfigException e)
+            {
+                finding = $"Task '{context.TaskId}': {e.Message}";
+            }
 
-        dataMutator.RemoveDataElement(paymentDataElement);
+            if (finding is not null)
+            {
+                yield return finding;
+            }
+        }
     }
 
-    private AltinnPaymentConfiguration GetAltinnPaymentConfiguration(string taskId)
-    {
-        AltinnPaymentConfiguration? paymentConfiguration = _processReader
-            .GetAltinnTaskExtension(taskId)
-            ?.PaymentConfiguration;
+    /// <inheritdoc/>
+    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+        [
+            new WorkflowCommandRef(
+                CleanupPaymentCommand.Key,
+                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+            ),
+        ];
 
-        if (paymentConfiguration == null)
-        {
-            throw new ApplicationConfigException("PaymentConfig is missing in the payment process task configuration.");
-        }
+    /// <inheritdoc/>
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [
+            new WorkflowCommandRef(
+                CompletePaymentCommand.Key,
+                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+            ),
+        ];
 
-        _ = paymentConfiguration.Validate();
-
-        return paymentConfiguration;
-    }
+    /// <inheritdoc/>
+    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
+        [
+            new WorkflowCommandRef(
+                CleanupPaymentCommand.Key,
+                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+            ),
+        ];
 }

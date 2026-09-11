@@ -20,7 +20,18 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 )]
 [JsonDerivedType(typeof(EnqueueSideEffectsWorkflowPayload), typeDiscriminator: "enqueueSideEffectsWorkflow")]
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
-internal abstract record CommandRequestPayload;
+[JsonDerivedType(typeof(ProcessTaskPayload), typeDiscriminator: "processTask")]
+internal abstract record CommandRequestPayload
+{
+    internal virtual string? Validate() => null;
+}
+
+/// <summary>The explicit BPMN task identity for a built-in signing or payment command.</summary>
+internal sealed record ProcessTaskPayload(string TaskId) : CommandRequestPayload
+{
+    internal override string? Validate() =>
+        string.IsNullOrWhiteSpace(TaskId) ? "The process task ID is missing or empty." : null;
+}
 
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
 
@@ -37,6 +48,7 @@ internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayloa
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
+[JsonSerializable(typeof(ProcessTaskPayload))]
 [JsonSerializable(typeof(InstantiationNotification))]
 [JsonSerializable(typeof(InstantiationNotificationReminder))]
 [JsonSerializable(typeof(CustomSms))]

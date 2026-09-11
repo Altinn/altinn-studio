@@ -9,7 +9,9 @@ describe('getCurrentUserStatus', () => {
     signedTime: new Date().toISOString(),
     hasSigned: true,
     delegationSuccessful: true,
+    delegationFailure: undefined,
     notificationStatus: NotificationStatus.Sent,
+    notificationFailure: undefined,
     partyId: 123,
   };
 
@@ -19,7 +21,9 @@ describe('getCurrentUserStatus', () => {
     signedTime: null,
     hasSigned: false,
     delegationSuccessful: true,
+    delegationFailure: undefined,
     notificationStatus: NotificationStatus.Sent,
+    notificationFailure: undefined,
     partyId: 456,
   };
 
@@ -29,7 +33,9 @@ describe('getCurrentUserStatus', () => {
     signedTime: new Date().toISOString(),
     hasSigned: true,
     delegationSuccessful: true,
+    delegationFailure: undefined,
     notificationStatus: NotificationStatus.Sent,
+    notificationFailure: undefined,
     partyId: 457,
   };
 
@@ -39,7 +45,9 @@ describe('getCurrentUserStatus', () => {
     signedTime: null,
     hasSigned: false,
     delegationSuccessful: true,
+    delegationFailure: undefined,
     notificationStatus: NotificationStatus.Sent,
+    notificationFailure: undefined,
     partyId: 789,
   };
 

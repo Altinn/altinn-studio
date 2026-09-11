@@ -21,7 +21,7 @@ internal static class ServiceCollectionExtensions
         // Process engine callback helpers
         services.AddTransient<ProcessTaskResolver>();
         services.AddTransient<ProcessNextRequestFactory>();
-        services.AddSingleton<ProcessStepOptionsResolver>();
+        services.AddScoped<ProcessStepOptionsResolver>();
         services.AddTransient<WorkflowStateSigner>();
         services.AddTransient<WorkflowCallbackStateService>();
         services.AddTransient<MailboxDeliveryEnvelope>();
@@ -50,17 +50,14 @@ internal static class ServiceCollectionExtensions
         // Process engine callback handlers - TaskStart
         services.AddTransient<IWorkflowEngineCommand, CleanupGeneratedFromTask>();
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
-        services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
         services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
 
         // Process engine callback handlers - TaskAbandon
-        services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskAbandonHook>();
 
         // Process engine callback handlers - TaskEnd
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
-        services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
         services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
@@ -85,9 +82,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
-
-        // Validate all commands are registered
-        WorkflowEngineCommandValidator.Validate(services);
 
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();

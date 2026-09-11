@@ -380,7 +380,12 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     throw new MaskinportenAuthenticationException(
-                        $"Maskinporten authentication failed with status code {(int)httpResponse.StatusCode} ({httpResponse.StatusCode}): {content}"
+                        $"Maskinporten authentication failed with status code {(int)httpResponse.StatusCode} ({httpResponse.StatusCode}): {content}",
+                        new HttpRequestException(
+                            "Maskinporten returned an unsuccessful HTTP status.",
+                            null,
+                            httpResponse.StatusCode
+                        )
                     );
                 }
 

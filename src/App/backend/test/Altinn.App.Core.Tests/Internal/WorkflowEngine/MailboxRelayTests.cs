@@ -185,7 +185,7 @@ public class MailboxRelayTests
         return new MailboxRelay(
             new RecordingEngineClient(recorder),
             Mock.Of<IWorkflowCallbackTokenGenerator>(g => g.GenerateToken(It.IsAny<Guid>()) == "callback-token"),
-            new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
+            new ProcessStepOptionsResolver(sp),
             processEngine.Object
         );
     }

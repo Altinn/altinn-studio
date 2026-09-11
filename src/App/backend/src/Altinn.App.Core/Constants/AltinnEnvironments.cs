@@ -46,10 +46,22 @@ internal static class AltinnEnvironments
     }
 }
 
-internal enum HostingEnvironment
+/// <summary>
+/// The kind of environment an app is hosted in, resolved from the host environment name (for example
+/// <c>tt02</c> and <c>at22</c> are staging environments). Configuration that varies per environment is
+/// resolved against this.
+/// </summary>
+public enum HostingEnvironment
 {
+    /// <summary>The environment name matched no known environment.</summary>
     Unknown,
+
+    /// <summary>Local development, including localtest.</summary>
     Development,
+
+    /// <summary>Production.</summary>
     Production,
+
+    /// <summary>A test environment (tt02, at2x, yt01).</summary>
     Staging,
 }

@@ -3,13 +3,10 @@ using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
-using Altinn.App.Core.Internal.AltinnCdn;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,14 +25,11 @@ public sealed class SigningServiceTests : IDisposable
     private readonly SigningService _signingService;
 
     private readonly Mock<IAltinnPartyClient> _altinnPartyClient = new(MockBehavior.Strict);
-    private readonly Mock<IAltinnCdnClient> _altinnCdnClient = new(MockBehavior.Strict);
     private readonly Mock<ISigningDelegationService> _signingDelegationService = new(MockBehavior.Strict);
     private readonly Mock<ISigneeProvider> _signeeProvider = new(MockBehavior.Strict);
     private readonly Mock<ILogger<SigningService>> _logger = new();
     private readonly Mock<ISigneeContextsManager> _signeeContextsManager = new(MockBehavior.Strict);
     private readonly Mock<ISignDocumentManager> _signDocumentManager = new(MockBehavior.Strict);
-    private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly Mock<ISigningCallToActionService> _signingCallToActionService = new(MockBehavior.Strict);
     private readonly Mock<IAuthorizationClient> _authorizationClient = new(MockBehavior.Strict);
     private readonly Mock<IHostEnvironment> _hostEnvironment = new(MockBehavior.Strict);
 
@@ -53,10 +47,7 @@ public sealed class SigningServiceTests : IDisposable
         _signingService = new SigningService(
             _hostEnvironment.Object,
             _altinnPartyClient.Object,
-            _altinnCdnClient.Object,
             _signingDelegationService.Object,
-            _appMetadata.Object,
-            _signingCallToActionService.Object,
             _authorizationClient.Object,
             _logger.Object,
             _signeeContextsManager.Object,
@@ -1083,122 +1074,6 @@ public sealed class SigningServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeSignees_MissingSigneeStatesDataTypeId_ThrowsApplicationConfigException()
-    {
-        // Arrange
-        var signatureConfiguration = new AltinnSignatureConfiguration
-        {
-            SigneeStatesDataTypeId = null, // Missing required configuration
-            SignatureDataType = "signature",
-        };
-
-        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
-        var instance = new Instance
-        {
-            Id = "123/abc",
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
-            Data = [],
-        };
-        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
-
-        List<SigneeContext> signeeContexts = [];
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
-            _signingService.InitializeSignees(
-                cachedInstanceMutator.Object,
-                signeeContexts,
-                signatureConfiguration,
-                CancellationToken.None
-            )
-        );
-
-        Assert.Contains("SigneeStatesDataTypeId is not set", exception.Message);
-    }
-
-    [Fact]
-    public async Task InitializeSignees_StoresSigneeStatesTaggedWithGeneratedFromTask()
-    {
-        // Signee states are tagged with the signing task so re-entry cleanup owns their lifecycle.
-        // Creating the tagged element during task START is safe: Storage's stale-data cleanup is
-        // timestamp-guarded and spares elements created by the in-flight transition.
-        var signatureConfiguration = new AltinnSignatureConfiguration
-        {
-            SigneeStatesDataTypeId = "signeeStates",
-            SignatureDataType = "signature",
-        };
-
-        var cachedInstanceMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
-        var instance = new Instance
-        {
-            Id = "123/abc",
-            AppId = "ttd/app1",
-            InstanceOwner = new InstanceOwner { PartyId = "123" },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
-            Data = [],
-        };
-        List<SigneeContext> signeeContexts = [];
-        var applicationMetadata = new ApplicationMetadata("ttd/app")
-        {
-            DataTypes = [new DataType { Id = "signeeStates", ActionRequiredToRead = "restricted-read" }],
-        };
-
-        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
-        cachedInstanceMutator.Setup(x =>
-            x.OverrideAuthenticationMethod(
-                It.Is<DataType>(dataType => dataType.Id == "signeeStates"),
-                It.IsAny<StorageAuthenticationMethod>()
-            )
-        );
-        cachedInstanceMutator
-            .Setup(x =>
-                x.AddBinaryDataElement(
-                    "signeeStates",
-                    "application/json",
-                    null,
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    "Task_1",
-                    null
-                )
-            )
-            .Returns(
-                new BinaryDataChange(
-                    ChangeType.Created,
-                    new DataType { Id = "signeeStates" },
-                    "application/json",
-                    null,
-                    null,
-                    ReadOnlyMemory<byte>.Empty,
-                    "Task_1"
-                )
-            );
-        _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
-        _signingDelegationService
-            .Setup(x =>
-                x.DelegateSigneeRights(
-                    "Task_1",
-                    "123/abc",
-                    It.IsAny<Guid?>(),
-                    It.IsAny<AppIdentifier>(),
-                    It.IsAny<List<SigneeContext>>(),
-                    CancellationToken.None
-                )
-            )
-            .ReturnsAsync((signeeContexts, false));
-
-        List<SigneeContext> result = await _signingService.InitializeSignees(
-            cachedInstanceMutator.Object,
-            signeeContexts,
-            signatureConfiguration,
-            CancellationToken.None
-        );
-
-        Assert.Same(signeeContexts, result);
-        cachedInstanceMutator.VerifyAll();
-        _appMetadata.VerifyAll();
-    }
-
-    [Fact]
     public async Task GetInstanceOwnerParty_WithTtdOrganization_UsesDigitaliseringsdirektoratetOrgNumber()
     {
         // Arrange
@@ -1248,53 +1123,6 @@ public sealed class SigningServiceTests : IDisposable
 
         // Assert
         _altinnPartyClient.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task GetServiceOwnerParty_OrgTtd_ReturnsDigdir()
-    {
-        // Arrange
-        var orgDetails = new AltinnCdnOrgDetails
-        {
-            Name = new AltinnCdnOrgName
-            {
-                Nb = "Digitaliseringsdirektoratet",
-                Nn = "Digitaliseringsdirektoratet",
-                En = "Norwegian Digitalisation Agency",
-            },
-            Logo = "https://altinncdn.no/orgs/digdir/digdir.png",
-            Orgnr = "991825827",
-            Homepage = "https://www.digdir.no/",
-            Environments = ["tt02", "production"],
-        };
-
-        _altinnCdnClient.Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>())).ReturnsAsync(orgDetails);
-
-        _appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd" });
-
-        _altinnPartyClient
-            .Setup(x =>
-                x.LookupParty(It.Is<PartyLookup>(p => p.OrgNo == "991825827"), It.IsAny<StorageAuthenticationMethod?>())
-            )
-            .ReturnsAsync(
-                new Party
-                {
-                    Name = "Digitaliseringsdirektoratet",
-                    OrgNumber = "991825827",
-                    PartyTypeName = PartyType.Organisation,
-                }
-            );
-
-        // Act
-        (var result, bool success) = await _signingService.GetServiceOwnerParty(CancellationToken.None);
-
-        // Assert
-        Assert.True(success);
-        Assert.NotNull(result);
-        Assert.Equal("Digitaliseringsdirektoratet", result.Name);
-        Assert.Equal("991825827", result.OrgNumber);
     }
 
     [Fact]

@@ -1,0 +1,51 @@
+<bpmn:definitions xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="CustomerCommands" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="CustomerCommands" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Custom">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>customer</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Simple">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>customer-simple</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Pipeline">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>customer-pipeline</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Task_Custom" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Custom" targetRef="Task_Simple" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Simple" targetRef="Task_Pipeline" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_Pipeline" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

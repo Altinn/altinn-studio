@@ -445,28 +445,29 @@ public class MaskinportenClientTests
         Assert.NotEqual(token1, token2);
     }
 
-    [Fact]
-    public async Task ParseServerResponse_ThrowsOn_UnsuccessfulStatusCode()
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task ParseServerResponse_ThrowsOn_UnsuccessfulStatusCode(HttpStatusCode status)
     {
         // Arrange
-        var unauthorizedResponse = new HttpResponseMessage
+        using var unsuccessfulResponse = new HttpResponseMessage
         {
-            StatusCode = HttpStatusCode.Unauthorized,
+            StatusCode = status,
             Content = new StringContent(string.Empty),
         };
 
         // Act
         Func<Task> act = async () =>
         {
-            await MaskinportenClient.ParseServerResponse(unauthorizedResponse);
+            await MaskinportenClient.ParseServerResponse(unsuccessfulResponse);
         };
 
         // Assert
         var ex = await Assert.ThrowsAsync<MaskinportenAuthenticationException>(act);
-        Assert.Matches(
-            $"Maskinporten authentication failed with status code {(int)unauthorizedResponse.StatusCode} .*",
-            ex.Message
-        );
+        Assert.Matches($"Maskinporten authentication failed with status code {(int)status} .*", ex.Message);
+        Assert.Equal(status, Assert.IsType<HttpRequestException>(ex.InnerException).StatusCode);
     }
 
     [Fact]

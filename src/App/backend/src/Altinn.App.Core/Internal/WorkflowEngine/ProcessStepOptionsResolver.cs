@@ -15,25 +15,19 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// (tier 1) applies, so that field is left off the wire request entirely.
 /// </summary>
 /// <remarks>
-/// The tier-2 command defaults are static per command type and built once. The tier-3 lookup goes through
+/// The command defaults are read from the implementations resolved in the current scope. The tier-3 lookup goes through
 /// <see cref="AppImplementationFactory"/> on every call — never a cached instance — so it resolves the
 /// same handler (in the same request scope) that the command will resolve at execute time. That keeps
 /// build-time and run-time selection in agreement even when handlers are registered as scoped/transient.
 /// </remarks>
 internal sealed class ProcessStepOptionsResolver
 {
-    private readonly IReadOnlyDictionary<string, ProcessStepOptions?> _commandDefaults;
+    private IReadOnlyDictionary<string, ProcessStepOptions?>? _commandDefaults;
     private readonly AppImplementationFactory _appImplementationFactory;
 
-    public ProcessStepOptionsResolver(
-        IEnumerable<IWorkflowEngineCommand> commands,
-        AppImplementationFactory appImplementationFactory
-    )
+    public ProcessStepOptionsResolver(IServiceProvider services)
     {
-        _appImplementationFactory = appImplementationFactory;
-        _commandDefaults = commands
-            .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
-            .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
+        _appImplementationFactory = new AppImplementationFactory(services);
     }
 
     /// <summary>
@@ -55,6 +49,10 @@ internal sealed class ProcessStepOptionsResolver
         int? serviceTaskItemIndex = null
     )
     {
+        _commandDefaults ??= _appImplementationFactory
+            .GetAll<IWorkflowEngineCommand>()
+            .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
             commandKey,

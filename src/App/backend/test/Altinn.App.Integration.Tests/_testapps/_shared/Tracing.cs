@@ -12,6 +12,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -54,6 +55,9 @@ public static class TracingDI
         services.AddSingleton<IProcessEnd, ProcessEnd>();
         services.AddSingleton<IProcessTask, TracingDataProcessTask>();
         services.AddSingleton<IProcessTask, TracingConfirmationProcessTask>();
+        services.AddSingleton<IWorkflowEngineCommand, TracingStartCommand>();
+        services.AddSingleton<IWorkflowEngineCommand, TracingEndCommand>();
+        services.AddSingleton<IWorkflowEngineCommand, TracingAbandonCommand>();
         services.AddSingleton<ITaskValidator, TaskValidator>();
         services.AddSingleton<IUserAction, UserAction>();
         services.AddSingleton<IUserActionAuthorizer, UserActionAuthorizer>();
@@ -274,45 +278,66 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public Task Start(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
-    }
+    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingStartCommand.Key)];
 
-    public Task End(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
-    }
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingEndCommand.Key)];
 
-    public Task Abandon(ProcessTaskContext context)
-    {
-        SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
-    }
+    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingAbandonCommand.Key)];
 }
 
 internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public Task Start(ProcessTaskContext context)
+    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingStartCommand.Key)];
+
+    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingEndCommand.Key)];
+
+    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
+        [new WorkflowCommandRef(TracingAbandonCommand.Key)];
+}
+
+internal sealed class TracingStartCommand : IWorkflowEngineCommand
+{
+    public static string Key => "TracingStart";
+
+    public string GetKey() => Key;
+
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Start");
-        return Task.CompletedTask;
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
+}
 
-    public Task End(ProcessTaskContext context)
+internal sealed class TracingEndCommand : IWorkflowEngineCommand
+{
+    public static string Key => "TracingEnd";
+
+    public string GetKey() => Key;
+
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.End");
-        return Task.CompletedTask;
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
+}
 
-    public Task Abandon(ProcessTaskContext context)
+internal sealed class TracingAbandonCommand : IWorkflowEngineCommand
+{
+    public static string Key => "TracingAbandon";
+
+    public string GetKey() => Key;
+
+    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {
         SnapshotLogger.LogInfo("IProcessTask.Abandon");
-        return Task.CompletedTask;
+        return Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 }
 

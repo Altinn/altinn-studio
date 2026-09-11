@@ -80,6 +80,8 @@ public class ExecuteServiceTaskTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutator,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
+            StepId = stepId,
             Payload = new AppCallbackPayload
             {
                 CommandKey = ExecuteServiceTask.Key,
@@ -101,16 +103,7 @@ public class ExecuteServiceTaskTests
     private static ProcessEngineCommandContext WithExecutionReferenceTime(
         ProcessEngineCommandContext context,
         DateTimeOffset executionReferenceTime
-    ) =>
-        new()
-        {
-            StateCarry = context.StateCarry,
-            AppId = context.AppId,
-            InstanceId = context.InstanceId,
-            InstanceDataMutator = context.InstanceDataMutator,
-            CancellationToken = context.CancellationToken,
-            Payload = context.Payload with { ExecutionReferenceTime = executionReferenceTime },
-        };
+    ) => context with { Payload = context.Payload with { ExecutionReferenceTime = executionReferenceTime } };
 
     private static Instance CreateInstance(string taskId = "Task_1")
     {

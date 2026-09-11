@@ -109,7 +109,7 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
     {
         using var client = new HttpClient
         {
-            BaseAddress = new Uri("http://workflow-engine.local.altinn.cloud:8000"),
+            BaseAddress = new Uri($"http://workflow-engine.local.altinn.cloud:{AppFixture.StudioctlLocaltestHostPort}"),
             Timeout = TimeSpan.FromSeconds(10),
         };
         client.DefaultRequestHeaders.Add("User-Agent", "Altinn.App.Integration.Tests");

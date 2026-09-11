@@ -1192,13 +1192,32 @@ namespace Altinn.App.Api.Models
         [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationSourcePair>? ValidationIssues { get; init; }
     }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Api.Models.SigneeDelegationFailure>))]
+    public enum SigneeDelegationFailure
+    {
+        InvalidParty = 0,
+        Rejected = 1,
+        Unknown = 2,
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Api.Models.SigneeNotificationFailure>))]
+    public enum SigneeNotificationFailure
+    {
+        Configuration = 0,
+        ServiceOwnerUnavailable = 1,
+        Rejected = 2,
+        Unknown = 3,
+    }
     public class SigneeState
     {
         public SigneeState() { }
+        [System.Text.Json.Serialization.JsonPropertyName("delegationFailure")]
+        public Altinn.App.Api.Models.SigneeDelegationFailure? DelegationFailure { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("delegationSuccessful")]
         public bool DelegationSuccessful { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("name")]
         public string? Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("notificationFailure")]
+        public Altinn.App.Api.Models.SigneeNotificationFailure? NotificationFailure { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("notificationStatus")]
         public Altinn.App.Api.Models.NotificationStatus NotificationStatus { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("organization")]

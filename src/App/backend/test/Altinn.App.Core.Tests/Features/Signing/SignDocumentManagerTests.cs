@@ -188,6 +188,7 @@ public sealed class SignDocumentManagerTests : IDisposable
         {
             TaskId = taskId,
             Signee = signee,
+            AdditionalActionsToDelegate = ["reject"],
             SigneeState = new SigneeContextState { IsAccessDelegated = false },
             SignDocument = signDocument,
         };
@@ -348,6 +349,29 @@ public sealed class SignDocumentManagerTests : IDisposable
         );
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SynchronizeSigneeContextsWithSignDocuments_UnsignedRecipient_PreservesIdentity(bool legacyState)
+    {
+        var context = CreateSigneeContext("Task_1", CreatePersonSignee("12345678901", "Test Person"));
+        context.SigneeId = legacyState ? null : Guid.NewGuid();
+
+        List<SigneeContext> result = await _signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
+            "Task_1",
+            [context],
+            [],
+            CancellationToken.None
+        );
+
+        SigneeContext synchronized = Assert.Single(result);
+        Assert.NotSame(context, synchronized);
+        Assert.Equal(context.SigneeId, synchronized.SigneeId);
+        Assert.Same(context.AdditionalActionsToDelegate, synchronized.AdditionalActionsToDelegate);
+        Assert.Same(context.Signee, synchronized.Signee);
+        Assert.Null(synchronized.SignDocument);
+    }
+
     [Fact]
     public async Task SynchronizeSigneeContextsWithSignDocuments_WithMatchingPersonSignee_UpdatesSigneeContext()
     {
@@ -356,6 +380,7 @@ public sealed class SignDocumentManagerTests : IDisposable
 
         var personSignee = CreatePersonSignee("12345678901", "Test Person");
         var signeeContext = CreateSigneeContext(taskId, personSignee);
+        signeeContext.SigneeId = Guid.NewGuid();
         var signDocument = CreateSignDocument("12345678901", null, null);
 
         // Act
@@ -369,6 +394,8 @@ public sealed class SignDocumentManagerTests : IDisposable
         // Assert
         Assert.Single(result);
         SigneeContext updatedSigneeContext = result[0];
+        Assert.Equal(signeeContext.SigneeId, updatedSigneeContext.SigneeId);
+        Assert.Same(signeeContext.AdditionalActionsToDelegate, updatedSigneeContext.AdditionalActionsToDelegate);
         Assert.NotNull(updatedSigneeContext.SignDocument);
         Assert.Equal(signDocument, updatedSigneeContext.SignDocument);
     }
@@ -437,6 +464,7 @@ public sealed class SignDocumentManagerTests : IDisposable
 
         var orgSignee = CreateOrganizationSignee("123456789", "Test Organization");
         var signeeContext = CreateSigneeContext(taskId, orgSignee);
+        signeeContext.SigneeId = Guid.NewGuid();
         var signDocument = CreateSignDocument("12345678901", "123456789", null);
 
         // Act
@@ -450,6 +478,8 @@ public sealed class SignDocumentManagerTests : IDisposable
         // Assert
         Assert.Single(result);
         SigneeContext updatedSigneeContext = result[0];
+        Assert.Equal(signeeContext.SigneeId, updatedSigneeContext.SigneeId);
+        Assert.Same(signeeContext.AdditionalActionsToDelegate, updatedSigneeContext.AdditionalActionsToDelegate);
         Assert.NotNull(updatedSigneeContext.SignDocument);
         Assert.Equal(signDocument, updatedSigneeContext.SignDocument);
 
@@ -469,6 +499,7 @@ public sealed class SignDocumentManagerTests : IDisposable
 
         var orgSignee = CreateOrganizationSignee("123456789", "Test Organization");
         var signeeContext = CreateSigneeContext(taskId, orgSignee);
+        signeeContext.SigneeId = Guid.NewGuid();
         var signDocument = CreateSignDocument(null, "123456789", systemId);
 
         // Act
@@ -482,6 +513,8 @@ public sealed class SignDocumentManagerTests : IDisposable
         // Assert
         Assert.Single(result);
         SigneeContext updatedSigneeContext = result[0];
+        Assert.Equal(signeeContext.SigneeId, updatedSigneeContext.SigneeId);
+        Assert.Same(signeeContext.AdditionalActionsToDelegate, updatedSigneeContext.AdditionalActionsToDelegate);
         Assert.NotNull(updatedSigneeContext.SignDocument);
         Assert.Equal(signDocument, updatedSigneeContext.SignDocument);
 
@@ -521,7 +554,8 @@ public sealed class SignDocumentManagerTests : IDisposable
         Assert.NotNull(result[0].SignDocument);
         Assert.Equal(signDocument1, result[0].SignDocument);
 
-        // Second context should be created for second document
+        // Second context should be created for second document and has no frozen notification workflow.
+        Assert.Null(result[1].SigneeId);
         Assert.NotNull(result[1].SignDocument);
         Assert.Equal(signDocument2, result[1].SignDocument);
         Assert.Equal(taskId, result[1].TaskId);

@@ -212,7 +212,11 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         var port = fixture.PdfHostPort.ToString();
         Assert.NotNull(port);
         var response = await fixture.Connectivity.Pdf();
-        await Verify(response).AddScrubber(sb => sb.Replace(port, "<pdfPort>"));
+        await Verify(response)
+            .AddScrubber(sb =>
+                sb.Replace($":{port}/", ":<pdfPort>/")
+                    .Replace($":{AppFixture.StudioctlLocaltestHostPort}/", ":<localtestPort>/")
+            );
         if (!response.Success)
         {
             _output.WriteLine(response.ResponseContent ?? "null");
@@ -228,7 +232,8 @@ public class BasicAppTests(ITestOutputHelper _output, AppFixtureClassFixture _cl
         var fixture = fixtureScope.Fixture;
 
         var response = await fixture.Connectivity.Localtest();
-        await Verify(response);
+        await Verify(response)
+            .AddScrubber(sb => sb.Replace($":{AppFixture.StudioctlLocaltestHostPort}/", ":<localtestPort>/"));
         Assert.True(response.Success); // Connectivity is a prereq, so we fail hard here
     }
 

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
@@ -71,11 +72,12 @@ public class WorkflowEngineCallbackController : ControllerBase
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-        IWorkflowEngineCommand? command = _serviceProvider
-            .GetServices<IWorkflowEngineCommand>()
-            .FirstOrDefault(x => x.GetKey() == commandKey);
+        List<IWorkflowEngineCommand> commands = new AppImplementationFactory(_serviceProvider)
+            .GetAll<IWorkflowEngineCommand>()
+            .Where(command => string.Equals(command.GetKey(), commandKey, StringComparison.Ordinal))
+            .ToList();
 
-        if (command is null)
+        if (commands.Count == 0)
         {
             _logger.LogError(
                 "Workflow app command '{CommandKey}' not found. Instance: {InstanceId}.",
@@ -89,6 +91,22 @@ public class WorkflowEngineCallbackController : ControllerBase
                 StatusCodes.Status404NotFound
             );
         }
+
+        if (commands.Count > 1)
+        {
+            _logger.LogError(
+                "Multiple workflow commands use key '{CommandKey}': {CommandTypes}.",
+                commandKey,
+                string.Join(", ", commands.Select(command => command.GetType().FullName))
+            );
+            return NonRetryableProblem(
+                "Ambiguous Command",
+                $"Multiple workflow commands are registered with key '{commandKey}'.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        IWorkflowEngineCommand command = commands[0];
 
         // Restore instance and form data from the opaque state blob.
         // State must always be provided — every workflow is enqueued with a captured state blob.
@@ -134,17 +152,33 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
-        ProcessEngineCommandResult result = await command.Execute(
-            new ProcessEngineCommandContext
-            {
-                AppId = appId,
-                InstanceId = instanceId,
-                InstanceDataMutator = instanceDataUnitOfWork,
-                CancellationToken = ct,
-                Payload = payload,
-                StateCarry = stateCarry,
-            }
-        );
+
+        ProcessEngineCommandResult result;
+        try
+        {
+            result = await command.Execute(
+                new ProcessEngineCommandContext
+                {
+                    AppId = appId,
+                    InstanceId = instanceId,
+                    InstanceDataMutator = instanceDataUnitOfWork,
+                    CancellationToken = ct,
+                    WorkflowId = payload.WorkflowId,
+                    StepId = payload.StepId,
+                    CommandPayload = payload.Payload,
+                    Payload = payload,
+                    StateCarry = stateCarry,
+                }
+            );
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            result = FailedProcessEngineCommandResult.Retryable(exception);
+        }
 
         switch (result)
         {
@@ -417,11 +451,15 @@ public class WorkflowEngineCallbackController : ControllerBase
             default:
                 _logger.LogError(
                     "Unexpected callback result type: {ResultType}. CommandKey: {CommandKey}, Instance: {InstanceId}",
-                    result.GetType().Name,
+                    result?.GetType().Name ?? "null",
                     commandKey,
                     instanceId
                 );
-                throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
+                return NonRetryableProblem(
+                    "Invalid Command Result",
+                    $"Workflow command '{commandKey}' returned an unsupported result.",
+                    StatusCodes.Status422UnprocessableEntity
+                );
         }
     }
 

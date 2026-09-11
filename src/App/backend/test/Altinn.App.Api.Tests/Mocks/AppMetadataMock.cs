@@ -58,13 +58,22 @@ public class AppMetadataMock : IAppMetadata
             return _application;
         }
 
-        if (_contextAccessor.HttpContext == null)
+        // Startup validation runs before there is a request. Read the configured app in that scope,
+        // while preserving the request-based fixture routing used by API tests.
+        string filename;
+        if (_contextAccessor.HttpContext is { } context)
         {
-            throw new Exception("HttpContext is null");
+            AppIdentifier appIdentifier = AppIdentifier.CreateFromUrl(context.Request.GetDisplayUrl());
+            filename = TestData.GetApplicationMetadataPath(appIdentifier.Org, appIdentifier.App);
         }
-
-        AppIdentifier appIdentifier = AppIdentifier.CreateFromUrl(_contextAccessor.HttpContext.Request.GetDisplayUrl());
-        string filename = TestData.GetApplicationMetadataPath(appIdentifier.Org, appIdentifier.App);
+        else
+        {
+            filename = Path.Join(
+                _settings.AppBasePath,
+                _settings.ConfigurationFolder,
+                _settings.ApplicationMetadataFileName
+            );
+        }
 
         try
         {

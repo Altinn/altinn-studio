@@ -1,15 +1,16 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Extensions;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
@@ -25,16 +26,9 @@ internal sealed class SigneeContextsManager(
     Telemetry? telemetry = null
 ) : ISigneeContextsManager
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(
-        new JsonSerializerOptions
-        {
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true,
-            ReferenceHandler = ReferenceHandler.Preserve,
-            MaxDepth = 16,
-        }
-    );
+    private const string ApplicationJsonContentType = "application/json";
+
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = SigneeStateSerialization.Options;
 
     /// <inheritdoc />
     public async Task<List<SigneeContext>> GenerateSigneeContexts(
@@ -94,6 +88,87 @@ internal sealed class SigneeContextsManager(
         return signeeContexts;
     }
 
+    /// <inheritdoc />
+    public DataElement? FindTaskSigneeStateElement(
+        IInstanceDataAccessor instanceDataAccessor,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId
+    )
+    {
+        string dataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
+        return PickOne(
+            instanceDataAccessor
+                .GetDataElementsForType(dataTypeId)
+                .Where(dataElement => IsGeneratedFromTask(dataElement, taskId))
+                .ToList(),
+            $"tagged with task '{taskId}'"
+        );
+    }
+
+    /// <inheritdoc />
+    public void RemoveOtherSigneeStateElements(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId
+    )
+    {
+        string dataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
+        List<DataElement> others = instanceDataMutator
+            .GetDataElementsForType(dataTypeId)
+            .Where(dataElement => !IsGeneratedFromTask(dataElement, taskId))
+            .ToList();
+
+        foreach (DataElement other in others)
+        {
+            logger.LogInformation(
+                "Removing signee state element {DataElementId} of task {TaskId}: it is not tagged with this task "
+                    + "(a previous version of the app, or another visit).",
+                other.Id,
+                taskId
+            );
+            instanceDataMutator.RemoveDataElement(other);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<List<SigneeContext>> LoadSigneeContexts(
+        IInstanceDataAccessor instanceDataAccessor,
+        AltinnSignatureConfiguration signatureConfiguration,
+        DataElement signeeStateDataElement
+    )
+    {
+        await OverrideAuthentication(instanceDataAccessor, signatureConfiguration);
+        return await Deserialize(instanceDataAccessor, signeeStateDataElement);
+    }
+
+    /// <inheritdoc />
+    public async Task PersistSigneeContexts(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId,
+        List<SigneeContext> signeeContexts
+    )
+    {
+        string dataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
+        await OverrideAuthentication(instanceDataMutator, signatureConfiguration);
+
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions);
+        DataElement? existing = FindTaskSigneeStateElement(instanceDataMutator, signatureConfiguration, taskId);
+        if (existing is not null)
+        {
+            instanceDataMutator.UpdateBinaryDataElement(existing, ApplicationJsonContentType, bytes);
+            return;
+        }
+
+        instanceDataMutator.AddBinaryDataElement(
+            dataTypeId: dataTypeId,
+            contentType: ApplicationJsonContentType,
+            filename: null,
+            bytes: bytes,
+            generatedFromTask: taskId
+        );
+    }
+
     /// <summary>
     /// Get signees from the signee provider implemented in the App.
     /// </summary>
@@ -140,7 +215,27 @@ internal sealed class SigneeContextsManager(
         CancellationToken ct
     )
     {
-        Signee signee = await From(providedSignee, (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup));
+        Signee signee;
+        try
+        {
+            signee = await From(providedSignee, (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup));
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            SigningFailureClassification classification = SigningFailureClassifier.ClassifyPartyLookup(exception, ct);
+            if (classification.IsTransient)
+            {
+                throw;
+            }
+
+            throw new SigneeInitializationPermanentException(
+                $"A signee's party could not be resolved: {classification.Reason}. Correct the signee data before resuming the transition."
+            );
+        }
         Party party = signee.GetParty();
 
         Notification? notification = providedSignee.CommunicationConfig?.Notification;
@@ -172,22 +267,13 @@ internal sealed class SigneeContextsManager(
         AltinnSignatureConfiguration signatureConfiguration
     )
     {
-        string signeeStatesDataTypeId =
-            signatureConfiguration.SigneeStatesDataTypeId
-            ?? throw new ApplicationConfigException(
-                "SigneeStatesDataTypeId is not set in the signature configuration."
-            );
+        string signeeStatesDataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
+        await OverrideAuthentication(instanceDataAccessor, signatureConfiguration);
 
-        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
-        instanceDataAccessor.OverrideAuthenticationMethodForRestrictedDataTypes(
-            applicationMetadata,
-            [signatureConfiguration.SigneeStatesDataTypeId],
-            StorageAuthenticationMethod.ServiceOwner()
+        DataElement? signeeStateDataElement = PickOne(
+            instanceDataAccessor.GetDataElementsForType(signeeStatesDataTypeId).ToList(),
+            "of the signee state data type"
         );
-
-        IEnumerable<DataElement> dataElements = instanceDataAccessor.GetDataElementsForType(signeeStatesDataTypeId);
-
-        DataElement? signeeStateDataElement = dataElements.SingleOrDefault();
 
         if (signeeStateDataElement is null)
         {
@@ -195,12 +281,64 @@ internal sealed class SigneeContextsManager(
             return [];
         }
 
+        return await Deserialize(instanceDataAccessor, signeeStateDataElement);
+    }
+
+    private static async Task<List<SigneeContext>> Deserialize(
+        IInstanceDataAccessor instanceDataAccessor,
+        DataElement signeeStateDataElement
+    )
+    {
         ReadOnlyMemory<byte> data = await instanceDataAccessor.GetBinaryData(signeeStateDataElement);
         string signeeStateSerialized = Encoding.UTF8.GetString(data.ToArray());
 
-        List<SigneeContext> signeeContexts =
-            JsonSerializer.Deserialize<List<SigneeContext>>(signeeStateSerialized, _jsonSerializerOptions) ?? [];
-
-        return signeeContexts;
+        return JsonSerializer.Deserialize<List<SigneeContext>>(signeeStateSerialized, _jsonSerializerOptions) ?? [];
     }
+
+    private async Task OverrideAuthentication(
+        IInstanceDataAccessor instanceDataAccessor,
+        AltinnSignatureConfiguration signatureConfiguration
+    )
+    {
+        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        instanceDataAccessor.OverrideAuthenticationMethodForRestrictedDataTypes(
+            applicationMetadata,
+            [GetSigneeStatesDataTypeId(signatureConfiguration)],
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+    }
+
+    /// <summary>
+    /// The one element among candidates that should be exactly one. Two can exist after a lost callback response
+    /// duplicated a create; rather than failing every read of the signing task, the most recently changed one is
+    /// used and the duplicate is reported.
+    /// </summary>
+    private DataElement? PickOne(List<DataElement> candidates, string description)
+    {
+        if (candidates.Count <= 1)
+        {
+            return candidates.SingleOrDefault();
+        }
+
+        logger.LogError(
+            "Found {Count} signee state elements {Description} where exactly one is expected: {DataElementIds}. "
+                + "Using the most recently changed one; remove the others.",
+            candidates.Count,
+            description,
+            string.Join(", ", candidates.Select(dataElement => dataElement.Id))
+        );
+        return candidates.OrderByDescending(dataElement => dataElement.LastChanged ?? DateTime.MinValue).First();
+    }
+
+    private static bool IsGeneratedFromTask(DataElement dataElement, string taskId) =>
+        dataElement.References?.Exists(reference =>
+            reference.Relation == RelationType.GeneratedFrom
+            && reference.ValueType == ReferenceType.Task
+            && reference.Value == taskId
+        )
+            is true;
+
+    private static string GetSigneeStatesDataTypeId(AltinnSignatureConfiguration signatureConfiguration) =>
+        signatureConfiguration.SigneeStatesDataTypeId
+        ?? throw new ApplicationConfigException("SigneeStatesDataTypeId is not set in the signature configuration.");
 }

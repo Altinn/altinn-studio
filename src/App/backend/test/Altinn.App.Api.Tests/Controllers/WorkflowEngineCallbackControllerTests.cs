@@ -685,6 +685,11 @@ public class WorkflowEngineCallbackControllerTests
     )
     {
         var services = new MockedServiceCollection();
+        services.Services.AddSingleton(
+            Mock.Of<IProcessReader>(reader =>
+                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
+            )
+        );
         services.AddDataType(
             new DataType
             {

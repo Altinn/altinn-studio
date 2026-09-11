@@ -41,4 +41,17 @@ internal sealed class SigneeContextState
     /// </summary>
     [JsonPropertyName("callToSignFailedReason")]
     public string? CallToSignFailedReason { get; set; }
+
+    /// <summary>
+    /// Why delegation failed permanently, when it did. Null when delegation succeeded or has not been attempted.
+    /// </summary>
+    [JsonPropertyName("delegationFailure")]
+    public DelegationFailureCode? DelegationFailure { get; set; }
+
+    /// <summary>
+    /// Why the call-to-action notification failed permanently, when it did. Null when it was sent or has not been
+    /// attempted.
+    /// </summary>
+    [JsonPropertyName("notificationFailure")]
+    public NotificationFailureCode? NotificationFailure { get; set; }
 }

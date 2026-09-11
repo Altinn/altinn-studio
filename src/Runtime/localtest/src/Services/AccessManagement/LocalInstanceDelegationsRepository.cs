@@ -1,22 +1,23 @@
 #nullable disable
 
-using System.Buffers.Text;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.AccessManagement.Controllers;
 using LocalTest.Configuration;
+using LocalTest.Services.Storage.Implementation;
 using Microsoft.Extensions.Options;
 
 namespace LocalTest.Services.AccessManagement;
 
-public sealed class LocalInstanceDelegationsRepository
+public sealed class LocalInstanceDelegationsRepository : IDisposable
 {
     private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
     };
     private readonly LocalPlatformSettings _settings;
+    private readonly AsyncLock _mutationLock = new();
 
     public LocalInstanceDelegationsRepository(IOptions<LocalPlatformSettings> settings)
     {
@@ -55,27 +56,95 @@ public sealed class LocalInstanceDelegationsRepository
 
     public async Task Save(AppsInstanceDelegationResponseDto delegation)
     {
+        using var mutationLock = await _mutationLock.Lock();
         var directory = Storage();
         var id = Hash(delegation);
         var fileName = Path.Join(directory.FullName, $"{delegation.InstanceId}-{id}.json");
-        var file = new FileInfo(fileName);
-        if (file.Exists)
-            throw new Exception($"Instance delegation already exists: {file.FullName}");
+        var rights = new List<RightDelegationResultDto>();
+        if (File.Exists(fileName))
+        {
+            await using var existingStream = File.OpenRead(fileName);
+            var existing = await JsonSerializer.DeserializeAsync<AppsInstanceDelegationResponseDto>(existingStream, _options);
+            if (existing is not null)
+            {
+                rights.AddRange(existing.Rights);
+            }
+        }
 
-        await using var stream = File.OpenWrite(file.FullName);
-        await JsonSerializer.SerializeAsync(stream, delegation, _options);
+        // Access Management adds missing rights to the existing delegation and accepts repeated grants.
+        // Resource attributes identify a right regardless of their order in the request.
+        foreach (var right in delegation.Rights)
+        {
+            if (!rights.Any(existing => MatchesRight(existing, right)))
+            {
+                rights.Add(right);
+            }
+        }
+
+        var persisted = new AppsInstanceDelegationResponseDto
+        {
+            From = delegation.From,
+            To = delegation.To,
+            ResourceId = delegation.ResourceId,
+            InstanceId = delegation.InstanceId,
+            Rights = rights
+        };
+
+        await Write(fileName, persisted);
     }
 
-    public void Delete(AppsInstanceDelegationResponseDto delegation)
+    public void Dispose() => _mutationLock.Dispose();
+
+    public async Task Delete(AppsInstanceDelegationResponseDto delegation)
     {
+        using var mutationLock = await _mutationLock.Lock();
         var directory = Storage();
         var id = Hash(delegation);
         var fileName = Path.Join(directory.FullName, $"{delegation.InstanceId}-{id}.json");
-        var file = new FileInfo(fileName);
-        if (!file.Exists)
-            throw new Exception($"Instance delegation doesn't exist: {file.FullName}");
+        if (!File.Exists(fileName))
+        {
+            return;
+        }
 
-        file.Delete();
+        AppsInstanceDelegationResponseDto persisted;
+        await using (var stream = File.OpenRead(fileName))
+        {
+            persisted = await JsonSerializer.DeserializeAsync<AppsInstanceDelegationResponseDto>(stream, _options);
+        }
+
+        var requestedRights = delegation.Rights.ToList();
+        var remainingRights = persisted?.Rights
+            .Where(existing => !requestedRights.Any(requested => MatchesRight(existing, requested)))
+            .ToArray() ?? [];
+        if (remainingRights.Length == 0)
+        {
+            File.Delete(fileName);
+            return;
+        }
+
+        persisted.Rights = remainingRights;
+        await Write(fileName, persisted);
+    }
+
+    private static bool MatchesRight(RightDelegationResultDto left, RightDelegationResultDto right) =>
+        left.Action == right.Action && left.Resource.ToHashSet().SetEquals(right.Resource);
+
+    private static async Task Write(string fileName, AppsInstanceDelegationResponseDto delegation)
+    {
+        // Publish a complete file so authorization reads cannot observe a partially written delegation.
+        var temporaryFile = fileName + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await using (var stream = File.Create(temporaryFile))
+            {
+                await JsonSerializer.SerializeAsync(stream, delegation, _options);
+            }
+            File.Move(temporaryFile, fileName, overwrite: true);
+        }
+        finally
+        {
+            File.Delete(temporaryFile);
+        }
     }
 
     private static string Hash(AppsInstanceDelegationResponseDto delegation)

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
@@ -16,6 +17,8 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -167,6 +170,8 @@ public class SigningControllerTests
                     IsAccessDelegated = false,
                     HasBeenMessagedForCallToSign = false,
                     CallToSignFailedReason = "callToSignFailedReason",
+                    DelegationFailure = DelegationFailureCode.Rejected,
+                    NotificationFailure = NotificationFailureCode.ServiceOwnerUnavailable,
                 },
                 SignDocument = null,
             },
@@ -284,6 +289,8 @@ public class SigningControllerTests
                     NotificationStatus = NotificationStatus.Failed,
                     SignedTime = null,
                     PartyId = 1,
+                    DelegationFailure = SigneeDelegationFailure.Rejected,
+                    NotificationFailure = SigneeNotificationFailure.ServiceOwnerUnavailable,
                 },
                 new SigneeState
                 {
@@ -302,6 +309,7 @@ public class SigningControllerTests
                     NotificationStatus = NotificationStatus.Failed,
                     SignedTime = signedTime,
                     PartyId = 2,
+                    NotificationFailure = SigneeNotificationFailure.Unknown,
                 },
                 new SigneeState
                 {
@@ -385,6 +393,8 @@ public class SigningControllerTests
                     Organization = null,
                     DelegationSuccessful = false,
                     NotificationStatus = NotificationStatus.Failed,
+                    DelegationFailure = SigneeDelegationFailure.Unknown,
+                    NotificationFailure = SigneeNotificationFailure.Unknown,
                     SignedTime = null,
                     PartyId = 1,
                 },
@@ -1607,6 +1617,138 @@ public class SigningControllerTests
             "This endpoint is only callable while the current task is a signing task, or when taskId query param is set to a signing task's ID.",
             problemDetails.Detail
         );
+    }
+
+    [Fact]
+    public async Task GetSigneesState_LegacyRecipients_DoNotNeedWorkflowEngine()
+    {
+        var client = SetupNotificationProjection(
+            _ => throw new InvalidOperationException("Legacy state must not query the engine"),
+            legacyOnly: true
+        );
+        await using var services = _serviceCollection.BuildStrictServiceProvider();
+        var controller = services.GetRequiredService<SigningController>();
+
+        var result = Assert.IsType<OkObjectResult>(
+            await controller.GetSigneesState("tdd", "app", 1337, Guid.NewGuid(), CancellationToken.None)
+        );
+
+        Assert.Equal(3, Assert.IsType<SigningStateResponse>(result.Value).SigneeStates.Count);
+        client.VerifyNoOtherCalls();
+    }
+
+    private Mock<IWorkflowEngineClient> SetupNotificationProjection(
+        Func<CancellationToken, Task<IReadOnlyList<WorkflowStatusResponse>>> query,
+        bool legacyOnly = false
+    )
+    {
+        SetupAuthenticationContextMock();
+        var instance = new Instance
+        {
+            Id = $"1337/{Guid.NewGuid()}",
+            AppId = "tdd/app",
+            Org = "tdd",
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "task1", AltinnTaskType = "signing" },
+            },
+            Data = [],
+        };
+        _instanceClientMock
+            .Setup(value =>
+                value.GetInstance(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(instance);
+        List<SigneeContext> contexts = Enumerable
+            .Range(1, 3)
+            .Select(partyId => new SigneeContext
+            {
+                TaskId = "task1",
+                SigneeId = legacyOnly || partyId == 3 ? null : Guid.NewGuid(),
+                Signee = new OrganizationSignee
+                {
+                    OrgName = $"Organization {partyId}",
+                    OrgNumber = "123456789",
+                    OrgParty = new Party { PartyId = partyId },
+                },
+                SigneeState = new SigneeContextState
+                {
+                    IsAccessDelegated = true,
+                    HasBeenMessagedForCallToSign = partyId == 2,
+                    CallToSignFailedReason = partyId == 3 ? "Legacy notification failure" : null,
+                },
+                SignDocument =
+                    partyId == 2
+                        ? new SignDocument
+                        {
+                            Id = "signature",
+                            InstanceGuid = instance.Id.Split('/')[1],
+                            DataElementSignatures = [],
+                            SignedTime = new DateTime(2026, 1, 1),
+                        }
+                        : null,
+            })
+            .ToList();
+        _signingServiceMock
+            .Setup(service =>
+                service.GetSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(contexts);
+        var stateElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "signeeStatesDataTypeId" };
+        var manager = new Mock<ISigneeContextsManager>(MockBehavior.Strict);
+        manager
+            .Setup(service =>
+                service.FindTaskSigneeStateElement(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    "task1"
+                )
+            )
+            .Returns(stateElement);
+        manager
+            .Setup(service =>
+                service.LoadSigneeContexts(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<AltinnSignatureConfiguration>(),
+                    stateElement
+                )
+            )
+            .ReturnsAsync(contexts);
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(value =>
+                value.ListWorkflows(
+                    "tdd/app",
+                    It.IsAny<string?>(),
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                (
+                    string _,
+                    string? _,
+                    Dictionary<string, string>? _,
+                    IReadOnlyList<PersistentItemStatus>? _,
+                    CancellationToken ct
+                ) => query(ct)
+            );
+        _serviceCollection.AddSingleton(manager.Object);
+        _serviceCollection.AddSingleton(client.Object);
+        return client;
     }
 
     private void SetupAuthenticationContextMock(Authenticated? authenticated = null)

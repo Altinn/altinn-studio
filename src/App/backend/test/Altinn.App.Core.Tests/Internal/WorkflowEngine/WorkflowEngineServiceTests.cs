@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -29,6 +30,90 @@ public class WorkflowEngineServiceTests
     private const string Org = "ttd";
     private const string App = "test-app";
     private const string Namespace = $"{Org}/{App}";
+
+    [Theory]
+    [InlineData((int)PersistentItemStatus.Completed)]
+    [InlineData((int)PersistentItemStatus.Waiting)]
+    [InlineData((int)PersistentItemStatus.Processing)]
+    public async Task ResumeAndWaitForWorkflow_AfterInitiatorsRightsAreRevoked_RefreshesOutcomeAsServiceOwner(
+        int workflowStatusValue
+    )
+    {
+        var workflowStatus = (PersistentItemStatus)workflowStatusValue;
+        Guid workflowId = Guid.NewGuid();
+        const string collectionKey = "collection-key";
+        Guid instanceGuid = Guid.NewGuid();
+        var instance = CreateInstanceOnTask("Task_Signing", instanceGuid);
+        var committedInstance = CreateInstanceOnTask("Task_Receipt", instanceGuid);
+        var serviceOwner = StorageAuthenticationMethod.ServiceOwner();
+        using var cancellation = new CancellationTokenSource();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, cancellation.Token))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, cancellation.Token))
+            .ReturnsAsync(CreateCollection(collectionKey, workflowId, workflowStatus));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    cancellation.Token
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: workflowStatus,
+                    databaseId: workflowId,
+                    steps: [CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed)]
+                ),
+            ]);
+
+        // Only the app can still read Storage after the workflow revoked the initiating signee's rights.
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c => c.GetInstanceWithStorageMetadata(instance, serviceOwner, cancellation.Token))
+            .ReturnsAsync(new InstanceWithStorageMetadata(committedInstance, new StorageVersionMetadata(12, 7)));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App)
+        )
+        {
+            WorkflowParkedReleaseGraceMs = 0,
+            WorkflowPollingTimeoutMs = workflowStatus == PersistentItemStatus.Processing ? 0 : 1_000,
+        };
+
+        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
+            instance,
+            workflowId,
+            collectionKey,
+            cancellation.Token
+        );
+
+        Assert.Same(committedInstance, result.Instance);
+        Assert.True(result.ProcessStateChanged);
+        if (workflowStatus == PersistentItemStatus.Processing)
+        {
+            Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure?.Kind);
+        }
+        else
+        {
+            Assert.Null(result.WorkflowFailure);
+        }
+        instanceClient.Verify(
+            c => c.GetInstanceWithStorageMetadata(instance, serviceOwner, cancellation.Token),
+            Times.Once
+        );
+        instanceClient.VerifyNoOtherCalls();
+    }
 
     [Fact]
     public void CreateProcessNextIdempotencyKey_UsesExactInstanceGuidAndAuthoritativeVersion()
@@ -1915,6 +2000,7 @@ public class WorkflowEngineServiceTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<IProcessTask, DataProcessTask>();
         ServiceProvider serviceProvider = services.BuildServiceProvider();
         var authentication = new Mock<IAuthenticationContext>(MockBehavior.Strict);
         authentication
@@ -1930,7 +2016,8 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App),
             Options.Create(new AppSettings()),
             callbackTokenGenerator.Object,
-            new ProcessStepOptionsResolver([], appImplementationFactory)
+            new ProcessStepOptionsResolver(serviceProvider),
+            new ProcessTaskResolver(serviceProvider)
         );
     }
 
