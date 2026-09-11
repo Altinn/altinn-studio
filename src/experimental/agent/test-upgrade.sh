@@ -4,6 +4,7 @@ set -euo pipefail
 old_version="v0.0.1-upgrade-smoke"
 target_version="v0.0.2-upgrade-smoke"
 smoke_root="$(mktemp -d /tmp/au.XXXXXXXX)"
+export AGENT_SMOKE_ID="${smoke_root##*/}"
 smoke_target="${smoke_root}/target"
 binary_directory="${smoke_target}/debug"
 target_binaries="${smoke_root}/target-binaries"
@@ -25,7 +26,10 @@ cleanup() {
     # shellcheck disable=SC2016 # PowerShell expands its own environment variables.
     pwsh -NoProfile -Command '
       Get-CimInstance Win32_Process |
-        Where-Object { $_.Name -eq "agentd.exe" -and $_.CommandLine -like "*$env:AGENT_HOME*" } |
+        Where-Object {
+          $_.Name -eq "agentd.exe" -and
+          ($_.CommandLine -like "*$env:AGENT_SMOKE_ID*" -or $_.ExecutablePath -like "*$env:AGENT_SMOKE_ID*")
+        } |
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
     ' 2>/dev/null || true
   else

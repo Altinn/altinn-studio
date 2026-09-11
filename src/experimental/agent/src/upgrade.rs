@@ -910,7 +910,20 @@ fn replace_symlink(link: &Path, create: impl FnOnce(&Path) -> std::io::Result<()
 
 #[cfg(windows)]
 fn replace_windows_pointer(path: &Path, target: &Path) -> Result<(), Error> {
-    replace_windows_file(path, format!("{}\r\n", target.display()).as_bytes())
+    let target = windows_command_path(target);
+    replace_windows_file(path, format!("{target}\r\n").as_bytes())
+}
+
+#[cfg(windows)]
+fn windows_command_path(path: &Path) -> String {
+    let path = path.to_string_lossy();
+    if let Some(path) = path.strip_prefix(r"\\?\UNC\") {
+        format!(r"\\{path}")
+    } else if let Some(path) = path.strip_prefix(r"\\?\") {
+        path.to_owned()
+    } else {
+        path.into_owned()
+    }
 }
 
 #[cfg(windows)]
@@ -937,6 +950,19 @@ fn sync_directory(path: &Path) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(windows)]
+    #[test]
+    fn command_paths_do_not_use_the_windows_verbatim_prefix() {
+        assert_eq!(
+            windows_command_path(Path::new(r"\\?\C:\Agent\releases\v2")),
+            r"C:\Agent\releases\v2"
+        );
+        assert_eq!(
+            windows_command_path(Path::new(r"\\?\UNC\server\share\Agent")),
+            r"\\server\share\Agent"
+        );
+    }
 
     #[test]
     fn journal_rejects_release_outside_install_root() {
