@@ -75,8 +75,8 @@ export const Config = new CG.component({
               .optional({ default: false })
               .setTitle('Free text description', 'Fritekstbeskrivelse')
               .setDescription(
-                'Marks the field the assistant assesses with vurder_beskrivelse. At most one field.',
-                'Merker feltet assistenten vurderer med vurder_beskrivelse. Høyst ett felt.',
+                'Marks the field the assistant challenges on quality, at most three rounds. At most one field.',
+                'Merker feltet assistenten utfordrer på kvalitet, i høyst tre runder. Høyst ett felt.',
               ),
           ),
           new CG.prop(
@@ -122,6 +122,20 @@ export const Config = new CG.component({
                   'Different fields come from different registers, so this belongs on the field.',
                 'Der søkeren retter opplysningen, for felter som ikke kan rettes her. ' +
                   'Ulike felter kommer fra ulike registre, så dette hører hjemme på feltet.',
+              ),
+          ),
+          new CG.prop(
+            'format',
+            new CG.enum('telefon', 'epost')
+              .optional()
+              .setTitle('Value format', 'Format på verdien')
+              .setDescription(
+                'Required format for a value the citizen dictates. The assistant hears a ' +
+                  'transcription, never letters, so without this a misheard phone number or ' +
+                  'email address is stored and submitted as if it were correct.',
+                'Formatet en verdi søkeren dikterer må ha. Assistenten hører en transkripsjon, ' +
+                  'aldri bokstaver, så uten dette lagres og sendes et feilhørt telefonnummer ' +
+                  'eller en feilhørt e-postadresse som om det var riktig.',
               ),
           ),
         ).exportAs('IKiForhaandsutfylt'),

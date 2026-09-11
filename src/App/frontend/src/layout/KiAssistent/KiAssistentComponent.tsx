@@ -10,7 +10,7 @@ import classes from 'src/layout/KiAssistent/KiAssistent.module.css';
 import { finnSignaler } from 'src/layout/KiAssistent/kvalitet';
 import { erPaaSkjermen, markerFelt } from 'src/layout/KiAssistent/markering';
 import { aapneOkt } from 'src/layout/KiAssistent/realtime';
-import { finnKontekst, lagreVerdi } from 'src/layout/KiAssistent/verktoy';
+import { beskrivOpplysning, finnKontekst, lagreVerdi } from 'src/layout/KiAssistent/verktoy';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IOkt, IVerktoy } from 'src/layout/KiAssistent/realtime';
@@ -48,10 +48,23 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
   const okt = React.useRef<IOkt | null>(null);
   const lyd = React.useRef<HTMLAudioElement | null>(null);
 
-  // Modellen har ingen hukommelse om hvor i samtalen den er: instruksjonen om å
-  // presentere seg gjelder like sterkt ved hvert svar vi ber om. Etter et verktøykall
-  // kan den derfor hilse på nytt. Her holder vi fasen, og forteller den i verktøysvarene.
-  const harAapnet = React.useRef(false);
+  /**
+   * Hvor i samtalen vi er. Modellen har ingen hukommelse om det.
+   *
+   * Instruksjonen om å presentere seg gjelder like sterkt ved hvert svar vi ber om,
+   * så etter et verktøykall kunne den hilse på nytt. Fasen holdes her og følger med
+   * i hvert verktøysvar, slik at den ikke kan gjenåpne noe som alt er sagt.
+   */
+  const fase = React.useRef<'apning' | 'i-gang' | 'ferdig'>('apning');
+
+  /**
+   * Kvalitetsrundene på fritekstbeskrivelsen.
+   *
+   * «Høyst tre runder, aldri om det samme to ganger» var regler i prompten, til et
+   * verktøy modellen selv måtte huske å kalle på rett tidspunkt. Nå er de her. En
+   * regel modellen kan glemme, er ingen regel.
+   */
+  const kvalitet = React.useRef({ runder: 0, sistVurdert: '' });
 
   // Verktøyene leser og skriver gjeldende skjemadata. Ref-en gjør at modellen
   // aldri jobber mot en utdatert kopi når samtalen har vart en stund.
@@ -88,7 +101,8 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
   const stopp = React.useCallback(() => {
     okt.current?.lukk();
     okt.current = null;
-    harAapnet.current = false;
+    fase.current = 'apning';
+    kvalitet.current = { runder: 0, sistVurdert: '' };
     settStatus('av');
     // Markøren skrus av igjen. Den skjuler avkrysningene, og teksten over knappen
     // lover at man kan avslutte og fylle ut selv - blir den stående, er det løgn,
@@ -124,26 +138,74 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
     [felt, forhaandsutfylt, les, setValue],
   );
 
+  /**
+   * Kvalitetsrunden på beskrivelsen, når det er en å ha.
+   *
+   * Var et eget verktøy modellen måtte kalle på rett tidspunkt. Nå avgjør koden når
+   * det er noe å utfordre: bare når det står tekst der, bare på tekst vi ikke alt har
+   * kommentert, og høyst tre ganger. Kallet har bivirkning - runden er brukt i det
+   * den leveres, ellers ville samme tekst kunnet utfordres i det uendelige.
+   */
+  const nesteKvalitetsrunde = React.useCallback(() => {
+    if (!fritekstfelt) {
+      return undefined;
+    }
+    const tekst = les(fritekstfelt.id).trim();
+    if (!tekst || tekst === kvalitet.current.sistVurdert || kvalitet.current.runder >= 3) {
+      return undefined;
+    }
+    kvalitet.current = { runder: kvalitet.current.runder + 1, sistVurdert: tekst };
+    return {
+      felt: fritekstfelt.id,
+      tekst,
+      signaler: finnSignaler(tekst),
+      // Kravene sendes bare i første runde. De er 548 tegn, de endrer seg ikke, og
+      // i runde to står de alt i samtalen.
+      ...(kvalitet.current.runder === 1 ? { krav: langAsString('kiassistent.kvalitetskrav') } : {}),
+      veiledning:
+        'Signalene sier hva som måles i teksten, ikke om den er god. Vurder selv, still ETT ' +
+        'konkret oppfølgingsspørsmål om det viktigste som mangler, og lagre svaret. Vil personen ' +
+        'ikke si mer, går du videre.',
+    };
+  }, [fritekstfelt, langAsString, les]);
+
   const verktoy = React.useMemo<IVerktoy[]>(
     () => [
       {
-        name: 'sjekk_kontekst',
-        description: 'Hva som allerede er fylt ut, og hva som gjenstår. Kall denne først.',
+        name: 'start_samtale',
+        description:
+          'Alt du trenger for å åpne samtalen: opplysningene vi alt har om personen - med ' +
+          'ledetekst, verdi og hva du gjør hvis noe er feil - og hva som er besvart og gjenstår. ' +
+          'Kall denne først, og bare i åpningen.',
         parameters: { type: 'object', properties: {} },
-        kjoer: () => ({
-          samtale: harAapnet.current ? 'i-gang' : 'apning',
-          ...finnKontekst(felt, forhaandsutfylt ?? [], les, langAsString),
-        }),
+        kjoer: () => {
+          const k = finnKontekst(felt, forhaandsutfylt ?? [], les, langAsString);
+          return {
+            samtale: fase.current,
+            ...(fase.current === 'apning'
+              ? {}
+              : { merk: 'Presentasjonen er alt sagt. Ikke hils på nytt - fortsett der dere er.' }),
+            opplysninger: k.opplysninger,
+            slikRetter: k.slikRetter,
+            manglerOpplysninger: k.manglerOpplysninger,
+            antallBesvart: k.antallBesvart,
+            antallGjenstaar: k.antallGjenstaar,
+            alleBesvart: k.alleBesvart,
+          };
+        },
       },
       {
         name: 'hva_gjenstaar',
         description:
-          'Hele restansen på én gang: feltene du skal fylle ut fra det personen har fortalt, ' +
-          'og det ene du eventuelt må spørre om. Kall denne i stedet for å gå felt for felt.',
+          'Neste steg: feltene du skal fylle ut fra det personen har fortalt, det ene du ' +
+          'eventuelt må spørre om, og om dere er ferdige. Kall denne etter hver lagring, og ' +
+          'følg den til den svarer ferdig=true.',
         parameters: { type: 'object', properties: {} },
         kjoer: () => {
           // Er vi kommet hit, er presentasjonen sagt. Sies den igjen, er den feil.
-          harAapnet.current = true;
+          if (fase.current === 'apning') {
+            fase.current = 'i-gang';
+          }
           const tomt = (nokkel: string) => les(nokkel).trim().length === 0;
           const ubesvarte = aktuelleFelt().filter((f) => tomt(f.id));
 
@@ -171,10 +233,23 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
           const kontakt = (forhaandsutfylt ?? []).find((f) => f.kanRettes && tomt(`fu_${f.id}`));
 
           if (!spoerFelt && utled.length === 0 && !kontakt) {
+            // Rekkefølgen er kodens: feltene først, så kvaliteten på historien, så send
+            // inn. Var kvalitetsrunden et eget verktøy, kom den når modellen husket den.
+            const beskrivelsen = nesteKvalitetsrunde();
+            if (beskrivelsen) {
+              return { ferdig: false, samtale: 'i-gang', beskrivelsen };
+            }
+            fase.current = 'ferdig';
+            // Markeringen av send-knappen gjøres her framfor i et eget verktøy: da kan
+            // den ikke glemmes, og modellen kan uansett ikke trykke den.
             return {
               ferdig: true,
-              samtale: 'i-gang',
-              melding: 'Alt er besvart. Takk personen og avslutt. Ikke presenter deg på nytt.',
+              samtale: 'ferdig',
+              markertSendKnapp: markerFelt(sendKnappId),
+              duKanIkkeSendeInn: true,
+              beskjedTilPersonen:
+                'Oppsummer kort hva som er fylt ut, si at du ikke kan sende inn for dem, og be ' +
+                'dem se over og trykke «Send inn» selv. Ikke presenter deg på nytt.',
             };
           }
 
@@ -182,6 +257,8 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
           // hvor dere er uten at siden flytter på seg av alt annet.
           if (spoerFelt) {
             markerFelt(spoerFelt.komponentId);
+          } else if (kontakt) {
+            markerFelt(kontakt.komponentId);
           }
 
           return {
@@ -191,58 +268,33 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
             spoerOm: spoerFelt
               ? { ...beskrivelse(spoerFelt), sporsmaal: langAsString(spoerFelt.sporsmaal) }
               : kontakt
-                ? { felt: kontakt.id, hva: langAsString(kontakt.etikett) }
+                ? // Hele opplysningsraden, med format og slikRettes. Fikk modellen bare
+                  // ledeteksten, ba den om «telefonnummeret» og godtok det første den
+                  // hørte - og et feilhørt nummer er det ingenting som fanger senere.
+                  beskrivOpplysning(kontakt, les(`fu_${kontakt.id}`), langAsString, true)
                 : undefined,
             veiledning:
               (utled.length > 0
-                ? 'Fyll ut alt i utledFraHistorien i ett kall til lagre_flere, ut fra det personen ' +
+                ? 'Fyll ut alt i utledFraHistorien i ETT kall til lagre, ut fra det personen ' +
                   'alt har fortalt. Ikke spør om dem ett for ett - de vises ikke på skjermen. ' +
                   'Gir historien ikke svar på noen av dem, samler du dem i ett naturlig spørsmål. '
                 : '') +
-              (spoerFelt || kontakt
+              (spoerFelt
                 ? 'Still spørsmålet i spoerOm, og lagre svaret. Si ikke at dere er ferdige før det er på plass.'
-                : 'Kall hva_gjenstaar igjen når du har lagret, for å se om noe står igjen.'),
+                : kontakt
+                  ? 'Be om opplysningen i spoerOm. Følg formatet, og les verdien tilbake før du går videre.'
+                  : 'Kall hva_gjenstaar igjen når du har lagret, for å se om noe står igjen.'),
           };
         },
       },
       {
-        name: 'lagre_svar',
+        name: 'lagre',
         description:
-          'Lagrer ett svar. Har feltet alternativer, må verdien være en av dem du fikk. ' +
-          'Flere verdier skilles med komma. I fritekstfelt legges svaret til det som står ' +
-          'fra før - send bare det nye, ikke hele historien om igjen.',
-        parameters: {
-          type: 'object',
-          properties: {
-            felt: { type: 'string', description: 'Felt-id fra hva_gjenstaar' },
-            verdi: { type: 'string', description: 'Svaret' },
-            erstatt: {
-              type: 'boolean',
-              description:
-                'Bare når personen tar tilbake det hen sa før og vil ha det skrevet om. ' +
-                'Ellers utelates den, og teksten legges til.',
-            },
-          },
-          required: ['felt', 'verdi'],
-        },
-        kjoer: (a) => {
-          harAapnet.current = true;
-          const feltId = String(a.felt ?? '');
-          const r = lagreEtt(feltId, String(a.verdi ?? ''), a.erstatt === true, new Map());
-          if ('lagret' in r) {
-            const def = felt.find((f) => f.id === feltId) ?? (forhaandsutfylt ?? []).find((f) => f.id === feltId);
-            markerFelt(def?.komponentId);
-            return { ...r, samtale: 'i-gang' };
-          }
-          return r;
-        },
-      },
-      {
-        name: 'lagre_flere',
-        description:
-          'Lagrer flere svar i ett kall. Bruk denne på alt i utledFraHistorien fra hva_gjenstaar, ' +
-          'slik at du slipper ett kall per felt. Samme regler som lagre_svar gjelder per felt, og ' +
-          'de som går gjennom blir lagret selv om andre avvises.',
+          'Lagrer ett eller flere svar - ett element i «svar» per felt. Alt du kan fylle ut ' +
+          'fra det personen har fortalt tar du i samme kall. Har feltet alternativer, må ' +
+          'verdien være en av dem du fikk, og flere verdier skilles med komma. I fritekstfelt ' +
+          'legges svaret til det som står fra før - send bare det nye, ikke hele historien om ' +
+          'igjen. De som går gjennom blir lagret selv om andre avvises.',
         parameters: {
           type: 'object',
           properties: {
@@ -254,7 +306,12 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
                 properties: {
                   felt: { type: 'string', description: 'Felt-id fra hva_gjenstaar' },
                   verdi: { type: 'string', description: 'Svaret' },
-                  erstatt: { type: 'boolean', description: 'Bare når teksten skal skrives om.' },
+                  erstatt: {
+                    type: 'boolean',
+                    description:
+                      'Bare når personen tar tilbake det hen sa før og vil ha teksten skrevet ' +
+                      'om. Ellers utelates den, og teksten legges til.',
+                  },
                 },
                 required: ['felt', 'verdi'],
               },
@@ -263,8 +320,16 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
           required: ['svar'],
         },
         kjoer: (a) => {
-          harAapnet.current = true;
-          const rader = Array.isArray(a.svar) ? (a.svar as Record<string, unknown>[]) : [];
+          if (fase.current === 'apning') {
+            fase.current = 'i-gang';
+          }
+          const rader = Array.isArray(a.svar)
+            ? (a.svar as Record<string, unknown>[])
+            : // Ett svar sendes av og til flatt, uten omslaget. Det er ikke verdt en
+              // avvisning og en runde til - vi vet hva den mente.
+              a.felt !== undefined
+              ? [a]
+              : [];
           if (rader.length === 0) {
             return { feil: 'Ingen svar å lagre. Send minst ett element i «svar».' };
           }
@@ -286,48 +351,20 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
             antallLagret: resultater.length - avvist.length,
             samtale: 'i-gang',
             ...(avvist.length > 0
-              ? { veiledning: 'Noen felter ble avvist. Rett dem og prøv på nytt - resten er lagret.' }
+              ? { veiledning: 'Noen felter ble avvist. Gjør det avvisningen sier - resten er lagret.' }
               : {}),
           };
         },
       },
       {
-        name: 'les_opp_forhaandsutfylt',
+        name: 'meld_feil',
         description:
-          'Opplysningene vi allerede har om personen, med ledetekst og verdi. ' +
-          'Feltet «slikRettes» sier hva du gjør hvis noe er feil. Felter med ' +
-          'spoerOmDenne=true er tomme - spør om dem og lagre svaret med lagre_svar.',
-        parameters: { type: 'object', properties: {} },
-        kjoer: () =>
-          (forhaandsutfylt ?? []).map((f) => {
-            const verdi = les(`fu_${f.id}`);
-            const tom = verdi.trim().length === 0;
-            return {
-              felt: f.id,
-              ledetekst: langAsString(f.etikett),
-              verdi,
-              kanRettes: f.kanRettes ?? false,
-              // Sier rett ut hva modellen skal gjøre. Får den bare «kanRettes: true»,
-              // finner den på et sted å sende folk - telefonoperatøren, for eksempel.
-              slikRettes: f.kanRettes
-                ? 'Rettes her i skjemaet. Be om den riktige verdien og lagre den med lagre_svar.'
-                : f.rettesHos
-                  ? `Kan ikke rettes her. Rettes hos ${f.rettesHos}. Noter det med meld_feil_i_forhaandsutfylt.`
-                  : 'Kan ikke rettes her. Noter det med meld_feil_i_forhaandsutfylt.',
-              ...(f.kanRettes ? {} : { rettesHos: f.rettesHos, brukVerktoy: 'meld_feil_i_forhaandsutfylt' }),
-              // Uten dette leser modellen opp et tomt felt og går videre. Den må
-              // vite at den skal be om verdien, ikke bare konstatere at den mangler.
-              ...(tom && f.kanRettes ? { mangler: true, spoerOmDenne: true } : {}),
-            };
-          }),
-      },
-      {
-        name: 'meld_feil_i_forhaandsutfylt',
-        description: 'Noterer at en opplysning med kanRettes=false er feil. Den kan ikke rettes her.',
+          'Noterer at en forhåndsutfylt opplysning med kanRettes=false er feil. Den kan ikke ' +
+          'rettes her, så notatet går til saksbehandleren.',
         parameters: {
           type: 'object',
           properties: {
-            felt: { type: 'string', description: 'Felt-id fra les_opp_forhaandsutfylt' },
+            felt: { type: 'string', description: 'Felt-id fra start_samtale' },
             hvaSomErFeil: { type: 'string', description: 'Hva personen sier er riktig, med personens egne ord' },
           },
           required: ['felt', 'hvaSomErFeil'],
@@ -345,7 +382,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
           if (def.kanRettes) {
             return {
               feil: `${langAsString(def.etikett)} rettes her i skjemaet, ikke noe annet sted.`,
-              brukIStedet: 'lagre_svar',
+              brukIStedet: 'lagre',
             };
           }
           const notat = `${langAsString(def.etikett)}: ${String(a.hvaSomErFeil ?? '').trim()}`;
@@ -370,45 +407,6 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
           };
         },
       },
-      {
-        name: 'vis_send_inn_knappen',
-        description: 'Markerer «Send inn»-knappen på skjermen. Du kan ikke sende inn selv.',
-        parameters: { type: 'object', properties: {} },
-        kjoer: () => {
-          const markert = markerFelt(sendKnappId);
-          return {
-            markert,
-            duKanIkkeSendeInn: true,
-            beskjedTilPersonen:
-              'Jeg kan ikke sende inn søknaden for deg. Se over det vi har fylt ut, og trykk «Send inn» når du er klar.',
-          };
-        },
-      },
-      {
-        name: 'vurder_beskrivelse',
-        description:
-          'Fritekstbeskrivelsen med målbare signaler om hva den dekker, og kravene til en god ' +
-          'beskrivelse. Kall denne etter at beskrivelsen er lagret.',
-        parameters: { type: 'object', properties: {} },
-        kjoer: () => {
-          if (!fritekstfelt) {
-            return { feil: 'Skjemaet har ingen fritekstbeskrivelse å vurdere.' };
-          }
-          const tekst = les(fritekstfelt.id);
-          if (!tekst.trim()) {
-            return { feil: 'Beskrivelsen er tom ennå.' };
-          }
-          return {
-            felt: fritekstfelt.id,
-            tekst,
-            signaler: finnSignaler(tekst),
-            krav: langAsString('kiassistent.kvalitetskrav'),
-            veiledning:
-              'Signalene sier bare hva som måles i teksten, ikke om den er god. ' +
-              'Vurder selv, og still ett konkret oppfølgingsspørsmål om det viktigste som mangler.',
-          };
-        },
-      },
     ],
     [
       aktuelleFelt,
@@ -419,6 +417,7 @@ export function KiAssistentComponent({ baseComponentId }: IKiAssistentProps) {
       langAsString,
       les,
       merknadBinding,
+      nesteKvalitetsrunde,
       sendKnappId,
       setValue,
     ],

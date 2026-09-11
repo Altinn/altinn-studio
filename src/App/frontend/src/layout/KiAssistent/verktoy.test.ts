@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { finnKontekst, lagreVerdi } from 'src/layout/KiAssistent/verktoy';
+import { beskrivOpplysning, finnKontekst, lagreVerdi, tolkKontakt } from 'src/layout/KiAssistent/verktoy';
+import type { IForhaandsfelt } from 'src/layout/KiAssistent/verktoy';
 
 const spoersmaal = [
   { id: 'forklaring' },
@@ -21,16 +22,16 @@ const spoersmaal = [
   },
 ];
 
-const forhaandsutfylt = [
+const forhaandsutfylt: IForhaandsfelt[] = [
   { id: 'adresse', kanRettes: false },
   { id: 'foedselsnummer', kanRettes: false },
-  { id: 'telefonnummer', kanRettes: true },
-  { id: 'epost', kanRettes: true },
+  { id: 'telefonnummer', kanRettes: true, format: 'telefon' },
+  { id: 'epost', kanRettes: true, format: 'epost' },
 ];
 
 describe('lagreVerdi', () => {
   it('lagrer telefonnummer som kan rettes, med fu-nøkkelen', () => {
-    expect(lagreVerdi('telefonnummer', '97106931', spoersmaal, forhaandsutfylt)).toEqual({
+    expect(lagreVerdi('telefonnummer', '97106931', spoersmaal, forhaandsutfylt)).toMatchObject({
       nokkel: 'fu_telefonnummer',
       verdi: '97106931',
       lagret: '97106931',
@@ -38,17 +39,24 @@ describe('lagreVerdi', () => {
   });
 
   it('lagrer e-post som kan rettes', () => {
-    expect(lagreVerdi('epost', ' ny@example.test ', spoersmaal, forhaandsutfylt)).toEqual({
+    expect(lagreVerdi('epost', ' ny@example.test ', spoersmaal, forhaandsutfylt)).toMatchObject({
       nokkel: 'fu_epost',
       verdi: 'ny@example.test',
       lagret: 'ny@example.test',
     });
   });
 
+  it('ber om at kontaktverdien leses tilbake, uten at prompten må si det', () => {
+    // Feilen dette fanger: instruksjonen sier at modellen ikke trenger bekreftelse på
+    // hvert felt, og telefon og e-post er de to feltene der den trenger det.
+    const r = lagreVerdi('telefonnummer', '97106931', spoersmaal, forhaandsutfylt);
+    expect(r).toHaveProperty('bekreft', expect.stringContaining('97106931'));
+  });
+
   it('nekter å rette registerdata, og peker på riktig verktøy', () => {
     const r = lagreVerdi('adresse', 'Ny gate 1', spoersmaal, forhaandsutfylt);
     expect(r).toHaveProperty('feil');
-    expect(r).toHaveProperty('brukIStedet', 'meld_feil_i_forhaandsutfylt');
+    expect(r).toHaveProperty('brukIStedet', 'meld_feil');
   });
 
   it('sier hvilket register feltet rettes hos, og navngir ikke noe annet', () => {
@@ -116,7 +124,7 @@ describe('lagreVerdi', () => {
     const r = lagreVerdi('telefonnummer', '97106931', spoersmaal, forhaandsutfylt, {
       naavaerende: '11111111',
     });
-    expect(r).toEqual({ nokkel: 'fu_telefonnummer', verdi: '97106931', lagret: '97106931' });
+    expect(r).toMatchObject({ nokkel: 'fu_telefonnummer', verdi: '97106931', lagret: '97106931' });
   });
 
   it('godtar bare koder skjemaet har', () => {
@@ -254,10 +262,15 @@ describe('finnKontekst', () => {
     expect(k.alleBesvart).toBe(true);
   });
 
-  it('tar med opplysningene og om de kan rettes', () => {
+  it('tar med opplysningene, om de kan rettes, og hva modellen skal gjøre', () => {
     const data: Record<string, string> = { fu_adresse: 'Storgata 3' };
     const k = finnKontekst(spm, fu, (n) => data[n] ?? '', oversett);
-    expect(k.opplysninger).toEqual([{ felt: 'adresse', ledetekst: 'Adresse', verdi: 'Storgata 3', kanRettes: false }]);
+    expect(k.opplysninger).toEqual([
+      { felt: 'adresse', ledetekst: 'Adresse', verdi: 'Storgata 3', kanRettes: false, rettesHos: undefined },
+    ]);
+    // Handlingen står én gang for hele lista, ikke på hver av åtte rader.
+    expect(k.slikRetter).toContain('meld_feil');
+    expect(k.opplysninger[0].slikRettes).toBeUndefined();
   });
 });
 
@@ -315,5 +328,125 @@ describe('lagreVerdi med tegngrense', () => {
     const r = lagreVerdi('forklaring', 'a'.repeat(5000), [{ id: 'forklaring' }], []);
     expect('verdi' in r && r.verdi.length).toBe(5000);
     expect(r).not.toHaveProperty('plassIgjen');
+  });
+});
+
+/**
+ * Telefon og e-post er de eneste verdiene i skjemaet som verken kan velges fra en
+ * liste eller utledes av historien: de dikteres over lyd, og modellen ser bare en
+ * norsk transkripsjon av det som ble sagt. Datamodellen har dem som ren streng, så
+ * det som slipper gjennom her, blir sendt inn på en søknad søkeren signerer.
+ */
+describe('tolkKontakt', () => {
+  it('rydder et nummer som er sagt i grupper', () => {
+    expect(tolkKontakt('telefon', '971 06 931')).toEqual({ verdi: '97106931', rettetOpp: true });
+  });
+
+  it('tar imot landkode, både som pluss og som 00', () => {
+    expect(tolkKontakt('telefon', '+47 971 06 931')).toMatchObject({ verdi: '+4797106931' });
+    expect(tolkKontakt('telefon', '0047 971 06 931')).toMatchObject({ verdi: '+4797106931' });
+    expect(tolkKontakt('telefon', 'pluss 47 97106931')).toMatchObject({ verdi: '+4797106931' });
+  });
+
+  it('avviser et nummer med for få siffer, og sier hva modellen skal gjøre', () => {
+    const r = tolkKontakt('telefon', '971 06');
+    expect(r).toMatchObject({
+      oppfattet: '971 06',
+      forventetFormat: '8 siffer, eller landkode og 8-15 siffer',
+    });
+    expect(r).toHaveProperty('slikGaarDuFram', expect.stringContaining('gjenta'));
+  });
+
+  it('avviser en setning som er hørt som et nummer', () => {
+    expect(tolkKontakt('telefon', 'jeg tror det er 971 06 931')).toHaveProperty('feil');
+  });
+
+  it('gjør talte skilletegn om til en e-postadresse', () => {
+    expect(tolkKontakt('epost', 'David krøllalfa Impactit punkt no')).toEqual({
+      verdi: 'david@impactit.no',
+      rettetOpp: true,
+    });
+    expect(tolkKontakt('epost', 'david snabel-a impactit dot no')).toMatchObject({ verdi: 'david@impactit.no' });
+  });
+
+  it('tar punktumet transkripsjonen setter til slutt på en setning', () => {
+    expect(tolkKontakt('epost', 'david@impactit.no.')).toMatchObject({ verdi: 'david@impactit.no' });
+  });
+
+  it('lar «at» være et vanlig norsk ord', () => {
+    // Bart «at» på lista ville gjort «jeg tror at det er riktig» til en adresse.
+    expect(tolkKontakt('epost', 'jeg tror at det er riktig')).toHaveProperty('feil');
+  });
+
+  it('avviser en adresse uten krøllalfa eller uten domene', () => {
+    expect(tolkKontakt('epost', 'david impactit no')).toHaveProperty('feil');
+    expect(tolkKontakt('epost', 'david@impactit')).toHaveProperty('feil');
+  });
+
+  it('fanger at verdiene er byttet om på feltene', () => {
+    // Modellen kan kalle lagre med telefonnummeret i e-postfeltet. Ingenting
+    // senere i kjeden ser forskjellen.
+    expect(tolkKontakt('epost', '97106931')).toHaveProperty('feil');
+    expect(tolkKontakt('telefon', 'david@impactit.no')).toHaveProperty('feil');
+  });
+});
+
+describe('lagreVerdi med format', () => {
+  it('lagrer den ryddede verdien, ikke det modellen sendte', () => {
+    const r = lagreVerdi('epost', 'David Krøllalfa Impactit Punkt No', spoersmaal, forhaandsutfylt);
+    expect(r).toMatchObject({ nokkel: 'fu_epost', verdi: 'david@impactit.no', rettetOpp: true });
+  });
+
+  it('avviser en feilhørt verdi i stedet for å lagre den', () => {
+    const r = lagreVerdi('telefonnummer', 'nitti sju null seks', spoersmaal, forhaandsutfylt);
+    expect(r).not.toHaveProperty('nokkel');
+    expect(r).toHaveProperty('oppfattet', 'nitti sju null seks');
+  });
+
+  it('lar felter uten format være som før', () => {
+    const utenFormat: IForhaandsfelt[] = [{ id: 'telefonnummer', kanRettes: true }];
+    expect(lagreVerdi('telefonnummer', 'hva som helst', spoersmaal, utenFormat)).toEqual({
+      nokkel: 'fu_telefonnummer',
+      verdi: 'hva som helst',
+      lagret: 'hva som helst',
+    });
+  });
+});
+
+describe('beskrivOpplysning', () => {
+  const oversett = (n: string) => ({ 'l.telefon': 'Telefonnummer', 'l.adresse': 'Adresse' })[n] ?? n;
+
+  it('sier at et tomt felt søkeren eier selv skal spørres om', () => {
+    const r = beskrivOpplysning(
+      { id: 'telefonnummer', etikett: 'l.telefon', kanRettes: true, format: 'telefon' },
+      '',
+      oversett,
+    );
+    expect(r).toMatchObject({ mangler: true, spoerOmDenne: true, format: 'telefon' });
+  });
+
+  it('tar veiledningen med bare når raden sendes alene', () => {
+    // I lista sier IKontekst.slikRetter det samme én gang. Som spoerOm står raden
+    // uten lista, og da er det ingen gjentakelse å spare.
+    const f: IForhaandsfelt = { id: 'telefonnummer', etikett: 'l.telefon', kanRettes: true };
+    expect(beskrivOpplysning(f, '', oversett).slikRettes).toBeUndefined();
+    expect(beskrivOpplysning(f, '', oversett, true).slikRettes).toContain('lagre');
+  });
+
+  it('sender søkeren til registeret som står på feltet, og ikke noe annet sted', () => {
+    const f: IForhaandsfelt = {
+      id: 'adresse',
+      etikett: 'l.adresse',
+      kanRettes: false,
+      rettesHos: 'Folkeregisteret',
+    };
+    expect(beskrivOpplysning(f, 'Storgata 3', oversett)).toMatchObject({ rettesHos: 'Folkeregisteret' });
+    expect(beskrivOpplysning(f, 'Storgata 3', oversett, true).slikRettes).toContain('Folkeregisteret');
+    expect(beskrivOpplysning(f, 'Storgata 3', oversett).mangler).toBeUndefined();
+  });
+
+  it('krever ikke at et tomt registerfelt fylles - søkeren kan ikke fylle det', () => {
+    const r = beskrivOpplysning({ id: 'adresse', etikett: 'l.adresse', kanRettes: false }, '', oversett);
+    expect(r.spoerOmDenne).toBeUndefined();
   });
 });

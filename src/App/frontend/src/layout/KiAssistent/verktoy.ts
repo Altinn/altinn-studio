@@ -16,12 +16,25 @@ export interface ISpoersmaalsfelt {
   fritekst?: boolean;
 }
 
+/** Formatet en kontaktopplysning skal ha. Fritekst har ingen. */
+export type IForhaandsformat = 'telefon' | 'epost';
+
 export interface IForhaandsfelt {
   id: string;
   etikett?: string;
   kanRettes?: boolean;
   /** Hvor søkeren retter dette, når det ikke kan rettes her. Ulike felter, ulike registre. */
   rettesHos?: string;
+  /**
+   * Formatet verdien må ha. Uten det lagres alt assistenten mener den hørte.
+   *
+   * Telefonnummer og e-post er de eneste verdiene i skjemaet som verken kan utledes
+   * av historien eller velges fra en liste - de kommer som en sifferrekke eller en
+   * adresse over lyd, der talegjenkjenningen er svakest. Og de er de eneste feltene
+   * ingenting validerte: datamodellen har dem som ren streng, så en feilhørt verdi
+   * ble sendt inn uten at noen så det, på en søknad søkeren signerer.
+   */
+  format?: IForhaandsformat;
 }
 
 export interface IKontekstfelt {
@@ -29,6 +42,27 @@ export interface IKontekstfelt {
   sporsmaal: string;
   besvart: boolean;
   svar: string | null;
+}
+
+/**
+ * En forhåndsutfylt opplysning, slik assistenten får den.
+ *
+ * «slikRettes» er poenget: får modellen bare «kanRettes: false», finner den på et
+ * sted å sende folk - telefonoperatøren, for eksempel. Står handlingen i raden,
+ * trenger den ikke gjette.
+ */
+export interface IOpplysning {
+  felt: string;
+  ledetekst: string;
+  verdi: string;
+  kanRettes: boolean;
+  /** Bare når raden står alene. I en liste sier IKontekst.slikRetter det samme, én gang. */
+  slikRettes?: string;
+  rettesHos?: string;
+  format?: IForhaandsformat;
+  /** Satt når feltet er tomt og søkeren selv kan fylle det. Da skal det spørres om. */
+  mangler?: boolean;
+  spoerOmDenne?: boolean;
 }
 
 export interface IKontekst {
@@ -39,7 +73,15 @@ export interface IKontekst {
   alleBesvart: boolean;
   /** Ledetekstene til kontaktopplysninger søkeren eier selv, som fortsatt er tomme. */
   manglerOpplysninger: string[];
-  opplysninger: { felt: string; ledetekst: string; verdi: string; kanRettes: boolean }[];
+  opplysninger: IOpplysning[];
+  /**
+   * Hva modellen gjør med en opplysning som er feil - sagt én gang for hele lista.
+   *
+   * Sto før på hver rad. Med åtte forhåndsutfylte felter ble det 582 tegn av samme
+   * to setninger, sendt i åpningen av hver samtale, uten at den åttende gjentakelsen
+   * sa modellen noe den ikke visste etter den første.
+   */
+  slikRetter: string;
 }
 
 export interface ILagreopsjoner {
@@ -50,8 +92,28 @@ export interface ILagreopsjoner {
 }
 
 export type ILagreresultat =
-  | { nokkel: string; verdi: string; lagret: string; lagtTil?: boolean; fullt?: boolean; plassIgjen?: number }
-  | { feil: string; gyldigeVerdier?: string[]; brukIStedet?: string; rettesHos?: string };
+  | {
+      nokkel: string;
+      verdi: string;
+      lagret: string;
+      lagtTil?: boolean;
+      fullt?: boolean;
+      plassIgjen?: number;
+      /** Verdien ble ryddet før lagring, for eksempel «krøllalfa» til @. */
+      rettetOpp?: boolean;
+      /** Står den her, skal verdien leses tilbake til personen. Beskjeden er med, så prompten slipper regelen. */
+      bekreft?: string;
+    }
+  | {
+      feil: string;
+      gyldigeVerdier?: string[];
+      brukIStedet?: string;
+      rettesHos?: string;
+      /** Det assistenten faktisk sendte inn. Uten det vet den ikke hva den bommet på. */
+      oppfattet?: string;
+      forventetFormat?: string;
+      slikGaarDuFram?: string;
+    };
 
 /**
  * Klipper til tegngrensen, men ved siste setningsslutt framfor midt i et ord.
@@ -69,6 +131,86 @@ function klipp(tekst: string, maks: number): string {
   // Bare hvis det finnes en setningsslutt et stykke ut i teksten. Ellers kutter vi
   // hardt - en tom tekst hjelper ingen.
   return slutt > maks * 0.5 ? kuttet.slice(0, slutt + 1) : kuttet.trimEnd();
+}
+
+/**
+ * Talte skilletegn, slik transkripsjonen skriver dem ned.
+ *
+ * Modellen hører aldri bokstaver - den får en norsk transkripsjon av det som ble
+ * sagt. «krøllalfa» og «punkt» kommer derfor som ord, og en e-postadresse sagt høyt
+ * blir «david krøllalfa impactit punkt no».
+ *
+ * Et bart «at» står ikke på lista, og skal ikke stå der: det er et av de vanligste
+ * ordene i norsk, og ville gjort «jeg tror at det er riktig» til noe med en
+ * krøllalfa i.
+ */
+const TALTE_TEGN: [RegExp, string][] = [
+  [/\s*(krøllalfa|krollalfa|alfakrøll|snabel-?a|at-tegn)\s*/gi, '@'],
+  [/\s*(punktum|punkt|dot)\s*/gi, '.'],
+  [/\s*bindestrek\s*/gi, '-'],
+  [/\s*(understrek|understreking|underscore)\s*/gi, '_'],
+];
+
+const FORMATKRAV: Record<IForhaandsformat, { moenster: RegExp; forventet: string; klage: string }> = {
+  telefon: {
+    // Åtte siffer i Norge, og landkode for dem som har et utenlandsk nummer.
+    moenster: /^\+?\d{8,15}$/,
+    forventet: '8 siffer, eller landkode og 8-15 siffer',
+    klage: 'Dette ser ikke ut som et telefonnummer.',
+  },
+  epost: {
+    moenster: /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/,
+    forventet: 'navn@domene.no',
+    klage: 'Dette ser ikke ut som en e-postadresse.',
+  },
+};
+
+/** Rydder en talt verdi til den formen skjemaet skal lagre. */
+function normaliser(format: IForhaandsformat, raa: string): string {
+  if (format === 'telefon') {
+    return (
+      raa
+        .replace(/\s*(pluss|plus)\s*/gi, '+')
+        .replace(/[\s\-().]/g, '')
+        // «00» foran landkoden er samme nummer som «+». Vi lagrer én form av det.
+        .replace(/^00/, '+')
+    );
+  }
+  let t = raa.toLowerCase();
+  for (const [uttrykk, tegn] of TALTE_TEGN) {
+    t = t.replace(uttrykk, tegn);
+  }
+  // Transkripsjonen setter punktum til slutt fordi den hører en setning som slutter.
+  return t.replace(/\s+/g, '').replace(/[.,;:]+$/, '');
+}
+
+/**
+ * Tolker en talt kontaktopplysning, eller avviser den.
+ *
+ * Avvisningen sier hva assistenten sendte inn og hva den skal gjøre nå. Får den bare
+ * «ugyldig» tilbake, prøver den samme feilhørte verdien igjen - eller går videre og
+ * lar den stå tom.
+ */
+export function tolkKontakt(
+  format: IForhaandsformat,
+  raa: string,
+):
+  | { verdi: string; rettetOpp: boolean }
+  | { feil: string; oppfattet: string; forventetFormat: string; slikGaarDuFram: string } {
+  const krav = FORMATKRAV[format];
+  const verdi = normaliser(format, raa.trim());
+  if (!krav.moenster.test(verdi)) {
+    return {
+      feil: krav.klage,
+      oppfattet: raa.trim(),
+      forventetFormat: krav.forventet,
+      slikGaarDuFram:
+        format === 'telefon'
+          ? 'Si sifrene du oppfattet, og be personen gjenta nummeret sifferrekke for sifferrekke. Lagre først når du har hele nummeret.'
+          : 'Si adressen du oppfattet, og be personen stave den - navnet før @ og domenet etter. Lagre først når du har hele adressen.',
+    };
+  }
+  return { verdi, rettetOpp: verdi !== raa.trim() };
 }
 
 export function lagreVerdi(
@@ -171,16 +313,72 @@ export function lagreVerdi(
           ? `Denne opplysningen kan ikke rettes her. Den rettes hos ${fu.rettesHos}.`
           : 'Denne opplysningen kan ikke rettes her.',
         rettesHos: fu.rettesHos,
-        brukIStedet: 'meld_feil_i_forhaandsutfylt',
+        brukIStedet: 'meld_feil',
       };
     }
     if (verdi.length === 0) {
       return { feil: 'Tomt svar' };
     }
+    if (fu.format) {
+      const tolket = tolkKontakt(fu.format, verdi);
+      if ('feil' in tolket) {
+        return tolket;
+      }
+      return {
+        nokkel: `fu_${id}`,
+        verdi: tolket.verdi,
+        lagret: tolket.verdi,
+        ...(tolket.rettetOpp ? { rettetOpp: true } : {}),
+        // Beskjeden ligger i svaret, ikke i prompten. Den gjelder bare her, og en
+        // regel som kommer i det øyeblikket den gjelder, blir fulgt.
+        bekreft: `Les «${tolket.verdi}» tilbake til personen og få det bekreftet. Er det feil, lagre på nytt.`,
+      };
+    }
     return { nokkel: `fu_${id}`, verdi, lagret: verdi };
   }
 
   return { feil: `Ukjent felt: ${id}` };
+}
+
+/**
+ * Én forhåndsutfylt opplysning, ferdig til å leses opp og handles på.
+ *
+ * Lå før i komponenten, i verktøyet som leste opp opplysningene. Nå er det den ene
+ * kilden: åpningen og restansen sier det samme om samme felt, fordi de spør samme
+ * funksjon.
+ */
+export const SLIK_RETTER =
+  'Står det rettesHos på raden, kan opplysningen ikke rettes her: noter det med meld_feil og si ' +
+  'hvor den rettes. Ellers ber du om den riktige verdien og lagrer den med lagre.';
+
+export function beskrivOpplysning(
+  f: IForhaandsfelt,
+  verdi: string,
+  oversett: (tekstnokkel: string) => string,
+  /** Sann når raden sendes alene, uten lista og forklaringen som hører til den. */
+  alene = false,
+): IOpplysning {
+  const tom = verdi.trim().length === 0;
+  return {
+    felt: f.id,
+    ledetekst: f.etikett ? oversett(f.etikett) : f.id,
+    verdi,
+    kanRettes: f.kanRettes ?? false,
+    ...(alene
+      ? {
+          slikRettes: f.kanRettes
+            ? 'Rettes her i skjemaet. Be om den riktige verdien og lagre den med lagre.'
+            : f.rettesHos
+              ? `Kan ikke rettes her. Rettes hos ${f.rettesHos}. Noter det med meld_feil.`
+              : 'Kan ikke rettes her. Noter det med meld_feil.',
+        }
+      : {}),
+    ...(f.kanRettes ? {} : { rettesHos: f.rettesHos }),
+    ...(f.format ? { format: f.format } : {}),
+    // Uten dette leser modellen opp et tomt felt og går videre. Den må vite at den
+    // skal be om verdien, ikke bare konstatere at den mangler.
+    ...(tom && f.kanRettes ? { mangler: true, spoerOmDenne: true } : {}),
+  };
 }
 
 /** Er feltet aktuelt, gitt svarene så langt? Flervalg lagres kommaseparert. */
@@ -253,11 +451,7 @@ export function finnKontekst(
     antallGjenstaar: gjenstaar.length,
     alleBesvart: gjenstaar.length === 0 && manglerOpplysninger.length === 0,
     manglerOpplysninger,
-    opplysninger: forhaandsutfylt.map((f) => ({
-      felt: f.id,
-      ledetekst: f.etikett ? oversett(f.etikett) : f.id,
-      verdi: les(`fu_${f.id}`),
-      kanRettes: f.kanRettes ?? false,
-    })),
+    opplysninger: forhaandsutfylt.map((f) => beskrivOpplysning(f, les(`fu_${f.id}`), oversett)),
+    slikRetter: SLIK_RETTER,
   };
 }
