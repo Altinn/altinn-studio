@@ -97,6 +97,31 @@ public static class Diagnostics
         );
     }
 
+    internal static class Metadata
+    {
+        // Close to the runtime backstop in DataHelper.GetDataFieldValues, so an author who meets one of
+        // them after the other reads one explanation rather than two. Deliberately scoped to entries
+        // sharing a data type - see MetadataFieldUtils for why the cross-data-type case is left alone.
+        public static readonly DiagnosticDescriptor DuplicateFieldId = Error(
+            "ALTINNAPP0900",
+            Category.Metadata,
+            "Duplicate field id in applicationmetadata.json",
+            "'{0}' declares the id '{1}' twice for dataTypeId '{2}', on '{3}' and on '{4}'. The id is the key "
+                + "the value is stored under on the instance, and the entries for one data type are computed "
+                + "together into a map that cannot hold the same key twice - so the app fails instead of "
+                + "computing either of them. Give each entry its own id."
+        );
+
+        public static readonly DiagnosticDescriptor UnknownFieldDataType = Warning(
+            "ALTINNAPP0901",
+            Category.Metadata,
+            "Field references an unknown data type",
+            "'{0}' entry '{1}' names the dataTypeId '{2}', which no entry in 'dataTypes' declares. Nothing "
+                + "computes it, so its value never reaches the instance. Point it at one of the app's data types, "
+                + "or remove the entry."
+        );
+    }
+
     internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(

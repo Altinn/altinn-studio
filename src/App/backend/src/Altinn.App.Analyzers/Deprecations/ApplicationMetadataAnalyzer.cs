@@ -1,16 +1,24 @@
+using Altinn.App.Analyzers.Metadata;
+
 namespace Altinn.App.Analyzers.Deprecations;
 
 /// <summary>
-/// Validates <c>applicationmetadata.json</c> at build time. Currently it reports use of configuration
-/// that is no longer honored by this version of the app backend, so apps fail the build instead of
-/// silently shipping a broken feature. This is the umbrella entry point for applicationmetadata.json
-/// checks — additional rule groups (e.g. sanity/usage checks) can be added here as more collectors.
+/// Validates <c>applicationmetadata.json</c> at build time: it reports use of configuration that is no
+/// longer honored by this version of the app backend, and configuration the app backend cannot act on as
+/// written, so apps fail the build instead of silently shipping a broken feature. This is the umbrella
+/// entry point for applicationmetadata.json checks — additional rule groups can be added here as more
+/// collectors.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [Diagnostics.Deprecations.EnablePdfCreation, Diagnostics.Deprecations.LegacyEFormidling];
+        [
+            Diagnostics.Deprecations.EnablePdfCreation,
+            Diagnostics.Deprecations.LegacyEFormidling,
+            Diagnostics.Metadata.DuplicateFieldId,
+            Diagnostics.Metadata.UnknownFieldDataType,
+        ];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -36,6 +44,11 @@ public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
 
         var diagnostics = new List<Diagnostic>();
         MetadataDeprecationUtils.CollectDeprecationDiagnostics(
+            appMetadataFiles[0],
+            compilationContext.CancellationToken,
+            diagnostics
+        );
+        MetadataFieldUtils.CollectFieldDiagnostics(
             appMetadataFiles[0],
             compilationContext.CancellationToken,
             diagnostics
