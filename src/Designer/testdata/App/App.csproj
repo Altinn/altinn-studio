@@ -8,7 +8,7 @@
     <PackageReference Include="Altinn.App.Api" Version="[9.0.0-preview.4]">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="[9.0.0-preview.4]" />
+    <PackageReference Include="Altinn.App.Core" Version="[9.0.0-preview.5]" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
