@@ -347,7 +347,14 @@ impl UpdateJournal {
             .iter()
             .chain(std::iter::once(&self.target_release))
         {
-            if !path.is_absolute() || fs::canonicalize(path)?.parent() != Some(releases.as_path()) {
+            if !path.is_absolute() {
+                return Err(Error::Invalid(
+                    "Agent update journal names a release outside the install root".into(),
+                ));
+            }
+            let resolved = fs::canonicalize(path)
+                .map_err(|_| Error::Invalid("Agent update journal names a release that no longer exists".into()))?;
+            if resolved.parent() != Some(releases.as_path()) {
                 return Err(Error::Invalid(
                     "Agent update journal names a release outside the install root".into(),
                 ));
@@ -463,10 +470,15 @@ pub fn prune_releases(paths: &InstallPaths, previous: Option<&Path>) -> Result<(
         keep.insert(journal.target_release);
         keep.extend(journal.previous_release);
     }
+    let keep = keep
+        .into_iter()
+        .map(fs::canonicalize)
+        .collect::<Result<BTreeSet<_>, _>>()?;
     for entry in fs::read_dir(paths.releases())? {
         let entry = entry?;
-        if entry.file_type()?.is_dir() && !keep.contains(&entry.path()) {
-            fs::remove_dir_all(entry.path())?;
+        let path = entry.path();
+        if entry.file_type()?.is_dir() && !keep.contains(&fs::canonicalize(&path)?) {
+            fs::remove_dir_all(path)?;
         }
     }
     Ok(())
@@ -531,24 +543,32 @@ async fn latest_release(repository: &str) -> Result<String, Error> {
     struct GithubRelease {
         tag_name: String,
     }
-    let releases = reqwest::Client::new()
-        .get(format!(
-            "https://api.github.com/repos/{repository}/releases?per_page=100"
-        ))
-        .header(reqwest::header::USER_AGENT, "Altinn-Agent-updater")
-        .send()
-        .await
-        .map_err(|error| Error::Daemon(format!("resolve Agent release: {error}")))?
-        .error_for_status()
-        .map_err(|error| Error::Daemon(format!("resolve Agent release: {error}")))?
-        .json::<Vec<GithubRelease>>()
-        .await
-        .map_err(|error| Error::Daemon(format!("decode Agent releases: {error}")))?;
-    releases
-        .into_iter()
-        .find_map(|release| release.tag_name.strip_prefix("experimental-agent/").map(str::to_owned))
-        .ok_or_else(|| Error::Invalid("GitHub has no experimental Agent release".into()))
-        .and_then(|version| normalize_version(&version))
+    let client = reqwest::Client::new();
+    for page in 1_u32.. {
+        let releases = client
+            .get(format!(
+                "https://api.github.com/repos/{repository}/releases?per_page=100&page={page}"
+            ))
+            .header(reqwest::header::USER_AGENT, "Altinn-Agent-updater")
+            .send()
+            .await
+            .map_err(|error| Error::Daemon(format!("resolve Agent release: {error}")))?
+            .error_for_status()
+            .map_err(|error| Error::Daemon(format!("resolve Agent release: {error}")))?
+            .json::<Vec<GithubRelease>>()
+            .await
+            .map_err(|error| Error::Daemon(format!("decode Agent releases: {error}")))?;
+        if let Some(version) = releases
+            .iter()
+            .find_map(|release| release.tag_name.strip_prefix("experimental-agent/"))
+        {
+            return normalize_version(version);
+        }
+        if releases.len() < 100 {
+            break;
+        }
+    }
+    Err(Error::Invalid("GitHub has no experimental Agent release".into()))
 }
 
 async fn download(url: &str, path: &Path) -> Result<(), Error> {
@@ -886,7 +906,7 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    fn activation_switches_current_and_visible_links_together() {
+    fn activation_and_pruning_use_canonical_release_paths() {
         let temporary = tempfile::TempDir::new().expect("temporary directory");
         let paths = InstallPaths::new(temporary.path().join("install"), temporary.path().join("bin")).expect("paths");
         let release = paths.releases().join("v1.0.0-linux-x86_64");
@@ -899,7 +919,7 @@ mod tests {
 
         assert_eq!(
             current_release(&paths).expect("current"),
-            Some(fs::canonicalize(release).expect("canonical release"))
+            Some(fs::canonicalize(&release).expect("canonical release"))
         );
         for binary in binary_names() {
             assert_eq!(
@@ -907,5 +927,10 @@ mod tests {
                 paths.current().join(binary)
             );
         }
+        let stale = paths.releases().join("v0.9.0-linux-x86_64");
+        fs::create_dir(&stale).expect("stale release");
+        prune_releases(&paths, None).expect("prune releases");
+        assert!(release.exists());
+        assert!(!stale.exists());
     }
 }

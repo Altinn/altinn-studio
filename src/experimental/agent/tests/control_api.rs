@@ -376,6 +376,14 @@ async fn health_reports_a_compatible_daemon() {
 
 #[test]
 fn daemon_identity_rejects_preview_1_and_mixed_builds() {
+    let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
+        "protocolVersion": "v2",
+        "buildVersion": agent::build_version(),
+        "futureCapability": true
+    }))
+    .expect("extended health response");
+    extended.require_compatible().expect("compatible extended response");
+
     for daemon in [
         agent::control_api::DaemonInfo {
             protocol_version: Some("v1".into()),

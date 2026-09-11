@@ -14,7 +14,7 @@ use agent::{
 use super::CommandResult;
 
 const DEFAULT_REPOSITORY: &str = "Altinn/altinn-studio";
-const DAEMON_STOP_TIMEOUT: Duration = Duration::from_secs(10);
+const DAEMON_STOP_TIMEOUT: Duration = Duration::from_secs(65);
 const LIFECYCLE_REQUEST_TIMEOUT: Duration = Duration::from_secs(65);
 const TARGET_VERIFY_TIMEOUT: Duration = Duration::from_secs(75);
 
@@ -217,23 +217,34 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
     let client = Client::for_path(home.socket_path());
     if journal.phase < UpdatePhase::DaemonStopped {
         println!("Check Agent activity");
-        if let Ok(Ok(info)) = tokio::time::timeout(Duration::from_secs(2), client.health()).await {
-            if info.protocol_version.as_deref() != Some(PROTOCOL_VERSION) {
-                return Err(Error::Daemon(preview_stop_instruction().into()).into());
+        match tokio::time::timeout(Duration::from_secs(2), client.health()).await {
+            Ok(Ok(info)) => {
+                if info.protocol_version.as_deref() != Some(PROTOCOL_VERSION) {
+                    return Err(Error::Daemon(preview_stop_instruction().into()).into());
+                }
+                println!("Stop agentd");
+                let warnings = tokio::time::timeout(LIFECYCLE_REQUEST_TIMEOUT, client.shutdown_for_upgrade())
+                    .await
+                    .map_err(|_| Error::Daemon("timed out waiting for agentd to prepare for upgrade".into()))??;
+                for warning in warnings {
+                    eprintln!("Warning: {warning}");
+                }
             }
-            println!("Stop agentd");
-            let warnings = tokio::time::timeout(LIFECYCLE_REQUEST_TIMEOUT, client.shutdown_for_upgrade())
-                .await
-                .map_err(|_| Error::Daemon("timed out waiting for agentd to prepare for upgrade".into()))??;
-            for warning in warnings {
-                eprintln!("Warning: {warning}");
+            Err(_) => {
+                return Err(Error::Daemon(
+                    "agentd did not answer its health check; retry the update or stop agentd".into(),
+                )
+                .into());
             }
+            Ok(Err(_)) => {}
         }
-        journal.advance(&paths, UpdatePhase::DaemonStopped)?;
     }
-
     let home_lock = if journal.phase < UpdatePhase::Activated {
-        Some(acquire_home_lock(home).await?)
+        let home_lock = acquire_home_lock(home).await?;
+        if journal.phase < UpdatePhase::DaemonStopped {
+            journal.advance(&paths, UpdatePhase::DaemonStopped)?;
+        }
+        Some(home_lock)
     } else {
         None
     };

@@ -78,12 +78,11 @@ fn image_lines(agent: &Agent) -> Vec<String> {
         return vec!["Image:      local build".into()];
     };
     let mut lines = vec![format!("Image:      {reference}")];
-    let base = reference
-        .split_once('@')
-        .map_or(reference.as_str(), |(base, _)| base)
+    let without_digest = reference.split_once('@').map_or(reference.as_str(), |(base, _)| base);
+    let base = without_digest
         .rsplit_once(':')
         .filter(|(_, suffix)| !suffix.contains('/'))
-        .map_or(reference.as_str(), |(base, _)| base);
+        .map_or(without_digest, |(base, _)| base);
     if matches!(
         base,
         "ghcr.io/altinn/altinn-studio/agent-full" | "ghcr.io/altinn/altinn-studio/agent-minimal"
@@ -229,5 +228,12 @@ spec:
                 .iter()
                 .any(|line| line.contains(&format!("agent-full:{}", agent::build_version())))
         );
+
+        let sandbox::image::ImageSource::Reference { reference } = &mut agent.spec.sandbox.image else {
+            unreachable!()
+        };
+        *reference = format!("ghcr.io/altinn/altinn-studio/agent-full@sha256:{}", "a".repeat(64));
+        let lines = describe_agent_lines(&agent);
+        assert!(lines.iter().any(|line| line.starts_with("Recommended:")));
     }
 }

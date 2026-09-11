@@ -180,7 +180,7 @@ pub(crate) struct LoginParams {
 /// Both fields are optional so an updater can identify the preview 1 daemon,
 /// which did not report a build version. Normal commands require exact values.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct DaemonInfo {
     /// Application protocol spoken by the daemon.
     #[serde(default, skip_serializing_if = "Option::is_none")]

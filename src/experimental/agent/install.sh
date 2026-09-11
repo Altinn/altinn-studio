@@ -41,12 +41,22 @@ if [ -f "${journal}" ] && ! grep -q '^  "phase": "complete"$' "${journal}"; then
   exit 0
 fi
 
-if [ -z "${local_archive}" ] && [ -z "${version}" ]; then
-  version="$(curl -fsSL "https://api.github.com/repos/${repository}/releases?per_page=100" \
-    | sed -n 's/.*"tag_name": "experimental-agent\/\(v[^"]*\)".*/\1/p' \
-    | head -n 1)"
+if [ -n "${local_archive}" ] && [ -z "${version}" ]; then
+  echo "AGENT_VERSION is required when AGENT_LOCAL_ARCHIVE is set" >&2
+  exit 1
 fi
-if [ -z "${local_archive}" ] && [ -z "${version}" ]; then
+if [ -z "${version}" ]; then
+  page=1
+  while [ -z "${version}" ]; do
+    releases="$(curl -fsSL "https://api.github.com/repos/${repository}/releases?per_page=100&page=${page}")"
+    version="$(printf '%s' "${releases}" \
+      | sed -n 's/.*"tag_name": "experimental-agent\/\(v[^"]*\)".*/\1/p' \
+      | head -n 1)"
+    [ "${releases}" != "[]" ] || break
+    page=$((page + 1))
+  done
+fi
+if [ -z "${version}" ]; then
   echo "Could not resolve the latest experimental Agent release" >&2
   exit 1
 fi

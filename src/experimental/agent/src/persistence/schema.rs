@@ -148,15 +148,16 @@ fn migrate_agent_instructions(transaction: &Transaction<'_>) -> Result<(), Error
         let Some(instructions) = spec.remove("instructions") else {
             continue;
         };
-        if instructions.is_null() {
-            continue;
-        }
-        if !instructions.is_object() {
+        let instructions = if instructions.is_null() {
+            Vec::new()
+        } else if instructions.is_object() {
+            vec![instructions]
+        } else {
             return Err(Error::Database(format!(
                 "Agent {id} desired state has an unexpected preview 1 instructions value"
             )));
-        }
-        spec.insert("instructions".into(), serde_json::Value::Array(vec![instructions]));
+        };
+        spec.insert("instructions".into(), serde_json::Value::Array(instructions));
         transaction
             .execute(
                 "UPDATE agents SET desired_json = ?1 WHERE id = ?2",

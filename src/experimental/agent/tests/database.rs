@@ -102,6 +102,14 @@ fn preview_desired(name: &str) -> String {
     serde_json::to_string(&desired).expect("encode preview desired state")
 }
 
+fn preview_desired_with_null_instructions(name: &str) -> String {
+    let mut desired = serde_json::to_value(support::agent(name)).expect("serialize fixture Agent");
+    let spec = desired["spec"].as_object_mut().expect("fixture spec");
+    spec.insert("instructions".into(), serde_json::Value::Null);
+    spec.remove("skills");
+    serde_json::to_string(&desired).expect("encode preview desired state")
+}
+
 fn create_preview_1_database(path: &Path) {
     let connection = rusqlite::Connection::open(path).expect("create preview 1 database");
     connection.execute_batch(PREVIEW_1_SCHEMA).expect("preview 1 schema");
@@ -116,7 +124,7 @@ fn create_preview_1_database(path: &Path) {
                 preview_desired("worker"),
                 PREVIEW_DELETED_AGENT_ID,
                 serde_json::to_string(Path::new("/preview/deleted")).expect("deleted source"),
-                preview_desired("deleted")
+                preview_desired_with_null_instructions("deleted")
             ],
         )
         .expect("preview Agents");
@@ -398,6 +406,17 @@ fn released_preview_1_database_migrates_without_losing_state() {
             .expect("deleted Agent source"),
         serde_json::to_string(Path::new("/preview/deleted")).expect("source")
     );
+    let deleted: agent::Agent = serde_json::from_str(
+        &connection
+            .query_row(
+                "SELECT desired_json FROM agents WHERE id = ?1",
+                [PREVIEW_DELETED_AGENT_ID],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("deleted Agent desired state"),
+    )
+    .expect("migrated deleted Agent");
+    assert!(deleted.spec.instructions.is_empty());
     assert_eq!(
         connection
             .query_row(

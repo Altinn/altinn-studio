@@ -15,8 +15,11 @@ $JournalPath = Join-Path $InstallRoot "update.json"
 function Invoke-Completion($Journal) {
     $Target = $Journal.targetRelease
     $TargetVersion = $Journal.targetVersion
+    if (-not $Target -or -not $TargetVersion) {
+        throw "The Agent update journal does not name a usable staged release: $JournalPath"
+    }
     $Agentctl = Join-Path $Target "agentctl.exe"
-    if (-not $Target -or -not $TargetVersion -or -not (Test-Path $Agentctl -PathType Leaf)) {
+    if (-not (Test-Path $Agentctl -PathType Leaf)) {
         throw "The Agent update journal does not name a usable staged release: $JournalPath"
     }
     $Arguments = @(
@@ -39,9 +42,14 @@ if (Test-Path $JournalPath -PathType Leaf) {
     }
 }
 
-if (-not $LocalArchive -and -not $Version) {
-    $Releases = Invoke-RestMethod "https://api.github.com/repos/$Repository/releases?per_page=100"
-    $Release = $Releases | Where-Object { $_.tag_name -like "experimental-agent/v*" } | Select-Object -First 1
+if ($LocalArchive -and -not $Version) { throw "AGENT_VERSION is required when AGENT_LOCAL_ARCHIVE is set" }
+if (-not $Version) {
+    $Page = 1
+    do {
+        $Releases = @(Invoke-RestMethod "https://api.github.com/repos/$Repository/releases?per_page=100&page=$Page")
+        $Release = $Releases | Where-Object { $_.tag_name -like "experimental-agent/v*" } | Select-Object -First 1
+        $Page++
+    } while (-not $Release -and $Releases.Count -eq 100)
     if (-not $Release) { throw "Could not resolve the latest experimental Agent release" }
     $Version = $Release.tag_name.Substring("experimental-agent/".Length)
 }
