@@ -102,7 +102,13 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
       o.lydElement.srcObject = e.streams[0];
     };
 
-    mikrofon = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // Ekkokansellering og støyreduksjon bes om eksplisitt. Nettleseren slår dem
+    // som regel på selv for «audio: true», men det er en standard vi ikke eier, og
+    // den er svakest der den trengs mest: ekstern høyttaler og bluetooth-headset.
+    // Uten dem lekker assistentens egen stemme inn i mikrofonen og avbryter den selv.
+    mikrofon = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
     mikrofon.getTracks().forEach((t) => pc.addTrack(t, mikrofon!));
 
     const kanal = pc.createDataChannel('oai-events');
@@ -122,6 +128,20 @@ export async function aapneOkt(o: IOktOpsjoner): Promise<IOkt> {
               // nettopp der den gjetter feil.
               input: {
                 transcription: { model: o.transkripsjonsmodell, language: o.sprak },
+                // Uten dette kjører taledeteksjonen på standardterskel, og da holder
+                // det at en kaffekopp settes ned: lyden blir regnet som tale, svaret
+                // som pågår blir kuttet, og tjenesten lager et nytt svar på en
+                // lydsnutt uten ord i. «low» sier at turen skal regnes som slutt
+                // først når det faktisk er sagt noe ferdig.
+                //
+                // Barge-in står igjen på som standard: snakker søkeren mens assistenten
+                // snakker, skal assistenten tie. Å slå det av ville gjort en kaffekopp
+                // harmløs, men samtidig tatt fra søkeren muligheten til å avbryte - og
+                // to stemmer oppå hverandre er verre enn en avbrytelse for mye.
+                turn_detection: {
+                  type: 'semantic_vad',
+                  eagerness: 'low',
+                },
               },
             },
             tools: o.verktoy.map((v) => ({
