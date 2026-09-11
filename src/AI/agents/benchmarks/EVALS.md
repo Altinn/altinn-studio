@@ -345,7 +345,7 @@ a single global number and cannot express that, so read a small dataset's moveme
 until it is bigger.
 
 The runs on disk are the data for fixing this: group them by the axes that were identical,
-take each behaviour's spread within a group, and that is its band on unchanged code. The
+take each behavior's spread within a group, and that is its band on unchanged code. The
 open question is not how to compute it but how wide a band may be before it hides a real
 regression, which is a decision about what this is for rather than a calculation. A gate
 whose band is a third of its range is telling you the gate is too small to pin, and that is
@@ -355,7 +355,7 @@ itself the finding.
 marker and fails. A preview that returns nothing at all within the timeout is retried once
 and then left unmeasured, so `bench_pages_render` is a mean over the pages it could measure
 and its comment names the ones it skipped. Scoring a timeout as a failure cost one run 0.250
-on two behaviours while the same committed branch rendered on a retry.
+on two behaviors while the same committed branch rendered on a retry.
 
 **Attribute movement it cannot attribute.** Each component declares the model role its
 calls use, so the report says when a behavior moved on a component whose model did not
