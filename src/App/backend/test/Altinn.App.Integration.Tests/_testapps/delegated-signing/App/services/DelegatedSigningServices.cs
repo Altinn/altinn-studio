@@ -3,7 +3,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing;
@@ -24,9 +23,6 @@ internal static class DelegatedSigningServices
         services.AddSingleton<IEndpointConfigurator>(sp => sp.GetRequiredService<DelegatedSigningState>());
         services.AddScoped<ISigneeProvider, IntegrationSigneeProvider>();
         services.AddSingleton<IHttpMessageHandlerBuilderFilter, SigningTransportFilter>();
-        services.PostConfigure<PlatformSettings>(settings =>
-            settings.ApiCorrespondenceEndpoint = "http://correspondence.integration.test/"
-        );
         services.Configure<MvcOptions>(options => options.Filters.Add<SigningCallbackFilter>());
 
         // Keep the actual clients and commands. Only inject dependency failures and shorten the engine's backoff.
@@ -201,15 +197,12 @@ internal sealed class SigningTransportHandler(DelegatedSigningState state) : Del
                 }
             );
         }
-        if (request.RequestUri?.Host != "correspondence.integration.test")
+        if (request.Method != HttpMethod.Post || !IsCorrespondenceInitialization(request.RequestUri))
             return await base.SendAsync(request, cancellationToken);
 
-        if (request.Method != HttpMethod.Post || request.RequestUri.AbsolutePath.Trim('/') != "correspondence")
-            throw new InvalidOperationException(
-                $"Unexpected correspondence request: {request.Method} {request.RequestUri}"
-            );
-
-        // Parse the actual CorrespondenceClient wire payload, including the idempotentKey contract.
+        // Parse the actual CorrespondenceClient wire payload, including the idempotentKey contract, then let
+        // localtest's Correspondence emulation store it. This wrapper only injects failures and records attempts,
+        // the same shape as the Access Management wrapper.
         using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
         var root = body.RootElement;
         Guid key = root.GetProperty("idempotentKey").GetGuid();
@@ -217,34 +210,50 @@ internal sealed class SigningTransportHandler(DelegatedSigningState state) : Del
             throw new InvalidOperationException("Signing correspondence must carry a nonempty idempotency key");
         string recipient = root.GetProperty("recipients").EnumerateArray().Single().GetString()!;
         string instanceId = root.GetProperty("correspondence").GetProperty("sendersReference").GetString()!;
-        var result = state.SendNotification(instanceId, recipient, key);
-        if (result.StatusCode != 200)
-            return JsonResponse(
-                result.StatusCode,
-                new
-                {
-                    title = result.Duplicate ? "Duplicate idempotency key" : "Injected correspondence failure",
-                    status = result.StatusCode,
-                    detail = "Controlled by the delegated-signing integration fixture",
-                }
+
+        var (attempt, alreadyAccepted, failure) = state.PlanNotification(instanceId, recipient, key);
+        if (failure is { AfterSuccess: false })
+        {
+            // Refused before anything reaches localtest, so a retry is the first delivery.
+            state.RecordNotification(new(instanceId, recipient, key, attempt, false, false, failure.StatusCode));
+            return InjectedFailure(failure.StatusCode);
+        }
+
+        HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
+        int status = (int)response.StatusCode;
+        bool duplicate = status == 409;
+        bool accepted = status == 200;
+        if (alreadyAccepted && !duplicate)
+            throw new InvalidOperationException(
+                $"localtest accepted idempotency key {key} twice; the Correspondence emulation must answer 409"
             );
-        return JsonResponse(
-            200,
+
+        if (failure is { AfterSuccess: true } && accepted)
+        {
+            // Localtest stored the message, but the app loses the response. Its retry must get 409, not a copy.
+            response.Dispose();
+            state.RecordNotification(new(instanceId, recipient, key, attempt, true, false, failure.StatusCode));
+            return InjectedFailure(failure.StatusCode);
+        }
+
+        state.RecordNotification(new(instanceId, recipient, key, attempt, accepted, duplicate, status));
+        return response;
+    }
+
+    private static bool IsCorrespondenceInitialization(Uri? uri) =>
+        uri is not null
+        && uri.AbsolutePath.TrimEnd('/').EndsWith("/correspondence/api/v1/correspondence", StringComparison.Ordinal);
+
+    private static HttpResponseMessage InjectedFailure(int status) =>
+        JsonResponse(
+            status,
             new
             {
-                correspondences = new[]
-                {
-                    new
-                    {
-                        correspondenceId = Guid.NewGuid(),
-                        recipient,
-                        status = 0,
-                    },
-                },
-                attachmentIds = Array.Empty<Guid>(),
+                title = "Injected correspondence failure",
+                status,
+                detail = "Controlled by the delegated-signing integration fixture",
             }
         );
-    }
 
     private static HttpResponseMessage JsonResponse(int status, object body) =>
         new((HttpStatusCode)status)

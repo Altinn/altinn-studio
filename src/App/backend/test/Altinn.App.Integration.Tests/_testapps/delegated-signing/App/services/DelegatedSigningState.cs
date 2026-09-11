@@ -210,32 +210,42 @@ internal sealed class DelegatedSigningState : IEndpointConfigurator
             _revocations.Add(attempt);
     }
 
-    public NotificationAttempt SendNotification(string instanceId, string recipient, Guid key)
+    /// <summary>
+    /// Decides what the transport wrapper does with one call to action before it is forwarded to localtest's
+    /// Correspondence emulation: the attempt number, whether this key was already accepted (localtest will answer
+    /// 409, so no failure is consumed), and the failure rule to inject, if any.
+    /// </summary>
+    public (int Attempt, bool AlreadyAccepted, FailureRequest? Failure) PlanNotification(
+        string instanceId,
+        string recipient,
+        Guid key
+    )
     {
         lock (_gate)
         {
             int attempt = _notifications.Count(x => x.InstanceId == instanceId && x.Recipient == recipient) + 1;
-            bool duplicate = _acceptedNotifications.Contains(key);
-            var failure = duplicate
+            bool alreadyAccepted = _acceptedNotifications.Contains(key);
+            var failure = alreadyAccepted
                 ? null
                 : TakeFailure(
                     _plan.NotificationFailure,
                     Array.FindIndex(_plan.Signees, ssn => recipient.EndsWith($":{ssn}", StringComparison.Ordinal)) + 1
                 );
-            bool accepted = !duplicate && (failure is null || failure.AfterSuccess);
-            if (accepted)
-                _acceptedNotifications.Add(key);
-            var result = new NotificationAttempt(
-                instanceId,
-                recipient,
-                key,
-                attempt,
-                accepted,
-                duplicate,
-                duplicate ? 409 : failure?.StatusCode ?? 200
-            );
-            _notifications.Add(result);
-            return result;
+            return (attempt, alreadyAccepted, failure);
+        }
+    }
+
+    /// <summary>
+    /// Records the outcome of one call to action. Accepted means localtest stored the message, whether or not the
+    /// app was shown that response; a later attempt with the same key is then a duplicate.
+    /// </summary>
+    public void RecordNotification(NotificationAttempt attempt)
+    {
+        lock (_gate)
+        {
+            if (attempt.Accepted)
+                _acceptedNotifications.Add(attempt.IdempotencyKey);
+            _notifications.Add(attempt);
         }
     }
 

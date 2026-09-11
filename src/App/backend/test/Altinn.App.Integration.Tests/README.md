@@ -217,11 +217,12 @@ Run the signing integration tests with:
 dotnet test test/Altinn.App.Integration.Tests/ --filter FullyQualifiedName~Signing
 ```
 
-The app uses the real workflow engine, Storage, Register, Access Management, and signing services.
-Its test controls inject failures at the external boundaries and record attempts. Correspondence is
-emulated by an HTTP handler because localtest does not provide that API; the real Correspondence client
-still serializes requests, obtains its service owner token, and handles HTTP errors. The handler records
-accepted messages and returns HTTP 409 for repeated idempotency keys. No messages leave the test app.
+The app uses the real workflow engine, Storage, Register, Access Management, Correspondence emulation, and
+signing services in localtest. Its test controls inject failures at the external boundaries and record
+attempts: Access Management and Correspondence calls pass through thin wrappers that can refuse a recipient
+or drop a response before forwarding to localtest, which stores accepted messages and answers HTTP 409 for a
+repeated idempotency key. Only the Altinn CDN organization registry is faked in-process. No messages leave
+the machine.
 
 Tests verify that retries preserve resolved signees, delegation checkpoints, and notification keys;
 that a failed workflow can resume; and that instances created before the workflow engine can finish or
