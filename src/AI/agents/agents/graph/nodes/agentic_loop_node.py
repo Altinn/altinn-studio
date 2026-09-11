@@ -76,7 +76,7 @@ def _status_for_tool_call(name: str, tool_input: dict[str, Any] | None) -> str |
     base = _TOOL_STATUS_MESSAGES.get(name)
     args = tool_input or {}
     if base:
-        subject = args.get("path") or args.get("skill")
+        subject = args.get("path") or args.get("skill") or args.get("name")
         if isinstance(subject, str) and subject:
             return f"{base} {subject}"
         return base
@@ -716,7 +716,12 @@ def _final_summary_text(result: LoopResult) -> str:
     if result.reason is TerminationReason.CANCELLED:
         return "Forespørselen ble avbrutt."
     if result.reason is TerminationReason.ERROR:
-        return f"Det oppstod en feil under behandlingen: {result.error or 'ukjent årsak'}."
+        # The provider's own text names keys, endpoints and regions: log it, don't ship it.
+        log.error("Loop failed: %s", result.error or "unknown")
+        return (
+            "Noe gikk galt hos meg underveis, så jeg stoppet.  Eventuelle endringer "
+            "som ble gjort er commitet til sesjons-grenen.  Prøv igjen om litt."
+        )
     return "Ferdig."
 
 

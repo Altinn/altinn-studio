@@ -26,6 +26,8 @@ PUSH_OVERRIDE_VARIABLE = "ALLOW_PROMPT_PUSH"
 
 # Langfuse name -> the local file that serves it, where get_prompt_with_langfuse
 # is called with local_path. Without these the file reads as retired.
+HTTP_NOT_FOUND = 404
+
 SERVED_FROM: dict[str, str] = {"intent_check": "intent_security"}
 
 
@@ -133,14 +135,49 @@ def _require_push_override() -> None:
     )
 
 
+def _published_shape(api: LangfuseApi, name: str) -> list | None:
+    """The turns of the published chat prompt, or None when it is a text prompt."""
+    try:
+        published = api._get(f"/api/public/v2/prompts/{name}")
+    except httpx.HTTPStatusError as error:
+        if error.response.status_code == HTTP_NOT_FOUND:
+            return None  # nobody has published this one yet, so text is the shape
+        raise SystemExit(
+            f"Could not read the published {name}: {error}. Refusing to publish, "
+            "because guessing the shape can drop a chat prompt's variables."
+        ) from error
+    if published.get("type") != "chat":
+        return None
+    return published.get("prompt") or None
+
+
+def _as_published(name: str, content: str, shape: list | None) -> dict:
+    """The local file in the shape Langfuse already serves this prompt in.
+
+    A chat prompt carries the user turn with its `{{variables}}`; publishing the
+    file as text would drop that turn and the model would never see the request.
+    """
+    if shape is None:
+        return {"type": "text", "prompt": content}
+    turns = [dict(turn) for turn in shape]
+    system = [turn for turn in turns if turn.get("role") == "system"]
+    if not system:
+        raise SystemExit(
+            f"{name} is a chat prompt in Langfuse with no system turn, so there is "
+            "nowhere to put the file. Fix it there, or publish by hand."
+        )
+    system[0]["content"] = content
+    return {"type": "chat", "prompt": turns}
+
+
 def _push(api: LangfuseApi, name: str, message: str) -> None:
     local = load_prompt(name)
+    shape = _published_shape(api, name)
     created = api._post(
         "/api/public/v2/prompts",
         {
             "name": name,
-            "type": "text",
-            "prompt": local["content"],
+            **_as_published(name, local["content"], shape),
             "labels": ["production"],
             "commitMessage": message,
         },
@@ -150,7 +187,7 @@ def _push(api: LangfuseApi, name: str, message: str) -> None:
 
 def _promote(api: LangfuseApi, name: str, version: int) -> None:
     updated = api._patch(
-        f"/api/public/v2/prompts/{name}/version/{version}",
+        f"/api/public/v2/prompts/{name}/versions/{version}",
         {"newLabels": ["production"]},
     )
     print(f"{name}: v{updated.get('version')} is now {updated.get('labels')}")

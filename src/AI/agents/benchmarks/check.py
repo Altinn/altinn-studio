@@ -232,7 +232,7 @@ def _collect(result: object, eval_name: str, dataset_version: str | None) -> Eva
 
 
 # What the item is, not how it was uploaded. These dimensions split a mean in half.
-KEPT_METADATA = ("language", "verification", "pairs_with", "source_trace")
+KEPT_METADATA = ("language", "verification", "pairs_with", "source_trace", "regression", "defect")
 
 
 def _kept_metadata(metadata: dict) -> dict[str, str]:

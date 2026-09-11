@@ -94,6 +94,11 @@ class VerifyChangesTool(WriteToolMixin):
         if not nav_ok:
             passed = False
 
+        text_ok, text_notes = _check_text_keys(ctx, changed)
+        notes.extend(text_notes)
+        if not text_ok:
+            passed = False
+
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
         # files while others still fail — refuse the easy short-circuit.
@@ -211,6 +216,85 @@ def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, 
         )
 
     return ok, notes
+
+
+# ---------------------------------------------------------------------------
+# Cross-file check: text resource keys
+# ---------------------------------------------------------------------------
+
+
+def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """Every `textResourceBindings` key must exist in every language the app serves.
+
+    A key missing from one language renders as the key itself in that language.
+    """
+    repo = Path(ctx.repo_path)
+    by_language = _text_keys_by_language(repo)
+    if not by_language:
+        return True, []  # no readable text resources — nothing to resolve against
+
+    # A changed resource file can strip a key any layout still references.
+    touched_texts = any(_is_text_resource(f) for f in changed)
+    layouts = _all_layout_files(repo) if touched_texts else [
+        repo / f for f in changed if _is_layout_file(f)
+    ]
+
+    notes: list[str] = []
+    for layout in layouts:
+        referenced = _referenced_text_keys(layout)
+        for language, known in sorted(by_language.items()):
+            missing = sorted(key for key in referenced if key not in known)
+            if not missing:
+                continue
+            listed = ", ".join(f"`{key}`" for key in missing[:8])
+            if len(missing) > 8:
+                listed += f", and {len(missing) - 8} more"
+            notes.append(
+                f"{layout.relative_to(repo)}: text key(s) {listed} have no entry in "
+                f"`App/config/texts/resource.{language}.json`, so the page shows the "
+                "key instead of the text in that language."
+            )
+    return not notes, notes
+
+
+def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
+    """The ids each `resource.<language>.json` defines."""
+    texts_dir = repo / "App" / "config" / "texts"
+    by_language: dict[str, set[str]] = {}
+    for path in sorted(texts_dir.glob("resource.*.json")):
+        try:
+            parsed = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        keys = {
+            entry["id"]
+            for entry in parsed.get("resources") or []
+            if isinstance(entry, dict) and isinstance(entry.get("id"), str)
+        }
+        by_language[_infer_resource_language(str(path))] = keys
+    return by_language
+
+
+def _all_layout_files(repo: Path) -> list[Path]:
+    return sorted(p for p in repo.glob("App/ui/**/*.json") if _is_layout_file(str(p)))
+
+
+def _referenced_text_keys(layout_path: Path) -> set[str]:
+    try:
+        parsed = json.loads(layout_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()  # the schema validator owns unreadable layouts
+    layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
+    if not isinstance(layout, list):
+        return set()
+    keys: set[str] = set()
+    for component in layout:
+        if not isinstance(component, dict):
+            continue
+        for value in (component.get("textResourceBindings") or {}).values():
+            if isinstance(value, str) and value.strip():
+                keys.add(value)
+    return keys
 
 
 def _read_page_order(settings_path: Path) -> list[str] | None:

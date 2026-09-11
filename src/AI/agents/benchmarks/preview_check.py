@@ -87,35 +87,49 @@ def _repo_org_and_app() -> tuple[str, str]:
 
 
 def build_scores(results: list[PageRenderResult]) -> list[Score]:
-    rendered_count = sum(1 for result in results if result.rendered)
-    failures = [result for result in results if not result.rendered]
+    """Pages the preview never answered for are left out, not counted as failures."""
+    measured = [result for result in results if result.measured]
+    skipped = [result for result in results if not result.measured]
+    rendered_count = sum(1 for result in measured if result.rendered)
+    failures = [result for result in measured if not result.rendered]
     failure_summary = "; ".join(f"{failure.page}: {failure.detail}" for failure in failures)
+    skipped_note = (
+        f" — {len(skipped)} page(s) the preview never answered for: "
+        + ", ".join(result.page for result in skipped)
+        if skipped
+        else ""
+    )
 
-    first = results[0] if results else None
+    entry = results[0] if results else None
+    entry_unmeasured = entry is not None and not entry.measured
     renders = Score(
         name=RENDERS_SCORE_NAME,
-        value=1.0 if first and first.rendered else 0.0,
+        value=1.0 if entry and entry.rendered else 0.0,
         data_type="BOOLEAN",
         comment=(
-            f"first page {first.page!r} rendered"
-            if first and first.rendered
-            else f"first page failed — {first.page}: {first.detail}"
-            if first
+            f"first page {entry.page!r} rendered"
+            if entry and entry.rendered
+            else f"first page failed — {entry.page}: {entry.detail}"
+            if entry
             else "no ordered pages to render"
         ),
     )
+
     pages_render = Score(
         name=PAGES_RENDER_SCORE_NAME,
-        value=rendered_count / len(results) if results else 0.0,
+        value=rendered_count / len(measured) if measured else 0.0,
         data_type="NUMERIC",
         comment=(
-            f"{rendered_count}/{len(results)} pages rendered"
+            f"{rendered_count}/{len(measured)} pages rendered"
             + (f" — failed: {failure_summary}" if failures else "")
-            if results
-            else "no ordered pages to render"
+            + skipped_note
+            if measured
+            else f"no ordered pages to render{skipped_note}"
         ),
     )
-    return [renders, pages_render]
+    # An unmeasured entry page is not evidence either way, and a later page's
+    # result is not the entry page's.
+    return [pages_render] if entry_unmeasured else [renders, pages_render]
 
 
 

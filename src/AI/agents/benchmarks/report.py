@@ -18,6 +18,7 @@ VERDICT_WORDS = {
     "improved": "improved",
     "regressed": "regressed",
     "failing": "failing",
+    "confirmed": "known defect, still held in place",
     "output-changed": "output changed, score did not",
     "unpinned": "not pinned",
     "not-run": "not run",
@@ -30,6 +31,7 @@ VERDICT_CLASS = {
     "improved": "hold",
     "regressed": "broken",
     "failing": "broken",
+    "confirmed": "known",
     "output-changed": "moved",
     "variance": "moved",
     "unpinned": "unpinned",
@@ -347,7 +349,7 @@ class Report:
     def counts(self) -> dict[str, int]:
         counts = {
             "holding": 0, "moved": 0, "failing": 0, "recorded": 0, "variance": 0,
-            "unpinned": 0, "not_run": 0, "no_score": 0,
+            "confirmed": 0, "unpinned": 0, "not_run": 0, "no_score": 0,
         }
         for view in self.behaviors:
             if view.verdict == "variance":
@@ -381,7 +383,7 @@ class Report:
     def worst_verdict(self, component_id: str) -> str:
         rank = {
             "failing": 6, "no-score": 5, "regressed": 4, "output-changed": 3,
-            "improved": 2, "variance": 2, "unpinned": 1, "not-run": 1,
+            "confirmed": 3, "improved": 2, "variance": 2, "unpinned": 1, "not-run": 1,
             "new": 0, "holding": 0,
         }
         views = self.of_component(component_id)
@@ -391,7 +393,10 @@ class Report:
 
     def open_work(self) -> tuple[BehaviorView, ...]:
         """Behaviors with something to do, worst first. What the prompts are for."""
-        rank = {"failing": 0, "no-score": 1, "regressed": 2, "output-changed": 3, "unpinned": 4}
+        rank = {
+            "failing": 0, "no-score": 1, "regressed": 2, "output-changed": 3,
+            "confirmed": 4, "unpinned": 5,
+        }
         return tuple(
             sorted(
                 (v for v in self.behaviors if v.verdict in rank),
@@ -424,7 +429,8 @@ def _verdict_for(behavior, result, change) -> str:
     if result.score is None:
         return "no-score"
     if result.score == 0:
-        return "failing"
+        # An item harvested to hold a defect scores 0 on purpose; that is evidence, not rot.
+        return "confirmed" if result.only_declared_regressions_scored_zero else "failing"
     if change is None:
         return "new"
     return change.verdict

@@ -234,14 +234,27 @@ class EditFileTool(WriteToolMixin):
             return ToolResult(content=f"Read failed: {exc}", is_error=True)
 
         occurrences = text.count(args.old_string)
+        matched_on_whitespace = False
         if occurrences == 0:
-            return ToolResult(
-                content=(
-                    f"`old_string` not found in {args.path}.  Re-read the file and "
-                    "copy the exact text — do not retry the same value."
-                ),
-                is_error=True,
-            )
+            spans = _whitespace_insensitive_spans(text, args.old_string)
+            if len(spans) != 1:
+                found = ""
+                if len(spans) > 1:
+                    found = (
+                        f"  Ignoring whitespace it would match {len(spans)} places, so "
+                        "add surrounding context."
+                    )
+                return ToolResult(
+                    content=(
+                        f"`old_string` not found in {args.path}.  Re-read the file and "
+                        f"copy the exact text — do not retry the same value.{found}"
+                    ),
+                    is_error=True,
+                )
+            start, end = spans[0]
+            text = text[:start] + args.old_string + text[end:]
+            occurrences = 1
+            matched_on_whitespace = True
         if occurrences > 1 and not args.replace_all:
             return ToolResult(
                 content=(
@@ -265,10 +278,99 @@ class EditFileTool(WriteToolMixin):
             return ToolResult(content=f"Write failed: {exc}", is_error=True)
 
         _mark_changed(ctx, args.path)
-        return ToolResult(
-            content=f"Edited {args.path}: replaced {replaced} occurrence(s).",
-            metadata={"replaced": replaced, "path": args.path},
+        note = (
+            "  `old_string` matched only after ignoring whitespace, so that region now "
+            "carries your formatting."
+            if matched_on_whitespace
+            else ""
         )
+        return ToolResult(
+            content=f"Edited {args.path}: replaced {replaced} occurrence(s).{note}",
+            metadata={
+                "replaced": replaced,
+                "path": args.path,
+                "matched_on_whitespace": matched_on_whitespace,
+            },
+        )
+
+
+def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int]]:
+    """Where `needle` occurs in `text` when whitespace around punctuation is ignored.
+
+    Whitespace may appear or vanish next to punctuation but never between words,
+    and the contents of a quoted string stay exact.
+    """
+    import re
+
+    structural = set("{}[](),:;")
+    quotes = {'"', "'", "`"}
+    pattern: list[str] = []
+    in_string: str | None = None
+    escaped = False
+    last_significant = ""
+    index = 0
+    while index < len(needle):
+        char = needle[index]
+        if in_string:
+            pattern.append(re.escape(char))
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == in_string:
+                in_string = None
+            last_significant = char
+            index += 1
+            continue
+        if char.isspace():
+            run = index
+            while run < len(needle) and needle[run].isspace():
+                run += 1
+            following = needle[run] if run < len(needle) else ""
+            beside_punctuation = last_significant in structural or following in structural
+            marker = r"\s*" if beside_punctuation else r"\s+"
+            if pattern and pattern[-1] in (r"\s*", r"\s+"):
+                pattern[-1] = marker if marker == r"\s+" else pattern[-1]
+            else:
+                pattern.append(marker)
+            index = run
+            continue
+        if char in structural:
+            if pattern and pattern[-1] not in (r"\s*", r"\s+"):
+                pattern.append(r"\s*")
+            pattern.append(re.escape(char))
+            pattern.append(r"\s*")
+            last_significant = char
+            index += 1
+            continue
+        pattern.append(re.escape(char))
+        if char in quotes:
+            in_string = char
+        last_significant = char
+        index += 1
+    joined = "".join(pattern).strip()
+    if not joined or in_string:
+        return []
+    # Every start position, not just the non-overlapping ones: two candidates that
+    # overlap are still two, and this match only applies when there is exactly one.
+    spans = [
+        (found.start(), found.start() + len(found.group(1)))
+        for found in re.finditer(f"(?=({joined}))", text)
+    ]
+    return _without_whitespace_variants(spans)
+
+
+def _without_whitespace_variants(spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    r"""One candidate per region.
+
+    A leading `\s*` matches with and without the whitespace it can absorb, which
+    is one place rather than several.
+    """
+    longest_by_end: dict[int, int] = {}
+    for start, end in spans:
+        if end not in longest_by_end or start < longest_by_end[end]:
+            longest_by_end[end] = start
+    return sorted((start, end) for end, start in longest_by_end.items())
 
 
 # ---------------------------------------------------------------------------

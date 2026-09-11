@@ -12,6 +12,14 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 
 
+def _spec_status(form_spec) -> str:
+    pages = form_spec.total_pages
+    return (
+        f"Hentet ut feltliste: {form_spec.field_count()} felt "
+        f"på {pages} {'side' if pages == 1 else 'sider'}"
+    )
+
+
 async def handle(state: AgentState) -> AgentState:
     """Extract a FormSpec from attachments if present."""
     log.info(f"⏱️ [SPEC NODE] Starting at {time.time()}")
@@ -62,7 +70,7 @@ async def handle(state: AgentState) -> AgentState:
                     type="status",
                     session_id=state.session_id,
                     data={
-                        "message": f"Extracted form spec: {form_spec.field_count()} fields across {form_spec.total_pages} pages",
+                        "message": _spec_status(form_spec),
                         "spec_title": form_spec.title,
                         "spec_pages": form_spec.total_pages,
                         "spec_fields": form_spec.field_count(),
@@ -80,7 +88,7 @@ async def handle(state: AgentState) -> AgentState:
             AgentEvent(
                 type="error",
                 session_id=state.session_id,
-                data={"message": f"Spec extraction failed: {exc}"},
+                data={"message": "Klarte ikke å hente ut feltlisten fra vedlegget."},
             )
         )
         # Non-fatal: continue without spec

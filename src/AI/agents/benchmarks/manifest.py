@@ -753,7 +753,9 @@ BEHAVIORS = (
             "exercise: `benchmarks.components` reports which component types any run renders, "
             "and a component exercised only by a replay can break at runtime with nothing to "
             "notice. That gap, not a missing per-property check, is what lets a render defect "
-            "ship."
+            "ship. A preview that answers with nothing at all is retried once and then left "
+            "unmeasured rather than scored 0, so this behavior can be a mean over fewer pages "
+            "than the app has: read the comment, which names every page that was skipped."
         ),
         eval="Benchmarks/forms",
         evaluator="bench_pages_render",

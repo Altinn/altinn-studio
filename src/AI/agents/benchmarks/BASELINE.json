@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "07e319515e6a",
-    "code": "d2f7f6f clean",
-    "dataset": "114 items 5562d4e8298d",
+    "code": "367fc39 clean",
+    "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260910T042810Z-datepicker-timestamp-pairing-declares-the-required-value-5ea8",
-  "label": "datepicker timeStamp: pairing declares the required value",
-  "recorded_at": "2026-09-10T04:32:45+00:00",
-  "why": "pairing declares the required value, so a Datepicker with timeStamp true no longer scores as satisfied"
+  "check_id": "20260911T141739Z-one-candidate-per-region-in-the-whitespace-match-d7f2",
+  "label": "one candidate per region in the whitespace match",
+  "recorded_at": "2026-09-11T14:22:55+00:00",
+  "why": "one candidate per region, so an indented needle is no longer refused as ambiguous"
 }
