@@ -10,10 +10,9 @@ import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 // The error page (UnknownError) calls the real axios isAxiosError on the thrown error.
 vi.unmock('axios');
 
-// The provider polls the instance every 2-3s (jittered) while a workflow transition is processing.
-// Each failed refetch cycle internally retries 3 times with exponential backoff (1s/2s/4s), so a
-// full failed cycle takes at most ~10s including the preceding poll tick. Advancing 12s per step
-// therefore completes exactly one cycle (the next cycle needs ~9-10s more and cannot finish).
+// Transition polling starts after one second. Each failed refetch cycle internally retries 3 times
+// with exponential backoff (1s/2s/4s), so a full failed cycle takes about eight seconds before the
+// polling hook schedules its next attempt. Advancing 12s therefore completes one cycle at a time.
 const ONE_POLL_CYCLE_MS = 12_000;
 
 function getProcessingInstance(): IInstanceWithProcess {
@@ -148,7 +147,7 @@ describe('InstanceProvider poll-failure tolerance', () => {
     expect(await screen.findByTestId('instance-probe')).toBeInTheDocument();
     const fetchesAfterLoad = fetchCount;
 
-    // Well past both the processing (~2-3s) and the old failed (~10-12s) poll windows: no ticks.
+    // Well past any active polling interval: no ticks.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60_000);
     });

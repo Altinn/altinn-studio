@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Button, Flex } from '@app/form-component';
-import { useQueryClient } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/process/ProcessWrapper.module.css';
@@ -14,9 +12,11 @@ import {
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
+import { useIsMutating, useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
+import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
+import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -33,6 +33,7 @@ import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import { getPageTitle } from 'src/utils/getPageTitle';
+import type { QueryClient } from 'src/core/queries/reactQuery';
 
 interface NavigationErrorProps {
   label: string;
@@ -79,9 +80,11 @@ function NavigationError({ label }: NavigationErrorProps) {
 /**
  * Synchronizes a URL that was parked on a transition's previous task. Navigation happens only
  * after this session observed a busy workflow settle, preserving the manual recovery path for a
- * stale URL opened after the transition already completed.
+ * stale URL opened after the transition already completed. While this session's process/next call
+ * is still pending, its response remains responsible for navigation. An idle read during that
+ * window may only be the gap between two chained workflows.
  */
-function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) {
+function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean, processNextPending: boolean) {
   const { data: process } = useProcessQuery();
   const status = process?.workflow?.status;
   const navigateToTask = useNavigateToTask();
@@ -94,6 +97,9 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
     }
     if (status === 'processing' || (status === 'failed' && !failedOnCurrentServiceTask)) {
       wasBusyRef.current = true;
+      return;
+    }
+    if (processNextPending) {
       return;
     }
     if (failedOnCurrentServiceTask) {
@@ -120,7 +126,7 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean) 
     if (settledTask && settledTask !== taskId) {
       navigateToTask(settledTask);
     }
-  }, [enabled, status, failedOnCurrentServiceTask, process, taskId, navigateToTask]);
+  }, [enabled, status, failedOnCurrentServiceTask, processNextPending, process, taskId, navigateToTask]);
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
@@ -129,6 +135,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
+  const isProcessNextPending = useIsProcessNextPending();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
@@ -136,7 +143,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const { data: process } = useProcessQuery();
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
-  useNavigateToSettledTask(taskId, !isPdfMode);
+  useNavigateToSettledTask(taskId, !isPdfMode, isProcessNextPending);
 
   // A process parked on a service task advances out-of-band (the task is waiting for an external
   // outcome), so nothing in this session would otherwise observe the advance: the live workflow
@@ -150,6 +157,21 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
+  }
+
+  // A poll can observe a committed task before process/next responds, including the brief idle gap
+  // between chained workflows. Keep the loading view stable until the response navigates or a
+  // terminal failure takes over. This cannot interrupt client validation because it requires the
+  // server-reported task to have moved away from the URL.
+  const holdLoaderForPendingTransition =
+    !isPdfMode &&
+    isProcessNextPending &&
+    workflow?.status !== 'failed' &&
+    taskId !== undefined &&
+    process?.currentTask?.elementId !== taskId;
+
+  if (holdLoaderForPendingTransition) {
+    return <WorkflowProcessing />;
   }
 
   if (taskType === ProcessTaskType.Archived && taskId !== TaskKeys.CustomReceipt) {
@@ -188,11 +210,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
 
   if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
-    return (
-      <PresentationComponent showNavigation={false}>
-        <WorkflowProcessing />
-      </PresentationComponent>
-    );
+    return <WorkflowProcessing />;
   }
 
   // A failure owned by the current service task falls through to the task's own view (see
@@ -266,6 +284,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
 function isRunningProcessNext(queryClient: QueryClient) {
   return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
+}
+
+function useIsProcessNextPending() {
+  return useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
 }
 
 function useIsRunningProcessNext() {
