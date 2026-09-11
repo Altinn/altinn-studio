@@ -8,7 +8,7 @@
 
 use ::sandbox::{
     SandboxHandle, SandboxPath,
-    execution::{ExecutionSpec, ExitStatus},
+    execution::{ExecutionOutput, ExecutionSpec, ExitStatus, StartExecutionRequest},
     terminal::{AttachTerminalRequest, TerminalAttachOutcome},
 };
 
@@ -25,6 +25,8 @@ use crate::sessions::{Activity, AttachTarget, LaunchToken, LifecycleState, Phase
 /// harness TUI's input loop is up, and a paste that lands in that gap is lost;
 /// tmux has no readiness signal of its own, so recent hook activity stands in.
 const INPUT_READY_GRACE: std::time::Duration = std::time::Duration::from_secs(2);
+const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
 
 fn session_name(session: &Session) -> String {
     format!("agent-session-{}", session.id)
@@ -46,8 +48,9 @@ const OBSERVE_SCRIPT: &str = include_str!("observe.sh");
 
 /// Observes attachment and the freshest terminal or transcript activity.
 async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observation, Error> {
-    let inspected = sandbox
-        .run_execution(ExecutionSpec::command(
+    let inspected = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
             [
                 "-c".into(),
@@ -61,8 +64,10 @@ async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observati
                     .clone()
                     .unwrap_or_default(),
             ],
-        ))
-        .await?;
+        ),
+        "tmux observation",
+    )
+    .await?;
     classify_observation(inspected.status, &inspected.stdout)
 }
 
@@ -102,12 +107,15 @@ fn parse_observation(output: &str) -> Result<Observation, Error> {
 
 /// Stops a deliberately idle tmux Session.
 async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
-    let stopped = sandbox
-        .run_execution(ExecutionSpec::command(
+    let stopped = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/usr/bin/tmux"),
             ["kill-session".into(), "-t".into(), exact_target(session)],
-        ))
-        .await?;
+        ),
+        "tmux stop",
+    )
+    .await?;
     if stopped.status.success() {
         Ok(())
     } else {
@@ -115,6 +123,31 @@ async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
             "tmux failed to stop idle Session {} with exit code {}",
             session.id, stopped.status.code
         )))
+    }
+}
+
+async fn run_lifecycle_execution(
+    sandbox: &SandboxHandle,
+    spec: ExecutionSpec,
+    operation: &str,
+) -> Result<ExecutionOutput, Error> {
+    let deadline = tokio::time::Instant::now() + LIFECYCLE_EXECUTION_TIMEOUT;
+    let started = tokio::time::timeout_at(deadline, sandbox.start_execution(StartExecutionRequest::new(spec)))
+        .await
+        .map_err(|_| Error::Session(format!("{operation} timed out while starting")))??;
+    let execution_id = started.id.clone();
+    let mut collecting = std::pin::pin!(started.collect());
+    if let Ok(output) = tokio::time::timeout_at(deadline, &mut collecting).await {
+        output.map_err(Error::from)
+    } else {
+        match tokio::time::timeout(LIFECYCLE_EXECUTION_KILL_TIMEOUT, sandbox.kill_execution(&execution_id)).await {
+            Ok(Ok(())) => {}
+            Ok(Err(error)) => {
+                tracing::warn!(%error, %execution_id, "failed to kill timed-out Session runtime execution");
+            }
+            Err(_) => tracing::warn!(%execution_id, "timed out killing Session runtime execution"),
+        }
+        Err(Error::Session(format!("{operation} timed out")))
     }
 }
 

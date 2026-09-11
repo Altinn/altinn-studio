@@ -21,6 +21,8 @@ const ACTIVITY_POLL: Duration = Duration::from_millis(250);
 /// Maximum time to wait for a newly launched harness to accept input.
 const INPUT_READY_TIMEOUT: Duration = Duration::from_secs(15);
 const INPUT_READY_POLL: Duration = Duration::from_millis(100);
+const UPGRADE_SESSION_PASS_TIMEOUT: Duration = Duration::from_mins(1);
+const UPGRADE_SANDBOX_INSPECTION_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Durable Session registry whose effects are owned by the daemon controller.
 pub struct Service {
@@ -329,5 +331,105 @@ impl Service {
         } else {
             self.store.list_all_sessions().await
         }
+    }
+
+    /// Lists active work and terminal attachments that must finish before an upgrade.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the durable Session or Sandbox state cannot be inspected.
+    pub async fn upgrade_blockers(&self) -> Result<Vec<String>, Error> {
+        tokio::time::timeout(UPGRADE_SESSION_PASS_TIMEOUT, self.find_upgrade_blockers())
+            .await
+            .map_err(|_| Error::Session("timed out checking Sessions before upgrade".into()))?
+    }
+
+    async fn find_upgrade_blockers(&self) -> Result<Vec<String>, Error> {
+        let mut blockers = Vec::new();
+        for session in self.store.list_all_sessions().await? {
+            let label = format!("session/{}/{}", session.agent, session.name);
+            if matches!(session.status.state, State::Starting | State::Working) {
+                let state = match session.status.state {
+                    State::Starting => "starting",
+                    State::Working => "working",
+                    State::WaitingForInput | State::Idle | State::Failed => unreachable!(),
+                };
+                blockers.push(format!("{label} ({state})"));
+                continue;
+            }
+            let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
+                continue;
+            };
+            if matches!(
+                self.runtime.observe(&session, &sandbox).await?,
+                super::runtime::Observation::Alive { attached: true, .. }
+            ) {
+                blockers.push(format!("{label} (terminal attached)"));
+            }
+        }
+        Ok(blockers)
+    }
+
+    /// Stops quiescent Session runtimes once after a software upgrade so normal
+    /// reconciliation relaunches them with the current harness hooks.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error, without clearing the caller-owned marker, when a
+    /// running Sandbox cannot be inspected or a Session becomes attached.
+    pub async fn relaunch_after_upgrade(&self) -> Result<(), Error> {
+        tokio::time::timeout(UPGRADE_SESSION_PASS_TIMEOUT, self.relaunch_sessions())
+            .await
+            .map_err(|_| Error::Session("timed out relaunching Sessions after upgrade".into()))?
+    }
+
+    async fn relaunch_sessions(&self) -> Result<(), Error> {
+        for session in self.store.list_all_sessions().await? {
+            let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
+                self.store.reset_session_launch_attempts(session.id).await?;
+                continue;
+            };
+            match self.runtime.observe(&session, &sandbox).await? {
+                super::runtime::Observation::Missing => {}
+                super::runtime::Observation::Alive { attached: true, .. } => {
+                    return Err(Error::Session(format!(
+                        "Session \"{}/{}\" became attached during upgrade",
+                        session.agent, session.name
+                    )));
+                }
+                super::runtime::Observation::Alive { attached: false, .. } => {
+                    self.runtime.stop(&session, &sandbox).await?;
+                }
+            }
+            self.store.reset_session_launch_attempts(session.id).await?;
+        }
+        Ok(())
+    }
+
+    async fn upgrade_sandbox(&self, session: &Session) -> Result<Option<SandboxHandle>, Error> {
+        let owner = self.sandboxes.agent(session.agent_id).await?;
+        if !matches!(
+            owner.agent.status.sandbox,
+            Some(crate::sandbox::Assignment::Materialized { .. })
+        ) {
+            return Ok(None);
+        }
+        let opened = tokio::time::timeout(UPGRADE_SANDBOX_INSPECTION_TIMEOUT, self.sandboxes.open(&owner))
+            .await
+            .map_err(|_| {
+                Error::Session(format!(
+                    "timed out inspecting the Sandbox for Session \"{}\"",
+                    session.name
+                ))
+            })?;
+        let sandbox = match opened {
+            Ok(sandbox) => sandbox,
+            Err(Error::Sandbox(error)) if error.is_not_found() => return Ok(None),
+            Err(error) => return Err(error),
+        };
+        if sandbox.snapshot().state == ::sandbox::SandboxState::Stopped {
+            return Ok(None);
+        }
+        Ok(Some(sandbox))
     }
 }

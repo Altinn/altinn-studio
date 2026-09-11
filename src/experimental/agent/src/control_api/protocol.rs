@@ -2,11 +2,12 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v1";
+pub const PROTOCOL_VERSION: &str = "v2";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
 pub(crate) const METHOD_HEALTH: &str = "control.v1.health";
+pub(crate) const METHOD_SHUTDOWN: &str = "control.v1.shutdown";
 pub(crate) const METHOD_GET: &str = "agents.v1.get";
 pub(crate) const METHOD_LIST: &str = "agents.v1.list";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
@@ -27,6 +28,7 @@ pub(crate) const CODE_INVALID_PARAMS: i32 = -32602;
 pub(crate) const CODE_INTERNAL: i32 = -32603;
 pub(crate) const CODE_NOT_FOUND: i32 = -32004;
 pub(crate) const CODE_IMMUTABLE: i32 = -32009;
+pub(crate) const CODE_UPDATING: i32 = -32010;
 pub(crate) const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
 pub(crate) enum ReadMessage {
@@ -171,6 +173,48 @@ pub(crate) struct LoginParams {
     /// The credential was supplied by the caller rather than minted by the host login flow.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub imported: bool,
+}
+
+/// Identity returned by the frozen lifecycle health method.
+///
+/// Both fields are optional so an updater can identify the preview 1 daemon,
+/// which did not report a build version. Normal commands require exact values.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct DaemonInfo {
+    /// Application protocol spoken by the daemon.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub protocol_version: Option<String>,
+    /// Build version of the daemon executable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub build_version: Option<String>,
+}
+
+impl DaemonInfo {
+    /// Requires the daemon to be the exact counterpart of this client build.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error containing both identities when either value differs.
+    pub fn require_compatible(&self) -> Result<(), crate::Error> {
+        if self.protocol_version.as_deref() == Some(PROTOCOL_VERSION)
+            && self.build_version.as_deref() == Some(crate::build_version())
+        {
+            return Ok(());
+        }
+        Err(crate::Error::Daemon(format!(
+            "running agentd is incompatible: protocol {:?}, build {:?}; agentctl expects protocol {PROTOCOL_VERSION:?}, build {:?}",
+            self.protocol_version,
+            self.build_version,
+            crate::build_version()
+        )))
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ShutdownParams {
+    pub reason: String,
 }
 
 pub(crate) fn error_response(id: u64, code: i32, message: impl Into<String>) -> Response {

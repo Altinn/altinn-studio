@@ -33,6 +33,7 @@ type SentMessage = (String, bool, Option<std::time::Duration>);
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
+    upgrade_blockers: Rc<RefCell<Vec<String>>>,
 }
 
 fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
@@ -136,6 +137,11 @@ impl SessionApi for FakeSessions {
             Ok(turns)
         })
     }
+
+    fn upgrade_blockers(&self) -> LocalFuture<'_, Result<Vec<String>, Error>> {
+        let blockers = self.upgrade_blockers.borrow().clone();
+        Box::pin(async move { Ok(blockers) })
+    }
 }
 
 impl ExecutionApi for FakeExecutions {
@@ -183,6 +189,7 @@ struct ApiFixture {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     progress_ensures: Rc<Cell<usize>>,
+    upgrade_blockers: Rc<RefCell<Vec<String>>>,
 }
 
 impl Connector for InProcessConnector {
@@ -223,6 +230,7 @@ fn api() -> ApiFixture {
     let sent = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let progress_ensures = Rc::new(Cell::new(0));
+    let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
@@ -232,6 +240,7 @@ fn api() -> ApiFixture {
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
             sent: sent.clone(),
+            upgrade_blockers: upgrade_blockers.clone(),
         }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
@@ -242,6 +251,7 @@ fn api() -> ApiFixture {
         ensured_harnesses,
         sent,
         progress_ensures,
+        upgrade_blockers,
     }
 }
 
@@ -353,8 +363,42 @@ async fn login_returns_only_non_secret_readiness() {
 #[tokio::test(flavor = "local")]
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
-    fixture.client.health().await.expect("health check");
-    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v1");
+    let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
+    assert_eq!(daemon.protocol_version.as_deref(), Some("v2"));
+    assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
+}
+
+#[test]
+fn daemon_identity_rejects_preview_1_and_mixed_builds() {
+    for daemon in [
+        agent::control_api::DaemonInfo {
+            protocol_version: Some("v1".into()),
+            build_version: None,
+        },
+        agent::control_api::DaemonInfo {
+            protocol_version: Some("v2".into()),
+            build_version: Some("another-build".into()),
+        },
+    ] {
+        let error = daemon.require_compatible().expect_err("incompatible daemon");
+        assert!(error.to_string().contains("running agentd is incompatible"));
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn shutdown_reports_blocking_sessions_without_draining() {
+    let fixture = api();
+    fixture
+        .upgrade_blockers
+        .borrow_mut()
+        .push("session/worker/busy (working)".into());
+    let error = fixture
+        .client
+        .shutdown_for_upgrade()
+        .await
+        .expect_err("working Session blocks shutdown");
+    assert!(matches!(error, Error::Rpc(error) if error.is_invalid_params()));
+    fixture.client.health().await.expect("daemon remains available");
 }
 
 fn request(name: &str) -> ApplyRequest {
@@ -565,5 +609,10 @@ async fn unix_socket_transport_is_private_and_usable() {
         & 0o777;
     assert_eq!(directory_mode, 0o700);
     assert_eq!(socket_mode, 0o600);
-    server_task.abort();
+    client.shutdown_for_upgrade().await.expect("graceful shutdown");
+    tokio::time::timeout(Duration::from_secs(1), &mut server_task)
+        .await
+        .expect("server should stop")
+        .expect("server task")
+        .expect("server result");
 }

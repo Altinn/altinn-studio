@@ -52,6 +52,12 @@ impl ControlPlaneHome {
         self.0.join("agentd.log")
     }
 
+    /// Returns the durable marker requesting one post-upgrade Session relaunch pass.
+    #[must_use]
+    pub fn pending_session_relaunch_path(&self) -> PathBuf {
+        self.0.join("pending-session-relaunch.json")
+    }
+
     /// Opens the automatic-start diagnostic log with user-only access.
     ///
     /// # Errors

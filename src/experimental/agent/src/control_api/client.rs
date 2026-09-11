@@ -7,11 +7,12 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
 
 use super::protocol::{
-    DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
+    DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, NameParams, Notification, ReadMessage, Request, Response, SessionEnsureParams,
-    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, read_message,
+    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, NameParams, Notification, ReadMessage, Request, Response,
+    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -52,8 +53,37 @@ impl Client {
     /// # Errors
     ///
     /// Returns an error when the daemon is unavailable or protocol-incompatible.
-    pub async fn health(&self) -> Result<(), Error> {
-        let _result: serde_json::Value = self.call(METHOD_HEALTH, serde_json::json!({}), None).await?;
+    pub async fn health(&self) -> Result<DaemonInfo, Error> {
+        self.call(METHOD_HEALTH, serde_json::json!({}), None).await
+    }
+
+    /// Requires a daemon built with this client's application protocol and version.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error with both identities when a daemon is reachable but incompatible.
+    pub async fn require_compatible_daemon(&self) -> Result<DaemonInfo, Error> {
+        let daemon = self.health().await?;
+        daemon.require_compatible()?;
+        Ok(daemon)
+    }
+
+    /// Requests a graceful daemon shutdown for an upgrade.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when active Sessions block the transition or the daemon
+    /// cannot drain its listeners and in-flight calls.
+    pub async fn shutdown_for_upgrade(&self) -> Result<(), Error> {
+        let _: serde_json::Value = self
+            .call(
+                METHOD_SHUTDOWN,
+                ShutdownParams {
+                    reason: "upgrade".into(),
+                },
+                None,
+            )
+            .await?;
         Ok(())
     }
 

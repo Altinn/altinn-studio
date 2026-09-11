@@ -1,21 +1,22 @@
-use std::rc::Rc;
+use std::{cell::Cell, rc::Rc};
 
 use sandbox::LocalFuture;
 use serde::Serialize;
 use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::sync::Notify;
 
 use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::Reporter, sessions};
 
 use super::outbox::Outbox;
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
-    CODE_PARSE_ERROR, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
-    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, NameParams, Notification, PROTOCOL_VERSION, ReadMessage, Request,
-    Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams,
-    error_response, read_message,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, NameParams, Notification, PROTOCOL_VERSION,
+    ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams,
+    SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -125,6 +126,9 @@ pub trait SessionApi {
         name: &'a sessions::SessionName,
         last: Option<usize>,
     ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
+
+    /// Lists Sessions whose work or terminal attachment prevents an upgrade.
+    fn upgrade_blockers(&self) -> LocalFuture<'_, Result<Vec<String>, Error>>;
 }
 
 impl SessionApi for sessions::Service {
@@ -171,6 +175,10 @@ impl SessionApi for sessions::Service {
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>> {
         Box::pin(async move { Self::list(self, agent).await })
     }
+
+    fn upgrade_blockers(&self) -> LocalFuture<'_, Result<Vec<String>, Error>> {
+        Box::pin(Self::upgrade_blockers(self))
+    }
 }
 
 /// Transient Agent Execution target resolution exposed through the local control API.
@@ -198,6 +206,41 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
 /// Observes an isolated connection error without terminating the daemon.
 pub type ErrorHandler = Rc<dyn Fn(&Error)>;
 
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
+enum LifecycleState {
+    #[default]
+    Running,
+    Checking,
+    Draining,
+}
+
+#[derive(Default)]
+struct Lifecycle {
+    state: Cell<LifecycleState>,
+    shutdown: Notify,
+}
+
+struct ShutdownCheck<'a> {
+    lifecycle: &'a Lifecycle,
+    committed: bool,
+}
+
+impl ShutdownCheck<'_> {
+    fn commit(mut self) {
+        self.lifecycle.state.set(LifecycleState::Draining);
+        self.lifecycle.shutdown.notify_waiters();
+        self.committed = true;
+    }
+}
+
+impl Drop for ShutdownCheck<'_> {
+    fn drop(&mut self) {
+        if !self.committed {
+            self.lifecycle.state.set(LifecycleState::Running);
+        }
+    }
+}
+
 /// Serves the Agent Control API.
 pub struct Server {
     agents: Rc<dyn AgentApi>,
@@ -205,6 +248,7 @@ pub struct Server {
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     on_error: ErrorHandler,
+    lifecycle: Lifecycle,
 }
 
 impl Server {
@@ -223,6 +267,7 @@ impl Server {
             executions,
             sessions,
             on_error,
+            lifecycle: Lifecycle::default(),
         }
     }
 
@@ -246,7 +291,14 @@ impl Server {
     {
         let mut stream = BufReader::new(stream);
         loop {
-            let line = match read_message(&mut stream).await? {
+            if self.is_draining() {
+                return Ok(());
+            }
+            let message = tokio::select! {
+                message = read_message(&mut stream) => message?,
+                () = self.shutdown_requested() => return Ok(()),
+            };
+            let line = match message {
                 ReadMessage::EndOfStream => return Ok(()),
                 ReadMessage::Complete(line) => line,
                 ReadMessage::TooLarge => {
@@ -287,18 +339,33 @@ impl Server {
         (self.on_error)(error);
     }
 
+    pub(crate) fn is_draining(&self) -> bool {
+        self.lifecycle.state.get() == LifecycleState::Draining
+    }
+
+    pub(crate) async fn shutdown_requested(&self) {
+        if !self.is_draining() {
+            self.lifecycle.shutdown.notified().await;
+        }
+    }
+
     async fn handle(&self, request: Request, progress: crate::progress::Reporter) -> Response {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
+        }
+        if self.lifecycle.state.get() != LifecycleState::Running && is_mutating(&request.method) {
+            return error_response(request.id, CODE_UPDATING, "Agent daemon is preparing for an upgrade");
         }
         match request.method.as_str() {
             METHOD_APPLY => self.handle_apply(request.id, request.params).await,
             METHOD_HEALTH => result_response(
                 request.id,
                 Ok(serde_json::json!({
-                    "protocolVersion": PROTOCOL_VERSION
+                    "protocolVersion": PROTOCOL_VERSION,
+                    "buildVersion": crate::build_version()
                 })),
             ),
+            METHOD_SHUTDOWN => self.handle_shutdown(request.id, request.params).await,
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
@@ -311,6 +378,35 @@ impl Server {
             METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
             METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
+        }
+    }
+
+    async fn handle_shutdown(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<ShutdownParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "shutdown reason is required");
+        };
+        if params.reason != "upgrade" {
+            return error_response(id, CODE_INVALID_PARAMS, "unsupported shutdown reason");
+        }
+        if self.lifecycle.state.get() != LifecycleState::Running {
+            return error_response(id, CODE_UPDATING, "Agent daemon is already preparing for an upgrade");
+        }
+        self.lifecycle.state.set(LifecycleState::Checking);
+        let check = ShutdownCheck {
+            lifecycle: &self.lifecycle,
+            committed: false,
+        };
+        match self.sessions.upgrade_blockers().await {
+            Ok(blockers) if blockers.is_empty() => {
+                check.commit();
+                result_response(id, Ok(serde_json::json!({})))
+            }
+            Ok(blockers) => error_response(
+                id,
+                CODE_INVALID_PARAMS,
+                format!("active Sessions block the upgrade: {}", blockers.join(", ")),
+            ),
+            Err(error) => result_response::<serde_json::Value>(id, Err(error)),
         }
     }
 
@@ -433,6 +529,18 @@ fn observation(follow: bool, progress: bool, reporter: Reporter) -> (WaitPolicy,
         WaitPolicy::FirstPass
     };
     (wait, progress.then_some(reporter))
+}
+
+fn is_mutating(method: &str) -> bool {
+    matches!(
+        method,
+        METHOD_APPLY
+            | METHOD_DELETE
+            | METHOD_EXECUTION_ENSURE
+            | METHOD_AUTH_LOGIN
+            | METHOD_SESSION_ENSURE
+            | METHOD_SESSION_PROMPT
+    )
 }
 
 async fn flush<W: AsyncWrite + Unpin>(outbox: &Outbox, writer: &mut W) -> Result<(), Error> {

@@ -13,18 +13,11 @@ use clap::Parser;
 use tokio::runtime::LocalRuntime;
 
 #[derive(Parser)]
-#[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent_version())]
+#[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
     /// Agent control-plane home.
     #[arg(long)]
     home: Option<PathBuf>,
-}
-
-const fn agent_version() -> &'static str {
-    match option_env!("AGENT_VERSION") {
-        Some(version) => version,
-        None => env!("CARGO_PKG_VERSION"),
-    }
 }
 
 fn main() -> ExitCode {
@@ -148,6 +141,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         convergence,
         session_wakeup,
     ));
+    agent::upgrade::consume_pending_session_relaunch(&home, &sessions).await?;
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),
@@ -180,5 +174,8 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     controller_task.abort();
     session_controller_task.abort();
     platform_api_task.abort();
+    let _ = controller_task.await;
+    let _ = session_controller_task.await;
+    let _ = platform_api_task.await;
     result
 }

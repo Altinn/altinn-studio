@@ -64,6 +64,9 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
 
     loop {
+        if server.is_draining() {
+            break;
+        }
         tokio::select! {
             accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
                 let (stream, _) = accepted?;
@@ -75,8 +78,11 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 }.boxed_local());
             }
             Some(()) = connections.next(), if !connections.is_empty() => {}
+            () = server.shutdown_requested() => break,
         }
     }
+    while connections.next().await.is_some() {}
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]
@@ -117,6 +123,9 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
 
     loop {
+        if server.is_draining() {
+            break;
+        }
         tokio::select! {
             accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
                 let (stream, _) = accepted?;
@@ -128,8 +137,11 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 }.boxed_local());
             }
             Some(()) = connections.next(), if !connections.is_empty() => {}
+            () = server.shutdown_requested() => break,
         }
     }
+    while connections.next().await.is_some() {}
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]

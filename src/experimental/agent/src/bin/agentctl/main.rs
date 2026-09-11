@@ -28,20 +28,13 @@ use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
 
 #[derive(Parser)]
-#[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent_version())]
+#[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
     /// Agent control-plane home.
     #[arg(long, global = true)]
     home: Option<PathBuf>,
     #[command(subcommand)]
     command: Command,
-}
-
-const fn agent_version() -> &'static str {
-    match option_env!("AGENT_VERSION") {
-        Some(version) => version,
-        None => env!("CARGO_PKG_VERSION"),
-    }
 }
 
 #[derive(Subcommand)]
@@ -989,14 +982,14 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    if client.health().await.is_ok() {
-        return Ok(());
+    if let Ok(daemon) = client.health().await {
+        return daemon.require_compatible();
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if client.health().await.is_ok() {
-            return Ok(());
+        if let Ok(daemon) = client.health().await {
+            return daemon.require_compatible();
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
@@ -1094,6 +1087,45 @@ mod tests {
         healthy: bool,
     }
 
+    struct PreviewOneConnector;
+
+    impl agent::control_api::Connector for PreviewOneConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async {
+                use tokio::io::{AsyncBufReadExt as _, AsyncWriteExt as _};
+                let (client, server) = tokio::io::duplex(4096);
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut request = String::new();
+                    server.read_line(&mut request).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&request).expect("RPC");
+                    let response = serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "id": request["id"],
+                        "result": {"protocolVersion": "v1"}
+                    });
+                    server
+                        .write_all(format!("{response}\n").as_bytes())
+                        .await
+                        .expect("response");
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn incompatible_daemon_is_reported_without_starting_another() {
+        let directory = tempfile::TempDir::new().expect("temporary home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        let client = Client::new(std::rc::Rc::new(PreviewOneConnector));
+        let error = ensure_daemon(&home, &client)
+            .await
+            .expect_err("preview daemon is incompatible");
+        assert!(error.to_string().contains("protocol Some(\"v1\")"));
+        assert!(!home.daemon_log_path().exists(), "no second daemon was spawned");
+    }
+
     impl agent::control_api::Connector for StalledConnector {
         fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
             Box::pin(async move {
@@ -1108,7 +1140,14 @@ mod tests {
                     server.read_line(&mut line).await.expect("request");
                     let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
                     if request["method"] == "control.v1.health" {
-                        let response = serde_json::json!({ "jsonrpc": "2.0", "id": request["id"], "result": {} });
+                        let response = serde_json::json!({
+                            "jsonrpc": "2.0",
+                            "id": request["id"],
+                            "result": {
+                                "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                                "buildVersion": agent::build_version()
+                            }
+                        });
                         server
                             .write_all(format!("{response}\n").as_bytes())
                             .await
@@ -1176,7 +1215,15 @@ mod tests {
                             serde_json::from_value(request["params"]["timeout"].clone()).expect("timeout"),
                         ));
                     }
-                    let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":{}});
+                    let result = if request["method"] == "control.v1.health" {
+                        serde_json::json!({
+                            "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                            "buildVersion": agent::build_version()
+                        })
+                    } else {
+                        serde_json::json!({})
+                    };
+                    let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":result});
                     server
                         .write_all(format!("{response}\n").as_bytes())
                         .await

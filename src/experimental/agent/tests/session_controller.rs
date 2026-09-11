@@ -12,6 +12,7 @@ use std::{
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
     control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
+    local::home::ControlPlaneHome,
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{Reconcile, SessionId, SessionName, SessionReports as _, SessionStore as _},
@@ -247,6 +248,8 @@ fn tmux_runtime() -> Rc<dyn agent::sessions::SessionRuntime> {
 struct FakeRuntime {
     /// Whether the harness process is present; a launch is expected when it is not.
     present: Cell<bool>,
+    attached: Cell<bool>,
+    stop_calls: Cell<usize>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
     fail_transcript: Cell<bool>,
@@ -263,6 +266,8 @@ impl Default for FakeRuntime {
     fn default() -> Self {
         Self {
             present: Cell::new(true),
+            attached: Cell::new(false),
+            stop_calls: Cell::new(0),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
             fail_transcript: Cell::new(false),
@@ -301,7 +306,7 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
     ) -> LocalFuture<'a, Result<agent::sessions::Observation, Error>> {
         let observation = if self.present.get() {
             agent::sessions::Observation::Alive {
-                attached: false,
+                attached: self.attached.get(),
                 idle_seconds: 0,
             }
         } else {
@@ -338,6 +343,8 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<(), Error>> {
+        self.stop_calls.set(self.stop_calls.get() + 1);
+        self.present.set(false);
         Box::pin(async { Ok(()) })
     }
 
@@ -877,6 +884,77 @@ impl ServiceHarness {
         }
         drop(self.database);
     }
+}
+
+#[tokio::test(flavor = "local")]
+async fn upgrade_preflight_reports_work_and_terminal_attachments() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "10101010-1010-4010-8010-101010101010").await;
+    assert_eq!(
+        harness.service.upgrade_blockers().await.expect("working blockers"),
+        ["session/worker/s1 (working)"]
+    );
+
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    assert!(harness.service.upgrade_blockers().await.expect("quiescent").is_empty());
+    harness.runtime.attached.set(true);
+    assert_eq!(
+        harness.service.upgrade_blockers().await.expect("attachment blockers"),
+        ["session/worker/s1 (terminal attached)"]
+    );
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn daemon_owned_relaunch_marker_is_retryable_and_removed_after_success() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "20202020-2020-4020-8020-202020202020").await;
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+    let marker = home.pending_session_relaunch_path();
+    std::fs::write(&marker, br#"{"buildVersion":"another-build"}"#).expect("write mismatched marker");
+    let mismatch = agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
+        .await
+        .expect_err("wrong daemon build");
+    assert!(mismatch.to_string().contains("another-build"));
+    assert!(marker.exists(), "a mismatched daemon retains the marker");
+    std::fs::write(
+        &marker,
+        serde_json::to_vec(&serde_json::json!({"buildVersion": agent::build_version()})).expect("marker"),
+    )
+    .expect("write marker");
+
+    harness.runtime.attached.set(true);
+    agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
+        .await
+        .expect_err("attachment prevents relaunch");
+    assert!(marker.exists(), "failed pass retains its marker");
+
+    harness.runtime.attached.set(false);
+    agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
+        .await
+        .expect("relaunch");
+    assert!(!marker.exists(), "successful pass removes its marker");
+    assert!(!harness.runtime.present.get());
+    assert_eq!(harness.runtime.stop_calls.get(), 1);
+    assert_eq!(
+        harness
+            .database
+            .session_launch_state(harness.session.id)
+            .await
+            .expect("launch state")
+            .expect("launch")
+            .attempts,
+        0
+    );
+
+    harness
+        .service
+        .relaunch_after_upgrade()
+        .await
+        .expect("idempotent retry");
+    assert_eq!(harness.runtime.stop_calls.get(), 1);
+    harness.finish();
 }
 
 #[tokio::test(flavor = "local")]
