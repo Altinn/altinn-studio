@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "07e319515e6a",
-    "code": "c836cf0 clean",
+    "code": "37b2ef7 clean",
     "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260911T133325Z-scope-gate-sees-the-conversation-it-runs-with-0934",
-  "label": "scope gate sees the conversation it runs with",
-  "recorded_at": "2026-09-11T13:38:16+00:00",
-  "why": "the scope gate now judges a follow-up against the conversation it continues, measured on items carrying that context"
+  "check_id": "20260911T140055Z-overlapping-candidates-in-the-whitespace-match-87ab",
+  "label": "overlapping candidates in the whitespace match",
+  "recorded_at": "2026-09-11T14:06:10+00:00",
+  "why": "overlapping candidates reach the ambiguity error instead of being edited silently"
 }
