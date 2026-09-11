@@ -353,10 +353,24 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
         return []
     # Every start position, not just the non-overlapping ones: two candidates that
     # overlap are still two, and this match only applies when there is exactly one.
-    return [
+    spans = [
         (found.start(), found.start() + len(found.group(1)))
         for found in re.finditer(f"(?=({joined}))", text)
     ]
+    return _without_whitespace_variants(spans)
+
+
+def _without_whitespace_variants(spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    r"""One candidate per region.
+
+    A leading `\s*` matches with and without the whitespace it can absorb, which
+    is one place rather than several.
+    """
+    longest_by_end: dict[int, int] = {}
+    for start, end in spans:
+        if end not in longest_by_end or start < longest_by_end[end]:
+            longest_by_end[end] = start
+    return sorted((start, end) for end, start in longest_by_end.items())
 
 
 # ---------------------------------------------------------------------------

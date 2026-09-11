@@ -436,6 +436,25 @@ class TestEditFileToleratesReformattedWhitespace:
         assert result.is_error
         assert (tmp_path / "f.txt").read_text() == "label = 'helloworld'"
 
+    async def test_a_needle_with_leading_indent_is_one_match(self, tmp_path: Path):
+        """A leading `\\s*` matches with and without the indent it can absorb, and
+        counting those as separate places refused an unambiguous edit."""
+        (tmp_path / "f.json").write_text('{\n  "a": 1\n}\n', encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(
+            ReadFileTool().input_schema.model_validate({"path": "f.json"}), ctx
+        )
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {"path": "f.json", "old_string": '  "a":  1', "new_string": '  "a": 2'}
+            ),
+            ctx,
+        )
+
+        assert not result.is_error
+        assert '"a": 2' in (tmp_path / "f.json").read_text()
+
     async def test_overlapping_candidates_ask_for_context(self, tmp_path: Path):
         """Two starts that overlap are still two, and a non-overlapping scan sees one."""
         (tmp_path / "f.txt").write_text("(((", encoding="utf-8")
