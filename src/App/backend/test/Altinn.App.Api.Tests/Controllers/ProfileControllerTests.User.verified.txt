@@ -74,7 +74,7 @@
       },
       Value: {
         userId: 1337,
-        userUuid: null,
+        userUuid: Guid_2,
         userName: SophieDDG,
         externalIdentity: null,
         isReserved: false,

@@ -63,6 +63,11 @@ namespace Altinn.Platform.Register.Controllers
         {
             string lookupValue = partyLookup.OrgNo ?? partyLookup.Ssn;
 
+            if(lookupValue == null)
+            {
+                return BadRequest("One of the properties OrgNo or Ssn must be provided.");
+            }
+
             Party party = await _partiesWrapper.LookupPartyBySSNOrOrgNo(lookupValue);
 
             if (party == null)

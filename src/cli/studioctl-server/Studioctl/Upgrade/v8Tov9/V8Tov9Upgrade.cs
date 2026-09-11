@@ -51,6 +51,7 @@ internal static class V8Tov9Upgrade
     private const string PartyEnumsOldNamespace = "Altinn.Platform.Register.Enums";
     private const string UserProfileOldNamespace = "Altinn.Platform.Profile.Models";
     private const string AppCoreModelsNamespace = "Altinn.App.Core.Models";
+
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
     /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
@@ -156,7 +157,7 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateUserProfileNamespace(scanner));
-        
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingClientNamespaces(scanner));
 

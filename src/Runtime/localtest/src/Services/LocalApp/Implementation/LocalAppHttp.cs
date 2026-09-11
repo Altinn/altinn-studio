@@ -5,7 +5,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Altinn.Studio.EnvTopology;
 using Altinn.Platform.Storage.Interface.Models;
 
-using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.LocalApp.Models;
 using LocalTest.Services.TestData;
