@@ -559,3 +559,65 @@ class TestTextKeysResolve:
         _, body, _ = await self._verify(tmp_path)
 
         assert body["passed"]
+
+
+class TestTextKeysResolveInEveryLanguage:
+    """A key present in nb and missing in en renders as the key for English users,
+    and removing it from a resource file leaves every layout still pointing at it."""
+
+    def _app(self, tmp_path: Path, *, en_has_key: bool):
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {
+            "data": {
+                "layout": [
+                    {
+                        "id": "submit",
+                        "type": "Button",
+                        "textResourceBindings": {"title": "app.button.submit"},
+                    }
+                ]
+            }
+        }
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+        texts = tmp_path / "App" / "config" / "texts"
+        texts.mkdir(parents=True)
+        for language, has in (("nb", True), ("en", en_has_key)):
+            ids = ["app.button.submit"] if has else ["appName"]
+            (texts / f"resource.{language}.json").write_text(
+                json.dumps(
+                    {"language": language, "resources": [{"id": i, "value": i} for i in ids]}
+                ),
+                encoding="utf-8",
+            )
+
+    async def _verify(self, tmp_path: Path, changed: set[str]):
+        ctx = _write_ctx(repo_path=str(tmp_path), changed=changed)
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        return result, json.loads(result.content)
+
+    async def test_a_key_missing_from_one_language_fails(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, en_has_key=False)
+
+        result, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+
+        assert result.is_error
+        assert any("resource.en.json" in note for note in body["notes"])
+
+    async def test_every_language_having_it_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, en_has_key=True)
+
+        _, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+
+        assert body["passed"]
+
+    async def test_changing_a_resource_file_rechecks_untouched_layouts(
+        self, tmp_path: Path, permissive_schema
+    ):
+        """The layout is unchanged, so a per-file check would never look at it."""
+        self._app(tmp_path, en_has_key=False)
+
+        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+
+        assert result.is_error
+        assert any("Side1.json" in note for note in body["notes"])

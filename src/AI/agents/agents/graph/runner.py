@@ -421,7 +421,6 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "success": False,
                     "status": "error",
                     "message": "Noe gikk galt, og forespørselen stoppet.  Prøv igjen om litt.",
-                    "detail": str(e),
                 }
             ))
         finally:

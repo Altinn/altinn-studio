@@ -92,11 +92,10 @@ async def handle(state: AgentState) -> AgentState:
                 type="error",
                 session_id=state.session_id,
                 data={
-                    "message": f"Klarte ikke å analysere forespørselen: {exc}",
+                    "message": "Klarte ikke å analysere forespørselen.",
                     "step": "intake",
                     "node": "intake",
                     "error_type": error_type,
-                    "detail": str(exc),
                     "hint": hint,
                 },
             )
@@ -166,7 +165,7 @@ async def scan_repository(state: AgentState) -> AgentState:
             AgentEvent(
                 type="error",
                 session_id=state.session_id,
-                data={"message": f"Klarte ikke å lese repoet: {exc}"},
+                data={"message": "Klarte ikke å lese repoet."},
             )
         )
         state.next_action = "stop"

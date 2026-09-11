@@ -538,8 +538,10 @@ class OpenAIAdapter(LLMAdapter):
             usage = {
                 "input_tokens": getattr(usage_obj, "prompt_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
-                # prompt_tokens includes the cached ones; Anthropic reports them apart.
+                # prompt_tokens includes both; Anthropic reports them apart.
                 "cache_read_input_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
+                "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0)
+                or 0,
             }
 
             assistant = AssistantMessage(
@@ -552,9 +554,12 @@ class OpenAIAdapter(LLMAdapter):
                 span.update(
                     output=_trace_output_summary(assistant),
                     usage_details=_usage_details(
-                        fresh=usage["input_tokens"] - usage["cache_read_input_tokens"],
+                        fresh=usage["input_tokens"]
+                        - usage["cache_read_input_tokens"]
+                        - usage["cache_creation_input_tokens"],
                         output=usage["output_tokens"],
                         cache_read=usage["cache_read_input_tokens"],
+                        cache_creation=usage["cache_creation_input_tokens"],
                     ),
                 )
             except Exception:  # noqa: BLE001

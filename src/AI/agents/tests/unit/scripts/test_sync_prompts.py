@@ -37,8 +37,11 @@ class _Langfuse:
         self.published = []
         self.patched = []
         self.pages_read = 0
+        self.get_error = None
 
     def _get(self, path, **params):
+        if self.get_error is not None:
+            raise self.get_error
         if path == "/api/public/v2/prompts":
             self.pages_read += 1
             return self._listing[params["page"] - 1]
@@ -222,6 +225,36 @@ class TestPushKeepsThePublishedShape:
 
     def test_a_prompt_langfuse_has_never_seen_is_published_as_text(self):
         api = _Langfuse()
+
+        sync_prompts._push(api, LOCAL, "why")
+
+        assert api.published[0]["type"] == "text"
+
+
+class TestPushRefusesToGuessTheShape:
+    """A transient read failure must not republish a chat prompt as text, which
+    would drop its user turn and every variable binding."""
+
+    def _failing(self, status):
+        api = _Langfuse()
+        api.get_error = httpx.HTTPStatusError(
+            "boom",
+            request=httpx.Request("GET", "/api/public/v2/prompts/x"),
+            response=httpx.Response(status),
+        )
+        return api
+
+    def test_a_server_error_stops_the_publish(self):
+        api = self._failing(500)
+
+        with pytest.raises(SystemExit) as raised:
+            sync_prompts._push(api, IN_SYNC, "why")
+
+        assert "Refusing to publish" in str(raised.value)
+        assert api.published == []
+
+    def test_a_404_still_means_nobody_has_published_it(self):
+        api = self._failing(404)
 
         sync_prompts._push(api, LOCAL, "why")
 

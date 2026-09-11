@@ -224,50 +224,59 @@ def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, 
 
 
 def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
-    """Every `textResourceBindings` key a changed layout uses must exist in the texts.
+    """Every `textResourceBindings` key must exist in every language the app serves.
 
-    A key with no entry renders as the key itself, so the user sees
-    `app.button.submit` on the button. Each file validates fine on its own,
-    which is why this cannot be a per-file check.
+    A key missing from one language renders as the key itself in that language.
     """
     repo = Path(ctx.repo_path)
-    known = _known_text_keys(repo)
-    if known is None:
+    by_language = _text_keys_by_language(repo)
+    if not by_language:
         return True, []  # no readable text resources — nothing to resolve against
 
+    # A changed resource file can strip a key any layout still references.
+    touched_texts = any(_is_text_resource(f) for f in changed)
+    layouts = _all_layout_files(repo) if touched_texts else [
+        repo / f for f in changed if _is_layout_file(f)
+    ]
+
     notes: list[str] = []
-    for file_path in [f for f in changed if _is_layout_file(f)]:
-        missing = sorted(
-            key for key in _referenced_text_keys(repo / file_path) if key not in known
-        )
-        if not missing:
-            continue
-        listed = ", ".join(f"`{key}`" for key in missing[:8])
-        if len(missing) > 8:
-            listed += f", and {len(missing) - 8} more"
-        notes.append(
-            f"{file_path}: text key(s) {listed} have no entry in "
-            "`App/config/texts/resource.*.json`, so the page shows the key instead "
-            "of the text. Add them to every language file the app serves."
-        )
+    for layout in layouts:
+        referenced = _referenced_text_keys(layout)
+        for language, known in sorted(by_language.items()):
+            missing = sorted(key for key in referenced if key not in known)
+            if not missing:
+                continue
+            listed = ", ".join(f"`{key}`" for key in missing[:8])
+            if len(missing) > 8:
+                listed += f", and {len(missing) - 8} more"
+            notes.append(
+                f"{layout.relative_to(repo)}: text key(s) {listed} have no entry in "
+                f"`App/config/texts/resource.{language}.json`, so the page shows the "
+                "key instead of the text in that language."
+            )
     return not notes, notes
 
 
-def _known_text_keys(repo: Path) -> set[str] | None:
-    """Every id defined in any `resource.*.json`, or None when none can be read."""
+def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
+    """The ids each `resource.<language>.json` defines."""
     texts_dir = repo / "App" / "config" / "texts"
-    keys: set[str] = set()
-    read_any = False
+    by_language: dict[str, set[str]] = {}
     for path in sorted(texts_dir.glob("resource.*.json")):
         try:
             parsed = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        read_any = True
-        for entry in parsed.get("resources") or []:
-            if isinstance(entry, dict) and isinstance(entry.get("id"), str):
-                keys.add(entry["id"])
-    return keys if read_any else None
+        keys = {
+            entry["id"]
+            for entry in parsed.get("resources") or []
+            if isinstance(entry, dict) and isinstance(entry.get("id"), str)
+        }
+        by_language[_infer_resource_language(str(path))] = keys
+    return by_language
+
+
+def _all_layout_files(repo: Path) -> list[Path]:
+    return sorted(p for p in repo.glob("App/ui/**/*.json") if _is_layout_file(str(p)))
 
 
 def _referenced_text_keys(layout_path: Path) -> set[str]:

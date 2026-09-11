@@ -88,7 +88,7 @@ async def handle(state: AgentState) -> AgentState:
             AgentEvent(
                 type="error",
                 session_id=state.session_id,
-                data={"message": f"Klarte ikke å hente ut feltlisten: {exc}"},
+                data={"message": "Klarte ikke å hente ut feltlisten fra vedlegget."},
             )
         )
         # Non-fatal: continue without spec

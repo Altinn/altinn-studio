@@ -295,44 +295,58 @@ class EditFileTool(WriteToolMixin):
 
 
 def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int]]:
-    """Where `needle` occurs in `text` when whitespace between tokens is ignored.
+    """Where `needle` occurs in `text` when whitespace around punctuation is ignored.
 
-    Models reformat JSON they copy — a pretty-printed block comes back collapsed
-    onto one line — and then no exact match exists however often they re-read the
-    file. Whitespace inside a quoted string stays significant, so two different
-    string literals never match each other.
+    Whitespace may appear next to punctuation but never vanish between words, and
+    the contents of a quoted string stay exact.
     """
     import re
 
-    structural = set("{}[],:")
+    structural = set("{}[](),:;")
+    quotes = {'"', "'", "`"}
     pattern: list[str] = []
-    in_string = False
+    in_string: str | None = None
     escaped = False
-    for char in needle:
+    previous = ""
+    index = 0
+    while index < len(needle):
+        char = needle[index]
         if in_string:
             pattern.append(re.escape(char))
             if escaped:
                 escaped = False
             elif char == "\\":
                 escaped = True
-            elif char == '"':
-                in_string = False
+            elif char == in_string:
+                in_string = None
+            previous = char
+            index += 1
             continue
         if char.isspace():
-            if pattern and pattern[-1] != r"\s*":
-                pattern.append(r"\s*")
+            run = index
+            while run < len(needle) and needle[run].isspace():
+                run += 1
+            following = needle[run] if run < len(needle) else ""
+            beside_punctuation = previous in structural or following in structural
+            pattern.append(r"\s*" if beside_punctuation else r"\s+")
+            previous = " "
+            index = run
             continue
         if char in structural:
-            if pattern and pattern[-1] != r"\s*":
+            if previous not in ("", " "):
                 pattern.append(r"\s*")
             pattern.append(re.escape(char))
             pattern.append(r"\s*")
+            previous = " "
+            index += 1
             continue
         pattern.append(re.escape(char))
-        if char == '"':
-            in_string = True
+        if char in quotes:
+            in_string = char
+        previous = char
+        index += 1
     joined = "".join(pattern).strip()
-    if not joined:
+    if not joined or in_string:
         return []
     return [(m.start(), m.end()) for m in re.finditer(joined, text)]
 

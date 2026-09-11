@@ -26,6 +26,8 @@ PUSH_OVERRIDE_VARIABLE = "ALLOW_PROMPT_PUSH"
 
 # Langfuse name -> the local file that serves it, where get_prompt_with_langfuse
 # is called with local_path. Without these the file reads as retired.
+HTTP_NOT_FOUND = 404
+
 SERVED_FROM: dict[str, str] = {"intent_check": "intent_security"}
 
 
@@ -137,8 +139,13 @@ def _published_shape(api: LangfuseApi, name: str) -> list | None:
     """The turns of the published chat prompt, or None when it is a text prompt."""
     try:
         published = api._get(f"/api/public/v2/prompts/{name}")
-    except Exception:  # noqa: BLE001 — a prompt nobody has published yet is a text prompt
-        return None
+    except httpx.HTTPStatusError as error:
+        if error.response.status_code == HTTP_NOT_FOUND:
+            return None  # nobody has published this one yet, so text is the shape
+        raise SystemExit(
+            f"Could not read the published {name}: {error}. Refusing to publish, "
+            "because guessing the shape can drop a chat prompt's variables."
+        ) from error
     if published.get("type") != "chat":
         return None
     return published.get("prompt") or None
