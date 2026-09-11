@@ -76,7 +76,11 @@ _CRITICAL_RULES = """\
     - ❌ `if (field == "x") hide`
     - ✅ `["not", ["equals", ["dataModel", "field"], "x"]]`
 
-7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one."""
+7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one.
+
+8.  **A `Datepicker` bound to a date field must set `"timeStamp": false`.**  The property defaults to `true`, which stores `2026-05-22T00:00:00.000Z` into a field the data model declares as `"format": "date"`, and Studio refuses to render the page.  Write it on every `Datepicker` you emit; only a field that really holds a date *and* a time leaves it out.
+    - ❌ `{"id": "fodselsdato", "type": "Datepicker", "dataModelBindings": {"simpleBinding": "fodselsdato"}}`
+    - ✅ the same component with `"timeStamp": false`"""
 
 
 

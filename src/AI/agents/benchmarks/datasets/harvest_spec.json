@@ -213,7 +213,7 @@
         {
           "decision": 7,
           "id": "convert-writes-layouts-with-valid-datepickers",
-          "note": "The turn that writes Side1, Side2 and Side4 together, and the turn that produced both reported errors. Every Datepicker this agent has written omitted timeStamp, five for five across three runs, and each was fixed afterwards by adding \"timeStamp\": false. Nothing scores the timeStamp defect yet, so this item measures only the tool sequence of that turn. Pinning the defect needs an evaluator that reads the written layout.",
+          "note": "The turn that writes Side1, Side2 and Side4 together, and the turn that produced both reported errors. Every Datepicker this agent has written omitted timeStamp, five for five across three runs, and each was fixed afterwards by adding \"timeStamp\": false. gen_content_pairings reads the written layouts and scores the share of Datepickers that set it to false, so the source run scores 0 on that half and the 0 is the finding. The replay runs this session's recorded system prompt and recorded tool results, so a fix to either moves the e2e render score rather than this one.",
           "defect": "dato-for-utfylling and fodselsdato are Datepickers with no timeStamp against \"format\": \"date\" bindings",
           "regression": true,
           "rule": {
@@ -223,7 +223,15 @@
             "forbidden_tools": [
               "commit_session_branch"
             ],
-            "stop": false
+            "stop": false,
+            "content_pairings": [
+              {
+                "component": "Datepicker",
+                "property": "timeStamp",
+                "value": false,
+                "consequence": "the page will not render"
+              }
+            ]
           }
         },
         {
