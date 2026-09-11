@@ -128,8 +128,20 @@ const SCHEDULED_RATE = num('SCHEDULED_RATE', 1);
  * The floor wants to stay comfortably above `MetricsCollectionInterval` (5 s): the count is sampled
  * on that tick, and anything scheduled inside one tick can be claimed before a sample ever sees it.
  */
-const SCHEDULE_MIN_SECONDS = num('SCHEDULE_MIN_SECONDS', 30);
-const SCHEDULE_MAX_SECONDS = num('SCHEDULE_MAX_SECONDS', 180);
+const SCHEDULE_MIN_SECONDS = num('SCHEDULE_MIN_SECONDS', 30, { min: 0 });
+const SCHEDULE_MAX_SECONDS = num('SCHEDULE_MAX_SECONDS', 180, { min: 0 });
+
+// Both failures are silent rather than loud: a negative floor books `startAt` in the past, which the
+// fetch gate treats as due immediately so the workflow never appears in the gauge this arm exists to
+// fill; and an inverted range collapses every horizon onto the floor, because the width the random
+// draw is taken from is clamped at 0.
+if (SCHEDULE_MAX_SECONDS < SCHEDULE_MIN_SECONDS) {
+    throw new Error(
+        `SCHEDULE_MAX_SECONDS (${SCHEDULE_MAX_SECONDS}) must be at least SCHEDULE_MIN_SECONDS ` +
+            `(${SCHEDULE_MIN_SECONDS}), or every workflow is booked exactly ` +
+            `${SCHEDULE_MIN_SECONDS}s ahead and the configured range is ignored.`,
+    );
+}
 
 const REAPER_PERIOD = num('REAPER_PERIOD', 10);
 const NUDGE_PERIOD = num('NUDGE_PERIOD', 15);
@@ -168,9 +180,25 @@ const FOREVER = '87600h';
 /** Just over MaxMailboxPayloadSize (256 KiB), to draw the `too_large` delivery refusal. */
 const OVERSIZED_PAYLOAD = 'x'.repeat(257 * 1024);
 
-function num(name, fallback) {
+/**
+ * Reads a numeric knob from the environment.
+ *
+ * A misspelt value has to fail loudly rather than quietly: `Number('15x')` is `NaN`, and every
+ * guard in this file is a `> 0` comparison that `NaN` fails — so a typo would remove the very arm
+ * it was meant to configure, indistinguishable from deliberately setting the rate to 0.
+ */
+function num(name, fallback, { min } = {}) {
     const raw = __ENV[name];
-    return raw === undefined || raw === '' ? fallback : Number(raw);
+    if (raw === undefined || raw === '') return fallback;
+
+    const value = Number(raw);
+    if (!Number.isFinite(value)) {
+        throw new Error(`${name} must be a number, got "${raw}".`);
+    }
+    if (min !== undefined && value < min) {
+        throw new Error(`${name} must be at least ${min}, got ${value}.`);
+    }
+    return value;
 }
 
 // --- Scenarios -----------------------------------------------------------------------------
@@ -805,7 +833,15 @@ export function setup() {
                 }),
                 { tags: { name: 'wiremock_register' } },
             );
-            check(res, { 'storm stub registered': (r) => r.status === 201 });
+            // A failed `check` does not stop k6 and no threshold covers this one, so the storm
+            // arm would run against a downstream that answers 404: the scenario states never flip,
+            // and the throttle panels draw an arc that never happened.
+            if (res.status !== 201) {
+                throw new Error(
+                    `Could not register the storm stub for ${namespace} (${state}): ` +
+                        `${res.status}. The throttle panels would show a story that never happened.`,
+                );
+            }
         }
     }
 
