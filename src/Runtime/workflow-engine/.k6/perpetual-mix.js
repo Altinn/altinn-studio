@@ -7,6 +7,8 @@
  * http://localhost:7070 sees real curves rather than an hour of flat zeroes:
  *
  *   healthy      — webhooks that complete first time (the baseline the rest is read against)
+ *   scheduled    — webhooks enqueued with a future `startAt`, so a population sits in `Scheduled`
+ *                  until its start time comes round
  *   flaky        — webhooks against a downstream that fails two requests in three, so steps requeue
  *                  and then recover on their own
  *   doomed       — webhooks that fail permanently: half on a non-retryable 422, half by exhausting
@@ -115,6 +117,19 @@ const FLAKY_RATE = num('FLAKY_RATE', 3);
 const DOOMED_RATE = num('DOOMED_RATE', 1);
 const DEFER_RATE = num('DEFER_RATE', 2);
 const MAILBOX_RATE = num('MAILBOX_RATE', 1);
+const SCHEDULED_RATE = num('SCHEDULED_RATE', 1);
+
+/**
+ * How far ahead the `scheduled` arm sets `startAt`, in seconds. The gauge these feed is a *level*,
+ * so what it settles at is arrival rate x mean horizon — at the defaults, 1/s over a mean 105 s,
+ * which is a steady population of roughly a hundred. Raise either to move the tile; the horizon is
+ * the cheaper of the two, because it costs no extra enqueues.
+ *
+ * The floor wants to stay comfortably above `MetricsCollectionInterval` (5 s): the count is sampled
+ * on that tick, and anything scheduled inside one tick can be claimed before a sample ever sees it.
+ */
+const SCHEDULE_MIN_SECONDS = num('SCHEDULE_MIN_SECONDS', 30);
+const SCHEDULE_MAX_SECONDS = num('SCHEDULE_MAX_SECONDS', 180);
 
 const REAPER_PERIOD = num('REAPER_PERIOD', 10);
 const NUDGE_PERIOD = num('NUDGE_PERIOD', 15);
@@ -178,6 +193,7 @@ function loop(exec) {
 
 const scenarios = {};
 if (HEALTHY_RATE > 0) scenarios.healthy = arrivalRate(HEALTHY_RATE, 'enqueueHealthy');
+if (SCHEDULED_RATE > 0) scenarios.scheduled = arrivalRate(SCHEDULED_RATE, 'enqueueScheduled');
 if (FLAKY_RATE > 0) scenarios.flaky = arrivalRate(FLAKY_RATE, 'enqueueFlaky');
 if (DOOMED_RATE > 0) scenarios.doomed = arrivalRate(DOOMED_RATE, 'enqueueDoomed');
 if (DEFER_RATE > 0) scenarios.deferring = arrivalRate(DEFER_RATE, 'enqueueDeferring');
@@ -230,7 +246,7 @@ function post(url, body, params, name) {
 }
 
 /** One single-step webhook workflow, as its own collection head. */
-function webhookWorkflow(operationId, uri, { retryStrategy, labels } = {}) {
+function webhookWorkflow(operationId, uri, { retryStrategy, labels, startAt } = {}) {
     return {
         labels,
         workflows: [
@@ -239,6 +255,7 @@ function webhookWorkflow(operationId, uri, { retryStrategy, labels } = {}) {
                 operationId,
                 isHead: true,
                 dependsOnHeads: false,
+                startAt,
                 steps: [
                     {
                         operationId: 'callback',
@@ -295,6 +312,36 @@ export function enqueueHealthy() {
         'enqueue_healthy',
     );
     check(res, { 'healthy enqueued': accepted });
+}
+
+/**
+ * Work booked for later. `startAt` parks a workflow in `Enqueued` with a start time in the future:
+ * the fetch gate skips it until that time passes, and it then runs like any other webhook workflow.
+ * It is the one engine feature nothing else in this mix touches, which is why the Scheduled tile and
+ * the Scheduled series on Workflow Inventory read a flat zero without this arm.
+ *
+ * Both are levels, not rates — they count the rows *currently* waiting for their start time, not the
+ * ones that have been scheduled — so the curve is a population that fills over the first horizon and
+ * then holds. A line that keeps climbing past that means work is being booked faster than it comes
+ * due, which in the playground means the horizon or the rate has been turned up, and in production
+ * would mean the same thing.
+ *
+ * Deliberately pointed at the healthy downstream: what this arm is here to show is the wait, so it
+ * has no business also producing failures.
+ */
+export function enqueueScheduled() {
+    const horizon =
+        SCHEDULE_MIN_SECONDS +
+        Math.random() * Math.max(0, SCHEDULE_MAX_SECONDS - SCHEDULE_MIN_SECONDS);
+    const startAt = new Date(Date.now() + horizon * 1000).toISOString();
+
+    const res = post(
+        workflowsUrl(NS),
+        webhookWorkflow('playground-scheduled', OK_URL, { labels: { arm: 'scheduled' }, startAt }),
+        buildRequestParams(),
+        'enqueue_scheduled',
+    );
+    check(res, { 'scheduled enqueued': accepted });
 }
 
 /**

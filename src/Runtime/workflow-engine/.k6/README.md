@@ -73,11 +73,7 @@ make playground-stop            # stack down; `make reset` also drops the databa
 
 It needs the playground stack rather than `make run` for one reason: the namespace circuit breaker
 ships dark, and without it the throttle arm has nothing to show. See
-`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why. If port 7070,
-4317 or 4318 is already taken — another project's LGTM stack is the usual culprit — set
-`PLAYGROUND_GRAFANA_PORT`, `PLAYGROUND_OTLP_GRPC_PORT` and `PLAYGROUND_OTLP_HTTP_PORT` before
-`make playground`; otherwise the LGTM container comes up with no network attachment at all, which
-looks like an empty Grafana rather than a port clash.
+`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
 
 Give the throttle panels about eight minutes before reading anything into them. `storm-a` trips
 within a sweep of its first burst and its trip → extend → release → clear arc takes two to three
@@ -85,11 +81,12 @@ minutes; `storm-b` starts half a period later on purpose, so its first arc finis
 seven-minute mark. That offset is the point — it is what puts two breakers in different phases on
 the same panel.
 
-Ten arms run concurrently, each independently tunable. Setting a rate to `0` removes its scenario:
+Eleven arms run concurrently, each independently tunable. Setting a rate to `0` removes its scenario:
 
 | Arm            | What it produces                                                                                                                                     |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `healthy`      | Webhooks that complete first time — the line the rest is read against                                                                                |
+| `scheduled`    | Webhooks enqueued with a future `startAt`, so a population sits in `Scheduled` until its start time comes round                                      |
 | `flaky`        | Webhooks against a downstream answering 500 to two requests in three, so steps requeue and recover on their own                                      |
 | `doomed`       | Permanent failures: half a non-retryable 422, half a 500 retried until a short budget runs out                                                       |
 | `reaper`       | Abandons a share of those failures, the way an operator writes off work                                                                              |
@@ -99,6 +96,12 @@ Ten arms run concurrently, each independently tunable. Setting a rate to `0` rem
 | `mailboxes`    | Full exchanges: mints, receivers born before and after their message, duplicates, four kinds of refusal, closes, and some mailboxes left to time out |
 | `storm`        | One namespace per arm, each with its own switchable WireMock downstream — break it and the breaker trips, repair it and it recovers                  |
 | `monitor`      | The health-poll sidecar the other scripts use                                                                                                        |
+
+**The Scheduled panels are a level, not a rate.** `SCHEDULED_RATE` x the mean of the horizon is what
+the population settles at — roughly a hundred at the defaults — so the horizon is the cheaper knob
+for moving the tile, since widening it costs no extra enqueues. Keep `SCHEDULE_MIN_SECONDS` well
+above `MetricsCollectionInterval` (5 s): the count is sampled on that tick, and a workflow scheduled
+inside one tick can be claimed before any sample sees it.
 
 **Four namespaces, on purpose.** `playground` holds work that should succeed and never accumulates a
 `Requeued` population, so it can never trip its own breaker — on the throttle panels it is the
@@ -143,6 +146,9 @@ holds per-workflow state anywhere: the flaky downstream is a WireMock scenario c
 | `DOOMED_RATE`             | `1`                     | Workflows per second that fail permanently                              |
 | `DEFER_RATE`              | `2`                     | Deferring workflows per second                                          |
 | `MAILBOX_RATE`            | `1`                     | Mailbox exchanges per second                                            |
+| `SCHEDULED_RATE`          | `1`                     | Workflows per second booked for a future `startAt`                      |
+| `SCHEDULE_MIN_SECONDS`    | `30`                    | Nearest `startAt` the scheduled arm books                               |
+| `SCHEDULE_MAX_SECONDS`    | `180`                   | Furthest `startAt` the scheduled arm books                              |
 | `STORM_BURST`             | `80`                    | Workflows per storm burst — must clear `MinRequeuedWorkflows`           |
 | `STORM_PERIOD`            | `300`                   | Seconds between storm bursts, per namespace                             |
 | `STORM_DOWN_SECONDS`      | `75`                    | How long the storm's downstream stays broken before it is repaired      |
