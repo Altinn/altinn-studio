@@ -68,11 +68,22 @@ leave it running, and open <http://localhost:7070>.
 ```bash
 make playground                 # from src/Runtime/workflow-engine — throttling ON, fast windows
 k6 run .k6/perpetual-mix.js     # Ctrl+C to stop
+make playground-stop            # stack down; `make reset` also drops the database volume
 ```
 
 It needs the playground stack rather than `make run` for one reason: the namespace circuit breaker
 ships dark, and without it the throttle arm has nothing to show. See
-`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
+`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why. If port 7070,
+4317 or 4318 is already taken — another project's LGTM stack is the usual culprit — set
+`PLAYGROUND_GRAFANA_PORT`, `PLAYGROUND_OTLP_GRPC_PORT` and `PLAYGROUND_OTLP_HTTP_PORT` before
+`make playground`; otherwise the LGTM container comes up with no network attachment at all, which
+looks like an empty Grafana rather than a port clash.
+
+Give the throttle panels about eight minutes before reading anything into them. `storm-a` trips
+within a sweep of its first burst and its trip → extend → release → clear arc takes two to three
+minutes; `storm-b` starts half a period later on purpose, so its first arc finishes around the
+seven-minute mark. That offset is the point — it is what puts two breakers in different phases on
+the same panel.
 
 Ten arms run concurrently, each independently tunable. Setting a rate to `0` removes its scenario:
 
