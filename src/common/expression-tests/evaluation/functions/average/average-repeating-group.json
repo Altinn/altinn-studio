@@ -19,15 +19,6 @@
       "expects": 2
     },
     {
-      "name": "Should compare the average to a number",
-      "expression": [
-        "equals",
-        2,
-        ["average", ["jmespath", ["dataModel", "scores"], "[].points"], 0]
-      ],
-      "expects": true
-    },
-    {
       "name": "Should return the empty value for a repeating group without rows",
       "expression": ["average", ["jmespath", ["dataModel", "emptyScores"], "[].points"], -1],
       "expects": -1

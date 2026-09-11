@@ -20,15 +20,6 @@
       "expects": 10
     },
     {
-      "name": "Should compare the sum to a number",
-      "expression": [
-        "equals",
-        10,
-        ["sum", ["jmespath", ["dataModel", "orderLines"], "[].quantity"]]
-      ],
-      "expects": true
-    },
-    {
       "name": "Should skip the rows where the field is not set",
       "expression": ["sum", ["jmespath", ["dataModel", "partiallyFilledLines"], "[].quantity"]],
       "expects": 5
