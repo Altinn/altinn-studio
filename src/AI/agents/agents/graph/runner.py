@@ -162,7 +162,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     - Intent validation (write runs only): see _validate_intent.
     """
     _raise_if_cancelled(state, event_sink)
-    scope_result = await check_scope_async(state.user_goal)
+    scope_result = await check_scope_async(state.user_goal, state.conversation_history)
     # The scope check is an LLM call, so a cancel can land while it runs.
     _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:

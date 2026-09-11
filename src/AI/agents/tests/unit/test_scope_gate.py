@@ -19,9 +19,13 @@ from agents.graph.runner import (
     _gate_goal,
     _validate_intent,
 )
-from agents.graph.state import AgentState
+from agents.graph.state import AgentState, ConversationMessage
 from agents.services.events.jobs import EventSink
-from agents.services.llm.scope_checker import ScopeCheckResult, check_scope_async
+from agents.services.llm.scope_checker import (
+    ScopeCheckResult,
+    build_scope_check_message,
+    check_scope_async,
+)
 
 
 def _state(**overrides) -> AgentState:
@@ -218,7 +222,7 @@ class TestGateGoal:
         started = asyncio.Event()
         release = asyncio.Event()
 
-        async def slow_scope_check(_goal):
+        async def slow_scope_check(_goal, _history=None):
             started.set()
             await release.wait()
             return self._out_of_scope()
@@ -337,3 +341,51 @@ class TestValidateIntentRejectionCopy:
 
         assert rejection.message == _UNCLEAR_GOAL_MESSAGE
         assert rejection.suggestions == [REJECTION_SUGGESTION]
+
+
+class TestTheClassifierSeesTheConversation:
+    """A follow-up read alone is about whatever its own words name, which is how a
+    remark on the app just built was declined as a language question."""
+
+    def test_the_message_carries_the_recent_turns(self):
+        message = build_scope_check_message(
+            "og hva med den andre siden?",
+            [
+                {"role": "user", "content": "legg til et felt for fodselsdato"},
+                {"role": "assistant", "content": "lagt til pa Side1"},
+            ],
+        )
+
+        assert "legg til et felt for fodselsdato" in message
+        assert message.endswith("Classify this question: og hva med den andre siden?")
+
+    def test_no_conversation_keeps_the_bare_shape(self):
+        assert build_scope_check_message("hei") == "Classify this question: hei"
+
+    def test_only_the_last_turns_travel(self):
+        turns = [{"role": "user", "content": f"turn {n}"} for n in range(10)]
+
+        message = build_scope_check_message("og?", turns)
+
+        assert "turn 9" in message
+        assert "turn 5" not in message
+
+    def test_a_long_turn_is_truncated(self):
+        turns = [{"role": "user", "content": "x" * 5000}]
+
+        assert len(build_scope_check_message("og?", turns)) < 1000
+
+    async def test_the_gate_hands_the_history_to_the_classifier(self):
+        seen = {}
+
+        async def capture(goal, history=None):
+            seen["goal"], seen["history"] = goal, history
+            return ScopeCheckResult(in_scope=True)
+
+        history = [ConversationMessage(role="user", content="legg til et felt")]
+        state = _state(user_goal="og hva med side 2?", conversation_history=history)
+        with patch("agents.graph.runner.check_scope_async", capture):
+            await _gate_goal(state, event_sink=_sink())
+
+        assert seen["goal"] == "og hva med side 2?"
+        assert seen["history"] == history

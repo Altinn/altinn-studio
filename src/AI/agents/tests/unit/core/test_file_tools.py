@@ -377,6 +377,30 @@ class TestEditFileToleratesReformattedWhitespace:
         assert result.is_error
         assert "not found" in result.content
 
+    async def test_spaced_json_matches_a_compact_file(self, tmp_path: Path):
+        """Models space out JSON they retype; the repo writes some of it compact."""
+        compact = '{\n  "resources": [\n    {"id":"appName","value":"Helseattest"}\n  ]\n}\n'
+        (tmp_path / "resource.nb.json").write_text(compact, encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(
+            ReadFileTool().input_schema.model_validate({"path": "resource.nb.json"}), ctx
+        )
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {
+                    "path": "resource.nb.json",
+                    "old_string": '{"id": "appName", "value": "Helseattest"}',
+                    "new_string": '{"id": "appName", "value": "Helseattest"}, {"id": "next", "value": "Neste"}',
+                }
+            ),
+            ctx,
+        )
+
+        assert not result.is_error
+        assert result.metadata["matched_on_whitespace"] is True
+        assert '"next"' in (tmp_path / "resource.nb.json").read_text()
+
     async def test_whitespace_between_words_cannot_vanish(self, tmp_path: Path):
         """`foo bar` matching `foobar` would replace semantically different text."""
         (tmp_path / "f.txt").write_text("foobar = 1", encoding="utf-8")

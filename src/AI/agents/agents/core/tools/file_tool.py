@@ -297,8 +297,8 @@ class EditFileTool(WriteToolMixin):
 def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int]]:
     """Where `needle` occurs in `text` when whitespace around punctuation is ignored.
 
-    Whitespace may appear next to punctuation but never vanish between words, and
-    the contents of a quoted string stay exact.
+    Whitespace may appear or vanish next to punctuation but never between words,
+    and the contents of a quoted string stay exact.
     """
     import re
 
@@ -307,7 +307,7 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
     pattern: list[str] = []
     in_string: str | None = None
     escaped = False
-    previous = ""
+    last_significant = ""
     index = 0
     while index < len(needle):
         char = needle[index]
@@ -319,7 +319,7 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
                 escaped = True
             elif char == in_string:
                 in_string = None
-            previous = char
+            last_significant = char
             index += 1
             continue
         if char.isspace():
@@ -327,23 +327,26 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
             while run < len(needle) and needle[run].isspace():
                 run += 1
             following = needle[run] if run < len(needle) else ""
-            beside_punctuation = previous in structural or following in structural
-            pattern.append(r"\s*" if beside_punctuation else r"\s+")
-            previous = " "
+            beside_punctuation = last_significant in structural or following in structural
+            marker = r"\s*" if beside_punctuation else r"\s+"
+            if pattern and pattern[-1] in (r"\s*", r"\s+"):
+                pattern[-1] = marker if marker == r"\s+" else pattern[-1]
+            else:
+                pattern.append(marker)
             index = run
             continue
         if char in structural:
-            if previous not in ("", " "):
+            if pattern and pattern[-1] not in (r"\s*", r"\s+"):
                 pattern.append(r"\s*")
             pattern.append(re.escape(char))
             pattern.append(r"\s*")
-            previous = " "
+            last_significant = char
             index += 1
             continue
         pattern.append(re.escape(char))
         if char in quotes:
             in_string = char
-        previous = char
+        last_significant = char
         index += 1
     joined = "".join(pattern).strip()
     if not joined or in_string:
