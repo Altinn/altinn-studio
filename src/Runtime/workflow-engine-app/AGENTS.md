@@ -46,9 +46,12 @@ Configuration via `appsettings.json` under `AppCommandSettings`:
 
 The engine library ships the failure-storm breaker dark (`ThrottlingSettings.Enabled` defaults to
 `false`). **This host opts in**, in `appsettings.json` under `EngineSettings.Throttling`, so every
-deployment that runs this image has it on. The knobs are spelled out at the values the
+deployment that runs this image has it on. Only `Enabled` is set: every other knob is left to
+`Defaults`, which the
 [failure-throttling ADR](../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
-documents rather than left implicit, because they are what an operator reaches for first.
+documents. Restating them here would duplicate a source of truth that can drift, and — because each
+would equal its default — a typo in one of those keys would be undetectable, silently falling back
+to the value it was meant to set.
 
 Two consequences worth holding on to:
 
