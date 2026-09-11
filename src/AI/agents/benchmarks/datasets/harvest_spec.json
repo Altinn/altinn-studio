@@ -1,0 +1,249 @@
+{
+  "output": "loop_traces.jsonl",
+  "traces": [
+    {
+      "trace_id": "3f1c060d6894ccaecdd9665524c2bc4e",
+      "verification": "app-verified",
+      "why": "A correction request for an earlier run. Checked against the app it produced and confirmed correct, so its decisions are usable as expectations.",
+      "items": [
+        {
+          "decision": 0,
+          "id": "fix-error-orients-first",
+          "note": "A reported binding error, first turn. Scanning to locate the fault is the move; editing before reading is how the wrong file gets changed.",
+          "rule": {
+            "required_tools": [
+              "scan_repo"
+            ],
+            "forbidden_tools": [
+              "edit_file",
+              "write_file",
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 3,
+          "id": "fix-error-edits-both-files",
+          "note": "The fault spans the data model and the layout, and the real run fixed both in one turn. A turn that edits only one leaves the app inconsistent, which is what required_tools measures rather than pass or fail.",
+          "rule": {
+            "required_tools": [
+              "edit_file"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 4,
+          "id": "fix-error-verifies-before-commit",
+          "note": "Both edits are applied. Committing unverified costs a developer their branch rather than a retry.",
+          "rule": {
+            "required_tools": [
+              "verify_changes"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 5,
+          "id": "fix-error-commits-once-verified",
+          "note": "Verification passed, so stalling leaves the work uncommitted.",
+          "rule": {
+            "required_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 7,
+          "id": "fix-error-stops-when-done",
+          "note": "Committed and preview-checked. The turn has to end; another tool call here burns the round budget on finished work.",
+          "rule": {
+            "stop": true,
+            "forbidden_tools": [
+              "edit_file",
+              "write_file",
+              "commit_session_branch"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "trace_id": "52630ca41f5f16aa1257746ea2444413",
+      "verification": "app-verified-with-defect",
+      "why": "A detailed 1:1 form build over 14 decisions, checked against the produced app. One bounded defect: the e3-date Datepicker in delE.json omits timeStamp, so it defaults to true against a \"format\": \"date\" model and the component will not render. The omission is content inside one write and does not touch which tool was called or in what order, so the ordering and coverage items below stand. No item here asserts written content. Decisions that need the form content are skipped: the attachment is not recorded in the trace, so they cannot be replayed.",
+      "items": [
+        {
+          "decision": 0,
+          "id": "build-orients-before-touching-anything",
+          "note": "First turn on a detailed form request. Scanning and loading skills is orientation; a write here is a guess about a repo the model has not read.",
+          "rule": {
+            "required_tools": [
+              "scan_repo"
+            ],
+            "forbidden_tools": [
+              "write_file",
+              "edit_file",
+              "commit_session_branch"
+            ],
+            "stop": false
+          },
+          "skip": "Requires the attachment. The goal says 'det vedlagte skjemaet 1:1', and traces record the extracted spec but not the uploaded file, so a replay asks the model to build a form it cannot see. Sonnet correctly asks for the attachment instead of guessing, which makes the item measure willingness to guess rather than the decision."
+        },
+        {
+          "decision": 1,
+          "id": "build-reads-every-file-it-will-change",
+          "note": "Four reads in one turn. This is the turn shape a synthetic single-call item cannot express, and the reason authored items kept demanding a write before the model had what a write needs.",
+          "rule": {
+            "required_tools": [
+              "read_file"
+            ],
+            "forbidden_tools": [
+              "write_file",
+              "edit_file",
+              "commit_session_branch"
+            ],
+            "stop": false
+          },
+          "skip": "Requires the attachment. The goal says 'det vedlagte skjemaet 1:1', and traces record the extracted spec but not the uploaded file, so a replay asks the model to build a form it cannot see. Sonnet correctly asks for the attachment instead of guessing, which makes the item measure willingness to guess rather than the decision."
+        },
+        {
+          "decision": 2,
+          "id": "build-checks-component-schemas-before-writing",
+          "note": "Eight altinn_layout_props calls before any layout is written. Component props are exactly what the e3-date defect got wrong, so a model that skips this step is more likely to reproduce that class of error.",
+          "rule": {
+            "required_tools": [
+              "altinn_layout_props"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          },
+          "skip": "Requires the attachment. The goal says 'det vedlagte skjemaet 1:1', and traces record the extracted spec but not the uploaded file, so a replay asks the model to build a form it cannot see. Sonnet correctly asks for the attachment instead of guessing, which makes the item measure willingness to guess rather than the decision."
+        },
+        {
+          "decision": 4,
+          "id": "build-syncs-the-datamodel-after-editing-it",
+          "note": "The schema was written the turn before, and the generated C# and XSD have to follow it. Skipping the sync leaves the app inconsistent in a way verify_changes reports much later.",
+          "rule": {
+            "required_tools": [
+              "altinn_datamodel_sync"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 6,
+          "id": "build-writes-the-layouts-in-one-turn",
+          "note": "Six layout writes in a single turn. Scored on the tool choice only: this is the decision that produced the e3-date defect, so what it wrote is deliberately not asserted.",
+          "defect": "the e3-date Datepicker in delE.json omits timeStamp against a date-formatted binding",
+          "rule": {
+            "required_tools": [
+              "write_file"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          },
+          "skip": "Requires the attachment. The goal says 'det vedlagte skjemaet 1:1', and traces record the extracted spec but not the uploaded file, so a replay asks the model to build a form it cannot see. Sonnet correctly asks for the attachment instead of guessing, which makes the item measure willingness to guess rather than the decision."
+        },
+        {
+          "decision": 10,
+          "id": "build-verifies-before-committing",
+          "note": "Everything is written. Committing unverified costs a developer their branch rather than a retry.",
+          "rule": {
+            "required_tools": [
+              "verify_changes"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 13,
+          "id": "build-stops-when-done",
+          "note": "Committed and preview-checked. Another tool call here spends the round budget on finished work.",
+          "rule": {
+            "stop": true,
+            "forbidden_tools": [
+              "write_file",
+              "edit_file",
+              "commit_session_branch"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "trace_id": "b3d304d89291cd76918b2eb3f4bb7f17",
+      "verification": "app-verified-with-defect",
+      "why": "A 15-decision multilingual conversion, checked against the produced app. Two components fail the same way as the other builds: dato-for-utfylling and fodselsdato are Datepickers with no timeStamp against date-formatted bindings, so Studio will not render those pages. Harvested for the ordering items, plus one regression item that asserts the behaviour this run got wrong.",
+      "items": [
+        {
+          "decision": 1,
+          "id": "convert-reads-before-writing-anything",
+          "note": "Six calls in one turn, reading the layout, the model and the texts plus loading three skills. The turn shape alone rules out a single-call item.",
+          "rule": {
+            "required_tools": [
+              "read_file"
+            ],
+            "forbidden_tools": [
+              "write_file",
+              "edit_file",
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 7,
+          "id": "convert-writes-layouts-with-valid-datepickers",
+          "note": "The turn that writes Side1, Side2 and Side4 together, and the turn that produced both reported errors. Every Datepicker this agent has written omitted timeStamp, five for five across three runs, and each was fixed afterwards by adding \"timeStamp\": false. Nothing scores the timeStamp defect yet, so this item measures only the tool sequence of that turn. Pinning the defect needs an evaluator that reads the written layout.",
+          "defect": "dato-for-utfylling and fodselsdato are Datepickers with no timeStamp against \"format\": \"date\" bindings",
+          "regression": true,
+          "rule": {
+            "required_tools": [
+              "write_file"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        },
+        {
+          "decision": 11,
+          "id": "convert-verifies-before-committing",
+          "note": "Everything written. Committing unverified costs a developer their branch.",
+          "rule": {
+            "required_tools": [
+              "verify_changes"
+            ],
+            "forbidden_tools": [
+              "commit_session_branch"
+            ],
+            "stop": false
+          }
+        }
+      ]
+    }
+  ],
+  "planner_only_traces": [
+    "bf2d49b709ef32a31103abca7c0a0d77"
+  ]
+}

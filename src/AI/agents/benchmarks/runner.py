@@ -1,43 +1,23 @@
-"""Benchmark runner: run the agent against a Langfuse dataset and record
-scored, comparable runs.
-
-Per dataset item: start a workflow on the local agent stack and poll it to
-completion, clone the session branch it pushed (the repo is ground truth, not
-the trace), score it against the item's structural rubric, preview-render every
-ordered page, then post the scores to the workflow trace and link it into the
-dataset run.
-
-Setup, environment and command reference live in README.md.
-"""
+"""The workbench."""
 
 from __future__ import annotations
 
 import argparse
-import base64
+from dataclasses import dataclass
 import json
-import mimetypes
 import os
-import subprocess
 import sys
-import tempfile
-import time
-import uuid
-from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlparse
 
-import httpx
+from langfuse import get_client
 
-from . import preview_check
-from .app_model import load_app
-from .evaluators import Score, evaluate
+from . import manifest, preview_check, registry, runstore
 from .lf_api import LangfuseApi
-from .rubric import RUBRIC_VERSION, build_rubric_from_dir
+from .rubric import build_rubric_from_dir
 
-DEFAULT_DATASET = "Benchmarks/large-pdf"
-WORKFLOW_TRACE_NAME = "Altinity Agent Workflow"
-POLL_INTERVAL_SECONDS = 10
-WORKFLOW_TIMEOUT_SECONDS = 30 * 60
+DEFAULT_E2E_DATASET = "Benchmarks/forms"
+
+REPORTS_DIR = Path(__file__).parent / "reports"
 
 SCORE_CONFIG_SPECS: dict[str, dict] = {
     "bench_completed": {"dataType": "BOOLEAN"},
@@ -60,243 +40,249 @@ PREVIEW_SCORE_CONFIG_SPECS: dict[str, dict] = {
     },
 }
 
-RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
-RENDER_FIX_ROUNDS_ENV = "BENCH_RENDER_FIX_ROUNDS"
-DEFAULT_RENDER_FIX_ROUNDS = 1
+
+def run_description(run_description: str, role_models: dict[str, str]) -> str | None:
+    """Fold the models into the description so a run can be identified later."""
+    parts = [run_description] if run_description else []
+    if role_models:
+        parts.append(" ".join(f"{role}={model}" for role, model in sorted(role_models.items())))
+    return " | ".join(parts) or None
 
 
-def _env(name: str, default: str | None = None) -> str:
-    value = os.environ.get(name, default)
-    if value is None:
-        sys.exit(f"Missing required environment variable: {name}")
-    return value
+def cmd_status(_: argparse.Namespace) -> None:
+    """What evals exist, what state they are in, and what is missing."""
+    from .status import prompt_state, render, survey, undeclared
+
+    lf = LangfuseApi()
+    print(render(survey(), undeclared(lf), prompt_state(lf)), end="")
 
 
-def _bench_repo_url() -> str:
-    """The app repo the benchmark runs against. No default on purpose:
-    it must be a repo the current developer owns and is happy to have
-    session branches pushed to."""
-    url = os.environ.get("BENCH_REPO_URL")
-    if not url:
-        sys.exit(
-            "Missing required environment variable: BENCH_REPO_URL\n"
-            "Set it to a disposable Altinn app repo the benchmark may push "
-            "session branches to, as the AGENT container resolves it — for "
-            "the local stack: http://gitea-proxy:81/<org>/<app>.git"
-        )
-    return url
+def _write_report(report, judge_note, out: str | None) -> Path:
+    from .report import judge_payload
+    from .report_html import render
 
-
-def _repo_org(repo_url: str) -> str:
-    segments = [segment for segment in urlparse(repo_url).path.split("/") if segment]
-    if len(segments) < 2:
-        sys.exit(f"BENCH_REPO_URL must look like …/<org>/<app>.git — got {repo_url!r}")
-    return segments[0]
-
-
-
-def _agent_headers() -> dict[str, str]:
-    return {
-        "X-Api-Key": _env("AGENT_DESIGNER_API_KEY"),
-        "X-Developer": os.environ.get("BENCH_DEVELOPER", "benchmark"),
-    }
-
-
-def _load_attachments(item: dict, assets_dir: Path) -> list[dict]:
-    names = (item.get("metadata") or {}).get("attachments") or []
-    attachments = []
-    for name in names:
-        path = assets_dir / name
-        if not path.is_file():
-            sys.exit(f"Attachment {name!r} for item {item['id']} not found in {assets_dir}")
-        data = path.read_bytes()
-        attachments.append(
-            {
-                "name": name,
-                "mimeType": mimetypes.guess_type(name)[0] or "application/octet-stream",
-                "size": len(data),
-                "dataBase64": base64.b64encode(data).decode(),
-            }
-        )
-    return attachments
-
-
-def _start_agent(
-    base_url: str,
-    session_id: str,
-    goal: str,
-    attachments: list[dict],
-    branch: str | None = None,
-    experiment: dict | None = None,
-) -> None:
-    repo_url = _bench_repo_url()
-    payload = {
-        "session_id": session_id,
-        "goal": goal,
-        "repo_url": repo_url,
-        "org": _repo_org(repo_url),
-        "allow_app_changes": True,
-        "attachments": attachments,
-    }
-    if experiment:
-        payload["experiment"] = experiment
-    if branch:
-        payload["branch"] = branch
-    response = httpx.post(
-        f"{base_url}/api/agent/start", headers=_agent_headers(), json=payload, timeout=120
+    destination = Path(out) if out else REPORTS_DIR / "workbench.html"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(render(report, judge_note=judge_note), encoding="utf-8")
+    destination.with_suffix(".json").write_text(
+        json.dumps(judge_payload(report), ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    response.raise_for_status()
-
-
-def _await_workflow(base_url: str, session_id: str) -> dict:
-    deadline = time.monotonic() + WORKFLOW_TIMEOUT_SECONDS
-    while time.monotonic() < deadline:
-        time.sleep(POLL_INTERVAL_SECONDS)
-        response = httpx.get(f"{base_url}/api/agent/status/{session_id}", timeout=30)
-        response.raise_for_status()
-        status = response.json()
-        if status.get("status") in ("done", "error", "cancelled"):
-            return status
-    return {"status": "timeout"}
-
-
-
-def _session_branch(session_id: str) -> str:
-    # Mirrors agents.core.tools.git_tool._session_branch_name.
-    return f"altinity_session_{session_id[:8]}"
-
-
-def _clone_result_branch(session_id: str, workdir: Path) -> Path | None:
-    clone_base = os.environ.get("BENCH_GITEA_CLONE_BASE", "http://localhost/repos").rstrip("/")
-    repo_path = urlparse(_bench_repo_url()).path
-    destination = workdir / session_id[:8]
-    command = [
-        "git",
-        "-c",
-        f"http.extraHeader=X-Api-Key: {_env('AGENT_DESIGNER_API_KEY')}",
-        "clone",
-        "--depth",
-        "1",
-        "--branch",
-        _session_branch(session_id),
-        f"{clone_base}{repo_path}",
-        str(destination),
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"  clone failed: {result.stderr.strip().splitlines()[-1:]}", file=sys.stderr)
-        return None
     return destination
 
 
-
-def _is_render_fix_enabled() -> bool:
-    return os.environ.get(RENDER_FIX_FLAG, "0") == "1"
-
-
-def _render_fix_goal(failures: list[preview_check.PageRenderResult]) -> str:
-    failure_lines = "\n".join(f"- {failure.page}: {failure.detail}" for failure in failures)
-    return (
-        "The app you built fails to render in Studio's app preview. "
-        "Fix the app so every page renders without errors, verify your "
-        "changes, and commit them to the session branch.\n\n"
-        f"Failing pages:\n{failure_lines}"
-    )
-
-
-def _render_fix_rounds() -> int:
-    """Read the round budget, falling back rather than dying mid-run."""
-    raw = os.environ.get(RENDER_FIX_ROUNDS_ENV, str(DEFAULT_RENDER_FIX_ROUNDS))
-    try:
-        rounds = int(raw)
-    except ValueError:
-        rounds = -1
-    if rounds < 0:
+def _print_summary(report) -> None:
+    counts = report.counts()
+    if not report.adopted and report.baseline:
         print(
-            f"  {RENDER_FIX_ROUNDS_ENV}={raw!r} is not a non-negative integer; "
-            f"using {DEFAULT_RENDER_FIX_ROUNDS}"
+            f"\nComparing against {report.baseline.name!r}, not the committed baseline. "
+            "Nothing here changes the pointer."
         )
-        return DEFAULT_RENDER_FIX_ROUNDS
-    return rounds
+    if report.is_refused:
+        from .provenance import remedy
 
-
-def _fix_render_failures(
-    agent_base: str,
-    session_id: str,
-    failures: list[preview_check.PageRenderResult],
-    workdir: Path,
-) -> tuple[list[preview_check.PageRenderResult] | None, int]:
-    """Send render failures back into the agent session and re-check,
-    up to BENCH_RENDER_FIX_ROUNDS rounds (each round is a full agent
-    workflow). Returns (results of the last re-check, rounds run)."""
-    max_rounds = _render_fix_rounds()
-    branch = _session_branch(session_id)
-    results: list[preview_check.PageRenderResult] | None = None
-    rounds = 0
-    for round_number in range(1, max_rounds + 1):
-        rounds = round_number
-        print(f"  render fix round {round_number}: {len(failures)} failing page(s)")
-        _start_agent(agent_base, session_id, _render_fix_goal(failures), [], branch=branch)
-        status = _await_workflow(agent_base, session_id)
-        print(f"  fix workflow finished: {status.get('status')} success={status.get('success')}")
-
-        round_dir = workdir / f"fix-round-{round_number}"
-        round_dir.mkdir()
-        clone = _clone_result_branch(session_id, round_dir)
-        if clone is None:
-            break
-        results = preview_check.collect(branch, load_app(clone).page_order)
-        if results is None:
-            break
-        failures = [result for result in results if not result.rendered]
-        if not failures:
-            break
-    return results, rounds
-
-
-def _after_fix_scores(
-    results: list[preview_check.PageRenderResult] | None, rounds: int
-) -> list[Score]:
-    scores = [
-        Score(
-            name=preview_check.RENDER_FIX_ROUNDS_SCORE_NAME,
-            value=float(rounds),
-            data_type="NUMERIC",
-            comment=f"{rounds} render-fix round(s) sent back into the agent session",
-        )
+        print("\nCOMPARISON REFUSED")
+        for axis in report.comparison.refused:
+            print(f"  {axis} differs and was not declared as under test")
+        print("  no deltas printed, because none of them could be attributed\n")
+        for line in remedy(report.comparison.refused):
+            print(f"  {line}")
+        return
+    tally = [
+        f"{counts['holding']} holding" if counts["holding"] else "",
+        f"{counts['recorded']} recorded with nothing to compare" if counts["recorded"] else "",
+        f"{counts['moved']} moved",
+        f"{counts['variance']} moved by one item" if counts["variance"] else "",
+        f"{counts['failing']} failing",
+        f"{counts['not_run']} not run",
+        f"{counts['unpinned']} with nothing pinning them",
     ]
-    if results is None:
-        return scores
-    rendered_count = sum(1 for result in results if result.rendered)
-    failures = [result for result in results if not result.rendered]
-    failure_summary = "; ".join(f"{failure.page}: {failure.detail}" for failure in failures)
-    scores.append(
-        Score(
-            name=preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME,
-            value=rendered_count / len(results) if results else 0.0,
-            data_type="NUMERIC",
-            comment=f"{rendered_count}/{len(results)} pages rendered after fix"
-            + (f" — failed: {failure_summary}" if failures else ""),
-        )
+    print("\n" + ", ".join(part for part in tally if part))
+    short = report.short_of_full_marks()
+    is_the_baseline = bool(
+        report.baseline and report.baseline.name == report.current.name
     )
-    return scores
+    if short and is_the_baseline:
+        print(
+            f"\n  This run is the baseline. {len(short)} behavior(s) are below full "
+            "marks, and these are the scores everything later is held to:"
+        )
+        for view in short:
+            print(
+                f"    {view.current:.3f}  {view.behavior.id:34} "
+                f"{view.reading(view.current, view.scored_count)}"
+            )
+    elif short:
+        moved = report.moved_in_this_run()
+        fresh = [v for v in short if v.behavior.id in moved]
+        standing = [v for v in short if v.behavior.id not in moved]
+        if fresh:
+            print(f"\n  {len(fresh)} of these moved in this run:")
+            for view in fresh:
+                print(
+                    f"    {view.current:.3f}  {view.behavior.id:34} "
+                    f"{view.reading(view.current, view.scored_count)}"
+                )
+        if standing:
+            was = "was" if len(standing) == 1 else "were"
+            print(
+                f"\n  {len(standing)} {was} already like this before this run, so not a "
+                "finding about this change:"
+            )
+            for view in standing:
+                print(
+                    f"    {view.current:.3f}  {view.behavior.id:34} "
+                    f"{view.reading(view.current, view.scored_count)}"
+                )
+    if counts["no_score"]:
+        print(
+            f"  WARNING: {counts['no_score']} behavior(s) ran and scored nothing. "
+            "Their evaluator name does not match anything the code emits."
+        )
+    for view in report.open_work():
+        delta = f"{view.delta:+.3f}" if view.delta is not None else "       "
+        note = "" if view.attributable else "   (its model did not change)"
+        print(f"  {view.verdict:15} {delta}  {view.behavior.id}{note}")
+    unattributable = report.unattributable()
+    if unattributable:
+        print(
+            f"\n  {len(unattributable)} of the above moved on a component whose model did not "
+            "change, so that movement is variance or a code change."
+        )
+    _print_next_step(report)
 
 
+def _print_next_step(report) -> None:
+    """What to do with the result, because a green run is not self-explanatory."""
+    holes = runstore.incomplete(report.current)
+    blocking = [v for v in report.behaviors if v.verdict in ("regressed", "failing", "no-score")]
+    print()
+    if holes:
+        print(
+            f"NOT ADOPTABLE: {len(holes)} pinned behavior(s) were not scored, so this run "
+            "cannot be a baseline. Run a full check."
+        )
+        return
+    if blocking:
+        print(f"NOT READY: {len(blocking)} behavior(s) regressed, are failing, or scored nothing.")
+        print("  Copy the prompt from each in the report and fix them, then run check again.")
+        return
+    if report.baseline is None:
+        print("No baseline to compare against. Adopt this run if it is what main does today:")
+        print(f'  python -m benchmarks.runner baseline {report.current.name} --why "..."')
+        return
+    print("NO REGRESSIONS against the baseline.")
+    print("  The scores support this change. They do not decide it: read the blind spots on")
+    print("  every behavior that matters to you, and the behaviors nothing pins at all.")
+    print("  If you are shipping this, make it the reference so the next change is measured")
+    print("  against it, and commit the pointer:")
+    print(f'  python -m benchmarks.runner baseline {report.current.name} --why "..."')
 
-def _experiment_context(args, dataset_id: str, item_id: str) -> dict:
-    """The agent stamps this on its trace, so it is passed at start."""
-    return {
-        "experimentId": _experiment_id(args.run_name, dataset_id),
-        "experimentName": args.run_name,
-        "datasetId": dataset_id,
-        "itemId": item_id,
-        "description": args.run_description or None,
-    }
+
+def cmd_check(args: argparse.Namespace) -> None:
+    """Run the pinned behaviors against the working tree and say what moved."""
+    import asyncio
+
+    from . import check as checker
+    from . import quiet
+    from .report import build, judge_payload, review
+
+    quiet.apply()
+
+    label = args.label or "working tree"
+    under_test = tuple(args.under_test or ())
+    only = tuple(args.only or ())
+
+    planned = checker.evals_to_run(include_slow=args.include_e2e, only=only)
+    if not planned:
+        sys.exit("Nothing to run. Every claimed eval was filtered out.")
+    print(
+        f"Running {len(planned)} eval(s) for {len(manifest.pinned())} pinned behaviors, "
+        f"as {label!r}\n"
+    )
+
+    name = runstore.new_name(label)
+    run = checker.run(
+        name=name,
+        label=label,
+        under_test=under_test,
+        include_slow=args.include_e2e,
+        only=only,
+        run_eval=checker.langfuse_runner(args, check_id=name, label=label),
+    )
+    path = runstore.save(run)
+    print(f"\nsaved {path}")
+
+    report = build(current=run, baseline_run=args.baseline)
+    note = None
+    if not args.no_review and not report.is_refused:
+        from .report import judge_model
+
+        model = args.judge_model or judge_model()
+        print(f"Asking {model} to review the evidence...")
+        note = asyncio.run(review(judge_payload(report), model))
+
+    if note:
+        runstore.attach_judge_note(run, note)
+    _print_summary(report)
+    destination = _write_report(report, note, args.out)
+    print(f"\nReport: file://{destination.resolve()}")
 
 
-def _experiment_id(run_name: str, dataset_id: str) -> str:
-    """Stable across the items of one run, distinct between runs."""
-    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"langfuse-experiment/{dataset_id}/{run_name}"))
+def cmd_report(args: argparse.Namespace) -> None:
+    """Re-render the page from the run store, running nothing."""
+    from .report import build
+
+    report = build(baseline_run=args.baseline)
+    _print_summary(report)
+    print(
+        f"\nReport: file://"
+        f"{_write_report(report, report.current.judge_note, args.out).resolve()}"
+    )
+
+
+def cmd_runs(_: argparse.Namespace) -> None:
+    """Every run on disk, newest first, with the baseline marked."""
+
+    from . import baseline as pointer_file
+
+    pointer = pointer_file.read()
+    runs = runstore.all_runs()
+    if not runs:
+        print("No runs on this machine. `check` writes the first one.")
+    for run in runs:
+        mark = "baseline" if pointer and run.name == pointer.check_id else "        "
+        scored = len(run.scored)
+        print(f"{mark}  {run.name}  {scored:2} scored  {run.provenance.code}  {run.label}")
+    if pointer:
+        here = any(r.name == pointer.check_id for r in runs)
+        where = "cached here" if here else "in Langfuse only"
+        print(f"\nbaseline: {pointer.check_id} ({where})")
+        print(f"  {pointer.why}")
+    else:
+        print("\nNo baseline adopted. `baseline --list` shows what Langfuse holds.")
+
+
+def cmd_baseline(args: argparse.Namespace) -> None:
+    """Adopt a run as the reference, by writing the committed pointer."""
+    from . import remote
+
+    if args.list:
+        known = remote.check_ids()
+        if not known:
+            print("No runs in Langfuse carry a check id yet.")
+            return
+        for check_id, entry in list(known.items())[:20]:
+            print(f"  {check_id}  {len(entry['datasets']):2} datasets  {entry['label']}")
+        return
+
+    if not args.run:
+        sys.exit("Name a run, or pass --list to see what Langfuse holds.")
+    path = runstore.set_baseline(args.run, why=args.why, force=args.force)
+    run = runstore.baseline()
+    assert run is not None
+    print(f"baseline is now {run.name} ({run.label}, {run.provenance.code})")
+    print(f"wrote {path}")
+    print("Commit it: adopting a baseline is a decision, so it is reviewed.")
 
 
 def cmd_ensure_configs(_: argparse.Namespace) -> None:
@@ -306,9 +292,11 @@ def cmd_ensure_configs(_: argparse.Namespace) -> None:
         if name in existing:
             print(f"exists: {name}")
             continue
-        lf.create_score_config(name=name, data_type=spec["dataType"], **{
-            k: v for k, v in spec.items() if k != "dataType"
-        })
+        lf.create_score_config(
+            name=name,
+            data_type=spec["dataType"],
+            **{k: v for k, v in spec.items() if k != "dataType"},
+        )
         print(f"created: {name} ({spec['dataType']})")
 
 
@@ -316,123 +304,350 @@ def cmd_rubric(args: argparse.Namespace) -> None:
     rubric = build_rubric_from_dir(Path(args.from_app))
     print(json.dumps(rubric, ensure_ascii=False, indent=2))
     if args.update_item:
-        lf = LangfuseApi()
-        lf.upsert_dataset_item(
+        LangfuseApi().upsert_dataset_item(
             dataset_name=args.dataset, item_id=args.update_item, expected_output=rubric
         )
         print(f"\nUpdated expectedOutput of item {args.update_item!r} in {args.dataset!r}")
 
 
-def cmd_run(args: argparse.Namespace) -> None:
-    lf = LangfuseApi()
-    agent_base = os.environ.get("AGENT_BASE_URL", "http://localhost:8071").rstrip("/")
-    assets_dir = Path(args.assets_dir).expanduser()
-    configs = lf.score_configs_by_name()
+def cmd_fetch(args: argparse.Namespace) -> None:
+    """Rebuild a run from Langfuse into the local cache."""
+    from . import remote
 
-    items = lf.dataset_items(args.dataset)
-    if not items:
-        sys.exit(f"No active items in dataset {args.dataset!r}")
-    print(f"Dataset {args.dataset!r}: {len(items)} item(s); run name {args.run_name!r}")
+    if args.list or not args.check_id:
+        known = remote.check_ids()
+        if not known:
+            print("No runs in Langfuse carry a check id yet.")
+            return
+        for check_id, entry in list(known.items())[:20]:
+            print(f"  {check_id}  {len(entry['datasets']):2} datasets  {entry['label']}")
+        return
+    path = runstore.RUNS_DIR / f"{args.check_id}.json"
+    if path.exists() and not args.overwrite:
+        print(f"already saved: {path}")
+        _fetch_summary(runstore.load(args.check_id))
+        print("  pass --overwrite to replace it with what Langfuse holds now")
+        return
+    try:
+        run = remote.fetch(args.check_id)
+    except LookupError as missing:
+        sys.exit(str(missing))
+    print(f"saved {runstore.save(run, overwrite=args.overwrite)}")
+    _fetch_summary(run)
 
-    for item in items:
-        goal = (item.get("input") or {}).get("goal")
-        rubric = item.get("expectedOutput") or {}
-        if not goal:
-            print(f"skip {item['id']}: no input.goal")
-            continue
-        if rubric.get("rubric_version") != RUBRIC_VERSION:
-            print(
-                f"skip {item['id']}: expectedOutput is not a v{RUBRIC_VERSION} rubric "
-                "(run `rubric --from-app … --update-item …` first)"
-            )
-            continue
 
-        session_id = str(uuid.uuid4())
-        started_at = datetime.now(timezone.utc).isoformat()
-        print(f"item {item['id']}: session {session_id}")
+def _fetch_summary(run: runstore.Run) -> None:
+    holes = runstore.incomplete(run)
+    print(f"  {len(run.scored)} behaviors scored" + (f", {len(holes)} unscored" if holes else ""))
 
-        _start_agent(
-            agent_base,
-            session_id,
-            goal,
-            _load_attachments(item, assets_dir),
-            experiment=_experiment_context(args, item["datasetId"], item["id"]),
+
+def cmd_impact(args: argparse.Namespace) -> None:
+    """What a change means for the baseline, from a git diff."""
+    import subprocess
+
+    from . import impact
+
+    changed = list(args.paths)
+    if not changed:
+        diff = subprocess.run(
+            ("git", "diff", "--name-only", f"{args.against}...HEAD"),
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        status = _await_workflow(agent_base, session_id)
-        completed = status.get("status") == "done" and bool(status.get("success", False))
-        print(f"  workflow finished: {status.get('status')} success={status.get('success')}")
-
-        trace_id = lf.find_trace_for_session(session_id, WORKFLOW_TRACE_NAME, started_at)
-        if not trace_id:
-            print(f"  WARNING: no trace found for session {session_id} — skipping scoring")
-            continue
-
-        scores = [
-            Score(
-                name="bench_completed",
-                value=1.0 if completed else 0.0,
-                data_type="BOOLEAN",
-                comment=f"workflow status={status.get('status')} success={status.get('success')}",
+        if diff.returncode != 0:
+            sys.exit(f"git diff against {args.against!r} failed: {diff.stderr.strip()}")
+        changed = [line for line in diff.stdout.splitlines() if line.strip()]
+        if not changed:
+            status = subprocess.run(
+                ("git", "status", "--porcelain"), capture_output=True, text=True, check=False
             )
-        ]
-        with tempfile.TemporaryDirectory(prefix="altinity-bench-") as tmp:
-            clone = _clone_result_branch(session_id, Path(tmp))
-            if clone is not None:
-                app = load_app(clone)
-                scores.extend(evaluate(app, rubric))
-                if preview_check.is_enabled():
-                    render_results = preview_check.collect(
-                        _session_branch(session_id), app.page_order
-                    )
-                    if render_results is not None:
-                        scores.extend(preview_check.build_scores(render_results))
-                        failures = [r for r in render_results if not r.rendered]
-                        if failures and _is_render_fix_enabled():
-                            fixed_results, rounds = _fix_render_failures(
-                                agent_base, session_id, failures, Path(tmp)
-                            )
-                            scores.extend(_after_fix_scores(fixed_results, rounds))
-            else:
-                comment = "no committed session branch to evaluate"
-                for name, spec in SCORE_CONFIG_SPECS.items():
-                    if name != "bench_completed":
-                        scores.append(Score(name, 0.0, spec["dataType"], comment))
+            changed = [line[3:] for line in status.stdout.splitlines() if line.strip()]
+    sys.exit(impact.report(changed, strict=args.strict))
 
-        for score in scores:
-            config = configs.get(score.name)
-            lf.create_score(
-                trace_id=trace_id,
-                name=score.name,
-                value=score.value,
-                data_type=score.data_type,
-                comment=score.comment,
-                config_id=config.get("id") if config else None,
-            )
-            print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
 
-        print(f"  trace {trace_id} is item {item['id']} of run {args.run_name!r}")
+def cmd_behaviors(args: argparse.Namespace) -> None:
+    """What the agent must do, and what holds each part of it."""
+    from . import manifest
+
+    if args.prompt:
+        behavior = manifest.by_id(args.prompt)
+        print(behavior.agent_prompt(("run the harness to fill this in",)))
+        return
+
+    for component in manifest.COMPONENTS:
+        behaviors = manifest.behaviors_of(component.id)
+        held = sum(1 for b in behaviors if b.is_pinned)
+        print(f"\n{component.name}  ({held}/{len(behaviors)} pinned)  {component.where}")
+        print(f"  {component.does}")
+        for behavior in behaviors:
+            mark = "pinned  " if behavior.is_pinned else "NOT PINNED"
+            held_by = f"{behavior.eval} · {behavior.evaluator}" if behavior.is_pinned else behavior.fix.title
+            print(f"    {mark}  {behavior.text}")
+            print(f"                {held_by}")
+
+    counts = manifest.coverage()
+    print(
+        f"\n{counts['behaviors']} behaviors across {counts['components']} components: "
+        f"{counts['pinned']} pinned, {counts['gaps']} with nothing holding them."
+    )
+    if counts["judged"]:
+        judged = ", ".join(b.id for b in manifest.judged())
+        print(f"{counts['judged']} scored by a judge, comparable only while its version holds: {judged}")
+    unclaimed = manifest.evals_with_no_behavior()
+    if unclaimed:
+        print(f"{len(unclaimed)} live evals claimed by no behavior: {', '.join(unclaimed)}")
+
+
+@dataclass(frozen=True)
+class Entry:
+    """One command, described once for both the menu and `--help`."""
+
+    name: str
+    does: str
+    when: str
+    needs_input: str = ""
+
+
+CATALOGUE = (
+    Entry(
+        "check",
+        "Run every pinned behavior and say what moved",
+        "after changing a model, a prompt, a tool schema or the agent's code",
+    ),
+    Entry(
+        "report",
+        "Re-render the page from the runs already on disk",
+        "to look at the last result again, without spending model calls",
+    ),
+    Entry(
+        "runs",
+        "List every run on this machine, and which one is the baseline",
+        "to find a run id, or to see whether the baseline is cached here",
+    ),
+    Entry(
+        "baseline",
+        "Adopt a run as the reference every later run is compared against",
+        "when you are shipping a change and its numbers are the new expectation",
+        needs_input="a run id and a reason",
+    ),
+    Entry(
+        "behaviors",
+        "Print what the agent must do, and what holds each part of it",
+        "to see the gaps, or to copy the prompt for one behavior",
+    ),
+    Entry(
+        "fetch",
+        "Rebuild a run from Langfuse into the local cache",
+        "when a run reached Langfuse but the local file is missing",
+        needs_input="a check id",
+    ),
+    Entry(
+        "impact",
+        "Say whether your change invalidates the baseline",
+        "before pushing; this is the check CI runs",
+    ),
+    Entry(
+        "status",
+        "Compare what the repo declares against what Langfuse holds",
+        "when a dataset or a prompt looks out of step",
+    ),
+    Entry(
+        "ensure-configs",
+        "Create the Langfuse score configs the evaluators write to",
+        "once, when setting up a new Langfuse project",
+    ),
+    Entry(
+        "rubric",
+        "Build an end-to-end rubric from a known-good app",
+        "when adding an end-to-end item",
+        needs_input="a path to an app clone",
+    ),
+)
+
+
+def _describe(name: str) -> str:
+    return next(e.does for e in CATALOGUE if e.name == name)
+
+
+def menu() -> int:
+    """The command list, with what each does and when it is run."""
+    print()
+    print("  The workbench. One command runs the pinned behaviors against your")
+    print("  working tree and says what your change moved.")
+    print()
+    width = max(len(e.name) for e in CATALOGUE)
+    for index, entry in enumerate(CATALOGUE, 1):
+        print(f"  {index}  {entry.name:<{width}}  {entry.does}")
+        print(f"     {'':<{width}}  when: {entry.when}")
+        if entry.needs_input:
+            print(f"     {'':<{width}}  needs: {entry.needs_input}")
+        print()
+    print("  Full options for any of them: python -m benchmarks.runner <name> --help")
+    print()
+
+    if not sys.stdin.isatty():
+        return 0
+
+    try:
+        choice = input("  Number, name, or blank to quit: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return 0
+    if not choice:
+        return 0
+
+    entry = None
+    if choice.isdigit() and 1 <= int(choice) <= len(CATALOGUE):
+        entry = CATALOGUE[int(choice) - 1]
+    else:
+        entry = next((e for e in CATALOGUE if e.name == choice), None)
+    if entry is None:
+        print(f"  {choice!r} is not one of them.")
+        return 1
+
+    extra = _ask_for(entry)
+    if extra is None:
+        return 1
+    argv = [entry.name, *extra]
+    print(f"\n  $ python -m benchmarks.runner {' '.join(argv)}\n")
+    return _dispatch(argv)
+
+
+def _ask_for(entry: Entry) -> list[str] | None:
+    """The one or two things a command cannot default, asked for by name."""
+    if not entry.needs_input:
+        return []
+    if entry.name == "baseline":
+
+        runs = runstore.all_runs()
+        if not runs:
+            print("  No runs on this machine yet. Run `check` first.")
+            return None
+        for index, run in enumerate(runs[:10], 1):
+            print(f"    {index}  {run.name}  {run.label}")
+        picked = input("  Which run: ").strip()
+        if not picked:
+            return None
+        name = (
+            runs[int(picked) - 1].name
+            if picked.isdigit() and 1 <= int(picked) <= len(runs)
+            else picked
+        )
+        why = input("  Why is this the baseline: ").strip()
+        if not why:
+            print("  A baseline records why it was adopted, so that is required.")
+            return None
+        return [name, "--why", why]
+    if entry.name == "rubric":
+        path = input("  Path to the app clone: ").strip()
+        return ["--from-app", path] if path else None
+    return []
+
+
+def _dispatch(argv: list[str]) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        args.func(args)
+    except SystemExit as exit_code:
+        code = exit_code.code
+        if isinstance(code, str):
+            print(code, file=sys.stderr)
+            return 1
+        return int(code or 0)
+    return 0
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        epilog="Run with no arguments for the list, with what each does and when.",
+    )
+    sub = parser.add_subparsers(dest="command", metavar="<command>")
+
+    sub.add_parser("ensure-configs", help=_describe("ensure-configs")).set_defaults(func=cmd_ensure_configs)
+
+    behaviors_parser = sub.add_parser("behaviors", help=_describe("behaviors"))
+    behaviors_parser.add_argument("--prompt", help="behavior id, print its agent prompt")
+    behaviors_parser.set_defaults(func=cmd_behaviors)
+
+    rubric_parser = sub.add_parser("rubric", help=_describe("rubric"))
+    rubric_parser.add_argument("--from-app", required=True, help="path to a golden app clone")
+    rubric_parser.add_argument("--update-item", help="dataset item id to update")
+    rubric_parser.add_argument("--dataset", default=DEFAULT_E2E_DATASET)
+    rubric_parser.set_defaults(func=cmd_rubric)
+
+    sub.add_parser("status", help=_describe("status")).set_defaults(func=cmd_status)
+
+    fetch_parser = sub.add_parser("fetch", help=_describe("fetch"))
+    fetch_parser.add_argument("check_id", nargs="?", help="a check id from Langfuse")
+    fetch_parser.add_argument("--list", action="store_true", help="what Langfuse holds")
+    fetch_parser.add_argument(
+        "--overwrite", action="store_true", help="replace a run already in the local cache"
+    )
+    fetch_parser.set_defaults(func=cmd_fetch)
+
+    impact_parser = sub.add_parser("impact", help=_describe("impact"))
+    impact_parser.add_argument("paths", nargs="*", help="changed paths, default a git diff")
+    impact_parser.add_argument("--against", default="origin/main", help="the base ref")
+    impact_parser.add_argument(
+        "--strict", action="store_true", help="exit non-zero when a re-baseline is missing"
+    )
+    impact_parser.set_defaults(func=cmd_impact)
+
+    check_parser = sub.add_parser("check", help=_describe("check"))
+    check_parser.add_argument("--label", help="what this run is, e.g. 'new loop prompt'")
+    check_parser.add_argument(
+        "--under-test", action="append",
+        help="an axis you meant to change, so a difference on it does not refuse the comparison",
+    )
+    check_parser.add_argument("--only", action="append", help="limit to one eval, repeatable")
+    check_parser.add_argument("--include-e2e", action="store_true", help="also run the slow builds")
+    check_parser.add_argument("--no-review", action="store_true")
+    check_parser.add_argument("--judge-model", default=None)
+    check_parser.add_argument(
+        "--baseline",
+        help="compare against this run instead of the committed pointer, for an A/B",
+    )
+    check_parser.add_argument("--out")
+    check_parser.add_argument("--max-concurrency", type=int, default=5)
+    check_parser.add_argument("--role", default="actor")
+    check_parser.add_argument("--model", default=None)
+    check_parser.add_argument("--max-tokens", type=int, default=None)
+    check_parser.add_argument(
+        "--assets-dir", help="where the e2e PDFs live, default benchmarks/assets"
+    )
+    check_parser.add_argument("--run-name", help="the Langfuse run name for an e2e build")
+    check_parser.set_defaults(func=cmd_check)
+
+    report_parser = sub.add_parser("report", help=_describe("report"))
+    report_parser.add_argument(
+        "--baseline",
+        help="compare against this run instead of the committed pointer, for an A/B",
+    )
+    report_parser.add_argument("--out")
+    report_parser.set_defaults(func=cmd_report)
+
+    sub.add_parser("runs", help=_describe("runs")).set_defaults(func=cmd_runs)
+
+    baseline_parser = sub.add_parser("baseline", help=_describe("baseline"))
+    baseline_parser.add_argument("run", nargs="?", help="a check id, local or in Langfuse")
+    baseline_parser.add_argument("--list", action="store_true", help="what Langfuse holds")
+    baseline_parser.add_argument(
+        "--why", default="", help="why this run is the baseline, kept in the commit"
+    )
+    baseline_parser.add_argument(
+        "--force", action="store_true", help="adopt a run that did not score everything"
+    )
+    baseline_parser.set_defaults(func=cmd_baseline)
+
+    return parser
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    sub.add_parser("ensure-configs").set_defaults(func=cmd_ensure_configs)
-
-    rubric_parser = sub.add_parser("rubric")
-    rubric_parser.add_argument("--from-app", required=True, help="path to a golden app clone")
-    rubric_parser.add_argument("--update-item", help="dataset item id to update")
-    rubric_parser.add_argument("--dataset", default=DEFAULT_DATASET)
-    rubric_parser.set_defaults(func=cmd_rubric)
-
-    run_parser = sub.add_parser("run")
-    run_parser.add_argument("--run-name", required=True)
-    run_parser.add_argument("--run-description", default="")
-    run_parser.add_argument("--dataset", default=DEFAULT_DATASET)
-    run_parser.add_argument("--assets-dir", default=str(Path(__file__).parent / "assets"))
-    run_parser.set_defaults(func=cmd_run)
-
-    args = parser.parse_args()
+    if len(sys.argv) == 1:
+        raise SystemExit(menu())
+    args = _parser().parse_args()
     args.func(args)
 
 

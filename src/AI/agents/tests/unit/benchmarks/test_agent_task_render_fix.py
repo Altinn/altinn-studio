@@ -1,11 +1,13 @@
-"""Tests for the runner's render-fix loop: the pure parts (gating, fix
-goal, after-fix scores). The agent round-trip itself is exercised
-manually against the local stack."""
+"""The render-fix loop's pure parts: gating, the fix goal, the after-fix scores."""
 
 from __future__ import annotations
 
 from benchmarks.preview_check import PageRenderResult
-from benchmarks.runner import _after_fix_scores, _is_render_fix_enabled, _render_fix_goal
+from benchmarks.agent_task import (
+    _after_fix_scores,
+    _render_fix_goal,
+    is_render_fix_enabled,
+)
 
 FAILURES = [
     PageRenderResult("Side3", False, "error page: 500"),
@@ -16,11 +18,11 @@ FAILURES = [
 class TestRenderFixEnabled:
     def test_disabled_by_default(self, monkeypatch):
         monkeypatch.delenv("BENCH_RENDER_FIX", raising=False)
-        assert not _is_render_fix_enabled()
+        assert not is_render_fix_enabled()
 
     def test_enabled_with_one(self, monkeypatch):
         monkeypatch.setenv("BENCH_RENDER_FIX", "1")
-        assert _is_render_fix_enabled()
+        assert is_render_fix_enabled()
 
 
 class TestRenderFixGoal:

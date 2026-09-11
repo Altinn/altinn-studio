@@ -54,10 +54,18 @@ def collect(session_branch: str, page_order: list[str]) -> list[PageRenderResult
     prevented the check. Use instead of `run` when the failure details matter.
     """
     try:
-        return _render_results(session_branch, page_order)
+        return _in_worker_thread(session_branch, page_order)
     except PreviewCheckUnavailable as reason:
         print(f"  preview check skipped: {reason}", file=sys.stderr)
         return None
+
+
+def _in_worker_thread(session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
+    """Playwright's sync API will not start on a thread with a running event loop."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(_render_results, session_branch, page_order).result()
 
 
 def _render_results(session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
@@ -159,3 +167,6 @@ def _main() -> None:
 
 if __name__ == "__main__":
     _main()
+
+
+SCORE_NAMES = (RENDERS_SCORE_NAME, PAGES_RENDER_SCORE_NAME)
