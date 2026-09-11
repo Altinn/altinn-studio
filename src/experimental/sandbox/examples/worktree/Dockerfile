@@ -141,6 +141,9 @@ RUN { getent group docker >/dev/null || groupadd --system docker; } \
     && useradd --create-home --shell /usr/bin/bash --uid 1000 --groups docker,kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
+    && install -d /etc/systemd/system/init.scope.d \
+    && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && systemctl mask serial-getty@hvc0.service \
     && systemctl enable docker.service \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id

@@ -55,6 +55,17 @@ jobs:
         run: |
           version="$(go run . resolve-version --component codelists --base-branch "$BASE_BRANCH")"
 
+          # resolve-version prints the tag-style version (v9.0.0-preview.1). Everything downstream
+          # feeds MSBuild, which rejects the prefix, so normalize it here at the single source.
+          version="${version#v}"
+
+          # Fully anchored: a partial match would accept trailing junk, and a version such as
+          # `9.0.0-` reaches `dotnet pack` only to fail there, after the tag and release exist.
+          if [[ ! "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "Resolved version is not major.minor.patch[-prerelease]: $version" >&2
+            exit 1
+          fi
+
           environment="prod"
           if [[ "$version" == *"-preview."* ]]; then
             environment="dev"
@@ -124,23 +135,48 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}
         run: |
-          assembly_version="$(echo "$RELEASE_VERSION" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1.0/')"
+          # Matched explicitly rather than with a sed substitution: a sed that does not match
+          # passes the version through unchanged, which produced an invalid AssemblyVersion
+          # instead of failing. Same anchored pattern as the resolve-environment step.
+          if [[ ! "$RELEASE_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "RELEASE_VERSION is not major.minor.patch[-prerelease]: $RELEASE_VERSION" >&2
+            exit 1
+          fi
+
+          assembly_version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}.0"
           informational_version="$RELEASE_VERSION+$(git rev-parse --short=12 HEAD)"
 
+          # -p:UseAppLibsFromSource=false swaps the Altinn.App.Core ProjectReference for the
+          # pinned package, so the release compiles against exactly what the nuspec will declare.
+          # See src/App/AppCoreDependency.props.
           dotnet pack solutions/Src.slnx \
             -c Release \
             --output "${GITHUB_WORKSPACE}/build/release" \
+            -p:UseAppLibsFromSource=false \
             "-p:ReleasePackageVersion=${RELEASE_VERSION}" \
             "-p:ReleaseAssemblyVersion=${assembly_version}" \
             "-p:ReleaseInformationalVersion=${informational_version}"
         working-directory: src/App/codelists
 
-      # The Altinn.App.Core dependency version comes from Directory.Packages.props. Guard against
-      # it going missing, and against a source-derived `.dev.N` version — which is what a
-      # ProjectReference to the app backend would produce, and was never published to NuGet.
+      # The pack step above builds against the pinned Altinn.App.Core package, so the version the
+      # nuspec declares is the version the shipped assembly was compiled against. Assert exactly
+      # that. Merely rejecting a `.dev.N` version is not enough: `ReleasePackageVersion` is a global
+      # property, so a pack that forgot `-p:UseAppLibsFromSource=false` re-versions the referenced
+      # Core project too and emits *this component's* release version for Altinn.App.Core — a
+      # published version, and silently the wrong one.
       - name: Verify packed dependencies
         id: verify
         run: |
+          pinned_version="$(grep -oE '<PackageVersion Include="Altinn\.App\.Core" Version="[^"]*"' \
+            src/App/codelists/Directory.Packages.props | sed -E 's/.*Version="([^"]*)"/\1/')"
+
+          if [[ -z "$pinned_version" ]]; then
+            echo "::error::src/App/codelists/Directory.Packages.props does not pin Altinn.App.Core"
+            exit 1
+          fi
+
+          echo "Altinn.App.Core is pinned to $pinned_version"
+
           shopt -s nullglob
           packages=(build/release/*.nupkg)
 
@@ -164,8 +200,8 @@ jobs:
               | head -1 | sed -E 's/.*version="([^"]*)"/\1/')"
             echo "$package depends on Altinn.App.Core $app_core_version"
 
-            if [[ "$app_core_version" == *".dev."* ]]; then
-              echo "::error::$package depends on an unpublished Altinn.App.Core version"
+            if [[ "$app_core_version" != "$pinned_version" ]]; then
+              echo "::error::$package depends on Altinn.App.Core $app_core_version, not the pinned $pinned_version"
               failed=1
             fi
           done

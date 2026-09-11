@@ -27,6 +27,7 @@ import {
     bindFilterCallbacks,
 } from './modules/features/filters.js';
 import { loadQuery, applyQueryViewUi } from './modules/features/query.js';
+import { initThrottles } from './modules/features/throttles.js';
 import { bindThemeCallbacks } from './modules/features/theme.js';
 
 // Side-effect imports: these modules register window.* handlers and DOM listeners on load
@@ -83,6 +84,7 @@ const init = () => {
         if (d.recent !== undefined) updateRecentWorkflows(d.recent);
     });
     requestAnimationFrame(updateTimers);
+    initThrottles();
     watchForChanges();
 };
 

@@ -27,8 +27,33 @@ struct FakeAuthentication;
 struct FakeExecutions {
     progress_ensures: Rc<Cell<usize>>,
 }
+/// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
+type SentMessage = (String, bool, Option<std::time::Duration>);
+
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    sent: Rc<RefCell<Vec<SentMessage>>>,
+}
+
+fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
+    agent::sessions::Turn {
+        messages: vec![
+            agent::sessions::Message {
+                role: agent::sessions::Role::User,
+                parts: vec![agent::sessions::Part::Text { text: prompt.into() }],
+            },
+            agent::sessions::Message {
+                role: agent::sessions::Role::Assistant,
+                parts: vec![
+                    agent::sessions::Part::ToolCall {
+                        name: "Bash".into(),
+                        failed: true,
+                    },
+                    agent::sessions::Part::Text { text: answer.into() },
+                ],
+            },
+        ],
+    }
 }
 
 impl Notifier for IgnoreNotifications {
@@ -57,6 +82,7 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         harness: Option<agent::Harness>,
+        _initial_prompt: Option<&'a str>,
         _wait: WaitPolicy,
         _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
@@ -74,6 +100,41 @@ impl SessionApi for FakeSessions {
 
     fn list<'a>(&'a self, _agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
         Box::pin(async { Ok(Vec::new()) })
+    }
+
+    fn prompt<'a>(
+        &'a self,
+        agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        prompt: &'a str,
+        wait: bool,
+        timeout: Option<std::time::Duration>,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.sent.borrow_mut().push((prompt.to_owned(), wait, timeout));
+        Box::pin(async move {
+            if agent != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(())
+        })
+    }
+
+    fn turns<'a>(
+        &'a self,
+        agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        last: Option<usize>,
+    ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
+        Box::pin(async move {
+            if agent != "worker" {
+                return Err(Error::NotFound);
+            }
+            let mut turns = vec![answered_turn("one", "1"), answered_turn("two", "2")];
+            if let Some(last) = last {
+                turns.drain(0..turns.len().saturating_sub(last));
+            }
+            Ok(turns)
+        })
     }
 }
 
@@ -120,6 +181,7 @@ struct ApiFixture {
     server: Rc<Server>,
     client: Client,
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    sent: Rc<RefCell<Vec<SentMessage>>>,
     progress_ensures: Rc<Cell<usize>>,
 }
 
@@ -158,6 +220,7 @@ fn api() -> ApiFixture {
         Rc::new(IgnoreNotifications),
     ));
     let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
+    let sent = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let progress_ensures = Rc::new(Cell::new(0));
     let server = Rc::new(Server::new(
@@ -168,6 +231,7 @@ fn api() -> ApiFixture {
         }),
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
+            sent: sent.clone(),
         }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
@@ -176,7 +240,101 @@ fn api() -> ApiFixture {
         server,
         client,
         ensured_harnesses,
+        sent,
         progress_ensures,
+    }
+}
+
+struct DelayedConnector {
+    inner: InProcessConnector,
+}
+
+impl Connector for DelayedConnector {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            self.inner.connect().await
+        })
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_completion_timeout_is_unchanged_by_transit() {
+    let fixture = api();
+    let client = Client::new(Rc::new(DelayedConnector {
+        inner: InProcessConnector {
+            server: fixture.server.clone(),
+        },
+    }));
+    client
+        .prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("name"),
+            "go".into(),
+            true,
+            Some(Duration::from_millis(20)),
+        )
+        .await
+        .expect("delivered");
+    assert_eq!(
+        fixture.sent.borrow().as_slice(),
+        [("go".into(), true, Some(Duration::from_millis(20)))]
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_send_and_turns_round_trip_with_their_parameters() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    fixture
+        .client
+        .prompt_session(
+            "worker",
+            name.clone(),
+            "do it".into(),
+            true,
+            Some(std::time::Duration::from_secs(90)),
+        )
+        .await
+        .expect("send with wait");
+    fixture
+        .client
+        .prompt_session("worker", name.clone(), "fire and forget".into(), false, None)
+        .await
+        .expect("send without wait");
+    {
+        let sent = fixture.sent.borrow();
+        assert_eq!(sent.len(), 2);
+        assert_eq!((&sent[0].0, sent[0].1), (&"do it".to_owned(), true));
+        assert_eq!(sent[0].2, Some(Duration::from_secs(90)));
+        assert_eq!(sent[1], ("fire and forget".to_owned(), false, None));
+    }
+
+    let last = fixture
+        .client
+        .session_turns("worker", name.clone(), Some(1))
+        .await
+        .expect("turns");
+    assert_eq!(last.len(), 1);
+    assert_eq!(last[0], answered_turn("two", "2"));
+    assert_eq!(
+        fixture
+            .client
+            .session_turns("worker", name.clone(), None)
+            .await
+            .expect("turns")
+            .len(),
+        2
+    );
+    let missing = fixture
+        .client
+        .prompt_session("ghost", name, "hello".into(), false, None)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
     }
 }
 
@@ -237,6 +395,7 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             "worker",
             agent::sessions::SessionName::new("s1").expect("Session name"),
             Some(agent::Harness::ClaudeCode),
+            None,
             WaitPolicy::FirstPass,
             None,
         )

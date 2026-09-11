@@ -9,6 +9,8 @@ on:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
+      - 'src/App/AppCoreDependency.props'
+      - 'src/App/PackageVersioning.props'
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
@@ -106,7 +108,7 @@ jobs:
       - name: Resolve app process cache key
         id: app-process-cache-key
         shell: bash
-        run: echo "key=app-process-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/**', 'src/App/backend/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
+        run: echo "key=app-process-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/test/apps/**', 'src/App/backend/**', 'src/App/codelists/**', 'src/App/fileanalyzers/**', 'src/App/AppCoreDependency.props', 'src/App/PackageVersioning.props', 'Directory.Build.props', 'Directory.Packages.props', 'global.json') }}" >> "$GITHUB_OUTPUT"
 
       - name: Cache app process outputs
         id: cache-app-process-outputs

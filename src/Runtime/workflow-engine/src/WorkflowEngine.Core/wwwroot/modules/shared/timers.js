@@ -1,5 +1,5 @@
-/* Timers — workflow elapsed, step backoff countdowns, and the two mailbox counters
- * (a deadline counting down, a parked receiver counting up) */
+/* Timers — workflow elapsed, step backoff countdowns, the step modal's running counter, and the
+ * two mailbox counters (a deadline counting down, a parked receiver counting up) */
 
 import { state } from '../core/state.js';
 import { formatElapsed, formatSpan } from '../core/helpers.js';
@@ -18,6 +18,13 @@ export const updateTimers = () => {
     for (const el of document.querySelectorAll('[data-backoff]')) {
         const remaining = (new Date(el.getAttribute('data-backoff') ?? '').getTime() - now) / 1000;
         el.textContent = remaining > 0 ? `retry ${remaining.toFixed(1)}s` : 'retrying...';
+    }
+
+    // The step modal's Processing counter: how long the current attempt has been running.
+    for (const el of document.querySelectorAll('[data-step-started]')) {
+        const started = new Date(el.getAttribute('data-step-started') ?? '').getTime();
+        if (Number.isNaN(started)) continue;
+        el.textContent = `running ${formatElapsed(Math.max(0, (now - started) / 1000))}`;
     }
 
     for (const el of document.querySelectorAll('[data-starts-at]')) {

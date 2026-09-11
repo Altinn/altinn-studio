@@ -90,6 +90,72 @@ impl<'de> Deserialize<'de> for SandboxName {
     }
 }
 
+/// The hostname a Sandbox reports to its guest.
+///
+/// Hostnames share the portable DNS-1123 label form of [`SandboxName`], which
+/// keeps them within the Linux UTS limit and usable as a DNS label. A Sandbox
+/// defaults to its own name as hostname; a caller supplies a different value
+/// when the user-facing identity differs from the Sandbox name.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(transparent)]
+pub struct Hostname(SandboxName);
+
+impl Hostname {
+    /// Validates and creates a Sandbox hostname.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error unless the value is a lowercase DNS label of at most
+    /// [`MAX_SANDBOX_NAME_BYTES`] bytes.
+    pub fn new(value: impl Into<String>) -> Result<Self, InvalidHostname> {
+        SandboxName::new(value).map(Self).map_err(InvalidHostname)
+    }
+
+    /// Returns the hostname as text.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+impl From<SandboxName> for Hostname {
+    fn from(name: SandboxName) -> Self {
+        Self(name)
+    }
+}
+
+impl AsRef<str> for Hostname {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl fmt::Display for Hostname {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Hostname {
+    type Err = InvalidHostname;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::new(value)
+    }
+}
+
+/// Why a value cannot be used as a Sandbox hostname.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct InvalidHostname(InvalidSandboxName);
+
+impl fmt::Display for InvalidHostname {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "hostname is not a portable DNS label: {}", self.0)
+    }
+}
+
+impl std::error::Error for InvalidHostname {}
+
 /// Why a value cannot be used as a portable Sandbox name.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum InvalidSandboxName {

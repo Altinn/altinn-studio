@@ -13,8 +13,12 @@ pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
 pub(crate) const CONTAINER_HOST: &str = "unix:///run/podman/podman.sock";
 const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
-const UTF8_LOCALE: &str = "C.UTF-8";
-const PORTABLE_TERMINAL: &str = "xterm-256color";
+/// Locale every Sandbox process runs with; the image ships it, so UTF-8 output
+/// renders regardless of the host's locale.
+pub(crate) const UTF8_LOCALE: &str = "C.UTF-8";
+/// Terminal type every Sandbox terminal runs with. Host-specific TERM names are
+/// not necessarily installed in the Sandbox image; this baseline is.
+pub(crate) const PORTABLE_TERMINAL: &str = "xterm-256color";
 const PODMAN: &str = "/usr/bin/podman";
 const SETUP_STDERR_LINES: usize = 3;
 const SYSTEMD_READY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);

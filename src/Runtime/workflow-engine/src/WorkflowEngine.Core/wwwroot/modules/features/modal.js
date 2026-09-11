@@ -184,7 +184,7 @@ const buildDetailsContent = (data) => {
     if (data.backoffUntil && (status === 'Requeued' || status === 'Waiting')) {
         statusParts += ` <span class="step-backoff" data-backoff="${escAttr(/** @type {string} */ (data.backoffUntil))}"></span>`;
     } else if (status === 'Processing' && data.executionStartedAt) {
-        statusParts += ` <span data-step-started="${escAttr(/** @type {string} */ (data.executionStartedAt))}"></span>`;
+        statusParts += ` <span class="step-timing" data-step-started="${escAttr(/** @type {string} */ (data.executionStartedAt))}"></span>`;
     }
     if (data.retryCount) {
         statusParts += ` <span class="step-retry" style="margin-left:4px;margin-top:0">&#8635;${esc(String(data.retryCount))}</span>`;

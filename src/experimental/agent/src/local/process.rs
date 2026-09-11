@@ -24,8 +24,12 @@ pub fn configure_detached(command: &mut std::process::Command) {
     command.creation_flags(windows::CREATE_NEW_PROCESS_GROUP | windows::CREATE_NO_WINDOW);
 }
 
-#[cfg(not(windows))]
-pub const fn configure_detached(_command: &mut std::process::Command) {}
+#[cfg(unix)]
+pub fn configure_detached(command: &mut std::process::Command) {
+    use std::os::unix::process::CommandExt as _;
+
+    command.process_group(0);
+}
 
 #[cfg(windows)]
 pub(super) fn configure_hidden(command: &mut std::process::Command) {
@@ -38,4 +42,28 @@ pub(super) fn configure_hidden(command: &mut std::process::Command) {
 mod windows {
     pub(super) const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
     pub(super) const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    #[test]
+    fn detached_child_owns_its_process_group() {
+        let mut command = std::process::Command::new("/bin/sh");
+        command
+            .args(["-c", "ps -o pgid= -p $$"])
+            .stdout(std::process::Stdio::piped());
+        super::configure_detached(&mut command);
+        let child = command.spawn().expect("child");
+        let pid = child.id();
+        let output = child.wait_with_output().expect("child output");
+        assert!(output.status.success());
+        assert_eq!(
+            String::from_utf8(output.stdout)
+                .expect("UTF-8")
+                .trim()
+                .parse::<u32>()
+                .expect("process group"),
+            pid
+        );
+    }
 }
