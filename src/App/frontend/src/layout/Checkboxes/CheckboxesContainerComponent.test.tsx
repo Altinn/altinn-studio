@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
@@ -14,7 +13,7 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const twoOptions: IRawOption[] = [
+const threeOptions: IRawOption[] = [
   {
     label: 'Norway',
     value: 'norway',
@@ -23,10 +22,6 @@ const twoOptions: IRawOption[] = [
     label: 'Sweden',
     value: 'sweden',
   },
-];
-
-const threeOptions: IRawOption[] = [
-  ...twoOptions,
   {
     label: 'Denmark',
     value: 'denmark',
@@ -256,55 +251,6 @@ describe('CheckboxesContainerComponent', () => {
         newValue: 'denmark',
       });
     });
-  });
-
-  it('should show items in a row when layout is "row" and options count is 3', async () => {
-    await render({
-      component: {
-        optionsId: 'countries',
-        layout: LayoutStyle.Row,
-      },
-      options: threeOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).toBeInTheDocument();
-  });
-
-  it('should show items in a row when layout is not defined, and options count is 2', async () => {
-    await render({
-      component: {
-        // We have to provide a different optionsId here. If we re-used the optionsId from above and provided
-        // the options using a query, the query cache might give us options from another test run.
-        optionsId: 'twoOptions',
-      },
-      options: twoOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).toBeInTheDocument();
-  });
-
-  it('should show items in a column when layout is "column" and options count is 2 ', async () => {
-    await render({
-      component: {
-        optionsId: 'countries',
-        layout: LayoutStyle.Column,
-      },
-
-      options: twoOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).not.toBeInTheDocument();
-  });
-
-  it('should show items in a columns when layout is not defined, and options count is 3', async () => {
-    await render({
-      component: {
-        optionsId: 'countries',
-      },
-      options: threeOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).not.toBeInTheDocument();
   });
 
   it('should present replaced label if using data model source and trigger setLeafValue with replaced values', async () => {

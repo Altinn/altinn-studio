@@ -24,7 +24,7 @@ const render = (
   options?: Parameters<typeof renderWithTranslations>[1],
 ) =>
   renderWithTranslations(
-    <Dropdown componentId='my-dropdown' options={land} value='' {...props} />,
+    <Dropdown componentId='my-dropdown' options={land} value='' onChange={() => {}} {...props} />,
     {
       overrides,
       ...options,

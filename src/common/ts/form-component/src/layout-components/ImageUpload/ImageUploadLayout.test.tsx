@@ -21,23 +21,47 @@ const overrides = {
 
 describe('ImageUploadLayout', () => {
   it('renders the label from a title text resource key', () => {
-    renderWithTranslations(<ImageUploadLayout componentId='img-1' title='my.title' />, {
-      overrides,
-    });
+    renderWithTranslations(
+      <ImageUploadLayout
+        componentId='img-1'
+        title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
+      />,
+      {
+        overrides,
+      },
+    );
     expect(screen.getByText('Profilbilde')).toBeInTheDocument();
   });
 
   it('renders the dropzone with valid file types in the empty state', () => {
-    renderWithTranslations(<ImageUploadLayout componentId='img-1' title='my.title' />, {
-      overrides,
-    });
+    renderWithTranslations(
+      <ImageUploadLayout
+        componentId='img-1'
+        title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
+      />,
+      {
+        overrides,
+      },
+    );
     expect(screen.getByText('Gyldige filtyper: PNG, JPG')).toBeInTheDocument();
   });
 
   it('renders the form-content wrapper for the componentId', () => {
-    renderWithTranslations(<ImageUploadLayout componentId='img-1' title='my.title' />, {
-      overrides,
-    });
+    renderWithTranslations(
+      <ImageUploadLayout
+        componentId='img-1'
+        title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
+      />,
+      {
+        overrides,
+      },
+    );
     expect(document.getElementById('form-content-img-1')).toBeInTheDocument();
   });
 
@@ -46,6 +70,8 @@ describe('ImageUploadLayout', () => {
       <ImageUploadLayout
         componentId='img-1'
         title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
         validationMessages={<span>Feilmelding</span>}
       />,
       { overrides },
@@ -58,6 +84,8 @@ describe('ImageUploadLayout', () => {
       <ImageUploadLayout
         componentId='img-1'
         title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
         storedImage={uploadedImage}
         imageUrl='/img/att-1'
       />,
@@ -74,6 +102,7 @@ describe('ImageUploadLayout', () => {
       <ImageUploadLayout
         componentId='img-1'
         title='my.title'
+        onSave={() => {}}
         storedImage={uploadedImage}
         imageUrl='/img/att-1'
         onDelete={onDelete}
@@ -89,6 +118,8 @@ describe('ImageUploadLayout', () => {
       <ImageUploadLayout
         componentId='img-1'
         title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
         readOnly
         storedImage={uploadedImage}
         imageUrl='/img/att-1'
@@ -103,6 +134,8 @@ describe('ImageUploadLayout', () => {
       <ImageUploadLayout
         componentId='img-1'
         title='my.title'
+        onDelete={() => {}}
+        onSave={() => {}}
         storedImage={{ ...uploadedImage, uploaded: false }}
         imageUrl='/img/att-1'
       />,
