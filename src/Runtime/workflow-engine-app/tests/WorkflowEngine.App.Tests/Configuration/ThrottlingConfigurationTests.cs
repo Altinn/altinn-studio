@@ -45,6 +45,6 @@ public sealed class ThrottlingConfigurationTests(AppTestFixture fixture)
 
         var bound = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value.Throttling;
 
-        Assert.Equal(enabledInFile!.Value, bound.Enabled);
+        Assert.Equal(enabledInFile.Value, bound.Enabled);
     }
 }
