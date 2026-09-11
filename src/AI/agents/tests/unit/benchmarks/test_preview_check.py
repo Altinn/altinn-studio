@@ -130,3 +130,47 @@ class TestItRunsInsideTheExperimentRunner:
         monkeypatch.setattr(preview_check, "_render_results", unavailable)
 
         assert preview_check.collect("altinity_session_abcd1234", ["Side1"]) is None
+
+
+class TestAPreviewThatNeverAnsweredIsNotAFailure:
+    """A 30s timeout with no marker at all cost a run 0.250 on two behaviors while
+    the same committed branch rendered 1.0 on a retry: that is the preview, not the app."""
+
+    def _scores(self, results):
+        return {score.name: score for score in build_scores(results)}
+
+    def test_an_unmeasured_page_is_left_out_of_the_fraction(self):
+        results = [
+            PageRenderResult("Side1", True),
+            PageRenderResult("Side2", False, "no render marker: Timeout", measured=False),
+        ]
+
+        by_name = self._scores(results)
+
+        assert by_name["bench_pages_render"].value == 1.0
+        assert "1/1 pages rendered" in by_name["bench_pages_render"].comment
+        assert "never answered for" in by_name["bench_pages_render"].comment
+
+    def test_an_error_page_still_fails(self):
+        results = [PageRenderResult("Side1", False, "error page: binding is wrong")]
+
+        by_name = self._scores(results)
+
+        assert by_name["bench_pages_render"].value == 0.0
+        assert "binding is wrong" in by_name["bench_pages_render"].comment
+
+    def test_the_first_measured_page_decides_the_entry_score(self):
+        results = [
+            PageRenderResult("Side1", False, "no render marker: Timeout", measured=False),
+            PageRenderResult("Side2", True),
+        ]
+
+        assert self._scores(results)["bench_renders"].value == 1.0
+
+    def test_every_page_unmeasured_scores_zero_and_says_why(self):
+        results = [PageRenderResult("Side1", False, "no render marker: Timeout", measured=False)]
+
+        by_name = self._scores(results)
+
+        assert by_name["bench_renders"].value == 0.0
+        assert "never answered for" in by_name["bench_renders"].comment
