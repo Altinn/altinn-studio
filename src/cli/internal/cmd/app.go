@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"strings"
 
 	containerruntime "altinn.studio/devenv/pkg/container"
@@ -455,8 +456,26 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 		return fmt.Errorf("upgrade app: %w", err)
 	}
 	appsvc.PrintUpgradeResult(c.out, result)
+	if flags.reportPath != "" {
+		if writeErr := writeAppUpgradeReport(flags.reportPath, result); writeErr != nil {
+			return writeErr
+		}
+	}
 	if result.Failed() {
 		return fmt.Errorf("%w with exit code %d", errAppUpgradeFailed, result.ExitCode)
+	}
+	return nil
+}
+
+// writeAppUpgradeReport writes the studioctl-server upgrade result as JSON so tooling such as Altinn Studio
+// can read the outcome without parsing the rendered table.
+func writeAppUpgradeReport(path string, result studioctlserver.AppUpgradeResult) error {
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode upgrade report: %w", err)
+	}
+	if err := os.WriteFile(path, append(data, '\n'), 0o600); err != nil {
+		return fmt.Errorf("write upgrade report: %w", err)
 	}
 	return nil
 }
@@ -464,6 +483,7 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 type appUpgradeFlags struct {
 	appPath    string
 	kind       string
+	reportPath string
 	allowDirty bool
 }
 
@@ -480,6 +500,7 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
 	fs.BoolVar(&flags.allowDirty, "allow-dirty", false, "Upgrade even with uncommitted local changes")
+	fs.StringVar(&flags.reportPath, "report", "", "Write the upgrade result as JSON to this file")
 
 	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
 		flags.kind = args[0]
@@ -515,7 +536,7 @@ func isSupportedAppUpgradeKind(kind string) bool {
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
-	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH] [--allow-dirty]"
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH] [--allow-dirty] [--report FILE]"
 }
 
 func (c *AppCommand) appUpgradeUsage() string {
@@ -527,6 +548,7 @@ func (c *AppCommand) appUpgradeUsage() string {
 		"Options:",
 		"  -p, --path PATH             Specify app directory (overrides auto-detect)",
 		"  --allow-dirty               Allow updating when the repository contains modified or untracked files.",
+		"  --report FILE               Write the upgrade result as JSON to FILE, in addition to printing it.",
 		"  -h, --help                  Show this help",
 	)
 }

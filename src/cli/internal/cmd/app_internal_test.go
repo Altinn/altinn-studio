@@ -12,6 +12,7 @@ import (
 
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -161,6 +162,46 @@ func TestParseAppUpgradeFlagsDefaultsToV9(t *testing.T) {
 	}
 	if flags.kind != appUpgradeKindV9 {
 		t.Fatalf("kind = %q, want %q", flags.kind, appUpgradeKindV9)
+	}
+}
+
+func TestParseAppUpgradeFlagsReadsReportPath(t *testing.T) {
+	t.Parallel()
+
+	flags, _, err := (&AppCommand{}).parseAppUpgradeFlags([]string{"v9", "--report", "/tmp/report.json"})
+	if err != nil {
+		t.Fatalf("parseAppUpgradeFlags() error = %v", err)
+	}
+	if flags.reportPath != "/tmp/report.json" {
+		t.Fatalf("reportPath = %q, want /tmp/report.json", flags.reportPath)
+	}
+}
+
+func TestWriteAppUpgradeReportWritesJSON(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "report.json")
+	result := studioctlserver.AppUpgradeResult{
+		ExitCode: studioctlserver.AppUpgradeExitManualRequired,
+		Steps: []studioctlserver.AppUpgradeStep{
+			{Name: "Project file", Messages: []studioctlserver.AppUpgradeMessage{{Text: "Bumped", Status: studioctlserver.AppUpgradeStatusOK}}},
+		},
+	}
+
+	if err := writeAppUpgradeReport(path, result); err != nil {
+		t.Fatalf("writeAppUpgradeReport() error = %v", err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("ReadFile() error = %v", err)
+	}
+	var decoded studioctlserver.AppUpgradeResult
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+	if decoded.ExitCode != result.ExitCode || len(decoded.Steps) != 1 || decoded.Steps[0].Name != "Project file" {
+		t.Fatalf("decoded = %+v, want %+v", decoded, result)
 	}
 }
 
