@@ -31,6 +31,10 @@ if (dist is not null)
 var versions = await appDist.ListVersionsAsync();
 ```
 
+`ListVersionsAsync` and `ListCachedVersionsAsync` return only tags that are valid Semantic Versioning 2.0.0
+versions, ordered by precedence (so `9.0.0-preview.9` sorts before `9.0.0-preview.10`, and `9.0.0` last).
+Other tags in the repository are ignored.
+
 `GetVersionAsync` and `GetLayerAsync` return `null` only when the requested version does not exist. They use a cached
 copy without contacting the registry when possible. Source availability, access, and artifact validation failures are
 reported separately:

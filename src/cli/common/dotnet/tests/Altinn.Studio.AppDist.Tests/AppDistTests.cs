@@ -380,10 +380,28 @@ public sealed class AppDistTests : IDisposable
     public async Task ListVersions_ReturnsSourceVersions()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("3", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0-preview.10", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0-rc.1", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0-preview.9", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("8.12.8", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
 
-        Assert.Equal(["3", "4"], await provider.ListVersionsAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(
+            ["8.12.8", "9.0.0-preview.9", "9.0.0-preview.10", "9.0.0-rc.1", "9.0.0"],
+            await provider.ListVersionsAsync(TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task ListVersions_OmitsTagsThatAreNotSemVer()
+    {
+        var (provider, source, _) = Setup();
+        foreach (
+            var tag in new[] { "latest", "9", "9.0", "v9.0.0", "9.0.0-", "9.0.0-preview.01", "0.0.0-test", "9.0.0" }
+        )
+            source.AddFiles(tag, AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+
+        Assert.Equal(["0.0.0-test", "9.0.0"], await provider.ListVersionsAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -401,11 +419,13 @@ public sealed class AppDistTests : IDisposable
     public async Task ListCachedVersions_ReflectsStorePerLayer()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        source.AddFiles("4.0.0", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("not-a-version", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        await provider.GetLayerAsync("4.0.0", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await provider.GetLayerAsync("not-a-version", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            ["4"],
+            ["4.0.0"],
             await provider.ListCachedVersionsAsync(AppDistLayer.Schemas, TestContext.Current.CancellationToken)
         );
         Assert.Empty(

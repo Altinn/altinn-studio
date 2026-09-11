@@ -40,13 +40,15 @@ public interface IAppDistProvider
     );
 
     /// <summary>
-    /// Lists versions currently available from the configured source.
+    /// Lists versions currently available from the configured source, in ascending Semantic Versioning
+    /// precedence. Tags that are not valid Semantic Versioning 2.0.0 versions are omitted.
     /// </summary>
     /// <exception cref="AppDistSourceException">The source could not complete the request.</exception>
     Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Lists versions present in the local cache for <paramref name="layer"/> without contacting the source.
+    /// Lists versions present in the local cache for <paramref name="layer"/> without contacting the source,
+    /// filtered and ordered like <see cref="ListVersionsAsync"/>.
     /// </summary>
     Task<IReadOnlyList<string>> ListCachedVersionsAsync(
         AppDistLayer layer,
@@ -129,13 +131,13 @@ public sealed class AppDist : IAppDistProvider, IDisposable
         return new LayerContent(_store, version, layer);
     }
 
-    public Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken = default) =>
-        _source.ListVersionsAsync(cancellationToken);
+    public async Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken = default) =>
+        SemVer.FilterAndSort(await _source.ListVersionsAsync(cancellationToken));
 
-    public Task<IReadOnlyList<string>> ListCachedVersionsAsync(
+    public async Task<IReadOnlyList<string>> ListCachedVersionsAsync(
         AppDistLayer layer,
         CancellationToken cancellationToken = default
-    ) => _store.ListVersionsAsync(layer, cancellationToken);
+    ) => SemVer.FilterAndSort(await _store.ListVersionsAsync(layer, cancellationToken));
 
     public void Dispose() => _ownedHttpClient?.Dispose();
 
