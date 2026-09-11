@@ -39,7 +39,10 @@ impl InstallPaths {
         };
         let bin = match env::var_os("AGENT_INSTALL_DIR").filter(|value| !value.is_empty()) {
             Some(path) => absolute(Path::new(&path))?,
-            None => default_bin_directory(&root)?,
+            #[cfg(unix)]
+            None => default_bin_directory()?,
+            #[cfg(windows)]
+            None => root.join("bin"),
         };
         Ok(Self { root, bin })
     }
@@ -263,6 +266,7 @@ pub async fn stage_release(paths: &InstallPaths, release: Release) -> Result<Sta
     extract_archive(&archive, &extracted)?;
     validate_release_directory(&extracted, &release.version)?;
     fs::rename(&extracted, &final_path)?;
+    #[cfg(unix)]
     sync_directory(&paths.releases())?;
     Ok(StagedRelease {
         release,
@@ -398,7 +402,9 @@ pub fn activate_release(paths: &InstallPaths, target: &Path) -> Result<(), Error
         ));
     }
     activate_links(paths, &target)?;
-    sync_directory(paths.root())
+    #[cfg(unix)]
+    sync_directory(paths.root())?;
+    Ok(())
 }
 
 #[cfg(unix)]
@@ -509,7 +515,9 @@ pub async fn consume_pending_session_relaunch(
     }
     service.relaunch_after_upgrade().await?;
     tokio::fs::remove_file(path).await?;
-    sync_directory(home.path())
+    #[cfg(unix)]
+    sync_directory(home.path())?;
+    Ok(())
 }
 
 #[derive(Deserialize, Serialize)]
@@ -714,7 +722,9 @@ fn atomic_json(path: &Path, value: &impl Serialize) -> Result<(), Error> {
     file.sync_all()?;
     drop(file);
     fs::rename(&temporary, path)?;
-    sync_directory(parent)
+    #[cfg(unix)]
+    sync_directory(parent)?;
+    Ok(())
 }
 
 fn canonical_or_absolute(path: &Path) -> Result<PathBuf, Error> {
@@ -747,7 +757,7 @@ fn default_install_root() -> Result<PathBuf, Error> {
 }
 
 #[cfg(unix)]
-fn default_bin_directory(_root: &Path) -> Result<PathBuf, Error> {
+fn default_bin_directory() -> Result<PathBuf, Error> {
     env::var_os("HOME")
         .map(PathBuf::from)
         .map(|path| path.join(".local/bin"))
@@ -760,11 +770,6 @@ fn default_install_root() -> Result<PathBuf, Error> {
         .map(PathBuf::from)
         .map(|path| path.join("Agent"))
         .ok_or_else(|| Error::Invalid("LOCALAPPDATA is not set".into()))
-}
-
-#[cfg(windows)]
-fn default_bin_directory(root: &Path) -> Result<PathBuf, Error> {
-    Ok(root.join("bin"))
 }
 
 #[cfg(unix)]
@@ -811,11 +816,6 @@ fn replace_windows_file(path: &Path, contents: &[u8]) -> Result<(), Error> {
 #[cfg(unix)]
 fn sync_directory(path: &Path) -> Result<(), Error> {
     File::open(path)?.sync_all()?;
-    Ok(())
-}
-
-#[cfg(windows)]
-const fn sync_directory(_path: &Path) -> Result<(), Error> {
     Ok(())
 }
 
