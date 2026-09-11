@@ -436,6 +436,25 @@ class TestEditFileToleratesReformattedWhitespace:
         assert result.is_error
         assert (tmp_path / "f.txt").read_text() == "label = 'helloworld'"
 
+    async def test_overlapping_candidates_ask_for_context(self, tmp_path: Path):
+        """Two starts that overlap are still two, and a non-overlapping scan sees one."""
+        (tmp_path / "f.txt").write_text("(((", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(
+            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
+        )
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {"path": "f.txt", "old_string": "( (", "new_string": "()"}
+            ),
+            ctx,
+        )
+
+        assert result.is_error
+        assert "2 places" in result.content
+        assert (tmp_path / "f.txt").read_text() == "((("
+
     async def test_an_ambiguous_whitespace_match_asks_for_context(self, tmp_path: Path):
         (tmp_path / "Settings.json").write_text('{\n  "a": 1,\n  "a": 1\n}', encoding="utf-8")
         ctx = _ctx(tmp_path)

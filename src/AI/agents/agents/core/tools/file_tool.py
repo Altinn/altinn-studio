@@ -351,7 +351,12 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
     joined = "".join(pattern).strip()
     if not joined or in_string:
         return []
-    return [(m.start(), m.end()) for m in re.finditer(joined, text)]
+    # Every start position, not just the non-overlapping ones: two candidates that
+    # overlap are still two, and this match only applies when there is exactly one.
+    return [
+        (found.start(), found.start() + len(found.group(1)))
+        for found in re.finditer(f"(?=({joined}))", text)
+    ]
 
 
 # ---------------------------------------------------------------------------
