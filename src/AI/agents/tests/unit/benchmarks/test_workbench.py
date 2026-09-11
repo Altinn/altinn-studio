@@ -1777,7 +1777,7 @@ class TestADeclaredRegressionIsEvidenceNotRot:
     failing behavior tells the next reader the agent broke, not that we pinned
     something we already knew about."""
 
-    def _run_with(self, *, regression: bool):
+    def _verdict(self, tmp_path, *, regression: bool):
         item = ItemResult(
             item_id="convert-writes-layouts-with-valid-datepickers",
             scores={"gen_content_pairings": 0.0},
@@ -1785,9 +1785,9 @@ class TestADeclaredRegressionIsEvidenceNotRot:
             if regression
             else {},
         )
-        return Run(
-            name="r",
-            label="r",
+        run = Run(
+            name="20260909T100000Z-held",
+            label="held",
             provenance=_provenance(),
             behaviors=(
                 BehaviorResult(
@@ -1798,20 +1798,19 @@ class TestADeclaredRegressionIsEvidenceNotRot:
                 ),
             ),
         )
-
-    def _verdict(self, run):
-        built = report.build(current=run, baseline_run=None)
+        runstore.save(run, directory=tmp_path)
+        built = report.build(directory=tmp_path)
         return next(
             v.verdict
             for v in built.behaviors
             if v.behavior.id == "actor.writes-usable-component-content"
         )
 
-    def test_a_declared_regression_reads_as_a_known_defect(self):
-        assert self._verdict(self._run_with(regression=True)) == "confirmed"
+    def test_a_declared_regression_reads_as_a_known_defect(self, tmp_path):
+        assert self._verdict(tmp_path, regression=True) == "confirmed"
 
-    def test_the_same_zero_without_the_flag_is_still_failing(self):
-        assert self._verdict(self._run_with(regression=False)) == "failing"
+    def test_the_same_zero_without_the_flag_is_still_failing(self, tmp_path):
+        assert self._verdict(tmp_path, regression=False) == "failing"
 
     def test_the_known_state_is_not_painted_as_broken(self):
         assert report.VERDICT_CLASS["confirmed"] == "known"
