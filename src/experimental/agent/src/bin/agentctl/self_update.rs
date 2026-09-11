@@ -6,7 +6,7 @@ use std::{
 
 use agent::{
     Error,
-    control_api::{Client, PROTOCOL_VERSION},
+    control_api::{Client, DaemonInfo, PROTOCOL_VERSION},
     local::home::{ControlPlaneHome, Lock},
     upgrade::{self, InstallMetadata, InstallPaths, Release, UpdateJournal, UpdatePhase},
 };
@@ -224,27 +224,27 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
     } = completion;
     let _install_lock = paths.lock().await?;
     validate_target_process(&paths, &target_release, &target_version)?;
-    let mut journal = if let Some(journal) =
-        UpdateJournal::read(&paths)?.filter(|journal| journal.phase != UpdatePhase::Complete)
-    {
-        if journal.target_release != target_release
-            || journal.target_version != target_version
-            || journal.previous_release != previous_release
-        {
-            return Err(Error::Invalid("arguments do not match the unfinished Agent update".into()).into());
-        }
-        journal
-    } else {
-        let mut journal = UpdateJournal::new(previous_release.clone(), target_release.clone(), target_version.clone());
-        journal.advance(&paths, UpdatePhase::Prepared)?;
-        journal
-    };
+    let (mut journal, journal_is_new) =
+        if let Some(journal) = UpdateJournal::read(&paths)?.filter(|journal| journal.phase != UpdatePhase::Complete) {
+            if journal.target_release != target_release
+                || journal.target_version != target_version
+                || journal.previous_release != previous_release
+            {
+                return Err(Error::Invalid("arguments do not match the unfinished Agent update".into()).into());
+            }
+            (journal, false)
+        } else {
+            (
+                UpdateJournal::new(previous_release.clone(), target_release.clone(), target_version.clone()),
+                true,
+            )
+        };
     let client = Client::for_path(home.socket_path());
     if journal.phase < UpdatePhase::Migrated {
         println!("Check Agent activity");
         match tokio::time::timeout(Duration::from_secs(2), client.health()).await {
             Ok(Ok(info)) => {
-                if info.protocol_version.as_deref() != Some(PROTOCOL_VERSION) {
+                if is_preview_1(&info) {
                     return Err(Error::Daemon(preview_stop_instruction().into()).into());
                 }
                 println!("Stop agentd");
@@ -269,6 +269,9 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
     } else {
         None
     };
+    if journal_is_new {
+        journal.advance(&paths, UpdatePhase::Prepared)?;
+    }
     if journal.phase < UpdatePhase::Migrated {
         println!("Migrate Agent state");
         if let Err(error) = agent::persistence::Database::migrate(&home.path().join("agent.db")) {
@@ -302,11 +305,21 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
 }
 
 fn validate_target_process(paths: &InstallPaths, target: &Path, version: &str) -> Result<(), Error> {
-    if !paths.root().is_absolute() || !target.is_absolute() || target.parent() != Some(paths.releases().as_path()) {
+    let target = canonical_target(paths, target)?;
+    upgrade::validate_release_directory(&target, version)?;
+    validate_release_process(&target, "update completion must run from the target release")
+}
+
+fn canonical_target(paths: &InstallPaths, target: &Path) -> Result<PathBuf, Error> {
+    if !target.is_absolute() {
         return Err(Error::Invalid("target updater paths are inconsistent".into()));
     }
-    upgrade::validate_release_directory(target, version)?;
-    validate_release_process(target, "update completion must run from the target release")
+    let releases = std::fs::canonicalize(paths.releases())?;
+    let target = std::fs::canonicalize(target)?;
+    if target.parent() != Some(releases.as_path()) {
+        return Err(Error::Invalid("target updater paths are inconsistent".into()));
+    }
+    Ok(target)
 }
 
 fn validate_source_process(source: &Path) -> Result<(), Error> {
@@ -416,6 +429,10 @@ const fn preview_stop_instruction() -> &'static str {
     }
 }
 
+fn is_preview_1(info: &DaemonInfo) -> bool {
+    info.protocol_version.as_deref() == Some("v1") && info.build_version.is_none()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -424,6 +441,41 @@ mod tests {
     fn version_comparison_rejects_downgrade() {
         assert!(compare_versions("v2.0.0", "v1.0.0").is_err());
         assert!(same_version("1.0.0", "v1.0.0").expect("version"));
+    }
+
+    #[test]
+    fn only_preview_1_requires_manual_daemon_shutdown() {
+        assert!(is_preview_1(&DaemonInfo {
+            protocol_version: Some("v1".into()),
+            build_version: None,
+        }));
+        assert!(!is_preview_1(&DaemonInfo {
+            protocol_version: Some("v1".into()),
+            build_version: Some("v0.2.0".into()),
+        }));
+        assert!(!is_preview_1(&DaemonInfo {
+            protocol_version: Some("v2".into()),
+            build_version: Some("v0.3.0".into()),
+        }));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn target_validation_accepts_an_installation_alias() {
+        use std::os::unix::fs::symlink;
+
+        let temporary = tempfile::TempDir::new().expect("temporary directory");
+        let real = temporary.path().join("real");
+        let release = real.join("releases/v0.2.0-linux-x86_64");
+        std::fs::create_dir_all(&release).expect("release");
+        let alias = temporary.path().join("alias");
+        symlink(&real, &alias).expect("alias");
+        let paths = InstallPaths::new(real, temporary.path().join("bin")).expect("paths");
+
+        assert_eq!(
+            canonical_target(&paths, &alias.join("releases/v0.2.0-linux-x86_64")).expect("target"),
+            std::fs::canonicalize(release).expect("canonical release")
+        );
     }
 
     #[test]

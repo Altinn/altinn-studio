@@ -918,12 +918,12 @@ fn replace_windows_pointer(path: &Path, target: &Path) -> Result<(), Error> {
 fn windows_command_path(path: &Path) -> String {
     let path = path.to_string_lossy();
     if let Some(path) = path.strip_prefix(r"\\?\UNC\") {
-        format!(r"\\{path}")
-    } else if let Some(path) = path.strip_prefix(r"\\?\") {
-        path.to_owned()
-    } else {
-        path.into_owned()
+        return format!(r"\\{path}");
     }
+    if let Some(path) = path.strip_prefix(r"\\?\") {
+        return path.to_owned();
+    }
+    path.into_owned()
 }
 
 #[cfg(windows)]
