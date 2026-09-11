@@ -3,7 +3,7 @@ set -euo pipefail
 
 old_version="v0.0.1-upgrade-smoke"
 target_version="v0.0.2-upgrade-smoke"
-smoke_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/agent-upgrade-smoke-$$"
+smoke_root="$(mktemp -d -t altinn-agent-upgrade.XXXXXXXX)"
 binary_directory="${CARGO_TARGET_DIR:-../../target}/debug"
 old_archive="${smoke_root}/old.tar.gz"
 target_archive="${smoke_root}/target.tar.gz"
