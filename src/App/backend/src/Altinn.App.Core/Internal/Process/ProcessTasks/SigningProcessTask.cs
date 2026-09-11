@@ -129,8 +129,8 @@ internal sealed class SigningProcessTask : IProcessTask
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Resolve saves the frozen recipient list. The scheduler then creates one delegation step per recipient,
-    /// followed by the remaining transition and independent notification workflows after commit.
+    /// Three steps rather than one so that each commits its progress: a retry after the delegation step
+    /// completed re-runs only the notification, and a resume after a terminal failure picks up at the failed step.
     /// </remarks>
     public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId)
     {
@@ -143,10 +143,8 @@ internal sealed class SigningProcessTask : IProcessTask
         return
         [
             new(ResolveSigneesCommand.Key, payload),
-            new(
-                ScheduleSigneeInitialization.Key,
-                CommandPayloadSerializer.Serialize(new ScheduleSigneeInitializationPayload(taskId))
-            ),
+            new(DelegateSigneeRightsCommand.Key, payload),
+            new(NotifySigneesCommand.Key, payload),
         ];
     }
 

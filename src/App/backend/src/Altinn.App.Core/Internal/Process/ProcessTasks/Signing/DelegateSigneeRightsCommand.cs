@@ -9,11 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
 /// <summary>
-/// Delegates the task's rights to one frozen signee. Each recipient has its own sequential workflow step and
-/// save boundary. A refusal that concerns this recipient alone is recorded on its state and the transition
-/// continues; transient failures are retried, and app-wide failures fail the step.
+/// Delegates the task's rights to every resolved signee not yet delegated and records the outcome per signee.
+/// The second of the signing task's three start commands. A transient failure fails the step for retry; a
+/// permanent failure that concerns one signee is recorded on that signee and the step still completes, while an
+/// app-wide one fails the step.
 /// </summary>
-internal sealed class DelegateSigneeRightsCommand : WorkflowEngineCommandBase<SigneeCommandPayload>
+internal sealed class DelegateSigneeRightsCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {
     public static string Key => "DelegateSigneeRights";
 
@@ -35,18 +36,19 @@ internal sealed class DelegateSigneeRightsCommand : WorkflowEngineCommandBase<Si
     /// <inheritdoc/>
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
-        SigneeCommandPayload payload
+        ProcessTaskPayload payload
     )
     {
         try
         {
+            // Read the configuration inside the try: a redeploy can remove it while this workflow is in flight,
+            // and that is a permanent configuration failure, not a retryable one. The initialization service is
+            // resolved only after the task is known to be runtime-delegated, so unrelated tasks never build the
+            // signing client graph.
             AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
             if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
             {
-                return ProcessEngineCommandResult.FailedPermanent(
-                    "Runtime-delegated signing is no longer configured for the frozen recipient's task.",
-                    "SigneeConfigurationChanged"
-                );
+                return ProcessEngineCommandResult.Completed();
             }
 
             ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
@@ -54,8 +56,6 @@ internal sealed class DelegateSigneeRightsCommand : WorkflowEngineCommandBase<Si
                 context.InstanceDataMutator,
                 configuration,
                 payload.TaskId,
-                payload.SigneeStateElementId,
-                payload.SigneeId,
                 context.WorkflowId,
                 context.CancellationToken
             );

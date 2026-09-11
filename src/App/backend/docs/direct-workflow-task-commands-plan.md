@@ -1,18 +1,16 @@
 # Direct workflow commands from process tasks
 
-This document records the ordinary-command refactor preserved on `feat/robust-signee-initialization`.
-The experimental branch changes signing orchestration as described in
-[Per-signee signing initialization](per-signee-signing-experiment.md).
+This document records the ordinary-command refactor. For how the signing task's three start commands
+behave once they run, see [Delegated signing initialization](per-signee-signing-experiment.md).
 
 Implementation plan and record, 2026-09-08. Starting point:
 `feat/robust-signee-initialization` at `1f40300a3c`. The direct-command refactor is implemented on
 this branch. The original implementation sequence is retained below, followed by verification results.
 
-The remaining sections are the historical bulk-branch plan and its verification record, not a current-main
-port checklist. References to instance leases, `SaveProcessStateToStorage`, bulk `NotifySignees`, and
-the old instance-lock test scenario describe that earlier baseline. The experimental branch uses
-`AcquireProcessingStatus`/`CommitProcessState`, sequential per-recipient notifications, and the
-`ProcessNextConcurrencyTests` scenario; its validation results must be reported separately.
+The remaining sections are the historical plan and its verification record, not a current-main port
+checklist. References to instance leases, `SaveProcessStateToStorage` and the old instance-lock test
+scenario describe that earlier baseline; current main uses
+`AcquireProcessingStatus`/`CommitProcessState` and the `ProcessNextConcurrencyTests` scenario.
 
 ## Recommended API for this change
 

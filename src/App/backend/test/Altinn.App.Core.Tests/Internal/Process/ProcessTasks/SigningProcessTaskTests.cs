@@ -140,7 +140,7 @@ public class SigningProcessTaskTests
     }
 
     [Fact]
-    public void GetStartCommands_RuntimeDelegated_DeclaresResolveThenFrozenPlanScheduler()
+    public void GetStartCommands_RuntimeDelegated_DeclaresResolveDelegateThenNotify()
     {
         SetupConfiguration(CreateRuntimeDelegatedConfiguration(withGlobalCorrespondenceResource: true));
         SigningProcessTask task = CreateTask();
@@ -154,8 +154,12 @@ public class SigningProcessTaskTests
                     CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
                 ),
                 new WorkflowCommandRef(
-                    ScheduleSigneeInitialization.Key,
-                    CommandPayloadSerializer.Serialize(new ScheduleSigneeInitializationPayload(TaskId))
+                    DelegateSigneeRightsCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
+                ),
+                new WorkflowCommandRef(
+                    NotifySigneesCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
                 ),
             ],
             commands

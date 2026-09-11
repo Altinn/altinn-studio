@@ -347,7 +347,7 @@ public static class ServiceCollectionExtensions
             IWorkflowEngineCommand,
             Internal.Process.ProcessTasks.Signing.DelegateSigneeRightsCommand
         >();
-        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.NotifySigneeCommand>();
+        services.AddTransient<IWorkflowEngineCommand, Internal.Process.ProcessTasks.Signing.NotifySigneesCommand>();
         services.AddTransient<
             IWorkflowEngineCommand,
             Internal.Process.ProcessTasks.Signing.GenerateSigningPdfCommand

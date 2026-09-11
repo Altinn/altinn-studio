@@ -16,11 +16,15 @@ internal static class SigningIdempotencyKey
     private static readonly Guid _namespace = new("5c1f6e3a-2b7d-4c0e-9a8f-3d2e1b0c9a87");
 
     /// <summary>
-    /// The key for one frozen recipient's call to action within a task entry. Stable across callback retries,
-    /// workflow resume and re-enqueue; a later task entry has a different state element identity.
+    /// The key for the call-to-action correspondence sent to one signee by one step of one workflow.
+    /// <paramref name="workflowId"/> is new on every visit to the task and stable across retries and resume, so
+    /// the key is unique per visit even when the engine leaves <paramref name="stepId"/> empty.
     /// </summary>
-    public static Guid ForCallToAction(Guid signeeStateElementId, Guid signeeId) =>
-        Derive($"call-to-action:{signeeStateElementId:D}:{signeeId:D}");
+    /// <param name="workflowId">The engine-assigned id of the workflow running the transition.</param>
+    /// <param name="stepId">The engine's identity for the step, or <see cref="Guid.Empty"/> on an engine that predates it.</param>
+    /// <param name="signeeIdentity">A stable identity of the signee: the party uuid, or the party id when the uuid is unknown.</param>
+    public static Guid ForCallToAction(Guid workflowId, Guid stepId, string signeeIdentity) =>
+        Derive($"call-to-action:{workflowId:D}:{stepId:D}:{signeeIdentity}");
 
     /// <summary>
     /// A name-based UUID (RFC 9562 version 8): SHA-256 of the namespace and the name, folded to 16 bytes with

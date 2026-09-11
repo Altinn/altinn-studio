@@ -10,8 +10,9 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
 /// <summary>
 /// Resolves the signees of a runtime-delegated signing task through the app's signee provider and persists their
-/// initial state. The signing scheduler reads the frozen recipient plan from that state. A retried attempt
-/// adopts an element an earlier attempt created instead of asking the provider again.
+/// initial state. The first of the signing task's three start commands; the persisted state is what the two
+/// later ones resume from. A retried attempt adopts an element an earlier attempt created instead of asking the
+/// provider again.
 /// </summary>
 internal sealed class ResolveSigneesCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -74,14 +73,7 @@ internal static class WorkflowEngineCommandValidator
             }
         }
 
-        IEnumerable<string> requiredKeys = _frameworkCommandKeys;
-        if (registeredKeys.Contains(ScheduleSigneeInitialization.Key))
-        {
-            // The runtime plan expands these keys after ResolveSignees, so they are absent from the
-            // static task declarations that startup validation normally walks.
-            requiredKeys = requiredKeys.Concat([DelegateSigneeRightsCommand.Key, NotifySigneeCommand.Key]);
-        }
-        foreach (string missingKey in requiredKeys.Except(registeredKeys).Order(StringComparer.Ordinal))
+        foreach (string missingKey in _frameworkCommandKeys.Except(registeredKeys).Order(StringComparer.Ordinal))
         {
             findings.Add($"Required workflow command '{missingKey}' is not registered.");
         }

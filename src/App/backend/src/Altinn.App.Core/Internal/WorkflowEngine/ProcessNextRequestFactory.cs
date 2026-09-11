@@ -4,9 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -259,12 +257,6 @@ internal sealed class ProcessNextRequestFactory
             mainSteps.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
         }
         mainSteps.AddRange(commands.CriticalPostCommit);
-        mainSteps = SplitSigneeInitialization(
-            mainSteps,
-            labels,
-            serializedContext,
-            $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}"
-        );
 
         var request = new WorkflowEnqueueRequest
         {
@@ -283,66 +275,6 @@ internal sealed class ProcessNextRequestFactory
         };
 
         return new WorkflowEnqueueEnvelope(request, ns, idempotencyKey, collectionKey);
-    }
-
-    private List<StepRequest> SplitSigneeInitialization(
-        List<StepRequest> steps,
-        Dictionary<string, string> labels,
-        JsonElement context,
-        string operationId
-    )
-    {
-        int index = steps.FindIndex(step => SigningWorkflowSteps.GetKey(step) == ScheduleSigneeInitialization.Key);
-        if (index < 0)
-        {
-            return steps;
-        }
-        if (steps.Skip(index + 1).Any(step => SigningWorkflowSteps.GetKey(step) == ScheduleSigneeInitialization.Key))
-        {
-            throw new ApplicationConfigException(
-                "A process transition can initialize only one delegated signing task."
-            );
-        }
-
-        AppCommandData command = SigningWorkflowSteps.GetAppCommand(steps[index]);
-        var marker = CommandPayloadSerializer.Deserialize<ScheduleSigneeInitializationPayload>(command.Payload);
-        if (marker is null || string.IsNullOrWhiteSpace(marker.TaskId))
-        {
-            throw new ApplicationConfigException(
-                "The signing initialization scheduling command must specify its task ID."
-            );
-        }
-
-        // Freeze the original tail and all runtime-expanded command options. The callback only binds
-        // persisted recipient identities and the published state; retries enqueue the same request body.
-        var continuation = new WorkflowEnqueueRequest
-        {
-            Labels = labels,
-            Context = context,
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    OperationId = operationId,
-                    Steps = steps.Skip(index + 1).ToList(),
-                    IsHead = true,
-                    DependsOnHeads = false,
-                },
-            ],
-        };
-        var payload = marker with
-        {
-            Continuation = continuation,
-            DelegationStep = SigningWorkflowSteps
-                .Create(DelegateSigneeRightsCommand.Key)
-                .ApplyStepOptions(_stepOptionsResolver, marker.TaskId, null),
-            NotificationStep = SigningWorkflowSteps
-                .Create(NotifySigneeCommand.Key)
-                .ApplyStepOptions(_stepOptionsResolver, marker.TaskId, null),
-        };
-        var preparation = steps.Take(index).ToList();
-        preparation.Add(SigningWorkflowSteps.WithPayload(steps[index], payload));
-        return preparation;
     }
 
     /// <summary>

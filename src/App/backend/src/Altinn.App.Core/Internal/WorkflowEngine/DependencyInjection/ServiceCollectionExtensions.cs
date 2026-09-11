@@ -77,7 +77,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
-        services.AddTransient<IWorkflowEngineCommand, ScheduleSigneeInitialization>();
 
         // Process engine callback handlers - Altinn Events
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();

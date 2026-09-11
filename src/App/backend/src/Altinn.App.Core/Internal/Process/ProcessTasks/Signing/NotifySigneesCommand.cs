@@ -9,17 +9,20 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
 
 /// <summary>
-/// Sends one frozen signee's call to action while the workflow owns the process. Recipient commands execute
-/// sequentially, and the callback saves state through the versioned aggregate mutation boundary.
+/// Sends the call to action to every delegated signee not yet messaged and records the outcome per signee. The
+/// last of the signing task's three start commands. Each send carries an idempotency key derived from the
+/// workflow, the step and the signee, so a retried attempt cannot notify anyone twice. A transient failure fails
+/// the step for retry; a permanent failure, for one signee or for all of them, is recorded and the step still
+/// completes.
 /// </summary>
-internal sealed class NotifySigneeCommand : WorkflowEngineCommandBase<SigneeCommandPayload>
+internal sealed class NotifySigneesCommand : WorkflowEngineCommandBase<ProcessTaskPayload>
 {
-    public static string Key => "NotifySignee";
+    public static string Key => "NotifySignees";
 
     private readonly IServiceProvider _services;
     private readonly IProcessReader _processReader;
 
-    public NotifySigneeCommand(IServiceProvider services, IProcessReader processReader)
+    public NotifySigneesCommand(IServiceProvider services, IProcessReader processReader)
     {
         _services = services;
         _processReader = processReader;
@@ -34,18 +37,19 @@ internal sealed class NotifySigneeCommand : WorkflowEngineCommandBase<SigneeComm
     /// <inheritdoc/>
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
-        SigneeCommandPayload payload
+        ProcessTaskPayload payload
     )
     {
         try
         {
+            // Read the configuration inside the try: a redeploy can remove it while this workflow is in flight,
+            // and that is a permanent configuration failure, not a retryable one. The initialization service is
+            // resolved only after the task is known to be runtime-delegated, so unrelated tasks never build the
+            // signing client graph.
             AltinnSignatureConfiguration configuration = SigningTaskConfiguration.Get(_processReader, payload.TaskId);
             if (!SigningTaskConfiguration.IsRuntimeDelegated(configuration))
             {
-                return ProcessEngineCommandResult.FailedPermanent(
-                    "Runtime-delegated signing is no longer configured for the frozen recipient's task.",
-                    "SigneeConfigurationChanged"
-                );
+                return ProcessEngineCommandResult.Completed();
             }
 
             ISigneeInitializationService initialization = _services.GetRequiredService<ISigneeInitializationService>();
@@ -53,8 +57,6 @@ internal sealed class NotifySigneeCommand : WorkflowEngineCommandBase<SigneeComm
                 context.InstanceDataMutator,
                 configuration,
                 payload.TaskId,
-                payload.SigneeStateElementId,
-                payload.SigneeId,
                 context.WorkflowId,
                 context.StepId,
                 context.CancellationToken
