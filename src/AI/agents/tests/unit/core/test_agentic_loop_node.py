@@ -209,16 +209,21 @@ class TestFinalSummaryText:
         result = LoopResult(reason=TerminationReason.CANCELLED, messages=[], turns=1)
         assert "avbrutt" in _final_summary_text(result).lower()
 
-    def test_error_includes_reason(self):
+    def test_error_says_what_happened_without_quoting_the_provider(self):
+        """A provider error names keys, endpoints and regions; the user got all of it."""
         result = LoopResult(
             reason=TerminationReason.ERROR,
             messages=[],
-            error="network down",
+            error="Error code: 401 - invalid subscription key, use a correct regional endpoint",
             turns=1,
         )
+
         summary = _final_summary_text(result)
-        assert "feil" in summary.lower()
-        assert "network down" in summary
+
+        assert "Noe gikk galt" in summary
+        assert "sesjons-grenen" in summary
+        assert "subscription key" not in summary
+        assert "401" not in summary
 
 
 class TestApplyResultToState:

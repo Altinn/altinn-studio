@@ -716,7 +716,12 @@ def _final_summary_text(result: LoopResult) -> str:
     if result.reason is TerminationReason.CANCELLED:
         return "Forespørselen ble avbrutt."
     if result.reason is TerminationReason.ERROR:
-        return f"Det oppstod en feil under behandlingen: {result.error or 'ukjent årsak'}."
+        # The provider's own text names keys, endpoints and regions: log it, don't ship it.
+        log.error("Loop failed: %s", result.error or "unknown")
+        return (
+            "Noe gikk galt hos meg underveis, så jeg stoppet.  Eventuelle endringer "
+            "som ble gjort er commitet til sesjons-grenen.  Prøv igjen om litt."
+        )
     return "Ferdig."
 
 

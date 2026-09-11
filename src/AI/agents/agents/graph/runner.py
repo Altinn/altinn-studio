@@ -113,6 +113,7 @@ from shared.utils.langfuse_utils import (
     flush_langfuse,
 )
 from agents.services.llm import (
+    GATE_FAILED_ACTION,
     MINIMUM_INTENT_CONFIDENCE,
     parse_intent_async,
     suggest_goal_correction,
@@ -126,6 +127,11 @@ _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 _UNSAFE_GOAL_MESSAGE = (
     "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
     "en utrygg eller utilsiktet endring. Du kan gjerne omformulere den."
+)
+_GATE_UNAVAILABLE_MESSAGE = (
+    "Jeg får ikke kontakt med modellen som vurderer forespørsler akkurat nå, så "
+    "jeg stopper her i stedet for å endre appen uten den sjekken. Prøv igjen om "
+    "litt."
 )
 _UNCLEAR_GOAL_MESSAGE = (
     "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive "
@@ -226,6 +232,12 @@ async def _validate_intent(state: AgentState):
     Read-only runs are held back structurally rather than by this gate.
     """
     parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
+
+    if parsed.action == GATE_FAILED_ACTION:
+        _log.error(
+            "Intent gate could not run for session %s: %s", state.session_id, parsed.reason
+        )
+        raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
@@ -408,7 +420,8 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "done": True,
                     "success": False,
                     "status": "error",
-                    "message": f"Noe gikk galt: {e!s}"
+                    "message": "Noe gikk galt, og forespørselen stoppet.  Prøv igjen om litt.",
+                    "detail": str(e),
                 }
             ))
         finally:
