@@ -55,10 +55,23 @@ Two consequences worth holding on to:
 - **It is restart-only.** The flag is read once at repository construction and once when the sweep
   service starts, so turning it off is a rollout, not a config reload. The per-namespace override
   endpoints are the in-flight lever; they answer `409 Conflict` when the flag is off.
-- **A per-environment override is the kill switch.** An `appsettings.<environment>.json` (the
-  deployed `ASPNETCORE_ENVIRONMENT` is the environment name — `at23`, `tt02`, `prod`) or an
+- **A per-environment override is the kill switch.** An `appsettings.<environment>.json` or an
   `EngineSettings__Throttling__Enabled` env var in that environment's kustomize overlay turns it
   back off for that environment alone.
+
+**`ASPNETCORE_ENVIRONMENT` here is the environment name, not an ASP.NET Core environment.** This
+deployment takes it from the `runtime-environment` ConfigMap, so a running pod reports `at23` or
+`tt02` — verified on the live pods, not inferred. An Altinn app is the opposite: it gets `Staging`
+or `Production` from `infra/runtime/apps-config/<env>/kustomization.yaml`, so in one and the same
+tt02 cluster an app pod reads `Staging` while this pod reads `tt02`. Two consequences: a
+per-environment file has to be named `appsettings.at23.json` or `appsettings.tt02.json`, and the
+`appsettings.Production.json` / `appsettings.Staging.json` that ship in this image are never loaded
+by these deployments — though they are still live for anyone running the image with the variable
+unset, where ASP.NET Core defaults the environment to `Production`.
+
+The service is deployed to **at23 and tt02 only**. Overlays exist under `infra/kustomize/` for
+at22, at24, yt01 and prod, but only the at23 and tt02 syncroots carry a `workflow-engine-app.yaml`
+and `syncroot/base` does not include the service, so nothing syncs it to the other four.
 
 ## Tests
 
