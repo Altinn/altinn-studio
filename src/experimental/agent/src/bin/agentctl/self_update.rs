@@ -232,11 +232,7 @@ async fn complete(
         println!("Check Agent activity");
         if let Ok(info) = client.health().await {
             if info.protocol_version.as_deref() != Some(PROTOCOL_VERSION) {
-                return Err(Error::Daemon(
-                    "preview 1 agentd cannot stop itself; finish active turns, stop agentd, and rerun the installer"
-                        .into(),
-                )
-                .into());
+                return Err(Error::Daemon(preview_stop_instruction().into()).into());
             }
             println!("Stop agentd");
             client.shutdown_for_upgrade().await?;
@@ -376,6 +372,14 @@ fn repository(paths: &InstallPaths) -> String {
         |_| std::env::var("AGENT_GITHUB_REPOSITORY").unwrap_or_else(|_| DEFAULT_REPOSITORY.into()),
         |metadata| metadata.repository().to_owned(),
     )
+}
+
+const fn preview_stop_instruction() -> &'static str {
+    if cfg!(windows) {
+        "preview 1 agentd cannot stop itself; finish active turns, run `Stop-Process -Name agentd` in PowerShell, and rerun the installer"
+    } else {
+        "preview 1 agentd cannot stop itself; finish active turns, run `pkill -x agentd`, and rerun the installer"
+    }
 }
 
 #[cfg(test)]
