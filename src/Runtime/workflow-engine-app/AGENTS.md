@@ -42,6 +42,24 @@ Configuration via `appsettings.json` under `AppCommandSettings`:
 
 - `CommandEndpoint` — URL template with `{Org}`, `{App}`, `{InstanceOwnerPartyId}`, `{InstanceGuid}` placeholders
 
+## Namespace circuit breaker
+
+The engine library ships the failure-storm breaker dark (`ThrottlingSettings.Enabled` defaults to
+`false`). **This host opts in**, in `appsettings.json` under `EngineSettings.Throttling`, so every
+deployment that runs this image has it on. The knobs are spelled out at the values the
+[failure-throttling ADR](../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
+documents rather than left implicit, because they are what an operator reaches for first.
+
+Two consequences worth holding on to:
+
+- **It is restart-only.** The flag is read once at repository construction and once when the sweep
+  service starts, so turning it off is a rollout, not a config reload. The per-namespace override
+  endpoints are the in-flight lever; they answer `409 Conflict` when the flag is off.
+- **A per-environment override is the kill switch.** An `appsettings.<environment>.json` (the
+  deployed `ASPNETCORE_ENVIRONMENT` is the environment name — `at23`, `tt02`, `prod`) or an
+  `EngineSettings__Throttling__Enabled` env var in that environment's kustomize overlay turns it
+  back off for that environment alone.
+
 ## Tests
 
 xUnit v3 test project: `tests/WorkflowEngine.App.Tests/`
