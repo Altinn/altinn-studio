@@ -1,0 +1,39 @@
+{
+  "name": "v9-pitch-deck",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "playwright test",
+    "shots": "npm run build && node scripts/screenshot.mjs",
+    "walkthrough": "npm run build && node scripts/walkthrough.mjs",
+    "qa": "npm run build && node scripts/qa-walkthrough.mjs"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.1.1",
+    "framer-motion": "^11.18.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.6",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.14.0",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vite": "^6.0.7"
+  }
+}
