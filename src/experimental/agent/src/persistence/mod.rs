@@ -587,10 +587,15 @@ fn backup_database(path: &Path, version: u32) -> Result<(), Error> {
         .execute("VACUUM INTO ?1", [backup.to_string_lossy().as_ref()])
         .map_err(database_error)?;
     drop(backup_connection);
-    home::secure_file(&backup)?;
-    std::fs::File::open(&backup)?.sync_all()?;
     #[cfg(unix)]
-    sync_directory(&directory)?;
+    {
+        home::secure_file(&backup)?;
+        std::fs::File::open(&backup)?.sync_all()?;
+        sync_directory(&directory)?;
+    }
+    // On Windows the file inherits the owner-only ACL from `directory`.
+    // SQLite commits and flushes VACUUM INTO before the connection closes;
+    // reopening its output immediately for ACL or flush operations is denied.
 
     let mut backups = std::fs::read_dir(&directory)?
         .collect::<Result<Vec<_>, _>>()?
@@ -855,7 +860,10 @@ mod tests {
             connection.pragma_update(None, "user_version", 1).expect("old version");
             drop(connection);
             let error = Database::migrate(&path).expect_err("expanded v1 is rejected after backup");
-            assert!(error.to_string().contains("not a recognized released schema"));
+            assert!(
+                error.to_string().contains("not a recognized released schema"),
+                "unexpected migration error: {error}"
+            );
         }
         let backups = std::fs::read_dir(directory.path().join("backups"))
             .expect("backups")
