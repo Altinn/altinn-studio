@@ -39,27 +39,30 @@ public class AppUpgradeController : ControllerBase
         return Ok(status);
     }
 
-    [HttpPost("prepare")]
-    public async Task<ActionResult<AppUpgradePreparation>> Prepare(
+    [HttpPost("start")]
+    public async Task<ActionResult<AppUpgradeStart>> Start(string org, string repo, CancellationToken cancellationToken)
+    {
+        AppUpgradeStart start = await _appUpgradeService.StartAsync(
+            AltinnRepoContext.FromOrgRepo(org, repo),
+            cancellationToken
+        );
+        return Ok(start);
+    }
+
+    [HttpGet("runs/{**branchName}")]
+    public async Task<ActionResult<AppUpgradeRun>> GetRun(
         string org,
         string repo,
+        string branchName,
         CancellationToken cancellationToken
     )
     {
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = await CreateAuthenticatedContext(org, repo);
-        AppUpgradePreparation preparation = await _appUpgradeService.PrepareAsync(
-            authenticatedContext,
+        AppUpgradeRun run = await _appUpgradeService.GetRunAsync(
+            AltinnRepoContext.FromOrgRepo(org, repo),
+            branchName,
             cancellationToken
         );
-        return Ok(preparation);
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<AppUpgradeResult>> Run(string org, string repo, CancellationToken cancellationToken)
-    {
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = await CreateAuthenticatedContext(org, repo);
-        AppUpgradeResult result = await _appUpgradeService.RunAsync(authenticatedContext, cancellationToken);
-        return Ok(result);
+        return Ok(run);
     }
 
     [HttpPost("merge")]
@@ -70,19 +73,15 @@ public class AppUpgradeController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        AltinnAuthenticatedRepoEditingContext authenticatedContext = await CreateAuthenticatedContext(org, repo);
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repo, developer, token);
         AppUpgradeMergeResult result = await _appUpgradeService.MergeAsync(
             authenticatedContext,
             request,
             cancellationToken
         );
         return Ok(result);
-    }
-
-    private async Task<AltinnAuthenticatedRepoEditingContext> CreateAuthenticatedContext(string org, string repo)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string token = await HttpContext.GetDeveloperAppTokenAsync();
-        return AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repo, developer, token);
     }
 }

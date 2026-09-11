@@ -2,12 +2,12 @@ using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto.AppUpgrade;
 
-public sealed record AppUpgradePreparation(AppUpgradePreparationStatus Status, string Message);
+public sealed record AppUpgradeStart(AppUpgradeStartStatus Status, string Message, string? BranchName = null);
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum AppUpgradePreparationStatus
+public enum AppUpgradeStartStatus
 {
-    Ready,
-    LocalChangesBlocking,
+    Started,
     UnsupportedVersion,
+    Failed,
 }

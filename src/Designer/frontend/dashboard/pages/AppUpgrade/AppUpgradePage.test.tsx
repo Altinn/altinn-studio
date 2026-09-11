@@ -8,8 +8,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { appUpgradeStatus } from 'app-shared/mocks/mocks';
 import type {
   AppUpgradeMergeResult,
-  AppUpgradePreparation,
   AppUpgradeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
   AppUpgradeStatus,
 } from 'app-shared/types/AppUpgrade';
 import { AppUpgradePage } from './AppUpgradePage';
@@ -68,18 +69,18 @@ describe('AppUpgradePage', () => {
     expect(screen.getByText(dashboardText)).toBeInTheDocument();
   });
 
-  it('prepares, upgrades and offers to merge and publish when the upgrade completes', async () => {
+  it('starts the workflow, polls the run and offers to merge and publish when it completes', async () => {
     const user = userEvent.setup();
-    const prepareAppUpgrade = jest.fn().mockImplementation(() => Promise.resolve(readyPreparation));
-    const upgradeApp = jest.fn().mockImplementation(() => Promise.resolve(completedResult));
+    const startAppUpgrade = jest.fn().mockImplementation(() => Promise.resolve(started));
+    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(completedRun));
     const mergeAppUpgrade = jest.fn().mockImplementation(() => Promise.resolve(mergedResult));
-    renderPage({ prepareAppUpgrade, upgradeApp, mergeAppUpgrade });
+    renderPage({ startAppUpgrade, getAppUpgradeRun, mergeAppUpgrade });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
 
-    expect(prepareAppUpgrade).toHaveBeenCalledWith(org, app);
+    expect(startAppUpgrade).toHaveBeenCalledWith(org, app);
     expect(await screen.findByText(textMock('app_upgrade.done.completed'))).toBeInTheDocument();
-    expect(upgradeApp).toHaveBeenCalledWith(org, app);
+    expect(getAppUpgradeRun).toHaveBeenCalledWith(org, app, started.branchName);
     expect(
       screen.getByRole('link', { name: textMock('app_upgrade.done.view_pull_request') }),
     ).toHaveAttribute('href', pullRequestUrl);
@@ -99,11 +100,11 @@ describe('AppUpgradePage', () => {
 
   it('explains when the pull request could not be merged', async () => {
     const user = userEvent.setup();
-    const upgradeApp = jest.fn().mockImplementation(() => Promise.resolve(completedResult));
+    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(completedRun));
     const mergeAppUpgrade = jest
       .fn()
       .mockImplementation(() => Promise.resolve({ ...mergedResult, isMerged: false }));
-    renderPage({ upgradeApp, mergeAppUpgrade });
+    renderPage({ getAppUpgradeRun, mergeAppUpgrade });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
     await user.click(
@@ -116,8 +117,8 @@ describe('AppUpgradePage', () => {
 
   it('shows the changed files in a collapsed diff view after a completed upgrade', async () => {
     const user = userEvent.setup();
-    const upgradeApp = jest.fn().mockImplementation(() => Promise.resolve(completedResult));
-    renderPage({ upgradeApp });
+    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(completedRun));
+    renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
     await screen.findByText(textMock('app_upgrade.done.completed'));
@@ -131,26 +132,58 @@ describe('AppUpgradePage', () => {
     expect(screen.getByText(/Bumped packages/)).not.toBeVisible();
   });
 
-  it('stops in the starting step when the app has unshared changes', async () => {
+  it('stops in the starting step when the upgrade branch could not be created', async () => {
     const user = userEvent.setup();
-    const prepareAppUpgrade = jest
+    const startAppUpgrade = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(blockedPreparation));
-    const upgradeApp = jest.fn();
-    renderPage({ prepareAppUpgrade, upgradeApp });
+      .mockImplementation(() =>
+        Promise.resolve({ ...started, status: 'Failed', branchName: null }),
+      );
+    const getAppUpgradeRun = jest.fn();
+    renderPage({ startAppUpgrade, getAppUpgradeRun });
+
+    await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
+
+    expect(await screen.findByText(textMock('app_upgrade.starting.failed'))).toBeInTheDocument();
+    expect(getAppUpgradeRun).not.toHaveBeenCalled();
+  });
+
+  it('shows the queued state while waiting for a runner', async () => {
+    const user = userEvent.setup();
+    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(queuedRun));
+    renderPage({ getAppUpgradeRun });
+
+    await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
+
+    expect(await screen.findByText(textMock('app_upgrade.upgrade.queued'))).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: textMock('app_upgrade.upgrade.view_run') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the active step and a link to the run while the workflow runs', async () => {
+    const user = userEvent.setup();
+    const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(runningRun));
+    renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
 
     expect(
-      await screen.findByText(textMock('app_upgrade.starting.local_changes')),
+      await screen.findByText(
+        textMock('app_upgrade.upgrade.running_step', { step: 'Install tools' }),
+      ),
     ).toBeInTheDocument();
-    expect(upgradeApp).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('link', { name: textMock('app_upgrade.upgrade.view_run') }),
+    ).toHaveAttribute('href', runUrl);
   });
 
   it('collapses the manual tasks and offers the assistant when the upgrade is partial', async () => {
     const user = userEvent.setup();
-    const upgradeApp = jest.fn().mockImplementation(() => Promise.resolve(partialResult));
-    renderPage({ upgradeApp });
+    const getAppUpgradeRun = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(runWith(partialResult)));
+    renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
 
@@ -170,8 +203,10 @@ describe('AppUpgradePage', () => {
 
   it('shows the diff of the attempted changes when the upgrade fails', async () => {
     const user = userEvent.setup();
-    const upgradeApp = jest.fn().mockImplementation(() => Promise.resolve(failedResult));
-    renderPage({ upgradeApp });
+    const getAppUpgradeRun = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(runWith(failedResult)));
+    renderPage({ getAppUpgradeRun });
 
     await user.click(screen.getByRole('button', { name: textMock('app_upgrade.intro.start') }));
 
@@ -184,9 +219,13 @@ describe('AppUpgradePage', () => {
   });
 });
 
-const readyPreparation: AppUpgradePreparation = { status: 'Ready', message: '' };
-const blockedPreparation: AppUpgradePreparation = { status: 'LocalChangesBlocking', message: '' };
 const pullRequestUrl = 'http://studio.localhost/repos/ttd/my-app/pulls/1';
+const runUrl = 'http://studio.localhost/repos/ttd/my-app/actions/runs/7';
+const started: AppUpgradeStart = {
+  status: 'Started',
+  message: '',
+  branchName: 'upgrade/altinn-app-v9-20260903-120000',
+};
 const mergedResult: AppUpgradeMergeResult = { isMerged: true, message: '', baseBranch: 'main' };
 
 const completedResult: AppUpgradeResult = {
@@ -224,6 +263,21 @@ const failedResult: AppUpgradeResult = {
   branchName: null,
   pullRequestUrl: null,
   pullRequestNumber: null,
+};
+
+const runWith = (result: AppUpgradeResult): AppUpgradeRun => ({
+  state: 'Completed',
+  runUrl,
+  currentStep: null,
+  result,
+});
+const completedRun = runWith(completedResult);
+const queuedRun: AppUpgradeRun = { state: 'Queued', runUrl: null, currentStep: null, result: null };
+const runningRun: AppUpgradeRun = {
+  state: 'Running',
+  runUrl,
+  currentStep: 'Install tools',
+  result: null,
 };
 
 const renderPage = (

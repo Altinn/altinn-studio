@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -11,18 +13,16 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto.AppUpgrade;
+using Altinn.Studio.Designer.Models.GiteaActions;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.AppUpgradeEngine;
-using Altinn.Studio.Designer.TypedHttpClients.AppUpgradeEngine.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class AppUpgradeService : IAppUpgradeService
+public partial class AppUpgradeService : IAppUpgradeService
 {
-    private const string V9UpgradeKind = "v9";
     private const int TargetMajorVersion = 9;
     private const int AutomaticUpgradeSourceMajorVersion = 8;
     private const string CsprojPath = "App/App.csproj";
@@ -30,39 +30,35 @@ public class AppUpgradeService : IAppUpgradeService
     private const string AppFolder = "App";
     private const string CustomCodeFolder = "App/logic";
     private static readonly string[] s_templateCodeFiles = ["Program.cs", "TestDummy.cs"];
-    private static readonly string[] s_buildOutputFolders = ["bin", "obj"];
-
-    private const string LocalChangesMessage =
-        "The app has local changes that are not committed. Commit or discard them before upgrading.";
+    private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
     private const int ExitCodeSuccess = 0;
-    private const int ExitCodeError = 1;
     private const int ExitCodeUnsupportedSourceVersion = 2;
     private const int ExitCodeManualActionRequired = 3;
 
-    private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
+    private static readonly string[] s_queuedRunStatuses = ["queued", "waiting", "blocked", "pending", "unknown"];
+    private static readonly string[] s_runningRunStatuses = ["in_progress", "running"];
 
-    private readonly IAppUpgradeEngineClient _engineClient;
-    private readonly ISourceControl _sourceControl;
+    private static readonly JsonSerializerOptions s_reportJsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly IGiteaClient _giteaClient;
-    private readonly ServiceRepositorySettings _repositorySettings;
+    private readonly ISourceControl _sourceControl;
     private readonly AppUpgradeSettings _settings;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<AppUpgradeService> _logger;
 
     public AppUpgradeService(
-        IAppUpgradeEngineClient engineClient,
-        ISourceControl sourceControl,
         IGiteaClient giteaClient,
-        ServiceRepositorySettings repositorySettings,
+        ISourceControl sourceControl,
         IOptions<AppUpgradeSettings> settings,
+        TimeProvider timeProvider,
         ILogger<AppUpgradeService> logger
     )
     {
-        _engineClient = engineClient;
-        _sourceControl = sourceControl;
         _giteaClient = giteaClient;
-        _repositorySettings = repositorySettings;
+        _sourceControl = sourceControl;
         _settings = settings.Value;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -149,148 +145,242 @@ public class AppUpgradeService : IAppUpgradeService
     private static bool IsCustomCodeFile(FileSystemObject file) =>
         file.Type == "file" && file.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
 
-    public async Task<AppUpgradePreparation> PrepareAsync(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        CancellationToken cancellationToken
-    )
+    public async Task<AppUpgradeStart> StartAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken)
     {
-        _sourceControl.CloneIfNotExists(authenticatedContext);
-
-        if (HasLocalChanges(_sourceControl.RepositoryStatus(authenticatedContext)))
-        {
-            return new AppUpgradePreparation(AppUpgradePreparationStatus.LocalChangesBlocking, LocalChangesMessage);
-        }
-
-        _sourceControl.PullRemoteChanges(authenticatedContext);
-
-        AppUpgradeStatus status = await GetStatusAsync(authenticatedContext, cancellationToken);
+        AppUpgradeStatus status = await GetStatusAsync(repoContext, cancellationToken);
         if (!status.IsAutomaticUpgradeSupported)
         {
-            return new AppUpgradePreparation(
-                AppUpgradePreparationStatus.UnsupportedVersion,
+            return new AppUpgradeStart(
+                AppUpgradeStartStatus.UnsupportedVersion,
                 "The automatic upgrade supports apps on version 8. Upgrade the app to version 8 first."
             );
         }
 
-        return new AppUpgradePreparation(AppUpgradePreparationStatus.Ready, "The app is ready to be upgraded.");
+        string baseBranch = await GetDefaultBranch(repoContext);
+        string branchName = $"{_settings.BranchPrefix}{_timeProvider.GetUtcNow():yyyyMMdd-HHmmss}";
+        string workflow = AppUpgradeWorkflow.Render(
+            new AppUpgradeWorkflow.Parameters(
+                branchName,
+                baseBranch,
+                TargetMajorVersion,
+                _settings.CommitMessage,
+                _settings.StudioctlInstallUrl,
+                _settings.WorkflowPath
+            )
+        );
+
+        bool created = await _giteaClient.ChangeFilesAsync(
+            repoContext.Org,
+            repoContext.Repo,
+            new ChangeFilesOptions
+            {
+                Branch = baseBranch,
+                NewBranch = branchName,
+                Message = $"Start automatic upgrade to Altinn.App v{TargetMajorVersion}",
+                Files =
+                [
+                    new ChangeFileOperation
+                    {
+                        Operation = "create",
+                        Path = _settings.WorkflowPath,
+                        Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(workflow)),
+                    },
+                ],
+            },
+            cancellationToken
+        );
+        if (!created)
+        {
+            return new AppUpgradeStart(
+                AppUpgradeStartStatus.Failed,
+                "The upgrade branch could not be created in the repository."
+            );
+        }
+
+        return new AppUpgradeStart(AppUpgradeStartStatus.Started, "The upgrade has been queued.", branchName);
     }
 
-    public async Task<AppUpgradeResult> RunAsync(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+    public async Task<AppUpgradeRun> GetRunAsync(
+        AltinnRepoContext repoContext,
+        string branchName,
         CancellationToken cancellationToken
     )
     {
-        _sourceControl.CloneIfNotExists(authenticatedContext);
-
-        if (HasLocalChanges(_sourceControl.RepositoryStatus(authenticatedContext)))
+        List<ActionWorkflowRun> runs = await _giteaClient.ListWorkflowRunsAsync(
+            repoContext.Org,
+            repoContext.Repo,
+            branchName,
+            cancellationToken
+        );
+        ActionWorkflowRun? run = runs.Where(candidate => candidate.HeadBranch == branchName)
+            .OrderByDescending(candidate => candidate.Id)
+            .FirstOrDefault();
+        if (run is null)
         {
-            return new AppUpgradeResult(
-                AppUpgradeOutcome.LocalChangesBlocking,
-                LocalChangesMessage,
-                TargetMajorVersion,
-                [],
-                [],
-                []
+            return await DescribeMissingRun(repoContext, branchName);
+        }
+
+        string status = (run.Status ?? string.Empty).ToLowerInvariant();
+        if (s_queuedRunStatuses.Contains(status))
+        {
+            return new AppUpgradeRun(AppUpgradeRunState.Queued, run.HtmlUrl);
+        }
+
+        List<ActionWorkflowJob> jobs = await _giteaClient.ListWorkflowRunJobsAsync(
+            repoContext.Org,
+            repoContext.Repo,
+            run.Id,
+            cancellationToken
+        );
+        if (s_runningRunStatuses.Contains(status))
+        {
+            return new AppUpgradeRun(AppUpgradeRunState.Running, run.HtmlUrl, CurrentStepName(jobs));
+        }
+
+        AppUpgradeResult result = await BuildResult(repoContext, branchName, run, jobs, cancellationToken);
+        return new AppUpgradeRun(AppUpgradeRunState.Completed, run.HtmlUrl, null, result);
+    }
+
+    private async Task<AppUpgradeRun> DescribeMissingRun(AltinnRepoContext repoContext, string branchName)
+    {
+        RepositoryClient.Model.Branch? branch = await _giteaClient.GetBranch(
+            repoContext.Org,
+            repoContext.Repo,
+            branchName
+        );
+        if (branch is null)
+        {
+            return CompletedWithFailure(branchName, "The upgrade branch no longer exists in the repository.");
+        }
+
+        if (
+            DateTimeOffset.TryParse(
+                branch.Commit?.Timestamp,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal,
+                out DateTimeOffset createdAt
+            )
+            && _timeProvider.GetUtcNow() - createdAt > TimeSpan.FromMinutes(_settings.RunnerPickupTimeoutMinutes)
+        )
+        {
+            return CompletedWithFailure(
+                branchName,
+                $"No runner picked up the upgrade within {_settings.RunnerPickupTimeoutMinutes} minutes. "
+                    + "Check that Gitea Actions runners are available for the organization."
             );
         }
 
-        _sourceControl.PullRemoteChanges(authenticatedContext);
+        return new AppUpgradeRun(AppUpgradeRunState.Queued);
+    }
 
-        string projectFolder = _repositorySettings.GetServicePath(
-            authenticatedContext.Org,
-            authenticatedContext.Repo,
-            authenticatedContext.Developer
+    private static AppUpgradeRun CompletedWithFailure(string branchName, string message) =>
+        new(
+            AppUpgradeRunState.Completed,
+            Result: new AppUpgradeResult(AppUpgradeOutcome.Failed, message, TargetMajorVersion, [], [], [], branchName)
         );
 
-        AppUpgradeEngineResponse response;
-        try
+    private static string? CurrentStepName(List<ActionWorkflowJob> jobs) =>
+        jobs.SelectMany(job => job.Steps)
+            .FirstOrDefault(step => s_runningRunStatuses.Contains((step.Status ?? string.Empty).ToLowerInvariant()))
+            ?.Name;
+
+    private async Task<AppUpgradeResult> BuildResult(
+        AltinnRepoContext repoContext,
+        string branchName,
+        ActionWorkflowRun run,
+        List<ActionWorkflowJob> jobs,
+        CancellationToken cancellationToken
+    )
+    {
+        StudioctlUpgradeReport? report = null;
+        ActionWorkflowJob? job = jobs.OrderBy(candidate => candidate.Id).FirstOrDefault();
+        if (job is not null)
         {
-            response = await _engineClient.RunUpgradeAsync(
-                new AppUpgradeEngineRequest(
-                    Kind: V9UpgradeKind,
-                    ProjectFolder: projectFolder,
-                    StudioRoot: null,
-                    ConvertPackageReferences: false,
-                    AllowDirty: false
-                ),
-                CancellationToken.None
+            string? logs = await _giteaClient.GetWorkflowJobLogsAsync(
+                repoContext.Org,
+                repoContext.Repo,
+                job.Id,
+                cancellationToken
             );
-        }
-        catch (AppUpgradeEngineException ex)
-        {
-            _logger.LogError(
-                ex,
-                "App upgrade engine failed for {Org}/{Repo}",
-                authenticatedContext.Org,
-                authenticatedContext.Repo
-            );
-            RemoveBuildOutput(projectFolder);
-            DiscardUpgradeChanges(authenticatedContext);
-            return new AppUpgradeResult(AppUpgradeOutcome.Failed, ex.Message, TargetMajorVersion, [], [], []);
+            report = ParseReport(logs);
         }
 
-        RemoveBuildOutput(projectFolder);
-        IReadOnlyList<AppUpgradeStep> steps = MapSteps(response.Steps);
+        IReadOnlyList<AppUpgradeStep> steps = MapSteps(report?.Steps);
         IReadOnlyList<AppUpgradeManualTask> manualTasks = CollectManualTasks(steps);
-        IReadOnlyList<AppUpgradeFileChange> fileChanges = CollectFileChanges(authenticatedContext);
 
-        switch (response.ExitCode)
+        List<PullRequest> pullRequests =
+            await _giteaClient.ListPullRequestsAsync(repoContext.Org, repoContext.Repo, "all", cancellationToken) ?? [];
+        PullRequest? pullRequest = pullRequests
+            .Where(candidate => candidate.Head?.Ref == branchName)
+            .OrderByDescending(candidate => candidate.Number)
+            .FirstOrDefault();
+
+        IReadOnlyList<AppUpgradeFileChange> fileChanges = [];
+        if (pullRequest is not null)
         {
-            case ExitCodeSuccess:
-            {
-                UpgradePullRequest pullRequest = await OpenPullRequest(authenticatedContext, steps, manualTasks);
-                return new AppUpgradeResult(
-                    AppUpgradeOutcome.Completed,
-                    "The app was upgraded automatically.",
-                    TargetMajorVersion,
-                    steps,
-                    manualTasks,
-                    fileChanges,
-                    pullRequest.BranchName,
-                    pullRequest.Url,
-                    pullRequest.Number
-                );
-            }
-            case ExitCodeManualActionRequired:
-            {
-                UpgradePullRequest pullRequest = await OpenPullRequest(authenticatedContext, steps, manualTasks);
-                return new AppUpgradeResult(
+            string? diff = await _giteaClient.GetPullRequestDiffAsync(
+                repoContext.Org,
+                repoContext.Repo,
+                pullRequest.Number,
+                cancellationToken
+            );
+            fileChanges = ParseUnifiedDiff(diff);
+        }
+
+        (AppUpgradeOutcome outcome, string message) = DetermineOutcome(report, run, pullRequest);
+        return new AppUpgradeResult(
+            outcome,
+            message,
+            TargetMajorVersion,
+            steps,
+            manualTasks,
+            fileChanges,
+            branchName,
+            pullRequest?.HtmlUrl,
+            pullRequest?.Number
+        );
+    }
+
+    private static (AppUpgradeOutcome Outcome, string Message) DetermineOutcome(
+        StudioctlUpgradeReport? report,
+        ActionWorkflowRun run,
+        PullRequest? pullRequest
+    )
+    {
+        if (report is null)
+        {
+            bool succeeded = string.Equals(run.Conclusion ?? run.Status, "success", StringComparison.OrdinalIgnoreCase);
+            return succeeded && pullRequest is not null
+                ? (AppUpgradeOutcome.Completed, "The app was upgraded automatically.")
+                : (AppUpgradeOutcome.Failed, "The upgrade run did not report a result. See the run log for details.");
+        }
+
+        switch (report.ExitCode)
+        {
+            case ExitCodeSuccess when pullRequest is not null:
+                return (AppUpgradeOutcome.Completed, "The app was upgraded automatically.");
+            case ExitCodeManualActionRequired when pullRequest is not null:
+                return (
                     AppUpgradeOutcome.ManualStepsRequired,
-                    "Parts of the upgrade were applied. The remaining tasks must be finished by hand.",
-                    TargetMajorVersion,
-                    steps,
-                    manualTasks,
-                    fileChanges,
-                    pullRequest.BranchName,
-                    pullRequest.Url,
-                    pullRequest.Number
+                    "Parts of the upgrade were applied. The remaining tasks must be finished by hand."
                 );
-            }
+            case ExitCodeSuccess:
+            case ExitCodeManualActionRequired:
+                return (
+                    AppUpgradeOutcome.Failed,
+                    "The upgrade was applied but the pull request could not be opened. See the run log for details."
+                );
             case ExitCodeUnsupportedSourceVersion:
-                DiscardUpgradeChanges(authenticatedContext);
-                return new AppUpgradeResult(
+                return (
                     AppUpgradeOutcome.UnsupportedVersion,
                     FirstNonEmpty(
-                        response.Error,
-                        response.Message,
+                        report.Error,
+                        report.Message,
                         "The app is not on a version that can be upgraded automatically."
-                    ),
-                    TargetMajorVersion,
-                    steps,
-                    manualTasks,
-                    fileChanges
+                    )
                 );
-            case ExitCodeError:
             default:
-                DiscardUpgradeChanges(authenticatedContext);
-                return new AppUpgradeResult(
-                    AppUpgradeOutcome.Failed,
-                    FirstNonEmpty(response.Error, response.Message, "The upgrade failed."),
-                    TargetMajorVersion,
-                    steps,
-                    manualTasks,
-                    fileChanges
-                );
+                return (AppUpgradeOutcome.Failed, FirstNonEmpty(report.Error, report.Message, "The upgrade failed."));
         }
     }
 
@@ -317,30 +407,24 @@ public class AppUpgradeService : IAppUpgradeService
             );
         }
 
-        ReturnLocalCloneToBranch(authenticatedContext, baseBranch, request.BranchName);
+        RefreshLocalClone(authenticatedContext, baseBranch);
         return new AppUpgradeMergeResult(true, $"The upgrade was merged into {baseBranch}.", baseBranch);
     }
 
-    private void ReturnLocalCloneToBranch(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        string baseBranch,
-        string? upgradeBranch
-    )
+    private void RefreshLocalClone(AltinnAuthenticatedRepoEditingContext authenticatedContext, string baseBranch)
     {
         try
         {
+            _sourceControl.CloneIfNotExists(authenticatedContext);
+            _sourceControl.FetchRemoteChanges(authenticatedContext);
             _sourceControl.CheckoutRepoOnBranch(authenticatedContext, baseBranch);
             _sourceControl.PullRemoteChanges(authenticatedContext);
-            if (!string.IsNullOrEmpty(upgradeBranch))
-            {
-                _sourceControl.DeleteLocalBranchIfExists(authenticatedContext, upgradeBranch);
-            }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(
                 ex,
-                "Could not move the local clone of {Org}/{Repo} back to {Branch} after merging the upgrade",
+                "Could not refresh the local clone of {Org}/{Repo} on {Branch} after merging the upgrade",
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 baseBranch
@@ -355,188 +439,6 @@ public class AppUpgradeService : IAppUpgradeService
             repoContext.Repo
         );
         return repository?.DefaultBranch ?? General.DefaultBranch;
-    }
-
-    private static bool HasLocalChanges(RepoStatus status) =>
-        status.ContentStatus?.Any(content => IsLocalChange(content.FileStatus)) ?? false;
-
-    private static bool IsLocalChange(Enums.FileStatus fileStatus) =>
-        fileStatus
-            is not (
-                Enums.FileStatus.Unaltered
-                or Enums.FileStatus.Ignored
-                or Enums.FileStatus.Nonexistent
-                or Enums.FileStatus.Unreadable
-            );
-
-    private void RemoveBuildOutput(string projectFolder)
-    {
-        foreach (string folder in s_buildOutputFolders)
-        {
-            string path = Path.Combine(projectFolder, AppFolder, folder);
-            if (!Directory.Exists(path))
-            {
-                continue;
-            }
-
-            try
-            {
-                Directory.Delete(path, recursive: true);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                _logger.LogWarning(ex, "Could not remove build output at {Path}", path);
-            }
-        }
-    }
-
-    private IReadOnlyList<AppUpgradeFileChange> CollectFileChanges(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext
-    )
-    {
-        try
-        {
-            List<RepositoryContent> status = _sourceControl.Status(authenticatedContext) ?? [];
-            Dictionary<string, string> diffs =
-                _sourceControl.GetChangedContent(authenticatedContext) ?? new Dictionary<string, string>();
-            return
-            [
-                .. status
-                    .Where(content => IsLocalChange(content.FileStatus))
-                    .Select(content => new AppUpgradeFileChange(
-                        content.FilePath,
-                        MapFileChangeKind(content.FileStatus),
-                        diffs.GetValueOrDefault(content.FilePath, string.Empty)
-                    )),
-            ];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(
-                ex,
-                "Could not collect the upgrade's file changes for {Org}/{Repo}",
-                authenticatedContext.Org,
-                authenticatedContext.Repo
-            );
-            return [];
-        }
-    }
-
-    private static AppUpgradeFileChangeKind MapFileChangeKind(Enums.FileStatus fileStatus)
-    {
-        if (fileStatus.HasFlag(Enums.FileStatus.NewInIndex) || fileStatus.HasFlag(Enums.FileStatus.NewInWorkdir))
-        {
-            return AppUpgradeFileChangeKind.Added;
-        }
-
-        if (
-            fileStatus.HasFlag(Enums.FileStatus.DeletedFromIndex)
-            || fileStatus.HasFlag(Enums.FileStatus.DeletedFromWorkdir)
-        )
-        {
-            return AppUpgradeFileChangeKind.Deleted;
-        }
-
-        if (
-            fileStatus.HasFlag(Enums.FileStatus.RenamedInIndex) || fileStatus.HasFlag(Enums.FileStatus.RenamedInWorkdir)
-        )
-        {
-            return AppUpgradeFileChangeKind.Renamed;
-        }
-
-        return AppUpgradeFileChangeKind.Modified;
-    }
-
-    private async Task<UpgradePullRequest> OpenPullRequest(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        IReadOnlyList<AppUpgradeStep> steps,
-        IReadOnlyList<AppUpgradeManualTask> manualTasks
-    )
-    {
-        string branchName = $"{_settings.BranchPrefix}{DateTime.UtcNow:yyyyMMdd-HHmmss}";
-        _sourceControl.CreateLocalBranch(authenticatedContext, branchName);
-        _sourceControl.CheckoutRepoOnBranch(authenticatedContext, branchName);
-        _sourceControl.CommitToLocalRepo(authenticatedContext, _settings.CommitMessage);
-        _sourceControl.PublishBranch(authenticatedContext, branchName);
-
-        string baseBranch = await GetDefaultBranch(authenticatedContext);
-
-        PullRequest? pullRequest = await _giteaClient.CreatePullRequestAsync(
-            authenticatedContext.Org,
-            authenticatedContext.Repo,
-            new CreatePullRequestOption
-            {
-                Base = baseBranch,
-                Head = branchName,
-                Title = _settings.CommitMessage,
-                Body = BuildPullRequestBody(steps, manualTasks),
-            }
-        );
-        if (pullRequest is null)
-        {
-            _logger.LogWarning(
-                "Pull request for {Org}/{Repo} from {Branch} into {Base} could not be created",
-                authenticatedContext.Org,
-                authenticatedContext.Repo,
-                branchName,
-                baseBranch
-            );
-        }
-
-        return new UpgradePullRequest(branchName, pullRequest?.HtmlUrl, pullRequest?.Number);
-    }
-
-    private static string BuildPullRequestBody(
-        IReadOnlyList<AppUpgradeStep> steps,
-        IReadOnlyList<AppUpgradeManualTask> manualTasks
-    )
-    {
-        var body = new StringBuilder();
-        body.AppendLine($"Automatic upgrade to Altinn.App v{TargetMajorVersion} created by Altinn Studio.");
-        body.AppendLine();
-        if (manualTasks.Count > 0)
-        {
-            body.AppendLine("## Manual tasks before merging");
-            body.AppendLine();
-            foreach (AppUpgradeManualTask task in manualTasks)
-            {
-                body.AppendLine($"- [ ] **{task.Step}**: {task.Text}");
-            }
-            body.AppendLine();
-        }
-
-        body.AppendLine("<details><summary>Full upgrade report</summary>");
-        body.AppendLine();
-        foreach (AppUpgradeStep step in steps)
-        {
-            body.AppendLine($"### {step.Name}");
-            foreach (AppUpgradeMessage message in step.Messages)
-            {
-                body.AppendLine($"- {message.Status}: {message.Text}");
-            }
-            body.AppendLine();
-        }
-        body.AppendLine("</details>");
-        return body.ToString();
-    }
-
-    private sealed record UpgradePullRequest(string BranchName, string? Url, long? Number);
-
-    private void DiscardUpgradeChanges(AltinnRepoEditingContext editingContext)
-    {
-        try
-        {
-            _sourceControl.DiscardLocalChanges(editingContext);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(
-                ex,
-                "Could not discard upgrade changes for {Org}/{Repo}",
-                editingContext.Org,
-                editingContext.Repo
-            );
-        }
     }
 
     private async Task<byte[]?> ReadRemoteFileAsync(
@@ -574,16 +476,108 @@ public class AppUpgradeService : IAppUpgradeService
         }
     }
 
-    private static IReadOnlyList<AppUpgradeStep> MapSteps(IReadOnlyList<AppUpgradeEngineStep> steps) =>
-        [
-            .. steps.Select(step => new AppUpgradeStep(
-                step.Name,
-                [.. step.Messages.Select(message => new AppUpgradeMessage(message.Text, MapStatus(message.Status)))]
-            )),
-        ];
+    internal static StudioctlUpgradeReport? ParseReport(string? logs)
+    {
+        if (string.IsNullOrEmpty(logs))
+        {
+            return null;
+        }
 
-    private static AppUpgradeMessageStatus MapStatus(string wireStatus) =>
-        wireStatus switch
+        Match match = ReportMarkerRegex().Match(logs);
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        try
+        {
+            byte[] json = Convert.FromBase64String(match.Groups[1].Value);
+            return JsonSerializer.Deserialize<StudioctlUpgradeReport>(json, s_reportJsonOptions);
+        }
+        catch (Exception ex) when (ex is FormatException or JsonException)
+        {
+            return null;
+        }
+    }
+
+    [GeneratedRegex(@"::studio-upgrade-report::([A-Za-z0-9+/=]+)")]
+    private static partial Regex ReportMarkerRegex();
+
+    [GeneratedRegex(@"^diff --git a/(.+?) b/(.+)$")]
+    private static partial Regex DiffHeaderRegex();
+
+    internal static IReadOnlyList<AppUpgradeFileChange> ParseUnifiedDiff(string? diff)
+    {
+        if (string.IsNullOrEmpty(diff))
+        {
+            return [];
+        }
+
+        List<AppUpgradeFileChange> changes = [];
+        string? path = null;
+        AppUpgradeFileChangeKind kind = AppUpgradeFileChangeKind.Modified;
+        StringBuilder section = new();
+
+        void Flush()
+        {
+            if (path is not null)
+            {
+                changes.Add(new AppUpgradeFileChange(path, kind, section.ToString()));
+            }
+            section.Clear();
+        }
+
+        foreach (string line in diff.Split('\n'))
+        {
+            Match header = DiffHeaderRegex().Match(line.TrimEnd('\r'));
+            if (header.Success)
+            {
+                Flush();
+                path = header.Groups[2].Value;
+                kind = AppUpgradeFileChangeKind.Modified;
+            }
+            else if (path is not null)
+            {
+                if (line.StartsWith("new file mode", StringComparison.Ordinal))
+                {
+                    kind = AppUpgradeFileChangeKind.Added;
+                }
+                else if (line.StartsWith("deleted file mode", StringComparison.Ordinal))
+                {
+                    kind = AppUpgradeFileChangeKind.Deleted;
+                }
+                else if (line.StartsWith("rename to ", StringComparison.Ordinal))
+                {
+                    kind = AppUpgradeFileChangeKind.Renamed;
+                    path = line["rename to ".Length..].TrimEnd('\r');
+                }
+            }
+
+            section.Append(line).Append('\n');
+        }
+
+        Flush();
+        return changes;
+    }
+
+    private static IReadOnlyList<AppUpgradeStep> MapSteps(IReadOnlyList<StudioctlUpgradeStep>? steps) =>
+        steps is null
+            ? []
+            :
+            [
+                .. steps.Select(step => new AppUpgradeStep(
+                    step.Name ?? string.Empty,
+                    [
+                        .. (step.Messages ?? []).Select(message => new AppUpgradeMessage(
+                            message.Text ?? string.Empty,
+                            MapStatus(message.Status)
+                        )),
+                    ]
+                )),
+            ];
+
+    private static AppUpgradeMessageStatus MapStatus(string? wireStatus) =>
+        wireStatus?.ToUpperInvariant() switch
         {
             "OK" => AppUpgradeMessageStatus.Ok,
             "SKIP" => AppUpgradeMessageStatus.Skip,
@@ -608,4 +602,15 @@ public class AppUpgradeService : IAppUpgradeService
 
     private static string FirstNonEmpty(params string?[] candidates) =>
         candidates.FirstOrDefault(candidate => !string.IsNullOrWhiteSpace(candidate))?.Trim() ?? string.Empty;
+
+    internal sealed record StudioctlUpgradeReport(
+        int ExitCode,
+        string? Message,
+        string? Error,
+        IReadOnlyList<StudioctlUpgradeStep>? Steps
+    );
+
+    internal sealed record StudioctlUpgradeStep(string? Name, IReadOnlyList<StudioctlUpgradeMessage>? Messages);
+
+    internal sealed record StudioctlUpgradeMessage(string? Text, string? Status);
 }

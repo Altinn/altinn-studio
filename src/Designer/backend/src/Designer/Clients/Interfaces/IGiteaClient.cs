@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.GiteaActions;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -208,6 +209,67 @@ public interface IGiteaClient
         string org,
         string repository,
         CreatePullRequestOption createPullRequestOption,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists pull requests in the given state ("open", "closed" or "all").
+    /// </summary>
+    Task<List<PullRequest>> ListPullRequestsAsync(
+        string org,
+        string repository,
+        string state,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns the unified diff of a pull request, or null when it could not be fetched.
+    /// </summary>
+    Task<string> GetPullRequestDiffAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Creates, updates or deletes several files in one commit, optionally on a new branch. Returns false when Gitea
+    /// rejected the change.
+    /// </summary>
+    Task<bool> ChangeFilesAsync(
+        string org,
+        string repository,
+        ChangeFilesOptions options,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists Gitea Actions workflow runs for a branch, newest first.
+    /// </summary>
+    Task<List<ActionWorkflowRun>> ListWorkflowRunsAsync(
+        string org,
+        string repository,
+        string branch,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists the jobs of a Gitea Actions workflow run.
+    /// </summary>
+    Task<List<ActionWorkflowJob>> ListWorkflowRunJobsAsync(
+        string org,
+        string repository,
+        long runId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns the plain-text log of a Gitea Actions job, or null when it is not available.
+    /// </summary>
+    Task<string> GetWorkflowJobLogsAsync(
+        string org,
+        string repository,
+        long jobId,
         CancellationToken cancellationToken = default
     );
 

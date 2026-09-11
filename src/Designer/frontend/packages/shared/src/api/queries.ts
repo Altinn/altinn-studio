@@ -5,6 +5,7 @@ import {
   appMetadataPath,
   appPolicyPath,
   appVersionPath,
+  appUpgradeRunPath,
   appUpgradeStatusPath,
   belongsToOrg,
   branchStatusPath,
@@ -149,7 +150,7 @@ import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
-import type { AppUpgradeStatus } from 'app-shared/types/AppUpgrade';
+import type { AppUpgradeRun, AppUpgradeStatus } from 'app-shared/types/AppUpgrade';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -161,6 +162,7 @@ export const getAppValidation = (owner: string, app: string) => get<AppValidatio
 
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAppUpgradeStatus = (org: string, app: string) => get<AppUpgradeStatus>(appUpgradeStatusPath(org, app));
+export const getAppUpgradeRun = (org: string, app: string, branch: string) => get<AppUpgradeRun>(appUpgradeRunPath(org, app, branch));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
 export const getAppTemplates = () => get<AppTemplate[]>(appTemplatesPath());
 export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
