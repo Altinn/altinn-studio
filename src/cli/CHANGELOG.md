@@ -18,6 +18,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` removes `moveToNextTask` from the Fiks Arkiv `successHandling` and `errorHandling` settings in your appsettings files. A Fiks Arkiv task in v9 always moves the process on once the archiving is decided, so the setting no longer exists; left in place it would be ignored without notice. Where it was `false`, the upgrade reports a TODO explaining what changes: a success that used to leave the instance on the task now moves on with the success action, and a rejection that used to fail the task now moves on with the error action, `reject` by default. The upgrade also reports a TODO for a Fiks Arkiv task that is not followed by an exclusive gateway, since the v9 app refuses to start until one separates a confirmed archiving from a rejected one.
 
+### Fixed
+
+- `studioctl app upgrade v9` no longer fails immediately with `Upgrade output writer is not configured.` This broke every v9 upgrade in 0.1.0-preview.23. The compilation the upgrade runs for exact API detection now reports as its own `Semantic analysis` step, marked OK when the app compiled and WARN with the reason when the upgrade falls back to syntax-based detection.
+
 ## [0.1.0-preview.23] - 2026-09-04
 
 ### Added
