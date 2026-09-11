@@ -201,13 +201,17 @@ def cmd_check(args: argparse.Namespace) -> None:
     )
 
     name = runstore.new_name(label)
+    agent_models = checker.agent_models_for(planned)
     run = checker.run(
         name=name,
         label=label,
         under_test=under_test,
         include_slow=args.include_e2e,
         only=only,
-        run_eval=checker.langfuse_runner(args, check_id=name, label=label),
+        agent_models=agent_models,
+        run_eval=checker.langfuse_runner(
+            args, check_id=name, label=label, agent_models=agent_models
+        ),
     )
     path = runstore.save(run)
     print(f"\nsaved {path}")

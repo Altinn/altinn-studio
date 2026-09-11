@@ -20,4 +20,14 @@ class TestHealthEndpoint:
         response = TestClient(app).get("/health")
 
         assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+        assert response.json()["status"] == "ok"
+
+    def test_health_reports_the_models_this_service_runs(self):
+        """A caller recording an end to end score has no other way to learn what
+        produced it, and reading its own config instead records the wrong model."""
+        from shared.config.base_config import resolved_role_models
+
+        response = TestClient(app).get("/health")
+
+        assert response.json()["models"] == resolved_role_models()
+        assert response.json()["models"]["planner"]
