@@ -47,8 +47,8 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   underneath. A parked task has **succeeded** — its workflow is settled, and only an out-of-band
   `process/next` moves it — whereas a deferring task is **still running** and the engine resumes it
   on its own timer. On the default view the UI follows that difference: parked shows the
-  service-task waiting view («Vi behandler forespørselen din»), deferring shows the ordinary
-  standard form loader. With `serviceView: layout` the two are
+  service-task waiting view («Vi behandler forespørselen din»), deferring shows the standard form
+  loader. With `serviceView: layout` the two are
   deliberately identical: the app's own page owns the waiting presentation for both. A lost
   external signal strands the first and merely delays the second.
 - **Why is it waiting?** while a deferral is parked, the task's own reason (this app passes one on
