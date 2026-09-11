@@ -35,6 +35,11 @@ class ItemResult:
     def failed(self) -> bool:
         return self.error is not None
 
+    @property
+    def is_declared_regression(self) -> bool:
+        """An item harvested to hold a defect in place: scoring 0 is the point of it."""
+        return str(self.meta.get("regression", "")).lower() == "true"
+
     def value(self, evaluator: str) -> float | None:
         """None means the evaluator did not apply to this item, not that it failed."""
         return self.scores.get(evaluator)
@@ -56,6 +61,12 @@ class BehaviorResult:
     @property
     def item_count(self) -> int:
         return len(self.items)
+
+    @property
+    def only_declared_regressions_scored_zero(self) -> bool:
+        """Every item that missed full marks is one harvested to hold a defect."""
+        missed = [i for i in self.scored_items if (i.scores.get(self.evaluator) or 0) < 1.0]
+        return bool(missed) and all(i.is_declared_regression for i in missed)
 
     @property
     def scored_items(self) -> tuple[ItemResult, ...]:
