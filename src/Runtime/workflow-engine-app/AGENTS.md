@@ -70,10 +70,11 @@ cluster, therefore, an app pod reads `Staging` while this pod reads `tt02`.
 So a per-environment file here is `appsettings.at23.json`, never `appsettings.Staging.json` — which
 would be loaded by nothing. `appsettings.at23.json`, `appsettings.tt02.json` and
 `appsettings.prod.json` are **deliberately kept even while empty**: the naming is surprising enough
-that the file itself is the clearest place to record it, and it is where the next person will look.
-Each carries a comment saying so — the JSON configuration provider skips `//` and `/* */`, so those
-comments are safe. Sibling precedent: `Altinn.Studio.Gateway.Api` ships the same environment-name
-files, with real per-environment values in them.
+that the files earn their place as scaffolding, and they are where the next person will look. Keep
+them as plain JSON — .NET's configuration provider would tolerate `//` comments, but nothing else
+does, and `jq` or any other tool reading them would fail. This section is where the explanation
+belongs. Sibling precedent: `Altinn.Studio.Gateway.Api` ships the same environment-name files, with
+real per-environment values in them.
 
 The service is deployed to **at23 and tt02 only**. Overlays exist under `infra/kustomize/` for
 at22, at24, yt01 and prod, but only the at23 and tt02 syncroots carry a `workflow-engine-app.yaml`
