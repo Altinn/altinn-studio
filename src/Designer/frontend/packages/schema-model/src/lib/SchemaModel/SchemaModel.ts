@@ -400,7 +400,11 @@ export class SchemaModel extends SchemaModelBase {
       throw new Error('It is not possible to delete the root node.');
     if (this.hasReferringNodes(schemaPointer))
       throw new Error('Cannot delete a definition that is in use.');
-    return this.deleteNodeWithChildrenRecursively(schemaPointer);
+    const parent = this.getParentNode(schemaPointer);
+    this.deleteNodeWithChildrenRecursively(schemaPointer);
+    // The names of combination children are their indices, so the remaining ones must be renumbered.
+    if (isCombination(parent)) this.synchronizeCombinationChildPointers(parent);
+    return this;
   }
 
   private deleteNodeWithChildrenRecursively(schemaPointer: string): SchemaModel {
