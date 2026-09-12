@@ -53,6 +53,19 @@ impl Database {
         Ok(Self { sender })
     }
 
+    /// Applies pending schema migrations without starting a database owner thread.
+    ///
+    /// This is used while the updater exclusively owns the control-plane home.
+    /// Opening the database also creates the same pre-migration backup as daemon startup.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when backup, schema validation, or migration fails.
+    pub fn migrate(path: &Path) -> Result<(), Error> {
+        drop(open(path)?);
+        Ok(())
+    }
+
     async fn request<T>(&self, build: impl FnOnce(oneshot::Sender<Result<T, Error>>) -> Command) -> Result<T, Error> {
         let (response, receiver) = oneshot::channel();
         self.sender
@@ -542,13 +555,77 @@ fn open(path: &Path) -> Result<Connection, Error> {
         std::fs::create_dir_all(parent)?;
         home::secure_directory(parent)?;
     }
-    let connection = Connection::open(path).map_err(database_error)?;
+    let mut connection = Connection::open(path).map_err(database_error)?;
     home::secure_file(path)?;
     connection
-        .execute_batch("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;")
+        .execute_batch("PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;")
         .map_err(database_error)?;
-    schema::initialize(&connection)?;
+    if let Some(version) = schema::pending_version(&connection)? {
+        backup_database(path, version)?;
+    }
+    schema::initialize(&mut connection)?;
+    connection
+        .execute_batch("PRAGMA journal_mode = WAL;")
+        .map_err(database_error)?;
     Ok(connection)
+}
+
+fn backup_database(path: &Path, version: u32) -> Result<(), Error> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| Error::Database("database path has no parent directory".into()))?;
+    let directory = parent.join("backups");
+    std::fs::create_dir_all(&directory)?;
+    home::secure_directory(&directory)?;
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| Error::Database(format!("system clock precedes Unix epoch: {error}")))?
+        .as_nanos();
+    let backup = directory.join(format!("agent-schema-{version}-{timestamp}.db"));
+    let backup_connection = Connection::open(path).map_err(database_error)?;
+    backup_connection
+        .execute("VACUUM INTO ?1", [backup.to_string_lossy().as_ref()])
+        .map_err(database_error)?;
+    drop(backup_connection);
+    #[cfg(unix)]
+    {
+        home::secure_file(&backup)?;
+        std::fs::File::open(&backup)?.sync_all()?;
+        sync_directory(&directory)?;
+    }
+    // On Windows the file inherits the owner-only ACL from `directory`.
+    // SQLite commits and flushes VACUUM INTO before the connection closes;
+    // reopening its output immediately for ACL or flush operations is denied.
+
+    let mut backups = std::fs::read_dir(&directory)?
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter(|entry| entry.file_type().is_ok_and(|kind| kind.is_file()))
+        .filter_map(|entry| {
+            let name = entry.file_name();
+            let timestamp = name
+                .to_str()?
+                .strip_prefix("agent-schema-")?
+                .strip_suffix(".db")?
+                .rsplit_once('-')?
+                .1
+                .parse::<u128>()
+                .ok()?;
+            Some((timestamp, entry))
+        })
+        .collect::<Vec<_>>();
+    backups.sort_by_key(|(timestamp, _)| *timestamp);
+    let remove = backups.len().saturating_sub(3);
+    for (_, entry) in backups.into_iter().take(remove) {
+        std::fs::remove_file(entry.path())?;
+    }
+    Ok(())
+}
+
+#[cfg(unix)]
+fn sync_directory(path: &Path) -> Result<(), Error> {
+    std::fs::File::open(path)?.sync_all()?;
+    Ok(())
 }
 
 fn execute(connection: &mut Connection, command: Command) {
@@ -753,6 +830,7 @@ fn agent_secret_name(id: AgentId, name: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use rusqlite::Connection;
     use sandbox::secret_store::{SecretReference, SecretStore as _};
     use tempfile::TempDir;
     use zeroize::Zeroizing;
@@ -770,6 +848,41 @@ mod tests {
                 .expect("secure-delete setting"),
             1
         );
+    }
+
+    #[test]
+    fn pending_migration_creates_and_prunes_owner_only_backups() {
+        let directory = TempDir::new().expect("temporary directory");
+        let path = directory.path().join("agent.db");
+        drop(open(&path).expect("current database"));
+        for _ in 0..4 {
+            let connection = Connection::open(&path).expect("database");
+            connection.pragma_update(None, "user_version", 1).expect("old version");
+            drop(connection);
+            Database::migrate(&path).expect("adopt expanded version 1 after backup");
+        }
+        let backups = std::fs::read_dir(directory.path().join("backups"))
+            .expect("backups")
+            .collect::<Result<Vec<_>, _>>()
+            .expect("backup entries");
+        assert_eq!(backups.len(), 3);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt as _;
+            assert_eq!(
+                std::fs::metadata(directory.path().join("backups"))
+                    .expect("directory metadata")
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                0o700
+            );
+            assert!(
+                backups
+                    .iter()
+                    .all(|entry| entry.metadata().expect("backup metadata").permissions().mode() & 0o777 == 0o600)
+            );
+        }
     }
 
     #[tokio::test(flavor = "local")]

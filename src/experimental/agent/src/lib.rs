@@ -15,6 +15,7 @@ pub mod platform_api;
 pub mod progress;
 pub mod sandbox;
 pub mod sessions;
+pub mod upgrade;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
@@ -24,6 +25,21 @@ pub use manifest::{
     NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec, SecretSpec,
     SkillSpec, Spec, Status,
 };
+
+/// Version embedded in a matched `agentctl`/`agentd` build.
+#[must_use]
+pub const fn build_version() -> &'static str {
+    match release_version() {
+        Some(version) => version,
+        None => env!("CARGO_PKG_VERSION"),
+    }
+}
+
+/// Release version embedded by packaging, absent from ordinary development builds.
+#[must_use]
+pub const fn release_version() -> Option<&'static str> {
+    option_env!("AGENT_VERSION")
+}
 
 use thiserror::Error;
 

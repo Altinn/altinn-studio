@@ -1,7 +1,7 @@
 .PHONY: help build user-install clean fmt lint lint-fix test test-e2e check check-platforms deps deps-check
 .DEFAULT_GOAL := help
 
-USER_INSTALL_VERSION := v0.0.0
+USER_INSTALL_VERSION := v0.0.1-dev.$(shell date -u +%Y%m%d%H%M%S)
 USER_INSTALL_ARCHIVE := $(abspath build/user-install/agent-$(USER_INSTALL_VERSION).tar.gz)
 RELEASE_BIN_DIR := $(abspath $(or $(CARGO_TARGET_DIR),../../target)/release)
 

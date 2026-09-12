@@ -53,6 +53,170 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
     ready
 }
 
+const PREVIEW_1_SCHEMA: &str = "
+    CREATE TABLE agents (
+        id TEXT PRIMARY KEY NOT NULL,
+        active_name TEXT UNIQUE,
+        source_directory TEXT NOT NULL,
+        desired_json TEXT NOT NULL,
+        deletion_timestamp INTEGER,
+        status_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE secrets (
+        name TEXT PRIMARY KEY NOT NULL,
+        value BLOB NOT NULL
+    );
+    CREATE TABLE provider_accounts (
+        provider TEXT PRIMARY KEY NOT NULL,
+        metadata_json TEXT NOT NULL
+    );
+    CREATE TABLE sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        harness_native_id TEXT,
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (agent_id, name)
+    );
+    PRAGMA user_version = 1;
+";
+
+// The schema produced by the session-management build on main before migrations were introduced.
+const EXPANDED_VERSION_1_SCHEMA: &str = "
+    CREATE TABLE IF NOT EXISTS agents (
+        id TEXT PRIMARY KEY NOT NULL,
+        active_name TEXT UNIQUE,
+        source_directory TEXT NOT NULL,
+        desired_json TEXT NOT NULL,
+        deletion_timestamp INTEGER,
+        status_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS secrets (
+        name TEXT PRIMARY KEY NOT NULL,
+        value BLOB NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS provider_accounts (
+        provider TEXT PRIMARY KEY NOT NULL,
+        metadata_json TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        initial_prompt TEXT,
+        harness_native_id TEXT,
+        harness_transcript_path TEXT,
+        activity_json TEXT NOT NULL DEFAULT '{}',
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (agent_id, name)
+    );
+    CREATE TABLE IF NOT EXISTS session_activity_reports (
+        session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        launch_token TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        PRIMARY KEY (session_id, launch_token, event_id)
+    );
+    PRAGMA user_version = 1;
+";
+
+const PREVIEW_AGENT_ID: &str = "11111111-1111-4111-8111-111111111111";
+const PREVIEW_DELETED_AGENT_ID: &str = "22222222-2222-4222-8222-222222222222";
+const EXPANDED_AGENT_ID: &str = "33333333-3333-4333-8333-333333333333";
+const PREVIEW_SECRET: &[u8] = b"\0preview-one-secret\xff";
+
+fn preview_desired(name: &str) -> String {
+    let mut desired = serde_json::to_value(support::agent(name)).expect("serialize fixture Agent");
+    let spec = desired["spec"].as_object_mut().expect("fixture spec");
+    let mut instructions = spec.remove("instructions").expect("fixture instructions");
+    let instruction = instructions.as_array_mut().expect("current instructions").remove(0);
+    spec.insert("instructions".into(), instruction);
+    spec.remove("skills");
+    serde_json::to_string(&desired).expect("encode preview desired state")
+}
+
+fn preview_desired_with_null_instructions(name: &str) -> String {
+    let mut desired = serde_json::to_value(support::agent(name)).expect("serialize fixture Agent");
+    let spec = desired["spec"].as_object_mut().expect("fixture spec");
+    spec.insert("instructions".into(), serde_json::Value::Null);
+    spec.remove("skills");
+    serde_json::to_string(&desired).expect("encode preview desired state")
+}
+
+fn create_preview_1_database(path: &Path) {
+    let connection = rusqlite::Connection::open(path).expect("create preview 1 database");
+    connection.execute_batch(PREVIEW_1_SCHEMA).expect("preview 1 schema");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}'), (?4, NULL, ?5, ?6, 1700000000, '{}')",
+            rusqlite::params![
+                PREVIEW_AGENT_ID,
+                serde_json::to_string(Path::new("/preview/source")).expect("source"),
+                preview_desired("worker"),
+                PREVIEW_DELETED_AGENT_ID,
+                serde_json::to_string(Path::new("/preview/deleted")).expect("deleted source"),
+                preview_desired_with_null_instructions("deleted")
+            ],
+        )
+        .expect("preview Agents");
+    for (index, state) in (0_i64..).zip(["starting", "running", "idle", "failed"]) {
+        let id = format!("00000000-0000-4000-8000-{index:012}");
+        let lifecycle = serde_json::json!({
+            "state": state,
+            "failure": (state == "failed").then_some("preview failure"),
+            "observedActivationGeneration": index,
+        });
+        connection
+            .execute(
+                "INSERT INTO sessions \
+                 (id, agent_id, name, harness, created_at, activation_generation, lifecycle_json, \
+                  harness_native_id, launch_token, launch_sandbox, launched_at, launch_attempts) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'preview-sandbox', ?10, ?11)",
+                rusqlite::params![
+                    id,
+                    PREVIEW_AGENT_ID,
+                    format!("session-{state}"),
+                    if index % 2 == 0 { "claudeCode" } else { "codex" },
+                    1_700_000_000_i64 + index,
+                    index,
+                    serde_json::to_string(&lifecycle).expect("lifecycle"),
+                    format!("native-{index}"),
+                    format!("00000000-0000-4000-9000-{index:012}"),
+                    1_700_000_100_i64 + index,
+                    index + 1,
+                ],
+            )
+            .expect("preview Session");
+    }
+    connection
+        .execute(
+            "INSERT INTO secrets (name, value) VALUES ('claude-access-token', ?1)",
+            [PREVIEW_SECRET],
+        )
+        .expect("preview secret");
+    connection
+        .execute(
+            "INSERT INTO provider_accounts (provider, metadata_json) VALUES ('claudeCode', ?1)",
+            [r#"{"account":"preview-user"}"#],
+        )
+        .expect("preview provider account");
+}
+
 #[test]
 fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
     let directory = TempDir::new().expect("temporary directory");
@@ -236,19 +400,294 @@ fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reuse
 }
 
 #[test]
-fn incompatible_schema_requires_an_explicit_purge() {
+fn released_preview_1_database_migrates_without_losing_state() {
     let directory = TempDir::new().expect("temporary directory");
     let path = directory.path().join("control-plane.db");
-    let connection = rusqlite::Connection::open(&path).expect("create incompatible database");
+    create_preview_1_database(&path);
+
+    let database = persistence::Database::open(&path).expect("migrate preview 1 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let agent = database
+            .get(PREVIEW_AGENT_ID.parse().expect("preview Agent ID"))
+            .await
+            .expect("migrated Agent");
+        assert_eq!(agent.source_directory, Path::new("/preview/source"));
+        assert_eq!(agent.agent.spec.instructions.len(), 1);
+        assert!(agent.agent.spec.skills.is_empty());
+        let sessions = database.list_agent_sessions("worker").await.expect("migrated Sessions");
+        assert_eq!(sessions.len(), 4);
+        assert_eq!(
+            sessions[0].status.lifecycle.state,
+            agent::sessions::LifecycleState::Failed
+        );
+        assert_eq!(
+            sessions[1].status.lifecycle.state,
+            agent::sessions::LifecycleState::Idle
+        );
+        assert_eq!(
+            sessions[2].status.lifecycle.state,
+            agent::sessions::LifecycleState::Running
+        );
+        assert_eq!(
+            sessions[3].status.lifecycle.state,
+            agent::sessions::LifecycleState::Starting
+        );
+    });
+    drop(database);
+
+    let connection = rusqlite::Connection::open(&path).expect("inspect migrated database");
+    assert_eq!(
+        connection
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("schema version"),
+        2
+    );
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT source_directory FROM agents WHERE id = ?1",
+                [PREVIEW_DELETED_AGENT_ID],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("deleted Agent source"),
+        serde_json::to_string(Path::new("/preview/deleted")).expect("source")
+    );
+    let deleted: agent::Agent = serde_json::from_str(
+        &connection
+            .query_row(
+                "SELECT desired_json FROM agents WHERE id = ?1",
+                [PREVIEW_DELETED_AGENT_ID],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("deleted Agent desired state"),
+    )
+    .expect("migrated deleted Agent");
+    assert!(deleted.spec.instructions.is_empty());
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT value FROM secrets WHERE name = 'claude-access-token'",
+                [],
+                |row| { row.get::<_, Vec<u8>>(0) }
+            )
+            .expect("migrated secret"),
+        PREVIEW_SECRET
+    );
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT metadata_json FROM provider_accounts WHERE provider = 'claudeCode'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("provider metadata"),
+        r#"{"account":"preview-user"}"#
+    );
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT COUNT(*) FROM sessions \
+                 WHERE initial_prompt IS NULL AND harness_transcript_path IS NULL AND activity_json = '{}'",
+                [],
+                |row| row.get::<_, u32>(0),
+            )
+            .expect("migrated Session defaults"),
+        4
+    );
+    drop(connection);
+    drop(persistence::Database::open(&path).expect("reopen migrated database"));
+}
+
+#[test]
+fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    create_preview_1_database(&path);
+    let connection = rusqlite::Connection::open(&path).expect("open intermediate database");
     connection
-        .execute_batch("CREATE TABLE agents (name TEXT PRIMARY KEY NOT NULL, record_json TEXT NOT NULL);")
-        .expect("incompatible schema");
+        .execute_batch(
+            "CREATE TABLE session_activity_reports (
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                launch_token TEXT NOT NULL,
+                event_id TEXT NOT NULL,
+                PRIMARY KEY (session_id, launch_token, event_id)
+            );",
+        )
+        .expect("intermediate reports table");
+    let expanded_desired = serde_json::to_string(&support::agent("new-worker")).expect("expanded desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'new-worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                EXPANDED_AGENT_ID,
+                serde_json::to_string(Path::new("/expanded/source")).expect("source"),
+                expanded_desired,
+            ],
+        )
+        .expect("expanded Agent");
     drop(connection);
 
+    let database = persistence::Database::open(&path).expect("migrate intermediate database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let agent = database
+            .get(PREVIEW_AGENT_ID.parse().expect("preview Agent ID"))
+            .await
+            .expect("preserved Agent");
+        assert_eq!(agent.agent.spec.instructions.len(), 1);
+        let expanded = database
+            .get(EXPANDED_AGENT_ID.parse().expect("expanded Agent ID"))
+            .await
+            .expect("preserved expanded Agent");
+        assert_eq!(expanded.agent.spec.instructions.len(), 1);
+    });
+    drop(database);
+
+    assert_eq!(schema_snapshot(&path).0, 2);
+    assert_eq!(
+        connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
+        expanded_desired,
+        "array-valued instructions should not rewrite current desired state"
+    );
+}
+
+#[test]
+fn expanded_version_1_schema_is_adopted_without_losing_state() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create expanded version 1 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("expanded version 1 schema");
+    let desired = serde_json::to_string(&support::agent("worker")).expect("expanded desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                EXPANDED_AGENT_ID,
+                serde_json::to_string(Path::new("/expanded/source")).expect("source"),
+                desired,
+            ],
+        )
+        .expect("expanded Agent");
+    drop(connection);
+    let before = schema_snapshot(&path).1;
+
+    let database = persistence::Database::open(&path).expect("adopt expanded version 1 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        database
+            .get(EXPANDED_AGENT_ID.parse().expect("expanded Agent ID"))
+            .await
+            .expect("preserved Agent");
+    });
+    drop(database);
+
+    let after = schema_snapshot(&path);
+    assert_eq!(after.0, 2);
+    assert_eq!(after.1, before);
+}
+
+#[test]
+fn partial_version_1_schema_is_rejected_without_mutation() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("partial database");
+    connection
+        .execute_batch("CREATE TABLE agents (id TEXT PRIMARY KEY NOT NULL); PRAGMA user_version = 1;")
+        .expect("partial version 1 schema");
+    let before = schema_snapshot(&path);
+
     let Err(error) = persistence::Database::open(&path) else {
-        panic!("incompatible schema should not be migrated");
+        panic!("partial schema should be rejected");
     };
-    assert!(error.to_string().contains("purge the Agent home"));
+    assert!(error.to_string().contains("not a recognized released schema"));
+    assert_eq!(schema_snapshot(&path), before, "rejection must not mutate the schema");
+}
+
+#[test]
+fn future_schema_is_rejected_without_mutation() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("future database");
+    connection
+        .pragma_update(None, "user_version", 99)
+        .expect("future version");
+    drop(connection);
+    let before = schema_snapshot(&path);
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("future schema should be rejected");
+    };
+    assert!(error.to_string().contains("newer than the supported schema"));
+    assert_eq!(
+        rusqlite::Connection::open(&path)
+            .expect("inspect future database")
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("future version"),
+        99
+    );
+    assert_eq!(schema_snapshot(&path), before);
+}
+
+#[test]
+fn failed_preview_1_row_migration_rolls_back_schema_and_rows() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    create_preview_1_database(&path);
+    let connection = rusqlite::Connection::open(&path).expect("corrupt preview fixture");
+    connection
+        .execute(
+            "UPDATE agents SET desired_json = 'not-json' WHERE id = ?1",
+            [PREVIEW_DELETED_AGENT_ID],
+        )
+        .expect("corrupt later Agent row");
+    drop(connection);
+    let before = schema_snapshot(&path);
+    let valid_desired = connection_value(&path, PREVIEW_AGENT_ID, "desired_json");
+
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("malformed desired state should fail migration");
+    };
+    assert!(error.to_string().contains("invalid desired state during migration"));
+    assert_eq!(schema_snapshot(&path), before);
+    assert_eq!(connection_value(&path, PREVIEW_AGENT_ID, "desired_json"), valid_desired);
+    let connection = rusqlite::Connection::open(path).expect("inspect rollback");
+    assert_eq!(
+        connection
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("rolled-back version"),
+        1
+    );
+}
+
+fn schema_snapshot(path: &Path) -> (u32, Vec<(String, String)>) {
+    let connection = rusqlite::Connection::open(path).expect("snapshot database");
+    let version = connection
+        .query_row("PRAGMA user_version", [], |row| row.get(0))
+        .expect("snapshot version");
+    let mut statement = connection
+        .prepare(
+            "SELECT type || ':' || name, coalesce(sql, '') FROM sqlite_schema \
+             WHERE name NOT LIKE 'sqlite_%' ORDER BY 1",
+        )
+        .expect("snapshot query");
+    let schema = statement
+        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+        .expect("snapshot rows")
+        .collect::<Result<_, _>>()
+        .expect("snapshot values");
+    (version, schema)
+}
+
+fn connection_value(path: &Path, id: &str, column: &str) -> String {
+    let connection = rusqlite::Connection::open(path).expect("read fixture value");
+    connection
+        .query_row(&format!("SELECT {column} FROM agents WHERE id = ?1"), [id], |row| {
+            row.get(0)
+        })
+        .expect("fixture value")
 }
 
 #[test]
