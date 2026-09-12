@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Models;
 
@@ -70,6 +71,13 @@ internal static class PartySsnMasking
         return party with
         {
             SSN = NationalIdentityNumberExtensions.Mask(party.SSN),
+            ExternalUrn =
+                party.ExternalUrn?.StartsWith(
+                    AltinnUrns.PersonId,
+                    StringComparison.InvariantCultureIgnoreCase
+                ) == true
+                    ? null
+                    : party.ExternalUrn,
             Person = MaskPerson(party.Person),
             ChildParties = MaskChildParties(party.ChildParties),
         };
