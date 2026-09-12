@@ -72,10 +72,7 @@ internal static class PartySsnMasking
         {
             SSN = NationalIdentityNumberExtensions.Mask(party.SSN),
             ExternalUrn =
-                party.ExternalUrn?.StartsWith(
-                    AltinnUrns.PersonId,
-                    StringComparison.InvariantCultureIgnoreCase
-                ) == true
+                party.ExternalUrn?.StartsWith(AltinnUrns.PersonId, StringComparison.InvariantCultureIgnoreCase) == true
                     ? null
                     : party.ExternalUrn,
             Person = MaskPerson(party.Person),
