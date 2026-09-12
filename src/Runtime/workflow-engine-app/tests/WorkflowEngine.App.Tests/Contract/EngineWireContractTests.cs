@@ -45,6 +45,7 @@ public class EngineWireContractTests
             typeof(WorkflowStatusResponse),
             typeof(StepStatusResponse),
             typeof(PaginatedResponse<WorkflowStatusResponse>),
+            typeof(WorkflowCollectionListResponse),
             typeof(WorkflowCollectionDetailResponse),
             typeof(CancelWorkflowResponse),
             typeof(ResumeWorkflowResponse),

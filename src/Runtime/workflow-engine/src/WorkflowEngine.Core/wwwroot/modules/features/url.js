@@ -1,6 +1,6 @@
 /* URL sync — persist tab + filters to query params */
 
-import { dom, state } from '../core/state.js';
+import { dom, state, queryStatusIds } from '../core/state.js';
 import { getTheme, setTheme, updateThemeToggle } from './theme.js';
 
 /** Late-bound references set from app.js to break circular dependency */
@@ -86,6 +86,16 @@ export const syncUrl = () => {
     } else if (queryTimeRange) p.set('qt', String(queryTimeRange));
     if (/** @type {HTMLInputElement} */ (document.getElementById('retried-check'))?.checked)
         p.set('qr', '1');
+    {
+        const head = /** @type {HTMLInputElement | null} */ (
+            document.getElementById('head-check')
+        );
+        const nonHead = /** @type {HTMLInputElement | null} */ (
+            document.getElementById('nonhead-check')
+        );
+        if (head && nonHead && head.checked !== nonHead.checked)
+            p.set('qh', head.checked ? '1' : '0');
+    }
     if (state.labelFilters.size) {
         const parts = [];
         for (const [key, values] of state.labelFilters) {
@@ -157,7 +167,11 @@ export const restoreUrl = () => {
             document.getElementById('retried-check')
         );
         if (rc) rc.checked = false;
-        for (const s of ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled']) {
+        for (const id of ['head-check', 'nonhead-check']) {
+            const el = /** @type {HTMLInputElement | null} */ (document.getElementById(id));
+            if (el) el.checked = true;
+        }
+        for (const s of queryStatusIds) {
             const el = /** @type {HTMLInputElement | null} */ (
                 document.getElementById(`${s}-check`)
             );
@@ -201,14 +215,7 @@ export const restoreUrl = () => {
                         .map((s) => s.trim())
                         .filter(Boolean),
                 );
-                for (const s of [
-                    'enqueued',
-                    'processing',
-                    'requeued',
-                    'completed',
-                    'failed',
-                    'canceled',
-                ]) {
+                for (const s of queryStatusIds) {
                     const el = /** @type {HTMLInputElement | null} */ (
                         document.getElementById(`${s}-check`)
                     );
@@ -247,6 +254,17 @@ export const restoreUrl = () => {
             document.getElementById('retried-check')
         );
         if (check) check.checked = true;
+    }
+    const qh = p.get('qh');
+    if (qh === '1' || qh === '0') {
+        const head = /** @type {HTMLInputElement | null} */ (
+            document.getElementById('head-check')
+        );
+        const nonHead = /** @type {HTMLInputElement | null} */ (
+            document.getElementById('nonhead-check')
+        );
+        if (head) head.checked = qh === '1';
+        if (nonHead) nonHead.checked = qh === '0';
     }
     const lf = p.get('lf');
     if (lf) {
