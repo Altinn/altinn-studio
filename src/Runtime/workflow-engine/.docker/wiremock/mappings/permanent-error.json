@@ -1,0 +1,14 @@
+{
+  "priority": 5,
+  "name": "Permanent error (422, non-retryable)",
+  "request": {
+    "urlPath": "/permanent-error",
+    "method": "ANY"
+  },
+  "response": {
+    "status": 422,
+    "jsonBody": {
+      "error": "Simulated permanent failure — 422 is in RetryStrategy.DefaultNonRetryableHttpStatusCodes, so the engine fails the step outright instead of requeueing it"
+    }
+  }
+}
