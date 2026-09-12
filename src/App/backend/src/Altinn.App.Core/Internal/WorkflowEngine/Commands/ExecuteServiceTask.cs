@@ -157,7 +157,7 @@ internal sealed class ExecuteServiceTask(
             // the pipeline's own last item, or the verdict that closed the task from an exchange. This branch
             // also covers the null a legacy app-supplied implementation can still return.
             if (
-                result is SuccessfulProcessEngineCommandResult { AutoAdvanceProcess: false } concluded
+                result is SuccessfulProcessEngineCommandResult { ProcessNextContinuation: null } concluded
                 && (
                     pipelineItem is PipelineConclusion.FinalStep
                     || concluded.MailboxContinuation is MailboxContinuation.Conclude
@@ -568,8 +568,7 @@ internal sealed class ExecuteServiceTask(
             },
             ServiceTaskSuccessResult { AutoAdvanceProcess: true } success => new SuccessfulProcessEngineCommandResult
             {
-                AutoAdvanceProcess = true,
-                AutoAdvanceAction = success.Action,
+                ProcessNextContinuation = new(success.Action),
             },
             ServiceTaskSuccessResult => new SuccessfulProcessEngineCommandResult(),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.

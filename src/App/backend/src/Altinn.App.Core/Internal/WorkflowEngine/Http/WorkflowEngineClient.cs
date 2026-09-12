@@ -96,6 +96,30 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
+    public async Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<WorkflowStatusResponse>(cancellationToken)
+            ?? throw new InvalidOperationException(
+                "The expected workflow detail was not found in the response content."
+            );
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         string? collectionKey = null,

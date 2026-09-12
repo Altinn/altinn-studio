@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
@@ -53,6 +54,8 @@ internal interface IProcessEngine
     /// <c>idempotencyKey</c> defaults to one derived from <c>dependsOnWorkflowId</c>; the mailbox
     /// relay passes its own, derived from the step that concluded the exchange, so every call it
     /// makes from inside one callback keys off the same executing step.
+    /// The callback's <c>executionReferenceTime</c> supplies event and process timestamps so retries
+    /// reconstruct the same logical transition.
     /// </remarks>
     Task EnqueueProcessNext(
         Instance instance,
@@ -60,8 +63,10 @@ internal interface IProcessEngine
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,
+        DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
+        IInstanceDataAccessor? dataAccessor = null,
         CancellationToken cancellationToken = default
     );
 }

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -206,8 +207,7 @@ internal sealed class MailboxRelay
 
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    AutoAdvanceProcess = success.AutoAdvanceProcess,
-                    AutoAdvanceAction = success.Action,
+                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
                     MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
                 };
 
@@ -291,8 +291,7 @@ internal sealed class MailboxRelay
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    AutoAdvanceProcess = success.AutoAdvanceProcess,
-                    AutoAdvanceAction = success.Action,
+                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
                     MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
                 };
 
@@ -696,8 +695,10 @@ internal sealed class MailboxRelay
             // whether the process advances.
             ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             PublishedState(request),
+            request.Payload.ExecutionReferenceTime,
             request.AutoAdvanceAction,
             request.Payload.StepId.ToString(),
+            request.DataAccessor,
             cancellationToken
         );
 
@@ -716,6 +717,8 @@ internal readonly record struct MailboxRelayRequest
 
     /// <summary>The state blob the handler published, re-signed. <c>null</c> only on a permanent failure.</summary>
     public required string? State { get; init; }
+
+    public IInstanceDataAccessor? DataAccessor { get; init; }
 
     public required bool AutoAdvanceProcess { get; init; }
 

@@ -148,7 +148,7 @@ public class CommitProcessStateTests
         );
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
 
         await setup.UnitOfWork.SaveWorkflowOwnedAggregate(

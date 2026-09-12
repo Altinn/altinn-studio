@@ -1395,8 +1395,10 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             Guid dependsOnWorkflowId,
             string collectionKey,
             string state,
+            DateTimeOffset executionReferenceTime,
             string? action = null,
             string? idempotencyKey = null,
+            IInstanceDataAccessor? dataAccessor = null,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
@@ -1410,6 +1412,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             WorkflowEnqueueRequest request,
             CancellationToken cancellationToken = default
         ) => throw new HttpRequestException("Workflow engine rejected enqueue.", null, statusCode);
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
@@ -1482,6 +1490,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                 }
             );
         }
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,

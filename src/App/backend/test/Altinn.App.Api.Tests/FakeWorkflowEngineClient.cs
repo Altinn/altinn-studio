@@ -226,6 +226,19 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult<WorkflowCollectionDetailResponse?>(collection);
     }
 
+    public Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(
+            _workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns
+                ? ToWorkflowStatusResponse(workflow)
+                : null
+        );
+    }
+
     public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         string? collectionKey = null,

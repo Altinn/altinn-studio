@@ -14,7 +14,7 @@ The Workflow Engine service (external, .NET, PostgreSQL-backed) orchestrates pro
 ```text
 App ProcessNext API
   → ProcessEngine calls IWorkflowEngineService.EnqueueAndWaitForProcessNext()
-      → ProcessNextRequestFactory.CreateChainInitiating()
+      → ProcessNextRequestFactory.CreateAcquire() (W1: AcquireProcessingStatus with the action only)
       → WorkflowEngineClient.EnqueueWorkflows()     (HTTP POST → engine, returns WorkflowEnqueueResponse.Accepted)
       → Poll the workflow collection until it settles, then refetch the instance from Storage
       → Classify the outcome into ProcessNextWorkflowResult (instance, WorkflowFailure?, ProcessStateChanged)
@@ -30,7 +30,8 @@ WorkflowEngineCallbackController.ExecuteCommand()   (Altinn.App.Api)
   → If successful and there is a mutation plan, save once through SaveWorkflowOwnedAggregate()
   → If Storage reports replay, rebuild the unit-of-work state and continue
   → Capture + re-sign updated state blob
-  → On success with AutoAdvanceProcess, enqueue a dependent process-next workflow
+  → On success with ProcessNextContinuation, compute and enqueue a dependent process-next workflow
+      (W2 after acquire, or the next transition after a service task)
   → Return the updated state to the engine
   → (Engine uses the returned state blob for the next callback)
 ```
@@ -38,11 +39,12 @@ WorkflowEngineCallbackController.ExecuteCommand()   (Altinn.App.Api)
 ## Key Design Constraints
 
 - **ALL commands MUST be idempotent** - the engine retries failed commands with configurable backoff
-- **A chain-initiating enqueue is fenced by one authoritative Storage snapshot.** Its engine idempotency key is `process-next-operation-{instanceGuid:N}-{instanceVersion}`. The same instance/version intentionally collides regardless of action, task, or flow; actor/action/event differences remain in the engine-hashed request body and therefore produce an engine 409 rather than broadening deduplication. Dependent workflows retain `process-next-dependent-{workflowId:N}`.
+- **A chain-initiating enqueue is fenced by one authoritative Storage snapshot.** Its engine idempotency key is `process-next-operation-{instanceGuid:N}-{instanceVersion}`. The same instance/version intentionally uses the same key regardless of action, task, or flow. For an acquire-only request the action, labels and signed callback state remain in the engine-hashed body. The engine excludes context from its hash, so a difference only in the actor does not distinguish acquire requests; identical action/state/labels can share W1. Full initial-start workflows also carry their process events in the hashed body. Dependent workflows retain `process-next-dependent-{workflowId:N}`.
+- **Continuation reconstruction is retry-stable.** `EnqueueProcessNext` uses the callback's `ExecutionReferenceTime` for every event timestamp and the target task's start or process end time. Side-effects step payloads contain no callback authentication context: `EnqueueSideEffectsWorkflow` adds it at execution, where it is top-level context and excluded from the engine hash. If key rotation or a Storage replay's refreshed metadata changes the signed state, a 409 is recovered only by finding one non-abandoned continuation with the exact callback-owned key, namespace, collection, dependency and source task. The list endpoint identifies the candidate; the detail endpoint verifies its dependency because lists omit dependencies. Its persisted state remains authoritative. This recovery is specific to process-next continuations, including mailbox after-workflows; direct mailbox receiver/segment enqueues are unchanged.
 - **A successful registered user action is followed by a full authoritative instance refresh.** `ProcessEngine` saves staged unit-of-work changes, then refetches the complete instance plus `Instance-Version` and `Process-State-Version`. Validation, form-data capture, signed callback state, enqueue identity, and acquire preconditions all use that same refreshed snapshot. This also covers action handlers such as signing that write Storage directly during the handler.
 - **Commands run in separate HTTP requests** - each callback is independent; state is passed between commands via a signed, opaque JSON blob (see State Passthrough below)
 - **Commands mutate in memory; the controller owns persistence.** Commands stage work on the `InstanceDataUnitOfWork`; the callback controller performs the workflow-owned Storage save (see Commit Boundary below)
-- **Command phases**: initiating `AcquireProcessingStatus` → task-end/abandon commands → `MutateProcessState` (in-memory state transition) → task-start / process-end pre-commit commands → `CommitProcessState` (stages the process-state change and ownership decision; the controller save that commits it is the commit boundary) → `EnqueueSideEffectsWorkflow` (schedules the non-critical side-effect commands as separate `IsHead=false` single-step workflows, one per side effect, when the transition has any) → critical post-commit commands, including `ExecuteServiceTask` for a service-task target (see Command Sequences)
+- **Command phases**: for `process/next`, W1 contains only `AcquireProcessingStatus` with the action. After its save the callback computes and enqueues W2, depending on W1: task-end/abandon commands → `MutateProcessState` (in-memory state transition) → task-start / process-end pre-commit commands → `CommitProcessState` (stages the process-state change and ownership decision; the controller save that commits it is the commit boundary) → `EnqueueSideEffectsWorkflow` (schedules the non-critical side-effect commands as separate `IsHead=false` single-step workflows, one per side effect, when the transition has any) → critical post-commit commands, including `ExecuteServiceTask` for a service-task target (see Command Sequences)
 - **The callback `stepId` is required.** The engine sends its step database id as `AppCallbackPayload.StepId`; a callback without it is rejected as a bad request before any command runs, rather than defaulted to `Guid.Empty` (one key shared by every step of every instance). The controller forwards the id verbatim to Storage as the aggregate mutation's `Idempotency-Key` header, so the same id is greppable across the engine database, app logs, and Storage's idempotency records
 - **Task-start reads get a clean slate.** `CleanupGeneratedFromTask` runs before the task-start hooks and removes elements generated by previous visits to the entering task (mirroring Storage's cleanup contract, but early enough that `OnTaskStartingHook`/`StartTask` never see stale data). An element referencing the entering task that is visible at task start was created by a retried attempt of the same transition.
 - **`generatedFromTask` tagging is safe in any phase, including task start.** Storage's cleanup at `PutInstanceAndEvents` (stale data from previous visits - see altinn-storage#977 / app-lib-dotnet#1750) is timestamp-guarded: it only deletes elements created before the in-flight transition began, so elements created by task-start commands survive the save that completes their own transition. `SigningService` relies on this - signee states are created during task start tagged with the signing task. NOTE: the guard must exist in the Storage backend the app runs against (localtest has it; the altinn-storage PR must be deployed before this app-lib version is released).
@@ -90,7 +92,7 @@ WorkflowEngine/
 
 Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSequence` assembles the sequences:
 
-1. `AcquireProcessingStatus` for a chain-initiating workflow; never for an engine-owned dependent workflow
+1. `AcquireProcessingStatus` only for instantiation and `process/start`; a user-triggered `process/next` has already acquired in W1 before this dependent sequence is built
 2. Task-end/abandon commands (from `process_EndTask`/`process_AbandonTask` events)
 3. `MutateProcessState` (inserted by the factory if there are task-end/abandon commands)
 4. Task-start and process-end commands (from `process_StartTask`/`process_EndEvent` events)
@@ -101,9 +103,11 @@ Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSe
 7. Critical post-commit commands (`CriticalPostCommitCommands`) — must complete before the
    transition settles; they run after the controller save for `CommitProcessState` has committed
 
-`CreateChainInitiating` and `CreateDependent` are deliberately separate factory entry points. Initial process start and user-triggered process-next use the former, so acquire is command index 0 with no earlier side effect. `ExecuteServiceTask` auto-advance uses the latter with the existing dependency and idempotency key; dependent workflows inherit `processing` and do not reacquire it.
+`CreateAcquire` builds W1 for user-triggered `process/next`, including `reject`: a single acquire step whose payload carries only the action, plus instance and source-task labels derived directly from the snapshot. It has no destination labels and performs no gateway evaluation in the request. Until W2 exists, status reads report processing with an unknown target; the source label keeps W1 discoverable for admission. The request still performs authorization, user-action handlers and validation. Once the acquire save succeeds, its callback computes the transition with the restored instance/data and the actor's language and calls `CreateDependent` to build W2. W2 depends on W1 and exists before W1's callback returns, so the collection cannot settle between them. W1 uses `process-next-operation-{instanceGuid:N}-{instanceVersion}`; W2 uses `process-next-dependent-{W1:N}`. An acquire conflict creates no W2.
 
-All of the above form the **Main workflow** — the only workflow in the enqueue batch. The
+`CreateChainInitiating` remains for instantiation and `process/start`, whose already-started process snapshot and complete sequence stay in one workflow with an acquire first and no acquire payload. `CreateDependent` also builds service-task auto-advance workflows. Every dependent inherits `processing` and does not reacquire it.
+
+The sequence above forms the **Main workflow** — W2 for user-triggered `process/next`, or the single workflow for instantiation/start. Each enqueue batch contains one such workflow. The
 non-critical side-effect commands (`SideEffectCommands`) travel inside step 6's payload as a
 pre-assembled enqueue request; when that step executes — immediately after the commit — it submits
 them to the engine as separate **side-effects workflows, one single-step workflow per side effect**,
@@ -122,8 +126,7 @@ API response or wedge the instance's process pipeline, and the side effects star
 rather than after e.g. a service task. One workflow per effect means the effects also fail
 independently of _each other_: a dead-lettered event registration cannot starve the notification
 behind it, each effect gets its own retry pacing and redrive, and a failed workflow is named for
-the one effect it carries. When there are no side-effect commands, a single workflow without the
-enqueue step is emitted — identical to the pre-split behavior.
+the one effect it carries. When there are no side-effect commands, Main omits the enqueue step. User-triggered transitions still have the preceding acquire workflow.
 
 **Ordering is not guaranteed between side effects at all** — neither across transitions nor between
 effects of the same transition (each rides its own workflow): a retrying `movedTo.Task_2`
@@ -144,8 +147,11 @@ commit save itself.)
 ### Task-to-Task Transition (e.g., Task_1 → Task_2)
 
 ```text
-Main workflow:
-AcquireProcessingStatus (idle → processing)
+Acquire workflow (W1):
+AcquireProcessingStatus (idle → processing; action payload)
+  ── save + capture state → compute and enqueue W2, depending on W1 ──
+
+Main continuation workflow (W2; no acquire):
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → Task_2) ──
@@ -173,8 +179,11 @@ mailbox-opening stage, or up to (excluding) the next reply handler, or the concl
 ### Task-to-End Transition (e.g., Task_1 → EndEvent)
 
 ```text
-Main workflow:
-AcquireProcessingStatus (idle → processing)
+Acquire workflow (W1):
+AcquireProcessingStatus (idle → processing; action payload)
+  ── save + capture state → compute and enqueue W2, depending on W1 ──
+
+Main continuation workflow (W2; no acquire):
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 EndTask → CommonTaskFinalization → OnTaskEndingHook → LockTaskData
   ── MutateProcessState (in-memory: CurrentTask → null, EndEvent set) ──
@@ -207,8 +216,11 @@ MovedToAltinnEvent ∥ [InstanceCreatedAltinnEvent if instantiation] ∥ [Notify
 ### Task Abandon (reject → end)
 
 ```text
-Main workflow:
-AcquireProcessingStatus (idle → processing)
+Acquire workflow (W1):
+AcquireProcessingStatus (idle → processing; action payload)
+  ── save + capture state → compute and enqueue W2, depending on W1 ──
+
+Main continuation workflow (W2; no acquire):
 ── instance.Process.CurrentTask = Task_1 (OLD) ──
 AbandonTask → OnTaskAbandonHook
   ── MutateProcessState (in-memory: CurrentTask → null or next task) ──
@@ -267,7 +279,9 @@ Task-generated-data cleanup lives in `CleanupGeneratedFromTask`, which runs righ
 
 `AcquireProcessingStatus` stages exactly expected `idle` → new `processing` and updates the in-memory snapshot before it is re-signed; because the status lives inside the process payload, its save also sends a full `processState` update synthesized from that snapshot. Every subsequent workflow-owned save defaults to expected `processing`. `CommitProcessState` normally stages expected `processing` → new `idle`. When the exact sequence constructed by the factory contains a following service-task command, the factory sets `ServiceTaskFollows` in the private commit payload and the commit instead keeps `processing`. This indicator is produced by the same `WorkflowCommandSet` branch that appends `ExecuteServiceTask`; it is not a task-type classifier, app-facing option, hidden global, or signed runtime continuation result.
 
-The target service task is therefore durable before its side effects run. `ExecuteServiceTask` keeps `processing` only for the known `ServiceTaskSuccessResult` auto-advance branch and returns its exact action. Explicit failure results clear/enqueue nothing. Every other runtime result—including known no-auto success, an app-defined `ServiceTaskResult` subtype, or legacy null—pauses at the durable service task, stages expected `processing` → new `idle`, and returns no auto-advance. The controller saves any service-task data/status mutation and captures updated state before enqueueing the dependent workflow with an auto result's action. A service-task failure leaves Storage at the target service task plus `processing`, so resuming the existing workflow retries `ExecuteServiceTask` without reacquiring. The dependent workflow does not acquire and its final commit clears to `idle`.
+A successful acquire with an action payload returns `ProcessNextContinuation(Action)`. After saving and re-capturing state, the controller calls `ProcessEngine.EnqueueProcessNext` with the workflow actor, W1's id and the restored unit of work. The navigator uses that service-owner-loaded data for gateway expressions, never a fresh unit of work authenticated as the callback principal. The actor's event fields match the request's `PlatformUser` (including the service owner's org name and the currently empty organization user). An acquire without a payload, used by initial process starts, returns no continuation.
+
+The target service task is therefore durable before its side effects run. `ExecuteServiceTask` keeps `processing` only for the known `ServiceTaskSuccessResult` auto-advance branch and returns `ProcessNextContinuation` with its exact action — the directive’s other producer. Explicit failure results clear/enqueue nothing. Every other runtime result—including known no-auto success, an app-defined `ServiceTaskResult` subtype, or legacy null—pauses at the durable service task, stages expected `processing` → new `idle`, and returns no auto-advance. The controller saves any service-task data/status mutation and captures updated state before enqueueing the dependent workflow with an auto result's action. A service-task failure leaves Storage at the target service task plus `processing`, so resuming the existing workflow retries `ExecuteServiceTask` without reacquiring. The dependent workflow does not acquire and its final commit clears to `idle`.
 
 Workflow-owned mutations in callbacks must be staged through `InstanceDataUnitOfWork` and persisted by the controller's standard save path. Direct `IDataClient`/`IInstanceClient` writes from commands or app hooks are unsupported; while ownership is `processing`, Storage rejects ordinary data and process mutations that do not supply the workflow aggregate's expected status. Do not add a separate pre-enqueue acquire call or a command-owned Storage save.
 
@@ -299,7 +313,7 @@ The intended fix, not yet implemented: when a callback hits `DataElementContentC
 
 - `ScopeToCurrentChain` narrows the collection to the workflow just submitted and everything created after it, so lingering terminal heads from earlier transitions don't leak into the current wait. It also strips side-effects workflows (matched by the engine-persisted `isHead == false` head-visibility directive; the `Process next side-effects:` OperationId prefix is a naming convention only) from every path: they must not extend the wait — they are enqueued mid-Main, so they are strictly newer than the anchor and would otherwise leak into the chain — and their failures must never be classified as transition failures.
 - `BuildWorkflowFailure` classifies the outcome into a `WorkflowFailure` (`AcquireConflict`, `StepFailed`, `DependencyFailed`, `EngineFault`, `Timeout`, or a superseding-abandon case). `AcquireConflict` is reserved for a non-retryable `AcquireProcessingStatus` failure carrying the callback's structured concurrency code while acquire is the first command. At the Storage boundary, a 409 receives that code only when its ProblemDetails `type` is exactly `process_status_conflict`; unrelated aggregate-mutation 409s remain ordinary resumable failures. The waiting path abandons the side-effect-free acquire conflict before returning HTTP 409, releasing its stale enqueue idempotency key and preventing `resumeRequired`. An abandon compare-and-set loss is re-polled and reclassified, but every such path remains bounded by the same internal polling deadline. A failure after acquire is never written off and remains resumable. `ExtractCallbackErrorDetail` unwraps the ProblemDetails `detail` from an engine error message so the human-readable reason is available server-side (logged by the controller); the raw message is never serialized to clients — failed action responses ship a stable generic `detail` plus a `workflowFailure` stripped of its recorded error.
-- `HasCommittedProcessState` reports whether `CommitProcessState` completed, so the caller knows if the transition was persisted even when a later step failed.
+- `HasCommittedProcessState` reports whether `CommitProcessState` completed anywhere in the chain. For user-triggered transitions the wait anchors on W1, but the commit lives in W2. The wait covers W2 and any later auto-advance workflows; a failure after commit remains resumable on W2 without acquiring again. Timeouts inspect the same chain.
 
 `GetCurrentTaskWorkflowState` returns a closed set — `Unblocked`, `Retrying(workflowId, collectionKey)`, or `ResumeRequired(workflowId, collectionKey)` — used before enqueueing a new action so a still-running or terminally-failed transition blocks the next action.
 
@@ -309,7 +323,7 @@ Reject/resume/abandon:
 
 - `ResumeAndWaitForWorkflow` resumes a failed workflow (cascade) and waits for it to settle — sharing the wait above, so a resumed workflow that immediately defers again also releases early with the waiting UI.
 - `AbandonWorkflow` writes off a terminally failed workflow (`Failed → Abandoned`) so a subsequently enqueued workflow can depend on it; returns `false` if the engine's compare-and-set was rejected (e.g. a concurrent resume revived it).
-- `EnqueueDependentProcessNext` enqueues a workflow that `dependsOn` another (used by the reject flow to supersede a failed transition, and by auto-advance).
+- `EnqueueDependentProcessNext` enqueues a workflow that `dependsOn` another (used after a successful acquire and by service-task auto-advance).
 
 ## State Passthrough
 
@@ -326,7 +340,7 @@ Each callback needs the app's workflow callback state (`instance` + storage vers
 5. After command execution and the controller save/replay handling, the updated state — data _and_ carry — is captured, re-signed, and returned in `AppCallbackResponse.State`
 6. Engine uses the returned state for the next callback — state evolves command by command. For a **deferred** step the app echoes the incoming state back unchanged (deferral is stateless — the controller rejects a deferring handler that made data changes), and the engine hands a deferred step its own returned state on the next attempt (`ResolveStateIn` prefers a step's own `StateOut`), so every re-check starts from exactly the state the step first received.
 
-**Capture point**: after a registered user action succeeds, `ProcessEngine` first refetches the complete authoritative Storage snapshot and both versions. It then captures state BEFORE the in-memory process state is mutated to the next task. The blob carries the OLD process state (CurrentTask = the task being left) and exactly the versions used in the chain-initiating enqueue key/acquire fence. `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
+**Capture point**: after a registered user action succeeds, `ProcessEngine` first refetches the complete authoritative Storage snapshot and both versions. It then captures state with the old task. For `process/next` the request never mutates the instance to the target task; it records only source-task and instance labels, leaving navigation and event construction to the acquire callback. The blob carries the OLD process state (CurrentTask = the task being left) and exactly the versions used in the chain-initiating enqueue key/acquire fence. `MutateProcessState` transitions the in-memory state to the new task between the two command groups.
 
 **Side-effects workflow state**: the side-effects workflow carries the **commit-time state blob** as its own `State`. `EnqueueSideEffectsWorkflow` runs immediately after the controller save for `CommitProcessState` has committed, so its `StateIn` — the blob it forwards — is exactly the state the transition committed: the (NEW) process state plus every data change made up to the commit. Side-effect commands therefore always act on committed data, even when the transition ended the process and the instance was auto-deleted from Storage. (They do not see changes made by _later_ critical post-commit commands such as `ExecuteServiceTask` — the events describe the commit, not what happened after it.)
 
@@ -357,6 +371,7 @@ Each callback needs the app's workflow callback state (`instance` + storage vers
 - Commands get instance data through `context.InstanceDataMutator`, typed as `IInstanceDataMutator`. Task data lock/unlock commands deliberately assert that the runtime object is `InstanceDataUnitOfWork`, because data-type lock mutation is workflow-owned and is not part of the app-facing mutator surface
 - Commands pass `context.CancellationToken` into app-facing contexts (`ProcessTaskContext`, hook contexts, and `ServiceTaskContext`)
 - Commands do not persist directly. They stage work on the unit of work; the callback controller performs the workflow-owned save after successful execution
+- The acquire callback computes the process-next continuation only after the save, using the restored unit of work for all gateway data. Its action payload contains no later steps. The same restored-data path serves service-task auto-advance, including mailbox conclusions
 - Hook commands (`OnTaskStarting`, `OnTaskEnding`, `OnTaskAbandon`, `OnProcessEnding`) enforce max 1 handler per task
 - Each service task gets one `ExecuteServiceTask` callback after `CommitProcessState` has durably installed the target task with `processing`. `ServiceTaskContext.IdempotencyKey` is the retry-stable workflow step database id from the callback payload (`AppCallbackPayload.StepId`); the required `ExecutionReferenceTime` is `Workflow.StartAt ?? Step.CreatedAt`. The engine reuses both values on retries of that persisted step.
 - `CommitProcessState` keeps `processing` from the factory-known fact that a service-task command follows. `ExecuteServiceTask` then clears for a paused result or returns the exact auto-advance action while keeping `processing`; the callback controller saves staged service data/status before enqueueing the dependent process-next workflow
@@ -403,6 +418,7 @@ The engine service (a separately-deployed runtime, built from `src/Runtime/workf
 
 - Enqueue: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows` with `Idempotency-Key` header (required) and `Collection-Key` header (optional)
 - Collection detail: `GET {ApiWorkflowEngineEndpoint}/{namespace}/collections/{collectionKey}` — returns `null` on 404
+- Workflow detail: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}` — includes dependencies; returns `null` on 404
 - List: `GET {ApiWorkflowEngineEndpoint}/{namespace}/workflows?collectionKey=...&label=key:value&status=...&cursor=...` — paginates through `PaginatedResponse<WorkflowStatusResponse>`
 - Cancel: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/cancel`
 - Resume: `POST {ApiWorkflowEngineEndpoint}/{namespace}/workflows/{workflowId}/resume?cascade={bool}`

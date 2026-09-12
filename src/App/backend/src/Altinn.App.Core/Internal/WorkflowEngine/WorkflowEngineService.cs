@@ -66,7 +66,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         _timeProvider = timeProvider;
     }
 
-    public async Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+    public Task<ProcessNextWorkflowResult> EnqueueAndWaitForInitialProcessState(
         Instance instance,
         StorageVersionMetadata instanceVersions,
         ProcessStateChange processStateChange,
@@ -75,20 +75,51 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
         CancellationToken cancellationToken = default
+    ) =>
+        EnqueueAndWaitForWorkflow(
+            instance,
+            () =>
+                CreateWorkflowEnqueueEnvelope(
+                    instance,
+                    processStateChange,
+                    CreateProcessNextIdempotencyKey(instance, instanceVersions),
+                    state,
+                    isInstantiation,
+                    prefill,
+                    notification
+                ),
+            cancellationToken
+        );
+
+    public Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        string? action,
+        CancellationToken cancellationToken = default
+    ) =>
+        EnqueueAndWaitForWorkflow(
+            instance,
+            () =>
+                _processNextRequestFactory.CreateAcquire(
+                    instance,
+                    action,
+                    state,
+                    CreateProcessNextIdempotencyKey(instance, instanceVersions)
+                ),
+            cancellationToken
+        );
+
+    private async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
+        Instance instance,
+        Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
+        CancellationToken cancellationToken
     )
     {
         WorkflowEnqueueEnvelope bundle;
         try
         {
-            bundle = await CreateWorkflowEnqueueEnvelope(
-                instance,
-                processStateChange,
-                CreateProcessNextIdempotencyKey(instance, instanceVersions),
-                state,
-                isInstantiation: isInstantiation,
-                prefill: prefill,
-                notification: notification
-            );
+            bundle = await createEnvelope();
         }
         catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
@@ -381,8 +412,54 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
             idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
         );
-        (Guid workflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, cancellationToken);
-        return workflowId;
+        try
+        {
+            (Guid workflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, cancellationToken);
+            return workflowId;
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            // This key belongs to one persisted callback, not a new user request. Its accepted
+            // continuation is authoritative if the acknowledgment was lost. Storage replay can
+            // refresh incidental instance metadata, and state signing keys can rotate, so even a
+            // deterministic transition may carry different state bytes on reconstruction.
+            var workflows = await _workflowEngineClient.ListWorkflows(
+                bundle.Namespace,
+                collectionKey,
+                cancellationToken: cancellationToken
+            );
+            string? sourceId = bundle.Request.Labels?.GetValueOrDefault(
+                ProcessNextRequestFactory.ProcessNextSourceIdLabel
+            );
+            bool MatchesContinuation(WorkflowStatusResponse workflow) =>
+                workflow.Namespace == bundle.Namespace
+                && workflow.CollectionKey == collectionKey
+                && workflow.IdempotencyKey == bundle.IdempotencyKey
+                && workflow.OverallStatus != PersistentItemStatus.Abandoned
+                && workflow.IsHead is not false
+                && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceIdLabel) == sourceId;
+
+            var candidates = workflows.Where(MatchesContinuation).ToArray();
+            if (candidates.Length == 1)
+            {
+                // List responses omit dependencies. Read the detail to verify the parent and
+                // recheck eligibility in case the candidate was abandoned after the list read.
+                var accepted = await _workflowEngineClient.GetWorkflow(
+                    bundle.Namespace,
+                    candidates[0].DatabaseId,
+                    cancellationToken
+                );
+                if (
+                    accepted is not null
+                    && MatchesContinuation(accepted)
+                    && accepted.Dependencies?.ContainsKey(dependsOnWorkflowId) == true
+                )
+                {
+                    return accepted.DatabaseId;
+                }
+            }
+            throw;
+        }
     }
 
     private Task<WorkflowEnqueueEnvelope> CreateWorkflowEnqueueEnvelope(

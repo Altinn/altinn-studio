@@ -119,6 +119,12 @@ public class MailboxRelayTests
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
@@ -172,13 +178,26 @@ public class MailboxRelayTests
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<IInstanceDataAccessor?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, dependsOn, collectionKey, state, action, idempotencyKey, _) =>
+            .Callback<
+                Instance,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                IInstanceDataAccessor?,
+                CancellationToken
+            >(
+                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, _, _) =>
                 {
                     recorder.Calls.Add("enqueue-after-workflow");
                     recorder.AfterWorkflows.Add((dependsOn, collectionKey, state, action, idempotencyKey));
@@ -901,8 +920,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("confirm", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("confirm", success.ProcessNextContinuation?.Action);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
     }
@@ -924,7 +943,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
     }
 
@@ -945,7 +964,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             success.MailboxContinuation
         );
@@ -1085,8 +1104,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-        Assert.Null(success.AutoAdvanceAction);
+        Assert.Null(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
             success.MailboxContinuation
@@ -1757,7 +1776,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -1899,7 +1918,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -1962,8 +1981,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation
@@ -1990,7 +2009,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation
         );

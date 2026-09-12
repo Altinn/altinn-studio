@@ -34,6 +34,16 @@ internal interface IWorkflowEngineClient
     );
 
     /// <summary>
+    /// Gets a workflow with its dependencies by database ID.
+    /// Returns <see langword="null"/> when the workflow does not exist in the namespace.
+    /// </summary>
+    Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Lists workflows, optionally filtered by collection key, labels, and statuses.
     /// Returns an empty list when no workflows match.
     /// </summary>

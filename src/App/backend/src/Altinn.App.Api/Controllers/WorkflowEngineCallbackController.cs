@@ -10,7 +10,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -249,10 +248,10 @@ public class WorkflowEngineCallbackController : ControllerBase
                         appId,
                         instanceId,
                         payload,
-                        instanceDataUnitOfWork.Instance,
+                        instanceDataUnitOfWork,
                         updatedState,
-                        success.AutoAdvanceProcess,
-                        success.AutoAdvanceAction,
+                        success.ProcessNextContinuation is not null,
+                        success.ProcessNextContinuation?.Action,
                         cancellationToken
                     );
 
@@ -260,15 +259,15 @@ public class WorkflowEngineCallbackController : ControllerBase
                     return Ok(new AppCallbackResponse { State = updatedState });
                 }
 
-                // Auto-advance runs AFTER save so the state blob includes Storage-assigned IDs; the enqueue is
+                // Process-next continuation runs AFTER save so its state includes Storage-assigned IDs; the enqueue is
                 // idempotency-keyed, so a retried callback is safe.
-                if (success.AutoAdvanceProcess)
+                if (success.ProcessNextContinuation is { } processNextContinuation)
                 {
                     string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
                     if (string.IsNullOrWhiteSpace(collectionKey))
                     {
                         _logger.LogError(
-                            "Workflow callback is missing the '{Header}' header required for auto-advance. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                            "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
                             CollectionKeyHeader,
                             commandKey,
                             instanceId
@@ -276,7 +275,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
                         return NonRetryableProblem(
                             "Missing Collection-Key",
-                            "Workflow callback is missing the Collection-Key header required for auto-advance process next.",
+                            "Workflow callback is missing the Collection-Key header required for process-next continuation.",
                             StatusCodes.Status422UnprocessableEntity
                         );
                     }
@@ -288,7 +287,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload.WorkflowId,
                         collectionKey,
                         updatedState,
-                        success.AutoAdvanceAction,
+                        payload.ExecutionReferenceTime,
+                        processNextContinuation.Action,
+                        dataAccessor: instanceDataUnitOfWork,
                         cancellationToken: cancellationToken
                     );
                 }
@@ -350,7 +351,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                         appId,
                         instanceId,
                         payload,
-                        instanceDataUnitOfWork.Instance,
+                        instanceDataUnitOfWork,
                         state: null,
                         autoAdvanceProcess: false,
                         autoAdvanceAction: null,
@@ -431,7 +432,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         AppIdentifier appId,
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
-        Instance instance,
+        InstanceDataUnitOfWork unitOfWork,
         string? state,
         bool autoAdvanceProcess,
         string? autoAdvanceAction,
@@ -446,7 +447,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                 AppId = appId,
                 InstanceId = instanceId,
                 Payload = payload,
-                Instance = instance,
+                Instance = unitOfWork.Instance,
+                DataAccessor = unitOfWork,
                 State = state,
                 AutoAdvanceProcess = autoAdvanceProcess,
                 AutoAdvanceAction = autoAdvanceAction,

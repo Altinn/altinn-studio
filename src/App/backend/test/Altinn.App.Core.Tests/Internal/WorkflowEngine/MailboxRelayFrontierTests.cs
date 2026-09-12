@@ -132,6 +132,12 @@ public class MailboxRelayFrontierTests
             return Task.FromResult(new WorkflowEnqueueResponse.Accepted { Workflows = accepted });
         }
 
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
@@ -324,13 +330,26 @@ public class MailboxRelayFrontierTests
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
+                    It.IsAny<IInstanceDataAccessor?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, collectionKey, _, _, idempotencyKey, cancellationToken) =>
+            .Returns<
+                Instance,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                IInstanceDataAccessor?,
+                CancellationToken
+            >(
+                (_, _, _, collectionKey, _, _, _, idempotencyKey, _, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,
