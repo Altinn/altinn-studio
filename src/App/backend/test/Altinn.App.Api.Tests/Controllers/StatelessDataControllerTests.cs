@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Models;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
@@ -162,7 +163,14 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 234,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000170"),
+                    Name = "Party 234",
+                }
+            );
 
         // Act
         var response = await client.SendAsync(request);
@@ -190,7 +198,14 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 234,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000205"),
+                    Name = "Party 234",
+                }
+            );
 
         // Act
         var response = await client.SendAsync(request);

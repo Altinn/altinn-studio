@@ -1,5 +1,5 @@
 using Altinn.Platform.Authorization.Services.Interface;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Authorization.Implementation
@@ -28,7 +28,7 @@ namespace LocalTest.Services.Authorization.Implementation
             return ContainsParty(parties, partyId);
         }
 
-        private static bool ContainsParty(List<Party> parties, int partyId)
+        private static bool ContainsParty(IReadOnlyList<Party> parties, int partyId)
         {
             foreach (var party in parties)
             {

@@ -1,9 +1,7 @@
 using System.Globalization;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Helpers;
@@ -70,6 +68,7 @@ public static class InstantiationHelper
                 {
                     throw new Exception("List of allowed child parties unexpectedly null");
                 }
+
                 party.ChildParties.AddRange(allowedChildParties);
                 allowed.Add(party);
             }

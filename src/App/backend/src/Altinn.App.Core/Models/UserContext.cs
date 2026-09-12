@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Core.Models;
 

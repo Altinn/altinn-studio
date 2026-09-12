@@ -1,12 +1,13 @@
 {
   "UserId": 1002,
+  "UserUuid": "00000000-0000-0000-0000-000000510002",
   "UserName": "GjentagendeForelder",
   "PhoneNumber": "12345678",
   "Email": "test@test.com",
   "PartyId": 510002,
   "Party": {
     "partyId": "510002",
-    "partyUuid": "6714969f-8cf7-4282-bd71-7627bc9d4380",
+    "partyUuid": "00000000-0000-0000-0000-000000510002",
     "ssn": "17858296439"
   },
   "UserType": 0,

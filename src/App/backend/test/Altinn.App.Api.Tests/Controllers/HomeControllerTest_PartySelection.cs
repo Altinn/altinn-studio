@@ -1,8 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -59,12 +58,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = selectedPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -115,12 +116,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -169,12 +172,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Test Bruker",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -221,6 +226,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
@@ -274,12 +280,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -323,12 +331,14 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },
                     new()
                     {
                         PartyId = 500600,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },
@@ -381,6 +391,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     new()
                     {
                         PartyId = userPartyId,
+                        PartyUuid = Guid.NewGuid(),
                         PartyTypeName = PartyType.Person,
                         Name = "Sophie Salt",
                     },

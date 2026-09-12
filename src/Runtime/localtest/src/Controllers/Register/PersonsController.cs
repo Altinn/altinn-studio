@@ -4,8 +4,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Core;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using AltinnCore.Authentication.Constants;
+using PersonLookupIdentifiers = Altinn.Platform.Register.Models.PersonLookupIdentifiers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

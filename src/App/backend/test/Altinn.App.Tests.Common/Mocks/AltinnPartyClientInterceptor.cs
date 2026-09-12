@@ -33,7 +33,7 @@ public class AltinnPartyClientInterceptor : HttpMessageHandler
     /// <summary>
     /// Currently not required by any tests, but can be implemented if needed.
     /// The implementation should be similar to
-    /// <see cref="AltinnPartyClientMock.LookupParty(Platform.Register.Models.PartyLookup)"/>
+    /// <see cref="AltinnPartyClientMock.LookupParty(Altinn.App.Core.Models.PartyLookup, Altinn.App.Core.Internal.Registers.StorageAuthenticationMethod?)"/>
     /// </summary>
     private HttpResponseMessage GetPartyLookupResponse(string lookupContent)
     {

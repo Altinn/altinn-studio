@@ -1,13 +1,14 @@
 {
-    "partyId": "510004",
-    "partyTypeName": 3,
-    "orgNumber": null,
-    "ssn": null,
-    "unitType": null,
-    "name": "epost:post@altinn.no",
-    "isDeleted": false,
-    "onlyHierarchyElementWithNoAccess": false,
-    "person": null,
-    "organisation": null,
-    "childParties": null
-  }
+  "partyId": "510004",
+  "partyUuid": "00000000-0000-0000-0000-000000510004",
+  "partyTypeName": 3,
+  "orgNumber": null,
+  "ssn": null,
+  "unitType": null,
+  "name": "epost:post@altinn.no",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

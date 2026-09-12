@@ -57,6 +57,8 @@ export const PREFILL_SOURCE_FIELDS: Record<
     'ProfileSettingPreference.PreSelectedPartyId',
     'ProfileSettingsPreference.DoNotPromptForParty',
     'Party.PartyId',
+    'Party.PartyUuid',
+    'Party.ExternalUrn',
     'Party.PartyTypeName',
     'Party.OrgNumber',
     'Party.SSN',

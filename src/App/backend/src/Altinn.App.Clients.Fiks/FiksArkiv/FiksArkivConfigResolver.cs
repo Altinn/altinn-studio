@@ -10,7 +10,7 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 using Microsoft.Extensions.Logging;
@@ -260,7 +260,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         if (party is null)
             return null;
 
-        var resolvedPartyId = party.PartyUuid?.ToString() ?? party.PartyId.ToString(CultureInfo.InvariantCulture);
+        var resolvedPartyId = party.PartyUuid.ToString();
         var correspondenceParty = KorrespondansepartFactory.CreateSender(
             partyId: resolvedPartyId,
             partyName: party.Name ?? resolvedPartyId

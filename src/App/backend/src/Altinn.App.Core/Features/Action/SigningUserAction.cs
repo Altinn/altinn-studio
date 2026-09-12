@@ -15,7 +15,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.UserAction;
-using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -296,7 +295,7 @@ internal class SigningUserAction : IUserAction
                 return new Signee
                 {
                     UserId = userProfile.UserId.ToString(CultureInfo.InvariantCulture),
-                    PersonNumber = userProfile.Party.SSN,
+                    PersonNumber = userProfile.Party?.SSN,
                     OrganizationNumber = context.OnBehalfOf,
                 };
             }

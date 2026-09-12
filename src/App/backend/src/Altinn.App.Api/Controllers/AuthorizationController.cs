@@ -3,7 +3,7 @@ using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -67,7 +67,7 @@ public class AuthorizationController : Controller
 
                 // Now we know the user can't represent the selected party (reportee)
                 // so we will automatically switch to the user's own party (from the profile)
-                var reportee = details.Profile.Party;
+                var reportee = details.UserParty;
                 if (user.SelectedPartyId != reportee.PartyId)
                 {
                     // Setting cookie to partyID of logged in user if it varies from previous value.

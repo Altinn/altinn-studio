@@ -8,7 +8,6 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -60,7 +59,12 @@ public class SigningTaskValidatorTest
                 {
                     FullName = "A signee",
                     SocialSecurityNumber = "12334456674",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState(),
             },
@@ -115,7 +119,12 @@ public class SigningTaskValidatorTest
                 {
                     FullName = "A signee",
                     SocialSecurityNumber = "12334456674",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.NewGuid(),
+                        Name = "Test Person",
+                    },
                 },
             },
         ];

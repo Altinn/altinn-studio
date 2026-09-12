@@ -1,5 +1,5 @@
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Notifications;

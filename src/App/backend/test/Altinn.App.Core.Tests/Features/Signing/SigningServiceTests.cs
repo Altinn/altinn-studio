@@ -9,8 +9,6 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -69,8 +67,20 @@ public sealed class SigningServiceTests : IDisposable
                 (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
-                        ? new Party { SSN = lookup.Ssn }
-                        : new Party { OrgNumber = lookup.OrgNo };
+                        ? new Party
+                        {
+                            PartyId = 1,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000073"),
+                            Name = "Test Person",
+                            SSN = lookup.Ssn,
+                        }
+                        : new Party
+                        {
+                            PartyId = 2,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000080"),
+                            Name = "Test Org",
+                            OrgNumber = lookup.OrgNo,
+                        };
                 }
             );
     }
@@ -130,12 +140,24 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     FullName = "A person",
                     SocialSecurityNumber = person.SSN,
-                    Party = new Party { SSN = person.SSN, Name = person.Name },
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000146"),
+                        SSN = person.SSN,
+                        Name = person.Name,
+                    },
                     OnBehalfOfOrg = new OrganizationSignee
                     {
                         OrgName = org.Name,
                         OrgNumber = org.OrgNumber,
-                        OrgParty = new Party { Name = org.Name, OrgNumber = org.OrgNumber },
+                        OrgParty = new Party
+                        {
+                            PartyId = 2,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000157"),
+                            Name = org.Name,
+                            OrgNumber = org.OrgNumber,
+                        },
                     },
                 },
             },
@@ -172,12 +194,24 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     FullName = "A person",
                     SocialSecurityNumber = person.SSN,
-                    Party = new Party { SSN = person.SSN, Name = person.Name },
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000200"),
+                        SSN = person.SSN,
+                        Name = person.Name,
+                    },
                     OnBehalfOfOrg = new OrganizationSignee
                     {
                         OrgName = org.Name,
                         OrgNumber = org.OrgNumber,
-                        OrgParty = new Party { Name = org.Name, OrgNumber = org.OrgNumber },
+                        OrgParty = new Party
+                        {
+                            PartyId = 2,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000211"),
+                            Name = org.Name,
+                            OrgNumber = org.OrgNumber,
+                        },
                     },
                 },
                 SignDocument = signDocumentWithMatchingSignatureContext,
@@ -190,7 +224,13 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = person.SSN,
                     FullName = person.Name,
-                    Party = new Party { SSN = person.SSN, Name = person.Name },
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000230"),
+                        SSN = person.SSN,
+                        Name = person.Name,
+                    },
                 },
                 SignDocument = signDocumentWithoutMatchingSignatureContext,
             },
@@ -225,11 +265,20 @@ public sealed class SigningServiceTests : IDisposable
                 (PartyLookup lookup, StorageAuthenticationMethod? _) =>
                 {
                     return lookup.Ssn is not null
-                        ? new Party { SSN = lookup.Ssn, Name = "A person" }
+                        ? new Party
+                        {
+                            PartyId = 1,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000271"),
+                            SSN = lookup.Ssn,
+                            Name = "A person",
+                        }
                         : new Party
                         {
+                            PartyId = 2,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000278"),
                             OrgNumber = lookup.OrgNo,
-                            Organization = new Organization { Name = "An organization", OrgNumber = lookup.OrgNo },
+                            Name = "An organization",
+                            Organization = new Organization { Name = "An organization", OrgNumber = lookup.OrgNo! },
                         };
                 }
             );
@@ -344,7 +393,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000399"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
             },
@@ -365,7 +419,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000425"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
                 SignDocument = signDocuments[0],
@@ -410,7 +469,14 @@ public sealed class SigningServiceTests : IDisposable
 
         _altinnPartyClient
             .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
-            .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000476"),
+                    Name = "Test Party",
+                }
+            );
 
         // Act
         await _signingService.AbortRuntimeDelegatedSigning(
@@ -514,7 +580,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000586"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
             },
@@ -534,7 +605,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000611"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
                 SignDocument = signDocuments[0],
@@ -566,7 +642,14 @@ public sealed class SigningServiceTests : IDisposable
 
         _altinnPartyClient
             .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
-            .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000649"),
+                    Name = "Test Party",
+                }
+            );
 
         // Asserts call order across mocks: revocation must read signee state (position 0)
         // before the signee state / signature data elements are removed (positions 1 and 2).
@@ -662,7 +745,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000751"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
             },
@@ -682,7 +770,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000776"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
                 SignDocument = signDocuments[0],
@@ -712,7 +805,7 @@ public sealed class SigningServiceTests : IDisposable
             )
             .ReturnsAsync(signeeContextsWithDocuments);
 
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        Guid instanceOwnerPartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000808");
 
         _signingDelegationService
             .Setup(x =>
@@ -729,7 +822,14 @@ public sealed class SigningServiceTests : IDisposable
 
         _altinnPartyClient
             .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
-            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = instanceOwnerPartyUuid,
+                    Name = "Test Party",
+                }
+            );
 
         // Act
         await _signingService.RevokeSigneeRightsOnTaskEnd(
@@ -814,7 +914,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000920"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
             },
@@ -834,7 +939,12 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     SocialSecurityNumber = "12345678910",
                     FullName = "Name",
-                    Party = new Party(),
+                    Party = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000945"),
+                        Name = "Test Person",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
                 SignDocument = signDocuments[0],
@@ -864,7 +974,7 @@ public sealed class SigningServiceTests : IDisposable
             )
             .ReturnsAsync(signeeContextsWithDocuments);
 
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
+        Guid instanceOwnerPartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000977");
 
         _signingDelegationService
             .Setup(x =>
@@ -881,7 +991,14 @@ public sealed class SigningServiceTests : IDisposable
 
         _altinnPartyClient
             .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
-            .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid });
+            .ReturnsAsync(
+                new Party
+                {
+                    PartyId = 1,
+                    PartyUuid = instanceOwnerPartyUuid,
+                    Name = "Test Party",
+                }
+            );
 
         // Act
         await _signingService.RevokeSigneeRightsOnTaskEnd(
@@ -1049,7 +1166,13 @@ public sealed class SigningServiceTests : IDisposable
                 {
                     OrgNumber = "123456789",
                     OrgName = "An org",
-                    OrgParty = new Party { OrgNumber = "123456789", Name = "An org" },
+                    OrgParty = new Party
+                    {
+                        PartyId = 1,
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001172"),
+                        OrgNumber = "123456789",
+                        Name = "An org",
+                    },
                 },
                 SigneeState = new SigneeState { IsAccessDelegated = true },
             },
@@ -1281,6 +1404,8 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(
                 new Party
                 {
+                    PartyId = 1,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001408"),
                     Name = "Digitaliseringsdirektoratet",
                     OrgNumber = "991825827",
                     PartyTypeName = PartyType.Organisation,
@@ -1353,7 +1478,12 @@ public sealed class SigningServiceTests : IDisposable
                     Signee = new PersonSignee
                     {
                         FullName = "Test Person",
-                        Party = new Party(),
+                        Party = new Party
+                        {
+                            PartyId = 1,
+                            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000001484"),
+                            Name = "Test Person",
+                        },
                         SocialSecurityNumber = "12345678910",
                     },
                 },

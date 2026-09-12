@@ -8,7 +8,7 @@
     party: {
       partyId: 500005,
       partyTypeName: Organisation,
-      partyUuid: null,
+      partyUuid: Guid_1,
       ssn: null,
       orgNumber: 405003309,
       unitType: BEDR,
@@ -38,7 +38,7 @@
   tokenIssuer: Maskinporten,
   tokenIsExchanged: true,
   scopes: altinn:serviceowner/instances.read altinn:serviceowner/instances.write,
-  clientId: Guid_1,
+  clientId: Guid_2,
   token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4Q0VFNjAzMzEwMkYzMjQzMTk2NDc4QUYwNkZCNDNBMTc2NEQ4NDMiLCJ4NXQiOiJTTTdtQXpFQzh5UXhsa2VLOEctME9oZGsyRU0iLCJ0eXAiOiJKV1QifQ.<scrubbed1>.<scrubbed2>,
   detailsError: null
 }

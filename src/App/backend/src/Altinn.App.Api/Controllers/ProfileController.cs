@@ -1,6 +1,6 @@
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features.Auth;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
