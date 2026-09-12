@@ -3,7 +3,7 @@ const waitFor = require('./utils/wait-for.js');
 const runCommand = require('./utils/run-command.js');
 const ensureDotEnv = require('./utils/ensure-dot-env.js');
 const dnsIsOk = require('./utils/check-if-dns-is-correct.js');
-const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
+// const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
 const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 const waitForHealthy = require('./utils/wait-for-healthy.js');
@@ -157,12 +157,12 @@ const addUserToSomeTestDepTeams = async (env) => {
   ]) {
     const existing = teams.find((t) => t.name === teamName);
 
-    await giteaApi({
-      path: `/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,
-      method: 'PUT',
-      user: env.GITEA_ADMIN_USER,
-      pass: env.GITEA_ADMIN_PASS,
-    });
+    // await giteaApi({
+    //   path: `/api/v1/teams/${existing.id}/members/${env.GITEA_CYPRESS_USER}`,
+    //   method: 'PUT',
+    //   user: env.GITEA_ADMIN_USER,
+    //   pass: env.GITEA_ADMIN_PASS,
+    // });
   }
 };
 
@@ -213,10 +213,10 @@ const setupEnvironment = async (env) => {
   await waitForHealthy('studio-repositories');
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
-  createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
+  // createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
   createFakeAnsattportenAuthSource();
   linkAdminToFakeAnsattporten();
-  linkCypressUserToFakeAnsattporten(env.GITEA_CYPRESS_USER);
+  // linkCypressUserToFakeAnsattporten(env.GITEA_CYPRESS_USER);
   await createOrganization(
     env.GITEA_ADMIN_USER,
     env.GITEA_ADMIN_PASS,
@@ -239,7 +239,7 @@ const setupEnvironment = async (env) => {
   const envWithOidcClient = await createOidcClientIfNotExists(envWithRunnerToken);
   const newEnv = await createPersonalAccessToken(envWithOidcClient);
 
-  await createCypressEnvFile(env);
+  // await createCypressEnvFile(env);
 
   return newEnv;
 };
@@ -268,10 +268,10 @@ const linkAdminToFakeAnsattporten = () =>
     `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-29922149761', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = 'localgiteaadmin' ON CONFLICT DO NOTHING;"`,
   );
 
-const linkCypressUserToFakeAnsattporten = (cypressUser) =>
-  runCommand(
-    `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-10866898516', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = '${cypressUser.toLowerCase()}' ON CONFLICT DO NOTHING;"`,
-  );
+// const linkCypressUserToFakeAnsattporten = (cypressUser) =>
+//   runCommand(
+//     `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-10866898516', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = '${cypressUser.toLowerCase()}' ON CONFLICT DO NOTHING;"`,
+//   );
 
 const setupRunnersToken = async (env) => {
   const runnersToken = await giteaApi({
