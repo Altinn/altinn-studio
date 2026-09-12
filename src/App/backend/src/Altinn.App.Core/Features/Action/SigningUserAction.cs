@@ -295,7 +295,7 @@ internal class SigningUserAction : IUserAction
                 return new Signee
                 {
                     UserId = userProfile.UserId.ToString(CultureInfo.InvariantCulture),
-                    PersonNumber = userProfile.Party?.SSN,
+                    PersonNumber = userProfile.Party?.SSN ?? throw new InvalidOperationException("User profile does not contain a party with SSN."),
                     OrganizationNumber = context.OnBehalfOf,
                 };
             }

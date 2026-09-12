@@ -96,7 +96,7 @@ public abstract record OrganizationOrPersonIdentifier
         string? value = !string.IsNullOrWhiteSpace(party.OrgNumber) ? party.OrgNumber : party.SSN;
         if (value is null)
         {
-            throw new FormatException($"Party {party.PartyId} does not contain a valid OrgNumber nor SSN");
+            throw new InvalidOperationException($"Party {party.PartyId} does not contain a valid OrgNumber nor SSN");
         }
         return Parse(value);
     }
