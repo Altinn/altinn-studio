@@ -504,6 +504,50 @@ async fn shutdown_waits_for_admitted_mutations_before_checking_sessions() {
         .expect("rejected shutdown restores admission");
 }
 
+#[tokio::test(flavor = "local")]
+async fn shutdown_rejects_reported_work_before_waiting_for_admitted_mutations() {
+    let fixture = api();
+    let gate = Rc::new(Notify::new());
+    *fixture.upgrade_gates.prompt.borrow_mut() = Some(gate.clone());
+    let prompt_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let shutdown_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let started = fixture.upgrade_gates.prompt_started.notified();
+    let prompt = tokio::task::spawn_local(async move {
+        prompt_client
+            .prompt_session(
+                "worker",
+                agent::sessions::SessionName::new("s1").expect("name"),
+                "continue work".into(),
+                true,
+                Some(Duration::from_secs(10)),
+            )
+            .await
+    });
+    started.await;
+    fixture
+        .upgrade_blockers
+        .borrow_mut()
+        .push("session/worker/s1 (working)".into());
+
+    let error = tokio::time::timeout(Duration::from_secs(1), shutdown_client.shutdown_for_upgrade())
+        .await
+        .expect("shutdown should inspect reported work without draining the prompt")
+        .expect_err("reported work blocks shutdown");
+    assert!(matches!(error, Error::Rpc(error) if error.is_invalid_params()));
+    assert!(
+        !prompt.is_finished(),
+        "rejected shutdown must not wait for the active prompt"
+    );
+    fixture.client.health().await.expect("daemon remains available");
+
+    gate.notify_one();
+    prompt.await.expect("prompt task").expect("prompt response");
+}
+
 #[tokio::test(flavor = "local", start_paused = true)]
 async fn shutdown_preparation_has_one_deadline_and_restores_admission() {
     let fixture = api();

@@ -438,6 +438,10 @@ impl Server {
             committed: false,
         };
         let readiness = tokio::time::timeout(Duration::from_mins(1), async {
+            let readiness = self.sessions.upgrade_readiness().await?;
+            if !readiness.blockers.is_empty() {
+                return Ok(readiness);
+            }
             self.lifecycle.wait_for_mutations().await;
             self.sessions.upgrade_readiness().await
         })
