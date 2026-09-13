@@ -1390,7 +1390,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
 
         public Task EnqueueProcessNext(
-            Instance instance,
+            IInstanceDataAccessor dataAccessor,
             Actor actor,
             Guid dependsOnWorkflowId,
             string collectionKey,
@@ -1398,7 +1398,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             DateTimeOffset executionReferenceTime,
             string? action = null,
             string? idempotencyKey = null,
-            IInstanceDataAccessor? dataAccessor = null,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }

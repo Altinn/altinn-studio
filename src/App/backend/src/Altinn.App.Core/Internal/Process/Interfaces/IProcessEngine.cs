@@ -48,7 +48,7 @@ internal interface IProcessEngine
     /// Enqueues a process-next workflow that transitions the process from the current task to the next element.
     /// The workflow has a dependency on <paramref name="dependsOnWorkflowId"/> so it won't start
     /// until that workflow completes.
-    /// Does not mutate the <paramref name="instance"/>.
+    /// Does not mutate the instance the <paramref name="dataAccessor"/> exposes.
     /// </summary>
     /// <remarks>
     /// <c>idempotencyKey</c> defaults to one derived from <c>dependsOnWorkflowId</c>; the mailbox
@@ -58,7 +58,7 @@ internal interface IProcessEngine
     /// reconstruct the same logical transition.
     /// </remarks>
     Task EnqueueProcessNext(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         Actor actor,
         Guid dependsOnWorkflowId,
         string collectionKey,
@@ -66,7 +66,6 @@ internal interface IProcessEngine
         DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
-        IInstanceDataAccessor? dataAccessor = null,
         CancellationToken cancellationToken = default
     );
 }

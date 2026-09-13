@@ -1,11 +1,7 @@
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
-using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Process;
-using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -18,7 +14,6 @@ public class ProcessNavigator : IProcessNavigator
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
-    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly Telemetry? _telemetry;
 
     /// <summary>
@@ -28,43 +23,33 @@ public class ProcessNavigator : IProcessNavigator
         IProcessReader processReader,
         ExclusiveGatewayFactory gatewayFactory,
         ILogger<ProcessNavigator> logger,
-        IServiceProvider serviceProvider,
         Telemetry? telemetry = null
     )
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
         _logger = logger;
-        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
-    public Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action) =>
-        GetNextTask(instance, currentElement, action, dataAccessor: null);
-
-    Task<ProcessElement?> IProcessNavigator.GetNextTask(
-        Instance instance,
+    public async Task<ProcessElement?> GetNextTask(
+        IInstanceDataAccessor dataAccessor,
         string currentElement,
-        string? action,
-        IInstanceDataAccessor? dataAccessor
-    ) => GetNextTask(instance, currentElement, action, dataAccessor);
-
-    private async Task<ProcessElement?> GetNextTask(
-        Instance instance,
-        string currentElement,
-        string? action,
-        IInstanceDataAccessor? dataAccessor
+        string? action
     )
     {
-        using var activity = _telemetry?.StartProcessNavigatorGetNextTaskActivity(instance, currentElement, action);
+        using var activity = _telemetry?.StartProcessNavigatorGetNextTaskActivity(
+            dataAccessor.Instance,
+            currentElement,
+            action
+        );
 
         List<ProcessElement> directFlowTargets = _processReader.GetNextElements(currentElement);
         List<ProcessElement> filteredNext = await NextFollowAndFilterGateways(
-            instance,
+            dataAccessor,
             directFlowTargets as List<ProcessElement?>,
-            action,
-            dataAccessor
+            action
         );
         if (filteredNext.Count == 0)
         {
@@ -82,10 +67,9 @@ public class ProcessNavigator : IProcessNavigator
     }
 
     private async Task<List<ProcessElement>> NextFollowAndFilterGateways(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         List<ProcessElement?> originNextElements,
-        string? action,
-        IInstanceDataAccessor? dataAccessor
+        string? action
     )
     {
         List<ProcessElement> filteredNext = new List<ProcessElement>();
@@ -126,19 +110,10 @@ public class ProcessNavigator : IProcessNavigator
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
                 };
 
-                var gatewayDataAccessor =
-                    dataAccessor
-                    ?? await _instanceDataUnitOfWorkInitializer.Init(
-                        instance,
-                        StorageVersionMetadata.Empty,
-                        taskId: null,
-                        language: null
-                    );
-
                 filteredList = await gatewayFilter.FilterAsync(
                     outgoingFlows,
-                    instance,
-                    gatewayDataAccessor,
+                    dataAccessor.Instance,
+                    dataAccessor,
                     gatewayInformation
                 );
 
@@ -154,20 +129,13 @@ public class ProcessNavigator : IProcessNavigator
             {
                 var defaultTarget = _processReader.GetFlowElement(defaultSequenceFlow.TargetRef);
                 filteredNext.AddRange(
-                    await NextFollowAndFilterGateways(
-                        instance,
-                        new List<ProcessElement?> { defaultTarget },
-                        action,
-                        dataAccessor
-                    )
+                    await NextFollowAndFilterGateways(dataAccessor, new List<ProcessElement?> { defaultTarget }, action)
                 );
             }
             else
             {
                 var filteredTargets = filteredList.Select(e => _processReader.GetFlowElement(e.TargetRef)).ToList();
-                filteredNext.AddRange(
-                    await NextFollowAndFilterGateways(instance, filteredTargets, action, dataAccessor)
-                );
+                filteredNext.AddRange(await NextFollowAndFilterGateways(dataAccessor, filteredTargets, action));
             }
         }
         _logger.LogDebug(

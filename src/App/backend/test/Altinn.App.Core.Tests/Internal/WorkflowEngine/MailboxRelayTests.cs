@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -173,7 +174,7 @@ public class MailboxRelayTests
         processEngine
             .Setup(x =>
                 x.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
@@ -181,12 +182,11 @@ public class MailboxRelayTests
                     It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<IInstanceDataAccessor?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .Callback<
-                Instance,
+                IInstanceDataAccessor,
                 Actor,
                 Guid,
                 string,
@@ -194,10 +194,9 @@ public class MailboxRelayTests
                 DateTimeOffset,
                 string?,
                 string?,
-                IInstanceDataAccessor?,
                 CancellationToken
             >(
-                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, _, _) =>
+                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, _) =>
                 {
                     recorder.Calls.Add("enqueue-after-workflow");
                     recorder.AfterWorkflows.Add((dependsOn, collectionKey, state, action, idempotencyKey));
@@ -357,14 +356,22 @@ public class MailboxRelayTests
                 StepId = stepId,
                 State = "incoming-state",
             },
-            Instance = new Instance
-            {
-                Id = $"1337/{_instanceGuid}",
-                Org = "ttd",
-                AppId = "ttd/test-app",
-                InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            },
+            DataAccessor = new InstanceDataAccessorFake(
+                new Instance
+                {
+                    Id = $"1337/{_instanceGuid}",
+                    Org = "ttd",
+                    AppId = "ttd/test-app",
+                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+                },
+                applicationMetadata: null,
+                translationService: null,
+                layout: null,
+                frontEndSettings: null,
+                gatewayAction: null,
+                language: null
+            ),
             State = state,
             AutoAdvanceProcess = autoAdvance,
             AutoAdvanceAction = action,

@@ -56,7 +56,7 @@ public class WorkflowEngineCallbackControllerTests
         processEngine
             .Setup(engine =>
                 engine.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     "acquire-chain",
@@ -64,12 +64,11 @@ public class WorkflowEngineCallbackControllerTests
                     It.IsAny<DateTimeOffset>(),
                     action,
                     null,
-                    It.IsAny<IInstanceDataAccessor?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .Callback<
-                Instance,
+                IInstanceDataAccessor,
                 Actor,
                 Guid,
                 string,
@@ -77,10 +76,9 @@ public class WorkflowEngineCallbackControllerTests
                 DateTimeOffset,
                 string?,
                 string?,
-                IInstanceDataAccessor?,
                 CancellationToken
             >(
-                (instance, actor, dependency, _, state, referenceTime, _, _, dataAccessor, _) =>
+                (dataAccessor, actor, dependency, _, state, referenceTime, _, _, _) =>
                 {
                     Assert.Equal(new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero), referenceTime);
                     Assert.Equal(setup!.WorkflowId, dependency);
@@ -95,7 +93,7 @@ public class WorkflowEngineCallbackControllerTests
                     Assert.Equal(2, saved.ProcessStateVersion);
                     Assert.Equal("Task_1", saved.Instance.Process!.CurrentTask.ElementId);
                     Assert.Equal(ProcessStatus.Processing, saved.Instance.Process.Status);
-                    Assert.Same(instance, Assert.IsType<InstanceDataUnitOfWork>(dataAccessor).Instance);
+                    Assert.IsType<InstanceDataUnitOfWork>(dataAccessor);
                     var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
                         InstanceOwnerPartyId,
                         setup.InstanceGuid
@@ -219,9 +217,7 @@ public class WorkflowEngineCallbackControllerTests
                         : new EndEvent { Id = target };
                 services
                     .Mock<IProcessNavigator>()
-                    .Setup(n =>
-                        n.GetNextTask(It.IsAny<Instance>(), "Task_1", action, It.IsAny<IInstanceDataAccessor?>())
-                    )
+                    .Setup(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", action))
                     .ReturnsAsync(next);
             },
             (_, instance) => instance.Process!.Status = ProcessStatus.Idle
@@ -484,7 +480,7 @@ public class WorkflowEngineCallbackControllerTests
         processEngine
             .Setup(engine =>
                 engine.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     collectionKey,
@@ -492,12 +488,11 @@ public class WorkflowEngineCallbackControllerTests
                     It.IsAny<DateTimeOffset>(),
                     action,
                     It.IsAny<string?>(),
-                    It.IsAny<IInstanceDataAccessor?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .Callback<
-                Instance,
+                IInstanceDataAccessor,
                 Actor,
                 Guid,
                 string,
@@ -505,10 +500,9 @@ public class WorkflowEngineCallbackControllerTests
                 DateTimeOffset,
                 string?,
                 string?,
-                IInstanceDataAccessor?,
                 CancellationToken
             >(
-                (instance, _, _, _, state, _, _, _, dataAccessor, _) =>
+                (dataAccessor, _, _, _, state, _, _, _, _) =>
                 {
                     StorageClientInterceptor.RequestResponse request = Assert.Single(
                         GetMutationRequests(setup!.Services)
@@ -517,7 +511,7 @@ public class WorkflowEngineCallbackControllerTests
                     Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
                     Assert.Null(mutation.ProcessState);
                     Assert.Single(mutation.CreateDataElements);
-                    Assert.Equal(ProcessStatus.Processing, instance.Process?.Status);
+                    Assert.Equal(ProcessStatus.Processing, dataAccessor.Instance.Process?.Status);
                     Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(state).Instance.Process?.Status);
                     enqueueObservedSavedMutation = true;
                 }

@@ -282,14 +282,13 @@ public class WorkflowEngineCallbackController : ControllerBase
 
                     var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
                     await processEngine.EnqueueProcessNext(
-                        instanceDataUnitOfWork.Instance,
+                        instanceDataUnitOfWork,
                         payload.Actor,
                         payload.WorkflowId,
                         collectionKey,
                         updatedState,
                         payload.ExecutionReferenceTime,
                         processNextContinuation.Action,
-                        dataAccessor: instanceDataUnitOfWork,
                         cancellationToken: cancellationToken
                     );
                 }
@@ -447,7 +446,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 AppId = appId,
                 InstanceId = instanceId,
                 Payload = payload,
-                Instance = unitOfWork.Instance,
                 DataAccessor = unitOfWork,
                 State = state,
                 AutoAdvanceProcess = autoAdvanceProcess,

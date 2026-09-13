@@ -290,7 +290,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                 processEngine
                     .Setup(x =>
                         x.EnqueueProcessNext(
-                            It.IsAny<Instance>(),
+                            It.IsAny<IInstanceDataAccessor>(),
                             It.IsAny<Actor>(),
                             It.IsAny<Guid>(),
                             It.IsAny<string>(),
@@ -298,12 +298,11 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                             It.IsAny<DateTimeOffset>(),
                             It.IsAny<string?>(),
                             It.IsAny<string?>(),
-                            It.IsAny<IInstanceDataAccessor?>(),
                             It.IsAny<CancellationToken>()
                         )
                     )
                     .Callback<
-                        Instance,
+                        IInstanceDataAccessor,
                         Actor,
                         Guid,
                         string,
@@ -311,10 +310,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                         DateTimeOffset,
                         string?,
                         string?,
-                        IInstanceDataAccessor?,
                         CancellationToken
                     >(
-                        (_, _, _, _, state, _, action, idempotencyKey, _, _) =>
+                        (_, _, _, _, state, _, action, idempotencyKey, _) =>
                         {
                             recorder.Calls.Add("after-workflow");
                             recorder.EnqueueKeys.Add(idempotencyKey!);

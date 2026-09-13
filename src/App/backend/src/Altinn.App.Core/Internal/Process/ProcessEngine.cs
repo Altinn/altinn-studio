@@ -118,7 +118,13 @@ internal class ProcessEngine : IProcessEngine
         // start process
         ProcessStateChange? startChange = await ProcessStart(request.Instance, validStartElement);
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
-        ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(request.Instance);
+        InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+            request.Instance,
+            StorageVersionMetadata.Empty,
+            taskId: null,
+            language: null
+        );
+        ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(dataAccessor);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
         List<InstanceEvent> events = [];
         if (startEvent is not null)
@@ -710,10 +716,11 @@ internal class ProcessEngine : IProcessEngine
     /// Computes the next transition and updates instance.Process to reflect the new state.
     /// </summary>
     private async Task<ProcessStateChange?> MoveProcessStateToNextAndGenerateEvents(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string? action = null
     )
     {
+        Instance instance = dataAccessor.Instance;
         if (instance.Process == null)
         {
             return null;
@@ -725,7 +732,7 @@ internal class ProcessEngine : IProcessEngine
         using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType);
 
         PlatformUser user = await ExtractPlatformUser();
-        ProcessStateChange result = await ComputeNextTransition(instance, action, user, DateTime.UtcNow);
+        ProcessStateChange result = await ComputeNextTransition(dataAccessor, action, user, DateTime.UtcNow);
 
         // Apply the mutation so callers see the updated process state on the instance
         instance.Process = result.NewProcessState;
@@ -739,20 +746,18 @@ internal class ProcessEngine : IProcessEngine
     /// Used by both the normal process-next flow and auto-advance.
     /// </summary>
     private async Task<ProcessStateChange> ComputeNextTransition(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string? action,
         PlatformUser user,
-        DateTime now,
-        IInstanceDataAccessor? dataAccessor = null
+        DateTime now
     )
     {
+        Instance instance = dataAccessor.Instance;
         ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
 
-        ProcessElement? nextElement = dataAccessor is null
-            ? await _processNavigator.GetNextTask(instance, currentTaskId, action)
-            : await _processNavigator.GetNextTask(instance, currentTaskId, action, dataAccessor);
+        ProcessElement? nextElement = await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action);
         if (nextElement is null)
             throw new ProcessException("Next process element was unexpectedly null");
 
@@ -913,7 +918,7 @@ internal class ProcessEngine : IProcessEngine
 
     /// <inheritdoc/>
     public async Task EnqueueProcessNext(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         Actor actor,
         Guid dependsOnWorkflowId,
         string collectionKey,
@@ -921,10 +926,10 @@ internal class ProcessEngine : IProcessEngine
         DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
-        IInstanceDataAccessor? dataAccessor = null,
         CancellationToken cancellationToken = default
     )
     {
+        Instance instance = dataAccessor.Instance;
         PlatformUser user = CreatePlatformUser(actor);
         string changeEventType = action is "reject"
             ? InstanceEventType.process_AbandonTask.ToString()
@@ -933,11 +938,10 @@ internal class ProcessEngine : IProcessEngine
         using (_telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType))
         {
             processStateChange = await ComputeNextTransition(
-                instance,
+                dataAccessor,
                 action,
                 user,
-                executionReferenceTime.UtcDateTime,
-                dataAccessor
+                executionReferenceTime.UtcDateTime
             );
         }
 

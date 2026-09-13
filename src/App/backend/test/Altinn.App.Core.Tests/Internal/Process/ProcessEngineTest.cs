@@ -1462,7 +1462,7 @@ public sealed class ProcessEngineTest
         fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_Service")).Returns(true);
         fixture
             .Mock<IProcessNavigator>()
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+            .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>()))
             .ReturnsAsync(
                 new ServiceTask
                 {
@@ -1506,7 +1506,10 @@ public sealed class ProcessEngineTest
         result.MutatedInstance.Process.CurrentTask.AltinnTaskType.Should().Be("service");
         fixture
             .Mock<IProcessNavigator>()
-            .Verify(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_Service", It.IsAny<string?>()), Times.Never);
+            .Verify(
+                pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_Service", It.IsAny<string?>()),
+                Times.Never
+            );
         fixture
             .Mock<IWorkflowEngineClient>()
             .Verify(
@@ -2857,7 +2860,7 @@ public sealed class ProcessEngineTest
         fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_SubformPdf")).Returns(true);
         fixture
             .Mock<IProcessNavigator>()
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_SubformPdf", It.IsAny<string?>()))
+            .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_SubformPdf", It.IsAny<string?>()))
             .ReturnsAsync(
                 new ServiceTask
                 {
@@ -2889,7 +2892,7 @@ public sealed class ProcessEngineTest
 
         // Act
         await fixture.ProcessEngine.EnqueueProcessNext(
-            instance,
+            await fixture.Accessor(instance),
             new Actor { UserId = 1337, AuthenticationLevel = 2 },
             parentWorkflowId,
             _collectionKey,
@@ -2965,7 +2968,7 @@ public sealed class ProcessEngineTest
 
         // Act
         await processEngine.EnqueueProcessNext(
-            CreateTask1Instance(),
+            await fixture.Accessor(CreateTask1Instance()),
             actor,
             Guid.NewGuid(),
             _collectionKey,
@@ -3025,7 +3028,7 @@ public sealed class ProcessEngineTest
 
         // Act
         await processEngine.EnqueueProcessNext(
-            CreateTask1Instance(),
+            await fixture.Accessor(CreateTask1Instance()),
             actor,
             Guid.NewGuid(),
             _collectionKey,
@@ -3102,22 +3105,14 @@ public sealed class ProcessEngineTest
             )
         );
         var continuation = Assert.IsType<ProcessNextContinuation>(result.ProcessNextContinuation);
-        var navigator = fixture.Mock<IProcessNavigator>();
-        navigator
-            .Setup(n => n.GetNextTask(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string?>(), unitOfWork))
-            .Returns(
-                (Instance instance, string task, string? action, IInstanceDataAccessor? _) =>
-                    navigator.Object.GetNextTask(instance, task, action)
-            );
         await fixture.ProcessEngine.EnqueueProcessNext(
-            unitOfWork.Instance,
+            unitOfWork,
             workflowContext.Actor,
             workflowId,
             _collectionKey,
             await stateService.CaptureState(unitOfWork, carry),
             new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
-            continuation.Action,
-            dataAccessor: unitOfWork
+            continuation.Action
         );
     }
 
@@ -3175,7 +3170,7 @@ public sealed class ProcessEngineTest
                 }
             );
         await fixture.ProcessEngine.EnqueueProcessNext(
-            CreateTask1Instance(),
+            await fixture.Accessor(CreateTask1Instance()),
             actor,
             Guid.NewGuid(),
             _collectionKey,
@@ -3428,6 +3423,11 @@ public sealed class ProcessEngineTest
 
         public TelemetrySink TelemetrySink => ServiceProvider.GetRequiredService<TelemetrySink>();
 
+        public async Task<IInstanceDataAccessor> Accessor(Instance instance) =>
+            await ServiceProvider
+                .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
+                .Init(instance, StorageVersionMetadata.Empty, taskId: null, language: null);
+
         public Mock<T> Mock<T>()
             where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
 
@@ -3509,7 +3509,7 @@ public sealed class ProcessEngineTest
                         )
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
+                .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "StartEvent_1", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new ProcessTask()
                     {
@@ -3521,7 +3521,7 @@ public sealed class ProcessEngineTest
                     }
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+                .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new ProcessTask()
                     {
@@ -3533,7 +3533,7 @@ public sealed class ProcessEngineTest
                     }
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
+                .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_2", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new EndEvent()
                     {

@@ -15,6 +15,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -325,7 +326,7 @@ public class MailboxRelayFrontierTests
         processEngine
             .Setup(x =>
                 x.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
@@ -333,12 +334,11 @@ public class MailboxRelayFrontierTests
                     It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
-                    It.IsAny<IInstanceDataAccessor?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .Returns<
-                Instance,
+                IInstanceDataAccessor,
                 Actor,
                 Guid,
                 string,
@@ -346,10 +346,9 @@ public class MailboxRelayFrontierTests
                 DateTimeOffset,
                 string?,
                 string?,
-                IInstanceDataAccessor?,
                 CancellationToken
             >(
-                (_, _, _, collectionKey, _, _, _, idempotencyKey, _, cancellationToken) =>
+                (_, _, _, collectionKey, _, _, _, idempotencyKey, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,
@@ -395,7 +394,15 @@ public class MailboxRelayFrontierTests
                 StepId = stepId,
                 State = "incoming-state",
             },
-            Instance = CreateInstance(),
+            DataAccessor = new InstanceDataAccessorFake(
+                CreateInstance(),
+                applicationMetadata: null,
+                translationService: null,
+                layout: null,
+                frontEndSettings: null,
+                gatewayAction: null,
+                language: null
+            ),
             State = "published-state",
             AutoAdvanceProcess = true,
             AutoAdvanceAction = null,
