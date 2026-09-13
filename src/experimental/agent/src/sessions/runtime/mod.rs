@@ -68,8 +68,8 @@ pub trait SessionRuntime {
         sandbox: &'a SandboxHandle,
     ) -> ::sandbox::LocalFuture<'a, Result<(), Error>>;
 
-    /// Whether a running harness can accept input before it reports a conversation.
-    /// Some harnesses do not create that conversation until the first prompt arrives.
+    /// Whether a running harness can accept input. Some harnesses do not create
+    /// a conversation until the first prompt arrives.
     fn input_ready<'a>(
         &'a self,
         session: &'a Session,

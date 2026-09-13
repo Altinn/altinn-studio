@@ -248,6 +248,7 @@ fn tmux_runtime() -> Rc<dyn agent::sessions::SessionRuntime> {
 struct FakeRuntime {
     /// Whether the harness process is present; a launch is expected when it is not.
     present: Cell<bool>,
+    fail_observe_once: Cell<bool>,
     attached: Cell<bool>,
     stop_calls: Cell<usize>,
     fail_start: Cell<bool>,
@@ -257,15 +258,19 @@ struct FakeRuntime {
     hold_completion: Cell<bool>,
     release_completion: Notify,
     ready_without_report: Cell<bool>,
+    fail_input_ready_once: Cell<bool>,
+    launch_started: Notify,
     conversation: RefCell<Vec<agent::sessions::Turn>>,
     sent: RefCell<Vec<String>>,
     launches: RefCell<Vec<(Option<String>, Option<String>)>>,
+    launch_tokens: RefCell<Vec<agent::sessions::LaunchToken>>,
 }
 
 impl Default for FakeRuntime {
     fn default() -> Self {
         Self {
             present: Cell::new(true),
+            fail_observe_once: Cell::new(false),
             attached: Cell::new(false),
             stop_calls: Cell::new(0),
             fail_start: Cell::new(false),
@@ -275,9 +280,12 @@ impl Default for FakeRuntime {
             hold_completion: Cell::new(false),
             release_completion: Notify::new(),
             ready_without_report: Cell::new(false),
+            fail_input_ready_once: Cell::new(false),
+            launch_started: Notify::new(),
             conversation: RefCell::default(),
             sent: RefCell::default(),
             launches: RefCell::default(),
+            launch_tokens: RefCell::default(),
         }
     }
 }
@@ -304,6 +312,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<agent::sessions::Observation, Error>> {
+        if self.fail_observe_once.replace(false) {
+            return Box::pin(async { Err(Error::Session("injected observation failure".into())) });
+        }
         let observation = if self.present.get() {
             agent::sessions::Observation::Alive {
                 attached: self.attached.get(),
@@ -320,13 +331,15 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
         _session_hook_url: &'a str,
-        _token: &'a agent::sessions::LaunchToken,
+        token: &'a agent::sessions::LaunchToken,
         resume: Option<&'a str>,
         initial_prompt: Option<&'a str>,
     ) -> LocalFuture<'a, Result<(), Error>> {
         self.launches
             .borrow_mut()
             .push((resume.map(str::to_owned), initial_prompt.map(str::to_owned)));
+        self.launch_tokens.borrow_mut().push(token.clone());
+        self.launch_started.notify_one();
         let fail = self.fail_start.get();
         self.present.set(!fail);
         Box::pin(async move {
@@ -353,6 +366,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<bool, Error>> {
+        if self.fail_input_ready_once.replace(false) {
+            return Box::pin(async { Err(Error::Session("injected readiness failure".into())) });
+        }
         Box::pin(async { Ok(self.ready_without_report.get()) })
     }
 
@@ -492,6 +508,62 @@ async fn running_session(
     }
     let session = database.get_session(session.id).await.expect("Session");
     (database, sandboxes, session)
+}
+
+async fn resume_fixture(
+    directory: &TempDir,
+    token: &str,
+) -> (
+    persistence::Database,
+    Rc<FakeRuntime>,
+    Rc<agent::sessions::Reconciler>,
+    agent::sessions::Session,
+) {
+    let (database, sandboxes, session) = running_session(directory, token, true).await;
+    database
+        .reset_session_launch_attempts(session.id)
+        .await
+        .expect("reset backoff");
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    let reconciler = Rc::new(agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    ));
+    (database, runtime, reconciler, session)
+}
+
+async fn interrupt_resume_after_start(
+    database: &persistence::Database,
+    runtime: &FakeRuntime,
+    reconciler: &Rc<agent::sessions::Reconciler>,
+    session: &agent::sessions::Session,
+) {
+    let reconciling = {
+        let reconciler = reconciler.clone();
+        let id = session.id;
+        tokio::task::spawn_local(async move { reconciler.reconcile(id).await })
+    };
+    runtime.launch_started.notified().await;
+    let token = runtime.launch_tokens.borrow().last().expect("launch token").clone();
+    database
+        .record_session_start_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            "native-0",
+            Some("/home/agent/conversation.jsonl"),
+            time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+        )
+        .await
+        .expect("resumed start report");
+    reconciling.abort();
+    reconciling.await.expect_err("reconciliation interrupted");
 }
 
 #[tokio::test(flavor = "local")]
@@ -946,6 +1018,20 @@ async fn daemon_owned_relaunch_marker_is_retryable_and_removed_after_success() {
     let harness = ServiceHarness::start(&directory, "20202020-2020-4020-8020-202020202020").await;
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+    let matched_generation = harness
+        .database
+        .activate_session(harness.session.id)
+        .await
+        .expect("matched activation");
+    harness
+        .database
+        .update_session_lifecycle(
+            harness.session.id,
+            agent::sessions::Lifecycle::idle(),
+            matched_generation,
+        )
+        .await
+        .expect("Idle Session");
     let marker = home.pending_session_relaunch_path();
     std::fs::write(&marker, br#"{"buildVersion":"another-build"}"#).expect("write mismatched marker");
     let mismatch = agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
@@ -972,6 +1058,24 @@ async fn daemon_owned_relaunch_marker_is_retryable_and_removed_after_success() {
     assert!(!marker.exists(), "successful pass removes its marker");
     assert!(!harness.runtime.present.get());
     assert_eq!(harness.runtime.stop_calls.get(), 1);
+    let reactivated = harness
+        .database
+        .get_session(harness.session.id)
+        .await
+        .expect("reactivated Session");
+    assert_eq!(
+        reactivated.status.lifecycle.state,
+        agent::sessions::LifecycleState::Idle
+    );
+    assert_eq!(
+        harness
+            .database
+            .activate_session(harness.session.id)
+            .await
+            .expect("activation after marker"),
+        matched_generation + 2,
+        "the marker pass must request one new activation"
+    );
     assert_eq!(
         harness
             .database
@@ -1335,6 +1439,7 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         .await
         .expect("start report");
     runtime.present.set(false);
+    runtime.ready_without_report.set(true);
     reconciler.reconcile(prompted.id).await.expect("relaunch");
     assert_eq!(
         runtime.launches.borrow().last().expect("third launch"),
@@ -1348,8 +1453,162 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
     );
     assert_eq!(
         relaunched.status.state,
-        agent::sessions::State::Starting,
-        "a relaunch is Starting until the new process reports, whatever the old launch reported"
+        agent::sessions::State::WaitingForInput,
+        "a resumed harness settles once its input is visible"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_resumed_start_report_settles_at_waiting_for_input() {
+    const TOKEN: &str = "45454545-4545-4545-8545-454545454545";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+
+    let reconciling = {
+        let reconciler = reconciler.clone();
+        tokio::task::spawn_local(async move { reconciler.reconcile(session.id).await })
+    };
+    runtime.launch_started.notified().await;
+    let token = runtime.launch_tokens.borrow().last().expect("launch token").clone();
+    database
+        .record_session_start_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            "native-0",
+            Some("/home/agent/conversation.jsonl"),
+            time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+        )
+        .await
+        .expect("resumed start report");
+    runtime.ready_without_report.set(true);
+    reconciling.await.expect("task").expect("reconciliation");
+
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn an_unready_resumed_harness_is_stopped_and_fails() {
+    const TOKEN: &str = "56565656-5656-4565-8565-565656565656";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+
+    let reconciling = {
+        let reconciler = reconciler.clone();
+        tokio::task::spawn_local(async move { reconciler.reconcile(session.id).await })
+    };
+    runtime.launch_started.notified().await;
+    tokio::time::advance(Duration::from_secs(16)).await;
+    let error = reconciling
+        .await
+        .expect("task")
+        .expect_err("an unready resume must fail");
+
+    assert!(error.to_string().contains("did not become ready"), "{error}");
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::Failed
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn interrupted_resume_readiness_is_finished_by_the_next_reconciliation() {
+    const TOKEN: &str = "67676767-6767-4767-8767-676767676767";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+
+    interrupt_resume_after_start(&database, runtime.as_ref(), &reconciler, &session).await;
+    runtime.ready_without_report.set(true);
+
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn observation_failure_preserves_pending_resume_readiness() {
+    const TOKEN: &str = "89898989-8989-4898-8989-898989898989";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    interrupt_resume_after_start(&database, runtime.as_ref(), &reconciler, &session).await;
+
+    runtime.fail_observe_once.set(true);
+    reconciler.reconcile(session.id).await.expect_err("observation failure");
+    let interrupted = database.get_session(session.id).await.expect("Session");
+    assert_eq!(
+        interrupted.status.lifecycle.state,
+        agent::sessions::LifecycleState::Resuming
+    );
+    assert!(
+        interrupted
+            .status
+            .lifecycle
+            .failure
+            .is_some_and(|failure| failure.contains("observation failure"))
+    );
+    runtime.ready_without_report.set(true);
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn temporarily_unready_agent_preserves_pending_resume_readiness() {
+    const TOKEN: &str = "90909090-9090-4909-8909-909090909090";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    interrupt_resume_after_start(&database, runtime.as_ref(), &reconciler, &session).await;
+
+    let owner = database.get(session.agent_id).await.expect("Agent");
+    database
+        .update_status(session.agent_id, owner.agent.metadata.generation, Status::default())
+        .await
+        .expect("temporarily unready Agent");
+    reconciler.reconcile(session.id).await.expect("observe unready Agent");
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .lifecycle
+            .state,
+        agent::sessions::LifecycleState::Resuming
+    );
+    database
+        .update_status(session.agent_id, owner.agent.metadata.generation, owner.agent.status)
+        .await
+        .expect("restore ready Agent");
+    runtime.ready_without_report.set(true);
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn transient_resume_readiness_failure_is_retried() {
+    const TOKEN: &str = "78787878-7878-4787-8787-787878787878";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    runtime.ready_without_report.set(true);
+    runtime.fail_input_ready_once.set(true);
+
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
     );
 }
 

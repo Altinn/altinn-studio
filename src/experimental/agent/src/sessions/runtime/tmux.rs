@@ -288,6 +288,15 @@ impl super::SessionRuntime for Tmux {
         sandbox: &'a SandboxHandle,
     ) -> ::sandbox::LocalFuture<'a, Result<bool, Error>> {
         Box::pin(async move {
+            match session.status.reported.activity.phase {
+                Phase::WaitingForInput => return Ok(true),
+                Phase::Working => {
+                    return Ok(
+                        input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()).is_none(),
+                    );
+                }
+                Phase::Unknown => {}
+            }
             let output = sandbox.run_execution(ExecutionSpec::command(
                 SandboxPath::new("/bin/sh"),
                 ["-c".into(),

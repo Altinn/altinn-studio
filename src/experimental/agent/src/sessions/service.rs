@@ -423,6 +423,8 @@ impl Service {
                     )));
                 }
                 super::runtime::Observation::Alive { attached: false, .. } => {
+                    // Persist the relaunch request before removing an Idle runtime.
+                    self.store.activate_session(session.id).await?;
                     self.runtime.stop(&session, &sandbox).await?;
                 }
             }
