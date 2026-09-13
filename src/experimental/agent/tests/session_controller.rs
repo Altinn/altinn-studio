@@ -605,6 +605,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
 
     let sending_service = service.clone();
     let sending_name = name.clone();
+    let delivered = runtime.delivered.notified();
     let send = tokio::task::spawn_local(async move {
         sending_service
             .prompt(
@@ -616,7 +617,9 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
             )
             .await
     });
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    tokio::time::timeout(Duration::from_secs(2), delivered)
+        .await
+        .expect("prompt delivery");
     assert_eq!(runtime.sent.borrow().as_slice(), ["do the thing"]);
     assert!(
         !send.is_finished(),
@@ -1093,6 +1096,46 @@ async fn daemon_owned_relaunch_marker_is_retryable_and_removed_after_success() {
         .await
         .expect("idempotent retry");
     assert_eq!(harness.runtime.stop_calls.get(), 1);
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn upgrade_reactivates_an_idle_session_whose_runtime_is_already_missing() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "30303030-3030-4030-8030-303030303030").await;
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let matched_generation = harness
+        .database
+        .activate_session(harness.session.id)
+        .await
+        .expect("matched activation");
+    harness
+        .database
+        .update_session_lifecycle(
+            harness.session.id,
+            agent::sessions::Lifecycle::idle(),
+            matched_generation,
+        )
+        .await
+        .expect("Idle Session");
+    harness.runtime.present.set(false);
+
+    harness
+        .service
+        .relaunch_after_upgrade()
+        .await
+        .expect("request relaunch");
+
+    assert_eq!(
+        harness
+            .database
+            .activate_session(harness.session.id)
+            .await
+            .expect("activation after upgrade"),
+        matched_generation + 2,
+        "the upgrade must request an activation before reconciliation"
+    );
+    assert_eq!(harness.runtime.stop_calls.get(), 0);
     harness.finish();
 }
 

@@ -415,7 +415,9 @@ impl Service {
                 continue;
             };
             match self.runtime.observe(&session, &sandbox).await? {
-                super::runtime::Observation::Missing => {}
+                super::runtime::Observation::Missing => {
+                    self.store.activate_session(session.id).await?;
+                }
                 super::runtime::Observation::Alive { attached: true, .. } => {
                     return Err(Error::Session(format!(
                         "Session \"{}/{}\" became attached during upgrade",
