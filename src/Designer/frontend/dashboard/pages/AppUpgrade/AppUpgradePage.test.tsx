@@ -5,7 +5,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { appUpgradeStatus } from 'app-shared/mocks/mocks';
+import { appUpgradeStatus, organization } from 'app-shared/mocks/mocks';
 import type {
   AppUpgradeMergeResult,
   AppUpgradeResult,
@@ -46,6 +46,14 @@ describe('AppUpgradePage', () => {
       'href',
       `/editor/${org}/${app}/overview`,
     );
+  });
+
+  it('explains that only organization apps can be upgraded and hides start for personal apps', () => {
+    renderPage({}, appUpgradeStatus, '', undefined, []);
+    expect(screen.getByText(textMock('app_upgrade.intro.organization_only'))).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('app_upgrade.intro.start') }),
+    ).not.toBeInTheDocument();
   });
 
   it('disables start when the app cannot be upgraded automatically', () => {
@@ -333,9 +341,14 @@ const renderPage = (
   status: AppUpgradeStatus = appUpgradeStatus,
   search: string = '',
   cachedRun?: AppUpgradeRun,
+  organizationNames: string[] = [org],
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppUpgradeStatus, org, app], status);
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    organizationNames.map((username) => ({ ...organization, username })),
+  );
   if (cachedRun) {
     queryClient.setQueryData([QueryKey.AppUpgradeRun, org, app, started.branchName], cachedRun);
   }

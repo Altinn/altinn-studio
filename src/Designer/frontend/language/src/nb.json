@@ -469,6 +469,7 @@
   "app_upgrade.intro.description_automatic": "Det er nå en automatisk oppdatering tilgjengelig for appen:",
   "app_upgrade.intro.feature_design_system": "støtte for mønstre fra Designsystemet",
   "app_upgrade.intro.feature_process_engine": "bedre ytelse med ny prosessmotor",
+  "app_upgrade.intro.organization_only": "Automatisk oppgradering er bare tilgjengelig for apper som eies av en organisasjon. Apper under din egen bruker har ingen kjørere som kan utføre oppgraderingen.",
   "app_upgrade.intro.start": "Start",
   "app_upgrade.intro.title": "Oppdatering tilgjengelig",
   "app_upgrade.intro.title_automatic": "Automatisk oppdatering tilgjengelig",

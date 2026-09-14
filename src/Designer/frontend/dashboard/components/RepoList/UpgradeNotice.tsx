@@ -6,6 +6,7 @@ import type { Repository } from 'app-shared/types/Repository';
 import { useAppUpgradeStatusQuery } from '../../hooks/queries/useAppUpgradeStatusQuery';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
+import { useIsOrganizationRepo } from '../../hooks/useIsOrganizationRepo';
 import { getAppUpgradePath } from '../../utils/urlUtils';
 import classes from './UpgradeNotice.module.css';
 
@@ -16,12 +17,13 @@ type UpgradeNoticeProps = {
 export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement | null => {
   const { t } = useTranslation();
   const [org, app] = repo.full_name.split('/');
-  const { data: status } = useAppUpgradeStatusQuery(org, app);
+  const isOrganizationRepo = useIsOrganizationRepo(org);
+  const { data: status } = useAppUpgradeStatusQuery(org, app, isOrganizationRepo);
   const navigate = useNavigate();
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
 
-  if (!status?.isUpgradeAvailable) return null;
+  if (!isOrganizationRepo || !status?.isUpgradeAvailable) return null;
 
   const branch = status.activeUpgradeBranch;
   const textKey = branch

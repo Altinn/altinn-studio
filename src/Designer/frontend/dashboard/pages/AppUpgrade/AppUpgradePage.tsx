@@ -23,6 +23,7 @@ import { useMergeAppUpgradeMutation } from '../../hooks/mutations/useMergeAppUpg
 import { useDiscardAppUpgradeMutation } from '../../hooks/mutations/useDiscardAppUpgradeMutation';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
+import { useIsOrganizationRepo } from '../../hooks/useIsOrganizationRepo';
 import { CenterContainer } from '../../components/CenterContainer';
 import type {
   AppUpgradeManualTask,
@@ -64,7 +65,8 @@ export const AppUpgradePage = (): ReactElement => {
   const subroute = useSubroute();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data: status } = useAppUpgradeStatusQuery(org, app);
+  const isOrganizationRepo = useIsOrganizationRepo(org);
+  const { data: status } = useAppUpgradeStatusQuery(org, app, isOrganizationRepo);
   const start = useStartAppUpgradeMutation(org, app);
   const startedBranch = searchParams.get(branchParam) ?? status?.activeUpgradeBranch ?? null;
   const runQuery = useAppUpgradeRunQuery(org, app, startedBranch);
@@ -104,7 +106,17 @@ export const AppUpgradePage = (): ReactElement => {
         <StudioHeading level={1} data-size='md'>
           {t('app_upgrade.page_title', { app, version: targetVersion })}
         </StudioHeading>
-        {phase === 'intro' && (
+        {!isOrganizationRepo && (
+          <div className={classes.content}>
+            <StudioAlert data-color='info'>{t('app_upgrade.intro.organization_only')}</StudioAlert>
+            <Actions>
+              <StudioButton variant='secondary' onClick={goToDashboard}>
+                {t('app_upgrade.done.back_to_dashboard')}
+              </StudioButton>
+            </Actions>
+          </div>
+        )}
+        {isOrganizationRepo && phase === 'intro' && (
           <Intro
             app={app}
             targetVersion={targetVersion}
@@ -113,7 +125,7 @@ export const AppUpgradePage = (): ReactElement => {
             onCancel={goToDashboard}
           />
         )}
-        {phase === 'starting' && (
+        {isOrganizationRepo && phase === 'starting' && (
           <Starting
             start={start.data}
             isPending={start.isPending}
@@ -121,7 +133,7 @@ export const AppUpgradePage = (): ReactElement => {
             onCancel={goToDashboard}
           />
         )}
-        {(phase === 'upgrade' || phase === 'done') && (
+        {isOrganizationRepo && (phase === 'upgrade' || phase === 'done') && (
           <div className={classes.content}>
             <UpgradeStepper activeStep={phase} />
             {phase === 'upgrade' ? (
