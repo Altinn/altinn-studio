@@ -91,6 +91,16 @@ public class ServiceRepositorySettings : ISettingsMarker
     public string DockerIgnoreFileName { get; set; } = ".dockerignore";
 
     /// <summary>
+    /// Gets or sets the filename for the EditorConfig file
+    /// </summary>
+    public string EditorConfigFileName { get; set; } = ".editorconfig";
+
+    /// <summary>
+    /// Gets or sets the filename for the Git attributes file
+    /// </summary>
+    public string GitAttributesFileName { get; set; } = ".gitattributes";
+
+    /// <summary>
     /// Gets or sets the filename for the authorization policy file (XACML)
     /// </summary>
     public string AuthorizationPolicyFileName { get; set; } = "policy.xml";
