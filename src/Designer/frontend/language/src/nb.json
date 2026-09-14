@@ -501,6 +501,7 @@
   "app_upgrade.stepper.upgrade": "Oppgradering",
   "app_upgrade.title": "Oppdater",
   "app_upgrade.upgrade.in_progress": "Oppdateringen kjører i repoet ditt. Dette kan ta noen minutter, og du kan trygt bli stående på denne siden.",
+  "app_upgrade.upgrade.loading": "Henter status for oppdateringen ...",
   "app_upgrade.upgrade.queued": "Venter på at en kjører skal plukke opp oppdateringen ...",
   "app_upgrade.upgrade.running": "Oppdateringen kjører ...",
   "app_upgrade.upgrade.running_step": "Oppdateringen kjører: {{step}}",
