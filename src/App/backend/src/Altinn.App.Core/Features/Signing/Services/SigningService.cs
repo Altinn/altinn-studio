@@ -75,7 +75,7 @@ internal sealed class SigningService(
 
         string instanceIdCombo = instanceDataMutator.Instance.Id;
         InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
-        Party? instanceOwnerParty = await GetInstanceOwnerParty(instanceOwner);
+        Party? instanceOwnerParty = await GetInstanceOwnerParty(instanceOwner, ct);
         Guid? instanceOwnerPartyUuid = instanceOwnerParty?.PartyUuid;
         AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
 
@@ -128,6 +128,10 @@ internal sealed class SigningService(
                     signeeContext.SigneeState.HasBeenMessagedForCallToSign = false;
                     signeeContext.SigneeState.CallToSignFailedReason = $"Correspondence configuration error.";
                     telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
@@ -205,7 +209,11 @@ internal sealed class SigningService(
         List<OrganizationSignee> orgSignees = [.. signeeContexts.Select(x => x.Signee).OfType<OrganizationSignee>()];
         List<string> orgNumbers = [.. orgSignees.Select(x => x.OrgNumber)];
 
-        List<string> keyRoleOrganizations = await authorizationClient.GetKeyRoleOrganizationParties(userId, orgNumbers);
+        List<string> keyRoleOrganizations = await authorizationClient.GetKeyRoleOrganizationParties(
+            userId,
+            orgNumbers,
+            ct
+        );
 
         List<OrganizationSignee> authorizedOrganizations =
         [
@@ -291,7 +299,7 @@ internal sealed class SigningService(
             string instanceIdCombo = instanceDataMutator.Instance.Id;
             InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
             Party instanceOwnerParty =
-                await GetInstanceOwnerParty(instanceOwner)
+                await GetInstanceOwnerParty(instanceOwner, ct)
                 ?? throw new SigningException(
                     "Failed to lookup instance owner party. Unable to revoke signing rights."
                 );
@@ -325,7 +333,7 @@ internal sealed class SigningService(
         }
     }
 
-    private async Task<Party?> GetInstanceOwnerParty(InstanceOwner instanceOwner)
+    private async Task<Party?> GetInstanceOwnerParty(InstanceOwner instanceOwner, CancellationToken ct)
     {
         using var activity = telemetry?.StartGetInstanceOwnerPartyActivity();
         if (instanceOwner.OrganisationNumber == "ttd" && _hostEnvironment.IsProduction() is false)
@@ -339,13 +347,18 @@ internal sealed class SigningService(
             return await altinnPartyClient.LookupParty(
                 !string.IsNullOrEmpty(instanceOwner.OrganisationNumber)
                     ? new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
-                    : new PartyLookup { Ssn = instanceOwner.PersonNumber }
+                    : new PartyLookup { Ssn = instanceOwner.PersonNumber },
+                cancellationToken: ct
             );
         }
-        catch (Exception)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            _logger.LogError("Failed to look up party for instance owner.");
-            throw new SigningException("Failed to lookup party information for instance owner.");
+            throw;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to look up party for instance owner.");
+            throw new SigningException("Failed to lookup party information for instance owner.", e);
         }
     }
 
@@ -357,9 +370,13 @@ internal sealed class SigningService(
         {
             AltinnCdnOrgDetails? serviceOwnerDetails = await _altinnCdnClient.GetOrgDetails(ct);
             PartyLookup partyLookup = new() { OrgNo = serviceOwnerDetails?.Orgnr };
-            serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup);
+            serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup, cancellationToken: ct);
 
             telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Success);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {

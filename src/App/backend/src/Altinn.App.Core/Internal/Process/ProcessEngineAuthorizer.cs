@@ -31,7 +31,11 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
     /// <summary>
     /// Use this to determine if the user is allowed to perform process next for the current task.
     /// </summary>
-    public async Task<bool> AuthorizeProcessNext(Instance instance, string? action = null)
+    public async Task<bool> AuthorizeProcessNext(
+        Instance instance,
+        string? action = null,
+        CancellationToken cancellationToken = default
+    )
     {
         if (instance.Process.CurrentTask is null)
         {
@@ -53,7 +57,8 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
                 new InstanceIdentifier(instance),
                 _httpContext.User,
                 action,
-                currentTaskId
+                currentTaskId,
+                cancellationToken
             );
 
             _logger.LogInformation(
@@ -76,7 +81,8 @@ internal sealed class ProcessEngineAuthorizer : IProcessEngineAuthorizer
                 new InstanceIdentifier(instance),
                 _httpContext.User,
                 actionToAuthorize,
-                currentTaskId
+                currentTaskId,
+                cancellationToken
             );
 
             if (isActionAuthorized)

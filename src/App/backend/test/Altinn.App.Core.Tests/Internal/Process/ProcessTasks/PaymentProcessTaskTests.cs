@@ -70,7 +70,8 @@ public class PaymentProcessTaskTests
                     instance,
                     It.Is<PaymentInformation>(payment =>
                         payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    )
+                    ),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -82,7 +83,8 @@ public class PaymentProcessTaskTests
                 instance,
                 It.Is<PaymentInformation>(payment =>
                     payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                )
+                ),
+                It.IsAny<CancellationToken>()
             )
         );
         dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));
@@ -105,7 +107,8 @@ public class PaymentProcessTaskTests
         await _paymentProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
 
         _paymentProcessorMock.Verify(
-            x => x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
+            x =>
+                x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
         dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
@@ -233,7 +236,8 @@ public class PaymentProcessTaskTests
                     instance,
                     It.Is<PaymentInformation>(payment =>
                         payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    )
+                    ),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -245,7 +249,8 @@ public class PaymentProcessTaskTests
                 instance,
                 It.Is<PaymentInformation>(payment =>
                     payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                )
+                ),
+                It.IsAny<CancellationToken>()
             )
         );
         dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));

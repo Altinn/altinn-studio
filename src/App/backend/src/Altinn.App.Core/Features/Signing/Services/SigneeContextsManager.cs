@@ -140,7 +140,10 @@ internal sealed class SigneeContextsManager(
         CancellationToken ct
     )
     {
-        Signee signee = await From(providedSignee, (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup));
+        Signee signee = await From(
+            providedSignee,
+            (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup, cancellationToken: ct)
+        );
         Party party = signee.GetParty();
 
         Notification? notification = providedSignee.CommunicationConfig?.Notification;

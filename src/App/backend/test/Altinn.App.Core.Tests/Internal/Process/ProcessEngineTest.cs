@@ -3466,7 +3466,9 @@ public sealed class ProcessEngineTest
 
             var processEngineAuthorizerMock = new Mock<IProcessEngineAuthorizer>(MockBehavior.Strict);
             processEngineAuthorizerMock
-                .Setup(x => x.AuthorizeProcessNext(It.IsAny<Instance>(), It.IsAny<string>()))
+                .Setup(x =>
+                    x.AuthorizeProcessNext(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(true);
             ;
 

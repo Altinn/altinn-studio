@@ -67,7 +67,7 @@ internal sealed class PaymentProcessTask : IProcessTask
             AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
         }
 
-        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration);
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration, context.CancellationToken);
     }
 
     /// <inheritdoc/>
@@ -107,7 +107,7 @@ internal sealed class PaymentProcessTask : IProcessTask
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate());
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate(), context.CancellationToken);
     }
 
     private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
@@ -138,7 +138,8 @@ internal sealed class PaymentProcessTask : IProcessTask
 
     private async Task CleanupAnyExistingPayment(
         IInstanceDataMutator dataMutator,
-        ValidAltinnPaymentConfiguration paymentConfiguration
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        CancellationToken ct
     )
     {
         DataElement? paymentDataElement = dataMutator
@@ -168,7 +169,7 @@ internal sealed class PaymentProcessTask : IProcessTask
                     .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
                 ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
 
-            bool success = await paymentProcessor.TerminatePayment(dataMutator.Instance, paymentInformation);
+            bool success = await paymentProcessor.TerminatePayment(dataMutator.Instance, paymentInformation, ct);
             string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
             if (!success)
             {

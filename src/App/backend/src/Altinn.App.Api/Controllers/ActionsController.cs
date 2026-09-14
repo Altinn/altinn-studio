@@ -140,7 +140,8 @@ public class ActionsController : ControllerBase
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
             HttpContext.User,
             action,
-            instance.Process?.CurrentTask?.ElementId
+            instance.Process?.CurrentTask?.ElementId,
+            ct
         );
         if (!authorized)
         {

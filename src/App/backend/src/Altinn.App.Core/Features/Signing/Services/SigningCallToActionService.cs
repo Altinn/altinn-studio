@@ -69,7 +69,11 @@ internal sealed class SigningCallToActionService(
         {
             try
             {
-                recipientProfile = await _profileClient.GetUserProfile(person.Value);
+                recipientProfile = await _profileClient.GetUserProfile(person.Value, cancellationToken: ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {

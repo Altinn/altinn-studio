@@ -567,7 +567,8 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ProcessHistoryList>> GetProcessHistory(
         [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
     )
     {
         try
@@ -575,7 +576,8 @@ public class ProcessController : ControllerBase
             return Ok(
                 await _processClient.GetProcessHistory(
                     instanceGuid.ToString(),
-                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture)
+                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
+                    cancellationToken: cancellationToken
                 )
             );
         }
@@ -585,6 +587,10 @@ public class ProcessController : ControllerBase
                 e,
                 $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {e}"
             );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception processException)
         {

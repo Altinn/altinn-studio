@@ -72,7 +72,7 @@ public sealed class ProcessStateEnricher
                     processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>()
                 );
                 actions = actions.DistinctBy(a => a.Value, StringComparer.Ordinal).ToList();
-                var authDecisions = await _authorization.AuthorizeActions(instance, user, actions);
+                var authDecisions = await _authorization.AuthorizeActions(instance, user, actions, ct);
                 appProcessState.CurrentTask.Actions = authDecisions
                     .Where(a => a.ActionType == ActionType.ProcessAction)
                     .ToDictionary(a => a.Id, a => a.Authorized);

@@ -152,6 +152,12 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateCancellationTokenParameters(scanner, options.CancellationToken)
+        );
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateCorrespondenceApis(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -579,6 +585,32 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating IEFormidlingReceivers signature", ex);
+        }
+    }
+
+    /// <summary>
+    /// Adds the new <c>cancellationToken</c> parameter to app implementations of the payment interfaces that
+    /// gained one in v9 (<c>IPaymentProcessor</c>, <c>IOrderDetailsCalculator</c>) so they satisfy the interface.
+    /// </summary>
+    static int MigrateCancellationTokenParameters(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("CancellationToken parameters");
+        try
+        {
+            var result = new CancellationTokenParameterMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: $"No {string.Join(" or ", CancellationTokenParameterMigration.InterfaceNames)} implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating CancellationToken parameters", ex);
         }
     }
 
