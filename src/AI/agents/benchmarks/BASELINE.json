@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "07e319515e6a",
-    "code": "d2f7f6f clean",
-    "dataset": "114 items 5562d4e8298d",
+    "code": "56ac9ac clean",
+    "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260910T042810Z-datepicker-timestamp-pairing-declares-the-required-value-5ea8",
-  "label": "datepicker timeStamp: pairing declares the required value",
-  "recorded_at": "2026-09-10T04:32:45+00:00",
-  "why": "pairing declares the required value, so a Datepicker with timeStamp true no longer scores as satisfied"
+  "check_id": "20260914T065446Z-whitespace-only-needles-and-ambiguous-prompt-names-refused-2233",
+  "label": "whitespace-only needles and ambiguous prompt names refused",
+  "recorded_at": "2026-09-14T07:00:17+00:00",
+  "why": "whitespace-only needles and ambiguous prompt names are refused rather than guessed"
 }

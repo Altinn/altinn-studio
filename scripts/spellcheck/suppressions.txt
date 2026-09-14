@@ -289,6 +289,10 @@ litres
 @paths src/Designer/development/fake-ansattporten/main.go
 selv
 
+# "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
+@paths src/AI/agents/agents/prompts/intent_security.md
+ser
+
 # didi is the dependency-injection package bpmn-js pulls in (see yarn.lock)
 @paths src/Designer/frontend/jest.config.js
 didi

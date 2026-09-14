@@ -26,11 +26,34 @@ PUSH_OVERRIDE_VARIABLE = "ALLOW_PROMPT_PUSH"
 
 # Langfuse name -> the local file that serves it, where get_prompt_with_langfuse
 # is called with local_path. Without these the file reads as retired.
+HTTP_NOT_FOUND = 404
+
 SERVED_FROM: dict[str, str] = {"intent_check": "intent_security"}
+
+# Judges run as Langfuse evaluator templates, not prompts, so they cannot be diffed.
+JUDGE_DIR = "llm-as-a-judge"
 
 
 def _is_prompt(path: Path) -> bool:
-    return path.name != "README.md"
+    return path.name != "README.md" and JUDGE_DIR not in path.parts
+
+
+def _judge_templates() -> list[str]:
+    return sorted(path.stem for path in (PROMPTS_DIR / JUDGE_DIR).glob("*.md"))
+
+
+def _report_judges() -> None:
+    names = _judge_templates()
+    if not names:
+        return
+    print(
+        f"\n{len(names)} judge template(s) live in Langfuse as evaluators rather than "
+        "prompts, so this report cannot compare them: "
+        + ", ".join(names)
+        + ".\nThe files under "
+        f"agents/prompts/{JUDGE_DIR}/ are the reviewed source; the running text is "
+        "configured in the Langfuse UI."
+    )
 
 
 def _local_prompt_names() -> list[str]:
@@ -70,17 +93,38 @@ def _remote_prompts(api: LangfuseApi) -> list[dict]:
         page += 1
 
 
+def _served_as(name: str) -> str:
+    """The Langfuse name for a local file, where the two differ."""
+    for langfuse_name, local_file in SERVED_FROM.items():
+        if local_file == name:
+            return langfuse_name
+    return name
+
+
+def _system_turn(content: object) -> str | None:
+    """A chat prompt's system text, which is the half a repo file holds."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        for message in content:
+            if isinstance(message, dict) and message.get("role") == "system":
+                text = message.get("content")
+                if isinstance(text, str):
+                    return text
+    return None
+
+
 def _diff(api: LangfuseApi, name: str) -> bool:
     """Print the drift for one prompt. Returns True when they differ."""
     local = load_prompt(name)["content"]
-    remote = _remote(api, name)
+    remote = _remote(api, _served_as(name))
     if remote is None:
         print(f"{name}: not in Langfuse (local file is authoritative)")
         return True
 
-    remote_content = remote.get("prompt")
-    if not isinstance(remote_content, str):
-        print(f"{name}: chat-type prompt, not comparable")
+    remote_content = _system_turn(remote.get("prompt"))
+    if remote_content is None:
+        print(f"{name}: published with no system turn, not comparable")
         return False
 
     if remote_content == local:
@@ -133,24 +177,60 @@ def _require_push_override() -> None:
     )
 
 
+def _published_shape(api: LangfuseApi, name: str) -> list | None:
+    """The turns of the published chat prompt, or None when it is a text prompt."""
+    try:
+        published = api._get(f"/api/public/v2/prompts/{name}")
+    except httpx.HTTPStatusError as error:
+        if error.response.status_code == HTTP_NOT_FOUND:
+            return None  # nobody has published this one yet, so text is the shape
+        raise SystemExit(
+            f"Could not read the published {name}: {error}. Refusing to publish, "
+            "because guessing the shape can drop a chat prompt's variables."
+        ) from error
+    if published.get("type") != "chat":
+        return None
+    return published.get("prompt") or None
+
+
+def _as_published(name: str, content: str, shape: list | None) -> dict:
+    """The local file in the shape Langfuse already serves this prompt in.
+
+    A chat prompt carries the user turn with its `{{variables}}`; publishing the
+    file as text would drop that turn and the model would never see the request.
+    """
+    if shape is None:
+        return {"type": "text", "prompt": content}
+    turns = [dict(turn) for turn in shape]
+    system = [turn for turn in turns if turn.get("role") == "system"]
+    if not system:
+        raise SystemExit(
+            f"{name} is a chat prompt in Langfuse with no system turn, so there is "
+            "nowhere to put the file. Fix it there, or publish by hand."
+        )
+    system[0]["content"] = content
+    return {"type": "chat", "prompt": turns}
+
+
 def _push(api: LangfuseApi, name: str, message: str) -> None:
     local = load_prompt(name)
+    served = _served_as(name)
     created = api._post(
         "/api/public/v2/prompts",
         {
-            "name": name,
-            "type": "text",
-            "prompt": local["content"],
+            "name": served,
+            **_as_published(served, local["content"], _published_shape(api, served)),
             "labels": ["production"],
             "commitMessage": message,
         },
     )
-    print(f"{name}: published v{created.get('version')} as {created.get('labels')}")
+    served_note = f" (serving {served})" if served != name else ""
+    print(f"{name}: published v{created.get('version')} as {created.get('labels')}{served_note}")
 
 
 def _promote(api: LangfuseApi, name: str, version: int) -> None:
     updated = api._patch(
-        f"/api/public/v2/prompts/{name}/version/{version}",
+        f"/api/public/v2/prompts/{name}/versions/{version}",
         {"newLabels": ["production"]},
     )
     print(f"{name}: v{updated.get('version')} is now {updated.get('labels')}")
@@ -193,6 +273,7 @@ def main() -> int:
     if drifted:
         print(f"\n{len(drifted)} prompt(s) differ from Langfuse")
     _report_orphans(api)
+    _report_judges()
     return 0
 
 

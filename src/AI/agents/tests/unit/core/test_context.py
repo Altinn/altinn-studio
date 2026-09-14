@@ -40,12 +40,20 @@ class TestRequiredSections:
 class TestMode:
     def test_write_mode_message(self):
         prompt = build_system_prompt(_base_ctx(allow_app_changes=True))
-        assert "WRITE" in prompt
-        assert "READ-ONLY" not in prompt
+        assert "Mode: WRITE" in prompt
 
-    def test_read_only_mode_message(self):
+    def test_read_mode_says_a_write_asks_rather_than_fails(self):
+        """"Write tools are disabled" contradicted the rule to try and let the
+        user answer the permission prompt, and the model believed the ban."""
         prompt = build_system_prompt(_base_ctx(allow_app_changes=False))
-        assert "READ-ONLY" in prompt
+
+        assert "Mode: READ (a write tool asks the user for permission" in prompt
+        assert "disabled" not in prompt
+
+    def test_read_mode_names_the_switch_the_user_has_to_turn_on(self):
+        prompt = build_system_prompt(_base_ctx(allow_app_changes=False))
+
+        assert "Tillat endringer i appen" in prompt
 
 
 class TestOptionalSections:
