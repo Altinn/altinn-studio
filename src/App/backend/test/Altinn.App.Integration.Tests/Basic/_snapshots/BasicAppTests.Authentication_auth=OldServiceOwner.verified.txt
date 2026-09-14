@@ -8,7 +8,7 @@
     party: {
       partyId: 500005,
       partyTypeName: Organisation,
-      partyUuid: null,
+      partyUuid: Guid_1,
       ssn: null,
       orgNumber: 405003309,
       unitType: BEDR,

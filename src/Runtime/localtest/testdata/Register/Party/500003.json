@@ -1,6 +1,7 @@
 {
   "partyId": "500003",
-  "partyUuid": "ab831058-2fa4-4c6b-8e6f-23aadbddf44e",
+  "partyUuid": "00000000-0000-0000-0000-000000500003",
+  "externalUrn": "urn:altinn:organization:identifier-no:897069653",
   "partyTypeName": 2,
   "orgNumber": "897069653",
   "ssn": "",
