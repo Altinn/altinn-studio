@@ -7,13 +7,12 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
-using Person = Altinn.Platform.Register.Models.Person;
+using Person = Altinn.App.Core.Models.Person;
 using Signee = Altinn.App.Core.Features.Signing.Models.Signee;
 using StorageSignee = Altinn.Platform.Storage.Interface.Models.Signee;
 
@@ -56,6 +55,8 @@ public sealed class SignDocumentManagerTests : IDisposable
                     {
                         return new Party
                         {
+                            PartyId = 1,
+                            PartyUuid = DeterministicPartyUuid($"ssn:{lookup.Ssn}"),
                             SSN = lookup.Ssn,
                             Name = "Test Person",
                             Person = new Person { SSN = lookup.Ssn, Name = "Test Person" },
@@ -66,6 +67,8 @@ public sealed class SignDocumentManagerTests : IDisposable
                     {
                         return new Party
                         {
+                            PartyId = 3,
+                            PartyUuid = DeterministicPartyUuid($"org:{lookup.OrgNo}"),
                             OrgNumber = lookup.OrgNo,
                             Name = "Test Organization",
                             Organization = new Organization { OrgNumber = lookup.OrgNo, Name = "Test Organization" },
@@ -78,6 +81,16 @@ public sealed class SignDocumentManagerTests : IDisposable
     }
 
     public void Dispose() => _serviceProvider.Dispose();
+
+    // Deterministic PartyUuid derived from an identity (ssn/orgNumber), so that a party looked up
+    // via IAltinnPartyClient and the same party built directly by these test helpers end up with the
+    // same PartyUuid, allowing full-object JSON comparisons in the tests below.
+    private static Guid DeterministicPartyUuid(string seed)
+    {
+        Span<byte> hash = stackalloc byte[16];
+        System.Security.Cryptography.MD5.HashData(System.Text.Encoding.UTF8.GetBytes(seed), hash);
+        return new Guid(hash);
+    }
 
     // Helper methods to create test objects
     private static SignDocument CreateSignDocument(string? personNumber, string? orgNumber, Guid? systemUserId)
@@ -97,6 +110,8 @@ public sealed class SignDocumentManagerTests : IDisposable
     {
         var party = new Party
         {
+            PartyId = 1,
+            PartyUuid = DeterministicPartyUuid($"ssn:{ssn}"),
             SSN = ssn,
             Name = name,
             Person = new Person { SSN = ssn, Name = name },
@@ -119,6 +134,8 @@ public sealed class SignDocumentManagerTests : IDisposable
     {
         var party = new Party
         {
+            PartyId = 1,
+            PartyUuid = DeterministicPartyUuid($"ssn:{ssn}"),
             SSN = ssn,
             Name = name,
             Person = new Person { SSN = ssn, Name = name },
@@ -126,6 +143,8 @@ public sealed class SignDocumentManagerTests : IDisposable
 
         var orgParty = new Party
         {
+            PartyId = 3,
+            PartyUuid = DeterministicPartyUuid($"org:{orgNumber}"),
             OrgNumber = orgNumber,
             Name = orgName,
             Organization = new Organization { OrgNumber = orgNumber, Name = orgName },
@@ -149,6 +168,8 @@ public sealed class SignDocumentManagerTests : IDisposable
     {
         var party = new Party
         {
+            PartyId = 3,
+            PartyUuid = DeterministicPartyUuid($"org:{orgNumber}"),
             OrgNumber = orgNumber,
             Name = orgName,
             Organization = new Organization { OrgNumber = orgNumber, Name = orgName },
@@ -169,6 +190,8 @@ public sealed class SignDocumentManagerTests : IDisposable
     {
         var party = new Party
         {
+            PartyId = 3,
+            PartyUuid = DeterministicPartyUuid($"org:{orgNumber}"),
             OrgNumber = orgNumber,
             Name = orgName,
             Organization = new Organization { OrgNumber = orgNumber, Name = orgName },

@@ -9,6 +9,10 @@
         <Project Path="../src/Altinn.App.Core/Altinn.App.Core.csproj" />
         <Project Path="../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
     </Folder>
+    <Folder Name="/StudioCtl/">
+        <Project Path="../../../cli/studioctl-server-tests/Studioctl.Tests.csproj" />
+        <Project Path="../../../cli/studioctl-server/studioctl-server.csproj" />
+    </Folder>
     <Folder Name="/test/">
         <Project Path="../test/Altinn.App.Analyzers.Tests/Altinn.App.Analyzers.Tests.csproj" />
         <Project Path="../test/Altinn.App.Api.Tests/Altinn.App.Api.Tests.csproj" />

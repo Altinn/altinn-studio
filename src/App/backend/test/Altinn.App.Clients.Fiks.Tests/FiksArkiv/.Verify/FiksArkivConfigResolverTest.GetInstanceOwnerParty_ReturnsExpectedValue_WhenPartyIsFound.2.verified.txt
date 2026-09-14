@@ -5,5 +5,5 @@
     <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
     <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
   </korrespondanseparttype>
-  <korrespondansepartNavn>a46c3a98-03cb-431a-91ce-70ed0ef9c1ca</korrespondansepartNavn>
+  <korrespondansepartNavn>123</korrespondansepartNavn>
 </korrespondansepart>

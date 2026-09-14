@@ -3,7 +3,7 @@
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Filters;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using LocalTest.Services.Register.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,6 +62,11 @@ namespace Altinn.Platform.Register.Controllers
         public async Task<ActionResult<Party>> PostPartyLookup([FromBody]PartyLookup partyLookup)
         {
             string lookupValue = partyLookup.OrgNo ?? partyLookup.Ssn;
+
+            if(lookupValue == null)
+            {
+                return BadRequest("One of the properties OrgNo or Ssn must be provided.");
+            }
 
             Party party = await _partiesWrapper.LookupPartyBySSNOrOrgNo(lookupValue);
 

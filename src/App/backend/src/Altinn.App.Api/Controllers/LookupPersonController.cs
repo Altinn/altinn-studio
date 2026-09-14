@@ -4,8 +4,8 @@ using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
-using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers;

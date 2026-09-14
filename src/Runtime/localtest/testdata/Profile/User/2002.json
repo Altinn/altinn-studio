@@ -1,12 +1,13 @@
 {
   "UserId": 2002,
+  "UserUuid": "00000000-0000-0000-0000-000000512002",
   "UserName": "KariNordvik",
   "PhoneNumber": "+4791234567",
   "Email": "kari.nordvik@test.com",
   "PartyId": 512002,
   "Party": {
     "partyId": "512002",
-    "partyUuid": "b2c3d4e5-f6a7-8901-bcde-fa2345678901",
+    "partyUuid": "00000000-0000-0000-0000-000000512002",
     "ssn": "12889898001"
   },
   "UserType": 0,

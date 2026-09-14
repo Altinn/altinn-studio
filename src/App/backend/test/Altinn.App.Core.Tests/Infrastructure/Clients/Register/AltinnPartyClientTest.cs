@@ -9,7 +9,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
-using Altinn.Platform.Register.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -185,12 +184,29 @@ public class AltinnPartyClientTest
                         {
                             "GET" => new HttpResponseMessage(HttpStatusCode.OK)
                             {
-                                Content = new StringContent($"{{\"partyId\": {request.RequestUri!.Segments.Last()} }}"),
+                                Content = new StringContent(
+                                    $$"""
+                                    {
+                                        "partyId": {{request.RequestUri!.Segments.Last()}},
+                                        "partyUuid": "{{Guid.NewGuid()}}",
+                                        "name": "Test Party"
+                                    }
+                                    """
+                                ),
                             },
                             "POST" => new HttpResponseMessage(HttpStatusCode.OK)
                             {
                                 Content = new StringContent(
-                                    $"{{\"orgNumber\": \"{request.Content!.ReadFromJsonAsync<PartyLookup>(CancellationToken.None).Result!.OrgNo}\" }}"
+                                    $$"""
+                                    {
+                                        "partyId": 123,
+                                        "partyUuid": "{{Guid.NewGuid()}}",
+                                        "name": "Test Party",
+                                        "orgNumber": "{{request
+                                        .Content!.ReadFromJsonAsync<PartyLookup>(CancellationToken.None)
+                                        .Result!.OrgNo}}"
+                                    }
+                                    """
                                 ),
                             },
                             _ => throw new InvalidOperationException("Unexpected HTTP method"),

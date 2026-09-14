@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Authorization.Interface.Models;
 using LocalTest.Configuration;
@@ -140,6 +141,7 @@ public class TenorDataRepository
             Orgs = brreg.Select(b => new AppTestOrg
             {
                 PartyId = b.PartyId,
+                PartyUuid = Guid.ParseExact(b.PartyId.ToString("D32", CultureInfo.InvariantCulture), "N"),
                 ParentPartyId = null,
                 OrgNumber = b.Organisasjonsnummer,
                 Name = b.Navn,
