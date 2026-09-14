@@ -93,15 +93,15 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
     }
 
     [Fact]
-    public async Task Upgrade_ReportsTheConfigurationSectionCollision()
+    public async Task Upgrade_ReportsTheDeadConfigurationSection()
     {
         _app.Write(
             "appsettings.json",
             """
             {
               "MaskinportenSettings": {
-                "Environment": "test",
-                "EncodedJwk": "eyJraWQiOiJ0ZXN0In0="
+                "authority": "https://test.maskinporten.no/",
+                "clientId": "some-client-id"
               }
             }
             """
@@ -111,7 +111,23 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
 
         Assert.Contains("Maskinporten settings", log, StringComparison.Ordinal);
         Assert.Contains("appsettings.json", log, StringComparison.Ordinal);
-        Assert.Contains("Rename your own section", log, StringComparison.Ordinal);
+        Assert.Contains("v9 never reads", log, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Upgrade_ReportsTheRemovedConfigurationApi()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddFiksArkiv().WithMaskinportenConfig("MyOwnMaskinporten");
+            """
+        );
+
+        var log = await RunUpgrade();
+
+        Assert.Contains("WithMaskinportenConfig", log, StringComparison.Ordinal);
+        Assert.Contains("Program.cs", log, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -122,7 +138,7 @@ public sealed class V8Tov9UpgradeMaskinportenWiringTests : IDisposable
 
         var log = await RunUpgrade();
 
-        Assert.DoesNotContain("configures the external Maskinporten client", log, StringComparison.Ordinal);
+        Assert.DoesNotContain("configuration section that v9 never reads", log, StringComparison.Ordinal);
         Assert.DoesNotContain("IMaskinportenTokenProvider", log, StringComparison.Ordinal);
         Assert.DoesNotContain("Altinn.ApiClients.Maskinporten", log, StringComparison.Ordinal);
     }
