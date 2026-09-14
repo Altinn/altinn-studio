@@ -467,7 +467,7 @@ func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctl
 func (c *SelfCommand) warnRemovedTestdataDir(dir string) {
 	c.out.Warning(joinLines(
 		"",
-		fmt.Sprintf("Removed the local localtest test data directory: %s", dir),
+		"Removed the local localtest test data directory: "+dir,
 		"",
 		"Localtest now uses the test data built into its image, so this copy is no longer in use and",
 		"any users, parties or roles you changed or added there no longer apply. To define your own",
