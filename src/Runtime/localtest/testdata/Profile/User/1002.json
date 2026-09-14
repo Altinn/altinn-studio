@@ -8,6 +8,7 @@
   "Party": {
     "partyId": "510002",
     "partyUuid": "00000000-0000-0000-0000-000000510002",
+    "externalUrn": "urn:altinn:person:identifier-no:17858296439",
     "ssn": "17858296439"
   },
   "UserType": 0,

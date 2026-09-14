@@ -2,6 +2,7 @@
   {
     "partyId": "510003",
     "partyUuid": "00000000-0000-0000-0000-000000510003",
+    "externalUrn": "urn:altinn:person:identifier-no:08829698278",
     "partyTypeName": 1,
     "ssn": "08829698278",
     "name": "Rik Forelder",

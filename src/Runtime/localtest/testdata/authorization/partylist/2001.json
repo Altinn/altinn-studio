@@ -2,6 +2,7 @@
   {
     "partyId": "512001",
     "partyUuid": "00000000-0000-0000-0000-000000512001",
+    "externalUrn": "urn:altinn:person:identifier-no:01899699001",
     "partyTypeName": 1,
     "ssn": "01899699001",
     "name": "MultiParty Prompt",
@@ -14,6 +15,7 @@
   {
     "partyId": "500000",
     "partyUuid": "00000000-0000-0000-0000-000000500000",
+    "externalUrn": "urn:altinn:organization:identifier-no:897069650",
     "partyTypeName": 2,
     "orgNumber": "897069650",
     "unitType": "AS",
@@ -27,6 +29,7 @@
   {
     "partyId": "500700",
     "partyUuid": "00000000-0000-0000-0000-000000500700",
+    "externalUrn": "urn:altinn:organization:identifier-no:950474084",
     "partyTypeName": 2,
     "orgNumber": "950474084",
     "unitType": "BRL",

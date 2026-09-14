@@ -2,6 +2,7 @@
   {
     "partyId": "501337",
     "partyUuid": "00000000-0000-0000-0000-000000501337",
+    "externalUrn": "urn:altinn:person:identifier-no:01039012345",
     "partyTypeName": 1,
     "ssn": "01039012345",
     "unitType": null,
@@ -15,6 +16,7 @@
   {
     "partyId": "500000",
     "partyUuid": "00000000-0000-0000-0000-000000500000",
+    "externalUrn": "urn:altinn:organization:identifier-no:897069650",
     "partyTypeName": 2,
     "orgNumber": "897069650",
     "unitType": "AS",
@@ -27,6 +29,7 @@
       {
         "partyId": "500001",
         "partyUuid": "00000000-0000-0000-0000-000000500001",
+        "externalUrn": "urn:altinn:organization:identifier-no:897069651",
         "partyTypeName": 2,
         "orgNumber": "897069651",
         "unitType": "BEDR",
@@ -40,6 +43,7 @@
       {
         "partyId": "500002",
         "partyUuid": "00000000-0000-0000-0000-000000500002",
+        "externalUrn": "urn:altinn:organization:identifier-no:897069652",
         "partyTypeName": 2,
         "orgNumber": "897069652",
         "unitType": "BEDR",
@@ -53,6 +57,7 @@
       {
         "partyId": "500003",
         "partyUuid": "00000000-0000-0000-0000-000000500003",
+        "externalUrn": "urn:altinn:organization:identifier-no:897069653",
         "partyTypeName": 2,
         "orgNumber": "897069653",
         "unitType": "BEDR",
@@ -68,6 +73,7 @@
   {
     "partyId": "500600",
     "partyUuid": "00000000-0000-0000-0000-000000500600",
+    "externalUrn": "urn:altinn:organization:identifier-no:897069631",
     "partyTypeName": 2,
     "orgNumber": "897069631",
     "unitType": "AS",
@@ -81,6 +87,7 @@
   {
     "partyId": "500700",
     "partyUuid": "00000000-0000-0000-0000-000000500700",
+    "externalUrn": "urn:altinn:organization:identifier-no:950474084",
     "partyTypeName": 2,
     "orgNumber": "950474084",
     "unitType": "BRL",
@@ -94,6 +101,7 @@
   {
     "partyId": "500800",
     "partyUuid": "00000000-0000-0000-0000-000000500800",
+    "externalUrn": "urn:altinn:organization:identifier-no:910457292",
     "partyTypeName": 2,
     "orgNumber": "910457292",
     "unitType": "AS",
@@ -107,6 +115,7 @@
   {
     "partyId": "500801",
     "partyUuid": "00000000-0000-0000-0000-000000500801",
+    "externalUrn": "urn:altinn:organization:identifier-no:910471120",
     "partyTypeName": 2,
     "orgNumber": "910471120",
     "unitType": "AS",
@@ -120,6 +129,7 @@
   {
     "partyId": "500802",
     "partyUuid": "00000000-0000-0000-0000-000000500802",
+    "externalUrn": "urn:altinn:organization:identifier-no:910423495",
     "partyTypeName": 2,
     "orgNumber": "910423495",
     "unitType": "AS",
@@ -133,6 +143,7 @@
   {
     "partyId": "500004",
     "partyUuid": "00000000-0000-0000-0000-000000500004",
+    "externalUrn": "urn:altinn:organization:identifier-no:043871668",
     "partyTypeName": 2,
     "orgNumber": "043871668",
     "ssn": "",
