@@ -153,7 +153,7 @@ internal class ProcessEngine : IProcessEngine
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         // Capture instance + form data state for transport to the workflow engine
@@ -190,7 +190,7 @@ internal class ProcessEngine : IProcessEngine
             isInstantiation,
             prefill: prefill,
             notification: notification,
-            ct: ct
+            cancellationToken: cancellationToken
         );
         if (result.WorkflowFailure is null)
         {
@@ -206,13 +206,16 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default)
+    public async Task<ProcessChangeResult> Next(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         Instance instance = request.Instance;
 
         using Activity? activity = _telemetry?.StartProcessNextActivity(instance, request.Action);
 
-        ProcessChangeResult result = await ProcessNext(request, ct);
+        ProcessChangeResult result = await ProcessNext(request, cancellationToken);
         if (result.Success && result.MutatedInstance is null)
         {
             throw new ProcessException(
@@ -225,7 +228,10 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ProcessChangeResult> ResumeCurrentTask(ProcessNextRequest request, CancellationToken ct = default)
+    public async Task<ProcessChangeResult> ResumeCurrentTask(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         Instance instance = request.Instance;
 
@@ -245,7 +251,11 @@ internal class ProcessEngine : IProcessEngine
 
         (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
 
-        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action, ct);
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(
+            instance,
+            request.Action,
+            cancellationToken
+        );
 
         if (!authorized)
         {
@@ -262,7 +272,7 @@ internal class ProcessEngine : IProcessEngine
 
         CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
             instance,
-            ct
+            cancellationToken
         );
 
         if (currentTaskWorkflowState is CurrentTaskWorkflowState.Retrying)
@@ -289,7 +299,7 @@ internal class ProcessEngine : IProcessEngine
             instance,
             failedWorkflow.WorkflowId,
             failedWorkflow.CollectionKey,
-            ct
+            cancellationToken
         );
 
         if (workflowResult.WorkflowFailure is not null)
@@ -325,7 +335,10 @@ internal class ProcessEngine : IProcessEngine
     /// <summary>
     /// Internal method that performs a single process next operation without automatic service task handling.
     /// </summary>
-    private async Task<ProcessChangeResult> ProcessNext(ProcessNextRequest request, CancellationToken ct = default)
+    private async Task<ProcessChangeResult> ProcessNext(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         using Activity? activity = _telemetry?.StartProcessNextActivity(request.Instance, request.Action);
 
@@ -346,13 +359,17 @@ internal class ProcessEngine : IProcessEngine
 
         (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
 
-        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action, ct);
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(
+            instance,
+            request.Action,
+            cancellationToken
+        );
 
         if (!authorized)
         {
             if (
                 request.Mode is ProcessNextMode.CompleteProcess
-                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance, cancellationToken: ct)
+                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance, cancellationToken: cancellationToken)
             )
             {
                 ProcessChangeResult completeProcessAuthorizationFailedResult =
@@ -389,7 +406,7 @@ internal class ProcessEngine : IProcessEngine
 
         CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
             instance,
-            ct
+            cancellationToken
         );
         switch (currentTaskWorkflowState)
         {
@@ -433,7 +450,7 @@ internal class ProcessEngine : IProcessEngine
         {
             bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(
                 instance,
-                cancellationToken: ct
+                cancellationToken: cancellationToken
             );
             if (!completeProcessAuthorized)
             {
@@ -461,7 +478,7 @@ internal class ProcessEngine : IProcessEngine
             if (request.Action is not null)
             {
                 (UserActionResult userActionResult, InstanceWithStorageMetadata? refreshedInstance) =
-                    await HandleUserAction(instance, request, versions, ct);
+                    await HandleUserAction(instance, request, versions, cancellationToken);
 
                 if (userActionResult.ResultType is ResultType.Failure)
                 {
@@ -517,7 +534,12 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult = await HandleMoveToNext(instance, versions, processNextAction, ct);
+        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+            instance,
+            versions,
+            processNextAction,
+            cancellationToken
+        );
 
         if (moveToNextResult.WorkflowFailure is not null)
         {
@@ -591,7 +613,7 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         ProcessNextRequest request,
         StorageVersionMetadata versions,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartProcessHandleUserActionActivity(instance, request.Action);
@@ -622,7 +644,7 @@ internal class ProcessEngine : IProcessEngine
                 language: request.Language,
                 authentication: currentAuth,
                 onBehalfOf: request.ActionOnBehalfOf,
-                cancellationToken: ct
+                cancellationToken: cancellationToken
             )
         );
 
@@ -643,7 +665,7 @@ internal class ProcessEngine : IProcessEngine
         InstanceWithStorageMetadata refreshedInstance = await _instanceClient.GetInstanceWithStorageMetadata(
             cachedDataMutator.Instance,
             authenticationMethod: null,
-            ct
+            cancellationToken
         );
 
         return (actionResult, refreshedInstance);
@@ -839,7 +861,7 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         StorageVersionMetadata versions,
         string? action,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
@@ -870,7 +892,7 @@ internal class ProcessEngine : IProcessEngine
             versions,
             processStateChange,
             state,
-            ct: ct
+            cancellationToken: cancellationToken
         );
 
         ProcessStateChange finalProcessStateChange = new()
@@ -898,7 +920,7 @@ internal class ProcessEngine : IProcessEngine
         string state,
         string? action = null,
         string? idempotencyKey = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         PlatformUser user = CreatePlatformUser(actor);
@@ -912,7 +934,7 @@ internal class ProcessEngine : IProcessEngine
             state,
             actor,
             idempotencyKey,
-            ct: ct
+            cancellationToken: cancellationToken
         );
     }
 

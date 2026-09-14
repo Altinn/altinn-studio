@@ -47,7 +47,7 @@ internal sealed class SigningCallToActionService(
         Party signingParty,
         Party serviceOwnerParty,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartSendSignCallToActionActivity();
@@ -69,9 +69,12 @@ internal sealed class SigningCallToActionService(
         {
             try
             {
-                recipientProfile = await _profileClient.GetUserProfile(person.Value, cancellationToken: ct);
+                recipientProfile = await _profileClient.GetUserProfile(
+                    person.Value,
+                    cancellationToken: cancellationToken
+                );
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -114,7 +117,7 @@ internal sealed class SigningCallToActionService(
             CorrespondenceAuthenticationMethod.Default()
         );
 
-        SendCorrespondenceResponse response = await _correspondenceClient.Send(request, ct);
+        SendCorrespondenceResponse response = await _correspondenceClient.Send(request, cancellationToken);
         var correspondenceId = response?.Correspondences[0]?.CorrespondenceId ?? Guid.Empty;
         _logger.LogInformation("Correspondence request sent. CorrespondenceId: {CorrespondenceId}", correspondenceId);
         return response;

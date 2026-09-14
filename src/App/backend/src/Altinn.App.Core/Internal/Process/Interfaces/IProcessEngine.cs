@@ -27,18 +27,21 @@ internal interface IProcessEngine
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Method to move process to next task/event
     /// </summary>
-    Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default);
+    Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Attempts to resume the workflow that established the instance's current task.
     /// </summary>
-    Task<ProcessChangeResult> ResumeCurrentTask(ProcessNextRequest request, CancellationToken ct = default);
+    Task<ProcessChangeResult> ResumeCurrentTask(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Enqueues a process-next workflow that transitions the process from the current task to the next element.
@@ -59,6 +62,6 @@ internal interface IProcessEngine
         string state,
         string? action = null,
         string? idempotencyKey = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 }

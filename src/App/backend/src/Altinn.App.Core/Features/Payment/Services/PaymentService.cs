@@ -75,7 +75,11 @@ internal class PaymentService : IPaymentService
             string dataTypeId = paymentConfiguration.PaymentDataType;
 
             (Guid dataElementId, PaymentInformation? existingPaymentInformation) =
-                await _dataService.GetByType<PaymentInformation>(instance, dataTypeId, ct: cancellationToken);
+                await _dataService.GetByType<PaymentInformation>(
+                    instance,
+                    dataTypeId,
+                    cancellationToken: cancellationToken
+                );
 
             if (existingPaymentInformation?.PaymentDetails != null)
             {
@@ -151,7 +155,7 @@ internal class PaymentService : IPaymentService
                 new InstanceIdentifier(instance),
                 dataTypeId,
                 paymentInformation,
-                ct: CancellationToken.None
+                cancellationToken: CancellationToken.None
             );
             return (paymentInformation, false);
         }
@@ -224,7 +228,7 @@ internal class PaymentService : IPaymentService
         (Guid dataElementId, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
             dataTypeId,
-            ct: cancellationToken
+            cancellationToken: cancellationToken
         );
 
         if (paymentInformation == null)
@@ -293,7 +297,7 @@ internal class PaymentService : IPaymentService
                 dataTypeId,
                 dataElementId,
                 paymentInformation,
-                ct: cancellationToken
+                cancellationToken: cancellationToken
             );
         }
 
@@ -436,7 +440,7 @@ internal class PaymentService : IPaymentService
         (Guid _, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
             dataTypeId,
-            ct: cancellationToken
+            cancellationToken: cancellationToken
         );
 
         if (paymentInformation == null)
@@ -483,7 +487,11 @@ internal class PaymentService : IPaymentService
 
         // Once the processor has terminated the payment, the stale record must go regardless of the request's
         // fate: left behind, the next attempt would try to terminate the same payment again.
-        await _dataService.DeleteById(new InstanceIdentifier(instance), dataElementId, ct: CancellationToken.None);
+        await _dataService.DeleteById(
+            new InstanceIdentifier(instance),
+            dataElementId,
+            cancellationToken: CancellationToken.None
+        );
         _logger.LogDebug("Payment information for deleted for instance {InstanceId}.", instance.Id);
     }
 }

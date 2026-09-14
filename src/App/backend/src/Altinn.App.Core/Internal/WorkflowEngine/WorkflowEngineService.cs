@@ -74,7 +74,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         WorkflowEnqueueEnvelope bundle;
@@ -90,7 +90,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 notification: notification
             );
         }
-        catch (Exception exception) when (!ct.IsCancellationRequested)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
             throw WorkflowSubmissionFailedException.NotAccepted(
                 "Runtime failed to build the process-next workflow request before submitting it.",
@@ -107,7 +107,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Guid enqueuedWorkflowId;
         try
         {
-            (enqueuedWorkflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, ct);
+            (enqueuedWorkflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, cancellationToken);
         }
         catch (Exception exception) when (IsDefinitiveNotAccepted(exception, out HttpStatusCode? statusCode))
         {
@@ -118,9 +118,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 exception
             );
         }
-        catch (Exception exception) when (!ct.IsCancellationRequested)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
-            WorkflowCollectionLookupResult lookupResult = await ProbeWorkflowCollection(collectionKey, ct);
+            WorkflowCollectionLookupResult lookupResult = await ProbeWorkflowCollection(
+                collectionKey,
+                cancellationToken
+            );
             if (lookupResult == WorkflowCollectionLookupResult.Found)
             {
                 // The enqueue response was lost, so the new workflow id is unknown - wait unscoped.
@@ -128,7 +131,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     instance,
                     collectionKey,
                     sinceWorkflowId: null,
-                    ct
+                    cancellationToken
                 );
             }
 
@@ -154,7 +157,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             instance,
             collectionKey,
             sinceWorkflowId: enqueuedWorkflowId,
-            ct
+            cancellationToken
         );
     }
 
@@ -166,7 +169,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     ) =>
         EnqueueDependentWorkflow(
             instance,
@@ -176,12 +179,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             actor,
             idempotencyKey,
-            ct
+            cancellationToken
         );
 
     public async Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
         Instance instance,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string? processNextId = ProcessNextRequestFactory.CreateProcessNextId(instance.Process?.CurrentTask);
@@ -194,7 +197,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         IReadOnlyList<WorkflowStatusResponse> matchingWorkflows = await ListCurrentTaskProcessNextWorkflows(
             instanceIdentifier.InstanceGuid,
             processNextId,
-            ct
+            cancellationToken
         );
 
         // The matching workflows share the instance's collection (its key is the instance guid),
@@ -213,7 +216,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
                 collectionKey,
-                ct: ct
+                cancellationToken: cancellationToken
             );
             if (collection is null || collection.Heads.Count == 0)
             {
@@ -236,7 +239,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             if (resumeRequiredHead is not null)
             {
                 Guid retryTargetWorkflowId =
-                    await GetResumeTargetWorkflowId(collectionKey, resumeRequiredHead.DatabaseId, ct)
+                    await GetResumeTargetWorkflowId(collectionKey, resumeRequiredHead.DatabaseId, cancellationToken)
                     ?? resumeRequiredHead.DatabaseId;
                 return new CurrentTaskWorkflowState.ResumeRequired(retryTargetWorkflowId, collectionKey);
             }
@@ -245,7 +248,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return new CurrentTaskWorkflowState.Unblocked();
     }
 
-    public async Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default)
+    public async Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
+        Instance instance,
+        CancellationToken cancellationToken = default
+    )
     {
         var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
 
@@ -268,7 +274,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
             GetNamespace(),
             collectionKey,
-            ct: ct
+            cancellationToken: cancellationToken
         );
         if (collection is null || collection.Heads.Count == 0)
         {
@@ -320,7 +326,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // rules as the enqueue wait and the resume-target lookup: workflows that must never be
         // classified as transition failures are stripped in that one place.
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
-            await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+            await _workflowEngineClient.ListWorkflows(
+                GetNamespace(),
+                collectionKey: collectionKey,
+                cancellationToken: cancellationToken
+            ),
             sinceWorkflowId: null
         );
         return new WorkflowTaskStatus(
@@ -335,15 +345,20 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Instance instance,
         Guid workflowId,
         string collectionKey,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
-        await _workflowEngineClient.ResumeWorkflow(GetNamespace(), workflowId, cascade: true, ct: ct);
+        await _workflowEngineClient.ResumeWorkflow(
+            GetNamespace(),
+            workflowId,
+            cascade: true,
+            cancellationToken: cancellationToken
+        );
         return await WaitForWorkflowCollectionAndRefetchInstance(
             instance,
             collectionKey,
             sinceWorkflowId: workflowId,
-            ct
+            cancellationToken
         );
     }
 
@@ -355,7 +370,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         WorkflowEnqueueEnvelope bundle = await _processNextRequestFactory.CreateDependent(
@@ -366,7 +381,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
             idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
         );
-        (Guid workflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, ct);
+        (Guid workflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, cancellationToken);
         return workflowId;
     }
 
@@ -392,7 +407,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowEnvelope(
         WorkflowEnqueueEnvelope bundle,
         string? effectiveCollectionKey,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         WorkflowEnqueueResponse.Accepted response = await _workflowEngineClient.EnqueueWorkflows(
@@ -400,7 +415,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             bundle.IdempotencyKey,
             effectiveCollectionKey,
             bundle.Request,
-            ct
+            cancellationToken
         );
 
         return (response.Workflows[0].DatabaseId, effectiveCollectionKey);
@@ -408,7 +423,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     private async Task<WorkflowCollectionLookupResult> ProbeWorkflowCollection(
         string collectionKey,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         for (int attempt = 0; attempt < AcceptanceProbeAttempts; attempt++)
@@ -418,14 +433,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                     GetNamespace(),
                     collectionKey,
-                    ct
+                    cancellationToken
                 );
                 if (collection is not null)
                 {
                     return WorkflowCollectionLookupResult.Found;
                 }
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -436,7 +451,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
             if (attempt < AcceptanceProbeAttempts - 1)
             {
-                await Task.Delay(AcceptanceProbeDelayMs, ct);
+                await Task.Delay(AcceptanceProbeDelayMs, cancellationToken);
             }
         }
 
@@ -456,7 +471,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Instance instance,
         string collectionKey,
         Guid? sinceWorkflowId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         long startedAt = _timeProvider.GetTimestamp();
@@ -465,7 +480,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         while (true)
         {
-            ct.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             if (_timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs))
             {
                 return await CreatePollingTimeoutResult(
@@ -473,21 +488,25 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     collectionKey,
                     sinceWorkflowId,
                     lastObservedCollectionWorkflows,
-                    ct
+                    cancellationToken
                 );
             }
 
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
                 collectionKey,
-                ct: ct
+                cancellationToken: cancellationToken
             );
             if (collection?.Heads.Count > 0)
             {
                 if (!collection.Heads.Any(IsActiveCollectionHeadStatus))
                 {
                     IReadOnlyList<WorkflowStatusResponse> collectionWorkflows =
-                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct);
+                        await _workflowEngineClient.ListWorkflows(
+                            GetNamespace(),
+                            collectionKey: collectionKey,
+                            cancellationToken: cancellationToken
+                        );
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
                         collectionWorkflows,
                         sinceWorkflowId
@@ -518,7 +537,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             bool abandoned = await _workflowEngineClient.AbandonWorkflow(
                                 GetNamespace(),
                                 failedAcquireWorkflowId,
-                                ct
+                                cancellationToken
                             );
                             if (!abandoned)
                             {
@@ -532,7 +551,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         if (!repollAfterAbandonCasLoss)
                         {
                             InstanceWithStorageMetadata freshInstance =
-                                await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
+                                await _instanceClient.GetInstanceWithStorageMetadata(
+                                    instance,
+                                    cancellationToken: cancellationToken
+                                );
                             bool processStateChanged = HasCommittedProcessState(currentChain);
                             return new ProcessNextWorkflowResult(
                                 freshInstance.Instance,
@@ -553,7 +575,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
                     // success shape applies and the read-path annotation takes over.
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
-                        await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                        await _workflowEngineClient.ListWorkflows(
+                            GetNamespace(),
+                            collectionKey: collectionKey,
+                            cancellationToken: cancellationToken
+                        ),
                         sinceWorkflowId
                     );
 
@@ -572,7 +598,10 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     if (anchoredChainParked && HasCommittedProcessState(currentChain))
                     {
                         InstanceWithStorageMetadata freshInstance =
-                            await _instanceClient.GetInstanceWithStorageMetadata(instance, ct: ct);
+                            await _instanceClient.GetInstanceWithStorageMetadata(
+                                instance,
+                                cancellationToken: cancellationToken
+                            );
                         return new ProcessNextWorkflowResult(
                             freshInstance.Instance,
                             freshInstance.Metadata,
@@ -583,7 +612,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 }
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, ct);
+            await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, cancellationToken);
             currentDelayMs =
                 _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
                     ? InitialWorkflowPollingDelayMs
@@ -599,17 +628,21 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string collectionKey,
         Guid? sinceWorkflowId,
         IReadOnlyList<WorkflowStatusResponse> lastObservedCollectionWorkflows,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
             instance,
-            ct: ct
+            cancellationToken: cancellationToken
         );
         if (lastObservedCollectionWorkflows.Count == 0)
         {
             lastObservedCollectionWorkflows = ScopeToCurrentChain(
-                await _workflowEngineClient.ListWorkflows(GetNamespace(), collectionKey: collectionKey, ct: ct),
+                await _workflowEngineClient.ListWorkflows(
+                    GetNamespace(),
+                    collectionKey: collectionKey,
+                    cancellationToken: cancellationToken
+                ),
                 sinceWorkflowId
             );
         }
@@ -680,7 +713,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<IReadOnlyList<WorkflowStatusResponse>> ListCurrentTaskProcessNextWorkflows(
         Guid instanceGuid,
         string processNextId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         string[] labelKeys =
@@ -699,7 +732,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     [ProcessNextRequestFactory.ProcessNextInstanceGuidLabel] = instanceGuid.ToString("N"),
                     [labelKey] = processNextId,
                 },
-                ct: ct
+                cancellationToken: cancellationToken
             );
 
             foreach (WorkflowStatusResponse workflow in matchingWorkflows)
@@ -772,13 +805,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private async Task<Guid?> GetResumeTargetWorkflowId(
         string collectionKey,
         Guid fallbackWorkflowId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await _workflowEngineClient.ListWorkflows(
             GetNamespace(),
             collectionKey: collectionKey,
-            ct: ct
+            cancellationToken: cancellationToken
         );
         // Scope with a null anchor to strip side-effects workflows: a failed side effect must not
         // be picked as the resume target for a blocked transition.

@@ -49,14 +49,14 @@ public sealed class ProcessStateEnricher
     /// idle) and the read does not touch the engine - an opt-out for bulk/machine-to-machine
     /// consumers that don't need liveness and don't want the engine as a read dependency.
     /// </param>
-    /// <param name="ct">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An enriched <see cref="AppProcessState"/>.</returns>
     public async Task<AppProcessState> Enrich(
         Instance instance,
         ProcessState? processState,
         ClaimsPrincipal user,
         bool includeWorkflowStatus = true,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         var appProcessState = new AppProcessState(processState);
@@ -72,7 +72,7 @@ public sealed class ProcessStateEnricher
                     processTask.ExtensionElements?.TaskExtension?.AltinnActions ?? new List<AltinnAction>()
                 );
                 actions = actions.DistinctBy(a => a.Value, StringComparer.Ordinal).ToList();
-                var authDecisions = await _authorization.AuthorizeActions(instance, user, actions, ct);
+                var authDecisions = await _authorization.AuthorizeActions(instance, user, actions, cancellationToken);
                 appProcessState.CurrentTask.Actions = authDecisions
                     .Where(a => a.ActionType == ActionType.ProcessAction)
                     .ToDictionary(a => a.Id, a => a.Authorized);
@@ -100,7 +100,7 @@ public sealed class ProcessStateEnricher
 
         if (includeWorkflowStatus)
         {
-            appProcessState.Workflow = await ResolveWorkflowStatus(instance, ct);
+            appProcessState.Workflow = await ResolveWorkflowStatus(instance, cancellationToken);
         }
 
         return appProcessState;
@@ -122,9 +122,12 @@ public sealed class ProcessStateEnricher
     /// failed head) are resolved to <see cref="WorkflowActivityStatus.Idle"/> inside
     /// <see cref="IWorkflowEngineService.ResolveWorkflowTaskStatus"/> and never throw.
     /// </summary>
-    private async Task<AppProcessWorkflowStatus> ResolveWorkflowStatus(Instance instance, CancellationToken ct)
+    private async Task<AppProcessWorkflowStatus> ResolveWorkflowStatus(
+        Instance instance,
+        CancellationToken cancellationToken
+    )
     {
-        using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         budgetCts.CancelAfter(WorkflowStatusResolutionBudget);
         try
         {
@@ -134,7 +137,7 @@ public sealed class ProcessStateEnricher
             );
             return workflowStatus.ToAppProcessWorkflowStatus();
         }
-        catch (OperationCanceledException e) when (!ct.IsCancellationRequested)
+        catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
         {
             // The resolution budget elapsed or the HTTP client timed out (the caller's own token
             // is untouched either way): translate the bare cancellation into an actionable error

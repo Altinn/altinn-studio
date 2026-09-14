@@ -277,10 +277,12 @@ public class WorkflowEngineClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Returns<HttpRequestMessage, CancellationToken>(
-                async (request, ct) =>
+                async (request, cancellationToken) =>
                 {
                     capturedRequest = request;
-                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    capturedBody = request.Content is null
+                        ? null
+                        : await request.Content.ReadAsStringAsync(cancellationToken);
                     HttpResponseMessage response = CreateJsonResponse(
                         new MailboxResponse
                         {
@@ -479,10 +481,12 @@ public class WorkflowEngineClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Returns<HttpRequestMessage, CancellationToken>(
-                async (request, ct) =>
+                async (request, cancellationToken) =>
                 {
                     capturedRequest = request;
-                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    capturedBody = request.Content is null
+                        ? null
+                        : await request.Content.ReadAsStringAsync(cancellationToken);
                     HttpResponseMessage response = CreateJsonResponse(
                         new MailboxDeliveryResponse
                         {

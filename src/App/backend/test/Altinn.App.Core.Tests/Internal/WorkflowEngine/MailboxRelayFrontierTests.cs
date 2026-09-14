@@ -94,7 +94,7 @@ public class MailboxRelayFrontierTests
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             var accepted = new List<WorkflowResult>();
@@ -135,7 +135,7 @@ public class MailboxRelayFrontierTests
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) =>
             Task.FromResult<WorkflowCollectionDetailResponse?>(
                 new WorkflowCollectionDetailResponse
@@ -159,7 +159,7 @@ public class MailboxRelayFrontierTests
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) =>
             Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([
                 .. _workflows
@@ -184,36 +184,39 @@ public class MailboxRelayFrontierTests
                     }),
             ]);
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
-            Task.FromResult<MailboxResponse?>(null);
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult<MailboxResponse?>(null);
 
         public Task<MailboxDeliveryResult> DeliverToMailbox(
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -327,7 +330,7 @@ public class MailboxRelayFrontierTests
                 )
             )
             .Returns<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, collectionKey, _, _, idempotencyKey, ct) =>
+                (_, _, _, collectionKey, _, _, idempotencyKey, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,
@@ -339,7 +342,7 @@ public class MailboxRelayFrontierTests
                                 new WorkflowRequest { OperationId = "Process next: Task_2 -> Task_3", Steps = [] },
                             ],
                         },
-                        ct
+                        cancellationToken
                     )
             );
 

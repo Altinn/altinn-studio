@@ -1490,10 +1490,10 @@ public sealed class SigningServiceTests : IDisposable
         _altinnPartyClient
             .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>(), cts.Token))
             .Returns(
-                async (PartyLookup _, StorageAuthenticationMethod? _, CancellationToken ct) =>
+                async (PartyLookup _, StorageAuthenticationMethod? _, CancellationToken cancellationToken) =>
                 {
                     await cts.CancelAsync();
-                    ct.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
                     return new Party();
                 }
             );
