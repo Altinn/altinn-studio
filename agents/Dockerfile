@@ -123,7 +123,7 @@ RUN case "${TARGETARCH}" in \
     && agg --version
 
 ARG CODEX_VERSION=0.153.4
-ARG CLAUDE_CODE_VERSION=2.1.266
+ARG CLAUDE_CODE_VERSION=2.1.268
 
 RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
