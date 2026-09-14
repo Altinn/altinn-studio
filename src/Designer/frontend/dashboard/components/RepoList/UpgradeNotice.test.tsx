@@ -5,14 +5,24 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { appUpgradeStatus, repository } from 'app-shared/mocks/mocks';
+import { appUpgradeStatus, organization, repository } from 'app-shared/mocks/mocks';
 import type { AppUpgradeStatus } from 'app-shared/types/AppUpgrade';
 import { UpgradeNotice } from './UpgradeNotice';
 
-const repo = { ...repository, full_name: 'ttd/my-app', name: 'my-app' };
+const repo = {
+  ...repository,
+  full_name: 'ttd/my-app',
+  name: 'my-app',
+  owner: { ...repository.owner, login: 'ttd' },
+};
 const upgradePageText = 'upgrade page';
 
 describe('UpgradeNotice', () => {
+  it('renders nothing for apps that are not owned by an organization', () => {
+    renderUpgradeNotice(appUpgradeStatus, []);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('renders nothing when no upgrade is available', () => {
     renderUpgradeNotice({ ...appUpgradeStatus, isUpgradeAvailable: false });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
@@ -55,9 +65,13 @@ const LocationSearch = () => {
   return <div>{search}</div>;
 };
 
-const renderUpgradeNotice = (status: AppUpgradeStatus) => {
+const renderUpgradeNotice = (status: AppUpgradeStatus, organizationNames: string[] = ['ttd']) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppUpgradeStatus, 'ttd', 'my-app'], status);
+  queryClient.setQueryData(
+    [QueryKey.Organizations],
+    organizationNames.map((username) => ({ ...organization, username })),
+  );
   return renderWithProviders(
     <Routes>
       <Route path='/:subroute/:selectedContext' element={<UpgradeNotice repo={repo} />} />
