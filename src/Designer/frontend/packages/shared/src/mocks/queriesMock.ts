@@ -8,6 +8,7 @@ import type {
   AppUpgradeRun,
   AppUpgradeStart,
   AppUpgradeStatus,
+  AppUpgradeDiscardResult,
 } from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -347,6 +348,11 @@ export const queriesMock: ServicesContextProps = {
   mergeAppUpgrade: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeMergeResult>(appUpgradeMergeResult)),
+  discardAppUpgrade: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<AppUpgradeDiscardResult>({ isDiscarded: true, message: '' }),
+    ),
   createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   deleteBranch: jest.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),

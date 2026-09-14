@@ -170,6 +170,32 @@ describe('AppUpgradePage', () => {
     expect(startAppUpgrade).not.toHaveBeenCalled();
   });
 
+  it('discards a finished upgrade after confirmation and returns to the dashboard', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const discardAppUpgrade = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve({ isDiscarded: true, message: '' }));
+    renderPage(
+      { discardAppUpgrade },
+      appUpgradeStatus,
+      `?branch=${encodeURIComponent(started.branchName)}`,
+      completedRun,
+    );
+
+    await user.click(
+      await screen.findByRole('button', { name: textMock('app_upgrade.done.discard') }),
+    );
+
+    await waitFor(() =>
+      expect(discardAppUpgrade).toHaveBeenCalledWith(org, app, {
+        branchName: started.branchName,
+        pullRequestNumber: completedRun.result.pullRequestNumber,
+      }),
+    );
+    expect(await screen.findByText(dashboardText)).toBeInTheDocument();
+  });
+
   it('shows the queued state while waiting for a runner', async () => {
     const user = userEvent.setup();
     const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(queuedRun));

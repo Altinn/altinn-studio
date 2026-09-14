@@ -96,6 +96,9 @@ public partial class AppUpgradeService : IAppUpgradeService
         bool isAutomaticUpgradeSupported =
             backendVersion is not null && backendVersion.Major == AutomaticUpgradeSourceMajorVersion;
         string? activeUpgradeBranch = isUpgradeAvailable ? await FindActiveUpgradeBranchAsync(repoContext) : null;
+        bool activeUpgradeHasPullRequest =
+            activeUpgradeBranch is not null
+            && await HasOpenPullRequestAsync(repoContext, activeUpgradeBranch, cancellationToken);
 
         return new AppUpgradeStatus(
             backendVersion?.ToString(),
@@ -103,8 +106,24 @@ public partial class AppUpgradeService : IAppUpgradeService
             TargetMajorVersion,
             isUpgradeAvailable,
             isAutomaticUpgradeSupported,
-            activeUpgradeBranch
+            activeUpgradeBranch,
+            activeUpgradeHasPullRequest
         );
+    }
+
+    private async Task<bool> HasOpenPullRequestAsync(
+        AltinnRepoContext repoContext,
+        string branchName,
+        CancellationToken cancellationToken
+    )
+    {
+        List<PullRequest>? pullRequests = await _giteaClient.ListPullRequestsAsync(
+            repoContext.Org,
+            repoContext.Repo,
+            "open",
+            cancellationToken
+        );
+        return pullRequests?.Any(pullRequest => pullRequest.Head?.Ref == branchName) ?? false;
     }
 
     private async Task<string?> FindActiveUpgradeBranchAsync(AltinnRepoContext repoContext)
@@ -384,6 +403,56 @@ public partial class AppUpgradeService : IAppUpgradeService
 
         RefreshLocalClone(authenticatedContext, baseBranch);
         return new AppUpgradeMergeResult(true, $"The upgrade was merged into {baseBranch}.", baseBranch);
+    }
+
+    public async Task<AppUpgradeDiscardResult> DiscardAsync(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        AppUpgradeDiscardRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!request.BranchName.StartsWith(_settings.BranchPrefix, StringComparison.Ordinal))
+        {
+            return new AppUpgradeDiscardResult(false, "Only branches created by the upgrade can be discarded.");
+        }
+
+        if (request.PullRequestNumber is long pullRequestNumber)
+        {
+            bool isClosed = await _giteaClient.ClosePullRequestAsync(
+                authenticatedContext.Org,
+                authenticatedContext.Repo,
+                pullRequestNumber,
+                cancellationToken
+            );
+            if (!isClosed)
+            {
+                _logger.LogWarning(
+                    "Pull request #{Number} for {Org}/{Repo} could not be closed while discarding the upgrade",
+                    pullRequestNumber,
+                    authenticatedContext.Org,
+                    authenticatedContext.Repo
+                );
+            }
+        }
+
+        string baseBranch = await GetDefaultBranch(authenticatedContext);
+        RefreshLocalClone(authenticatedContext, baseBranch);
+
+        bool isDeleted = await _giteaClient.DeleteBranchAsync(
+            authenticatedContext.Org,
+            authenticatedContext.Repo,
+            request.BranchName,
+            cancellationToken
+        );
+        if (!isDeleted)
+        {
+            return new AppUpgradeDiscardResult(
+                false,
+                "The upgrade branch could not be deleted. Remove it from the repository by hand."
+            );
+        }
+
+        return new AppUpgradeDiscardResult(true, "The upgrade was discarded.");
     }
 
     private void RefreshLocalClone(AltinnAuthenticatedRepoEditingContext authenticatedContext, string baseBranch)

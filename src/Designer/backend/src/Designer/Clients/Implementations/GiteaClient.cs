@@ -944,6 +944,37 @@ public class GiteaClient(
     }
 
     /// <inheritdoc/>
+    public async Task<bool> ClosePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.PatchAsync(
+            $"repos/{org}/{repository}/pulls/{pullRequestNumber}",
+            new StringContent("{\"state\":\"closed\"}", Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> DeleteBranchAsync(
+        string org,
+        string repository,
+        string branchName,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.DeleteAsync(
+            $"repos/{org}/{repository}/branches/{Uri.EscapeDataString(branchName)}",
+            cancellationToken
+        );
+        return response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound;
+    }
+
+    /// <inheritdoc/>
     public async Task<bool> MergePullRequestAsync(
         string org,
         string repository,

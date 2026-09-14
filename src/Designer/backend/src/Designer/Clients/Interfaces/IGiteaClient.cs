@@ -276,6 +276,26 @@ public interface IGiteaClient
     /// <summary>
     /// Merges a pull request into its base branch. Returns false when Gitea refused the merge.
     /// </summary>
+    /// <summary>
+    /// Closes an open pull request without merging it.
+    /// </summary>
+    Task<bool> ClosePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Deletes a branch. Returns true when the branch is gone, also when it did not exist.
+    /// </summary>
+    Task<bool> DeleteBranchAsync(
+        string org,
+        string repository,
+        string branchName,
+        CancellationToken cancellationToken = default
+    );
+
     Task<bool> MergePullRequestAsync(
         string org,
         string repository,

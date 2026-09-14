@@ -4,6 +4,7 @@ import {
   StudioAlert,
   StudioBlobDownloader,
   StudioButton,
+  StudioDeleteButton,
   StudioDetails,
   StudioHeading,
   StudioLink,
@@ -19,6 +20,7 @@ import { useAppUpgradeStatusQuery } from '../../hooks/queries/useAppUpgradeStatu
 import { useStartAppUpgradeMutation } from '../../hooks/mutations/useStartAppUpgradeMutation';
 import { useAppUpgradeRunQuery } from '../../hooks/queries/useAppUpgradeRunQuery';
 import { useMergeAppUpgradeMutation } from '../../hooks/mutations/useMergeAppUpgradeMutation';
+import { useDiscardAppUpgradeMutation } from '../../hooks/mutations/useDiscardAppUpgradeMutation';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
 import { CenterContainer } from '../../components/CenterContainer';
@@ -292,7 +294,34 @@ const Done = ({
 }: DoneProps): ReactElement => {
   const { t } = useTranslation();
   const merge = useMergeAppUpgradeMutation(org, app);
+  const discard = useDiscardAppUpgradeMutation(org, app);
   const targetVersion = result?.targetMajorVersion ?? NEXT_V9_VERSION;
+
+  const discardUpgrade = (): void => {
+    if (!result?.branchName) return;
+    discard.mutate(
+      { branchName: result.branchName, pullRequestNumber: result.pullRequestNumber },
+      { onSuccess: (discarded) => discarded.isDiscarded && onClose() },
+    );
+  };
+  const discardFailed = discard.isError || discard.data?.isDiscarded === false;
+
+  const discardButton = result?.branchName && (
+    <StudioDeleteButton
+      variant='tertiary'
+      confirmMessage={t('app_upgrade.done.discard_confirm')}
+      onDelete={discardUpgrade}
+      disabled={discard.isPending}
+    >
+      {t(discard.isPending ? 'app_upgrade.done.discarding' : 'app_upgrade.done.discard')}
+    </StudioDeleteButton>
+  );
+
+  const discardAlert = discardFailed && (
+    <StudioAlert data-color='danger'>
+      {discard.data?.message || t('app_upgrade.done.discard_failed')}
+    </StudioAlert>
+  );
 
   const goToAssistant = (): void => {
     const prompt =
@@ -377,6 +406,7 @@ const Done = ({
         {mergeFailed && (
           <StudioAlert data-color='danger'>{t('app_upgrade.done.merge_failed')}</StudioAlert>
         )}
+        {discardAlert}
         <Actions>
           <StudioButton
             onClick={mergeAndPublish}
@@ -386,6 +416,7 @@ const Done = ({
           </StudioButton>
           {pullRequestLink}
           {downloadReport}
+          {discardButton}
         </Actions>
         {details}
       </>
@@ -400,12 +431,14 @@ const Done = ({
         </StudioHeading>
         <StudioParagraph>{t('app_upgrade.done.partial_description')}</StudioParagraph>
         {branchInfo}
+        {discardAlert}
         <Actions>
           <StudioButton onClick={goToAssistant}>
             {t('app_upgrade.done.go_to_assistant')}
           </StudioButton>
           {pullRequestLink}
           {downloadReport}
+          {discardButton}
         </Actions>
         <ManualTasks manualTasks={result.manualTasks} />
         {details}
@@ -422,9 +455,11 @@ const Done = ({
       <StudioAlert data-color='danger'>
         {requestFailed ? t('app_upgrade.starting.request_failed') : result?.message}
       </StudioAlert>
+      {discardAlert}
       <Actions>
         <StudioButton onClick={goToAssistant}>{t('app_upgrade.done.go_to_assistant')}</StudioButton>
         {downloadReport}
+        {discardButton}
         <StudioButton variant='secondary' onClick={onClose}>
           {t('app_upgrade.done.back_to_dashboard')}
         </StudioButton>

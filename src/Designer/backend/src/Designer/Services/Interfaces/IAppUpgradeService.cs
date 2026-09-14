@@ -29,6 +29,15 @@ public interface IAppUpgradeService
     );
 
     /// <summary>
+    /// Discards an upgrade by closing its pull request, if any, and deleting its branch.
+    /// </summary>
+    Task<AppUpgradeDiscardResult> DiscardAsync(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        AppUpgradeDiscardRequest request,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Merges the pull request opened by the upgrade into the default branch and refreshes the developer's local
     /// clone.
     /// </summary>

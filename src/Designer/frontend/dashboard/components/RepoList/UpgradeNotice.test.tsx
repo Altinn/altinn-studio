@@ -37,6 +37,17 @@ describe('UpgradeNotice', () => {
     expect(screen.getByText(upgradePageText)).toBeInTheDocument();
     expect(screen.getByText(`?branch=${encodeURIComponent(branch)}`)).toBeInTheDocument();
   });
+
+  it('offers the report when the finished upgrade has an open pull request', () => {
+    renderUpgradeNotice({
+      ...appUpgradeStatus,
+      activeUpgradeBranch: 'upgrade/altinn-app-v9-20260914-061154',
+      activeUpgradeHasPullRequest: true,
+    });
+    expect(
+      screen.getByRole('button', { name: textMock('app_upgrade.notice_view_report') }),
+    ).toBeInTheDocument();
+  });
 });
 
 const LocationSearch = () => {
