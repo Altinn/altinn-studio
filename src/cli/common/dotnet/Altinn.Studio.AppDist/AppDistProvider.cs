@@ -52,26 +52,8 @@ public interface IAppDistProvider
 /// <summary>
 /// Default app distribution provider composed from a source and a local store.
 /// </summary>
-public sealed class AppDist : IAppDistProvider, IDisposable
+public sealed class AppDistProvider : IAppDistProvider, IDisposable
 {
-    public static class JsonSchemas
-    {
-        public const string ApplicationMetadata = "schemas/json/application/application-metadata.schema.v1.json";
-        public const string Expression = "schemas/json/layout/expression.schema.v1.json";
-        public const string Footer = "schemas/json/layout/footer.schema.v1.json";
-        public const string Layout = "schemas/json/layout/layout.schema.v1.json";
-        public const string LayoutSettings = "schemas/json/layout/layoutSettings.schema.v1.json";
-        public const string NumberFormat = "schemas/json/component/number-format.schema.v1.json";
-        public const string TextResources = "schemas/json/text-resources/text-resources.schema.v1.json";
-        public const string Validation = "schemas/json/validation/validation.schema.v1.json";
-    }
-
-    public static class Frontend
-    {
-        public const string AltinnAppFrontendJavascript = "altinn-app-frontend.js";
-        public const string AltinnAppFrontendStyles = "altinn-app-frontend.css";
-    }
-
     private readonly IAppDistSource _source;
     private readonly IAppDistStore _store;
     private readonly HttpClient? _ownedHttpClient;
@@ -80,10 +62,10 @@ public sealed class AppDist : IAppDistProvider, IDisposable
     /// <summary>
     /// Creates a provider from independently supplied source and store implementations.
     /// </summary>
-    public AppDist(IAppDistSource source, IAppDistStore store)
+    public AppDistProvider(IAppDistSource source, IAppDistStore store)
         : this(source, store, ownedHttpClient: null) { }
 
-    private AppDist(IAppDistSource source, IAppDistStore store, HttpClient? ownedHttpClient)
+    private AppDistProvider(IAppDistSource source, IAppDistStore store, HttpClient? ownedHttpClient)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(store);
@@ -95,19 +77,22 @@ public sealed class AppDist : IAppDistProvider, IDisposable
     /// <summary>
     /// Creates a provider backed by the public Altinn app distribution registry and a file-system cache.
     /// </summary>
-    public static AppDist CreateDefault(string cacheDirectory)
+    public static AppDistProvider CreateDefault(string cacheDirectory)
     {
         ArgumentException.ThrowIfNullOrEmpty(cacheDirectory);
         var store = new FileSystemAppDistStore(cacheDirectory);
         var handler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) };
         var httpClient = new HttpClient(handler, disposeHandler: true);
-        return new AppDist(new OciRegistrySource(httpClient), store, httpClient);
+        return new AppDistProvider(new OciRegistrySource(httpClient), store, httpClient);
     }
 
-    internal static AppDist CreateDefault(string cacheDirectory, HttpClient httpClient, string repository)
+    internal static AppDistProvider CreateDefault(string cacheDirectory, HttpClient httpClient, string repository)
     {
         ArgumentException.ThrowIfNullOrEmpty(cacheDirectory);
-        return new AppDist(new OciRegistrySource(httpClient, repository), new FileSystemAppDistStore(cacheDirectory));
+        return new AppDistProvider(
+            new OciRegistrySource(httpClient, repository),
+            new FileSystemAppDistStore(cacheDirectory)
+        );
     }
 
     public Task<IAppDistContent?> GetVersion(string version, CancellationToken cancellationToken = default) =>

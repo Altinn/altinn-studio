@@ -6,18 +6,18 @@ public sealed class AppDistTests : IDisposable
 
     public void Dispose() => Directory.Delete(_tempDir, recursive: true);
 
-    private static (AppDist Provider, FakeAppDistSource Source, InMemoryAppDistStore Store) Setup()
+    private static (AppDistProvider Provider, FakeAppDistSource Source, InMemoryAppDistStore Store) Setup()
     {
         var source = new FakeAppDistSource();
         var store = new InMemoryAppDistStore();
-        return (new AppDist(source, store), source, store);
+        return (new AppDistProvider(source, store), source, store);
     }
 
     [Fact]
     public async Task GetLayer_FetchesAndReadsContent()
     {
         var (provider, source, _) = Setup();
-        source.AddFiles("4", AppDistLayer.Schemas, (AppDist.JsonSchemas.Layout, """{"type":"object"}"""));
+        source.AddFiles("4", AppDistLayer.Schemas, (JsonSchemaPaths.Layout, """{"type":"object"}"""));
 
         var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
@@ -25,7 +25,7 @@ public sealed class AppDistTests : IDisposable
         Assert.Equal("4", schemas.Version);
         Assert.Equal(
             """{"type":"object"}""",
-            await schemas.GetFileText(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+            await schemas.GetFileText(JsonSchemaPaths.Layout, TestContext.Current.CancellationToken)
         );
     }
 

@@ -33,7 +33,7 @@ public sealed class CompositionTests : IDisposable
     public async Task PullLayerThroughHttpIntoFileSystemStoreAndReadBack()
     {
         var handler = RegistryWithVersion("4");
-        IAppDistProvider provider = new AppDist(
+        IAppDistProvider provider = new AppDistProvider(
             new OciRegistrySource(new HttpClient(handler), $"{FakeRegistry.Host}/{FakeRegistry.Repository}"),
             new FileSystemAppDistStore(_root)
         );
@@ -43,7 +43,7 @@ public sealed class CompositionTests : IDisposable
         Assert.NotNull(schemas);
         Assert.Equal(
             """{"type":"object"}""",
-            await schemas.GetFileText(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+            await schemas.GetFileText(JsonSchemaPaths.Layout, TestContext.Current.CancellationToken)
         );
         var byRelativePath = await schemas.GetFiles("schemas/json", TestContext.Current.CancellationToken);
         string[] expected = ["layout/expression.schema.v1.json", "layout/layout.schema.v1.json"];
@@ -57,7 +57,11 @@ public sealed class CompositionTests : IDisposable
         var handler = RegistryWithVersion("4");
         using var httpClient = new HttpClient(handler);
         using (
-            var provider = AppDist.CreateDefault(_root, httpClient, $"{FakeRegistry.Host}/{FakeRegistry.Repository}")
+            var provider = AppDistProvider.CreateDefault(
+                _root,
+                httpClient,
+                $"{FakeRegistry.Host}/{FakeRegistry.Repository}"
+            )
         )
         {
             Assert.NotNull(await provider.GetVersion("4", TestContext.Current.CancellationToken));
@@ -75,7 +79,7 @@ public sealed class CompositionTests : IDisposable
     public async Task CreateDefault_ComposesOciSourceAndFileStore()
     {
         var handler = RegistryWithVersion("4");
-        using var provider = AppDist.CreateDefault(
+        using var provider = AppDistProvider.CreateDefault(
             _root,
             new HttpClient(handler),
             $"{FakeRegistry.Host}/{FakeRegistry.Repository}"
@@ -86,11 +90,11 @@ public sealed class CompositionTests : IDisposable
         Assert.NotNull(dist);
         Assert.Equal(
             "js",
-            await dist.GetFileText(AppDist.Frontend.AltinnAppFrontendJavascript, TestContext.Current.CancellationToken)
+            await dist.GetFileText(FrontendPaths.AltinnAppFrontendJavascript, TestContext.Current.CancellationToken)
         );
         Assert.Equal(
             """{"type":"object"}""",
-            await dist.GetFileText(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+            await dist.GetFileText(JsonSchemaPaths.Layout, TestContext.Current.CancellationToken)
         );
         Assert.Equal(1, handler.BlobRequests);
 
@@ -98,7 +102,7 @@ public sealed class CompositionTests : IDisposable
         Assert.NotNull(schemas);
         Assert.Equal(
             """{"type":"object"}""",
-            await schemas.GetFileText(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+            await schemas.GetFileText(JsonSchemaPaths.Layout, TestContext.Current.CancellationToken)
         );
         Assert.Equal(2, handler.BlobRequests);
     }

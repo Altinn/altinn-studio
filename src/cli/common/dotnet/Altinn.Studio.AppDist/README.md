@@ -7,7 +7,7 @@ subset. Both are cached independently.
 Example usage:
 
 ```csharp
-using var appDist = AppDist.CreateDefault(cacheDirectory);
+using var appDist = AppDistProvider.CreateDefault(cacheDirectory);
 
 var schemas = await appDist.GetLayer("9.0.0", AppDistLayer.Schemas);
 if (schemas is null)
@@ -15,7 +15,7 @@ if (schemas is null)
     // This version has not been published.
     return;
 }
-var layoutSchema = await schemas.GetFileText(AppDist.JsonSchemas.Layout);
+var layoutSchema = await schemas.GetFileText(JsonSchemaPaths.Layout);
 var schemasByPath = await schemas.GetFiles("schemas/json");
 ```
 
@@ -23,7 +23,7 @@ var schemasByPath = await schemas.GetFiles("schemas/json");
 Fetch the self-contained content layer and copy the complete frontend distribution:
 
 ```csharp
-using var appDist = AppDist.CreateDefault(cacheDirectory);
+using var appDist = AppDistProvider.CreateDefault(cacheDirectory);
 var dist = await appDist.GetVersion("9.0.0");
 if (dist is not null)
     await dist.CopyToDirectory(wwwRoot);
@@ -67,7 +67,7 @@ from remote version listing to cached versions, catch `AppDistSourceUnavailableE
 Custom sources and stores plug in through the two-interface constructor:
 
 ```csharp
-IAppDistProvider appDist = new AppDist(
+IAppDistProvider appDist = new AppDistProvider(
     new OciRegistrySource(httpClient),
     new FileSystemAppDistStore(cacheDirectory)
 );
