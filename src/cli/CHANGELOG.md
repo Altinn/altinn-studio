@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Localtest now uses the test data bundled with its own image, so the test data always matches the localtest version you are running. Installing or updating no longer places a copy of the test data on your machine, and **deletes the existing copy in your studioctl data directory**, including any users, parties or roles you had changed or added there. `studioctl self update` prints the directory it removed. Edits in that copy were only ever half-preserved across updates — a file the release also shipped was silently overwritten, while a file you added survived — so back up anything you want to keep before updating. To define your own test users from now on, add them to your app in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.
 - `studioctl app upgrade v9` checks generated type names against the upgraded app's dependencies before shortening them or adding `using` directives. This avoids name conflicts introduced by the new SDK or framework. Names stay qualified when target analysis is unavailable, the app uses conditional compilation, or a shorter name cannot be verified in both Debug and Release. When generated names need cleanup, dependency restores and analysis of both Debug and Release add time to the upgrade. The upgrade still completes when this optional cleanup is unavailable.
 
 ### Fixed
