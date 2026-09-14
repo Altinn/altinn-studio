@@ -2,8 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// eslint-disable-next-line import/no-default-export
-export default function configureCypressShard(config, { specRoot, timingsFile, total, number }) {
+export function configureCypressShard(config, { specRoot, timingsFile, total, number }) {
   if (total === undefined && number === undefined) {
     return config;
   }

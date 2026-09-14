@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-// This file and the scripts it points at stay CommonJS (`.cjs`) while the rest of the package is
-// ESM: `@lhci/cli` `require()`s both its config and its puppeteerScript, and supports no other
-// module format. Converting them to ESM fails inside lhci, not here.
+// This file is CommonJS (`.cjs`) on purpose in an otherwise ESM package: `@lhci/cli` `require()`s its config and
+// puppeteerScript, and supports no other module format.
 
 // Configuration
 const { BASE_URL, APP_PATH } = require('./scripts/lighthouse/lighthouse-config-constants.cjs');

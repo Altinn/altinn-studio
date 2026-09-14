@@ -8,7 +8,6 @@ import { sinonChaiCjsPlugin } from './scripts/vite/sinonChaiCjsPlugin.ts';
  * dev-server plugins - only the tsconfig path aliases (src/*, test/*, ...), which Vite
  * resolves natively per importing file (specs are governed by test/tsconfig.json).
  */
-// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   plugins: [sinonChaiCjsPlugin()],
   resolve: {

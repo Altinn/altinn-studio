@@ -47,8 +47,7 @@ const functionCalls = [
   'translate',
 ];
 
-// eslint-disable-next-line import/no-default-export
-export default {
+export const langKey = {
   name: 'language-key',
   meta: {
     type: 'problem',

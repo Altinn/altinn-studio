@@ -7,7 +7,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import configureCypressShard from './scripts/cypress-shard.js';
+import { configureCypressShard } from './scripts/cypress-shard.js';
 
 const env = dotenv.config();
 
@@ -15,7 +15,6 @@ const CYPRESS_WINDOW_WIDTH = env.parsed?.CYPRESS_WINDOW_WIDTH || 1920;
 const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
 
 // noinspection JSUnusedGlobalSymbols
-// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   allowCypressEnv: false,
   e2e: {
