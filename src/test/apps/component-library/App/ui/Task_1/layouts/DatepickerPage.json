@@ -28,13 +28,13 @@
         "format": "dd/MM/yyyy",
         "minDate": ["dataModel","DatepickerMinDateExample"],
         "maxDate":  ["dataModel","DatepickerMaxDateExample"],
-        "required": true,
+        "required": false,
         "timeStamp": false,
         "grid": {
           "md": 6
         }
       },
-      
+
       {
         "id": "DatepickerMinDateExample1",
         "type": "Datepicker",
@@ -42,6 +42,7 @@
           "title": "sett min dato for datofeltet",
           "shortName": "dato-short"
         },
+        "required": false,
         "dataModelBindings": {
           "simpleBinding": "DatepickerMinDateExample"
         },

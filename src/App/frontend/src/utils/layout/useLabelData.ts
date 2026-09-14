@@ -27,7 +27,7 @@ export function useLabelData({
 
   const readOnly = 'readOnly' in item ? item.readOnly : undefined;
   const required = 'required' in item ? item.required : undefined;
-  const showOptionalMarking = 'labelSettings' in item && !!item.labelSettings?.optionalIndicator;
+  const showOptionalMarking = !('labelSettings' in item) || item.labelSettings?.optionalIndicator !== false;
 
   const trb = item.textResourceBindings;
   const { title, help, description } = trb

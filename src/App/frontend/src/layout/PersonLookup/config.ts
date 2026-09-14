@@ -23,6 +23,7 @@ export const Config = new CG.component({
   },
 })
   .addSummaryOverrides()
+  .extends(CG.common('LabeledComponentProps'))
   .addDataModelBinding(
     new CG.obj(
       new CG.prop(

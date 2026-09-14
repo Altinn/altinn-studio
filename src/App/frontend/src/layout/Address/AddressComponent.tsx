@@ -57,7 +57,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
       simplified={simplified}
       required={required}
       readOnly={readOnly}
-      showOptionalMarking={!!labelSettings?.optionalIndicator}
+      showOptionalMarking={labelSettings?.optionalIndicator !== false}
       title={textResourceBindings?.title}
       careOfTitle={textResourceBindings?.careOfTitle}
       zipCodeTitle={textResourceBindings?.zipCodeTitle}

@@ -277,9 +277,10 @@ const ILabelSettings = {
       type: 'boolean',
       title: { en: 'Optional indicator', nb: 'Markering av valgfritt felt' },
       description: {
-        en: 'Show optional indicator on label',
-        nb: 'Viser en markering for valgfrie felt ved ledeteksten.',
+        en: 'Show the optional indicator on the label of non-required fields. Enabled by default, as recommended by Designsystemet.',
+        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, i tråd med anbefalingene fra Designsystemet.',
       },
+      default: true,
       required: false,
     },
   },
@@ -7232,6 +7233,7 @@ const generatedContract = {
         readOnly: FormComponentProps['properties']['readOnly'],
         required: FormComponentProps['properties']['required'],
         showValidations: FormComponentProps['properties']['showValidations'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         columns: ILikertColumnProperties['properties']['columns'],
         type: {
           type: 'constant',
@@ -8202,6 +8204,7 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
           value: 'OrganizationLookup',
@@ -8736,6 +8739,7 @@ const generatedContract = {
         showValidations: FormComponentProps['properties']['showValidations'],
         renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
         forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
         type: {
           type: 'constant',
           value: 'PersonLookup',

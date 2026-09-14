@@ -48,7 +48,7 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
           <OptionalIndicator
             readOnly={readOnly}
             required={required}
-            showOptionalMarking={!!labelSettings?.optionalIndicator}
+            showOptionalMarking={labelSettings?.optionalIndicator !== false}
           />
         </span>
         {help && (

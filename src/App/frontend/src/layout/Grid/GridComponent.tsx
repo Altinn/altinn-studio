@@ -446,7 +446,9 @@ function CellWithLabel({
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const item = useItemFor(labelFrom);
   const trb = item.textResourceBindings;
-  const required = 'required' in item && item.required;
+  const required = 'required' in item ? item.required : undefined;
+  const readOnly = 'readOnly' in item ? item.readOnly : undefined;
+  const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
   const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
     returnType: ExprVal.Number,
     defaultValue: 1,
@@ -473,6 +475,8 @@ function CellWithLabel({
         id={useIndexedId(labelFrom)}
         label={title}
         required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
         help={help}
         description={description}
       />

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-import { getLabelId, RequiredIndicator } from '@app/form-component';
+import { getLabelId, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -43,7 +43,10 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
 
-  const { id, readOnly, textResourceBindings, required } = useItemWhenType(baseComponentId, 'LikertItem');
+  const { id, readOnly, textResourceBindings, required, labelSettings } = useItemWhenType(
+    baseComponentId,
+    'LikertItem',
+  );
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   const likert = parent && parent.type === 'node' ? layoutLookups.getComponent(parent.id, 'Likert') : undefined;
@@ -69,6 +72,11 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
           <span>
             <Lang id={textResourceBindings?.title} />
             <RequiredIndicator required={required} />
+            <OptionalIndicator
+              required={required}
+              readOnly={readOnly}
+              showOptionalMarking={labelSettings?.optionalIndicator !== false}
+            />
           </span>
         </Label>
         <ComponentValidations

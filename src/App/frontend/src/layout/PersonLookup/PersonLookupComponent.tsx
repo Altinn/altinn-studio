@@ -8,6 +8,7 @@ import {
   Input,
   Label,
   NumericInput,
+  OptionalIndicator,
   RequiredIndicator,
 } from '@app/form-component';
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
@@ -83,7 +84,7 @@ async function fetchPerson(
 }
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
-  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'PersonLookup');
+  const { id, dataModelBindings, required, readOnly, labelSettings } = useItemWhenType(baseComponentId, 'PersonLookup');
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -211,6 +212,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               label={langAsString('person_lookup.ssn_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
+              optionalIndicator={
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
+              }
               description={
                 hasSuccessfullyFetched ? (
                   <Description
@@ -261,6 +269,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               htmlFor={`${id}_name`}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
+              optionalIndicator={
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
+              }
               label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
               description={
                 hasSuccessfullyFetched ? (

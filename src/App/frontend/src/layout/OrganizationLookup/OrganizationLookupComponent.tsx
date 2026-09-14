@@ -7,6 +7,7 @@ import {
   getDescriptionId,
   Label,
   NumericInput,
+  OptionalIndicator,
   RequiredIndicator,
 } from '@app/form-component';
 import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
@@ -75,7 +76,10 @@ export function OrganizationLookupComponent({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganizationLookup'>) {
-  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'OrganizationLookup');
+  const { id, dataModelBindings, required, readOnly, labelSettings } = useItemWhenType(
+    baseComponentId,
+    'OrganizationLookup',
+  );
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -196,6 +200,13 @@ export function OrganizationLookupComponent({
               label={langAsString('organization_lookup.orgnr_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
+              optionalIndicator={
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
+              }
               description={
                 hasSuccessfullyFetched ? (
                   <Description

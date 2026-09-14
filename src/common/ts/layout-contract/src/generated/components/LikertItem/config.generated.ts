@@ -5,6 +5,7 @@ import {
   IDataModelBindingsOptionsSimple,
   ILikertColumnProperties,
   ISelectionComponentFull,
+  LabeledComponentProps,
   LayoutStyle,
   SummarizableComponentProps,
   TRBFormComp,
@@ -17,7 +18,8 @@ export interface CompLikertItemExternal
     FormComponentProps,
     SummarizableComponentProps,
     ISelectionComponentFull,
-    ILikertColumnProperties {
+    ILikertColumnProperties,
+    LabeledComponentProps {
   type: 'LikertItem';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -59,4 +61,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: e993d597dd4652224caec6e3be761aec2c0c3ba6bdb8566fd8e1c42c63c4e03e
+// Source hash: a62b8db2b07b0cebea3cba954ae1ecc3ae27a0aee5382595cd7a99c5ebe7a133

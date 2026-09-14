@@ -19,7 +19,7 @@ export function useLabel({
   const { readOnly, required, showOptionalMarking, textResourceBindings } = {
     readOnly: item['readOnly'],
     required: item['required'],
-    showOptionalMarking: !!item['labelSettings']?.['optionalIndicator'],
+    showOptionalMarking: item['labelSettings']?.['optionalIndicator'] !== false,
     textResourceBindings: {
       title: item.textResourceBindings?.['title'],
       help: item.textResourceBindings?.['help'],
@@ -36,7 +36,7 @@ export function useLabel({
 
   const getRequiredComponent = () => (required ? <RequiredIndicator required={required} /> : undefined);
   const getOptionalComponent = () =>
-    !required ? (
+    required === false ? (
       <OptionalIndicator
         readOnly={readOnly}
         required={required}

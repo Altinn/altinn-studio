@@ -69,4 +69,5 @@ export const Config = asOptionsComponent(
     ),
   )
   .extends(CG.common('ILikertColumnProperties'))
+  .extends(CG.common('LabeledComponentProps'))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()));

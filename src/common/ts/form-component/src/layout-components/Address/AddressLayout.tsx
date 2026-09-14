@@ -178,7 +178,8 @@ export function AddressLayout({
             htmlFor={`address_post_place_${id}`}
             title={postPlaceTitle ?? 'address_component.post_place'}
             required={required}
-            readOnly={readOnly}
+            // The post place is always filled in from the zip code, so it is never optional to fill out
+            readOnly
             showOptionalMarking={showOptionalMarking}
           >
             <Flex item id={`form-content-${id}-post-place`} size={{ xs: 12 }}>

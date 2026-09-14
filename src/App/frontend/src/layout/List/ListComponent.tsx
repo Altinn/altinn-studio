@@ -4,6 +4,7 @@ import type { AriaAttributes } from 'react';
 import {
   Description,
   getLabelId,
+  OptionalIndicator,
   Pagination as CustomPagination,
   RequiredIndicator,
   useIsMobile,
@@ -61,6 +62,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     secure,
     dataListId,
     required,
+    labelSettings,
   } = item;
 
   const [pageSize, setPageSize] = useState<number>(pagination?.default ?? 0);
@@ -189,6 +191,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
               >
                 <Lang id={title} />
                 <RequiredIndicator required={required} />
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
               </Heading>
             </Fieldset.Legend>
             <div>
@@ -214,6 +221,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
               >
                 <Lang id={title} />
                 <RequiredIndicator required={required} />
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
               </Heading>
             </Fieldset.Legend>
             {description && (
@@ -258,6 +270,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
             >
               <Lang id={title} />
               <RequiredIndicator required={required} />
+              <OptionalIndicator
+                required={required}
+                readOnly={readOnly}
+                showOptionalMarking={labelSettings?.optionalIndicator !== false}
+              />
             </Heading>
             {description && (
               <Description

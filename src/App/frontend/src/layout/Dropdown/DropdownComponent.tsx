@@ -39,7 +39,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
       title={textResourceBindings?.title}
       help={textResourceBindings?.help}
       description={textResourceBindings?.description}
-      showOptionalMarking={!!labelSettings?.optionalIndicator}
+      showOptionalMarking={labelSettings?.optionalIndicator !== false}
       labelGrid={grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLabel={overrideDisplay?.renderLabel}

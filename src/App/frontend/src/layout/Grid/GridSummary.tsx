@@ -271,11 +271,21 @@ function SummaryCell(props: CellProps) {
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
   const item = useItemFor(props.labelFrom);
-  const required = 'required' in item ? item.required : false;
+  const required = 'required' in item ? item.required : undefined;
+  const readOnly = 'readOnly' in item ? item.readOnly : undefined;
+  const showOptionalMarking = !('labelSettings' in item) || item.labelSettings?.optionalIndicator !== false;
   const title =
     item.textResourceBindings && 'title' in item.textResourceBindings ? item.textResourceBindings.title : undefined;
-  const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
-  const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
+
+  // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
+  // reduced to its text here.
+  let indicator = '';
+  if (required) {
+    indicator = ` ${langAsNonProcessedString('form_filler.required_label')}`;
+  } else if (required === false && showOptionalMarking && !readOnly) {
+    indicator = ` ${langAsString('general.optional')}`;
+  }
+  const headerTitle = `${langAsString(title || '')}${indicator}`;
 
   return (
     <SummaryCellInner
@@ -492,7 +502,9 @@ function SummaryCellWithLabel({
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
     ITextResourceBindings | undefined;
   const title = trb && 'title' in trb ? trb.title : undefined;
-  const required = (refItem && 'required' in refItem && refItem.required) ?? false;
+  const required = refItem && 'required' in refItem ? refItem.required : undefined;
+  const readOnly = refItem && 'readOnly' in refItem ? refItem.readOnly : undefined;
+  const labelSettings = refItem && 'labelSettings' in refItem ? refItem.labelSettings : undefined;
 
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
@@ -506,6 +518,8 @@ function SummaryCellWithLabel({
         id={useIndexedId(cell.labelFrom)}
         label={title}
         required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
       />
     </CellComponent>
   );

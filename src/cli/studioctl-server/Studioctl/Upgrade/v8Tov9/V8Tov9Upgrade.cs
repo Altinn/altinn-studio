@@ -200,6 +200,12 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateGridXlSettings(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateRequiredIndicatorTexts(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOptionalIndicatorSettings(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await ConvertConditionalRenderingRules(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -845,6 +851,88 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing component grid xl settings", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes text-resource overrides that only made sense while required fields were marked with an
+    /// asterisk, now that the marker is a "Må fylles ut" tag and the page-level banner is gone.
+    /// </summary>
+    static async Task<int> MigrateRequiredIndicatorTexts(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Required field marker texts");
+        try
+        {
+            var result = await RequiredIndicatorTextMigration.Migrate(projectFolder);
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.AsteriskOverridesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.AsteriskOverridesRemoved} override(s) of form_filler.required_label that repeated the old '*' marker"
+                );
+            }
+
+            if (result.DescriptionOverridesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.DescriptionOverridesRemoved} override(s) of form_filler.required_description, which is no longer shown"
+                );
+            }
+
+            if (result.FilesChanged == 0 && result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No overrides of the required field marker texts found");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating required field marker texts", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes <c>labelSettings.optionalIndicator: true</c> from layouts, which is the default in v9, and
+    /// tells the developer about the new default markers for required and optional fields.
+    /// </summary>
+    static async Task<int> MigrateOptionalIndicatorSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Required and optional field markers");
+        try
+        {
+            var result = await OptionalIndicatorLayoutMigration.Migrate(projectFolder);
+            foreach (var warning in result.Warnings)
+            {
+                UpgradeConsole.Warning(warning);
+            }
+
+            if (result.PropertiesRemoved > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Removed {result.PropertiesRemoved} redundant labelSettings.optionalIndicator setting(s) from {result.FilesChanged} layout file(s)"
+                );
+            }
+            else if (result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No redundant labelSettings.optionalIndicator settings found");
+            }
+
+            UpgradeConsole.Info(
+                "Following Designsystemet, required fields are now marked with a 'Må fylles ut' tag instead of '*', "
+                    + "and fields that are not required are marked 'Valgfritt' by default. Set "
+                    + "labelSettings.optionalIndicator to false on a component to hide the optional marker."
+            );
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating required and optional field marker settings", ex);
         }
     }
 
