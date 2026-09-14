@@ -1,0 +1,427 @@
+namespace Altinn.Studio.AppDist.Tests;
+
+public sealed class AppDistTests : IDisposable
+{
+    private readonly string _tempDir = Directory.CreateTempSubdirectory("appdist-tests-").FullName;
+
+    public void Dispose() => Directory.Delete(_tempDir, recursive: true);
+
+    private static (AppDistProvider Provider, FakeAppDistSource Source, InMemoryAppDistStore Store) Setup()
+    {
+        var source = new FakeAppDistSource();
+        var store = new InMemoryAppDistStore();
+        return (new AppDistProvider(source, store), source, store);
+    }
+
+    [Fact]
+    public async Task GetLayer_FetchesAndReadsContent()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, (JsonSchemaPaths.Layout, """{"type":"object"}"""));
+
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(schemas);
+        Assert.Equal("4", schemas.Version);
+        Assert.Equal(
+            """{"type":"object"}""",
+            await schemas.GetFileText(JsonSchemaPaths.Layout, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task GetLayer_FetchesOnlyRequestedLayer()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
+
+        await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task GetLayer_SecondCallHitsStoreOnlyEvenWhenOffline()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+
+        source.Offline = true;
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(schemas);
+        Assert.Equal("{}", await schemas.GetFileText("schemas/json/a.json", TestContext.Current.CancellationToken));
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task GetLayer_OfflineWithoutStoredCopyThrowsUnavailable()
+    {
+        var (provider, source, _) = Setup();
+        source.Offline = true;
+
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task GetVersion_DownloadsOnlySelfContainedContentLayer()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"), ("schemas/json/a.json", "{}"));
+
+        var dist = await provider.GetVersion("4", TestContext.Current.CancellationToken);
+
+        Assert.NotNull(dist);
+        Assert.Equal(1, source.FetchRequests);
+        string[] expected = ["altinn-app-frontend.js", "schemas/json/a.json"];
+        Assert.Equal(expected, await dist.ListFiles(TestContext.Current.CancellationToken));
+        Assert.Equal("{}", await dist.GetFileText("schemas/json/a.json", TestContext.Current.CancellationToken));
+        Assert.Equal("js", await dist.GetFileText("altinn-app-frontend.js", TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetVersion_NullWhenVersionDoesNotExist()
+    {
+        var (provider, _, _) = Setup();
+
+        Assert.Null(await provider.GetVersion("4", TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetVersion_KnownVersionMissingContentThrowsArtifactError()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+
+        await Assert.ThrowsAsync<AppDistArtifactException>(() =>
+            provider.GetVersion("4", TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task GetVersion_ReusesCachedContentLayer()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
+        await provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
+
+        var dist = await provider.GetVersion("4", TestContext.Current.CancellationToken);
+
+        Assert.NotNull(dist);
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task OpenFile_MissingPathThrows()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        Assert.NotNull(schemas);
+
+        var ex = await Assert.ThrowsAsync<FileNotFoundException>(() =>
+            schemas.OpenFile("schemas/json/missing.json", TestContext.Current.CancellationToken)
+        );
+        Assert.Contains("missing.json", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetFiles_StripsPrefixFromKeys()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles(
+            "4",
+            AppDistLayer.Schemas,
+            ("schemas/json/layout/a.json", "{}"),
+            ("schemas/json/b.json", """{"b":1}""")
+        );
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        Assert.NotNull(schemas);
+
+        var withSlash = await schemas.GetFiles("schemas/json/", TestContext.Current.CancellationToken);
+        var withoutSlash = await schemas.GetFiles("schemas/json", TestContext.Current.CancellationToken);
+
+        Assert.Equal(withSlash, withoutSlash);
+        Assert.Equal(["b.json", "layout/a.json"], withSlash.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal("""{"b":1}""", withSlash["b.json"]);
+    }
+
+    [Fact]
+    public async Task GetFiles_EmptyPrefixReturnsAllFilesByFullPath()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        Assert.NotNull(schemas);
+
+        var files = await schemas.GetFiles(cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("{}", Assert.Single(files, f => f.Key == "schemas/json/a.json").Value);
+    }
+
+    [Fact]
+    public async Task GetFiles_NoMatchesReturnsEmpty()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        Assert.NotNull(schemas);
+
+        Assert.Empty(await schemas.GetFiles("texts/", TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task GetFiles_DoesNotMatchPartialSegment()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"), ("schemas/jsonx/b.json", "{}"));
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        Assert.NotNull(schemas);
+
+        var files = await schemas.GetFiles("schemas/json", TestContext.Current.CancellationToken);
+
+        Assert.Equal(["a.json"], files.Keys);
+    }
+
+    [Fact]
+    public async Task ConcurrentGetLayer_CoalescesToSingleFetch()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var tasks = Enumerable.Range(0, 8).Select(_ => provider.GetLayer("4", AppDistLayer.Schemas)).ToArray();
+        await source.FetchStarted.Task;
+        source.BlockFetch.SetResult();
+        var handles = await Task.WhenAll(tasks);
+
+        Assert.All(handles, Assert.NotNull);
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task ConcurrentDifferentLayers_DoNotBlockEachOther()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
+        source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var schemas = provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var content = provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
+        for (var i = 0; source.FetchRequests < 2 && i < 500; i++)
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, source.FetchRequests);
+        source.BlockFetch.SetResult();
+        Assert.NotNull(await schemas);
+        Assert.NotNull(await content);
+    }
+
+    [Fact]
+    public async Task UnavailableFailureIsNotCached()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.Offline = true;
+
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+        );
+
+        source.Offline = false;
+        Assert.NotNull(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task MissingVersionIsNotCached()
+    {
+        var (provider, source, _) = Setup();
+
+        Assert.Null(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.Null(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+
+        Assert.Equal(2, source.FetchRequests);
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        Assert.NotNull(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.Equal(3, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task WaiterCancellationDoesNotAffectFetcher()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var first = provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await source.FetchStarted.Task;
+        using var cts = new CancellationTokenSource();
+        var second = provider.GetLayer("4", AppDistLayer.Schemas, cts.Token);
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => second);
+        source.BlockFetch.SetResult();
+        Assert.NotNull(await first);
+        Assert.Equal(1, source.FetchRequests);
+    }
+
+    [Fact]
+    public async Task CallerCancellationIsNotTranslatedToSourceFailure()
+    {
+        var (provider, _, _) = Setup();
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            provider.GetLayer("4", AppDistLayer.Schemas, cts.Token)
+        );
+    }
+
+    [Fact]
+    public async Task CopyToDirectory_ExportsAllFiles()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles(
+            "4",
+            AppDistLayer.Content,
+            ("altinn-app-frontend.js", "js"),
+            ("schemas/json/layout/a.json", "{}")
+        );
+        var dist = await provider.GetVersion("4", TestContext.Current.CancellationToken);
+        Assert.NotNull(dist);
+
+        var target = Path.Combine(_tempDir, "www");
+        await dist.CopyToDirectory(target, TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            "{}",
+            await File.ReadAllTextAsync(
+                Path.Combine(target, "schemas/json/layout/a.json"),
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(
+            "js",
+            await File.ReadAllTextAsync(
+                Path.Combine(target, "altinn-app-frontend.js"),
+                TestContext.Current.CancellationToken
+            )
+        );
+    }
+
+    [Fact]
+    public async Task CopyToDirectory_OverwritesExistingAndKeepsUnrelatedFiles()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "new"));
+        var content = await provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
+        Assert.NotNull(content);
+        var target = Path.Combine(_tempDir, "www");
+        Directory.CreateDirectory(target);
+        await File.WriteAllTextAsync(
+            Path.Combine(target, "altinn-app-frontend.js"),
+            "old",
+            TestContext.Current.CancellationToken
+        );
+        await File.WriteAllTextAsync(
+            Path.Combine(target, "unrelated.txt"),
+            "keep",
+            TestContext.Current.CancellationToken
+        );
+
+        await content.CopyToDirectory(target, TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            "new",
+            await File.ReadAllTextAsync(
+                Path.Combine(target, "altinn-app-frontend.js"),
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(
+            "keep",
+            await File.ReadAllTextAsync(Path.Combine(target, "unrelated.txt"), TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task CopyToDirectory_PathEscapingEntryThrows()
+    {
+        var (provider, _, store) = Setup();
+        await store.Write(
+            "4",
+            AppDistLayer.Schemas,
+            [new AppDistFileEntry("../escape.json", "{}"u8.ToArray())],
+            CancellationToken.None
+        );
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        Assert.NotNull(schemas);
+
+        var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
+            schemas.CopyToDirectory(Path.Combine(_tempDir, "www"), TestContext.Current.CancellationToken)
+        );
+        Assert.Contains("escape", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ListVersions_ReturnsSourceVersions()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("9.0.0-preview.10", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0-rc.1", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("9.0.0-preview.9", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("8.12.8", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+
+        Assert.Equal(
+            ["8.12.8", "9.0.0-preview.9", "9.0.0-preview.10", "9.0.0-rc.1", "9.0.0"],
+            await provider.ListVersions(TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task ListVersions_OmitsTagsThatAreNotSemVer()
+    {
+        var (provider, source, _) = Setup();
+        foreach (
+            var tag in new[] { "latest", "9", "9.0", "v9.0.0", "9.0.0-", "9.0.0-preview.01", "0.0.0-test", "9.0.0" }
+        )
+            source.AddFiles(tag, AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+
+        Assert.Equal(["0.0.0-test", "9.0.0"], await provider.ListVersions(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ListVersions_OfflineThrowsUnavailable()
+    {
+        var (provider, source, _) = Setup();
+        source.Offline = true;
+
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            provider.ListVersions(TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task ListCachedVersions_ReflectsStorePerLayer()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4.0.0", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        source.AddFiles("not-a-version", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+        await provider.GetLayer("4.0.0", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await provider.GetLayer("not-a-version", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            ["4.0.0"],
+            await provider.ListCachedVersions(AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+        );
+        Assert.Empty(await provider.ListCachedVersions(AppDistLayer.Content, TestContext.Current.CancellationToken));
+    }
+}
