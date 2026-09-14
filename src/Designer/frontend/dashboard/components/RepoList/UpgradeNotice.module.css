@@ -1,0 +1,14 @@
+.noticeButton {
+  color: var(--ds-color-accent-text-subtle);
+  text-decoration: underline;
+  padding-inline: 0;
+  white-space: nowrap;
+}
+
+.noticeButton:hover {
+  text-decoration: none;
+}
+
+.versions {
+  white-space: nowrap;
+}

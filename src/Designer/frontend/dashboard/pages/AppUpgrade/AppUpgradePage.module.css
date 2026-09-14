@@ -1,0 +1,68 @@
+.page {
+  width: 100%;
+  max-width: 48rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-6);
+  padding: var(--ds-size-8) var(--ds-size-4) var(--ds-size-12);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-2);
+  margin-top: var(--ds-size-2);
+}
+
+.statusLine {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.taskGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.taskList {
+  margin: 0;
+}
+
+.taskItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-size-2);
+}
+
+.taskItem > :first-child {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.taskItem > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.details {
+  font-size: var(--ds-font-size-2);
+}
+
+.branchInfo {
+  color: var(--ds-color-neutral-text-subtle);
+  font-family: var(--ds-font-family-mono, monospace);
+}
+
+.failureMessage {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

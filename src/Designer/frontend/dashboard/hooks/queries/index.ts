@@ -1,3 +1,5 @@
+export * from './useAppUpgradeRunQuery';
+export * from './useAppUpgradeStatusQuery';
 export * from './useOrganizationsQuery';
 export * from './useSearchReposQuery';
 export * from './useStarredReposQuery';

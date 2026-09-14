@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Exceptions.Gitea;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.GiteaActions;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -773,12 +774,223 @@ public class GiteaClient(
         CreatePullRequestOption createPullRequestOption
     )
     {
-        string content = JsonSerializer.Serialize(createPullRequestOption);
+        string content = JsonSerializer.Serialize(createPullRequestOption, s_jsonOptions);
         using HttpResponseMessage response = await httpClient.PostAsync(
             $"repos/{org}/{repository}/pulls",
             new StringContent(content, Encoding.UTF8, "application/json")
         );
 
+        return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
+    public async Task<PullRequest> CreatePullRequestAsync(
+        string org,
+        string repository,
+        CreatePullRequestOption createPullRequestOption,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string content = JsonSerializer.Serialize(createPullRequestOption, s_jsonOptions);
+        using HttpResponseMessage response = await httpClient.PostAsync(
+            $"repos/{org}/{repository}/pulls",
+            new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<PullRequest>(s_jsonOptions, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<PullRequest>> ListPullRequestsAsync(
+        string org,
+        string repository,
+        string state,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/pulls?state={state}&sort=recentupdate&limit=50",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        return await response.Content.ReadFromJsonAsync<List<PullRequest>>(s_jsonOptions, cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> GetPullRequestDiffAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/pulls/{pullRequestNumber}.diff",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> ChangeFilesAsync(
+        string org,
+        string repository,
+        ChangeFilesOptions options,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string content = JsonSerializer.Serialize(options, s_jsonOptions);
+        using HttpResponseMessage response = await httpClient.PostAsync(
+            $"repos/{org}/{repository}/contents",
+            new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
+            logger.LogWarning(
+                "User {Developer} could not change files in {Org}/{Repo} on branch {Branch}: {StatusCode} {Body}",
+                developer,
+                org,
+                repository,
+                (options.NewBranch ?? options.Branch)?.WithoutLineBreaks(),
+                (int)response.StatusCode,
+                body.WithoutLineBreaks()
+            );
+        }
+
+        return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<ActionWorkflowRun>> ListWorkflowRunsAsync(
+        string org,
+        string repository,
+        string branch,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/actions/runs?branch={Uri.EscapeDataString(branch)}&limit=20",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        ActionWorkflowRunList list = await response.Content.ReadFromJsonAsync<ActionWorkflowRunList>(
+            s_jsonOptions,
+            cancellationToken
+        );
+        return list?.WorkflowRuns is null ? [] : [.. list.WorkflowRuns];
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<ActionWorkflowJob>> ListWorkflowRunJobsAsync(
+        string org,
+        string repository,
+        long runId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/actions/runs/{runId}/jobs",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        ActionWorkflowJobList list = await response.Content.ReadFromJsonAsync<ActionWorkflowJobList>(
+            s_jsonOptions,
+            cancellationToken
+        );
+        return list?.Jobs is null ? [] : [.. list.Jobs];
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> GetWorkflowJobLogsAsync(
+        string org,
+        string repository,
+        long jobId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/actions/jobs/{jobId}/logs",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> ClosePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.PatchAsync(
+            $"repos/{org}/{repository}/pulls/{pullRequestNumber}",
+            new StringContent("{\"state\":\"closed\"}", Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> DeleteBranchAsync(
+        string org,
+        string repository,
+        string branchName,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.DeleteAsync(
+            $"repos/{org}/{repository}/branches/{Uri.EscapeDataString(branchName)}",
+            cancellationToken
+        );
+        return response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> MergePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        MergePullRequestOption mergePullRequestOption,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string content = JsonSerializer.Serialize(mergePullRequestOption);
+        using HttpResponseMessage response = await httpClient.PostAsync(
+            $"repos/{org}/{repository}/pulls/{pullRequestNumber}/merge",
+            new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
         return response.IsSuccessStatusCode;
     }
 

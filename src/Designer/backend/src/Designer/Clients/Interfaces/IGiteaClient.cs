@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.GiteaActions;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -200,6 +201,108 @@ public interface IGiteaClient
     /// <param name="createPullRequestOption">The createPullRequestOption.</param>
     /// <returns></returns>
     Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption);
+
+    /// <summary>
+    /// Creates a pull request and returns it, or null when Gitea rejected the request.
+    /// </summary>
+    Task<PullRequest> CreatePullRequestAsync(
+        string org,
+        string repository,
+        CreatePullRequestOption createPullRequestOption,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists pull requests in the given state ("open", "closed" or "all").
+    /// </summary>
+    Task<List<PullRequest>> ListPullRequestsAsync(
+        string org,
+        string repository,
+        string state,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns the unified diff of a pull request, or null when it could not be fetched.
+    /// </summary>
+    Task<string> GetPullRequestDiffAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Creates, updates or deletes several files in one commit, optionally on a new branch. Returns false when Gitea
+    /// rejected the change.
+    /// </summary>
+    Task<bool> ChangeFilesAsync(
+        string org,
+        string repository,
+        ChangeFilesOptions options,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists Gitea Actions workflow runs for a branch, newest first.
+    /// </summary>
+    Task<List<ActionWorkflowRun>> ListWorkflowRunsAsync(
+        string org,
+        string repository,
+        string branch,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Lists the jobs of a Gitea Actions workflow run.
+    /// </summary>
+    Task<List<ActionWorkflowJob>> ListWorkflowRunJobsAsync(
+        string org,
+        string repository,
+        long runId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Returns the plain-text log of a Gitea Actions job, or null when it is not available.
+    /// </summary>
+    Task<string> GetWorkflowJobLogsAsync(
+        string org,
+        string repository,
+        long jobId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Merges a pull request into its base branch. Returns false when Gitea refused the merge.
+    /// </summary>
+    /// <summary>
+    /// Closes an open pull request without merging it.
+    /// </summary>
+    Task<bool> ClosePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Deletes a branch. Returns true when the branch is gone, also when it did not exist.
+    /// </summary>
+    Task<bool> DeleteBranchAsync(
+        string org,
+        string repository,
+        string branchName,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<bool> MergePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        MergePullRequestOption mergePullRequestOption,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Deletes the repository.

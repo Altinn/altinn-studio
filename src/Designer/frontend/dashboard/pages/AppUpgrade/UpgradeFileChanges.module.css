@@ -1,0 +1,28 @@
+.details {
+  font-size: var(--ds-font-size-2);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-size-2);
+}
+
+.kindTag {
+  flex-shrink: 0;
+  margin-top: var(--ds-size-1);
+}
+
+.file {
+  min-width: 0;
+  flex: 1;
+}
