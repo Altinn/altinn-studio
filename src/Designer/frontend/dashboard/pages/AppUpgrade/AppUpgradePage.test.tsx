@@ -178,6 +178,30 @@ describe('AppUpgradePage', () => {
     expect(startAppUpgrade).not.toHaveBeenCalled();
   });
 
+  it('shows the merged state with a link to publishing when the pull request is merged', async () => {
+    const mergedRun: AppUpgradeRun = {
+      ...completedRun,
+      result: { ...completedRun.result, pullRequestMerged: true },
+    };
+    renderPage(
+      {},
+      appUpgradeStatus,
+      `?branch=${encodeURIComponent(started.branchName)}`,
+      mergedRun,
+    );
+
+    expect(await screen.findByText(textMock('app_upgrade.done.merged'))).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: textMock('app_upgrade.done.go_to_publish') }),
+    ).toHaveAttribute('href', `/editor/${org}/${app}/deploy`);
+    expect(
+      screen.queryByRole('button', { name: textMock('app_upgrade.done.merge_and_publish') }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('app_upgrade.done.discard') }),
+    ).not.toBeInTheDocument();
+  });
+
   it('discards a finished upgrade after confirmation and returns to the dashboard', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(true);
@@ -300,6 +324,7 @@ const completedResult: AppUpgradeResult = {
   branchName: 'upgrade/altinn-app-v9-20260903-120000',
   pullRequestUrl,
   pullRequestNumber: 1,
+  pullRequestMerged: false,
 };
 
 const partialResult: AppUpgradeResult = {
@@ -319,6 +344,7 @@ const failedResult: AppUpgradeResult = {
   branchName: null,
   pullRequestUrl: null,
   pullRequestNumber: null,
+  pullRequestMerged: false,
 };
 
 const runWith = (result: AppUpgradeResult): AppUpgradeRun => ({

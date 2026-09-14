@@ -411,6 +411,24 @@ const Done = ({
     </>
   );
 
+  if (result?.pullRequestMerged) {
+    return (
+      <>
+        <StudioParagraph>{t('app_upgrade.done.merged')}</StudioParagraph>
+        {branchInfo}
+        <Actions>
+          <StudioLinkButton data-color='accent' href={publishUrl}>
+            {t('app_upgrade.done.go_to_publish')}
+          </StudioLinkButton>
+          {pullRequestLink}
+          {downloadReport}
+        </Actions>
+        {result.manualTasks.length > 0 && <ManualTasks manualTasks={result.manualTasks} />}
+        {details}
+      </>
+    );
+  }
+
   if (result?.outcome === 'Completed') {
     return (
       <>
