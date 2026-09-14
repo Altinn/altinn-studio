@@ -25,4 +25,4 @@ public interface IAppDistSource
 /// <summary>A file retrieved from an app distribution source.</summary>
 /// <param name="Path">The normalized path relative to the layer root.</param>
 /// <param name="Content">The complete file content.</param>
-public sealed record AppDistFileEntry(string Path, byte[] Content);
+public sealed record AppDistFileEntry(string Path, ReadOnlyMemory<byte> Content);

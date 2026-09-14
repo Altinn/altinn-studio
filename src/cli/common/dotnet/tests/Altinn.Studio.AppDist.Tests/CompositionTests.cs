@@ -65,7 +65,7 @@ public sealed class CompositionTests : IDisposable
 
         // A disposed HttpClient throws ObjectDisposedException here.
         using var response = await httpClient.GetAsync(
-            $"https://{FakeRegistry.Host}/v2/{FakeRegistry.Repository}/tags/list",
+            new Uri($"https://{FakeRegistry.Host}/v2/{FakeRegistry.Repository}/tags/list"),
             TestContext.Current.CancellationToken
         );
         Assert.NotNull(response);

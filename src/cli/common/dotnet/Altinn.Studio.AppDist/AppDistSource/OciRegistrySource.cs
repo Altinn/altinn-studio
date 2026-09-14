@@ -28,7 +28,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentException.ThrowIfNullOrEmpty(repository);
-        var slash = repository.IndexOf('/');
+        var slash = repository.IndexOf('/', StringComparison.Ordinal);
         if (slash <= 0 || slash == repository.Length - 1)
             throw new ArgumentException(
                 $"expected <registry-host>/<repository>, got \"{repository}\"",
@@ -217,12 +217,10 @@ public sealed partial class OciRegistrySource : IAppDistSource
 
     private void VerifyDigest(MemoryStream blob, string digest)
     {
-        var actual = Convert.ToHexString(SHA256.HashData(blob.GetBuffer().AsSpan(0, (int)blob.Length)));
+        var actual = Convert.ToHexStringLower(SHA256.HashData(blob.GetBuffer().AsSpan(0, (int)blob.Length)));
         var expected = digest["sha256:".Length..];
         if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
-            throw new AppDistArtifactException(
-                $"{_repository}: blob {digest} digest mismatch (got sha256:{actual.ToLowerInvariant()})"
-            );
+            throw new AppDistArtifactException($"{_repository}: blob {digest} digest mismatch (got sha256:{actual})");
     }
 
     private static List<AppDistFileEntry> ExtractTarGz(Stream archive)
@@ -321,7 +319,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var part in parameter.Split(','))
         {
-            var idx = part.IndexOf('=');
+            var idx = part.IndexOf('=', StringComparison.Ordinal);
             if (idx <= 0)
                 continue;
             var key = part[..idx].Trim();

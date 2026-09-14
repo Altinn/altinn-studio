@@ -32,7 +32,7 @@ internal sealed class FakeRegistry : HttpMessageHandler
 
     public string AddBlob(byte[] bytes)
     {
-        var digest = "sha256:" + Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        var digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(bytes));
         _blobsByDigest[digest] = bytes;
         return digest;
     }
@@ -160,7 +160,7 @@ internal sealed class FakeRegistry : HttpMessageHandler
         var query = new Uri(url).Query.TrimStart('?');
         foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
-            var idx = pair.IndexOf('=');
+            var idx = pair.IndexOf('=', StringComparison.Ordinal);
             if (idx > 0 && pair[..idx] == name)
                 return Uri.UnescapeDataString(pair[(idx + 1)..]);
         }

@@ -29,7 +29,7 @@ public sealed class OciRegistrySourceTests
         Assert.NotNull(files);
         var layout = Assert.Single(files);
         Assert.Equal("schemas/json/layout/layout.schema.v1.json", layout.Path);
-        Assert.Equal("""{"type":"object"}""", Encoding.UTF8.GetString(layout.Content));
+        Assert.Equal("""{"type":"object"}""", Encoding.UTF8.GetString(layout.Content.Span));
         Assert.Equal(1, handler.BlobRequests);
     }
 
@@ -43,7 +43,7 @@ public sealed class OciRegistrySourceTests
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
-        Assert.Contains(SchemasMediaType, ex.Message);
+        Assert.Contains(SchemasMediaType, ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class OciRegistrySourceTests
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
-        Assert.Contains("digest mismatch", ex.Message);
+        Assert.Contains("digest mismatch", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class OciRegistrySourceTests
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
-        Assert.Contains("unsafe path", ex.Message);
+        Assert.Contains("unsafe path", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class OciRegistrySourceTests
             Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
-        Assert.Contains("missing blob", ex.Message);
+        Assert.Contains("missing blob", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public sealed class OciRegistrySourceTests
             Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
-        Assert.Contains("manifest", ex.Message);
+        Assert.Contains("manifest", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public sealed class OciRegistrySourceTests
             Source(handler).ListVersions(CancellationToken.None)
         );
 
-        Assert.Contains("repeated tag list page", ex.Message);
+        Assert.Contains("repeated tag list page", ex.Message, StringComparison.Ordinal);
         Assert.Equal(1, handler.TagListRequests);
     }
 
@@ -218,7 +218,7 @@ public sealed class OciRegistrySourceTests
             Source(handler).ListVersions(CancellationToken.None)
         );
 
-        Assert.Contains("realm is not HTTPS", ex.Message);
+        Assert.Contains("realm is not HTTPS", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -69,7 +69,7 @@ internal sealed class InMemoryAppDistStore : IAppDistStore
     {
         var byPath = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         foreach (var file in files)
-            byPath[file.Path] = file.Content;
+            byPath[file.Path] = file.Content.ToArray();
         _entries[(version, layer)] = byPath;
         return Task.CompletedTask;
     }

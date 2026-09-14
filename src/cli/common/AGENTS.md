@@ -10,7 +10,10 @@ picture.
 
 The projects under `dotnet/` are ordinary members of `../studioctl.slnx` and inherit the studioctl
 `Directory.Build.props`, `Directory.Packages.props`, `global.json`, `.editorconfig` and CSharpier
-configuration. Test projects live under `dotnet/tests/` and use xunit v3, like `studioctl-server-tests`.
+configuration. `dotnet/Directory.Build.props` tightens that baseline to `AnalysisMode=All` with warnings
+as errors, like `Altinn.Studio.Common`; a rule that does not make sense for these libraries is switched
+off with a reason in `dotnet/.editorconfig` rather than suppressed at the call site. Test projects live
+under `dotnet/tests/` and use xunit v3, like `studioctl-server-tests`.
 
 - `dotnet/Altinn.Studio.AppDist` — fetches and caches the per-version Altinn app resource artifact
   (`ghcr.io/altinn/altinn-studio/app-dist`) published by `release-app.yaml`. An OCI layer is the unit of

@@ -1,0 +1,15 @@
+[*.cs]
+dotnet_code_quality.dispose_ownership_transfer_at_constructor = true
+
+# CA1032: App distribution exceptions always carry a message describing the failed operation
+dotnet_diagnostic.CA1032.severity = none
+# CA1034: Nested static classes group the well-known file paths of a distribution layer
+dotnet_diagnostic.CA1034.severity = none
+# CA1724: AppDist is the library's entry point and shares its name with the namespace on purpose
+dotnet_diagnostic.CA1724.severity = none
+# CA2007: Consumers are CLI and ASP.NET Core processes without a synchronization context
+dotnet_diagnostic.CA2007.severity = none
+
+[tests/**/*.cs]
+# CA2000: Fakes and clients created inside a test body live for the duration of that test
+dotnet_diagnostic.CA2000.severity = none

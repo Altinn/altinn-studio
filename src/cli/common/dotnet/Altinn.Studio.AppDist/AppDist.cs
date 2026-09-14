@@ -99,7 +99,8 @@ public sealed class AppDist : IAppDistProvider, IDisposable
     {
         ArgumentException.ThrowIfNullOrEmpty(cacheDirectory);
         var store = new FileSystemAppDistStore(cacheDirectory);
-        var httpClient = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) });
+        var handler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) };
+        var httpClient = new HttpClient(handler, disposeHandler: true);
         return new AppDist(new OciRegistrySource(httpClient), store, httpClient);
     }
 

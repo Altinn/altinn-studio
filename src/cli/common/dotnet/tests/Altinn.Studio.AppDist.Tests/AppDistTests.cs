@@ -127,7 +127,7 @@ public sealed class AppDistTests : IDisposable
         var ex = await Assert.ThrowsAsync<FileNotFoundException>(() =>
             schemas.OpenFile("schemas/json/missing.json", TestContext.Current.CancellationToken)
         );
-        Assert.Contains("missing.json", ex.Message);
+        Assert.Contains("missing.json", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -367,7 +367,7 @@ public sealed class AppDistTests : IDisposable
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
             schemas.CopyToDirectory(Path.Combine(_tempDir, "www"), TestContext.Current.CancellationToken)
         );
-        Assert.Contains("escape", ex.Message);
+        Assert.Contains("escape", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
