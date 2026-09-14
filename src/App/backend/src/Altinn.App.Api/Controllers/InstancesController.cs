@@ -2055,7 +2055,8 @@ public class InstancesController : ControllerBase
             presentationFields,
             instance.PresentationTexts,
             dataType,
-            data
+            data,
+            metadataPropertyName: "presentationFields"
         );
 
         if (updatedValues.Count > 0)
@@ -2077,7 +2078,13 @@ public class InstancesController : ControllerBase
         object data
     )
     {
-        var updatedValues = DataHelper.GetUpdatedDataValues(dataFields, instance.DataValues, dataType, data);
+        var updatedValues = DataHelper.GetUpdatedDataValues(
+            dataFields,
+            instance.DataValues,
+            dataType,
+            data,
+            metadataPropertyName: "dataFields"
+        );
 
         if (updatedValues.Count > 0)
         {
