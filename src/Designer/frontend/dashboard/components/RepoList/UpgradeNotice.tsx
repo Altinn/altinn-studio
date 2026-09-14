@@ -24,7 +24,7 @@ export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement 
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
 
-  if (!canUpgrade || !status?.isUpgradeAvailable) return null;
+  if (!canUpgrade || !status?.isAutomaticUpgradeSupported) return null;
 
   const branch = status.activeUpgradeBranch;
   const textKey = branch
