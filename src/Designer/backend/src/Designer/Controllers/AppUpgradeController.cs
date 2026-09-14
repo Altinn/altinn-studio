@@ -65,6 +65,26 @@ public class AppUpgradeController : ControllerBase
         return Ok(run);
     }
 
+    [HttpPost("discard")]
+    public async Task<ActionResult<AppUpgradeDiscardResult>> Discard(
+        string org,
+        string repo,
+        [FromBody] AppUpgradeDiscardRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repo, developer, token);
+        AppUpgradeDiscardResult result = await _appUpgradeService.DiscardAsync(
+            authenticatedContext,
+            request,
+            cancellationToken
+        );
+        return Ok(result);
+    }
+
     [HttpPost("merge")]
     public async Task<ActionResult<AppUpgradeMergeResult>> Merge(
         string org,

@@ -421,6 +421,32 @@ public class AppUpgradeServiceTests
         AppUpgradeStatus status = await service.GetStatusAsync(Context(), CancellationToken.None);
 
         Assert.Equal("upgrade/altinn-app-v9-20260914-062231", status.ActiveUpgradeBranch);
+        Assert.False(status.ActiveUpgradeHasPullRequest);
+    }
+
+    [Fact]
+    public async Task GetStatusAsync_ReportsWhenTheActiveUpgradeHasAnOpenPullRequest()
+    {
+        SetupRemoteFile("App/App.csproj", CsprojWithAppApi("8.12.7"));
+        SetupRemoteFile("App/views/Home/Index.cshtml", null);
+        _giteaClient
+            .Setup(g => g.GetBranches(Org, Repo))
+            .ReturnsAsync([new Branch { Name = "master" }, new Branch { Name = BranchName }]);
+        _giteaClient
+            .Setup(g => g.ListPullRequestsAsync(Org, Repo, "open", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new PullRequest
+                {
+                    Number = 1,
+                    Head = new PullRequestBranch { Ref = BranchName },
+                },
+            ]);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeStatus status = await service.GetStatusAsync(Context(), CancellationToken.None);
+
+        Assert.Equal(BranchName, status.ActiveUpgradeBranch);
+        Assert.True(status.ActiveUpgradeHasPullRequest);
     }
 
     [Fact]
@@ -449,6 +475,88 @@ public class AppUpgradeServiceTests
 
         Assert.Equal(AppUpgradeRunState.Running, run.State);
         Assert.Equal("Upgrade the app", run.CurrentStep);
+    }
+
+    [Fact]
+    public async Task DiscardAsync_ClosesPullRequestAndDeletesBranch()
+    {
+        SetupRepositoryWithDefaultBranch("master");
+        _giteaClient
+            .Setup(g => g.ClosePullRequestAsync(Org, Repo, 1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _giteaClient
+            .Setup(g => g.DeleteBranchAsync(Org, Repo, BranchName, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeDiscardResult result = await service.DiscardAsync(
+            AuthenticatedContext(),
+            new AppUpgradeDiscardRequest(BranchName, 1),
+            CancellationToken.None
+        );
+
+        Assert.True(result.IsDiscarded);
+        _giteaClient.Verify(g => g.ClosePullRequestAsync(Org, Repo, 1, It.IsAny<CancellationToken>()), Times.Once);
+        _giteaClient.Verify(g => g.DeleteBranchAsync(Org, Repo, BranchName, It.IsAny<CancellationToken>()), Times.Once);
+        _sourceControl.Verify(s => s.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), "master"), Times.Once);
+    }
+
+    [Fact]
+    public async Task DiscardAsync_WithoutPullRequest_OnlyDeletesBranch()
+    {
+        SetupRepositoryWithDefaultBranch("master");
+        _giteaClient
+            .Setup(g => g.DeleteBranchAsync(Org, Repo, BranchName, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeDiscardResult result = await service.DiscardAsync(
+            AuthenticatedContext(),
+            new AppUpgradeDiscardRequest(BranchName, null),
+            CancellationToken.None
+        );
+
+        Assert.True(result.IsDiscarded);
+        _giteaClient.Verify(
+            g => g.ClosePullRequestAsync(Org, Repo, It.IsAny<long>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task DiscardAsync_RefusesBranchesOutsideTheUpgradePrefix()
+    {
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeDiscardResult result = await service.DiscardAsync(
+            AuthenticatedContext(),
+            new AppUpgradeDiscardRequest("master", null),
+            CancellationToken.None
+        );
+
+        Assert.False(result.IsDiscarded);
+        _giteaClient.Verify(
+            g => g.DeleteBranchAsync(Org, Repo, It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task DiscardAsync_WhenBranchCannotBeDeleted_ReportsFailure()
+    {
+        SetupRepositoryWithDefaultBranch("master");
+        _giteaClient
+            .Setup(g => g.DeleteBranchAsync(Org, Repo, BranchName, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeDiscardResult result = await service.DiscardAsync(
+            AuthenticatedContext(),
+            new AppUpgradeDiscardRequest(BranchName, null),
+            CancellationToken.None
+        );
+
+        Assert.False(result.IsDiscarded);
     }
 
     private void SetupRuns(params ActionWorkflowRun[] runs) =>

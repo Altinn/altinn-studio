@@ -76,6 +76,7 @@ export const appUpgradeStatus: AppUpgradeStatus = {
   isUpgradeAvailable: true,
   isAutomaticUpgradeSupported: true,
   activeUpgradeBranch: null,
+  activeUpgradeHasPullRequest: false,
 };
 
 export const appUpgradeStart: AppUpgradeStart = {
