@@ -38,21 +38,19 @@ enum EnvId {
   PROD = 'prod',
 }
 
-type TableRowData = {
-  identifier: string;
+interface TableRowData extends ResourcePolicyData {
   a2Roles: string[];
   otherRoles: string[];
-  policy: Policy;
-  resourceType: string;
-};
+}
 
 type ResourcePolicyData = {
-  identifier?: string;
-  policy?: Policy;
+  identifier: string;
+  policy: Policy;
   resourceType: string;
+  existsInGitea?: boolean;
 };
 
-const getTableData = (resource: ResourcePolicyData) => {
+const getTableData = (resource: ResourcePolicyData): TableRowData => {
   const subjects = resource.policy?.rules
     .flatMap((rule) => rule.subject)
     .filter((s) => !s.startsWith('urn:altinn:org'))
@@ -67,11 +65,9 @@ const getTableData = (resource: ResourcePolicyData) => {
   const accessPackages = resource.policy?.rules.flatMap((rule) => rule.accessPackages);
 
   return {
-    identifier: resource.identifier,
-    resourceType: resource.resourceType,
+    ...resource,
     a2Roles: [...a2Subjects].sort(),
     otherRoles: [...[...otherSubjects].sort(), ...[...accessPackages].sort()],
-    policy: resource.policy,
   };
 };
 
@@ -240,7 +236,7 @@ export const ResourcePolicyTable = ({
             otherRoles: x.otherRoles.join(', '),
             actions: (
               <div>
-                {x.resourceType !== ALTINN_APP && (
+                {x.resourceType !== ALTINN_APP && !x.existsInGitea && (
                   <StudioButton
                     data-size='sm'
                     onClick={() => {
@@ -251,6 +247,8 @@ export const ResourcePolicyTable = ({
                     {t('resourceadm.altinn2policy_edit')}
                   </StudioButton>
                 )}
+                {x.resourceType === ALTINN_APP && t('resourceadm.altinn2policy_approw')}
+                {x.existsInGitea && t('resourceadm.altinn2policy_gitearow')}
               </div>
             ),
           };
@@ -309,6 +307,7 @@ export const LocalPolicyEditor = ({
             identifier: tableData.identifier,
             policy: updatedPolicy,
             resourceType: tableData.resourceType,
+            existsInGitea: false,
           });
         },
       },

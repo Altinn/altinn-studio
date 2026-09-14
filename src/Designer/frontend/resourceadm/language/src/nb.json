@@ -133,6 +133,8 @@
   "resourceadm.altinn2policy_column_other_roles": "Andre roller",
   "resourceadm.altinn2policy_dashboard_link": "Oversikt over Altinn 2-roller",
   "resourceadm.altinn2policy_edit": "Rediger",
+  "resourceadm.altinn2policy_approw": "Kan kun oppdateres i App-editor",
+  "resourceadm.altinn2policy_gitearow": "Ressursen finnes i Gitea, og må oppdateres på vanlig måte",
   "resourceadm.altinn2policy_env_prod": "Prod",
   "resourceadm.altinn2policy_env_tt02": "TT02",
   "resourceadm.altinn2policy_heading": "Ressurser og apper med Altinn 2-roller",

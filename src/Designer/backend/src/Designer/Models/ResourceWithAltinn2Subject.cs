@@ -19,4 +19,9 @@ public class ResourceWithAltinn2Subject
     /// The resource type
     /// </summary>
     public ResourceType? ResourceType { get; set; }
+
+    /// <summary>
+    /// If the resource exists in Gitea
+    /// </summary>
+    public bool? ExistsInGitea { get; set; }
 }

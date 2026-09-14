@@ -15,10 +15,10 @@ import type { Policy } from '@altinn/policy-editor';
 export const useGetAltinn2ResourcePoliciesQuery = (
   org: string,
   env: string,
-): UseQueryResult<{ identifier?: string; policy?: Policy; resourceType: string }[]> => {
+): UseQueryResult<{ identifier: string; policy: Policy; resourceType: string }[]> => {
   const { getAltinn2ResourcePolicies } = useServicesContext();
 
-  return useQuery<{ identifier?: string; policy?: Policy; resourceType: string }[]>({
+  return useQuery<{ identifier: string; policy: Policy; resourceType: string }[]>({
     queryKey: [QueryKey.Altinn2ResourcePolicies, org, env],
     queryFn: () => getAltinn2ResourcePolicies(org, env),
   });

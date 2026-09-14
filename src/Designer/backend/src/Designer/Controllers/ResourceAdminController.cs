@@ -377,6 +377,7 @@ public class ResourceAdminController : ControllerBase
             .ToList();
 
         ConcurrentBag<ResourceWithAltinn2Subject> altinn2ResourcePolicies = [];
+        List<FileSystemObject> resourceFiles = _repository.GetContents(org, GetRepositoryName(org));
 
         await Parallel.ForEachAsync(
             resourcesToLoadPolicyFor,
@@ -399,6 +400,9 @@ public class ResourceAdminController : ControllerBase
                                 Identifier = resource.Identifier,
                                 ResourceType = resource.ResourceType,
                                 Policy = PolicyConverter.ConvertPolicy(policy),
+                                ExistsInGitea = resourceFiles.Exists(filename =>
+                                    filename.Name.Equals(resource.Identifier)
+                                ),
                             }
                         );
                     }
