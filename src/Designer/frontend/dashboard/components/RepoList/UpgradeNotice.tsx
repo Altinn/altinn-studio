@@ -24,11 +24,7 @@ export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement 
   if (!status?.isUpgradeAvailable) return null;
 
   const branch = status.activeUpgradeBranch;
-  const textKey = branch
-    ? 'app_upgrade.notice_in_progress'
-    : status.hasCustomCode || !status.isAutomaticUpgradeSupported
-      ? 'app_upgrade.notice_available'
-      : 'app_upgrade.notice_automatic_available';
+  const textKey = branch ? 'app_upgrade.notice_in_progress' : 'app_upgrade.notice_available';
 
   return (
     <StudioButton
