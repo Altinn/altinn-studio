@@ -61,3 +61,8 @@
   color: var(--ds-color-neutral-text-subtle);
   font-family: var(--ds-font-family-mono, monospace);
 }
+
+.failureMessage {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

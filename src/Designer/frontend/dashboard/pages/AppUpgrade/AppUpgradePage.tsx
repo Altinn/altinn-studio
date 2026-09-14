@@ -464,7 +464,7 @@ const Done = ({
         {t('app_upgrade.done.failed_title')}
       </StudioHeading>
       <StudioParagraph>{t('app_upgrade.done.failed_description')}</StudioParagraph>
-      <StudioAlert data-color='danger'>
+      <StudioAlert data-color='danger' className={classes.failureMessage}>
         {requestFailed ? t('app_upgrade.starting.request_failed') : result?.message}
       </StudioAlert>
       {discardAlert}
