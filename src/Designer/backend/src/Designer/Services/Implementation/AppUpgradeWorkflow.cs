@@ -91,9 +91,29 @@ public static class AppUpgradeWorkflow
                   if [ ! -s "$report" ] || ! head -c 1 "$report" | grep -q '{'; then
                     printf '{"exitCode":%s,"message":"","output":"","error":"studioctl did not write a report","steps":[]}' "$exit_code" > "$report"
                   fi
+                  APP_DIR="$(cd app && pwd -P)" APP_DIR_LOGICAL="$PWD/app" python3 - "$report" <<'PY'
+                  import json, os, sys
+
+                  path = sys.argv[1]
+                  report = json.load(open(path))
+                  prefixes = sorted({os.environ["APP_DIR"] + "/", os.environ["APP_DIR_LOGICAL"] + "/"}, key=len, reverse=True)
+                  for step in report.get("steps", []):
+                      for message in step.get("messages", []):
+                          text = message.get("text")
+                          if isinstance(text, str):
+                              for prefix in prefixes:
+                                  text = text.replace(prefix, "")
+                              message["text"] = text
+                  json.dump(report, open(path, "w"))
+                  PY
                   echo "__REPORT_MARKER__$(base64 -w0 "$report")"
                   if [ "$exit_code" != "0" ] && [ "$exit_code" != "3" ]; then
                     echo "The upgrade did not apply (exit code $exit_code); nothing was pushed."
+                    if git -C app push --quiet origin --delete "$UPGRADE_BRANCH"; then
+                      echo "Deleted the upgrade branch $UPGRADE_BRANCH."
+                    else
+                      echo "Could not delete the upgrade branch $UPGRADE_BRANCH; remove it by hand."
+                    fi
                     exit "$exit_code"
                   fi
                   set -e
