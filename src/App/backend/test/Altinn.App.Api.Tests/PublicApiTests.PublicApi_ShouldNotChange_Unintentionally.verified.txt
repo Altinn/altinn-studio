@@ -497,15 +497,6 @@ namespace Altinn.App.Api.Controllers
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreview([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null, [Microsoft.AspNetCore.Mvc.FromQuery] System.Guid? dataElementId = default) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
-        [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
-            "id:guid}/pdf/preview")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileStreamResult), 200, "application/pdf", new string[0])]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400, "application/problem+json", new string[0])]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404, "application/problem+json", new string[0])]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreviewForDataElement([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null) { }
-        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
-        [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview/" +
             "tasks")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.PdfPreviewTasksResponse), 200)]

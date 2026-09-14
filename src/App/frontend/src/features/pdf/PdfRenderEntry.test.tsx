@@ -22,7 +22,12 @@ class TestErrorBoundary extends React.Component<PropsWithChildren, { error?: Err
   }
 }
 
-async function render(uiFolder = 'subform-layout', selectedElementId = dataElementId, customPdfLayout = true) {
+async function render(
+  uiFolder = 'subform-layout',
+  selectedElementId = dataElementId,
+  customPdfLayout = true,
+  includePaymentDetails = false,
+) {
   const instance = getInstanceWithProcessMock();
   instance.process.processTasks = [
     { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
@@ -68,6 +73,7 @@ async function render(uiFolder = 'subform-layout', selectedElementId = dataEleme
             Subform: {
               data: {
                 layout: [
+                  ...(includePaymentDetails ? [{ id: 'order', type: 'PaymentDetails' as const }] : []),
                   {
                     id: 'selected',
                     type: 'Paragraph',
@@ -130,6 +136,15 @@ describe('explicit PDF task entry', () => {
     expect(document.body).not.toHaveAttribute('data-unsaved-changes');
     expect(queries.fetchPaymentInformationForTask).not.toHaveBeenCalled();
     expect(queries.fetchOrderDetails).not.toHaveBeenCalled();
+  });
+
+  it('loads order data when the PDF contains payment details', async () => {
+    const { queries } = await render('subform-layout', dataElementId, true, true);
+
+    expect(await screen.findByText('Selected subform only')).toBeInTheDocument();
+    await waitFor(() => expect(document.getElementById('readyForPrint')).not.toBeNull());
+    expect(queries.fetchOrderDetails).toHaveBeenCalledTimes(1);
+    expect(queries.fetchPaymentInformationForTask).not.toHaveBeenCalled();
   });
 
   it('uses the source task and selected subform context for automatic PDF formatting', async () => {

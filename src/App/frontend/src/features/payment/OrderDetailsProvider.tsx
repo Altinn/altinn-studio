@@ -7,6 +7,7 @@ import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { usePaymentQueriesEnabled } from 'src/features/payment/usePaymentQueriesEnabled';
 import { useHasPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { OrderDetails } from 'src/features/payment/types';
@@ -24,7 +25,9 @@ export function useOrderDetailsQueryDef(enabled: boolean, instanceId?: string): 
 
 const useOrderDetailsQuery = () => {
   const instanceId = useLaxInstanceId();
-  const enabled = useHasPayment();
+  const hasPayment = useHasPayment();
+  const paymentQueriesEnabled = usePaymentQueriesEnabled();
+  const enabled = hasPayment && paymentQueriesEnabled;
   const utils = useQuery<OrderDetails, HttpClientError>(useOrderDetailsQueryDef(enabled, instanceId));
 
   useEffect(() => {

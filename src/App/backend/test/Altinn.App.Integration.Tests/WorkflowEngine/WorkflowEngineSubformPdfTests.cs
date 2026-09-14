@@ -55,7 +55,7 @@ public class WorkflowEngineSubformPdfTests(ITestOutputHelper output, AppFixtureC
         );
 
         using var previewResponse = await fixture.Generic.Get(
-            $"/ttd/basic/instances/{instance.Id}/data/{selectedId}/pdf/preview?language=nb",
+            $"/ttd/basic/instances/{instance.Id}/pdf/preview?dataElementId={selectedId}&language=nb",
             token
         );
         string previewText = await ReadPdfText(previewResponse);

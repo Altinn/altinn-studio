@@ -8,6 +8,7 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { usePaymentQueriesEnabled } from 'src/features/payment/usePaymentQueriesEnabled';
 import { useIsPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { PaymentResponsePayload } from 'src/features/payment/types';
@@ -33,7 +34,9 @@ export function usePaymentInformationQueryDef(
 
 const usePaymentInformationQuery = () => {
   const instanceId = useLaxInstanceId();
-  const enabled = useIsPayment();
+  const isPayment = useIsPayment();
+  const paymentQueriesEnabled = usePaymentQueriesEnabled();
+  const enabled = isPayment && paymentQueriesEnabled;
 
   const result = useQuery(usePaymentInformationQueryDef(enabled, instanceId));
 

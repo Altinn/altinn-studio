@@ -105,45 +105,6 @@ public class PdfController : ControllerBase
         return await RenderPreview(instance, taskId, dataElementId?.ToString());
     }
 
-    /// <summary>
-    /// Generate a preview of the subformPdf PDF that would be generated for a single subform data element.
-    /// </summary>
-    /// <remarks>
-    /// Equivalent to <see cref="GetPdfPreview"/> with <c>dataElementId</c> set to <paramref name="dataGuid"/>,
-    /// as a convenience for the data-element-scoped URL shape.
-    /// </remarks>
-    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest, "application/problem+json")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/pdf/preview")]
-    public async Task<ActionResult> GetPdfPreviewForDataElement(
-        [FromRoute] string org,
-        [FromRoute] string app,
-        [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid,
-        [FromRoute] Guid dataGuid,
-        [FromQuery] string? taskId = null
-    )
-    {
-        var instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance == null)
-        {
-            return NotFound("Did not find instance or task");
-        }
-
-        return await RenderPreview(instance, taskId, dataGuid.ToString());
-    }
-
     private async Task<ActionResult> RenderPreview(Instance instance, string? taskId, string? dataElementId)
     {
         try

@@ -137,7 +137,11 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
             {window.Cypress && <UpdateAttachmentsForCypress />}
             <AttachmentEffects />
             <ValidationEffects />
-            <FormPaymentProviders hasProcess={hasProcess}>{children}</FormPaymentProviders>
+            <PaymentInformationProvider>
+              <OrderDetailsProvider>
+                <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
+              </OrderDetailsProvider>
+            </PaymentInformationProvider>
           </TaskTransitionBoundary>
         </LayoutPropertiesValidation>
       </LayoutRevisionBoundary>
@@ -163,25 +167,6 @@ function useLayoutRevisionKey() {
     }
     return key;
   }, [layouts]);
-}
-
-function FormPaymentProviders({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {
-  const isPdf = useIsPdf();
-  const lookups = FormStore.bootstrap.useLayoutLookups();
-  const hasPaymentComponents = Object.values(lookups.allComponents).some(
-    (component) => component?.type === 'Payment' || component?.type === 'PaymentDetails',
-  );
-  if (isPdf && !hasPaymentComponents) {
-    return children;
-  }
-
-  return (
-    <PaymentInformationProvider>
-      <OrderDetailsProvider>
-        <MaybePaymentProvider hasProcess={hasProcess}>{children}</MaybePaymentProvider>
-      </OrderDetailsProvider>
-    </PaymentInformationProvider>
-  );
 }
 
 function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasProcess: boolean }>) {
