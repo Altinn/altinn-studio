@@ -4,7 +4,6 @@ export type AppUpgradeStatus = {
   targetMajorVersion: number;
   isUpgradeAvailable: boolean;
   isAutomaticUpgradeSupported: boolean;
-  hasCustomCode: boolean;
   activeUpgradeBranch: string | null;
 };
 

@@ -27,9 +27,6 @@ public partial class AppUpgradeService : IAppUpgradeService
     private const int AutomaticUpgradeSourceMajorVersion = 8;
     private const string CsprojPath = "App/App.csproj";
     private const string IndexPath = "App/views/Home/Index.cshtml";
-    private const string AppFolder = "App";
-    private const string CustomCodeFolder = "App/logic";
-    private static readonly string[] s_templateCodeFiles = ["Program.cs", "TestDummy.cs"];
     private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
     private const int ExitCodeSuccess = 0;
@@ -98,7 +95,6 @@ public partial class AppUpgradeService : IAppUpgradeService
         bool isUpgradeAvailable = backendVersion is not null && backendVersion.Major < TargetMajorVersion;
         bool isAutomaticUpgradeSupported =
             backendVersion is not null && backendVersion.Major == AutomaticUpgradeSourceMajorVersion;
-        bool hasCustomCode = isUpgradeAvailable && await HasCustomCodeAsync(repoContext, cancellationToken);
         string? activeUpgradeBranch = isUpgradeAvailable ? await FindActiveUpgradeBranchAsync(repoContext) : null;
 
         return new AppUpgradeStatus(
@@ -107,7 +103,6 @@ public partial class AppUpgradeService : IAppUpgradeService
             TargetMajorVersion,
             isUpgradeAvailable,
             isAutomaticUpgradeSupported,
-            hasCustomCode,
             activeUpgradeBranch
         );
     }
@@ -124,41 +119,6 @@ public partial class AppUpgradeService : IAppUpgradeService
             .OrderByDescending(name => name, StringComparer.Ordinal)
             .FirstOrDefault();
     }
-
-    private async Task<bool> HasCustomCodeAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken)
-    {
-        List<FileSystemObject>? appFiles = await _giteaClient.GetDirectoryAsync(
-            repoContext.Org,
-            repoContext.Repo,
-            AppFolder,
-            cancellationToken: cancellationToken
-        );
-        if (appFiles is null)
-        {
-            return false;
-        }
-
-        if (appFiles.Any(file => IsCustomCodeFile(file) && !s_templateCodeFiles.Contains(file.Name)))
-        {
-            return true;
-        }
-
-        if (appFiles.All(file => file.Type != "dir" || file.Path != CustomCodeFolder))
-        {
-            return false;
-        }
-
-        List<FileSystemObject>? logicFiles = await _giteaClient.GetDirectoryAsync(
-            repoContext.Org,
-            repoContext.Repo,
-            CustomCodeFolder,
-            cancellationToken: cancellationToken
-        );
-        return logicFiles?.Any(file => file.Type == "dir" || IsCustomCodeFile(file)) ?? false;
-    }
-
-    private static bool IsCustomCodeFile(FileSystemObject file) =>
-        file.Type == "file" && file.Name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
 
     public async Task<AppUpgradeStart> StartAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken)
     {
