@@ -431,7 +431,7 @@ class TestRetiring:
         _run(monkeypatch, api, ["--retire"], names=[LOCAL])
 
         kept = json.loads(self.archive.read_text(encoding="utf-8"))
-        assert [version["version"] for version in kept[RETIRED]["versions"]] == [1, 2]
+        assert [version["version"] for version in kept[RETIRED][0]["versions"]] == [1, 2]
 
     def test_the_text_is_written_before_the_prompt_is_deleted(self, monkeypatch):
         """Deleting first would lose the only copy if the write then failed."""
@@ -454,6 +454,17 @@ class TestRetiring:
             _run(monkeypatch, api, ["--retire", LOCAL], names=[LOCAL])
 
         assert api.deleted == []
+
+    def test_a_second_retirement_of_the_same_name_keeps_the_first(self, monkeypatch):
+        """Langfuse deletion cannot be undone, so an overwritten record is text lost."""
+        _run(monkeypatch, self._api(), ["--retire"], names=[LOCAL])
+        first = json.loads(self.archive.read_text(encoding="utf-8"))[RETIRED]
+
+        _run(monkeypatch, self._api(), ["--retire"], names=[LOCAL])
+
+        kept = json.loads(self.archive.read_text(encoding="utf-8"))[RETIRED]
+        assert len(kept) == 2
+        assert kept[0] == first[0]
 
     def test_retiring_deletes_nothing_when_there_are_no_orphans(self, monkeypatch, capsys):
         api = _Langfuse([_page([])])

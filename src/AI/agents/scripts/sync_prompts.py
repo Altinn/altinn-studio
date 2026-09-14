@@ -261,18 +261,23 @@ def _archived_versions(api: LangfuseApi, name: str, versions: list[int]) -> list
 
 
 def _archive(api: LangfuseApi, prompt: dict) -> int:
-    """Keep a prompt's text in the repo so deleting it in Langfuse loses nothing."""
+    """Keep a prompt's text in the repo so deleting it in Langfuse loses nothing.
+
+    A name can be retired, recreated and retired again, and the versions restart at 1
+    each time, so records append per name rather than replacing.
+    """
     name = prompt["name"]
     archive = json.loads(RETIRED_FILE.read_text(encoding="utf-8")) if RETIRED_FILE.exists() else {}
-    archive[name] = {
+    record = {
         "retired_on": date.today().isoformat(),
         "versions": _archived_versions(api, name, prompt.get("versions") or []),
     }
+    archive.setdefault(name, []).append(record)
     RETIRED_FILE.write_text(
         json.dumps(dict(sorted(archive.items())), indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    return len(archive[name]["versions"])
+    return len(record["versions"])
 
 
 def _retire(api: LangfuseApi, prompt: dict) -> None:
