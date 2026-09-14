@@ -8,6 +8,5 @@ public enum AppUpgradeOutcome
     Completed,
     ManualStepsRequired,
     UnsupportedVersion,
-    LocalChangesBlocking,
     Failed,
 }

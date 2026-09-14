@@ -7,6 +7,7 @@ import {
   StudioButton,
   StudioDetails,
   StudioHeading,
+  StudioLink,
   StudioLinkButton,
   StudioList,
   StudioParagraph,
@@ -16,8 +17,8 @@ import {
 import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useAppUpgradeStatusQuery } from '../../hooks/queries/useAppUpgradeStatusQuery';
-import { usePrepareAppUpgradeMutation } from '../../hooks/mutations/usePrepareAppUpgradeMutation';
-import { useUpgradeAppMutation } from '../../hooks/mutations/useUpgradeAppMutation';
+import { useStartAppUpgradeMutation } from '../../hooks/mutations/useStartAppUpgradeMutation';
+import { useAppUpgradeRunQuery } from '../../hooks/queries/useAppUpgradeRunQuery';
 import { useMergeAppUpgradeMutation } from '../../hooks/mutations/useMergeAppUpgradeMutation';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
@@ -25,8 +26,9 @@ import { CenterContainer } from '../../components/CenterContainer';
 import type {
   AppUpgradeManualTask,
   AppUpgradeMessageStatus,
-  AppUpgradePreparation,
   AppUpgradeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
 } from 'app-shared/types/AppUpgrade';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { APP_DEVELOPMENT_BASENAME, NEXT_V9_VERSION } from 'app-shared/constants';
@@ -40,16 +42,36 @@ import classes from './AppUpgradePage.module.css';
 
 type Phase = 'intro' | 'starting' | UpgradeStep;
 
+const resolvePhase = (
+  startedBranch: string | null,
+  start: AppUpgradeStart | undefined,
+  startFailed: boolean,
+  run: AppUpgradeRun | undefined,
+  runFailed: boolean,
+): Phase => {
+  if (startedBranch === null) {
+    return start !== undefined || startFailed ? 'starting' : 'intro';
+  }
+  return run?.state === 'Completed' || runFailed ? 'done' : 'upgrade';
+};
+
 export const AppUpgradePage = (): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useParams<{ org: string; app: string }>();
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [startedBranch, setStartedBranch] = useState<string | null>(null);
   const { data: status } = useAppUpgradeStatusQuery(org, app);
-  const prepare = usePrepareAppUpgradeMutation(org, app);
-  const upgrade = useUpgradeAppMutation(org, app);
+  const start = useStartAppUpgradeMutation(org, app);
+  const runQuery = useAppUpgradeRunQuery(org, app, startedBranch);
+  const phase = resolvePhase(
+    startedBranch,
+    start.data,
+    start.isError,
+    runQuery.data,
+    runQuery.isError,
+  );
   const targetVersion = status?.targetMajorVersion ?? NEXT_V9_VERSION;
   const packagesRouter = new PackagesRouter({ org, app });
   const dashboardPath = `/${subroute}/${selectedContext}`;
@@ -59,15 +81,10 @@ export const AppUpgradePage = (): ReactElement => {
   };
 
   const startUpgrade = (): void => {
-    setPhase('upgrade');
-    upgrade.mutate(undefined, { onSettled: () => setPhase('done') });
-  };
-
-  const start = (): void => {
-    setPhase('starting');
-    prepare.mutate(undefined, {
-      onSuccess: (preparation) => {
-        if (preparation.status === 'Ready') startUpgrade();
+    start.mutate(undefined, {
+      onSuccess: (started) => {
+        if (started.status === 'Started' && started.branchName)
+          setStartedBranch(started.branchName);
       },
     });
   };
@@ -90,30 +107,30 @@ export const AppUpgradePage = (): ReactElement => {
             targetVersion={targetVersion}
             canStart={status?.isAutomaticUpgradeSupported ?? false}
             isAutomatic={(status?.isAutomaticUpgradeSupported ?? false) && !status?.hasCustomCode}
-            onStart={start}
+            onStart={startUpgrade}
             onCancel={goToDashboard}
           />
         )}
         {phase === 'starting' && (
           <Starting
-            preparation={prepare.data}
-            isPending={prepare.isPending}
-            isError={prepare.isError}
+            start={start.data}
+            isPending={start.isPending}
+            isError={start.isError}
             onCancel={goToDashboard}
-            openInStudioUrl={packagesRouter.getPackageNavigationUrl('editorOverview')}
           />
         )}
         {(phase === 'upgrade' || phase === 'done') && (
           <div className={classes.content}>
             <UpgradeStepper activeStep={phase} />
             {phase === 'upgrade' ? (
-              <UpgradeInProgress />
+              <UpgradeInProgress run={runQuery.data} onCancel={goToDashboard} />
             ) : (
               <Done
                 org={org}
                 app={app}
-                result={upgrade.data}
-                requestFailed={upgrade.isError}
+                result={runQuery.data?.result ?? undefined}
+                runUrl={runQuery.data?.runUrl ?? null}
+                requestFailed={runQuery.isError}
                 publishUrl={packagesRouter.getPackageNavigationUrl('editorPublish')}
                 onClose={goToDashboard}
               />
@@ -184,22 +201,15 @@ const Intro = ({
 };
 
 type StartingProps = {
-  preparation?: AppUpgradePreparation;
+  start?: AppUpgradeStart;
   isPending: boolean;
   isError: boolean;
   onCancel: () => void;
-  openInStudioUrl: string;
 };
 
-const Starting = ({
-  preparation,
-  isPending,
-  isError,
-  onCancel,
-  openInStudioUrl,
-}: StartingProps): ReactElement => {
+const Starting = ({ start, isPending, isError, onCancel }: StartingProps): ReactElement => {
   const { t } = useTranslation();
-  const isBlocked = isError || (preparation !== undefined && preparation.status !== 'Ready');
+  const isBlocked = isError || (start !== undefined && start.status !== 'Started');
 
   return (
     <div className={classes.content}>
@@ -210,14 +220,9 @@ const Starting = ({
         <>
           <StudioParagraph>{t('app_upgrade.starting.blocked')}</StudioParagraph>
           <StudioAlert data-color='warning'>
-            {isError ? t('app_upgrade.starting.request_failed') : t(blockedReasonKey(preparation))}
+            {isError ? t('app_upgrade.starting.request_failed') : t(blockedReasonKey(start))}
           </StudioAlert>
           <Actions>
-            {preparation?.status === 'LocalChangesBlocking' && (
-              <StudioLinkButton data-color='accent' href={openInStudioUrl}>
-                {t('app_upgrade.open_in_studio')}
-              </StudioLinkButton>
-            )}
             <StudioButton variant='secondary' onClick={onCancel}>
               {t('app_upgrade.done.back_to_dashboard')}
             </StudioButton>
@@ -227,7 +232,7 @@ const Starting = ({
         <>
           <StudioParagraph>{t('app_upgrade.starting.description')}</StudioParagraph>
           <StatusLine icon={<StudioSpinner aria-label={t('general.loading')} data-size='xs' />}>
-            {t('app_upgrade.starting.copying')}
+            {t('app_upgrade.starting.queuing')}
           </StatusLine>
           <Actions>
             <StudioButton disabled>{t('app_upgrade.next')}</StudioButton>
@@ -239,26 +244,44 @@ const Starting = ({
   );
 };
 
-const blockedReasonKey = (preparation?: AppUpgradePreparation): string => {
-  switch (preparation?.status) {
-    case 'LocalChangesBlocking':
-      return 'app_upgrade.starting.local_changes';
+const blockedReasonKey = (start?: AppUpgradeStart): string => {
+  switch (start?.status) {
     case 'UnsupportedVersion':
       return 'app_upgrade.starting.unsupported';
     default:
-      return 'app_upgrade.starting.request_failed';
+      return 'app_upgrade.starting.failed';
   }
 };
 
-const UpgradeInProgress = (): ReactElement => {
+type UpgradeInProgressProps = {
+  run?: AppUpgradeRun;
+  onCancel: () => void;
+};
+
+const UpgradeInProgress = ({ run, onCancel }: UpgradeInProgressProps): ReactElement => {
   const { t } = useTranslation();
+  const statusText =
+    run?.state === 'Running'
+      ? run.currentStep
+        ? t('app_upgrade.upgrade.running_step', { step: run.currentStep })
+        : t('app_upgrade.upgrade.running')
+      : t('app_upgrade.upgrade.queued');
   return (
     <>
+      <StudioParagraph>{t('app_upgrade.upgrade.in_progress')}</StudioParagraph>
       <StatusLine icon={<StudioSpinner aria-label={t('general.loading')} data-size='xs' />}>
-        {t('app_upgrade.upgrade.in_progress')}
+        {statusText}
       </StatusLine>
+      {run?.runUrl && (
+        <StudioLink href={run.runUrl} target='_blank' rel='noreferrer'>
+          {t('app_upgrade.upgrade.view_run')}
+        </StudioLink>
+      )}
       <Actions>
         <StudioButton disabled>{t('app_upgrade.next')}</StudioButton>
+        <StudioButton variant='secondary' onClick={onCancel}>
+          {t('app_upgrade.done.back_to_dashboard')}
+        </StudioButton>
       </Actions>
     </>
   );
@@ -268,6 +291,7 @@ type DoneProps = {
   org: string;
   app: string;
   result?: AppUpgradeResult;
+  runUrl: string | null;
   requestFailed: boolean;
   publishUrl: string;
   onClose: () => void;
@@ -277,6 +301,7 @@ const Done = ({
   org,
   app,
   result,
+  runUrl,
   requestFailed,
   publishUrl,
   onClose,
@@ -347,10 +372,17 @@ const Done = ({
     </StudioParagraph>
   );
 
+  const runLink = runUrl && (
+    <StudioLink href={runUrl} target='_blank' rel='noreferrer'>
+      {t('app_upgrade.upgrade.view_run')}
+    </StudioLink>
+  );
+
   const details = result && (
     <>
       <UpgradeFileChanges fileChanges={result.fileChanges} />
       <FullReport result={result} />
+      {runLink}
     </>
   );
 
@@ -414,7 +446,7 @@ const Done = ({
           {t('app_upgrade.done.back_to_dashboard')}
         </StudioButton>
       </Actions>
-      {details}
+      {details ?? runLink}
     </>
   );
 };

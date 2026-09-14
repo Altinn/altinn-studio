@@ -6,8 +6,8 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type {
   AppUpgradeMergeResult,
-  AppUpgradePreparation,
-  AppUpgradeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
   AppUpgradeStatus,
 } from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -65,8 +65,8 @@ import {
   deploymentsResponse,
   appVersion,
   appUpgradeMergeResult,
-  appUpgradePreparation,
-  appUpgradeResult,
+  appUpgradeRun,
+  appUpgradeStart,
   appUpgradeStatus,
   appReleasesResponse,
   applicationMetadata,
@@ -115,6 +115,9 @@ export const queriesMock: ServicesContextProps = {
   getAppUpgradeStatus: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeStatus>(appUpgradeStatus)),
+  getAppUpgradeRun: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeRun>(appUpgradeRun)),
   getAvailableResourcesFromOrg: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
@@ -339,11 +342,13 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: vi.fn().mockImplementation(() => Promise.resolve()),
+  startAppUpgrade: vi
   prepareAppUpgrade: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradePreparation>(appUpgradePreparation)),
   upgradeApp: vi
     .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeStart>(appUpgradeStart)),
     .mockImplementation(() => Promise.resolve<AppUpgradeResult>(appUpgradeResult)),
   mergeAppUpgrade: vi
     .fn()
