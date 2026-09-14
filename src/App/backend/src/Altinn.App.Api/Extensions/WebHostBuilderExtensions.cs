@@ -1,6 +1,5 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 
@@ -38,17 +37,6 @@ public static class WebHostBuilderExtensions
                 {
                     runtimeSecretsDirectory = AppSettings.DefaultRuntimeSecretsDirectory;
                 }
-
-                configBuilder.AddMaskinportenSettingsFile(
-                    context,
-                    "MaskinportenSettingsFilepath",
-                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings.json")
-                );
-                configBuilder.AddMaskinportenSettingsFile(
-                    context,
-                    "MaskinportenSettingsInternalFilepath",
-                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings-internal.json")
-                );
 
                 AddRuntimeConfigFiles(configBuilder, context.HostingEnvironment, runtimeSecretsDirectory);
                 configBuilder.LoadAppConfig(args);

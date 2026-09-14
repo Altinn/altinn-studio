@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Features.Maskinporten;
 
 /// <summary>
-/// <para>Resolves the well-known OAuth metadata (issuer) for both <see cref="MaskinportenClient"/> variants
-/// at startup and re-resolves it every <see cref="WellKnownRefreshInterval"/>, guarding against the upstream
+/// <para>Resolves the well-known OAuth metadata (issuer) for the app's <see cref="MaskinportenClient"/> at
+/// startup and re-resolves it every <see cref="WellKnownRefreshInterval"/>, guarding against the upstream
 /// issuer changing during a long process lifetime. The request path itself never refreshes:
 /// see <see cref="MaskinportenClient.GetAudienceFromWellKnown"/>.</para>
 /// <para>Does not run on the localtest platform: a local app process lives for minutes, so there is no
@@ -60,7 +60,7 @@ internal sealed class MaskinportenWellKnownRefreshService : BackgroundService
             using var timer = new PeriodicTimer(WellKnownRefreshInterval, _timeProvider);
             do
             {
-                await RefreshAll(stoppingToken);
+                await Refresh(_serviceProvider.GetService<IMaskinportenClient>(), stoppingToken);
             } while (await timer.WaitForNextTickAsync(stoppingToken));
         }
         catch (Exception ex)
@@ -70,15 +70,6 @@ internal sealed class MaskinportenWellKnownRefreshService : BackgroundService
             if (ex is not OperationCanceledException)
                 _logger.LogDebug(ex, "Maskinporten well-known refresh loop ended unexpectedly");
         }
-    }
-
-    private async Task RefreshAll(CancellationToken stoppingToken)
-    {
-        await Refresh(_serviceProvider.GetService<IMaskinportenClient>(), stoppingToken);
-        await Refresh(
-            _serviceProvider.GetKeyedService<IMaskinportenClient>(MaskinportenClient.VariantInternal),
-            stoppingToken
-        );
     }
 
     private async Task Refresh(IMaskinportenClient? service, CancellationToken stoppingToken)
@@ -97,9 +88,9 @@ internal sealed class MaskinportenWellKnownRefreshService : BackgroundService
         }
         catch (Exception ex)
         {
-            // Unconfigured variants and network failures. The on-demand path logs an Error
-            // when a real caller is affected.
-            _logger.LogDebug(ex, "Maskinporten well-known refresh failed for variant '{Variant}'", client.Variant);
+            // Apps without Maskinporten configuration, and network failures. The on-demand path
+            // logs an Error when a real caller is affected.
+            _logger.LogDebug(ex, "Maskinporten well-known refresh failed");
         }
     }
 }

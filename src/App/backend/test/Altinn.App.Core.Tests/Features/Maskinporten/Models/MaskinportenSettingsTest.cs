@@ -262,11 +262,15 @@ public class MaskinportenSettingsTest
             var filePath = Path.Join(tempDir, "maskinporten-settings.json");
             await File.WriteAllTextAsync(filePath, json);
 
-            var configuration = new ConfigurationBuilder().AddJsonFile(filePath).Build();
-
             var services = new ServiceCollection();
-            services.AddSingleton<IConfiguration>(configuration);
-            services.ConfigureMaskinportenClient("MaskinportenSettings");
+            services.AddSingleton<IConfiguration>(
+                new ConfigurationBuilder()
+                    .AddInMemoryCollection([
+                        new KeyValuePair<string, string?>("MaskinportenSettingsFilepath", filePath),
+                    ])
+                    .Build()
+            );
+            services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();
 
@@ -309,11 +313,15 @@ public class MaskinportenSettingsTest
             var filePath = Path.Join(tempDir, "maskinporten-settings.json");
             await File.WriteAllTextAsync(filePath, json);
 
-            var configuration = new ConfigurationBuilder().AddJsonFile(filePath).Build();
-
             var services = new ServiceCollection();
-            services.AddSingleton<IConfiguration>(configuration);
-            services.ConfigureMaskinportenClient("MaskinportenSettings");
+            services.AddSingleton<IConfiguration>(
+                new ConfigurationBuilder()
+                    .AddInMemoryCollection([
+                        new KeyValuePair<string, string?>("MaskinportenSettingsFilepath", filePath),
+                    ])
+                    .Build()
+            );
+            services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();
 

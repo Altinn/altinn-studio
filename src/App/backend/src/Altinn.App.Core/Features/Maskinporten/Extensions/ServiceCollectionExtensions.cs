@@ -1,36 +1,24 @@
-using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Maskinporten.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds a singleton <see cref="IMaskinportenClient"/> service to the service collection.
-    /// If no <see cref="MaskinportenSettings"/> configuration is found, it binds one to the path "MaskinportenSettings".
+    /// <para>Adds the app's <see cref="IMaskinportenClient"/> to the service collection, bound to the one
+    /// Maskinporten identity the app has: the client Studio provisions for it.</para>
+    /// <para>There is deliberately no way to configure those credentials — see
+    /// <see cref="MaskinportenConfiguration"/> for why.</para>
     /// </summary>
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenClient(this IServiceCollection services)
     {
-        // Only add MaskinportenSettings if not already configured.
-        // Users sometimes wish to bind the default options to another configuration path than "MaskinportenSettings".
-        if (services.IsConfigured<MaskinportenSettings>() is false)
-        {
-            services.ConfigureMaskinportenClient("MaskinportenSettings");
-        }
-
-        services.TryAddSingleton<IMaskinportenClient>(sp =>
-            ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantDefault)
-        );
-
-        services.ConfigureMaskinportenClient("MaskinportenSettingsInternal", MaskinportenClient.VariantInternal);
-        services.AddKeyedSingleton<IMaskinportenClient>(
-            MaskinportenClient.VariantInternal,
-            (sp, key) => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantInternal)
-        );
+        services.AddMaskinportenSettings();
+        services.TryAddSingleton<IMaskinportenClient>(sp => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp));
 
         // TryAddEnumerable makes repeated registration safe; a container without a host never runs it.
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MaskinportenWellKnownRefreshService>());
@@ -39,38 +27,24 @@ internal static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Binds a <see cref="MaskinportenSettings"/> configuration to the supplied config section path and options name.
+    /// Binds <see cref="MaskinportenSettings"/> to the provisioned credentials. Registered by hand rather
+    /// than through <c>OptionsBuilder.Bind</c> so that the private configuration root holding them is
+    /// created — and disposed — by the container.
     /// </summary>
     /// <param name="services">The service collection</param>
-    /// <param name="configSectionPath">The configuration section path, e.g. "MaskinportenSettingsInternal"</param>
-    /// <param name="optionsName">The options name to bind to, e.g. <see cref="MaskinportenClient.VariantInternal"/></param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        string configSectionPath,
-        string? optionsName = null
-    )
+    public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        services
-            .AddOptions<MaskinportenSettings>(optionsName ?? Microsoft.Extensions.Options.Options.DefaultName)
-            .BindConfiguration(configSectionPath)
-            .ValidateDataAnnotations();
-        return services;
-    }
-
-    /// <summary>
-    /// <p>Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.</p>
-    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration this will be overridden.</p>
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">
-    /// Action delegate that provides <see cref="MaskinportenSettings"/> configuration for the <see cref="MaskinportenClient"/> service
-    /// </param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        Action<MaskinportenSettings> configureOptions
-    )
-    {
-        services.AddOptions<MaskinportenSettings>().Configure(configureOptions).ValidateDataAnnotations();
+        services.TryAddSingleton<MaskinportenConfiguration>();
+        services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IConfigureOptions<MaskinportenSettings>, ConfigureMaskinportenSettings>()
+        );
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IOptionsChangeTokenSource<MaskinportenSettings>,
+                ConfigureMaskinportenSettings
+            >()
+        );
 
         return services;
     }

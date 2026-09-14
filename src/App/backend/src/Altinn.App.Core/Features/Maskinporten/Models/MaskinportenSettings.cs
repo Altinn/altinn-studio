@@ -8,9 +8,11 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 
 /// <summary>
 /// <p>A configuration object that represents all required Maskinporten authentication settings.</p>
-/// <p>Typically serialized as <c>maskinporten-settings.json</c> and injected in the runtime.</p>
+/// <p>Serialized as <c>maskinporten-settings.json</c> and injected in the runtime. Deliberately internal:
+/// an app has exactly one Maskinporten identity, and nothing an app writes may change it. See
+/// <see cref="MaskinportenConfiguration"/>.</p>
 /// </summary>
-public sealed record MaskinportenSettings
+internal sealed record MaskinportenSettings
 {
     /// <summary>
     /// The Maskinporten authority/audience to use for authentication and authorization.
@@ -89,7 +91,7 @@ public sealed record MaskinportenSettings
 /// <summary>
 /// Serialization wrapper for a JsonWebKey object.
 /// </summary>
-public record JwkWrapper
+internal sealed record JwkWrapper
 {
     /// <summary>
     /// Key type.
