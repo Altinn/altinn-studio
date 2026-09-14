@@ -1,14 +1,14 @@
 //! At-least-once convergence of one durable Session.
 
-use std::rc::Rc;
+use std::{rc::Rc, time::Duration};
 
 use ::sandbox::LocalFuture;
 
 use crate::Error;
 
 use super::{
-    Activity, AgentSandboxes, LaunchRecord, LaunchToken, Lifecycle, LifecycleState, Session, SessionId, SessionRuntime,
-    SharedStore, runtime::Observation,
+    Activity, ActivityEvent, AgentSandboxes, LaunchRecord, LaunchToken, Lifecycle, LifecycleState, Phase, Session,
+    SessionId, SessionRuntime, SharedStore, runtime::Observation,
 };
 
 /// A launch is considered healthy after surviving this long, resetting backoff.
@@ -20,6 +20,10 @@ const MAX_BACKOFF_SECONDS: i64 = 600;
 /// Stop an unattached harness after this long without terminal output,
 /// transcript writes or reported activity.
 const IDLE_AFTER_SECONDS: u64 = 30 * 60;
+
+/// Maximum time for a resumed harness to reach its empty input prompt.
+const RESUME_READY_TIMEOUT: Duration = Duration::from_secs(15);
+const RESUME_READY_POLL: Duration = Duration::from_millis(100);
 
 /// Converges persistent Sessions onto the tmux runtime in their Agent's Sandbox.
 pub struct Reconciler {
@@ -63,10 +67,12 @@ impl Reconciler {
                 Some(crate::sandbox::Assignment::Materialized { .. })
             )
         {
-            return Ok(Lifecycle::starting(format!(
-                "Agent {:?} is not ready",
-                agent.agent.metadata.name
-            )));
+            let reason = format!("Agent {:?} is not ready", agent.agent.metadata.name);
+            return Ok(if session.status.lifecycle.state == LifecycleState::Resuming {
+                Lifecycle::resuming_with(reason)
+            } else {
+                Lifecycle::starting(reason)
+            });
         }
         let sandbox = self.sandboxes.open(&agent).await?;
         let platform = &sandbox.snapshot().image.platform;
@@ -94,6 +100,15 @@ impl Reconciler {
                 && now - state.launched_at >= HEALTHY_AFTER_SECONDS
             {
                 self.sessions.reset_session_launch_attempts(session.id).await?;
+            }
+            if session.status.lifecycle.state == LifecycleState::Resuming {
+                let state = launch
+                    .as_ref()
+                    .ok_or_else(|| Error::Session("resumed harness has no launch record".into()))?;
+                if state.sandbox != sandbox_id {
+                    return Err(Error::Session("resumed harness belongs to a replaced Sandbox".into()));
+                }
+                self.wait_for_resumed_input(session, &sandbox, &state.token).await?;
             }
             return Ok(Lifecycle::running());
         }
@@ -142,6 +157,11 @@ impl Reconciler {
     ) -> Result<Lifecycle, Error> {
         let token = record.token.clone();
         let initial_prompt = self.sessions.record_session_launch(session.id, record).await?;
+        if resume.is_some() {
+            self.sessions
+                .update_session_lifecycle(session.id, Lifecycle::resuming(), session.activation_generation)
+                .await?;
+        }
         self.runtime
             .start(
                 session,
@@ -152,7 +172,62 @@ impl Reconciler {
                 initial_prompt.as_deref().filter(|_| resume.is_none()),
             )
             .await?;
+        if resume.is_some() {
+            self.wait_for_resumed_input(session, sandbox, &token).await?;
+        }
         Ok(Lifecycle::running())
+    }
+
+    async fn wait_for_resumed_input(
+        &self,
+        session: &Session,
+        sandbox: &::sandbox::SandboxHandle,
+        token: &LaunchToken,
+    ) -> Result<(), Error> {
+        let waiting = async {
+            loop {
+                let current = self.sessions.get_session(session.id).await?;
+                let ready = match current.status.reported.activity.phase {
+                    Phase::WaitingForInput => return Ok(()),
+                    Phase::Unknown | Phase::Working => {
+                        self.runtime.input_ready(&current, sandbox).await.unwrap_or(false)
+                    }
+                };
+                if ready {
+                    let applied = self
+                        .sessions
+                        .apply_session_activity_for_launch(
+                            session.id,
+                            token,
+                            uuid::Uuid::new_v4(),
+                            ActivityEvent::WaitingForInput,
+                            time::OffsetDateTime::now_utc(),
+                        )
+                        .await?;
+                    return applied.map(|_| ()).ok_or_else(|| {
+                        Error::Session("resumed harness launch changed while waiting for input".into())
+                    });
+                }
+                tokio::time::sleep(RESUME_READY_POLL).await;
+            }
+        };
+        if let Ok(result) = tokio::time::timeout(RESUME_READY_TIMEOUT, waiting).await {
+            return result;
+        }
+        let current = self.sessions.get_session(session.id).await?;
+        self.runtime.stop(&current, sandbox).await?;
+        let error = Error::Session(format!(
+            "resumed harness did not become ready for input within {} seconds",
+            RESUME_READY_TIMEOUT.as_secs()
+        ));
+        self.sessions
+            .update_session_lifecycle(
+                session.id,
+                Lifecycle::failed(error.to_string()),
+                session.activation_generation,
+            )
+            .await?;
+        Err(error)
     }
 }
 
@@ -171,12 +246,14 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                         .await
                 }
                 Err(error) => {
+                    let current = self.sessions.get_session(session.id).await?;
+                    let lifecycle = if current.status.lifecycle.state == LifecycleState::Resuming {
+                        Lifecycle::resuming_with(error.to_string())
+                    } else {
+                        Lifecycle::failed(error.to_string())
+                    };
                     self.sessions
-                        .update_session_lifecycle(
-                            session.id,
-                            Lifecycle::failed(error.to_string()),
-                            session.activation_generation,
-                        )
+                        .update_session_lifecycle(session.id, lifecycle, session.activation_generation)
                         .await?;
                     Err(error)
                 }

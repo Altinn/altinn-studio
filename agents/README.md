@@ -19,6 +19,12 @@ curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/exper
 agentctl claude login
 ```
 
+Update Agent with:
+
+```sh
+agentctl self update
+```
+
 Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
 
 ```powershell
