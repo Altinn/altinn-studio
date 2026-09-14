@@ -473,7 +473,6 @@
   "app_upgrade.manual_tasks.summary": "Oppgaver som må gjøres manuelt ({{count}})",
   "app_upgrade.menu_item": "Oppdater til v{{version}}",
   "app_upgrade.next": "Neste",
-  "app_upgrade.notice_automatic_available": "Automatisk oppdatering tilgjengelig",
   "app_upgrade.notice_available": "Oppdatering tilgjengelig",
   "app_upgrade.notice_in_progress": "Oppdatering pågår",
   "app_upgrade.page_title": "Oppdater {{app}} til v{{version}}",

@@ -22,7 +22,7 @@ describe('UpgradeNotice', () => {
     const user = userEvent.setup();
     renderUpgradeNotice(appUpgradeStatus);
     await user.click(
-      screen.getByRole('button', { name: textMock('app_upgrade.notice_automatic_available') }),
+      screen.getByRole('button', { name: textMock('app_upgrade.notice_available') }),
     );
     expect(screen.getByText(upgradePageText)).toBeInTheDocument();
   });
