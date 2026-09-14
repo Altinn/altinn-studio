@@ -163,6 +163,13 @@ public partial class AppUpgradeService : IAppUpgradeService
             )
         );
 
+        FileSystemObject? existingWorkflow = await _giteaClient.GetFileAsync(
+            repoContext.Org,
+            repoContext.Repo,
+            _settings.WorkflowPath,
+            baseBranch,
+            cancellationToken
+        );
         bool created = await _giteaClient.ChangeFilesAsync(
             repoContext.Org,
             repoContext.Repo,
@@ -175,7 +182,8 @@ public partial class AppUpgradeService : IAppUpgradeService
                 [
                     new ChangeFileOperation
                     {
-                        Operation = "create",
+                        Operation = existingWorkflow is null ? "create" : "update",
+                        Sha = existingWorkflow?.Sha,
                         Path = _settings.WorkflowPath,
                         Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(workflow)),
                     },

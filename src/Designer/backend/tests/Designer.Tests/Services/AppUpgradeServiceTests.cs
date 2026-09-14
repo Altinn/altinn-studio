@@ -65,6 +65,38 @@ public class AppUpgradeServiceTests
     }
 
     [Fact]
+    public async Task StartAsync_WhenTheBaseBranchAlreadyHasTheWorkflow_UpdatesItInstead()
+    {
+        SetupRepositoryWithDefaultBranch("main");
+        SetupRemoteFile("App/App.csproj", CsprojWithAppApi("8.12.7"));
+        SetupRemoteFile("App/views/Home/Index.cshtml", null);
+        _giteaClient
+            .Setup(g =>
+                g.GetFileAsync(
+                    Org,
+                    Repo,
+                    ".gitea/workflows/altinn-studio-upgrade.yaml",
+                    "main",
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new FileSystemObject { Sha = "abc123", Content = "" });
+        ChangeFilesOptions captured = null;
+        _giteaClient
+            .Setup(g => g.ChangeFilesAsync(Org, Repo, It.IsAny<ChangeFilesOptions>(), It.IsAny<CancellationToken>()))
+            .Callback<string, string, ChangeFilesOptions, CancellationToken>((_, _, options, _) => captured = options)
+            .ReturnsAsync(true);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeStart start = await service.StartAsync(Context(), CancellationToken.None);
+
+        Assert.Equal(AppUpgradeStartStatus.Started, start.Status);
+        ChangeFileOperation file = Assert.Single(captured.Files);
+        Assert.Equal("update", file.Operation);
+        Assert.Equal("abc123", file.Sha);
+    }
+
+    [Fact]
     public async Task StartAsync_WhenAppIsNotOnV8_ReportsUnsupportedVersion()
     {
         SetupRemoteFile("App/App.csproj", CsprojWithAppApi("7.9.0"));

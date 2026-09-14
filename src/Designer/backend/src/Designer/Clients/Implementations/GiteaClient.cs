@@ -862,13 +862,15 @@ public class GiteaClient(
         if (!response.IsSuccessStatusCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
             logger.LogWarning(
-                "User {Developer} could not change files in {Org}/{Repo} on branch {Branch}: {StatusCode}",
+                "User {Developer} could not change files in {Org}/{Repo} on branch {Branch}: {StatusCode} {Body}",
                 developer,
                 org,
                 repository,
                 (options.NewBranch ?? options.Branch)?.WithoutLineBreaks(),
-                (int)response.StatusCode
+                (int)response.StatusCode,
+                body.WithoutLineBreaks()
             );
         }
 
