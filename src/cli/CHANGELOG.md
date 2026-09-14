@@ -9,6 +9,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+- `studioctl app upgrade v9` rewrites app code using the legacy `Party`/`Person`/`Organization`/`PartyType` and `UserProfile`/`UserType`/`ProfileSettingPreference` models to the `Altinn.App.Core.Models` namespace, where the App SDK now vendors them directly.
+
 ### Changed
 
 - Localtest now uses the test data bundled with its own image, so the test data always matches the localtest version you are running. Installing or updating no longer places a copy of the test data on your machine, and **deletes the existing copy in your studioctl data directory**, including any users, parties or roles you had changed or added there. `studioctl self update` prints the directory it removed. Edits in that copy were only ever half-preserved across updates — a file the release also shipped was silently overwritten, while a file you added survived — so back up anything you want to keep before updating. To define your own test users from now on, add them to your app in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.

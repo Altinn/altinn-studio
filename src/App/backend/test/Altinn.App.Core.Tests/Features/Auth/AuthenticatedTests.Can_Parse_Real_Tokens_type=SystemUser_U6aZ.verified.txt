@@ -38,6 +38,7 @@
   Details: {
     Party: {
       PartyId: 1234,
+      PartyUuid: 00000000-0000-0000-0000-000000000544,
       PartyTypeName: Organisation,
       OrgNumber: 991825827,
       Name: Test AS,

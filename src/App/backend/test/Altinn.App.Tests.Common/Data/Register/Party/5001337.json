@@ -1,13 +1,14 @@
 {
-    "partyId": "5001337",
-    "partyTypeName": 2,
-    "orgNumber": "405003309",
-    "ssn": null,
-    "unitType": "BEDR",
-    "name": "Testdepartementet",
-    "isDeleted": false,
-    "onlyHierarchyElementWithNoAccess": false,
-    "person": null,
-    "organisation": null,
-    "childParties": null
+  "partyId": "5001337",
+  "partyUuid": "00000000-0000-0000-0000-000005001337",
+  "partyTypeName": 2,
+  "orgNumber": "405003309",
+  "ssn": null,
+  "unitType": "BEDR",
+  "name": "Testdepartementet",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
 }

@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP"/>
-    <PackageReference Include="Altinn.Platform.Models"/>
     <PackageReference Include="Altinn.Platform.Storage.Interface.Experimental"/>
     <PackageReference Include="JmesPath.Net"/>
     <PackageReference Include="JsonPatch.Net"/>

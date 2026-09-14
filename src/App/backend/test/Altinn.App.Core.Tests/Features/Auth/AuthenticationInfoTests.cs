@@ -1,5 +1,5 @@
 using Altinn.App.Core.Internal.Language;
-using Altinn.Platform.Profile.Models;
+using Altinn.App.Core.Models;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Features.Auth;

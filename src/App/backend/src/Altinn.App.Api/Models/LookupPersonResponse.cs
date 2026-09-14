@@ -1,4 +1,4 @@
-﻿using Altinn.Platform.Register.Models;
+﻿using Altinn.App.Core.Models;
 
 namespace Altinn.App.Api.Models;
 
@@ -12,11 +12,8 @@ public class LookupPersonResponse
     /// </summary>
     public static LookupPersonResponse CreateFromPerson(Person? person)
     {
-        return new LookupPersonResponse
-        {
-            Success = person is not null,
-            PersonDetails = person is not null ? PersonDetails.MapFromPerson(person) : null,
-        };
+        var details = PersonDetails.MapFromPerson(person);
+        return new LookupPersonResponse { Success = details is not null, PersonDetails = details };
     }
 
     /// <summary>
@@ -63,8 +60,17 @@ public class PersonDetails
     /// <summary>
     /// Maps a person to person details
     /// </summary>
-    public static PersonDetails MapFromPerson(Person person)
+    public static PersonDetails? MapFromPerson(Person? person)
     {
+        if (
+            person is null
+            || string.IsNullOrEmpty(person.SSN)
+            || string.IsNullOrEmpty(person.Name)
+            || string.IsNullOrEmpty(person.LastName)
+        )
+        {
+            return null;
+        }
         return new PersonDetails
         {
             Ssn = person.SSN,

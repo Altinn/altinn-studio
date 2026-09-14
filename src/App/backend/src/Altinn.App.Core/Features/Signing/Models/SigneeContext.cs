@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features.Signing.Services;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Signing.Models;
@@ -112,26 +112,33 @@ internal abstract class Signee
         OrganizationSignee? orgSignee = orgParty is not null
             ? new OrganizationSignee
             {
-                OrgName = orgParty.Name,
-                OrgNumber = orgParty.OrgNumber,
+                OrgName =
+                    orgParty.Name ?? throw new ArgumentException($"Organization party {orgParty.PartyId} has no name"),
+                OrgNumber =
+                    orgParty.OrgNumber
+                    ?? throw new ArgumentException($"Organization party {orgParty.PartyId} has no organization number"),
                 OrgParty = orgParty,
             }
             : null;
 
         if (personParty is not null)
         {
+            string personSsn =
+                personParty.SSN ?? throw new ArgumentException($"Person party {personParty.PartyId} has no SSN");
+            string personName =
+                personParty.Name ?? throw new ArgumentException($"Person party {personParty.PartyId} has no name");
             return orgSignee is not null
                 ? new PersonOnBehalfOfOrgSignee
                 {
-                    SocialSecurityNumber = personParty.SSN,
-                    FullName = personParty.Name,
+                    SocialSecurityNumber = personSsn,
+                    FullName = personName,
                     Party = personParty,
                     OnBehalfOfOrg = orgSignee,
                 }
                 : new PersonSignee
                 {
-                    SocialSecurityNumber = personParty.SSN,
-                    FullName = personParty.Name,
+                    SocialSecurityNumber = personSsn,
+                    FullName = personName,
                     Party = personParty,
                 };
         }
@@ -207,7 +214,8 @@ internal abstract class Signee
             return new PersonOnBehalfOfOrgSignee
             {
                 SocialSecurityNumber = ssn,
-                FullName = personParty.Name,
+                FullName =
+                    personParty.Name ?? throw new ArgumentException($"Person party {personParty.PartyId} has no name"),
                 Party = personParty,
                 OnBehalfOfOrg = this,
             };

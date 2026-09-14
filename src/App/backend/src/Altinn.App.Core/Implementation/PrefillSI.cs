@@ -5,8 +5,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Registers;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -161,7 +160,7 @@ public class PrefillSI : IPrefill
 
             if (enhetsregisterPrefill.Count > 0)
             {
-                Organization org = party.Organization;
+                Organization? org = party.Organization;
                 if (org != null)
                 {
                     JObject orgJsonObject = JObject.FromObject(org);
@@ -190,7 +189,7 @@ public class PrefillSI : IPrefill
 
             if (folkeregisterPrefill.Count > 0)
             {
-                Person person = party.Person;
+                Person? person = party.Person;
                 if (person != null)
                 {
                     JObject personJsonObject = JObject.FromObject(person);

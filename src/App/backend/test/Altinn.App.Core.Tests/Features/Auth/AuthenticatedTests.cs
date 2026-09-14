@@ -6,9 +6,6 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Constants;
 using static Altinn.App.Core.Features.Auth.Authenticated;
 
@@ -355,6 +352,7 @@ public class AuthenticatedTests
                     party = new Party()
                     {
                         PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000355"),
                         PartyTypeName = PartyType.Person,
                         OrgNumber = null,
                         SSN = "12345678901",
@@ -407,6 +405,7 @@ public class AuthenticatedTests
                     party = new Party()
                     {
                         PartyId = ReadClaimInt(AltinnCoreClaimTypes.PartyID),
+                        PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000408"),
                         PartyTypeName = PartyType.Person,
                         OrgNumber = null,
                         SSN = "12345678901",
@@ -471,6 +470,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
+                                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000473"),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
@@ -503,6 +503,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
+                                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000506"),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,
@@ -540,6 +541,7 @@ public class AuthenticatedTests
                                 new Party
                                 {
                                     PartyId = 1234,
+                                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000544"),
                                     PartyTypeName = PartyType.Organisation,
                                     OrgNumber = orgNo,
                                     SSN = null,

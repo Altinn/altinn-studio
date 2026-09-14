@@ -1,6 +1,5 @@
 #nullable disable
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 

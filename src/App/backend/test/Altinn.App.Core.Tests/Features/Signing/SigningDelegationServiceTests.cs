@@ -3,7 +3,6 @@ using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
@@ -18,7 +17,12 @@ public class SigningDelegationServiceTests
     {
         FullName = "Testperson 1",
         SocialSecurityNumber = "123456678233",
-        Party = new Party(),
+        Party = new Party
+        {
+            PartyId = 1,
+            PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000000023"),
+            Name = "Test Person",
+        },
     };
 
     [Fact]

@@ -6,7 +6,6 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 using Microsoft.Extensions.DependencyInjection;
@@ -485,11 +484,13 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 TestInstanceOwner.Person => new Party
                 {
                     PartyId = 12345,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000012345"),
                     Name = "Test Testesen",
                     SSN = PersonNumber,
                     Person = new Person
                     {
                         SSN = PersonNumber,
+                        Name = "Test Testesen",
                         TelephoneNumber = "phone-no",
                         MobileNumber = "mobile-no",
                         MailingAddress = "Street 1",
@@ -500,10 +501,12 @@ public class FiksArkivDefaultPayloadGeneratorTest
                 TestInstanceOwner.Organization => new Party
                 {
                     PartyId = 12345,
+                    PartyUuid = Guid.Parse("00000000-0000-0000-0000-000000012345"),
                     Name = "Test AS",
                     OrgNumber = OrganizationNumber,
                     Organization = new Organization
                     {
+                        Name = "Test AS",
                         OrgNumber = OrganizationNumber,
                         TelephoneNumber = "phone-no",
                         MobileNumber = "mobile-no",
