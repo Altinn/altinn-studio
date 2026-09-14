@@ -30,9 +30,30 @@ HTTP_NOT_FOUND = 404
 
 SERVED_FROM: dict[str, str] = {"intent_check": "intent_security"}
 
+# Judges run as Langfuse evaluator templates, not prompts, so they cannot be diffed.
+JUDGE_DIR = "llm-as-a-judge"
+
 
 def _is_prompt(path: Path) -> bool:
-    return path.name != "README.md"
+    return path.name != "README.md" and JUDGE_DIR not in path.parts
+
+
+def _judge_templates() -> list[str]:
+    return sorted(path.stem for path in (PROMPTS_DIR / JUDGE_DIR).glob("*.md"))
+
+
+def _report_judges() -> None:
+    names = _judge_templates()
+    if not names:
+        return
+    print(
+        f"\n{len(names)} judge template(s) live in Langfuse as evaluators rather than "
+        "prompts, so this report cannot compare them: "
+        + ", ".join(names)
+        + ".\nThe files under "
+        f"agents/prompts/{JUDGE_DIR}/ are the reviewed source; the running text is "
+        "configured in the Langfuse UI."
+    )
 
 
 def _local_prompt_names() -> list[str]:
@@ -72,17 +93,38 @@ def _remote_prompts(api: LangfuseApi) -> list[dict]:
         page += 1
 
 
+def _served_as(name: str) -> str:
+    """The Langfuse name for a local file, where the two differ."""
+    for langfuse_name, local_file in SERVED_FROM.items():
+        if local_file == name:
+            return langfuse_name
+    return name
+
+
+def _system_turn(content: object) -> str | None:
+    """A chat prompt's system text, which is the half a repo file holds."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        for message in content:
+            if isinstance(message, dict) and message.get("role") == "system":
+                text = message.get("content")
+                if isinstance(text, str):
+                    return text
+    return None
+
+
 def _diff(api: LangfuseApi, name: str) -> bool:
     """Print the drift for one prompt. Returns True when they differ."""
     local = load_prompt(name)["content"]
-    remote = _remote(api, name)
+    remote = _remote(api, _served_as(name))
     if remote is None:
         print(f"{name}: not in Langfuse (local file is authoritative)")
         return True
 
-    remote_content = remote.get("prompt")
-    if not isinstance(remote_content, str):
-        print(f"{name}: chat-type prompt, not comparable")
+    remote_content = _system_turn(remote.get("prompt"))
+    if remote_content is None:
+        print(f"{name}: published with no system turn, not comparable")
         return False
 
     if remote_content == local:
@@ -230,6 +272,7 @@ def main() -> int:
     if drifted:
         print(f"\n{len(drifted)} prompt(s) differ from Langfuse")
     _report_orphans(api)
+    _report_judges()
     return 0
 
 

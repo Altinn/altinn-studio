@@ -35,8 +35,8 @@ def test_a_missing_prompt_still_raises():
         load_prompt("no-such-prompt")
 
 
-def test_an_ambiguous_name_names_both_files(tmp_path, monkeypatch):
-    """Two files with one stem must not resolve to whichever sorts first."""
+def test_two_nested_files_with_one_stem_are_ambiguous(tmp_path, monkeypatch):
+    """Neither must win by sorting first."""
     monkeypatch.setattr("agents.prompts.loader.PROMPTS_DIR", tmp_path)
     for folder in ("judges", "templates"):
         (tmp_path / folder).mkdir()
@@ -48,3 +48,17 @@ def test_an_ambiguous_name_names_both_files(tmp_path, monkeypatch):
     assert "ambiguous" in str(raised.value)
     assert "judges/same.md" in str(raised.value)
     assert "templates/same.md" in str(raised.value)
+
+
+def test_a_root_file_does_not_shadow_a_nested_one(tmp_path, monkeypatch):
+    """Returning the root file quietly would serve one of two prompts by luck."""
+    monkeypatch.setattr("agents.prompts.loader.PROMPTS_DIR", tmp_path)
+    (tmp_path / "same.md").write_text("root", encoding="utf-8")
+    (tmp_path / "judges").mkdir()
+    (tmp_path / "judges" / "same.md").write_text("nested", encoding="utf-8")
+
+    with pytest.raises(FileNotFoundError) as raised:
+        load_prompt("same")
+
+    assert "ambiguous" in str(raised.value)
+    assert "judges/same.md" in str(raised.value)

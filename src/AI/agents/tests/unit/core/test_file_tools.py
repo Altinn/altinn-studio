@@ -371,6 +371,24 @@ class TestEditFileToleratesReformattedWhitespace:
         assert not result.is_error
         assert result.metadata["matched_on_whitespace"] is False
 
+    async def test_a_whitespace_only_needle_gets_no_fallback(self, tmp_path: Path):
+        """It has nothing to match on, so every run of whitespace would qualify."""
+        (tmp_path / "f.txt").write_text("a" + " " * 2000 + "b", encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        await ReadFileTool().run(
+            ReadFileTool().input_schema.model_validate({"path": "f.txt"}), ctx
+        )
+        tool = EditFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate(
+                {"path": "f.txt", "old_string": " \t", "new_string": "x"}
+            ),
+            ctx,
+        )
+
+        assert result.is_error
+        assert "not found" in result.content
+
     async def test_text_that_is_absent_however_it_is_spaced_still_fails(self, tmp_path: Path):
         result = await self._edit(tmp_path, '"pages": {"order": ["Side9"]}', "x")
 

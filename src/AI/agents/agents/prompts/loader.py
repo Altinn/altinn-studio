@@ -30,15 +30,12 @@ def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> Opt
 
 def _prompt_file(prompt_name: str) -> Path:
     """The file for a prompt name. Judges and templates live in subdirectories."""
-    direct = PROMPTS_DIR / f"{prompt_name}.md"
-    if direct.is_file():
-        return direct
-    nested = sorted(PROMPTS_DIR.rglob(f"{prompt_name}.md"))
-    if len(nested) == 1:
-        return nested[0]
-    if not nested:
-        raise FileNotFoundError(f"Prompt file not found: {direct}")
-    listed = ", ".join(str(path.relative_to(PROMPTS_DIR)) for path in nested)
+    found = sorted(PROMPTS_DIR.rglob(f"{prompt_name}.md"))
+    if len(found) == 1:
+        return found[0]
+    if not found:
+        raise FileNotFoundError(f"Prompt file not found: {PROMPTS_DIR / f'{prompt_name}.md'}")
+    listed = ", ".join(str(path.relative_to(PROMPTS_DIR)) for path in found)
     raise FileNotFoundError(f"Prompt name {prompt_name!r} is ambiguous: {listed}")
 
 

@@ -81,10 +81,15 @@ class TestPromptsLangfuseHoldsAlone:
         assert sync_prompts._report_orphans(api) == []
         assert LOCAL not in capsys.readouterr().out
 
-    @pytest.mark.parametrize("name", [LOCAL_TEMPLATE, LOCAL_JUDGE])
-    def test_a_prompt_from_a_subdirectory_is_not_orphaned(self, name):
-        """Templates and judges are published by name too, from below the prompts root."""
-        assert sync_prompts._report_orphans(_Langfuse([_page([name])])) == []
+    def test_a_template_from_a_subdirectory_is_not_orphaned(self):
+        """Templates are published by name too, from below the prompts root."""
+        assert sync_prompts._report_orphans(_Langfuse([_page([LOCAL_TEMPLATE])])) == []
+
+    def test_a_judge_prompt_in_langfuse_is_an_orphan(self):
+        """Judges run as evaluator templates, so a Langfuse prompt of that name is a
+        leftover nothing reads. A trace proved the running judge uses the newer text
+        while the prompt entity still held the old generic design."""
+        assert sync_prompts._report_orphans(_Langfuse([_page([LOCAL_JUDGE])])) == [LOCAL_JUDGE]
 
     def test_a_prompt_served_from_a_differently_named_file_is_not_orphaned(self):
         """The intent gate loads Langfuse `intent_check` from `intent_security.md`, so
@@ -169,11 +174,10 @@ def test_the_readme_is_not_treated_as_a_prompt():
     assert "README" not in sync_prompts._every_local_name()
 
 
-@pytest.mark.parametrize("name", [LOCAL_TEMPLATE, LOCAL_JUDGE])
-def test_bulk_discovery_reaches_nested_prompts(name):
-    """Bulk --diff and --push globbed one level, so a change to a template or a judge
-    prompt was never reported and never published."""
-    assert name in sync_prompts._local_prompt_names()
+def test_bulk_discovery_reaches_nested_templates():
+    """Bulk --diff and --push globbed one level, so a change to a template was never
+    reported and never published."""
+    assert LOCAL_TEMPLATE in sync_prompts._local_prompt_names()
 
 
 class TestPromote:
@@ -259,3 +263,46 @@ class TestPushRefusesToGuessTheShape:
         sync_prompts._push(api, LOCAL, "why")
 
         assert api.published[0]["type"] == "text"
+
+
+class TestTheReportTellsTheTruthAboutWhatItCanSee:
+    """Every false signal here was one someone would have acted on: a drift against a
+    retired prompt, two gate prompts silently unchecked, and judges compared as if
+    Langfuse served them as prompts."""
+
+    def test_a_chat_prompt_is_compared_by_its_system_turn(self):
+        assert sync_prompts._system_turn(
+            [
+                {"role": "system", "content": "the system half"},
+                {"role": "user", "content": "{{user_message}}"},
+            ]
+        ) == "the system half"
+
+    def test_a_text_prompt_is_its_own_system_turn(self):
+        assert sync_prompts._system_turn("plain") == "plain"
+
+    def test_a_chat_prompt_with_no_system_turn_is_not_comparable(self):
+        assert sync_prompts._system_turn([{"role": "user", "content": "x"}]) is None
+
+    def test_a_file_served_under_another_name_is_compared_against_that_name(self):
+        """intent_security.md serves the Langfuse prompt intent_check, and comparing it
+        against the retired intent_security reported drift that was not there."""
+        assert sync_prompts._served_as("intent_security") == "intent_check"
+
+    def test_a_file_served_under_its_own_name_is_unchanged(self):
+        assert sync_prompts._served_as("scope_check") == "scope_check"
+
+    def test_judges_are_not_treated_as_prompts(self):
+        """They run as evaluator templates configured in the UI, so a repo file has no
+        Langfuse prompt to drift against."""
+        names = sync_prompts._local_prompt_names()
+
+        assert "no_hallucination" not in names
+        assert "scope_check" in names
+
+    def test_judge_templates_are_still_reported(self, capsys):
+        sync_prompts._report_judges()
+
+        out = capsys.readouterr().out
+        assert "no_hallucination" in out
+        assert "evaluators rather than prompts" in out

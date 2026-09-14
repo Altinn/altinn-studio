@@ -302,6 +302,9 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
     """
     import re
 
+    if not needle.strip():
+        return []  # nothing to match on, and every run of whitespace would qualify
+
     structural = set("{}[](),:;")
     quotes = {'"', "'", "`"}
     pattern: list[str] = []
