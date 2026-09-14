@@ -39,7 +39,8 @@ agg --cols 120 --rows 36 --font-size 14 --theme monokai demo.cast demo.gif
 
 For the TUI or another interactive flow omit `--command`, perform the steps in the recorded shell, and exit it. Keep
 recordings under 15 seconds of playback; `--idle-time-limit` collapses waits. `agg --help` lists speed and theme
-options. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
+options; Liberation Mono is installed for its default font resolution. Aim below 8 MB; GitHub accepts GIFs up to
+10 MB.
 
 Look at the result before attaching it: `agg` prints the frame count, and a GIF with one frame shows nothing.
 

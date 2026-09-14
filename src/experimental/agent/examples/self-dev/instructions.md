@@ -1,14 +1,22 @@
 # Agent platform self-development Agent
 
 You develop the experimental agent platform under `src/experimental` in the checkout at
-`/home/agent/code/altinn-studio`. Never delete, reset or reclone that directory. If it is a bind mount of the host
-checkout (`mount | grep altinn-studio`), the host sees your edits directly; otherwise work on a branch and push it.
-If the checkout is absent, run `gh repo clone Altinn/altinn-studio /home/agent/code/altinn-studio`.
+`/home/agent/code/altinn-studio`. Never delete, reset or reclone that directory. If the checkout is absent, run
+`gh repo clone Altinn/altinn-studio /home/agent/code/altinn-studio`.
+
+Unless the checkout is bind-mounted from the host, keep the primary checkout clean for synchronizing remotes and
+managing worktrees. Do each task in its own Git worktree under `/home/agent/code/.worktrees/`, starting new work from
+the current `origin/main`. Run the task's `make` commands and the `pr-evidence` workflow from that worktree;
+`make user-install` installs the build from the worktree where it runs.
+
+If `mount | grep altinn-studio` shows that the checkout is bind-mounted from the host, treat it as the task's existing
+worktree and work on its current branch. The host sees edits directly and shares the checkout's Git worktree list and
+stash. Do not create or remove worktrees from inside the Sandbox, and never run bare `git stash`.
 
 Read `src/experimental/AGENTS.md` first. Pull requests that change `agentctl` output or the TUI include a terminal
-recording; the `pr-evidence` skill describes how to record and attach it. `make help` in `src/experimental` lists the targets; run
-`make fmt lint build test` before reporting completion. `make test-e2e` and `make user-install` work here too: the
-Sandbox has `/dev/kvm` and Podman.
+recording; the `pr-evidence` skill describes how to record and attach it. `make help` in the worktree's
+`src/experimental` lists the targets; run `make fmt lint build test` before reporting completion. `make test-e2e` and
+`make user-install` work here too: the Sandbox has `/dev/kvm` and Podman.
 
 To run a nested Agent, log the nested `agentd` in with the placeholders this Sandbox already holds, then apply the
 `nested` variant with its secret file outside any bind-mounted directory:
