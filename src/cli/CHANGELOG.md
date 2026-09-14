@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- `studioctl app upgrade v9` no longer fails on layout files that contain comments or trailing commas when it removes redundant `showBackButton` flags from NavigationButtons. The other layout steps already accepted such files; this one read them strictly, so a single `//` comment failed the whole upgrade.
+
 ## [0.1.0-preview.24] - 2026-09-14
 
 ### Added
