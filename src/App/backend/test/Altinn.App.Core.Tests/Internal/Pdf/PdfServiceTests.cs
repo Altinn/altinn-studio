@@ -312,7 +312,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -388,7 +388,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -498,7 +498,7 @@ public class PdfServiceTests
             mutatorMock.Object,
             null,
             autoGeneratePdfForTaskIds,
-            ct: CancellationToken.None
+            cancellationToken: CancellationToken.None
         );
 
         // Assert
@@ -574,7 +574,12 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance, mockAppResources);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, customTextResourceKey, null, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(
+            mutatorMock.Object,
+            customTextResourceKey,
+            null,
+            cancellationToken: CancellationToken.None
+        );
 
         // Assert
         mutatorMock.Verify(
@@ -643,7 +648,12 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance, mockAppResources);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, customTextResourceKey, null, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(
+            mutatorMock.Object,
+            customTextResourceKey,
+            null,
+            cancellationToken: CancellationToken.None
+        );
 
         // Assert
         mutatorMock.Verify(
@@ -703,7 +713,7 @@ public class PdfServiceTests
 
         var mutatorMock = CreateMutatorMock(instance);
 
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         mutatorMock.Verify(
             m =>
@@ -830,7 +840,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         _pdfGeneratorClient.Verify(
             s =>
@@ -879,7 +889,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -929,7 +939,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -976,7 +986,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1024,7 +1034,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, ct: CancellationToken.None);
+        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1086,7 +1096,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", isPreview: false, ct: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", isPreview: false, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(

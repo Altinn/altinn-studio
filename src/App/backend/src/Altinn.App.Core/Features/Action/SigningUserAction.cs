@@ -66,7 +66,7 @@ internal class SigningUserAction : IUserAction
     /// <exception cref="ApplicationConfigException"></exception>
     public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
-        var ct = context.CancellationToken;
+        var cancellationToken = context.CancellationToken;
 
         if (context.Authentication is not Authenticated.User and not Authenticated.SystemUser)
         {
@@ -124,7 +124,7 @@ internal class SigningUserAction : IUserAction
 
         if (!string.IsNullOrEmpty(context.OnBehalfOf))
         {
-            var canSignOnbehalfOf = await HandleOnBehalfOf(context, signatureConfiguration, ct);
+            var canSignOnbehalfOf = await HandleOnBehalfOf(context, signatureConfiguration, cancellationToken);
             if (!canSignOnbehalfOf)
             {
                 return UserActionResult.FailureResult(
@@ -140,7 +140,7 @@ internal class SigningUserAction : IUserAction
 
         try
         {
-            await _signClient.SignDataElements(signatureContext, cancellationToken: ct);
+            await _signClient.SignDataElements(signatureContext, cancellationToken: cancellationToken);
 
             // Reloading instance data because we know that storage has added a binary data element to the instance.
             // This is a workaround until we have a better solution for this. Don't take it as inspiration.
@@ -174,7 +174,7 @@ internal class SigningUserAction : IUserAction
                 dataElementSignatures,
                 context,
                 signatureConfiguration.CorrespondenceResources,
-                ct
+                cancellationToken
             )
         );
 
@@ -207,7 +207,7 @@ internal class SigningUserAction : IUserAction
     internal async Task<bool> HandleOnBehalfOf(
         UserActionContext context,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         int? userId = context.Authentication switch
@@ -230,7 +230,7 @@ internal class SigningUserAction : IUserAction
             context.DataMutator,
             signatureConfiguration,
             userId.Value,
-            ct
+            cancellationToken
         );
 
         bool isAuthorized = authorizedOrganizations.Any(o => o.OrgNumber == context.OnBehalfOf);

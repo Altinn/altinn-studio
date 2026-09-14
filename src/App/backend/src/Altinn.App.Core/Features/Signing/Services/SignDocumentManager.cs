@@ -40,7 +40,7 @@ internal sealed class SignDocumentManager(
     public async Task<List<SignDocument>> GetSignDocuments(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using Activity? activity = telemetry?.StartGetSignDocumentsActivity();
@@ -83,7 +83,7 @@ internal sealed class SignDocumentManager(
         string taskId,
         List<SigneeContext> signeeContexts,
         List<SignDocument> signDocuments,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartSynchronizeSigneeContextsWithSignDocumentsActivity(taskId);
@@ -127,7 +127,11 @@ internal sealed class SignDocumentManager(
 
             if (matchedSignDocument is not null)
             {
-                result[i] = await UpdateSigneeContextWithMatchedDocument(signeeContext, matchedSignDocument, ct);
+                result[i] = await UpdateSigneeContextWithMatchedDocument(
+                    signeeContext,
+                    matchedSignDocument,
+                    cancellationToken
+                );
                 unmatchedSignDocuments.Remove(matchedSignDocument);
             }
         }
@@ -136,7 +140,7 @@ internal sealed class SignDocumentManager(
         var signeeContextsForUnmatchedDocuments = await CreateSigneeContextsForUnmatchedDocuments(
             taskId,
             unmatchedSignDocuments,
-            ct
+            cancellationToken
         );
 
         return [.. result, .. signeeContextsForUnmatchedDocuments];
@@ -202,7 +206,7 @@ internal sealed class SignDocumentManager(
     private async Task<SigneeContext> UpdateSigneeContextWithMatchedDocument(
         SigneeContext signeeContext,
         SignDocument matchedSignDocument,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         SigneeContext updatedContext = new()
@@ -216,7 +220,7 @@ internal sealed class SignDocumentManager(
 
         if (signeeContext.Signee is OrganizationSignee orgSignee)
         {
-            updatedContext = await ConvertOrgSignee(matchedSignDocument, updatedContext, orgSignee, ct);
+            updatedContext = await ConvertOrgSignee(matchedSignDocument, updatedContext, orgSignee, cancellationToken);
         }
 
         return updatedContext;
@@ -226,7 +230,7 @@ internal sealed class SignDocumentManager(
         SignDocument signDocument,
         SigneeContext context,
         OrganizationSignee orgSignee,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var signeeInfo = signDocument.SigneeInfo;
@@ -236,7 +240,7 @@ internal sealed class SignDocumentManager(
         {
             updatedSignee = await orgSignee.ToPersonOnBehalfOfOrgSignee(
                 signeeInfo.PersonNumber,
-                lookup => LookupParty(lookup, ct)
+                lookup => LookupParty(lookup, cancellationToken)
             );
         }
         else if (signeeInfo.SystemUserId.HasValue)
@@ -261,7 +265,7 @@ internal sealed class SignDocumentManager(
     private async Task<List<SigneeContext>> CreateSigneeContextsForUnmatchedDocuments(
         string taskId,
         List<SignDocument> unmatchedSignDocuments,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         try
@@ -271,7 +275,7 @@ internal sealed class SignDocumentManager(
             [
                 .. await Task.WhenAll(
                     unmatchedSignDocuments.Select(signDocument =>
-                        CreateSigneeContextFromSignDocument(taskId, signDocument, ct)
+                        CreateSigneeContextFromSignDocument(taskId, signDocument, cancellationToken)
                     )
                 ),
             ];
@@ -291,7 +295,7 @@ internal sealed class SignDocumentManager(
     private async Task<SigneeContext> CreateSigneeContextFromSignDocument(
         string taskId,
         SignDocument signDocument,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         _logger.LogDebug(
@@ -307,7 +311,7 @@ internal sealed class SignDocumentManager(
                 signDocument.SigneeInfo.PersonNumber,
                 signDocument.SigneeInfo.OrganisationNumber,
                 signDocument.SigneeInfo.SystemUserId,
-                lookup => LookupParty(lookup, ct)
+                lookup => LookupParty(lookup, cancellationToken)
             ),
             SigneeState = new SigneeContextState() { IsAccessDelegated = true, HasBeenMessagedForCallToSign = true },
             SignDocument = signDocument,
@@ -337,13 +341,13 @@ internal sealed class SignDocumentManager(
             && signDocument.SigneeInfo.SystemUserId.HasValue;
     }
 
-    private async Task<Party> LookupParty(PartyLookup partyLookup, CancellationToken ct)
+    private async Task<Party> LookupParty(PartyLookup partyLookup, CancellationToken cancellationToken)
     {
         try
         {
-            return await altinnPartyClient.LookupParty(partyLookup, cancellationToken: ct);
+            return await altinnPartyClient.LookupParty(partyLookup, cancellationToken: cancellationToken);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }

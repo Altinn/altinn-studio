@@ -73,7 +73,7 @@ public class ProcessController : ControllerBase
     /// does not consult the workflow engine. Opt-out for bulk/machine-to-machine consumers that
     /// don't need liveness.
     /// </param>
-    /// <param name="ct">cancellation token</param>
+    /// <param name="cancellationToken">cancellation token</param>
     /// <returns>the instance's process state</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -85,7 +85,7 @@ public class ProcessController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromQuery] bool includeWorkflowStatus = true,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         try
@@ -96,14 +96,14 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 authenticationMethod: null,
-                ct
+                cancellationToken
             );
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
                 instance,
                 instance.Process,
                 User,
                 includeWorkflowStatus,
-                ct
+                cancellationToken
             );
 
             return Ok(appProcessState);
@@ -240,7 +240,7 @@ public class ProcessController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="elementId">obsolete: alias for action</param>
     /// <param name="language">Signal the language to use for pdf generation, error messages...</param>
     /// <param name="returnInstance">When true, the response body is <see cref="EnrichedInstanceResponse"/> reflecting the post-transition instance state. Defaults to false for backward compatibility.</param>
@@ -260,7 +260,7 @@ public class ProcessController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? elementId = null,
         [FromQuery] string? language = null,
         [FromQuery] bool returnInstance = false,
@@ -275,7 +275,7 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 null,
-                ct
+                cancellationToken
             );
             Instance instance = fetchedInstance.Instance;
 
@@ -289,7 +289,7 @@ public class ProcessController : ControllerBase
                 Language = language,
             };
 
-            ProcessChangeResult result = await _processEngine.Next(processNextRequest, ct);
+            ProcessChangeResult result = await _processEngine.Next(processNextRequest, cancellationToken);
 
             if (!result.Success)
             {
@@ -306,19 +306,19 @@ public class ProcessController : ControllerBase
                     instanceOwnerPartyId,
                     instanceGuid,
                     authenticationMethod: null,
-                    ct
+                    cancellationToken
                 );
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(
                     instanceOwnerPartyId,
-                    cancellationToken: ct
+                    cancellationToken: cancellationToken
                 );
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
                     result.ProcessStateChange.NewProcessState,
                     User,
-                    ct: ct
+                    cancellationToken: cancellationToken
                 );
                 await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 
@@ -335,7 +335,7 @@ public class ProcessController : ControllerBase
                 instance,
                 result.ProcessStateChange.NewProcessState,
                 User,
-                ct: ct
+                cancellationToken: cancellationToken
             );
 
             return Ok(appProcessState);
@@ -367,7 +367,7 @@ public class ProcessController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         try
@@ -378,7 +378,7 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 null,
-                ct
+                cancellationToken
             );
             Instance instance = fetchedInstance.Instance;
 
@@ -391,7 +391,7 @@ public class ProcessController : ControllerBase
                     Action = null,
                     Language = null,
                 },
-                ct
+                cancellationToken
             );
 
             if (!result.Success)
@@ -404,7 +404,7 @@ public class ProcessController : ControllerBase
                 freshInstance,
                 freshInstance.Process,
                 User,
-                ct: ct
+                cancellationToken: cancellationToken
             );
 
             return Ok(appProcessState);

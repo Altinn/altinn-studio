@@ -45,7 +45,7 @@ internal sealed class SigningReceiptService(
         IEnumerable<DataElementSignature> dataElementSignatures,
         UserActionContext context,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartSendSignatureReceiptActivity();
@@ -54,7 +54,7 @@ internal sealed class SigningReceiptService(
             signee.PersonNumber,
             applicationMetadata,
             correspondenceResources,
-            ct,
+            cancellationToken,
             context.AltinnCdnClient
         );
 
@@ -65,7 +65,7 @@ internal sealed class SigningReceiptService(
             applicationMetadata,
             context,
             _dataClient,
-            ct
+            cancellationToken
         );
 
         return await _correspondenceClient.Send(
@@ -80,7 +80,7 @@ internal sealed class SigningReceiptService(
                     .Build(),
                 CorrespondenceAuthenticationMethod.Default()
             ),
-            ct
+            cancellationToken
         );
     }
 
@@ -93,7 +93,7 @@ internal sealed class SigningReceiptService(
         string? recipientNin,
         ApplicationMetadata appMetadata,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         IAltinnCdnClient? altinnCdnClient = null
     )
     {
@@ -117,7 +117,7 @@ internal sealed class SigningReceiptService(
 
         altinnCdnClient ??= _altinnCdnClient;
 
-        AltinnCdnOrgDetails? senderDetails = await altinnCdnClient.GetOrgDetails(ct);
+        AltinnCdnOrgDetails? senderDetails = await altinnCdnClient.GetOrgDetails(cancellationToken);
         string? senderOrgNumber = senderDetails?.Orgnr;
 
         if (senderDetails is null || string.IsNullOrEmpty(senderOrgNumber))

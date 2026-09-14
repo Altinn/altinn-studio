@@ -846,9 +846,15 @@ public sealed class PaymentServiceTests
                 )
             )
             .Returns(
-                (InstanceIdentifier _, string _, object _, StorageAuthenticationMethod? _, CancellationToken ct) =>
+                (
+                    InstanceIdentifier _,
+                    string _,
+                    object _,
+                    StorageAuthenticationMethod? _,
+                    CancellationToken cancellationToken
+                ) =>
                 {
-                    ct.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
                     return Task.FromResult(new DataElement());
                 }
             )
@@ -912,9 +918,9 @@ public sealed class PaymentServiceTests
                 )
             )
             .Returns(
-                (InstanceIdentifier _, Guid _, StorageAuthenticationMethod? _, CancellationToken ct) =>
+                (InstanceIdentifier _, Guid _, StorageAuthenticationMethod? _, CancellationToken cancellationToken) =>
                 {
-                    ct.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
                     return Task.FromResult(true);
                 }
             )
@@ -922,7 +928,10 @@ public sealed class PaymentServiceTests
         _fixture
             .Mock<IOrderDetailsCalculator>()
             .Setup(c => c.CalculateOrderDetails(_instance, Language, cts.Token))
-            .Returns((Instance _, string? _, CancellationToken ct) => Task.FromCanceled<OrderDetails>(ct))
+            .Returns(
+                (Instance _, string? _, CancellationToken cancellationToken) =>
+                    Task.FromCanceled<OrderDetails>(cancellationToken)
+            )
             .Verifiable(Times.Once);
 
         await using var sp = _fixture.BuildServiceProvider();

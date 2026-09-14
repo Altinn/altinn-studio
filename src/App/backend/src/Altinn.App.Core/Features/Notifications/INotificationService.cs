@@ -15,12 +15,12 @@ public interface INotificationService
     /// <param name="instance">The instance being instantiated.</param>
     /// <param name="party">Instance owner party.</param>
     /// <param name="instantiationNotification">The notification details for the instantiation.</param>
-    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task NotifyInstanceOwnerOnInstantiation(
         Instance instance,
         Party party,
         InstantiationNotification instantiationNotification,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 }

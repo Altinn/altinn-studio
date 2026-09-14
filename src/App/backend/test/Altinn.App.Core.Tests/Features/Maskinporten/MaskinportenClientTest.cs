@@ -1743,7 +1743,7 @@ public class MaskinportenClientTests
                         ItExpr.IsAny<CancellationToken>()
                     )
                     .Returns(
-                        async (HttpRequestMessage req, CancellationToken ct) =>
+                        async (HttpRequestMessage req, CancellationToken cancellationToken) =>
                         {
                             var form = await TestHelpers.ParseFormUrlEncodedContent(
                                 (FormUrlEncodedContent)req.Content!

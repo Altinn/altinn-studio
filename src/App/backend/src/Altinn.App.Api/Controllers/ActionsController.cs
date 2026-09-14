@@ -61,7 +61,7 @@ public class ActionsController : ControllerBase
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="actionRequest">user action request</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <returns><see cref="UserActionResponse"/></returns>
     [HttpPost]
@@ -87,7 +87,7 @@ public class ActionsController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromBody] UserActionRequest actionRequest,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null
     )
     {
@@ -141,7 +141,7 @@ public class ActionsController : ControllerBase
             HttpContext.User,
             action,
             instance.Process?.CurrentTask?.ElementId,
-            ct
+            cancellationToken
         );
         if (!authorized)
         {
@@ -164,7 +164,7 @@ public class ActionsController : ControllerBase
             language,
             currentAuth,
             actionRequest.OnBehalfOf,
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
 
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
