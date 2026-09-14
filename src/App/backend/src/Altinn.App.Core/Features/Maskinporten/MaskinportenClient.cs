@@ -41,15 +41,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// </summary>
     private static readonly TimeSpan _requestTimeout = TimeSpan.FromSeconds(30);
 
-    internal MaskinportenSettings Settings =>
-        _options.Get(Variant == VariantDefault ? Microsoft.Extensions.Options.Options.DefaultName : Variant);
+    internal MaskinportenSettings Settings => _options.CurrentValue;
 
-    internal const string VariantDefault = "default";
-    internal const string VariantInternal = "internal";
-    internal readonly string Variant;
-
-    private readonly string _maskinportenCacheKeySalt;
-    private readonly string _altinnCacheKeySalt;
+    private const string MaskinportenCacheKeySalt = "maskinportenScope";
+    private const string AltinnCacheKeySalt = "maskinportenScope-altinn";
     private static readonly HybridCacheEntryOptions _defaultCacheExpiration = CacheExpiryFactory(
         TimeSpan.FromSeconds(60)
     );
@@ -70,7 +65,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// <summary>
     /// Instantiates a new <see cref="MaskinportenClient"/> object.
     /// </summary>
-    /// <param name="variant">Variant (default/internal).</param>
     /// <param name="options">Maskinporten settings.</param>
     /// <param name="platformSettings">Platform settings.</param>
     /// <param name="httpClientFactory">HttpClient factory.</param>
@@ -79,7 +73,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// <param name="timeProvider">Optional TimeProvider implementation.</param>
     /// <param name="telemetry">Optional telemetry service.</param>
     public MaskinportenClient(
-        string variant,
         IOptionsMonitor<MaskinportenSettings> options,
         IOptions<PlatformSettings> platformSettings,
         IHttpClientFactory httpClientFactory,
@@ -89,12 +82,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         Telemetry? telemetry = null
     )
     {
-        if (variant != VariantDefault && variant != VariantInternal)
-            throw new ArgumentException($"Invalid variant '{variant}' provided to MaskinportenClient");
-
-        Variant = variant;
-        _maskinportenCacheKeySalt = $"maskinportenScope-{variant}";
-        _altinnCacheKeySalt = $"maskinportenScope-altinn-{variant}";
         _options = options;
         _platformSettings = platformSettings.Value;
         _telemetry = telemetry;
@@ -152,7 +139,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         string cacheKey = GetCacheKey(authority, request);
 
         _logger.LogDebug("Retrieving {Authority} token for scopes: {Scopes}", authority, request.FormattedScopes);
-        using var activity = TelemetryStartActivityFactory(authority, Variant, Settings.ClientId, request);
+        using var activity = TelemetryStartActivityFactory(authority, Settings.ClientId, request);
 
         // We are making some binary assumptions below, so lets guard against future expansion of the TokenAuthority enum.
         if (authority is not (TokenAuthority.Maskinporten or TokenAuthority.AltinnTokenExchange))
@@ -209,7 +196,6 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     {
         try
         {
-            _logger.LogDebug("Using MaskinportenClient.Variant={Variant} for authorization", Variant);
             string audience = await GetAudienceFromWellKnown(cancellationToken);
             string jwtGrant = GenerateJwtGrant(request, audience);
             FormUrlEncodedContent payload = AuthenticationPayloadFactory(jwtGrant);
@@ -411,12 +397,12 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// additional claims use <c>{salt}#{claims}|{formattedScopes}</c>, where the claim segment is percent-encoded.
     /// Every claim that alters the identity of the resulting token takes part in the key.</para>
     /// </summary>
-    internal string GetCacheKey(TokenAuthority authority, MaskinportenTokenRequest request)
+    internal static string GetCacheKey(TokenAuthority authority, MaskinportenTokenRequest request)
     {
         var salt = authority switch
         {
-            TokenAuthority.Maskinporten => _maskinportenCacheKeySalt,
-            TokenAuthority.AltinnTokenExchange => _altinnCacheKeySalt,
+            TokenAuthority.Maskinporten => MaskinportenCacheKeySalt,
+            TokenAuthority.AltinnTokenExchange => AltinnCacheKeySalt,
             _ => throw new ArgumentException($"Unknown token authority {authority}", nameof(authority)),
         };
 
@@ -612,15 +598,13 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// </summary>
     private Activity? TelemetryStartActivityFactory(
         TokenAuthority authority,
-        string variant,
         string clientId,
         MaskinportenTokenRequest request
     ) =>
         authority switch
         {
-            TokenAuthority.Maskinporten => _telemetry?.StartGetAccessTokenActivity(variant, clientId, request),
+            TokenAuthority.Maskinporten => _telemetry?.StartGetAccessTokenActivity(clientId, request),
             TokenAuthority.AltinnTokenExchange => _telemetry?.StartGetAltinnExchangedAccessTokenActivity(
-                variant,
                 clientId,
                 request
             ),

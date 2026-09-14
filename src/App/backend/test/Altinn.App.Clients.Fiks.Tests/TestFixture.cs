@@ -76,8 +76,6 @@ internal sealed record TestFixture(
     public FiksIOClient FiksIOClient => (FiksIOClient)App.Services.GetRequiredService<IFiksIOClient>();
     public FiksIOSettings FiksIOSettings => App.Services.GetRequiredService<IOptions<FiksIOSettings>>().Value;
     public FiksArkivSettings FiksArkivSettings => App.Services.GetRequiredService<IOptions<FiksArkivSettings>>().Value;
-    public MaskinportenSettings MaskinportenSettings =>
-        App.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
     public FiksArkivConfigValidationService FiksArkivConfigValidationService =>
         App.Services.GetServices<IHostedService>().OfType<FiksArkivConfigValidationService>().Single();
     public FiksArkivSubscriber FiksArkivSubscriber =>
@@ -115,7 +113,6 @@ internal sealed record TestFixture(
         IEnumerable<(string, object)>? configurationCollection = null,
         bool useDefaultFiksIOSettings = true,
         bool useDefaultFiksArkivSettings = true,
-        bool useDefaultMaskinportenSettings = true,
         string hostEnvironment = "Development",
         bool mockFiksIOClientFactory = true
     )
@@ -130,14 +127,6 @@ internal sealed record TestFixture(
             builder.Configuration.AddJsonStream(
                 GetJsonStream("FiksArkivSettings", TestHelpers.DefaultFiksArkivSettings)
             );
-
-        if (useDefaultMaskinportenSettings)
-        {
-            builder.Configuration.AddJsonStream(
-                GetJsonStream("MaskinportenSettings", TestHelpers.DefaultMaskinportenSettings)
-            );
-            builder.Services.ConfigureMaskinportenClient("MaskinportenSettings");
-        }
 
         // User supplied configuration values
         if (configurationCollection is not null)
