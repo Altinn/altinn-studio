@@ -1,15 +1,18 @@
 """Diff and publish local prompt files against Langfuse, which serves them.
 
 CI publishes on merge to main, so `--push` is gated behind ALLOW_PROMPT_PUSH=1.
-Roll back with `--promote <name> --version <n>`.
+Roll back with `--promote <name> --version <n>`. Retire a prompt no repo file
+serves with `--retire`, which archives its text before deleting it.
 """
 
 from __future__ import annotations
 
 import argparse
 import difflib
+import json
 import os
 import sys
+from datetime import date
 from pathlib import Path
 
 import httpx
@@ -23,6 +26,7 @@ from benchmarks.lf_api import LangfuseApi
 
 PROMPT_PAGE_SIZE = 100
 PUSH_OVERRIDE_VARIABLE = "ALLOW_PROMPT_PUSH"
+DELETE_OVERRIDE_VARIABLE = "ALLOW_PROMPT_DELETE"
 
 # Langfuse name -> the local file that serves it, where get_prompt_with_langfuse
 # is called with local_path. Without these the file reads as retired.
@@ -32,6 +36,9 @@ SERVED_FROM: dict[str, str] = {"intent_check": "intent_security"}
 
 # Judges run as Langfuse evaluator templates, not prompts, so they cannot be diffed.
 JUDGE_DIR = "llm-as-a-judge"
+
+# Deleting a prompt in Langfuse takes its text with it, so it is kept here first.
+RETIRED_FILE = PROMPTS_DIR / "retired.json"
 
 
 def _is_prompt(path: Path) -> bool:
@@ -63,10 +70,11 @@ def _local_prompt_names() -> list[str]:
 def _every_local_name() -> set[str]:
     """Templates and judges live in subdirectories but are prompts to Langfuse.
 
-    `SERVED_FROM` covers the callers whose Langfuse name differs from the filename.
+    A file that serves another name does not account for its own, so a Langfuse
+    `intent_security` is retired rather than local while the file serves `intent_check`.
     """
     found = {path.stem for path in PROMPTS_DIR.rglob("*.md") if _is_prompt(path)}
-    return found | set(SERVED_FROM)
+    return (found - set(SERVED_FROM.values())) | set(SERVED_FROM)
 
 
 def _remote(api: LangfuseApi, name: str) -> dict | None:
@@ -148,23 +156,36 @@ def _drifted(api: LangfuseApi, names: list[str]) -> list[str]:
     return [name for name in names if _diff(api, name)]
 
 
-def _report_orphans(api: LangfuseApi) -> list[str]:
-    """Print every Langfuse prompt with no repo file. Returns their names."""
+def _orphan_prompts(api: LangfuseApi) -> list[dict]:
     local = _every_local_name()
-    orphans = sorted(
+    return sorted(
         (prompt for prompt in _remote_prompts(api) if prompt.get("name") not in local),
         key=lambda prompt: prompt.get("name") or "",
     )
+
+
+def _report_orphans(api: LangfuseApi) -> list[str]:
+    """Print every Langfuse prompt with no repo file. Returns their names."""
+    orphans = _orphan_prompts(api)
     for prompt in orphans:
         labels = ", ".join(prompt.get("labels") or []) or "no labels"
         print(f"{prompt.get('name')}: in Langfuse ({labels}) with no repo file")
     if orphans:
         print(
             f"\n{len(orphans)} Langfuse prompt(s) have no repo file. Re-adding one of "
-            "these names would serve the retired Langfuse version, so archive them "
-            "there or restore the file."
+            "these names would serve the retired Langfuse version, so --retire them "
+            "or restore the file."
         )
     return [prompt.get("name") or "" for prompt in orphans]
+
+
+def _require_delete_override() -> None:
+    if os.environ.get(DELETE_OVERRIDE_VARIABLE) == "1":
+        return
+    raise SystemExit(
+        "Retiring deletes every version of a prompt in Langfuse and cannot be "
+        f"undone. Set {DELETE_OVERRIDE_VARIABLE}=1 to do it anyway."
+    )
 
 
 def _require_push_override() -> None:
@@ -228,6 +249,41 @@ def _push(api: LangfuseApi, name: str, message: str) -> None:
     print(f"{name}: published v{created.get('version')} as {created.get('labels')}{served_note}")
 
 
+ARCHIVED_FIELDS = ("version", "type", "labels", "tags", "config", "commitMessage", "prompt")
+
+
+def _archived_versions(api: LangfuseApi, name: str, versions: list[int]) -> list[dict]:
+    kept = []
+    for version in sorted(versions):
+        published = api._get(f"/api/public/v2/prompts/{name}", version=version)
+        kept.append({field: published.get(field) for field in ARCHIVED_FIELDS})
+    return kept
+
+
+def _archive(api: LangfuseApi, prompt: dict) -> int:
+    """Keep a prompt's text in the repo so deleting it in Langfuse loses nothing."""
+    name = prompt["name"]
+    archive = json.loads(RETIRED_FILE.read_text(encoding="utf-8")) if RETIRED_FILE.exists() else {}
+    archive[name] = {
+        "retired_on": date.today().isoformat(),
+        "versions": _archived_versions(api, name, prompt.get("versions") or []),
+    }
+    RETIRED_FILE.write_text(
+        json.dumps(dict(sorted(archive.items())), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return len(archive[name]["versions"])
+
+
+def _retire(api: LangfuseApi, prompt: dict) -> None:
+    name = prompt["name"]
+    if name in _every_local_name():
+        raise SystemExit(f"{name} is served from a repo file, so it is not retired")
+    kept = _archive(api, prompt)
+    api._delete(f"/api/public/v2/prompts/{name}")
+    print(f"{name}: {kept} version(s) archived, deleted from Langfuse")
+
+
 def _promote(api: LangfuseApi, name: str, version: int) -> None:
     updated = api._patch(
         f"/api/public/v2/prompts/{name}/versions/{version}",
@@ -241,12 +297,15 @@ def main() -> int:
     parser.add_argument("--diff", nargs="?", const="", metavar="NAME")
     parser.add_argument("--push", nargs="?", const="", metavar="NAME")
     parser.add_argument("--promote", metavar="NAME")
+    parser.add_argument("--retire", nargs="?", const="", metavar="NAME")
     parser.add_argument("--version", type=int)
     parser.add_argument("-m", "--message", default="Sync from repo")
     args = parser.parse_args()
 
     if args.push is not None:
         _require_push_override()
+    if args.retire is not None:
+        _require_delete_override()
 
     load_dotenv(Path(__file__).resolve().parents[1] / ".env")
     api = LangfuseApi()
@@ -257,6 +316,18 @@ def main() -> int:
             _push(api, name, args.message)
         if not names:
             print("Every prompt is in sync; nothing published")
+        return 0
+
+    if args.retire is not None:
+        orphans = _orphan_prompts(api)
+        if args.retire:
+            orphans = [prompt for prompt in orphans if prompt.get("name") == args.retire]
+            if not orphans:
+                raise SystemExit(f"{args.retire} is not a Langfuse prompt without a repo file")
+        for prompt in orphans:
+            _retire(api, prompt)
+        if not orphans:
+            print("Every Langfuse prompt has a repo file; nothing retired")
         return 0
 
     if args.promote:
