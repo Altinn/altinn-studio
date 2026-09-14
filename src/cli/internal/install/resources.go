@@ -151,6 +151,17 @@ func resourcesArchiveExtractOptions() extractTarGzOptions {
 	}
 }
 
+// ObsoleteTestdataDir returns the legacy host testdata directory and whether it is still present.
+// Callers use it to tell the user their local copy is about to be, or has been, removed.
+func (s *Service) ObsoleteTestdataDir() (string, bool) {
+	dir := filepath.Join(s.cfg.DataDir, obsoleteTestdataDirName)
+	info, err := os.Stat(dir)
+	if err != nil || !info.IsDir() {
+		return dir, false
+	}
+	return dir, true
+}
+
 // removeObsoleteTestdataDir removes the host testdata copy left behind by earlier installs.
 // Localtest now reads testdata from the copy baked into its image, so the host copy is unused.
 func removeObsoleteTestdataDir(dataDir string) error {

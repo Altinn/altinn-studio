@@ -432,6 +432,9 @@ func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctl
 	args := c.installedSelfCommandArgs(selfCompleteInstallSubcmd)
 	c.out.Verbosef("Completing installation with: %s %v", studioctlPath, args)
 
+	// The child's output is only surfaced on failure, so check here and warn from this process.
+	obsoleteTestdataDir, hadObsoleteTestdata := c.service.ObsoleteTestdataDir()
+
 	c.out.Println("")
 	resourcesSpinner := ui.NewSpinner(c.out, "Completing installation...")
 	if !c.cfg.Verbose {
@@ -453,7 +456,23 @@ func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctl
 	resourcesSpinner.StopWithSuccess("Installation completed")
 	c.out.Verbosef("Installed studioctl-server to: %s", c.cfg.StudioctlServerInstallDir())
 	c.out.Verbosef("Installed localtest resources to: %s", c.cfg.DataDir)
+	if hadObsoleteTestdata {
+		c.warnRemovedTestdataDir(obsoleteTestdataDir)
+	}
 	return nil
+}
+
+// warnRemovedTestdataDir tells the user their local copy of the localtest test data is gone.
+// Anything they had changed or added there stops applying, so this must not be silent.
+func (c *SelfCommand) warnRemovedTestdataDir(dir string) {
+	c.out.Warning(joinLines(
+		"",
+		fmt.Sprintf("Removed the local localtest test data directory: %s", dir),
+		"",
+		"Localtest now uses the test data built into its image, so this copy is no longer in use and",
+		"any users, parties or roles you changed or added there no longer apply. To define your own",
+		"test users, add them to your app in App/wwwroot/testData.json instead.",
+	))
 }
 
 func (c *SelfCommand) runCompleteInstall(ctx context.Context, args []string) error {
@@ -465,8 +484,14 @@ func (c *SelfCommand) runCompleteInstall(ctx context.Context, args []string) err
 		BinaryPath:           "",
 		ResourcesArchivePath: os.Getenv(config.EnvResourcesArchive),
 	}
+	obsoleteTestdataDir, hadObsoleteTestdata := c.service.ObsoleteTestdataDir()
 	if err := c.service.InstallBundleResources(ctx, bundle); err != nil {
 		return fmt.Errorf("install resources: %w", err)
+	}
+	// Only reaches the user when this runs as the top-level process; when the parent spawned us it
+	// swallows our output on success and warns itself instead.
+	if hadObsoleteTestdata {
+		c.warnRemovedTestdataDir(obsoleteTestdataDir)
 	}
 	if err := c.transition.RunMigrations(ctx); err != nil {
 		return fmt.Errorf("run migrations: %w", err)
