@@ -13,25 +13,24 @@ public interface IAppUpgradeService
     Task<AppUpgradeStatus> GetStatusAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Clones or refreshes the developer's copy of the app and checks that the automatic upgrade can run on it.
+    /// Starts an automatic upgrade by pushing a workflow to a new branch in the app repository, where a Gitea
+    /// Actions runner performs the upgrade and opens a pull request.
     /// </summary>
-    Task<AppUpgradePreparation> PrepareAsync(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+    Task<AppUpgradeStart> StartAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Reports how far the upgrade started by <see cref="StartAsync"/> on the given branch has come, including the
+    /// final result once the workflow run has completed.
+    /// </summary>
+    Task<AppUpgradeRun> GetRunAsync(
+        AltinnRepoContext repoContext,
+        string branchName,
         CancellationToken cancellationToken
     );
 
     /// <summary>
-    /// Runs the automatic upgrade on the developer's local clone, commits and pushes the result when it applied,
-    /// and reports what is left to do by hand.
-    /// </summary>
-    Task<AppUpgradeResult> RunAsync(
-        AltinnAuthenticatedRepoEditingContext authenticatedContext,
-        CancellationToken cancellationToken
-    );
-
-    /// <summary>
-    /// Merges the pull request opened by <see cref="RunAsync"/> into the default branch and moves the developer's
-    /// local clone back onto it.
+    /// Merges the pull request opened by the upgrade into the default branch and refreshes the developer's local
+    /// clone.
     /// </summary>
     Task<AppUpgradeMergeResult> MergeAsync(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
