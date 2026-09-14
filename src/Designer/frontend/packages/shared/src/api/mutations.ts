@@ -94,6 +94,7 @@ import {
   publishResourcePolicyPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type { AppUpgradeMergeRequest, AppUpgradeMergeResult, AppUpgradeStart } from 'app-shared/types/AppUpgrade';
 import type {
   AppUpgradeMergeRequest,
   AppUpgradeMergeResult,

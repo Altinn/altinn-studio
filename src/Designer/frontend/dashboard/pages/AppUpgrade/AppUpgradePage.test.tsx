@@ -148,6 +148,35 @@ describe('AppUpgradePage', () => {
     expect(getAppUpgradeRun).not.toHaveBeenCalled();
   });
 
+  it('resumes a started upgrade from the branch in the URL without starting a new one', async () => {
+    const startAppUpgrade = jest.fn();
+    renderPage(
+      { startAppUpgrade },
+      appUpgradeStatus,
+      `?branch=${encodeURIComponent(started.branchName)}`,
+      completedRun,
+    );
+
+    expect(await screen.findByText(textMock('app_upgrade.done.completed'))).toBeInTheDocument();
+    expect(startAppUpgrade).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole('button', { name: textMock('app_upgrade.intro.start') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('resumes the active upgrade reported by the status when the URL has no branch', async () => {
+    const startAppUpgrade = jest.fn();
+    renderPage(
+      { startAppUpgrade },
+      { ...appUpgradeStatus, activeUpgradeBranch: started.branchName },
+      '',
+      completedRun,
+    );
+
+    expect(await screen.findByText(textMock('app_upgrade.done.completed'))).toBeInTheDocument();
+    expect(startAppUpgrade).not.toHaveBeenCalled();
+  });
+
   it('shows the queued state while waiting for a runner', async () => {
     const user = userEvent.setup();
     const getAppUpgradeRun = jest.fn().mockImplementation(() => Promise.resolve(queuedRun));
@@ -283,14 +312,23 @@ const runningRun: AppUpgradeRun = {
 const renderPage = (
   queries: Partial<ServicesContextProps>,
   status: AppUpgradeStatus = appUpgradeStatus,
+  search: string = '',
+  cachedRun?: AppUpgradeRun,
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppUpgradeStatus, org, app], status);
+  if (cachedRun) {
+    queryClient.setQueryData([QueryKey.AppUpgradeRun, org, app, started.branchName], cachedRun);
+  }
   return renderWithProviders(
     <Routes>
       <Route path='/:subroute/:selectedContext' element={<div>{dashboardText}</div>} />
       <Route path='/:subroute/:selectedContext/:org/:app/upgrade' element={<AppUpgradePage />} />
     </Routes>,
-    { queries, queryClient, initialEntries: [`/app-dashboard/${org}/${org}/${app}/upgrade`] },
+    {
+      queries,
+      queryClient,
+      initialEntries: [`/app-dashboard/${org}/${org}/${app}/upgrade${search}`],
+    },
   );
 };

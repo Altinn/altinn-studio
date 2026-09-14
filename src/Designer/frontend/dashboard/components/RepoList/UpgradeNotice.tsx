@@ -23,18 +23,21 @@ export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement 
 
   if (!status?.isUpgradeAvailable) return null;
 
+  const branch = status.activeUpgradeBranch;
+  const textKey = branch
+    ? 'app_upgrade.notice_in_progress'
+    : status.hasCustomCode || !status.isAutomaticUpgradeSupported
+      ? 'app_upgrade.notice_available'
+      : 'app_upgrade.notice_automatic_available';
+
   return (
     <StudioButton
       variant='tertiary'
       data-size='sm'
       className={classes.noticeButton}
-      onClick={() => navigate(getAppUpgradePath({ subroute, selectedContext, org, app }))}
+      onClick={() => navigate(getAppUpgradePath({ subroute, selectedContext, org, app, branch }))}
     >
-      {t(
-        status.hasCustomCode || !status.isAutomaticUpgradeSupported
-          ? 'app_upgrade.notice_available'
-          : 'app_upgrade.notice_automatic_available',
-      )}
+      {t(textKey)}
     </StudioButton>
   );
 };
