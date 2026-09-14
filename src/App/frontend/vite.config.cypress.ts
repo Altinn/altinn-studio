@@ -1,9 +1,6 @@
-// eslint-disable-next-line import/no-unresolved
 import { defineConfig } from 'vite';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-import { sinonChaiCjsPlugin } from './scripts/vite/sinonChaiCjsPlugin.mts';
+import { sinonChaiCjsPlugin } from './scripts/vite/sinonChaiCjsPlugin.ts';
 
 /**
  * Minimal Vite config used by cypress-vite to bundle the Cypress spec/support files.
@@ -11,6 +8,7 @@ import { sinonChaiCjsPlugin } from './scripts/vite/sinonChaiCjsPlugin.mts';
  * dev-server plugins - only the tsconfig path aliases (src/*, test/*, ...), which Vite
  * resolves natively per importing file (specs are governed by test/tsconfig.json).
  */
+// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   plugins: [sinonChaiCjsPlugin()],
   resolve: {

@@ -1,8 +1,9 @@
-/* eslint-disable @typescript-eslint/no-require-imports, no-console */
-const fs = require('node:fs');
-const path = require('node:path');
+/* eslint-disable no-console */
+import fs from 'node:fs';
+import path from 'node:path';
 
-function configureCypressShard(config, { specRoot, timingsFile, total, number }) {
+// eslint-disable-next-line import/no-default-export
+export default function configureCypressShard(config, { specRoot, timingsFile, total, number }) {
   if (total === undefined && number === undefined) {
     return config;
   }
@@ -81,5 +82,3 @@ function parseInteger(value, name) {
 function toPosixPath(value) {
   return value.split(path.sep).join('/');
 }
-
-module.exports = configureCypressShard;

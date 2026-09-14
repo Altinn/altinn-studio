@@ -2,6 +2,7 @@
   "name": "app-frontend-react",
   "description": "Default frontend application for Altinn 3 apps created in Altinn Studio",
   "private": true,
+  "type": "module",
   "author": "Altinn",
   "license": "MIT",
   "exports": "./src/index.tsx",

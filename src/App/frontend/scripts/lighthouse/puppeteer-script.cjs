@@ -2,10 +2,11 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 // Configuration
-const { BASE_URL, TEST_USER_ID, AUTH_LEVEL, APP_PATH } = require('./lighthouse-config-constants');
+const { BASE_URL, TEST_USER_ID, AUTH_LEVEL, APP_PATH } = require('./lighthouse-config-constants.cjs');
 
 /**
- * Puppeteer script for Lighthouse CI to handle authentication flow
+ * Puppeteer script for Lighthouse CI to handle authentication flow.
+ * CommonJS on purpose - lhci `require()`s this file; see lighthouserc.cjs.
  * @param {import('puppeteer').Browser} browser - The Puppeteer browser instance
  */
 module.exports = async (browser) => {

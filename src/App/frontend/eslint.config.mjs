@@ -193,8 +193,9 @@ export default defineConfig([
     },
   },
   {
-    // Vite loads these before any tsconfig path aliases are in play, so their imports must be relative.
-    files: ['vite.config*.ts'],
+    // These configs are loaded by their tools before any tsconfig path aliases are in play,
+    // so their imports must be relative.
+    files: ['vite.config*.ts', 'cypress.config.js'],
     rules: {
       'no-relative-import-paths/no-relative-import-paths': 'off',
     },
