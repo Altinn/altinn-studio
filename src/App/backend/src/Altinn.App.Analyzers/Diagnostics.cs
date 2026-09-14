@@ -112,7 +112,7 @@ public static class Diagnostics
                 + "computing either of them. Give each entry its own id."
         );
 
-        public static readonly DiagnosticDescriptor UnknownFieldDataType = Warning(
+        public static readonly DiagnosticDescriptor UnknownFieldDataType = Error(
             "ALTINNAPP0901",
             Category.Metadata,
             "Field references an unknown data type",

@@ -228,7 +228,7 @@ public class MetadataFieldUtilsTests
     }
 
     [Fact]
-    public async Task Unknown_DataTypeId_Emits_Warning()
+    public async Task Unknown_DataTypeId_Emits_Error()
     {
         var diagnostics = Collect(
             """
@@ -243,7 +243,7 @@ public class MetadataFieldUtilsTests
         );
 
         var unknown = Assert.Single(diagnostics, d => d.Id == Diagnostics.Metadata.UnknownFieldDataType.Id);
-        Assert.Equal(DiagnosticSeverity.Warning, unknown.Severity);
+        Assert.Equal(DiagnosticSeverity.Error, unknown.Severity);
         await Verify(diagnostics);
     }
 
