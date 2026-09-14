@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.25] - 2026-09-14
+
 ### Added
 
 - The bundled workflow engine now protects your app from a failure storm. When a large share of one app's workflows are failing and retrying, the engine parks the rest for a while rather than keep calling an app that cannot answer, and releases them gradually as it recovers. The workflow engine dashboard gains a "Throttled namespaces" panel showing the state of each parked app, with controls to park or release one by hand. Tripping it locally takes at least 50 failing workflows for the same app, so ordinary development will not run into it.
