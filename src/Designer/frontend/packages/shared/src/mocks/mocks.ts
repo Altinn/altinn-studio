@@ -75,7 +75,6 @@ export const appUpgradeStatus: AppUpgradeStatus = {
   targetMajorVersion: 9,
   isUpgradeAvailable: true,
   isAutomaticUpgradeSupported: true,
-  hasCustomCode: false,
   activeUpgradeBranch: null,
 };
 

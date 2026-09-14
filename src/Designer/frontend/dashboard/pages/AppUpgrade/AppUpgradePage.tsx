@@ -107,7 +107,6 @@ export const AppUpgradePage = (): ReactElement => {
             app={app}
             targetVersion={targetVersion}
             canStart={status?.isAutomaticUpgradeSupported ?? false}
-            isAutomatic={(status?.isAutomaticUpgradeSupported ?? false) && !status?.hasCustomCode}
             onStart={startUpgrade}
             onCancel={goToDashboard}
           />
@@ -147,36 +146,20 @@ type IntroProps = {
   app: string;
   targetVersion: number;
   canStart: boolean;
-  isAutomatic: boolean;
   onStart: () => void;
   onCancel: () => void;
 };
 
-const Intro = ({
-  app,
-  targetVersion,
-  canStart,
-  isAutomatic,
-  onStart,
-  onCancel,
-}: IntroProps): ReactElement => {
+const Intro = ({ app, targetVersion, canStart, onStart, onCancel }: IntroProps): ReactElement => {
   const { t } = useTranslation();
   return (
     <div className={classes.content}>
       <StudioHeading level={2} data-size='xs'>
-        {t(isAutomatic ? 'app_upgrade.intro.title_automatic' : 'app_upgrade.intro.title')}
+        {t('app_upgrade.intro.title')}
       </StudioHeading>
-      {isAutomatic ? (
-        <StudioParagraph>
-          {t('app_upgrade.intro.description_automatic')}
-          <br />
-          <strong>{app}</strong>
-        </StudioParagraph>
-      ) : (
-        <StudioParagraph>
-          {t('app_upgrade.intro.description', { version: targetVersion })}
-        </StudioParagraph>
-      )}
+      <StudioParagraph>
+        {t('app_upgrade.intro.description', { version: targetVersion })}
+      </StudioParagraph>
       <div>
         <StudioParagraph>
           {t('app_upgrade.intro.version_contains', { version: targetVersion })}

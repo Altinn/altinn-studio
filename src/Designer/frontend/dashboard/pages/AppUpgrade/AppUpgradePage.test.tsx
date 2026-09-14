@@ -34,10 +34,10 @@ describe('AppUpgradePage', () => {
     jest.clearAllMocks();
   });
 
-  it('shows breadcrumbs back to the dashboard and the automatic variant for apps without custom code', async () => {
+  it('shows breadcrumbs back to the dashboard and the upgrade intro', async () => {
     renderPage({});
     expect(
-      screen.getByRole('heading', { name: textMock('app_upgrade.intro.title_automatic') }),
+      screen.getByRole('heading', { name: textMock('app_upgrade.intro.title') }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }),
@@ -46,13 +46,6 @@ describe('AppUpgradePage', () => {
       'href',
       `/editor/${org}/${app}/overview`,
     );
-  });
-
-  it('warns about manual work when the app has custom code', () => {
-    renderPage({}, { ...appUpgradeStatus, hasCustomCode: true });
-    expect(
-      screen.getByRole('heading', { name: textMock('app_upgrade.intro.title') }),
-    ).toBeInTheDocument();
   });
 
   it('disables start when the app cannot be upgraded automatically', () => {
