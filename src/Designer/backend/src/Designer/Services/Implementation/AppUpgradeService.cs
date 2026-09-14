@@ -341,7 +341,8 @@ public partial class AppUpgradeService : IAppUpgradeService
             fileChanges,
             branchName,
             pullRequest?.HtmlUrl,
-            pullRequest?.Number
+            pullRequest?.Number,
+            pullRequest?.Merged ?? false
         );
     }
 
