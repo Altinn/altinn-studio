@@ -32,7 +32,11 @@ internal sealed class ShowBackButtonMigrator
                 continue;
 
             var (text, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(path));
-            var root = JsonNode.Parse(text);
+            var root = JsonNode.Parse(
+                text,
+                new JsonNodeOptions { PropertyNameCaseInsensitive = false },
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+            );
             if (root is null)
                 continue;
 
