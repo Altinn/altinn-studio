@@ -214,17 +214,18 @@ def _as_published(name: str, content: str, shape: list | None) -> dict:
 
 def _push(api: LangfuseApi, name: str, message: str) -> None:
     local = load_prompt(name)
-    shape = _published_shape(api, name)
+    served = _served_as(name)
     created = api._post(
         "/api/public/v2/prompts",
         {
-            "name": name,
-            **_as_published(name, local["content"], shape),
+            "name": served,
+            **_as_published(served, local["content"], _published_shape(api, served)),
             "labels": ["production"],
             "commitMessage": message,
         },
     )
-    print(f"{name}: published v{created.get('version')} as {created.get('labels')}")
+    served_note = f" (serving {served})" if served != name else ""
+    print(f"{name}: published v{created.get('version')} as {created.get('labels')}{served_note}")
 
 
 def _promote(api: LangfuseApi, name: str, version: int) -> None:

@@ -306,3 +306,50 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
         out = capsys.readouterr().out
         assert "no_hallucination" in out
         assert "evaluators rather than prompts" in out
+
+
+class TestPushFollowsTheServedName:
+    """intent_security.md serves the Langfuse prompt intent_check. Publishing under the
+    filename would version a retired prompt and leave the live gate untouched."""
+
+    ALIAS_FILE = "intent_security"
+    SERVED = "intent_check"
+
+    def test_it_publishes_under_the_served_name(self):
+        api = _Langfuse(published={self.SERVED: {"type": "text", "version": 4, "prompt": "old"}})
+
+        sync_prompts._push(api, self.ALIAS_FILE, "why")
+
+        assert api.published[0]["name"] == self.SERVED
+
+    def test_it_reads_the_shape_of_the_served_prompt(self):
+        chat = {
+            "type": "chat",
+            "version": 5,
+            "prompt": [
+                {"type": "message", "role": "system", "content": "old system"},
+                {"type": "message", "role": "user", "content": "{{user_message}}"},
+            ],
+        }
+        api = _Langfuse(published={self.SERVED: chat})
+
+        sync_prompts._push(api, self.ALIAS_FILE, "why")
+
+        body = api.published[0]
+        assert body["type"] == "chat"
+        assert [turn["role"] for turn in body["prompt"]] == ["system", "user"]
+
+    def test_it_says_which_prompt_it_served(self, capsys):
+        api = _Langfuse(published={self.SERVED: {"type": "text", "version": 4, "prompt": "old"}})
+
+        sync_prompts._push(api, self.ALIAS_FILE, "why")
+
+        assert "serving intent_check" in capsys.readouterr().out
+
+    def test_an_unaliased_prompt_publishes_under_its_own_name(self, capsys):
+        api = _Langfuse(published={LOCAL: {"type": "text", "version": 1, "prompt": "old"}})
+
+        sync_prompts._push(api, LOCAL, "why")
+
+        assert api.published[0]["name"] == LOCAL
+        assert "serving" not in capsys.readouterr().out
