@@ -9,6 +9,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+- `studioctl app upgrade v9` rewrites app code using the legacy `Party`/`Person`/`Organization`/`PartyType` and `UserProfile`/`UserType`/`ProfileSettingPreference` models to the `Altinn.App.Core.Models` namespace, where the App SDK now vendors them directly.
+
 ## [0.1.0-preview.24] - 2026-09-14
 
 ### Added
@@ -16,7 +19,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade` accepts `--json`, which prints the upgrade result as JSON instead of the rendered report, like the other `--json` flags. The output holds the exit code, the message and error text, and every step with its messages, so tooling such as Altinn Studio can read the outcome without parsing the rendered table.
 - `studioctl app upgrade v9` now rewrites the removed `IText` interface to `IAppResources.GetTexts(org, app, language)` - the same method under its v9 name. A field, parameter or property typed `IText` is retyped to `IAppResources`, and the `.GetText(..)` call reached through it is renamed to `.GetTexts(..)`. A class implementing `IText` directly, or a direct reference to the concrete `TextClient` type, has no mechanical fix and is reported instead.
 - `studioctl app upgrade v9` now reports (rather than staying silent about) two more removed APIs that need manual porting: `IAppResources.GetApplication()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()` (replaced by the asynchronous `IAppMetadata.GetApplicationMetadata()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()`), and the two `IDataClient.UpdateBinaryData` overloads that took an `HttpRequest` and separate `org`/`app` strings (replaced by the overload taking an `InstanceIdentifier` and a `Stream`).
-- `studioctl app upgrade v9` rewrites app code using the legacy `Party`/`Person`/`Organization`/`PartyType` and `UserProfile`/`UserType`/`ProfileSettingPreference` models to the `Altinn.App.Core.Models` namespace, where the App SDK now vendors them directly.
 
 ### Changed
 
