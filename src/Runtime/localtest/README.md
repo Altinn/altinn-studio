@@ -49,17 +49,23 @@ editor with JSON schema support.
 How Localtest combines the sources:
 
 - If every app it can reach serves a `testData.json`, **only** those users are available — the built-in
-  users (Ola Nordmann, Sofie Salt, …) are not. This means the file has to list every user you want to
-  log in as, not just the ones you are adding.
+  users (Ola Nordmann, Sofie Salt, …) are not. This is the usual case when you run a single app, and it
+  means the file has to list every user you want to log in as, not just the ones you are adding.
 - If any reachable app has no `testData.json`, the app-provided users are merged into the built-in ones.
-- Two apps defining the same user or party is a conflict and Localtest will report it.
+  The merge only ever *adds*: an entry that already exists built-in keeps its built-in values. In
+  particular you cannot grant an extra role to a built-in user this way — see
+  [Add a missing role for a test user](#add-a-missing-role-for-a-test-user).
+- Two apps may define the same user or party as long as the definitions are identical. Definitions that
+  share an identifier but differ in any value are a conflict, and Localtest reports it rather than
+  picking one.
 
-Localtest re-reads `testData.json` from the app every few seconds, so a save and a page reload is
-usually enough — no need to restart Localtest.
+Localtest caches the combined test data, so a change to `testData.json` takes a few seconds to show up
+and can take up to 30 seconds under repeated page loads. You do not need to restart Localtest.
 
-Since your file replaces the built-in users, start from them rather than from scratch:
-`http://local.altinn.cloud/Home/DebugUsers/LocalTestUsers` returns the built-in test users already
-converted to the `testData.json` format, so you can copy the entries you need and edit from there.
+Since your file replaces the built-in users whenever every reachable app has one, start from them rather
+than from scratch: `http://local.altinn.cloud:8000/Home/DebugUsers/LocalTestUsers` returns the built-in
+test users already converted to the `testData.json` format, so you can copy the entries you need and
+edit from there.
 [`src/test/apps/signering-brukerstyrt/App/wwwroot/testData.json`](../../test/apps/signering-brukerstyrt/App/wwwroot/testData.json)
 is a worked example in this repository.
 
@@ -76,8 +82,8 @@ partyId of the entity the user represents, and the value is the list of roles th
 
 ```json
 {
-  "userId": 1337,
-  "partyId": 501337,
+  "userId": 20001,
+  "partyId": 520001,
   "ssn": "01039012345",
   "firstName": "Ola",
   "lastName": "Nordmann",
@@ -86,6 +92,12 @@ partyId of the entity the user represents, and the value is the list of roles th
   }
 }
 ```
+
+Define the user **in full in your own file**, with an id of your own, rather than trying to add a role
+to a built-in user such as 1337. Roles are merged per user id and only for users that do not already
+exist built-in, so `partyRoles` you attach to a built-in user has no effect whenever the merge path is
+in play; if the rest of your definition also differs from the built-in one, Localtest reports a conflict
+instead. Users you define yourself are unaffected.
 
 Save the file and reload the page to pick up the change.
 
