@@ -329,7 +329,7 @@ public partial class AppUpgradeService : IAppUpgradeService
             fileChanges = ParseUnifiedDiff(diff);
         }
 
-        (AppUpgradeOutcome outcome, string message) = DetermineOutcome(report, run, pullRequest);
+        (AppUpgradeOutcome outcome, string message) = DetermineOutcome(report, run, pullRequest, steps);
         return new AppUpgradeResult(
             outcome,
             message,
@@ -346,7 +346,8 @@ public partial class AppUpgradeService : IAppUpgradeService
     private static (AppUpgradeOutcome Outcome, string Message) DetermineOutcome(
         StudioctlUpgradeReport? report,
         ActionWorkflowRun run,
-        PullRequest? pullRequest
+        PullRequest? pullRequest,
+        IReadOnlyList<AppUpgradeStep> steps
     )
     {
         if (report is null)
@@ -382,9 +383,21 @@ public partial class AppUpgradeService : IAppUpgradeService
                     )
                 );
             default:
-                return (AppUpgradeOutcome.Failed, FirstNonEmpty(report.Error, report.Message, "The upgrade failed."));
+                return (
+                    AppUpgradeOutcome.Failed,
+                    FirstNonEmpty(FailedStepMessages(steps), report.Error, report.Message, "The upgrade failed.")
+                );
         }
     }
+
+    private static string FailedStepMessages(IReadOnlyList<AppUpgradeStep> steps) =>
+        string.Join(
+            Environment.NewLine,
+            steps.SelectMany(step =>
+                step.Messages.Where(message => message.Status == AppUpgradeMessageStatus.Failed)
+                    .Select(message => $"{step.Name}: {message.Text}")
+            )
+        );
 
     public async Task<AppUpgradeMergeResult> MergeAsync(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,

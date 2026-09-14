@@ -269,6 +269,33 @@ public class AppUpgradeServiceTests
     }
 
     [Fact]
+    public async Task GetRunAsync_WhenAStepFailed_ReportsThatStepsMessage()
+    {
+        SetupRuns(Run(status: "completed", conclusion: "failure"));
+        SetupJobs(Job(conclusion: "failure"));
+        SetupJobLogs(
+            ReportLog(
+                exitCode: 1,
+                error: "upgrade failed",
+                Step("Project file", ("Altinn.App packages set to 9.0.0", "OK")),
+                Step(
+                    "NavigationButtons showBackButton",
+                    ("Error migrating NavigationButtons showBackButton flags: '/' is invalid after a value.", "FAIL")
+                )
+            )
+        );
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeRun run = await service.GetRunAsync(Context(), BranchName, CancellationToken.None);
+
+        Assert.Equal(AppUpgradeOutcome.Failed, run.Result!.Outcome);
+        Assert.Equal(
+            "NavigationButtons showBackButton: Error migrating NavigationButtons showBackButton flags: '/' is invalid after a value.",
+            run.Result.Message
+        );
+    }
+
+    [Fact]
     public async Task GetRunAsync_WhenRunFailedWithoutReport_ReportsFailed()
     {
         SetupRuns(Run(status: "completed", conclusion: "failure"));
