@@ -34,7 +34,16 @@ describe('UpgradeNotice', () => {
   });
 
   it('renders nothing when no upgrade is available', () => {
-    renderUpgradeNotice({ ...appUpgradeStatus, isUpgradeAvailable: false });
+    renderUpgradeNotice({
+      ...appUpgradeStatus,
+      isUpgradeAvailable: false,
+      isAutomaticUpgradeSupported: false,
+    });
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('renders nothing for apps on versions the automatic upgrade does not support', () => {
+    renderUpgradeNotice({ ...appUpgradeStatus, isAutomaticUpgradeSupported: false });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
