@@ -12,6 +12,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Localtest now uses the test data bundled with its own image. Installing no longer places a copy of the test data on your machine, and the existing copy is removed, so the test data always matches the localtest version you are running. Test data you had edited in that copy no longer takes effect — define your own test users in your app instead, in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.
+- `studioctl app upgrade v9` checks generated type names against the upgraded app's dependencies before shortening them or adding `using` directives. This avoids name conflicts introduced by the new SDK or framework. Names stay qualified when target analysis is unavailable, the app uses conditional compilation, or a shorter name cannot be verified in both Debug and Release. When generated names need cleanup, dependency restores and analysis of both Debug and Release add time to the upgrade. The upgrade still completes when this optional cleanup is unavailable.
+
+### Fixed
+
+- `studioctl app upgrade v9` preserves your C# files' indentation and line endings when simplifying generated type names.
 
 ## [0.1.0-preview.25] - 2026-09-14
 

@@ -236,7 +236,7 @@ public sealed class SemanticDetectionTests : IDisposable
     // --- CorrespondenceApiMigration.WithData -----------------------------------------------------
 
     [Fact]
-    public void WithData_ByteArgumentDeclaredInTheSdk_OnlySemanticCompletesTheRewrite()
+    public async Task WithData_ByteArgumentDeclaredInTheSdk_OnlySemanticCompletesTheRewrite()
     {
         var path = _app.Write(
             "logic/Sender.cs",
@@ -256,18 +256,21 @@ public sealed class SemanticDetectionTests : IDisposable
 
         // Syntax cannot type `holder.Payload` (its declaration lives in the SDK, not the app) and
         // reports it for the developer to finish.
-        var syntax = new CorrespondenceApiMigration(SyntaxScanner()).Migrate();
+        var syntax = new CorrespondenceApiMigration(SyntaxScanner()).Migrate(TestContext.Current.CancellationToken);
         Assert.NotEmpty(syntax.Todos);
-        Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.DoesNotContain("MemoryStream", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
 
         // Overload resolution proves it a byte array, so the rewrite completes.
-        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
+        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate(TestContext.Current.CancellationToken);
         Assert.Empty(semantic.Todos);
-        Assert.Contains("WithData(new MemoryStream(holder.Payload))", File.ReadAllText(path));
+        Assert.Contains(
+            "WithData(new MemoryStream(holder.Payload))",
+            await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
-    public void WithData_GenuineReadOnlyMemory_IsReportedNotWrapped()
+    public async Task WithData_GenuineReadOnlyMemory_IsReportedNotWrapped()
     {
         var path = _app.Write(
             "logic/Sender.cs",
@@ -285,18 +288,18 @@ public sealed class SemanticDetectionTests : IDisposable
             """
         );
 
-        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
+        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate(TestContext.Current.CancellationToken);
 
         // `new MemoryStream(readOnlyMemory)` would not compile, so this must stay a report - and the
         // report must say the type IS known and give advice that compiles.
         Assert.NotEmpty(semantic.Todos);
-        Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.DoesNotContain("MemoryStream", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
         Assert.Contains(semantic.Warnings, static w => w.Contains("cannot be wrapped in a MemoryStream directly"));
         Assert.DoesNotContain(semantic.Warnings, static w => w.Contains("could not be determined"));
     }
 
     [Fact]
-    public void WithData_StreamThroughAVariable_OnlySemanticLeavesItAloneSilently()
+    public async Task WithData_StreamThroughAVariable_OnlySemanticLeavesItAloneSilently()
     {
         var path = _app.Write(
             "logic/Sender.cs",
@@ -314,10 +317,10 @@ public sealed class SemanticDetectionTests : IDisposable
             """
         );
 
-        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate();
+        var semantic = new CorrespondenceApiMigration(SemanticScanner()).Migrate(TestContext.Current.CancellationToken);
 
         Assert.Empty(semantic.Todos);
-        Assert.DoesNotContain("MemoryStream", File.ReadAllText(path));
+        Assert.DoesNotContain("MemoryStream", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
     }
 
     // --- Detection binds against the pristine pre-rewrite snapshot -------------------------------
@@ -406,7 +409,7 @@ public sealed class SemanticDetectionTests : IDisposable
             "Altinn.App.Core.Features.Process",
             new System.Text.RegularExpressions.Regex(@"\.cs$")
         );
-        var correspondence = new CorrespondenceApiMigration(scanner).Migrate();
+        var correspondence = new CorrespondenceApiMigration(scanner).Migrate(TestContext.Current.CancellationToken);
         Assert.Contains(correspondence.Warnings, static w => w.Contains("WithSender"));
 
         var exitCode = await V8Tov9Upgrade.CheckRemovedCSharpApis(scanner, ProjectFile());
