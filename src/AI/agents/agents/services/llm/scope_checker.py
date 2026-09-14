@@ -7,7 +7,7 @@ have declined (e.g. a phone-number lookup matching Altinn's "lookup-service"
 feature by name).
 """
 import json
-from typing import Optional
+from typing import Any, Optional, Sequence
 
 from pydantic import BaseModel
 
@@ -24,16 +24,49 @@ class ScopeCheckResult(BaseModel):
     reason: Optional[str] = None
 
 
-def build_scope_check_message(query: str) -> str:
+CONTEXT_TURNS = 4
+CONTEXT_CHARS_PER_TURN = 400
+
+
+def build_scope_check_message(query: str, conversation: Sequence[Any] | None = None) -> str:
     """The user message the scope classifier sees, as a value so a dataset can
     send exactly what production sends."""
-    return f"Classify this question: {query}"
+    recent = _recent_turns(conversation)
+    if not recent:
+        return f"Classify this question: {query}"
+    return (
+        "Recent conversation, oldest first, for judging a follow-up:\n"
+        f"{recent}\n\n"
+        f"Classify this question: {query}"
+    )
 
 
-async def check_scope_async(query: str) -> ScopeCheckResult:
-    """Classify whether a chat question is about Altinn Studio/apps."""
+def _recent_turns(conversation: Sequence[Any] | None) -> str:
+    lines = []
+    for turn in list(conversation or [])[-CONTEXT_TURNS:]:
+        role = _field(turn, "role")
+        text = _field(turn, "content") or _field(turn, "text")
+        if role and text:
+            lines.append(f"{role}: {text[:CONTEXT_CHARS_PER_TURN]}")
+    return "\n".join(lines)
+
+
+def _field(turn: Any, name: str) -> str:
+    value = turn.get(name) if isinstance(turn, dict) else getattr(turn, name, None)
+    return value if isinstance(value, str) else ""
+
+
+async def check_scope_async(
+    query: str, conversation_history: Sequence[Any] | None = None
+) -> ScopeCheckResult:
+    """Classify whether a chat question is about Altinn Studio/apps.
+
+    The recent conversation goes with it: a follow-up read alone is about
+    whatever its own words name, which is how "og hva med den andre siden?"
+    became out of scope.
+    """
     system_prompt, lf_prompt = get_prompt_with_langfuse("scope_check")
-    user_prompt = build_scope_check_message(query)
+    user_prompt = build_scope_check_message(query, conversation_history)
 
     client = get_llm_client()
     try:

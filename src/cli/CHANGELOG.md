@@ -12,6 +12,25 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 - `studioctl app upgrade v9` rewrites app code using the legacy `Party`/`Person`/`Organization`/`PartyType` and `UserProfile`/`UserType`/`ProfileSettingPreference` models to the `Altinn.App.Core.Models` namespace, where the App SDK now vendors them directly.
 
+### Changed
+
+- Localtest now uses the test data bundled with its own image, so the test data always matches the localtest version you are running. Installing or updating no longer places a copy of the test data on your machine, and **deletes the existing copy in your studioctl data directory**, including any users, parties or roles you had changed or added there. `studioctl self update` prints the directory it removed. Edits in that copy were only ever half-preserved across updates — a file the release also shipped was silently overwritten, while a file you added survived — so back up anything you want to keep before updating. To define your own test users from now on, add them to your app in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.
+- `studioctl app upgrade v9` checks generated type names against the upgraded app's dependencies before shortening them or adding `using` directives. This avoids name conflicts introduced by the new SDK or framework. Names stay qualified when target analysis is unavailable, the app uses conditional compilation, or a shorter name cannot be verified in both Debug and Release. When generated names need cleanup, dependency restores and analysis of both Debug and Release add time to the upgrade. The upgrade still completes when this optional cleanup is unavailable.
+
+### Fixed
+
+- `studioctl app upgrade v9` preserves your C# files' indentation and line endings when simplifying generated type names.
+
+## [0.1.0-preview.25] - 2026-09-14
+
+### Added
+
+- The bundled workflow engine now protects your app from a failure storm. When a large share of one app's workflows are failing and retrying, the engine parks the rest for a while rather than keep calling an app that cannot answer, and releases them gradually as it recovers. The workflow engine dashboard gains a "Throttled namespaces" panel showing the state of each parked app, with controls to park or release one by hand. Tripping it locally takes at least 50 failing workflows for the same app, so ordinary development will not run into it.
+
+### Fixed
+
+- The workflow engine dashboard shows how long work actually took. "Execution started" was always blank, and the durations on cards and chains counted the time a workflow spent queued as though it were processing time; they now report the most recent attempt. The Processing counter in a step's details also ticks while the step runs.
+
 ## [0.1.0-preview.24] - 2026-09-14
 
 ### Added

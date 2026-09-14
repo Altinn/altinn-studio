@@ -28,12 +28,20 @@ def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> Opt
         return None
 
 
+def _prompt_file(prompt_name: str) -> Path:
+    """The file for a prompt name. Judges and templates live in subdirectories."""
+    found = sorted(PROMPTS_DIR.rglob(f"{prompt_name}.md"))
+    if len(found) == 1:
+        return found[0]
+    if not found:
+        raise FileNotFoundError(f"Prompt file not found: {PROMPTS_DIR / f'{prompt_name}.md'}")
+    listed = ", ".join(str(path.relative_to(PROMPTS_DIR)) for path in found)
+    raise FileNotFoundError(f"Prompt name {prompt_name!r} is ambiguous: {listed}")
+
+
 def load_prompt(prompt_name: str) -> Dict[str, Any]:
     """Load a prompt from a markdown file with YAML frontmatter."""
-    prompt_file = PROMPTS_DIR / f"{prompt_name}.md"
-
-    if not prompt_file.exists():
-        raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
+    prompt_file = _prompt_file(prompt_name)
 
     content = prompt_file.read_text(encoding="utf-8")
 

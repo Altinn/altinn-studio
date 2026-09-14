@@ -16,8 +16,8 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 	dir := t.TempDir()
 	outputDir := filepath.Join(dir, "dist")
 	localtestDir := filepath.Join(dir, "localtest")
-	writeTestFile(t, filepath.Join(localtestDir, "testdata", "apps", "app.json"), "{}")
 	writeTestFile(t, filepath.Join(localtestDir, "infra", "compose.yaml"), "services: {}")
+	writeTestFile(t, filepath.Join(localtestDir, "testdata", "apps", "app.json"), "{}")
 	writeTestFile(t, filepath.Join(localtestDir, "ignored.txt"), "ignored")
 
 	serverDir := filepath.Join(dir, "published-"+resourcesServerDir)
@@ -43,9 +43,31 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 	}
 
 	assertFileContent(t, filepath.Join(extractDir, resourcesServerDir, config.StudioctlServerBinaryName), "binary")
-	assertFileContent(t, filepath.Join(extractDir, "localtest", "testdata", "apps", "app.json"), "{}")
 	assertFileContent(t, filepath.Join(extractDir, "localtest", "infra", "compose.yaml"), "services: {}")
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "ignored.txt"))
+	// Testdata ships inside the localtest image, not in the resources archive.
+	assertNoFile(t, filepath.Join(extractDir, "localtest", "testdata", "apps", "app.json"))
+}
+
+func TestRemoveObsoleteTestdataDir(t *testing.T) {
+	t.Parallel()
+
+	dataDir := t.TempDir()
+	stalePath := filepath.Join(dataDir, "testdata", "authorization", "roles.json")
+	writeTestFile(t, stalePath, "[]")
+	keptPath := filepath.Join(dataDir, "infra", "compose.yaml")
+	writeTestFile(t, keptPath, "services: {}")
+
+	if err := removeObsoleteTestdataDir(dataDir); err != nil {
+		t.Fatalf("removeObsoleteTestdataDir() error = %v", err)
+	}
+	assertNoFile(t, filepath.Join(dataDir, "testdata"))
+	assertFileContent(t, keptPath, "services: {}")
+
+	// Removing again is a no-op once the directory is gone.
+	if err := removeObsoleteTestdataDir(dataDir); err != nil {
+		t.Fatalf("removeObsoleteTestdataDir() second call error = %v", err)
+	}
 }
 
 func writeTestFile(t *testing.T, path, content string) {
