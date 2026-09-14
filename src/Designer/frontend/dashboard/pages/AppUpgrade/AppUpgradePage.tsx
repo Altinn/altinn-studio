@@ -258,8 +258,9 @@ type UpgradeInProgressProps = {
 
 const UpgradeInProgress = ({ run, onCancel }: UpgradeInProgressProps): ReactElement => {
   const { t } = useTranslation();
-  const statusText =
-    run?.state === 'Running'
+  const statusText = !run
+    ? t('app_upgrade.upgrade.loading')
+    : run.state === 'Running'
       ? run.currentStep
         ? t('app_upgrade.upgrade.running_step', { step: run.currentStep })
         : t('app_upgrade.upgrade.running')
