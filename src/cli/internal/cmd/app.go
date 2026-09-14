@@ -454,7 +454,13 @@ func (c *AppCommand) runUpgrade(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("upgrade app: %w", err)
 	}
-	appsvc.PrintUpgradeResult(c.out, result)
+	if flags.jsonOutput {
+		if err := printJSONOutput(c.out, "app upgrade", result); err != nil {
+			return err
+		}
+	} else {
+		appsvc.PrintUpgradeResult(c.out, result)
+	}
 	if result.Failed() {
 		return fmt.Errorf("%w with exit code %d", errAppUpgradeFailed, result.ExitCode)
 	}
@@ -465,6 +471,7 @@ type appUpgradeFlags struct {
 	appPath    string
 	kind       string
 	allowDirty bool
+	jsonOutput bool
 }
 
 const (
@@ -480,6 +487,7 @@ func (c *AppCommand) parseAppUpgradeFlags(args []string) (appUpgradeFlags, bool,
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
 	fs.BoolVar(&flags.allowDirty, "allow-dirty", false, "Upgrade even with uncommitted local changes")
+	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
 	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
 		flags.kind = args[0]
@@ -515,7 +523,7 @@ func isSupportedAppUpgradeKind(kind string) bool {
 }
 
 func (c *AppCommand) appUpgradeUsageLine() string {
-	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH] [--allow-dirty]"
+	return osutil.CurrentBin() + " app upgrade [frontend-v4|backend-v8|v9] [-p PATH] [--allow-dirty] [--json]"
 }
 
 func (c *AppCommand) appUpgradeUsage() string {
@@ -527,6 +535,7 @@ func (c *AppCommand) appUpgradeUsage() string {
 		"Options:",
 		"  -p, --path PATH             Specify app directory (overrides auto-detect)",
 		"  --allow-dirty               Allow updating when the repository contains modified or untracked files.",
+		"  --json                      Output the upgrade result as JSON instead of the rendered report.",
 		"  -h, --help                  Show this help",
 	)
 }
