@@ -302,17 +302,22 @@ pub(super) fn record_launch(
 pub(super) fn launch_state(connection: &Connection, id: SessionId) -> Result<Option<LaunchState>, Error> {
     connection
         .query_row(
-            "SELECT launch_sandbox, launched_at, launch_attempts
+            "SELECT launch_token, launch_sandbox, launched_at, launch_attempts
              FROM sessions WHERE id = ?1",
             [id.to_string()],
             |row| {
-                let sandbox = row.get::<_, Option<String>>(0)?;
-                let launched_at = row.get::<_, Option<i64>>(1)?;
-                let attempts = row.get::<_, u32>(2)?;
-                let (Some(sandbox), Some(launched_at)) = (sandbox, launched_at) else {
+                let token = row
+                    .get::<_, Option<String>>(0)?
+                    .map(|token| token.parse().map_err(conversion_error))
+                    .transpose()?;
+                let sandbox = row.get::<_, Option<String>>(1)?;
+                let launched_at = row.get::<_, Option<i64>>(2)?;
+                let attempts = row.get::<_, u32>(3)?;
+                let (Some(token), Some(sandbox), Some(launched_at)) = (token, sandbox, launched_at) else {
                     return Ok(None);
                 };
                 Ok(Some(LaunchState {
+                    token,
                     sandbox,
                     launched_at,
                     attempts,

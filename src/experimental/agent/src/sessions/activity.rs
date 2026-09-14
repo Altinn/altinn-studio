@@ -58,6 +58,9 @@ impl Activity {
     #[must_use]
     pub const fn folded(mut self, event: ActivityEvent, at: OffsetDateTime) -> Self {
         match event {
+            // A delayed or duplicate start report must not move a Session back
+            // from a later activity state.
+            ActivityEvent::SessionStart if !matches!(self.phase, Phase::Unknown) => return self,
             ActivityEvent::SessionStart | ActivityEvent::TurnStarted => {
                 self.phase = Phase::Working;
             }
@@ -109,5 +112,12 @@ mod tests {
             ..Activity::default()
         };
         assert_eq!(activity.folded(ActivityEvent::TurnCompleted, at(1)).turns, u64::MAX);
+    }
+
+    #[test]
+    fn a_late_start_does_not_regress_waiting_activity() {
+        let waiting = Activity::default().folded(ActivityEvent::WaitingForInput, at(1));
+
+        assert_eq!(waiting.clone().folded(ActivityEvent::SessionStart, at(2)), waiting);
     }
 }
