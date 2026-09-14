@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.24] - 2026-09-14
+
 ### Added
 
 - `studioctl app upgrade` accepts `--json`, which prints the upgrade result as JSON instead of the rendered report, like the other `--json` flags. The output holds the exit code, the message and error text, and every step with its messages, so tooling such as Altinn Studio can read the outcome without parsing the rendered table.
