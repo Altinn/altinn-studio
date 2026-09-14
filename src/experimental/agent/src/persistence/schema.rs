@@ -95,8 +95,7 @@ pub(super) fn initialize(connection: &mut Connection) -> Result<(), Error> {
         return verify_schema(connection, VERSION);
     }
 
-    apply_pending_migrations(connection, current, MIGRATIONS, VERSION)?;
-    verify_schema(connection, VERSION)
+    apply_pending_migrations(connection, current, MIGRATIONS, VERSION)
 }
 
 fn apply_pending_migrations(
@@ -117,6 +116,7 @@ fn apply_pending_migrations(
     transaction
         .pragma_update(None, "user_version", target)
         .map_err(database_error)?;
+    verify_schema_with(&transaction, migrations, target)?;
     transaction.commit().map_err(database_error)
 }
 
@@ -196,11 +196,24 @@ fn schema_version(connection: &Connection) -> Result<u32, Error> {
 }
 
 fn verify_schema(connection: &Connection, version: u32) -> Result<(), Error> {
-    schema_difference(connection, version)?.map_or(Ok(()), |detail| Err(unknown_schema(version, &detail)))
+    verify_schema_with(connection, MIGRATIONS, version)
+}
+
+fn verify_schema_with(connection: &Connection, migrations: &[Migration], version: u32) -> Result<(), Error> {
+    schema_difference_with_migrations(connection, migrations, version)?
+        .map_or(Ok(()), |detail| Err(unknown_schema(version, &detail)))
 }
 
 fn schema_difference(connection: &Connection, version: u32) -> Result<Option<String>, Error> {
-    let statements = MIGRATIONS
+    schema_difference_with_migrations(connection, MIGRATIONS, version)
+}
+
+fn schema_difference_with_migrations(
+    connection: &Connection,
+    migrations: &[Migration],
+    version: u32,
+) -> Result<Option<String>, Error> {
+    let statements = migrations
         .iter()
         .filter(|migration| migration.version <= version)
         .flat_map(|migration| migration.schema.iter().copied())
@@ -381,6 +394,12 @@ mod tests {
             .map_err(database_error)
     }
 
+    fn create_unexpected(transaction: &Transaction<'_>) -> Result<(), Error> {
+        transaction
+            .execute_batch("CREATE TABLE unexpected (id INTEGER PRIMARY KEY);")
+            .map_err(database_error)
+    }
+
     #[test]
     fn all_pending_migrations_roll_back_together() {
         let mut connection = Connection::open_in_memory().expect("database");
@@ -419,6 +438,12 @@ mod tests {
         connection.pragma_update(None, "user_version", 1).expect("version 1");
         let migrations = [
             Migration {
+                version: 1,
+                name: "preview 1 baseline",
+                schema: &[PREVIEW_1_SQL],
+                apply: create_preview_1,
+            },
+            Migration {
                 version: 2,
                 name: "session management",
                 schema: &[SESSION_COLUMNS_SQL, SESSION_ACTIVITY_REPORTS_SQL],
@@ -436,5 +461,23 @@ mod tests {
 
         assert_eq!(schema_version(&connection).expect("schema version"), 3);
         assert!(user_tables(&connection).expect("tables").contains("third"));
+    }
+
+    #[test]
+    fn final_schema_validation_rolls_back_the_migration() {
+        let mut connection = Connection::open_in_memory().expect("database");
+        let migrations = [Migration {
+            version: 1,
+            name: "unexpected schema",
+            schema: &[],
+            apply: create_unexpected,
+        }];
+
+        let error =
+            apply_pending_migrations(&mut connection, 0, &migrations, 1).expect_err("final schema validation fails");
+
+        assert!(error.to_string().contains("not a recognized released schema"));
+        assert_eq!(schema_version(&connection).expect("schema version"), 0);
+        assert!(user_tables(&connection).expect("tables").is_empty());
     }
 }

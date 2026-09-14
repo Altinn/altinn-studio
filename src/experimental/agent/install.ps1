@@ -25,7 +25,7 @@ function Invoke-Completion($Journal) {
     $Arguments = @(
         "--home", $AgentHome, "self", "__complete-update",
         "--install-root", $InstallRoot, "--bin-directory", $BinDirectory,
-        "--agent-home", $AgentHome, "--target-release", $Target,
+        "--target-release", $Target,
         "--target-version", $TargetVersion, "--repository", $Repository
     )
     if ($Journal.previousRelease) { $Arguments += @("--previous-release", $Journal.previousRelease) }

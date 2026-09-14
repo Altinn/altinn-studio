@@ -557,16 +557,14 @@ fn open(path: &Path) -> Result<Connection, Error> {
     }
     let mut connection = Connection::open(path).map_err(database_error)?;
     home::secure_file(path)?;
+    // Finish fallible connection setup before the transactional schema migration.
     connection
-        .execute_batch("PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON;")
+        .execute_batch("PRAGMA foreign_keys = ON; PRAGMA secure_delete = ON; PRAGMA journal_mode = WAL;")
         .map_err(database_error)?;
     if let Some(version) = schema::pending_version(&connection)? {
         backup_database(path, version)?;
     }
     schema::initialize(&mut connection)?;
-    connection
-        .execute_batch("PRAGMA journal_mode = WAL;")
-        .map_err(database_error)?;
     Ok(connection)
 }
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-old_version="v0.0.1-upgrade-smoke"
-target_version="v0.0.2-upgrade-smoke"
+old_version="v0.0.1-dev.upgrade-smoke"
+target_version="v0.1.0-preview.2.smoke"
 smoke_root="$(mktemp -d /tmp/au.XXXXXXXX)"
 export AGENT_SMOKE_ID="${smoke_root##*/}"
 smoke_target="${smoke_root}/target"
@@ -79,6 +79,20 @@ if [ "${RUNNER_OS:-}" = "Windows" ]; then
     & $agentctl --home $env:AGENT_HOME self update --version $env:AGENT_TARGET_VERSION
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   '
+  AGENT_INSTALL_ROOT="$(cygpath -w "${smoke_root}/install")"
+  export AGENT_INSTALL_DIR="${AGENT_SMOKE_BIN}"
+  AGENT_LOCAL_ARCHIVE="$(cygpath -w "${old_archive}")"
+  export AGENT_VERSION="${old_version}"
+  export AGENT_INSTALL_ROOT AGENT_LOCAL_ARCHIVE
+  pwsh -NoProfile -File "$(cygpath -w agent/install.ps1)"
+  # shellcheck disable=SC2016 # PowerShell expands its own environment variables.
+  pwsh -NoProfile -Command '
+    $agentctl = Join-Path $env:AGENT_SMOKE_BIN "agentctl.cmd"
+    $actual = (& $agentctl --version | Out-String).Trim()
+    if ($actual -ne "agentctl $env:AGENT_VERSION") {
+      throw "installer did not replace a newer release with development build $actual"
+    }
+  '
 else
   export AGENT_INSTALL_ROOT="${smoke_root}/install"
   export AGENT_INSTALL_DIR="${smoke_root}/bin"
@@ -92,4 +106,10 @@ else
   "${agentctl}" --home "${AGENT_HOME}" self update --version "${target_version}"
   test "$("${agentctl}" --version)" = "agentctl ${target_version}"
   "${agentctl}" --home "${AGENT_HOME}" self update --version "${target_version}"
+  export AGENT_INSTALL_ROOT="${smoke_root}/install"
+  export AGENT_INSTALL_DIR="${smoke_root}/bin"
+  export AGENT_LOCAL_ARCHIVE="${old_archive}"
+  export AGENT_VERSION="${old_version}"
+  ./agent/install.sh
+  test "$("${agentctl}" --version)" = "agentctl ${old_version}"
 fi

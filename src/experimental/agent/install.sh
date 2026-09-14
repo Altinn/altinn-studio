@@ -27,7 +27,7 @@ resume_update() {
   fi
   set -- --home "${agent_home}" self __complete-update \
     --install-root "${install_root}" --bin-directory "${bin_directory}" \
-    --agent-home "${agent_home}" --target-release "${target}" \
+    --target-release "${target}" \
     --target-version "${target_version}" --repository "${repository}"
   if [ -n "${previous}" ]; then
     set -- "$@" --previous-release "${previous}"
@@ -111,7 +111,7 @@ if [ -L "${install_root}/current" ]; then
 fi
 set -- --home "${agent_home}" self __complete-update \
   --install-root "${install_root}" --bin-directory "${bin_directory}" \
-  --agent-home "${agent_home}" --target-release "${target}" \
+  --target-release "${target}" \
   --target-version "${version}" --repository "${repository}"
 if [ -n "${previous}" ]; then
   set -- "$@" --previous-release "${previous}"

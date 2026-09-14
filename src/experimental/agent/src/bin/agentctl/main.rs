@@ -1006,15 +1006,29 @@ async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), E
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
-                "automatic startup exited with {status}; see {}",
-                home.daemon_log_path().display()
+                "automatic startup exited with {status}; {}",
+                daemon_startup_diagnostics(home)
             )));
         }
     }
     Err(Error::Daemon(format!(
-        "automatic startup did not become ready within 10 seconds; see {}",
-        home.daemon_log_path().display()
+        "automatic startup did not become ready within 10 seconds; {}",
+        daemon_startup_diagnostics(home)
     )))
+}
+
+fn daemon_startup_diagnostics(home: &ControlPlaneHome) -> String {
+    let log = home.daemon_log_path();
+    let marker = home.pending_session_relaunch_path();
+    if marker.exists() {
+        format!(
+            "see {}; pending post-upgrade Session relaunch: {}",
+            log.display(),
+            marker.display()
+        )
+    } else {
+        format!("see {}", log.display())
+    }
 }
 
 fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
@@ -1137,6 +1151,18 @@ mod tests {
             .expect_err("preview daemon is incompatible");
         assert!(error.to_string().contains("protocol Some(\"v1\")"));
         assert!(!home.daemon_log_path().exists(), "no second daemon was spawned");
+    }
+
+    #[test]
+    fn startup_diagnostics_identify_a_pending_session_relaunch() {
+        let directory = tempfile::TempDir::new().expect("temporary home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        std::fs::write(home.pending_session_relaunch_path(), "pending").expect("marker");
+
+        let diagnostic = daemon_startup_diagnostics(&home);
+
+        assert!(diagnostic.contains(&home.daemon_log_path().display().to_string()));
+        assert!(diagnostic.contains(&home.pending_session_relaunch_path().display().to_string()));
     }
 
     impl agent::control_api::Connector for StalledConnector {

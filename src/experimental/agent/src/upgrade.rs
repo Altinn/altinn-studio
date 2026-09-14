@@ -390,6 +390,23 @@ impl UpdateJournal {
         atomic_json(&paths.journal(), self)
     }
 
+    /// Removes a journal before migration has committed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error after migration or when the journal cannot be removed durably.
+    pub fn discard_before_migration(&self, paths: &InstallPaths) -> Result<(), Error> {
+        if self.phase != UpdatePhase::Prepared {
+            return Err(Error::Invalid(
+                "an Agent update journal can only be discarded before migration".into(),
+            ));
+        }
+        fs::remove_file(paths.journal())?;
+        #[cfg(unix)]
+        sync_directory(paths.root())?;
+        Ok(())
+    }
+
     fn validate(&self, paths: &InstallPaths) -> Result<(), Error> {
         let releases = canonical_or_absolute(&paths.releases())?;
         for path in self

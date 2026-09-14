@@ -50,8 +50,6 @@ impl Completion {
             .arg(self.paths.root())
             .arg("--bin-directory")
             .arg(self.paths.bin())
-            .arg("--agent-home")
-            .arg(home.path())
             .arg("--target-release")
             .arg(&self.target_release)
             .arg("--target-version")
@@ -88,8 +86,6 @@ pub(super) enum SelfCommand {
         #[arg(long)]
         bin_directory: PathBuf,
         #[arg(long)]
-        agent_home: PathBuf,
-        #[arg(long)]
         target_release: PathBuf,
         #[arg(long)]
         target_version: String,
@@ -118,15 +114,11 @@ pub(super) async fn execute(command: SelfCommand, home: &ControlPlaneHome) -> Co
         SelfCommand::CompleteUpdate {
             install_root,
             bin_directory,
-            agent_home,
             target_release,
             target_version,
             previous_release,
             repository,
         } => {
-            if agent_home != home.path() {
-                return Err(Error::Invalid("--agent-home does not match the resolved Agent home".into()).into());
-            }
             complete(
                 Completion {
                     paths: InstallPaths::new(install_root, bin_directory)?,
@@ -215,6 +207,8 @@ async fn update(home: &ControlPlaneHome, version: Option<&str>, check: bool) -> 
 }
 
 async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandResult<()> {
+    // Release ordering belongs to `self update`. Installers enter here directly
+    // so a local development build may replace a higher published preview.
     let Completion {
         paths,
         target_release,
@@ -274,7 +268,7 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
     }
     if journal.phase < UpdatePhase::Migrated {
         println!("Migrate Agent state");
-        if let Err(error) = agent::persistence::Database::migrate(&home.path().join("agent.db")) {
+        if let Err(error) = migrate_state(&paths, &journal, &home.path().join("agent.db")) {
             drop(home_lock);
             if let Some(previous_release) = &previous_release {
                 let _ = start_daemon(previous_release, home);
@@ -302,6 +296,20 @@ async fn complete(completion: Completion, home: &ControlPlaneHome) -> CommandRes
     upgrade::prune_releases(&paths, previous_release.as_deref())?;
     println!("Agent updated to {target_version}");
     Ok(())
+}
+
+fn migrate_state(paths: &InstallPaths, journal: &UpdateJournal, database: &Path) -> Result<(), Error> {
+    match agent::persistence::Database::migrate(database) {
+        Ok(()) => Ok(()),
+        Err(error) => {
+            if let Err(discard_error) = journal.discard_before_migration(paths) {
+                return Err(Error::Database(format!(
+                    "{error}; failed to discard the pre-migration update journal: {discard_error}"
+                )));
+            }
+            Err(error)
+        }
+    }
 }
 
 fn validate_target_process(paths: &InstallPaths, target: &Path, version: &str) -> Result<(), Error> {
@@ -372,8 +380,9 @@ async fn verify_target(client: &Client, home: &ControlPlaneHome, target_version:
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
     Err(Error::Daemon(format!(
-        "target agentd {target_version:?} did not become healthy and finish Session relaunch within {} seconds",
-        TARGET_VERIFY_TIMEOUT.as_secs()
+        "target agentd {target_version:?} did not become healthy and finish Session relaunch within {} seconds; {}",
+        TARGET_VERIFY_TIMEOUT.as_secs(),
+        super::daemon_startup_diagnostics(home)
     )))
 }
 
@@ -440,7 +449,36 @@ mod tests {
     #[test]
     fn version_comparison_rejects_downgrade() {
         assert!(compare_versions("v2.0.0", "v1.0.0").is_err());
+        assert!(
+            compare_versions("v0.1.0-preview.2", "v0.0.1-dev.20260914000000").is_err(),
+            "the released-update policy also rejects a lower development build"
+        );
         assert!(same_version("1.0.0", "v1.0.0").expect("version"));
+    }
+
+    #[test]
+    fn failed_migration_discards_the_prepared_journal() {
+        let temporary = tempfile::TempDir::new().expect("temporary directory");
+        let paths =
+            InstallPaths::new(temporary.path().join("install"), temporary.path().join("bin")).expect("install paths");
+        let target = paths.releases().join(format!("v2.0.0-{}", upgrade::package_target()));
+        let mut journal = UpdateJournal::new(None, target, "v2.0.0".into());
+        journal
+            .advance(&paths, UpdatePhase::Prepared)
+            .expect("prepared journal");
+        let database = temporary.path().join("agent.db");
+        rusqlite::Connection::open(&database)
+            .expect("database")
+            .execute_batch("PRAGMA user_version = 999;")
+            .expect("future schema");
+
+        let error = migrate_state(&paths, &journal, &database).expect_err("migration failure");
+
+        assert!(error.to_string().contains("newer than the supported schema"), "{error}");
+        assert!(
+            !paths.journal().exists(),
+            "failed migration must not poison later commands"
+        );
     }
 
     #[test]
