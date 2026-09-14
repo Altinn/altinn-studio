@@ -11,7 +11,7 @@ public interface IAppDistSource
     /// <returns>The layer files, or <see langword="null"/> when the version does not exist.</returns>
     /// <exception cref="AppDistSourceException">The source could not complete the request.</exception>
     /// <exception cref="AppDistArtifactException">The source returned an invalid artifact.</exception>
-    Task<IReadOnlyList<AppDistFileEntry>?> FetchLayerAsync(
+    Task<IReadOnlyList<AppDistFileEntry>?> FetchLayer(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -19,7 +19,7 @@ public interface IAppDistSource
 
     /// <summary>Lists versions currently available from this source.</summary>
     /// <exception cref="AppDistSourceException">The source could not complete the request.</exception>
-    Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<string>> ListVersions(CancellationToken cancellationToken);
 }
 
 /// <summary>A file retrieved from an app distribution source.</summary>

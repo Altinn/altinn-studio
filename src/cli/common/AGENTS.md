@@ -25,6 +25,7 @@ dotnet test studioctl.slnx
 
 ## Working here
 
+- Async methods have no `Async` suffix, matching the app backend convention.
 - Keep the libraries dependency-light and free of studioctl-server or LSP references; they are consumed
   by both.
 - Changes here that alter studioctl behavior need a `src/cli/CHANGELOG.md` entry, like any other

@@ -25,7 +25,7 @@ public interface IAppDistProvider
     /// <returns>The requested content, or <see langword="null"/> when the version does not exist.</returns>
     /// <exception cref="AppDistSourceException">The source could not complete the request.</exception>
     /// <exception cref="AppDistArtifactException">The published artifact is invalid.</exception>
-    Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default);
+    Task<IAppDistContent?> GetVersion(string version, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets one layer of the app distribution for <paramref name="version"/>.
@@ -33,27 +33,20 @@ public interface IAppDistProvider
     /// <returns>The requested content, or <see langword="null"/> when the version does not exist.</returns>
     /// <exception cref="AppDistSourceException">The source could not complete the request.</exception>
     /// <exception cref="AppDistArtifactException">The published artifact is invalid.</exception>
-    Task<IAppDistContent?> GetLayerAsync(
-        string version,
-        AppDistLayer layer,
-        CancellationToken cancellationToken = default
-    );
+    Task<IAppDistContent?> GetLayer(string version, AppDistLayer layer, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists versions currently available from the configured source, in ascending Semantic Versioning
     /// precedence. Tags that are not valid Semantic Versioning 2.0.0 versions are omitted.
     /// </summary>
     /// <exception cref="AppDistSourceException">The source could not complete the request.</exception>
-    Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> ListVersions(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists versions present in the local cache for <paramref name="layer"/> without contacting the source,
-    /// filtered and ordered like <see cref="ListVersionsAsync"/>.
+    /// filtered and ordered like <see cref="ListVersions"/>.
     /// </summary>
-    Task<IReadOnlyList<string>> ListCachedVersionsAsync(
-        AppDistLayer layer,
-        CancellationToken cancellationToken = default
-    );
+    Task<IReadOnlyList<string>> ListCachedVersions(AppDistLayer layer, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -116,48 +109,48 @@ public sealed class AppDist : IAppDistProvider, IDisposable
         return new AppDist(new OciRegistrySource(httpClient, repository), new FileSystemAppDistStore(cacheDirectory));
     }
 
-    public Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default) =>
-        GetLayerAsync(version, AppDistLayer.Content, cancellationToken);
+    public Task<IAppDistContent?> GetVersion(string version, CancellationToken cancellationToken = default) =>
+        GetLayer(version, AppDistLayer.Content, cancellationToken);
 
-    public async Task<IAppDistContent?> GetLayerAsync(
+    public async Task<IAppDistContent?> GetLayer(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken = default
     )
     {
         ArgumentException.ThrowIfNullOrEmpty(version);
-        if (!await EnsureLayerAsync(version, layer, cancellationToken))
+        if (!await EnsureLayer(version, layer, cancellationToken))
             return null;
         return new LayerContent(_store, version, layer);
     }
 
-    public async Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken = default) =>
-        SemVer.FilterAndSort(await _source.ListVersionsAsync(cancellationToken));
+    public async Task<IReadOnlyList<string>> ListVersions(CancellationToken cancellationToken = default) =>
+        SemVer.FilterAndSort(await _source.ListVersions(cancellationToken));
 
-    public async Task<IReadOnlyList<string>> ListCachedVersionsAsync(
+    public async Task<IReadOnlyList<string>> ListCachedVersions(
         AppDistLayer layer,
         CancellationToken cancellationToken = default
-    ) => SemVer.FilterAndSort(await _store.ListVersionsAsync(layer, cancellationToken));
+    ) => SemVer.FilterAndSort(await _store.ListVersions(layer, cancellationToken));
 
     public void Dispose() => _ownedHttpClient?.Dispose();
 
-    private async Task<bool> EnsureLayerAsync(string version, AppDistLayer layer, CancellationToken ct)
+    private async Task<bool> EnsureLayer(string version, AppDistLayer layer, CancellationToken ct)
     {
-        if (await _store.ContainsAsync(version, layer, ct))
+        if (await _store.Contains(version, layer, ct))
             return true;
 
         var gate = _fetchGates.GetOrAdd((version, layer), static _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(ct);
         try
         {
-            if (await _store.ContainsAsync(version, layer, ct))
+            if (await _store.Contains(version, layer, ct))
                 return true;
 
-            var files = await _source.FetchLayerAsync(version, layer, ct);
+            var files = await _source.FetchLayer(version, layer, ct);
             if (files is null)
                 return false;
 
-            await _store.WriteAsync(version, layer, files, ct);
+            await _store.Write(version, layer, files, ct);
             _fetchGates.TryRemove((version, layer), out _);
             return true;
         }

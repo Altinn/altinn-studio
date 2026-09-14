@@ -19,13 +19,13 @@ public sealed class AppDistTests : IDisposable
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, (AppDist.JsonSchemas.Layout, """{"type":"object"}"""));
 
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         Assert.NotNull(schemas);
         Assert.Equal("4", schemas.Version);
         Assert.Equal(
             """{"type":"object"}""",
-            await schemas.GetFileTextAsync(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
+            await schemas.GetFileText(AppDist.JsonSchemas.Layout, TestContext.Current.CancellationToken)
         );
     }
 
@@ -36,7 +36,7 @@ public sealed class AppDistTests : IDisposable
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
         source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
 
-        await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, source.FetchRequests);
     }
@@ -46,16 +46,13 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         source.Offline = true;
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         Assert.NotNull(schemas);
-        Assert.Equal(
-            "{}",
-            await schemas.GetFileTextAsync("schemas/json/a.json", TestContext.Current.CancellationToken)
-        );
+        Assert.Equal("{}", await schemas.GetFileText("schemas/json/a.json", TestContext.Current.CancellationToken));
         Assert.Equal(1, source.FetchRequests);
     }
 
@@ -66,7 +63,7 @@ public sealed class AppDistTests : IDisposable
         source.Offline = true;
 
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+            provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
         );
     }
 
@@ -77,17 +74,14 @@ public sealed class AppDistTests : IDisposable
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
         source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"), ("schemas/json/a.json", "{}"));
 
-        var dist = await provider.GetVersionAsync("4", TestContext.Current.CancellationToken);
+        var dist = await provider.GetVersion("4", TestContext.Current.CancellationToken);
 
         Assert.NotNull(dist);
         Assert.Equal(1, source.FetchRequests);
         string[] expected = ["altinn-app-frontend.js", "schemas/json/a.json"];
-        Assert.Equal(expected, await dist.ListFilesAsync(TestContext.Current.CancellationToken));
-        Assert.Equal("{}", await dist.GetFileTextAsync("schemas/json/a.json", TestContext.Current.CancellationToken));
-        Assert.Equal(
-            "js",
-            await dist.GetFileTextAsync("altinn-app-frontend.js", TestContext.Current.CancellationToken)
-        );
+        Assert.Equal(expected, await dist.ListFiles(TestContext.Current.CancellationToken));
+        Assert.Equal("{}", await dist.GetFileText("schemas/json/a.json", TestContext.Current.CancellationToken));
+        Assert.Equal("js", await dist.GetFileText("altinn-app-frontend.js", TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -95,7 +89,7 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, _, _) = Setup();
 
-        Assert.Null(await provider.GetVersionAsync("4", TestContext.Current.CancellationToken));
+        Assert.Null(await provider.GetVersion("4", TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -105,7 +99,7 @@ public sealed class AppDistTests : IDisposable
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
 
         await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            provider.GetVersionAsync("4", TestContext.Current.CancellationToken)
+            provider.GetVersion("4", TestContext.Current.CancellationToken)
         );
     }
 
@@ -114,9 +108,9 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
-        await provider.GetLayerAsync("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
+        await provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
 
-        var dist = await provider.GetVersionAsync("4", TestContext.Current.CancellationToken);
+        var dist = await provider.GetVersion("4", TestContext.Current.CancellationToken);
 
         Assert.NotNull(dist);
         Assert.Equal(1, source.FetchRequests);
@@ -127,11 +121,11 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
 
         var ex = await Assert.ThrowsAsync<FileNotFoundException>(() =>
-            schemas.OpenFileAsync("schemas/json/missing.json", TestContext.Current.CancellationToken)
+            schemas.OpenFile("schemas/json/missing.json", TestContext.Current.CancellationToken)
         );
         Assert.Contains("missing.json", ex.Message);
     }
@@ -146,11 +140,11 @@ public sealed class AppDistTests : IDisposable
             ("schemas/json/layout/a.json", "{}"),
             ("schemas/json/b.json", """{"b":1}""")
         );
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
 
-        var withSlash = await schemas.GetFilesAsync("schemas/json/", TestContext.Current.CancellationToken);
-        var withoutSlash = await schemas.GetFilesAsync("schemas/json", TestContext.Current.CancellationToken);
+        var withSlash = await schemas.GetFiles("schemas/json/", TestContext.Current.CancellationToken);
+        var withoutSlash = await schemas.GetFiles("schemas/json", TestContext.Current.CancellationToken);
 
         Assert.Equal(withSlash, withoutSlash);
         Assert.Equal(["b.json", "layout/a.json"], withSlash.Keys.Order(StringComparer.Ordinal));
@@ -162,10 +156,10 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
 
-        var files = await schemas.GetFilesAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var files = await schemas.GetFiles(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("{}", Assert.Single(files, f => f.Key == "schemas/json/a.json").Value);
     }
@@ -175,10 +169,10 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
 
-        Assert.Empty(await schemas.GetFilesAsync("texts/", TestContext.Current.CancellationToken));
+        Assert.Empty(await schemas.GetFiles("texts/", TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -186,10 +180,10 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"), ("schemas/jsonx/b.json", "{}"));
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
 
-        var files = await schemas.GetFilesAsync("schemas/json", TestContext.Current.CancellationToken);
+        var files = await schemas.GetFiles("schemas/json", TestContext.Current.CancellationToken);
 
         Assert.Equal(["a.json"], files.Keys);
     }
@@ -201,7 +195,7 @@ public sealed class AppDistTests : IDisposable
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
         source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var tasks = Enumerable.Range(0, 8).Select(_ => provider.GetLayerAsync("4", AppDistLayer.Schemas)).ToArray();
+        var tasks = Enumerable.Range(0, 8).Select(_ => provider.GetLayer("4", AppDistLayer.Schemas)).ToArray();
         await source.FetchStarted.Task;
         source.BlockFetch.SetResult();
         var handles = await Task.WhenAll(tasks);
@@ -218,8 +212,8 @@ public sealed class AppDistTests : IDisposable
         source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "js"));
         source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var schemas = provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
-        var content = provider.GetLayerAsync("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
+        var schemas = provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var content = provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
         for (var i = 0; source.FetchRequests < 2 && i < 500; i++)
             await Task.Delay(10, TestContext.Current.CancellationToken);
 
@@ -237,11 +231,11 @@ public sealed class AppDistTests : IDisposable
         source.Offline = true;
 
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+            provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
         );
 
         source.Offline = false;
-        Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.NotNull(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
         Assert.Equal(1, source.FetchRequests);
     }
 
@@ -250,12 +244,12 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
 
-        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
-        Assert.Null(await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.Null(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.Null(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
 
         Assert.Equal(2, source.FetchRequests);
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        Assert.NotNull(await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.NotNull(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
         Assert.Equal(3, source.FetchRequests);
     }
 
@@ -266,10 +260,10 @@ public sealed class AppDistTests : IDisposable
         source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
         source.BlockFetch = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var first = provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var first = provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         await source.FetchStarted.Task;
         using var cts = new CancellationTokenSource();
-        var second = provider.GetLayerAsync("4", AppDistLayer.Schemas, cts.Token);
+        var second = provider.GetLayer("4", AppDistLayer.Schemas, cts.Token);
         await cts.CancelAsync();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => second);
@@ -286,7 +280,7 @@ public sealed class AppDistTests : IDisposable
         await cts.CancelAsync();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            provider.GetLayerAsync("4", AppDistLayer.Schemas, cts.Token)
+            provider.GetLayer("4", AppDistLayer.Schemas, cts.Token)
         );
     }
 
@@ -300,11 +294,11 @@ public sealed class AppDistTests : IDisposable
             ("altinn-app-frontend.js", "js"),
             ("schemas/json/layout/a.json", "{}")
         );
-        var dist = await provider.GetVersionAsync("4", TestContext.Current.CancellationToken);
+        var dist = await provider.GetVersion("4", TestContext.Current.CancellationToken);
         Assert.NotNull(dist);
 
         var target = Path.Combine(_tempDir, "www");
-        await dist.CopyToDirectoryAsync(target, TestContext.Current.CancellationToken);
+        await dist.CopyToDirectory(target, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             "{}",
@@ -327,7 +321,7 @@ public sealed class AppDistTests : IDisposable
     {
         var (provider, source, _) = Setup();
         source.AddFiles("4", AppDistLayer.Content, ("altinn-app-frontend.js", "new"));
-        var content = await provider.GetLayerAsync("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
+        var content = await provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken);
         Assert.NotNull(content);
         var target = Path.Combine(_tempDir, "www");
         Directory.CreateDirectory(target);
@@ -342,7 +336,7 @@ public sealed class AppDistTests : IDisposable
             TestContext.Current.CancellationToken
         );
 
-        await content.CopyToDirectoryAsync(target, TestContext.Current.CancellationToken);
+        await content.CopyToDirectory(target, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             "new",
@@ -361,17 +355,17 @@ public sealed class AppDistTests : IDisposable
     public async Task CopyToDirectory_PathEscapingEntryThrows()
     {
         var (provider, _, store) = Setup();
-        await store.WriteAsync(
+        await store.Write(
             "4",
             AppDistLayer.Schemas,
             [new AppDistFileEntry("../escape.json", "{}"u8.ToArray())],
             CancellationToken.None
         );
-        var schemas = await provider.GetLayerAsync("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        var schemas = await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
         Assert.NotNull(schemas);
 
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            schemas.CopyToDirectoryAsync(Path.Combine(_tempDir, "www"), TestContext.Current.CancellationToken)
+            schemas.CopyToDirectory(Path.Combine(_tempDir, "www"), TestContext.Current.CancellationToken)
         );
         Assert.Contains("escape", ex.Message);
     }
@@ -388,7 +382,7 @@ public sealed class AppDistTests : IDisposable
 
         Assert.Equal(
             ["8.12.8", "9.0.0-preview.9", "9.0.0-preview.10", "9.0.0-rc.1", "9.0.0"],
-            await provider.ListVersionsAsync(TestContext.Current.CancellationToken)
+            await provider.ListVersions(TestContext.Current.CancellationToken)
         );
     }
 
@@ -401,7 +395,7 @@ public sealed class AppDistTests : IDisposable
         )
             source.AddFiles(tag, AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
 
-        Assert.Equal(["0.0.0-test", "9.0.0"], await provider.ListVersionsAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(["0.0.0-test", "9.0.0"], await provider.ListVersions(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -411,7 +405,7 @@ public sealed class AppDistTests : IDisposable
         source.Offline = true;
 
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            provider.ListVersionsAsync(TestContext.Current.CancellationToken)
+            provider.ListVersions(TestContext.Current.CancellationToken)
         );
     }
 
@@ -421,15 +415,13 @@ public sealed class AppDistTests : IDisposable
         var (provider, source, _) = Setup();
         source.AddFiles("4.0.0", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
         source.AddFiles("not-a-version", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
-        await provider.GetLayerAsync("4.0.0", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
-        await provider.GetLayerAsync("not-a-version", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await provider.GetLayer("4.0.0", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
+        await provider.GetLayer("not-a-version", AppDistLayer.Schemas, TestContext.Current.CancellationToken);
 
         Assert.Equal(
             ["4.0.0"],
-            await provider.ListCachedVersionsAsync(AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+            await provider.ListCachedVersions(AppDistLayer.Schemas, TestContext.Current.CancellationToken)
         );
-        Assert.Empty(
-            await provider.ListCachedVersionsAsync(AppDistLayer.Content, TestContext.Current.CancellationToken)
-        );
+        Assert.Empty(await provider.ListCachedVersions(AppDistLayer.Content, TestContext.Current.CancellationToken));
     }
 }

@@ -16,13 +16,13 @@ public sealed partial class FileSystemAppDistStore : IAppDistStore
         _root = Path.GetFullPath(rootDirectory);
     }
 
-    public Task<bool> ContainsAsync(string version, AppDistLayer layer, CancellationToken cancellationToken)
+    public Task<bool> Contains(string version, AppDistLayer layer, CancellationToken cancellationToken)
     {
         var (contentDir, marker) = EntryPaths(version, layer);
         return Task.FromResult(Directory.Exists(contentDir) && File.Exists(marker));
     }
 
-    public async Task WriteAsync(
+    public async Task Write(
         string version,
         AppDistLayer layer,
         IReadOnlyList<AppDistFileEntry> files,
@@ -65,19 +65,14 @@ public sealed partial class FileSystemAppDistStore : IAppDistStore
         }
     }
 
-    public Task<Stream?> OpenFileAsync(
-        string version,
-        AppDistLayer layer,
-        string path,
-        CancellationToken cancellationToken
-    )
+    public Task<Stream?> OpenFile(string version, AppDistLayer layer, string path, CancellationToken cancellationToken)
     {
         var (contentDir, _) = EntryPaths(version, layer);
         var target = SafeChild(contentDir, path);
         return Task.FromResult<Stream?>(File.Exists(target) ? File.OpenRead(target) : null);
     }
 
-    public Task<IReadOnlyList<string>> ListFilesAsync(
+    public Task<IReadOnlyList<string>> ListFiles(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -94,7 +89,7 @@ public sealed partial class FileSystemAppDistStore : IAppDistStore
         return Task.FromResult(files);
     }
 
-    public Task<IReadOnlyList<string>> ListVersionsAsync(AppDistLayer layer, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<string>> ListVersions(AppDistLayer layer, CancellationToken cancellationToken)
     {
         var contents = Path.Combine(_root, "contents");
         if (!Directory.Exists(contents))

@@ -39,7 +39,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         _repository = repository[(slash + 1)..];
     }
 
-    public async Task<IReadOnlyList<AppDistFileEntry>?> FetchLayerAsync(
+    public async Task<IReadOnlyList<AppDistFileEntry>?> FetchLayer(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -48,14 +48,14 @@ public sealed partial class OciRegistrySource : IAppDistSource
         if (!TagPattern().IsMatch(version))
             throw new ArgumentException($"not a valid OCI tag: \"{version}\"");
 
-        var layers = await GetLayersAsync(version, LayerMediaType(layer), cancellationToken);
+        var layers = await GetLayers(version, LayerMediaType(layer), cancellationToken);
         if (layers is null)
             return null;
 
         var files = new List<AppDistFileEntry>();
         foreach (var ociLayer in layers)
         {
-            using var blob = await DownloadBlobAsync(ociLayer.Digest, cancellationToken);
+            using var blob = await DownloadBlob(ociLayer.Digest, cancellationToken);
             VerifyDigest(blob, ociLayer.Digest);
             blob.Position = 0;
             try
@@ -73,7 +73,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return files;
     }
 
-    public async Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<string>> ListVersions(CancellationToken cancellationToken)
     {
         var tags = new List<string>();
         var visited = new HashSet<string>(StringComparer.Ordinal);
@@ -85,7 +85,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
                 if (!visited.Add(url))
                     throw new AppDistSourceException($"{_host}/{_repository}: registry repeated tag list page {url}");
                 var pageUrl = url;
-                using var response = await SendAsync(
+                using var response = await Send(
                     () => new HttpRequestMessage(HttpMethod.Get, pageUrl),
                     cancellationToken
                 );
@@ -139,12 +139,12 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return null;
     }
 
-    private async Task<List<OciLayer>?> GetLayersAsync(string version, string mediaType, CancellationToken ct)
+    private async Task<List<OciLayer>?> GetLayers(string version, string mediaType, CancellationToken ct)
     {
         OciManifest? manifest;
         try
         {
-            using var response = await SendAsync(
+            using var response = await Send(
                 () =>
                 {
                     var request = new HttpRequestMessage(
@@ -156,7 +156,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
                 },
                 ct
             );
-            if (response.StatusCode == HttpStatusCode.NotFound && await IsManifestUnknownAsync(response, ct))
+            if (response.StatusCode == HttpStatusCode.NotFound && await IsManifestUnknown(response, ct))
                 return null;
             EnsureSuccess(response, $"fetch manifest {_repository}:{version}");
             try
@@ -188,12 +188,12 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return layers;
     }
 
-    private async Task<MemoryStream> DownloadBlobAsync(string digest, CancellationToken ct)
+    private async Task<MemoryStream> DownloadBlob(string digest, CancellationToken ct)
     {
         var blob = new MemoryStream();
         try
         {
-            using var response = await SendAsync(
+            using var response = await Send(
                 () => new HttpRequestMessage(HttpMethod.Get, $"https://{_host}/v2/{_repository}/blobs/{digest}"),
                 ct
             );
@@ -258,9 +258,9 @@ public sealed partial class OciRegistrySource : IAppDistSource
         return path;
     }
 
-    private async Task<HttpResponseMessage> SendAsync(Func<HttpRequestMessage> request, CancellationToken ct)
+    private async Task<HttpResponseMessage> Send(Func<HttpRequestMessage> request, CancellationToken ct)
     {
-        var response = await SendWithTokenAsync(request(), ct);
+        var response = await SendWithToken(request(), ct);
         if (response.StatusCode != HttpStatusCode.Unauthorized)
             return response;
 
@@ -273,18 +273,18 @@ public sealed partial class OciRegistrySource : IAppDistSource
                 $"{_host}: registry rejected the request without a bearer challenge",
                 HttpStatusCode.Unauthorized
             );
-        _token = await FetchTokenAsync(challenge.Parameter, ct);
-        return await SendWithTokenAsync(request(), ct);
+        _token = await FetchToken(challenge.Parameter, ct);
+        return await SendWithToken(request(), ct);
     }
 
-    private async Task<HttpResponseMessage> SendWithTokenAsync(HttpRequestMessage request, CancellationToken ct)
+    private async Task<HttpResponseMessage> SendWithToken(HttpRequestMessage request, CancellationToken ct)
     {
         if (_token is not null)
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
         return await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
     }
 
-    private async Task<string> FetchTokenAsync(string challengeParameter, CancellationToken ct)
+    private async Task<string> FetchToken(string challengeParameter, CancellationToken ct)
     {
         var parameters = ParseChallenge(challengeParameter);
         if (!parameters.TryGetValue("realm", out var realm))
@@ -346,7 +346,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
         throw new AppDistSourceException(message, status);
     }
 
-    private static async Task<bool> IsManifestUnknownAsync(HttpResponseMessage response, CancellationToken ct)
+    private static async Task<bool> IsManifestUnknown(HttpResponseMessage response, CancellationToken ct)
     {
         try
         {

@@ -20,7 +20,7 @@ internal sealed class FakeAppDistSource : IAppDistSource
         entries.AddRange(files.Select(f => new AppDistFileEntry(f.Path, Encoding.UTF8.GetBytes(f.Content))));
     }
 
-    public async Task<IReadOnlyList<AppDistFileEntry>?> FetchLayerAsync(
+    public async Task<IReadOnlyList<AppDistFileEntry>?> FetchLayer(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -39,7 +39,7 @@ internal sealed class FakeAppDistSource : IAppDistSource
         return null;
     }
 
-    public Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<string>> ListVersions(CancellationToken cancellationToken)
     {
         if (Offline)
             throw new AppDistSourceUnavailableException("offline");
@@ -57,10 +57,10 @@ internal sealed class InMemoryAppDistStore : IAppDistStore
     private readonly ConcurrentDictionary<(string Version, AppDistLayer Layer), Dictionary<string, byte[]>> _entries =
         new();
 
-    public Task<bool> ContainsAsync(string version, AppDistLayer layer, CancellationToken cancellationToken) =>
+    public Task<bool> Contains(string version, AppDistLayer layer, CancellationToken cancellationToken) =>
         Task.FromResult(_entries.ContainsKey((version, layer)));
 
-    public Task WriteAsync(
+    public Task Write(
         string version,
         AppDistLayer layer,
         IReadOnlyList<AppDistFileEntry> files,
@@ -74,7 +74,7 @@ internal sealed class InMemoryAppDistStore : IAppDistStore
         return Task.CompletedTask;
     }
 
-    public Task<Stream?> OpenFileAsync(
+    public Task<Stream?> OpenFile(
         string version,
         AppDistLayer layer,
         string path,
@@ -86,7 +86,7 @@ internal sealed class InMemoryAppDistStore : IAppDistStore
                 : null
         );
 
-    public Task<IReadOnlyList<string>> ListFilesAsync(
+    public Task<IReadOnlyList<string>> ListFiles(
         string version,
         AppDistLayer layer,
         CancellationToken cancellationToken
@@ -97,7 +97,7 @@ internal sealed class InMemoryAppDistStore : IAppDistStore
                 : Array.Empty<string>()
         );
 
-    public Task<IReadOnlyList<string>> ListVersionsAsync(AppDistLayer layer, CancellationToken cancellationToken) =>
+    public Task<IReadOnlyList<string>> ListVersions(AppDistLayer layer, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<string>>(
             _entries.Keys.Where(k => k.Layer == layer).Select(k => k.Version).Order(StringComparer.Ordinal).ToArray()
         );

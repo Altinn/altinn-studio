@@ -24,7 +24,7 @@ public sealed class OciRegistrySourceTests
             ("application/vnd.some.future.layer", handler.AddBlob(unknown), unknown.Length)
         );
 
-        var files = await Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None);
+        var files = await Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None);
 
         Assert.NotNull(files);
         var layout = Assert.Single(files);
@@ -41,7 +41,7 @@ public sealed class OciRegistrySourceTests
         handler.SetManifest("4", (ContentMediaType, handler.AddBlob(content), content.Length));
 
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains(SchemasMediaType, ex.Message);
     }
@@ -56,7 +56,7 @@ public sealed class OciRegistrySourceTests
         handler.SetManifest("4", (SchemasMediaType, lyingDigest, blob.Length));
 
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains("digest mismatch", ex.Message);
     }
@@ -69,7 +69,7 @@ public sealed class OciRegistrySourceTests
         handler.SetManifest("4", (SchemasMediaType, handler.AddBlob(blob), blob.Length));
 
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
         Assert.Contains("unsafe path", ex.Message);
     }
@@ -78,7 +78,7 @@ public sealed class OciRegistrySourceTests
     public async Task FetchLayer_InvalidTagThrows()
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            Source(new FakeRegistry()).FetchLayerAsync("../evil", AppDistLayer.Schemas, CancellationToken.None)
+            Source(new FakeRegistry()).FetchLayer("../evil", AppDistLayer.Schemas, CancellationToken.None)
         );
     }
 
@@ -88,7 +88,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry { Offline = true };
 
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
     }
 
@@ -98,8 +98,8 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry();
         var source = Source(handler);
 
-        Assert.Null(await source.FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None));
-        Assert.Null(await source.FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None));
+        Assert.Null(await source.FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None));
+        Assert.Null(await source.FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None));
 
         Assert.Equal(2, handler.ManifestRequests);
     }
@@ -110,7 +110,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry { ManifestErrorStatus = System.Net.HttpStatusCode.Forbidden };
 
         var ex = await Assert.ThrowsAsync<AppDistSourceAccessDeniedException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
         Assert.Equal(System.Net.HttpStatusCode.Forbidden, ex.StatusCode);
@@ -122,7 +122,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry { ManifestErrorStatus = System.Net.HttpStatusCode.ServiceUnavailable };
 
         var ex = await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
         Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable, ex.StatusCode);
@@ -138,7 +138,7 @@ public sealed class OciRegistrySourceTests
         };
 
         var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, ex.StatusCode);
@@ -152,7 +152,7 @@ public sealed class OciRegistrySourceTests
         handler.SetManifest("4", (SchemasMediaType, missingDigest, 10));
 
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
         Assert.Contains("missing blob", ex.Message);
@@ -165,7 +165,7 @@ public sealed class OciRegistrySourceTests
         handler.SetRawManifest("4", "not-json");
 
         var ex = await Assert.ThrowsAsync<AppDistArtifactException>(() =>
-            Source(handler).FetchLayerAsync("4", AppDistLayer.Schemas, CancellationToken.None)
+            Source(handler).FetchLayer("4", AppDistLayer.Schemas, CancellationToken.None)
         );
 
         Assert.Contains("manifest", ex.Message);
@@ -177,7 +177,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry();
         handler.AddTags("4.1.0", "3.0.0", "4.1.0");
 
-        var versions = await Source(handler).ListVersionsAsync(CancellationToken.None);
+        var versions = await Source(handler).ListVersions(CancellationToken.None);
 
         Assert.Equal(["3.0.0", "4.1.0"], versions);
     }
@@ -188,7 +188,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry { TagPageSize = 2 };
         handler.AddTags("1", "2", "3", "4", "5");
 
-        var versions = await Source(handler).ListVersionsAsync(CancellationToken.None);
+        var versions = await Source(handler).ListVersions(CancellationToken.None);
 
         Assert.Equal(["1", "2", "3", "4", "5"], versions);
         Assert.Equal(3, handler.TagListRequests);
@@ -201,7 +201,7 @@ public sealed class OciRegistrySourceTests
         handler.AddTags("1", "2");
 
         var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
-            Source(handler).ListVersionsAsync(CancellationToken.None)
+            Source(handler).ListVersions(CancellationToken.None)
         );
 
         Assert.Contains("repeated tag list page", ex.Message);
@@ -215,7 +215,7 @@ public sealed class OciRegistrySourceTests
         handler.AddTags("1");
 
         var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
-            Source(handler).ListVersionsAsync(CancellationToken.None)
+            Source(handler).ListVersions(CancellationToken.None)
         );
 
         Assert.Contains("realm is not HTTPS", ex.Message);
@@ -227,7 +227,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry { Offline = true };
 
         await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
-            Source(handler).ListVersionsAsync(CancellationToken.None)
+            Source(handler).ListVersions(CancellationToken.None)
         );
     }
 
@@ -237,7 +237,7 @@ public sealed class OciRegistrySourceTests
         var handler = new FakeRegistry { TagListErrorStatus = System.Net.HttpStatusCode.NotFound };
 
         var ex = await Assert.ThrowsAsync<AppDistSourceException>(() =>
-            Source(handler).ListVersionsAsync(CancellationToken.None)
+            Source(handler).ListVersions(CancellationToken.None)
         );
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, ex.StatusCode);
