@@ -60,6 +60,7 @@ public class AppUpgradeServiceTests
         Assert.Contains($"- '{BranchName}'", workflow);
         Assert.Contains("BASE_BRANCH: 'main'", workflow);
         Assert.Contains("studioctl app upgrade v9 --json", workflow);
+        Assert.Contains("git -C app push --quiet origin --delete \"$UPGRADE_BRANCH\"", workflow);
         Assert.DoesNotContain("__", workflow.Replace("${{", "").Replace("__REPORT", "x"));
     }
 
@@ -431,6 +432,54 @@ public class AppUpgradeServiceTests
 
     private static object Step(string name, params (string Text, string Status)[] messages) =>
         new { name, messages = messages.Select(m => new { text = m.Text, status = m.Status }).ToArray() };
+
+    [Fact]
+    public async Task GetStatusAsync_ReportsNewestUpgradeBranchAsActive()
+    {
+        SetupRemoteFile("App/App.csproj", CsprojWithAppApi("8.12.7"));
+        SetupRemoteFile("App/views/Home/Index.cshtml", null);
+        _giteaClient
+            .Setup(g => g.GetBranches(Org, Repo))
+            .ReturnsAsync([
+                new Branch { Name = "master" },
+                new Branch { Name = "upgrade/altinn-app-v9-20260914-061154" },
+                new Branch { Name = "upgrade/altinn-app-v9-20260914-062231" },
+                new Branch { Name = "feature/something" },
+            ]);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeStatus status = await service.GetStatusAsync(Context(), CancellationToken.None);
+
+        Assert.Equal("upgrade/altinn-app-v9-20260914-062231", status.ActiveUpgradeBranch);
+    }
+
+    [Fact]
+    public async Task GetStatusAsync_WithoutUpgradeBranches_HasNoActiveUpgrade()
+    {
+        SetupRemoteFile("App/App.csproj", CsprojWithAppApi("8.12.7"));
+        SetupRemoteFile("App/views/Home/Index.cshtml", null);
+        _giteaClient.Setup(g => g.GetBranches(Org, Repo)).ReturnsAsync([new Branch { Name = "master" }]);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeStatus status = await service.GetStatusAsync(Context(), CancellationToken.None);
+
+        Assert.Null(status.ActiveUpgradeBranch);
+    }
+
+    [Fact]
+    public async Task GetRunAsync_WhenRunIsWaitingButAJobRuns_ReportsRunning()
+    {
+        SetupRuns(Run(status: "waiting"));
+        ActionWorkflowJob job = Job(conclusion: null, ("Clone the app", "success"), ("Upgrade the app", "running"));
+        job.Status = "running";
+        SetupJobs(job);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeRun run = await service.GetRunAsync(Context(), BranchName, CancellationToken.None);
+
+        Assert.Equal(AppUpgradeRunState.Running, run.State);
+        Assert.Equal("Upgrade the app", run.CurrentStep);
+    }
 
     private void SetupRuns(params ActionWorkflowRun[] runs) =>
         _giteaClient

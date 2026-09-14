@@ -99,6 +99,7 @@ public partial class AppUpgradeService : IAppUpgradeService
         bool isAutomaticUpgradeSupported =
             backendVersion is not null && backendVersion.Major == AutomaticUpgradeSourceMajorVersion;
         bool hasCustomCode = isUpgradeAvailable && await HasCustomCodeAsync(repoContext, cancellationToken);
+        string? activeUpgradeBranch = isUpgradeAvailable ? await FindActiveUpgradeBranchAsync(repoContext) : null;
 
         return new AppUpgradeStatus(
             backendVersion?.ToString(),
@@ -106,8 +107,22 @@ public partial class AppUpgradeService : IAppUpgradeService
             TargetMajorVersion,
             isUpgradeAvailable,
             isAutomaticUpgradeSupported,
-            hasCustomCode
+            hasCustomCode,
+            activeUpgradeBranch
         );
+    }
+
+    private async Task<string?> FindActiveUpgradeBranchAsync(AltinnRepoContext repoContext)
+    {
+        List<RepositoryClient.Model.Branch>? branches = await _giteaClient.GetBranches(
+            repoContext.Org,
+            repoContext.Repo
+        );
+        return branches
+            ?.Select(branch => branch.Name)
+            .Where(name => name is not null && name.StartsWith(_settings.BranchPrefix, StringComparison.Ordinal))
+            .OrderByDescending(name => name, StringComparer.Ordinal)
+            .FirstOrDefault();
     }
 
     private async Task<bool> HasCustomCodeAsync(AltinnRepoContext repoContext, CancellationToken cancellationToken)
@@ -221,20 +236,17 @@ public partial class AppUpgradeService : IAppUpgradeService
         }
 
         string status = (run.Status ?? string.Empty).ToLowerInvariant();
+        List<ActionWorkflowJob> jobs =
+            await _giteaClient.ListWorkflowRunJobsAsync(repoContext.Org, repoContext.Repo, run.Id, cancellationToken)
+            ?? [];
+        if (s_runningRunStatuses.Contains(status) || jobs.Any(IsRunning))
+        {
+            return new AppUpgradeRun(AppUpgradeRunState.Running, run.HtmlUrl, CurrentStepName(jobs));
+        }
+
         if (s_queuedRunStatuses.Contains(status))
         {
             return new AppUpgradeRun(AppUpgradeRunState.Queued, run.HtmlUrl);
-        }
-
-        List<ActionWorkflowJob> jobs = await _giteaClient.ListWorkflowRunJobsAsync(
-            repoContext.Org,
-            repoContext.Repo,
-            run.Id,
-            cancellationToken
-        );
-        if (s_runningRunStatuses.Contains(status))
-        {
-            return new AppUpgradeRun(AppUpgradeRunState.Running, run.HtmlUrl, CurrentStepName(jobs));
         }
 
         AppUpgradeResult result = await BuildResult(repoContext, branchName, run, jobs, cancellationToken);
@@ -278,6 +290,9 @@ public partial class AppUpgradeService : IAppUpgradeService
             AppUpgradeRunState.Completed,
             Result: new AppUpgradeResult(AppUpgradeOutcome.Failed, message, TargetMajorVersion, [], [], [], branchName)
         );
+
+    private static bool IsRunning(ActionWorkflowJob job) =>
+        s_runningRunStatuses.Contains((job.Status ?? string.Empty).ToLowerInvariant());
 
     private static string? CurrentStepName(List<ActionWorkflowJob> jobs) =>
         jobs.SelectMany(job => job.Steps)

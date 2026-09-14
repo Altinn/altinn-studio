@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   StudioAlert,
   StudioBlobDownloader,
@@ -32,7 +31,6 @@ import type {
 } from 'app-shared/types/AppUpgrade';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { APP_DEVELOPMENT_BASENAME, NEXT_V9_VERSION } from 'app-shared/constants';
-import { storeAssistantPromptHandoff } from 'app-shared/utils/assistantPromptHandoff';
 import { buildManualTasksText, buildMarkdownReport, groupManualTasksByStep } from './upgradeReport';
 import { UpgradeStepper } from './UpgradeStepper';
 import type { UpgradeStep } from './UpgradeStepper';
@@ -41,6 +39,8 @@ import { UpgradeBreadcrumbs } from './UpgradeBreadcrumbs';
 import classes from './AppUpgradePage.module.css';
 
 type Phase = 'intro' | 'starting' | UpgradeStep;
+
+const branchParam = 'branch';
 
 const resolvePhase = (
   startedBranch: string | null,
@@ -61,9 +61,10 @@ export const AppUpgradePage = (): ReactElement => {
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
   const navigate = useNavigate();
-  const [startedBranch, setStartedBranch] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: status } = useAppUpgradeStatusQuery(org, app);
   const start = useStartAppUpgradeMutation(org, app);
+  const startedBranch = searchParams.get(branchParam) ?? status?.activeUpgradeBranch ?? null;
   const runQuery = useAppUpgradeRunQuery(org, app, startedBranch);
   const phase = resolvePhase(
     startedBranch,
@@ -84,7 +85,7 @@ export const AppUpgradePage = (): ReactElement => {
     start.mutate(undefined, {
       onSuccess: (started) => {
         if (started.status === 'Started' && started.branchName)
-          setStartedBranch(started.branchName);
+          setSearchParams({ [branchParam]: started.branchName }, { replace: true });
       },
     });
   };
@@ -324,10 +325,9 @@ const Done = ({
             message: result?.message ?? t('app_upgrade.starting.request_failed'),
             interpolation: { escapeValue: false },
           });
-    storeAssistantPromptHandoff(org, app, prompt);
-    window.location.assign(
-      `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ai-assistant?featureFlags=aiAssistant`,
-    );
+    const query = new URLSearchParams({ featureFlags: 'aiAssistant', prompt });
+    if (result?.branchName) query.set('branch', result.branchName);
+    window.location.assign(`${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ai-assistant?${query}`);
   };
 
   const mergeAndPublish = (): void => {

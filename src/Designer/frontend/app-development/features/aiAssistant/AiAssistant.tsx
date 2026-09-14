@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Assistant } from '@studio/assistant';
 import { useTranslation } from 'react-i18next';
 import { useAssistant, useAssistantPermissions, useAssistantTexts } from './hooks';
@@ -11,7 +12,10 @@ import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedb
 import { useClearChatFeedbackMutation } from 'app-shared/hooks/mutations/useClearChatFeedbackMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
-import { takeAssistantPromptHandoff } from 'app-shared/utils/assistantPromptHandoff';
+import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
+
+const branchParam = 'branch';
+const promptParam = 'prompt';
 
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -21,10 +25,22 @@ function AiAssistant(): ReactElement {
   const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
   const { mutate: clearChatFeedback } = useClearChatFeedbackMutation(org, app);
   const texts = useAssistantTexts();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [handoffPrompt, setHandoffPrompt] = useState<string | null>(() =>
-    takeAssistantPromptHandoff(org, app),
+    searchParams.get(promptParam),
   );
   const clearHandoffPrompt = useCallback(() => setHandoffPrompt(null), []);
+  const { mutate: checkoutBranch } = useCheckoutBranchMutation(org, app);
+
+  useEffect(() => {
+    const branch = searchParams.get(branchParam);
+    if (!branch && !searchParams.has(promptParam)) return;
+    if (branch) checkoutBranch(branch);
+    const remaining = new URLSearchParams(searchParams);
+    remaining.delete(branchParam);
+    remaining.delete(promptParam);
+    setSearchParams(remaining, { replace: true });
+  }, [searchParams, setSearchParams, checkoutBranch]);
 
   const {
     connectionStatus,

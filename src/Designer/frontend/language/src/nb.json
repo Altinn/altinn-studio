@@ -475,6 +475,7 @@
   "app_upgrade.next": "Neste",
   "app_upgrade.notice_automatic_available": "Automatisk oppdatering tilgjengelig",
   "app_upgrade.notice_available": "Oppdatering tilgjengelig",
+  "app_upgrade.notice_in_progress": "Oppdatering pågår",
   "app_upgrade.page_title": "Oppdater {{app}} til v{{version}}",
   "app_upgrade.show_full_report": "Vis hele rapporten fra oppdateringsverktøyet",
   "app_upgrade.starting.blocked": "Oppdateringen kan ikke starte.",

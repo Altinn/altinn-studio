@@ -91,11 +91,7 @@ import {
   layoutSetsV4Path,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
-import type {
-  AppUpgradeMergeRequest,
-  AppUpgradeMergeResult,
-  AppUpgradeStart,
-} from 'app-shared/types/AppUpgrade';
+import type { AppUpgradeMergeRequest, AppUpgradeMergeResult, AppUpgradeStart } from 'app-shared/types/AppUpgrade';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
 import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
