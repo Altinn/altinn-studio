@@ -24,6 +24,8 @@ public class PullRequest
 
 public class PullRequestBranch
 {
+    public string? Label { get; set; }
+
     public string? Ref { get; set; }
 
     public string? Sha { get; set; }
