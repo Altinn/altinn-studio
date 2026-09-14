@@ -95,6 +95,7 @@ export const appUpgradeResult: AppUpgradeResult = {
   branchName: null,
   pullRequestUrl: null,
   pullRequestNumber: null,
+  pullRequestMerged: false,
 };
 
 export const appUpgradeRun: AppUpgradeRun = {

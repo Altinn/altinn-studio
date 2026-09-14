@@ -269,6 +269,31 @@ public class AppUpgradeServiceTests
     }
 
     [Fact]
+    public async Task GetRunAsync_WhenThePullRequestIsMerged_ReportsIt()
+    {
+        SetupRuns(Run(status: "completed", conclusion: "success"));
+        SetupJobs(Job(conclusion: "success"));
+        SetupJobLogs(ReportLog(exitCode: 0, Step("Project file", ("Bumped", "OK"))));
+        _giteaClient
+            .Setup(g => g.ListPullRequestsAsync(Org, Repo, "all", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new PullRequest
+                {
+                    Number = 1,
+                    HtmlUrl = PullRequestUrl,
+                    Merged = true,
+                    Head = new PullRequestBranch { Ref = BranchName },
+                },
+            ]);
+        AppUpgradeService service = CreateService();
+
+        AppUpgradeRun run = await service.GetRunAsync(Context(), BranchName, CancellationToken.None);
+
+        Assert.Equal(AppUpgradeOutcome.Completed, run.Result!.Outcome);
+        Assert.True(run.Result.PullRequestMerged);
+    }
+
+    [Fact]
     public async Task GetRunAsync_WhenAStepFailed_ReportsThatStepsMessage()
     {
         SetupRuns(Run(status: "completed", conclusion: "failure"));

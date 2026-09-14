@@ -47,6 +47,7 @@ export type AppUpgradeResult = {
   branchName: string | null;
   pullRequestUrl: string | null;
   pullRequestNumber: number | null;
+  pullRequestMerged: boolean;
 };
 
 export type AppUpgradeStartStatus = 'Started' | 'UnsupportedVersion' | 'Failed';
