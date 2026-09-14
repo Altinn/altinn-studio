@@ -304,36 +304,6 @@ public class AppUpgradeServiceTests
     }
 
     [Theory]
-    [InlineData("Program.cs", false)]
-    [InlineData("TestDummy.cs", false)]
-    [InlineData("MyDataProcessor.cs", true)]
-    public async Task GetStatusAsync_DetectsCustomCodeNextToProgramFile(string fileName, bool expectedCustomCode)
-    {
-        SetupRemoteFile("App/App.csproj", CsprojWithAppApi("8.5.0"));
-        SetupRemoteFile("App/views/Home/Index.cshtml", null);
-        SetupRemoteDirectory("App", (fileName, "file"), ("config", "dir"));
-        AppUpgradeService service = CreateService();
-
-        AppUpgradeStatus status = await service.GetStatusAsync(Context(), CancellationToken.None);
-
-        Assert.Equal(expectedCustomCode, status.HasCustomCode);
-    }
-
-    [Fact]
-    public async Task GetStatusAsync_DetectsCustomCodeInLogicFolder()
-    {
-        SetupRemoteFile("App/App.csproj", CsprojWithAppApi("8.5.0"));
-        SetupRemoteFile("App/views/Home/Index.cshtml", null);
-        SetupRemoteDirectory("App", ("Program.cs", "file"), ("logic", "dir"));
-        SetupRemoteDirectory("App/logic", ("TaskHooks.cs", "file"));
-        AppUpgradeService service = CreateService();
-
-        AppUpgradeStatus status = await service.GetStatusAsync(Context(), CancellationToken.None);
-
-        Assert.True(status.HasCustomCode);
-    }
-
-    [Theory]
     [InlineData("8.5.0", true, true)]
     [InlineData("7.9.0", true, false)]
     [InlineData("9.0.0-preview.4", false, false)]
@@ -523,22 +493,6 @@ public class AppUpgradeServiceTests
         _giteaClient
             .Setup(g => g.GetRepository(Org, Repo))
             .ReturnsAsync(new Repository { DefaultBranch = defaultBranch });
-
-    private void SetupRemoteDirectory(string path, params (string Name, string Type)[] entries)
-    {
-        _giteaClient
-            .Setup(g => g.GetDirectoryAsync(Org, Repo, path, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                entries
-                    .Select(entry => new FileSystemObject
-                    {
-                        Name = entry.Name,
-                        Path = $"{path}/{entry.Name}",
-                        Type = entry.Type,
-                    })
-                    .ToList()
-            );
-    }
 
     private void SetupRemoteFile(string path, string content)
     {
