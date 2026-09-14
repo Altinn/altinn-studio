@@ -282,7 +282,7 @@ public class AppUpgradeServiceTests
                     Number = 1,
                     HtmlUrl = PullRequestUrl,
                     Merged = true,
-                    Head = new PullRequestBranch { Ref = BranchName },
+                    Head = new PullRequestBranch { Ref = "refs/pull/1/head", Label = BranchName },
                 },
             ]);
         AppUpgradeService service = CreateService();

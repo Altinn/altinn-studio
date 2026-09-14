@@ -125,7 +125,7 @@ public partial class AppUpgradeService : IAppUpgradeService
             "open",
             cancellationToken
         );
-        return pullRequests?.Any(pullRequest => pullRequest.Head?.Ref == branchName) ?? false;
+        return pullRequests?.Any(pullRequest => IsForBranch(pullRequest, branchName)) ?? false;
     }
 
     private async Task<string?> FindActiveUpgradeBranchAsync(AltinnRepoContext repoContext)
@@ -315,7 +315,7 @@ public partial class AppUpgradeService : IAppUpgradeService
         List<PullRequest> pullRequests =
             await _giteaClient.ListPullRequestsAsync(repoContext.Org, repoContext.Repo, "all", cancellationToken) ?? [];
         PullRequest? pullRequest = pullRequests
-            .Where(candidate => candidate.Head?.Ref == branchName)
+            .Where(candidate => IsForBranch(candidate, branchName))
             .OrderByDescending(candidate => candidate.Number)
             .FirstOrDefault();
 
@@ -345,6 +345,9 @@ public partial class AppUpgradeService : IAppUpgradeService
             pullRequest?.Merged ?? false
         );
     }
+
+    private static bool IsForBranch(PullRequest pullRequest, string branchName) =>
+        pullRequest.Head?.Ref == branchName || pullRequest.Head?.Label == branchName;
 
     private static (AppUpgradeOutcome Outcome, string Message) DetermineOutcome(
         StudioctlUpgradeReport? report,
