@@ -18,12 +18,13 @@ export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement 
   const { t } = useTranslation();
   const [org, app] = repo.full_name.split('/');
   const isOrganizationRepo = useIsOrganizationRepo(org);
-  const { data: status } = useAppUpgradeStatusQuery(org, app, isOrganizationRepo);
+  const canUpgrade = isOrganizationRepo && Boolean(repo.permissions?.push);
+  const { data: status } = useAppUpgradeStatusQuery(org, app, canUpgrade);
   const navigate = useNavigate();
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
 
-  if (!isOrganizationRepo || !status?.isUpgradeAvailable) return null;
+  if (!canUpgrade || !status?.isUpgradeAvailable) return null;
 
   const branch = status.activeUpgradeBranch;
   const textKey = branch
