@@ -95,7 +95,9 @@ public partial class AppUpgradeService : IAppUpgradeService
         bool isUpgradeAvailable = backendVersion is not null && backendVersion.Major < TargetMajorVersion;
         bool isAutomaticUpgradeSupported =
             backendVersion is not null && backendVersion.Major == AutomaticUpgradeSourceMajorVersion;
-        string? activeUpgradeBranch = isUpgradeAvailable ? await FindActiveUpgradeBranchAsync(repoContext) : null;
+        string? activeUpgradeBranch = isAutomaticUpgradeSupported
+            ? await FindActiveUpgradeBranchAsync(repoContext)
+            : null;
         bool activeUpgradeHasPullRequest =
             activeUpgradeBranch is not null
             && await HasOpenPullRequestAsync(repoContext, activeUpgradeBranch, cancellationToken);
