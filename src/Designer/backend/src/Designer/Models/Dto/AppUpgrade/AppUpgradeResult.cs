@@ -11,7 +11,8 @@ public sealed record AppUpgradeResult(
     IReadOnlyList<AppUpgradeFileChange> FileChanges,
     string? BranchName = null,
     string? PullRequestUrl = null,
-    long? PullRequestNumber = null
+    long? PullRequestNumber = null,
+    bool PullRequestMerged = false
 );
 
 public sealed record AppUpgradeStep(string Name, IReadOnlyList<AppUpgradeMessage> Messages);
