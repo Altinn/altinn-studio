@@ -13,7 +13,7 @@ pub struct ApplyRequest {
     /// Absolute path of the manifest being applied, recorded for discovery.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest_path: Option<PathBuf>,
-    /// Absolute path of the file supplying manifest secret values. Defaults to `.env` beside the
+    /// Absolute path of the file supplying declared manifest values. Defaults to `.env` beside the
     /// manifest; omitted on an update keeps the recorded path.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub env_file: Option<PathBuf>,
