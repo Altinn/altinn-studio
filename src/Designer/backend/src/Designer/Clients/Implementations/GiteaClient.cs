@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Exceptions.Gitea;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.GiteaActions;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -802,6 +803,144 @@ public class GiteaClient(
         }
 
         return await response.Content.ReadFromJsonAsync<PullRequest>(s_jsonOptions, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<PullRequest>> ListPullRequestsAsync(
+        string org,
+        string repository,
+        string state,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/pulls?state={state}&sort=recentupdate&limit=50",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        return await response.Content.ReadFromJsonAsync<List<PullRequest>>(s_jsonOptions, cancellationToken) ?? [];
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> GetPullRequestDiffAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/pulls/{pullRequestNumber}.diff",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> ChangeFilesAsync(
+        string org,
+        string repository,
+        ChangeFilesOptions options,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string content = JsonSerializer.Serialize(options, s_jsonOptions);
+        using HttpResponseMessage response = await httpClient.PostAsync(
+            $"repos/{org}/{repository}/contents",
+            new StringContent(content, Encoding.UTF8, "application/json"),
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            logger.LogWarning(
+                "User {Developer} could not change files in {Org}/{Repo} on branch {Branch}: {StatusCode}",
+                developer,
+                org,
+                repository,
+                (options.NewBranch ?? options.Branch)?.WithoutLineBreaks(),
+                (int)response.StatusCode
+            );
+        }
+
+        return response.IsSuccessStatusCode;
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<ActionWorkflowRun>> ListWorkflowRunsAsync(
+        string org,
+        string repository,
+        string branch,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/actions/runs?branch={Uri.EscapeDataString(branch)}&limit=20",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        ActionWorkflowRunList list = await response.Content.ReadFromJsonAsync<ActionWorkflowRunList>(
+            s_jsonOptions,
+            cancellationToken
+        );
+        return list?.WorkflowRuns is null ? [] : [.. list.WorkflowRuns];
+    }
+
+    /// <inheritdoc/>
+    public async Task<List<ActionWorkflowJob>> ListWorkflowRunJobsAsync(
+        string org,
+        string repository,
+        long runId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/actions/runs/{runId}/jobs",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return [];
+        }
+
+        ActionWorkflowJobList list = await response.Content.ReadFromJsonAsync<ActionWorkflowJobList>(
+            s_jsonOptions,
+            cancellationToken
+        );
+        return list?.Jobs is null ? [] : [.. list.Jobs];
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> GetWorkflowJobLogsAsync(
+        string org,
+        string repository,
+        long jobId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync(
+            $"repos/{org}/{repository}/actions/jobs/{jobId}/logs",
+            cancellationToken
+        );
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync(cancellationToken);
     }
 
     /// <inheritdoc/>

@@ -7,8 +7,7 @@ import {
   discardChangesPath,
   copyAppPath,
   appUpgradeMergePath,
-  appUpgradePath,
-  appUpgradePreparePath,
+  appUpgradeStartPath,
   createRepoPath,
   deploymentsPath,
   formLayoutNamePath,
@@ -95,8 +94,7 @@ import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload
 import type {
   AppUpgradeMergeRequest,
   AppUpgradeMergeResult,
-  AppUpgradePreparation,
-  AppUpgradeResult,
+  AppUpgradeStart,
 } from 'app-shared/types/AppUpgrade';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
@@ -161,8 +159,7 @@ export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepo
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
-export const upgradeApp = (org: string, app: string) => post<AppUpgradeResult>(appUpgradePath(org, app));
-export const prepareAppUpgrade = (org: string, app: string) => post<AppUpgradePreparation>(appUpgradePreparePath(org, app));
+export const startAppUpgrade = (org: string, app: string) => post<AppUpgradeStart>(appUpgradeStartPath(org, app));
 export const mergeAppUpgrade = (org: string, app: string, payload: AppUpgradeMergeRequest) => post<AppUpgradeMergeResult, AppUpgradeMergeRequest>(appUpgradeMergePath(org, app), payload);
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);

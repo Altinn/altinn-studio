@@ -8,7 +8,7 @@ export type AppUpgradeStatus = {
 };
 
 export type AppUpgradeOutcome =
-  'Completed' | 'ManualStepsRequired' | 'UnsupportedVersion' | 'LocalChangesBlocking' | 'Failed';
+  'Completed' | 'ManualStepsRequired' | 'UnsupportedVersion' | 'Failed';
 
 export type AppUpgradeMessageStatus = 'Info' | 'Ok' | 'Skip' | 'Warning' | 'Todo' | 'Failed';
 
@@ -48,6 +48,23 @@ export type AppUpgradeResult = {
   pullRequestNumber: number | null;
 };
 
+export type AppUpgradeStartStatus = 'Started' | 'UnsupportedVersion' | 'Failed';
+
+export type AppUpgradeStart = {
+  status: AppUpgradeStartStatus;
+  message: string;
+  branchName: string | null;
+};
+
+export type AppUpgradeRunState = 'Queued' | 'Running' | 'Completed';
+
+export type AppUpgradeRun = {
+  state: AppUpgradeRunState;
+  runUrl: string | null;
+  currentStep: string | null;
+  result: AppUpgradeResult | null;
+};
+
 export type AppUpgradeMergeRequest = {
   pullRequestNumber: number;
   branchName: string | null;
@@ -57,11 +74,4 @@ export type AppUpgradeMergeResult = {
   isMerged: boolean;
   message: string;
   baseBranch: string | null;
-};
-
-export type AppUpgradePreparationStatus = 'Ready' | 'LocalChangesBlocking' | 'UnsupportedVersion';
-
-export type AppUpgradePreparation = {
-  status: AppUpgradePreparationStatus;
-  message: string;
 };

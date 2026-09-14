@@ -1,10 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
-export const usePrepareAppUpgradeMutation = (org: string, app: string) => {
-  const { prepareAppUpgrade } = useServicesContext();
+export const useStartAppUpgradeMutation = (org: string, app: string) => {
+  const { startAppUpgrade } = useServicesContext();
   return useMutation({
-    mutationFn: () => prepareAppUpgrade(org, app),
+    mutationFn: () => startAppUpgrade(org, app),
     meta: { hideDefaultError: true },
   });
 };

@@ -20,8 +20,9 @@ import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/typ
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type {
   AppUpgradeMergeResult,
-  AppUpgradePreparation,
   AppUpgradeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
   AppUpgradeStatus,
 } from 'app-shared/types/AppUpgrade';
 import type { Build } from 'app-shared/types/Build';
@@ -77,9 +78,10 @@ export const appUpgradeStatus: AppUpgradeStatus = {
   hasCustomCode: false,
 };
 
-export const appUpgradePreparation: AppUpgradePreparation = {
-  status: 'Ready',
+export const appUpgradeStart: AppUpgradeStart = {
+  status: 'Started',
   message: '',
+  branchName: 'upgrade/altinn-app-v9-20260907-120000',
 };
 
 export const appUpgradeResult: AppUpgradeResult = {
@@ -92,6 +94,13 @@ export const appUpgradeResult: AppUpgradeResult = {
   branchName: null,
   pullRequestUrl: null,
   pullRequestNumber: null,
+};
+
+export const appUpgradeRun: AppUpgradeRun = {
+  state: 'Completed',
+  runUrl: null,
+  currentStep: null,
+  result: appUpgradeResult,
 };
 
 export const appUpgradeMergeResult: AppUpgradeMergeResult = {

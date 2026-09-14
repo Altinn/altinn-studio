@@ -5,8 +5,8 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type {
   AppUpgradeMergeResult,
-  AppUpgradePreparation,
-  AppUpgradeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
   AppUpgradeStatus,
 } from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -63,8 +63,8 @@ import {
   deploymentsResponse,
   appVersion,
   appUpgradeMergeResult,
-  appUpgradePreparation,
-  appUpgradeResult,
+  appUpgradeRun,
+  appUpgradeStart,
   appUpgradeStatus,
   appReleasesResponse,
   applicationMetadata,
@@ -113,6 +113,9 @@ export const queriesMock: ServicesContextProps = {
   getAppUpgradeStatus: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeStatus>(appUpgradeStatus)),
+  getAppUpgradeRun: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeRun>(appUpgradeRun)),
   getAvailableResourcesFromOrg: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
@@ -338,12 +341,9 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
-  prepareAppUpgrade: jest
+  startAppUpgrade: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<AppUpgradePreparation>(appUpgradePreparation)),
-  upgradeApp: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<AppUpgradeResult>(appUpgradeResult)),
+    .mockImplementation(() => Promise.resolve<AppUpgradeStart>(appUpgradeStart)),
   mergeAppUpgrade: jest
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeMergeResult>(appUpgradeMergeResult)),
