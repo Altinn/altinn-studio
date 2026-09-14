@@ -767,6 +767,67 @@ public sealed class CancellationTokenParameterMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task OverrideFamily_WhereOneMemberUsesTheName_IsLeftWholeAndReported()
+    {
+        // The name check has to hold for the whole override family. Adding the parameter to the base while
+        // skipping an override that uses the name would leave the app with a signature mismatch.
+        var basePath = Write(
+            "logic/PaymentProcessorBase.cs",
+            ModelUsings
+                + """
+
+                public abstract class PaymentProcessorBase : IPaymentProcessor
+                {
+                    public abstract string PaymentProcessorId { get; }
+
+                    public abstract Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language);
+
+                    public Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation) =>
+                        throw new NotImplementedException();
+
+                    public Task<(PaymentStatus status, PaymentDetails paymentDetails)> GetPaymentStatus(Instance instance, string paymentId, decimal expectedTotalIncVat, string? language) =>
+                        throw new NotImplementedException();
+                }
+                """
+        );
+        var derivedPath = Write(
+            "logic/MyPaymentProcessor.cs",
+            "using System.Threading;\n"
+                + ModelUsings
+                + """
+
+                public class MyPaymentProcessor : PaymentProcessorBase
+                {
+                    public override string PaymentProcessorId => "mine";
+
+                    public override Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language)
+                    {
+                        CancellationToken cancellationToken = default;
+                        return Task.FromResult<PaymentDetails>(cancellationToken.IsCancellationRequested ? null! : null!);
+                    }
+                }
+                """
+        );
+        var result = Migrate(semantic: true);
+
+        // The whole family is reported and left alone. The other members of the base class are their own
+        // families and are still migrated, so only the StartPayment signatures must survive untouched.
+        Assert.True(result.RequiresManualFollowUp);
+        var todo = Assert.Single(result.Todos, message => message.Contains("StartPayment", StringComparison.Ordinal));
+        Assert.Contains("'cancellationToken'", todo);
+        Assert.Contains("MyPaymentProcessor.StartPayment", todo);
+        const string v8Signature = "StartPayment(Instance instance, OrderDetails orderDetails, string? language)";
+        Assert.Contains(v8Signature, await File.ReadAllTextAsync(basePath, TestContext.Current.CancellationToken));
+        Assert.Contains(v8Signature, await File.ReadAllTextAsync(derivedPath, TestContext.Current.CancellationToken));
+
+        // The app does not satisfy the v9 interface until the developer acts (CS0535), but the override family
+        // still agrees with itself - a half-applied rewrite would show up as CS0115/CS0534/CS0506.
+        var errors = SemanticScannerFactory.CompileErrors(AppFolder, _v9Sdk.Value);
+        Assert.Contains(errors, error => error.Id == "CS0535");
+        Assert.DoesNotContain(errors, error => error.Id is "CS0115" or "CS0534" or "CS0506");
+    }
+
+    [Fact]
     public async Task FileLineEndings_AreKept()
     {
         var crlf = Write("logic/MyCalculator.cs", ModelUsings + "\n" + V8Calculator, "\r\n");

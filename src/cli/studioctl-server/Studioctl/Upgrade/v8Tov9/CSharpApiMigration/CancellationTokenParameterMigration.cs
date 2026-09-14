@@ -298,6 +298,26 @@ internal sealed class CancellationTokenParameterMigration
                 continue;
             }
 
+            // The name has to be free in every declaration or in none: rewriting only the declarations that
+            // can take the parameter would leave the rest of the family behind with a signature that no
+            // longer matches, which does not compile.
+            var blocked = declarations.FirstOrDefault(found =>
+                found is { } declaration && UsesIdentifier(declaration.Method, ParameterName)
+            );
+            if (blocked is { } usingTheName)
+            {
+                var isOwnDeclaration = declarations[0] is { } first && first.Method == usingTheName.Method;
+                var inMember = isOwnDeclaration ? "" : $" in {MemberName(usingTheName.Method)}";
+                var andOverrides = declarations.Count > 1 ? " or to the rest of its override family" : "";
+                messages.Todo(
+                    $"{location} already uses the name '{ParameterName}'{inMember}, so the "
+                        + $"'{ParameterTypeName} {ParameterName}' parameter the v9 {interfaceName} requires was not "
+                        + $"added{andOverrides}. Add it by hand to every declaration, renaming the existing symbol or "
+                        + "choosing another parameter name."
+                );
+                continue;
+            }
+
             foreach (var found in declarations)
             {
                 if (found is { } declaration)
