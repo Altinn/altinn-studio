@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -26,7 +26,23 @@ describe('UpgradeNotice', () => {
     );
     expect(screen.getByText(upgradePageText)).toBeInTheDocument();
   });
+
+  it('links to the running upgrade when one is already in progress', async () => {
+    const user = userEvent.setup();
+    const branch = 'upgrade/altinn-app-v9-20260914-061154';
+    renderUpgradeNotice({ ...appUpgradeStatus, activeUpgradeBranch: branch });
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_upgrade.notice_in_progress') }),
+    );
+    expect(screen.getByText(upgradePageText)).toBeInTheDocument();
+    expect(screen.getByText(`?branch=${encodeURIComponent(branch)}`)).toBeInTheDocument();
+  });
 });
+
+const LocationSearch = () => {
+  const { search } = useLocation();
+  return <div>{search}</div>;
+};
 
 const renderUpgradeNotice = (status: AppUpgradeStatus) => {
   const queryClient = createQueryClientMock();
@@ -36,7 +52,12 @@ const renderUpgradeNotice = (status: AppUpgradeStatus) => {
       <Route path='/:subroute/:selectedContext' element={<UpgradeNotice repo={repo} />} />
       <Route
         path='/:subroute/:selectedContext/:org/:app/upgrade'
-        element={<div>{upgradePageText}</div>}
+        element={
+          <div>
+            {upgradePageText}
+            <LocationSearch />
+          </div>
+        }
       />
     </Routes>,
     { queryClient, initialEntries: ['/app-dashboard/ttd'] },

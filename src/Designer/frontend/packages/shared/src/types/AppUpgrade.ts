@@ -5,6 +5,7 @@ export type AppUpgradeStatus = {
   isUpgradeAvailable: boolean;
   isAutomaticUpgradeSupported: boolean;
   hasCustomCode: boolean;
+  activeUpgradeBranch: string | null;
 };
 
 export type AppUpgradeOutcome =

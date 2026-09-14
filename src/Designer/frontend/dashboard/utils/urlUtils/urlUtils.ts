@@ -14,6 +14,7 @@ type GetAppUpgradePath = {
   selectedContext: string;
   org: string;
   app: string;
+  branch?: string | null;
 };
 
 export const getAppUpgradePath = ({
@@ -21,4 +22,8 @@ export const getAppUpgradePath = ({
   selectedContext,
   org,
   app,
-}: GetAppUpgradePath): string => `/${subroute}/${selectedContext}/${org}/${app}/upgrade`;
+  branch,
+}: GetAppUpgradePath): string => {
+  const path = `/${subroute}/${selectedContext}/${org}/${app}/upgrade`;
+  return branch ? `${path}?${new URLSearchParams({ branch })}` : path;
+};
