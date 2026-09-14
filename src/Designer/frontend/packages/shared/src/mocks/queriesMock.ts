@@ -9,6 +9,7 @@ import type {
   AppUpgradeRun,
   AppUpgradeStart,
   AppUpgradeStatus,
+  AppUpgradeDiscardResult,
 } from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -353,6 +354,11 @@ export const queriesMock: ServicesContextProps = {
   mergeAppUpgrade: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeMergeResult>(appUpgradeMergeResult)),
+  discardAppUpgrade: vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<AppUpgradeDiscardResult>({ isDiscarded: true, message: '' }),
+    ),
   createBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   deleteBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),

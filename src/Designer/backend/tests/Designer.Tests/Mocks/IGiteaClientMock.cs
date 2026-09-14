@@ -237,6 +237,20 @@ public class IGiteaClientMock : IGiteaClient
         return await Task.FromResult(true);
     }
 
+    public Task<bool> ClosePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    ) => Task.FromResult(true);
+
+    public Task<bool> DeleteBranchAsync(
+        string org,
+        string repository,
+        string branchName,
+        CancellationToken cancellationToken = default
+    ) => Task.FromResult(true);
+
     public async Task<PullRequest> CreatePullRequestAsync(
         string org,
         string app,

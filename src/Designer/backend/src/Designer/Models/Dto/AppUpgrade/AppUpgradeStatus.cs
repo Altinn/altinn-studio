@@ -6,5 +6,6 @@ public sealed record AppUpgradeStatus(
     int TargetMajorVersion,
     bool IsUpgradeAvailable,
     bool IsAutomaticUpgradeSupported,
-    string? ActiveUpgradeBranch = null
+    string? ActiveUpgradeBranch = null,
+    bool ActiveUpgradeHasPullRequest = false
 );
