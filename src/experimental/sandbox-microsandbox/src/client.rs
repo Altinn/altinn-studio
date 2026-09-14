@@ -1,7 +1,18 @@
+#[cfg(unix)]
+use std::path::Path;
+#[cfg(unix)]
+use std::{
+    fmt::Write as _,
+    fs,
+    os::unix::ffi::OsStrExt,
+    os::unix::fs::{DirBuilderExt, MetadataExt},
+};
 use std::{future::Future, path::PathBuf, rc::Rc, sync::Arc};
 
 use microsandbox::LocalBackend;
 use sandbox::Error;
+#[cfg(unix)]
+use sha2::{Digest, Sha256};
 use tokio::sync::OnceCell;
 
 use crate::{backend::RuntimeBundle, error};
@@ -94,9 +105,14 @@ impl Client {
                 .await
                 .map_err(|source| error::io("create Microsandbox cache directory", source))?;
         }
+        #[cfg(unix)]
+        let run_directory = run_directory(&microsandbox_home)?;
+        #[cfg(not(unix))]
+        let run_directory = microsandbox_home.join("run");
         let mut builder = LocalBackend::builder()
             .ignore_persisted_config()
             .home(&microsandbox_home)
+            .run_dir(run_directory)
             .disable_metrics_sample(true)
             .deployment_profile(microsandbox::sandbox::DeploymentProfile::SingleTenant);
         if let Some(cache_directory) = cache_directory {
@@ -185,6 +201,48 @@ impl Client {
     }
 }
 
+#[cfg(unix)]
+fn run_directory(home: &Path) -> Result<PathBuf, Error> {
+    let default = home.join("run");
+    if microsandbox::runtime::run_directory_fits(&default) {
+        return Ok(default);
+    }
+    let digest = Sha256::digest(home.as_os_str().as_bytes());
+    let mut id = String::with_capacity(32);
+    for byte in &digest[..16] {
+        let _ = write!(&mut id, "{byte:02x}");
+    }
+    let path = PathBuf::from(format!("/tmp/altinn-agent-{id}"));
+    if !microsandbox::runtime::run_directory_fits(&path) {
+        return Err(error::io(
+            "select private Microsandbox runtime directory",
+            std::io::Error::new(std::io::ErrorKind::InvalidInput, path.display().to_string()),
+        ));
+    }
+    let home_uid = fs::metadata(home.parent().unwrap_or(home))
+        .map_err(|source| error::io("inspect Microsandbox home", source))?
+        .uid();
+    match fs::symlink_metadata(&path) {
+        Ok(metadata)
+            if !metadata.file_type().is_dir() || metadata.uid() != home_uid || metadata.mode() & 0o077 != 0 =>
+        {
+            return Err(error::io(
+                "validate private Microsandbox runtime directory",
+                std::io::Error::new(std::io::ErrorKind::PermissionDenied, path.display().to_string()),
+            ));
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            fs::DirBuilder::new()
+                .mode(0o700)
+                .create(&path)
+                .map_err(|source| error::io("create private Microsandbox runtime directory", source))?;
+        }
+        Err(source) => return Err(error::io("inspect private Microsandbox runtime directory", source)),
+    }
+    Ok(path)
+}
+
 fn released_runtime_sha256() -> Option<&'static str> {
     runtime_sha256(std::env::consts::OS, std::env::consts::ARCH)
 }
@@ -204,8 +262,66 @@ pub(crate) fn runtime_sha256(os: &str, architecture: &str) -> Option<&'static st
 #[allow(clippy::expect_used)]
 mod tests {
     use sandbox::{ByteQuantity, CpuQuantity, RootFilesystem, SandboxResources};
+    #[cfg(unix)]
+    use std::fmt::Write as _;
+    #[cfg(unix)]
+    use std::os::unix::ffi::OsStrExt;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+    #[cfg(unix)]
+    use std::path::PathBuf;
+
+    #[cfg(unix)]
+    use super::Sha256;
+    #[cfg(unix)]
+    use sha2::Digest;
 
     use crate::client::Client;
+
+    #[cfg(unix)]
+    #[test]
+    fn run_directory_preserves_short_homes_and_shortens_long_socket_paths() {
+        let normal = PathBuf::from("/Users/alice/.agent/runtime");
+        assert_eq!(
+            super::run_directory(&normal).expect("run directory"),
+            normal.join("run")
+        );
+
+        let root = tempfile::tempdir().expect("temporary root");
+        let long = root.path().join("username".repeat(20));
+        std::fs::create_dir_all(long.parent().expect("long home parent")).expect("provider home");
+        let run = super::run_directory(&long).expect("run directory");
+        assert!(microsandbox::runtime::run_directory_fits(&run));
+        std::fs::remove_dir(&run).expect("remove fallback directory");
+        assert_ne!(run, long.join("run"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn run_directory_rejects_unsafe_existing_fallbacks() {
+        let root = tempfile::tempdir().expect("temporary root");
+        let home = root.path().join("home").join("longusername".repeat(20)).join("runtime");
+        std::fs::create_dir_all(&home).expect("runtime home");
+        let digest = Sha256::digest(home.as_os_str().as_bytes());
+        let mut id = String::with_capacity(32);
+        for byte in &digest[..16] {
+            write!(&mut id, "{byte:02x}").expect("writing to String cannot fail");
+        }
+        let fallback = PathBuf::from(format!("/tmp/altinn-agent-{id}"));
+
+        std::os::unix::fs::symlink(root.path(), &fallback).expect("fallback symlink");
+        assert!(super::run_directory(&home).is_err());
+        std::fs::remove_file(&fallback).expect("remove fallback symlink");
+
+        std::fs::write(&fallback, b"not a directory").expect("fallback file");
+        assert!(super::run_directory(&home).is_err());
+        std::fs::remove_file(&fallback).expect("remove fallback file");
+
+        std::fs::create_dir(&fallback).expect("fallback directory");
+        std::fs::set_permissions(&fallback, std::fs::Permissions::from_mode(0o755)).expect("fallback permissions");
+        assert!(super::run_directory(&home).is_err());
+        std::fs::remove_dir(&fallback).expect("remove fallback directory");
+    }
 
     #[test]
     fn every_supported_host_runtime_download_is_digest_pinned() {
