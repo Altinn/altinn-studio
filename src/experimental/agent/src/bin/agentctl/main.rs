@@ -1106,8 +1106,6 @@ fn absolute(path: PathBuf) -> Result<PathBuf, Error> {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use std::time::SystemTime;
-
     use super::*;
 
     struct StalledConnector {
@@ -1493,20 +1491,15 @@ mod tests {
 
     #[test]
     fn apply_source_is_resolved_in_the_client_working_directory() {
-        let nonce = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("system time should follow the epoch")
-            .as_nanos();
-        let directory = std::env::temp_dir().join(format!("agentctl-source-{}-{nonce}", std::process::id()));
-        std::fs::create_dir_all(&directory).expect("temporary directory");
-        let manifest_path = directory.join("agent.yaml");
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let manifest_path = directory.path().join("agent.yaml");
         std::fs::copy(
             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/minimal/agent.yaml"),
             &manifest_path,
         )
         .expect("copy example manifest");
         let original_directory = std::env::current_dir().expect("current directory");
-        std::env::set_current_dir(&directory).expect("enter temporary directory");
+        std::env::set_current_dir(directory.path()).expect("enter temporary directory");
 
         let result = LocalRuntime::new()
             .expect("local runtime")
@@ -1515,8 +1508,7 @@ mod tests {
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");
         let actual_directory = std::fs::canonicalize(&request.source_directory).expect("canonical source directory");
-        let expected_directory = std::fs::canonicalize(&directory).expect("canonical temporary directory");
-        std::fs::remove_dir_all(&directory).expect("remove temporary directory");
+        let expected_directory = std::fs::canonicalize(directory.path()).expect("canonical temporary directory");
         assert_eq!(actual_directory, expected_directory);
     }
 
