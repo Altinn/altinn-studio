@@ -152,7 +152,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(scanner));
+        returnCode = CombineExitCodes(returnCode, MigrateCorrespondenceApis(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
@@ -235,7 +235,85 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
 
+        // All source writers must finish first, including generated data processors and their Program.cs
+        // registrations. Detection keeps the v8 view; spelling decisions use the actual upgraded project.
+        await FinalizeGeneratedTypeReferencesAsync(
+            scanner,
+            options.SkipSemanticAnalysis,
+            cancellationToken => TargetProjectLoader.LoadAsync(projectFolder, projectFile, cancellationToken),
+            options.CancellationToken
+        );
+
         return returnCode;
+    }
+
+    /// <summary>
+    /// Optional presentation cleanup. An unavailable target build leaves generated names qualified and
+    /// does not change the upgrade's outcome or the manual work reported by earlier steps.
+    /// </summary>
+    internal static async Task FinalizeGeneratedTypeReferencesAsync(
+        CSharpSourceScanner scanner,
+        bool skipSemanticAnalysis,
+        Func<CancellationToken, Task<TargetProjectAnalysis>> loadTarget,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!GeneratedTypeReferenceFinalizer.HasReferences(scanner))
+        {
+            return;
+        }
+
+        UpgradeConsole.BeginStep("Generated type names");
+        if (skipSemanticAnalysis)
+        {
+            UpgradeConsole.Skip("Kept generated type names qualified because semantic analysis is disabled.");
+            return;
+        }
+
+        try
+        {
+            using var target = await loadTarget(cancellationToken);
+            if (target.Projects.Count == 0)
+            {
+                UpgradeConsole.Warning(
+                    $"Kept generated type names qualified: target analysis is unavailable ({target.UnavailableReason})."
+                );
+                return;
+            }
+
+            var result = await GeneratedTypeReferenceFinalizer.FinalizeAsync(
+                scanner,
+                target.Projects,
+                cancellationToken
+            );
+            if (result.ChangedFiles == 0)
+            {
+                UpgradeConsole.Skip(
+                    result.SkipReason is { } reason
+                        ? $"Kept generated type names qualified because {reason}."
+                        : "Kept generated type names qualified where simplification could not be verified."
+                );
+            }
+            else
+            {
+                UpgradeConsole.Ok(
+                    $"Simplified generated type names in {result.ChangedFiles} file(s) against the upgraded project's "
+                        + "Debug and Release configurations."
+                );
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            UpgradeConsole.Warning(
+                $"Could not finish simplifying generated type names ({exception.Message}). "
+                    + "Remaining names were kept qualified."
+            );
+        }
     }
 
     /// <summary>
@@ -508,12 +586,12 @@ internal static class V8Tov9Upgrade
     /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
     /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
     /// </summary>
-    static async Task<int> MigrateCorrespondenceApis(CSharpSourceScanner scanner)
+    static int MigrateCorrespondenceApis(CSharpSourceScanner scanner, CancellationToken cancellationToken)
     {
         UpgradeConsole.BeginStep("Correspondence APIs");
         try
         {
-            var result = new CorrespondenceApiMigration(scanner).Migrate();
+            var result = new CorrespondenceApiMigration(scanner).Migrate(cancellationToken);
 
             // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
             // cannot be determined from syntax is reported rather than rewritten, and the app will not
@@ -523,6 +601,10 @@ internal static class V8Tov9Upgrade
                 cleanText: "No removed Correspondence APIs in use",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
