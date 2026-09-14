@@ -7,6 +7,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appUpgradeStatus, organization, repository } from 'app-shared/mocks/mocks';
 import type { AppUpgradeStatus } from 'app-shared/types/AppUpgrade';
+import type { Repository } from 'app-shared/types/Repository';
 import { UpgradeNotice } from './UpgradeNotice';
 
 const repo = {
@@ -14,12 +15,21 @@ const repo = {
   full_name: 'ttd/my-app',
   name: 'my-app',
   owner: { ...repository.owner, login: 'ttd' },
+  permissions: { ...repository.permissions, push: true },
 };
 const upgradePageText = 'upgrade page';
 
 describe('UpgradeNotice', () => {
   it('renders nothing for apps that are not owned by an organization', () => {
     renderUpgradeNotice(appUpgradeStatus, []);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('renders nothing when the user cannot push to the repository', () => {
+    renderUpgradeNotice(appUpgradeStatus, ['ttd'], {
+      ...repo,
+      permissions: { ...repo.permissions, push: false },
+    });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
@@ -65,7 +75,11 @@ const LocationSearch = () => {
   return <div>{search}</div>;
 };
 
-const renderUpgradeNotice = (status: AppUpgradeStatus, organizationNames: string[] = ['ttd']) => {
+const renderUpgradeNotice = (
+  status: AppUpgradeStatus,
+  organizationNames: string[] = ['ttd'],
+  repoToRender: Repository = repo,
+) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppUpgradeStatus, 'ttd', 'my-app'], status);
   queryClient.setQueryData(
@@ -74,7 +88,7 @@ const renderUpgradeNotice = (status: AppUpgradeStatus, organizationNames: string
   );
   return renderWithProviders(
     <Routes>
-      <Route path='/:subroute/:selectedContext' element={<UpgradeNotice repo={repo} />} />
+      <Route path='/:subroute/:selectedContext' element={<UpgradeNotice repo={repoToRender} />} />
       <Route
         path='/:subroute/:selectedContext/:org/:app/upgrade'
         element={
