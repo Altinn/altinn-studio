@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Localtest now uses the test data bundled with its own image. Installing no longer places a copy of the test data on your machine, and the existing copy is removed, so the test data always matches the localtest version you are running. Test data you had edited in that copy no longer takes effect — define your own test users in your app instead, in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.
+
 ## [0.1.0-preview.25] - 2026-09-14
 
 ### Added
