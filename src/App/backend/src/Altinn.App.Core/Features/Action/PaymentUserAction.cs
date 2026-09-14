@@ -66,7 +66,8 @@ internal class PaymentUserAction : IUserAction
         (PaymentInformation paymentInformation, bool alreadyPaid) = await _paymentService.StartPayment(
             context.Instance,
             paymentConfiguration.Validate(),
-            context.Language
+            context.Language,
+            context.CancellationToken
         );
 
         if (alreadyPaid)

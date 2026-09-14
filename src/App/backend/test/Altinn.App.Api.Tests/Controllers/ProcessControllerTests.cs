@@ -1528,14 +1528,22 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var authorizer = new Mock<IProcessEngineAuthorizer>(MockBehavior.Strict);
         authorizer
             .Setup(service =>
-                service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), action)
+                service.AuthorizeProcessNext(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    action,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(actionAuthorized);
         if (completeProcessAuthorized is bool authorized)
         {
             authorizer
                 .Setup(service =>
-                    service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), null)
+                    service.AuthorizeProcessNext(
+                        It.Is<Instance>(instance => instance.Id == _instanceId),
+                        null,
+                        It.IsAny<CancellationToken>()
+                    )
                 )
                 .ReturnsAsync(authorized);
         }
@@ -1550,11 +1558,21 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     )
     {
         authorizer.Verify(
-            service => service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), action),
+            service =>
+                service.AuthorizeProcessNext(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    action,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         authorizer.Verify(
-            service => service.AuthorizeProcessNext(It.Is<Instance>(instance => instance.Id == _instanceId), null),
+            service =>
+                service.AuthorizeProcessNext(
+                    It.Is<Instance>(instance => instance.Id == _instanceId),
+                    null,
+                    It.IsAny<CancellationToken>()
+                ),
             completeAuthorizationExpected ? Times.Once() : Times.Never()
         );
         authorizer.VerifyNoOtherCalls();

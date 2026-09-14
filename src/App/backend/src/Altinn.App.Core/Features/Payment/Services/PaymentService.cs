@@ -55,7 +55,8 @@ internal class PaymentService : IPaymentService
     public async Task<(PaymentInformation paymentInformation, bool alreadyPaid)> StartPayment(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartPaymentServiceActivity();
@@ -74,7 +75,7 @@ internal class PaymentService : IPaymentService
             string dataTypeId = paymentConfiguration.PaymentDataType;
 
             (Guid dataElementId, PaymentInformation? existingPaymentInformation) =
-                await _dataService.GetByType<PaymentInformation>(instance, dataTypeId);
+                await _dataService.GetByType<PaymentInformation>(instance, dataTypeId, ct: cancellationToken);
 
             if (existingPaymentInformation?.PaymentDetails != null)
             {
@@ -95,7 +96,7 @@ internal class PaymentService : IPaymentService
                     instance.Id
                 );
 
-                await CancelAndDelete(instance, dataElementId, existingPaymentInformation);
+                await CancelAndDelete(instance, dataElementId, existingPaymentInformation, cancellationToken);
             }
 
             OrderDetails orderDetails;
@@ -103,7 +104,11 @@ internal class PaymentService : IPaymentService
             {
                 try
                 {
-                    orderDetails = await orderDetailsCalculator.CalculateOrderDetails(instance, language);
+                    orderDetails = await orderDetailsCalculator.CalculateOrderDetails(
+                        instance,
+                        language,
+                        cancellationToken
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -121,7 +126,7 @@ internal class PaymentService : IPaymentService
             //If the sum of the order is 0, we can skip invoking the payment processor.
             PaymentDetails? startedPayment =
                 orderDetails.TotalPriceIncVat > 0
-                    ? await paymentProcessor.StartPayment(instance, orderDetails, language)
+                    ? await paymentProcessor.StartPayment(instance, orderDetails, language, cancellationToken)
                     : null;
 
             _logger.LogInformation(
@@ -140,7 +145,14 @@ internal class PaymentService : IPaymentService
                 PaymentDetails = startedPayment,
             };
 
-            await _dataService.InsertJsonObject(new InstanceIdentifier(instance), dataTypeId, paymentInformation);
+            // The payment now exists at the processor, so storing its reference must not be cut short by the
+            // request ending: without the stored payment ID nothing could ever terminate or verify it.
+            await _dataService.InsertJsonObject(
+                new InstanceIdentifier(instance),
+                dataTypeId,
+                paymentInformation,
+                ct: CancellationToken.None
+            );
             return (paymentInformation, false);
         }
         catch (Exception ex)
@@ -154,12 +166,20 @@ internal class PaymentService : IPaymentService
     public Task<PaymentInformation> CheckAndStorePaymentStatus(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     )
     {
         string taskId =
             instance.Process?.CurrentTask?.ElementId ?? throw new PaymentException("Instance has no current task.");
-        return CheckPaymentStatusInternal(instance, paymentConfiguration, taskId, language, persistUpdates: true);
+        return CheckPaymentStatusInternal(
+            instance,
+            paymentConfiguration,
+            taskId,
+            language,
+            persistUpdates: true,
+            cancellationToken
+        );
     }
 
     /// <inheritdoc/>
@@ -167,10 +187,18 @@ internal class PaymentService : IPaymentService
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
         string taskId,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     )
     {
-        return CheckPaymentStatusInternal(instance, paymentConfiguration, taskId, language, persistUpdates: false);
+        return CheckPaymentStatusInternal(
+            instance,
+            paymentConfiguration,
+            taskId,
+            language,
+            persistUpdates: false,
+            cancellationToken
+        );
     }
 
     private async Task<PaymentInformation> CheckPaymentStatusInternal(
@@ -178,7 +206,8 @@ internal class PaymentService : IPaymentService
         ValidAltinnPaymentConfiguration paymentConfiguration,
         string taskId,
         string? language,
-        bool persistUpdates
+        bool persistUpdates,
+        CancellationToken cancellationToken
     )
     {
         _logger.LogInformation("Checking payment status for instance {InstanceId}.", instance.Id);
@@ -194,7 +223,8 @@ internal class PaymentService : IPaymentService
         string dataTypeId = paymentConfiguration.PaymentDataType;
         (Guid dataElementId, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
-            dataTypeId
+            dataTypeId,
+            ct: cancellationToken
         );
 
         if (paymentInformation == null)
@@ -208,7 +238,11 @@ internal class PaymentService : IPaymentService
             {
                 TaskId = taskId,
                 Status = PaymentStatus.Uninitialized,
-                OrderDetails = await orderDetailsCalculator.CalculateOrderDetails(instance, language),
+                OrderDetails = await orderDetailsCalculator.CalculateOrderDetails(
+                    instance,
+                    language,
+                    cancellationToken
+                ),
             };
         }
 
@@ -239,7 +273,8 @@ internal class PaymentService : IPaymentService
             instance,
             paymentDetails.PaymentId,
             totalPriceIncVat,
-            language
+            language,
+            cancellationToken
         );
 
         paymentInformation.Status = paymentStatus;
@@ -257,7 +292,8 @@ internal class PaymentService : IPaymentService
                 new InstanceIdentifier(instance),
                 dataTypeId,
                 dataElementId,
-                paymentInformation
+                paymentInformation,
+                ct: cancellationToken
             );
         }
 
@@ -268,7 +304,8 @@ internal class PaymentService : IPaymentService
     public async Task<string> HandlePaymentCompletedWebhook(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        StorageAuthenticationMethod storageAuthenticationMethod
+        StorageAuthenticationMethod storageAuthenticationMethod,
+        CancellationToken cancellationToken = default
     )
     {
         _logger.LogInformation("Checking payment status for instance {InstanceId}.", instance.Id);
@@ -277,7 +314,8 @@ internal class PaymentService : IPaymentService
         (Guid dataElementId, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
             dataTypeId,
-            storageAuthenticationMethod
+            storageAuthenticationMethod,
+            cancellationToken
         );
 
         if (paymentInformation == null)
@@ -316,7 +354,8 @@ internal class PaymentService : IPaymentService
             instance,
             paymentDetails.PaymentId,
             totalPriceIncVat,
-            language: null
+            language: null,
+            cancellationToken
         );
 
         paymentInformation.Status = paymentStatus;
@@ -333,7 +372,8 @@ internal class PaymentService : IPaymentService
             dataTypeId,
             dataElementId,
             paymentInformation,
-            storageAuthenticationMethod
+            storageAuthenticationMethod,
+            cancellationToken
         );
 
         if (
@@ -341,14 +381,21 @@ internal class PaymentService : IPaymentService
             && instance.Process.CurrentTask.AltinnTaskType == AltinnTaskTypes.Payment
         )
         {
-            await RunProcessNext(instance, storageAuthenticationMethod);
+            await RunProcessNext(instance, storageAuthenticationMethod, cancellationToken);
         }
         return $"Payment status is {paymentStatus} for instance {instance.Id}.";
     }
 
-    private async Task RunProcessNext(Instance instance, StorageAuthenticationMethod storageAuthenticationMethod)
+    private async Task RunProcessNext(
+        Instance instance,
+        StorageAuthenticationMethod storageAuthenticationMethod,
+        CancellationToken cancellationToken
+    )
     {
-        JwtToken token = await _authenticationTokenResolver.GetAccessToken(storageAuthenticationMethod);
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            storageAuthenticationMethod,
+            cancellationToken
+        );
         using var client = _httpClientFactory.CreateClient();
         // Be reasonably generous with timeout since this involves process engine calls
         client.Timeout = TimeSpan.FromMinutes(5);
@@ -363,14 +410,14 @@ internal class PaymentService : IPaymentService
             System.Text.Encoding.UTF8,
             "application/json"
         );
-        using var response = await client.PutAsync($"instances/{instance.Id}/process/next", content);
+        using var response = await client.PutAsync($"instances/{instance.Id}/process/next", content, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError(
                 "Failed to advance process for instance {InstanceId} after payment completed webhook. Status code: {StatusCode}\n\n{content}",
                 instance.Id,
                 response.StatusCode,
-                await response.Content.ReadAsStringAsync()
+                await response.Content.ReadAsStringAsync(cancellationToken)
             );
             throw new PaymentException(
                 $"Failed to advance process for instance {instance.Id} after payment completed webhook."
@@ -381,13 +428,15 @@ internal class PaymentService : IPaymentService
     /// <inheritdoc/>
     public async Task<PaymentStatus> GetPaymentStatus(
         Instance instance,
-        ValidAltinnPaymentConfiguration paymentConfiguration
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        CancellationToken cancellationToken = default
     )
     {
         string dataTypeId = paymentConfiguration.PaymentDataType;
         (Guid _, PaymentInformation? paymentInformation) = await _dataService.GetByType<PaymentInformation>(
             instance,
-            dataTypeId
+            dataTypeId,
+            ct: cancellationToken
         );
 
         if (paymentInformation == null)
@@ -398,7 +447,12 @@ internal class PaymentService : IPaymentService
         return paymentInformation.Status;
     }
 
-    private async Task CancelAndDelete(Instance instance, Guid dataElementId, PaymentInformation paymentInformation)
+    private async Task CancelAndDelete(
+        Instance instance,
+        Guid dataElementId,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken
+    )
     {
         if (paymentInformation.Status == PaymentStatus.Paid)
         {
@@ -414,7 +468,7 @@ internal class PaymentService : IPaymentService
                 paymentProcessors.FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
                 ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
 
-            bool success = await paymentProcessor.TerminatePayment(instance, paymentInformation);
+            bool success = await paymentProcessor.TerminatePayment(instance, paymentInformation, cancellationToken);
             string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
 
             if (!success)
@@ -427,7 +481,9 @@ internal class PaymentService : IPaymentService
             _logger.LogDebug("Payment {PaymentId} cancelled for instance {InstanceId}.", paymentId, instance.Id);
         }
 
-        await _dataService.DeleteById(new InstanceIdentifier(instance), dataElementId);
+        // Once the processor has terminated the payment, the stale record must go regardless of the request's
+        // fate: left behind, the next attempt would try to terminate the same payment again.
+        await _dataService.DeleteById(new InstanceIdentifier(instance), dataElementId, ct: CancellationToken.None);
         _logger.LogDebug("Payment information for deleted for instance {InstanceId}.", instance.Id);
     }
 }

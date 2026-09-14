@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` now adds the new `cancellationToken` parameter to your app's own `IPaymentProcessor` implementations (`StartPayment`, `TerminatePayment` and `GetPaymentStatus`) and `IOrderDetailsCalculator` implementations (`CalculateOrderDetails`), so they satisfy the v9 interfaces again. Each change is listed, with a reminder to forward the token to the calls the implementation makes. Existing uses of the `cancellationToken` name, shared interface signatures, partial methods, delegate uses and ambiguous matches are reported as TODOs for manual updating.
+
 ### Changed
 
 - Localtest now uses the test data bundled with its own image, so the test data always matches the localtest version you are running. Installing or updating no longer places a copy of the test data on your machine, and **deletes the existing copy in your studioctl data directory**, including any users, parties or roles you had changed or added there. `studioctl self update` prints the directory it removed. Edits in that copy were only ever half-preserved across updates — a file the release also shipped was silently overwritten, while a file you added survived — so back up anything you want to keep before updating. To define your own test users from now on, add them to your app in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.

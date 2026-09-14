@@ -245,7 +245,7 @@ internal class ProcessEngine : IProcessEngine
 
         (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
 
-        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action);
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action, ct);
 
         if (!authorized)
         {
@@ -346,13 +346,13 @@ internal class ProcessEngine : IProcessEngine
 
         (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
 
-        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action);
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action, ct);
 
         if (!authorized)
         {
             if (
                 request.Mode is ProcessNextMode.CompleteProcess
-                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance)
+                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance, cancellationToken: ct)
             )
             {
                 ProcessChangeResult completeProcessAuthorizationFailedResult =
@@ -431,7 +431,10 @@ internal class ProcessEngine : IProcessEngine
 
         if (request.Mode is ProcessNextMode.CompleteProcess)
         {
-            bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance);
+            bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(
+                instance,
+                cancellationToken: ct
+            );
             if (!completeProcessAuthorized)
             {
                 ProcessChangeResult unauthorizedResult = CreateCompleteProcessAuthorizationFailedResult(

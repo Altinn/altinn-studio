@@ -57,7 +57,7 @@ internal sealed class NotificationService : INotificationService
     )
     {
         InstanceOwner instanceOwner = instance.InstanceOwner;
-        string language = await DetermineLanguage(instanceOwner, instantiationNotification.Language);
+        string language = await DetermineLanguage(instanceOwner, instantiationNotification.Language, ct);
         AltinnCdnOrgName? serviceOwnerName = await _cdnClient.GetOrgNameByAppId(instance.AppId, ct);
         ApplicationMetadata? appMetadata = await _appMetadata.GetApplicationMetadata();
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance.AppId));
@@ -416,24 +416,31 @@ internal sealed class NotificationService : INotificationService
         return null;
     }
 
-    internal async Task<string> DetermineLanguage(InstanceOwner instanceOwner, string? requestedOrgLanguage)
+    internal async Task<string> DetermineLanguage(
+        InstanceOwner instanceOwner,
+        string? requestedOrgLanguage,
+        CancellationToken ct = default
+    )
     {
         if (string.IsNullOrWhiteSpace(instanceOwner.PersonNumber) is false)
         {
-            UserProfile? personProfile = await _profileClient.GetUserProfile(instanceOwner.PersonNumber);
+            UserProfile? personProfile = await _profileClient.GetUserProfile(
+                instanceOwner.PersonNumber,
+                cancellationToken: ct
+            );
             return personProfile?.ProfileSettingPreference?.Language ?? LanguageConst.Nb;
         }
 
         if (string.IsNullOrWhiteSpace(instanceOwner.ExternalIdentifier) is false)
         {
-            Guid? partyGuid = await _altinnPartyClient.GetPartyUuidByUrn(instanceOwner.ExternalIdentifier);
+            Guid? partyGuid = await _altinnPartyClient.GetPartyUuidByUrn(instanceOwner.ExternalIdentifier, ct);
             if (partyGuid is null)
             {
                 return LanguageConst.En;
             }
 
             // HACK: userUuid == partyGuid
-            UserProfile? userProfile = await _profileClient.GetUserProfile(partyGuid.Value);
+            UserProfile? userProfile = await _profileClient.GetUserProfile(partyGuid.Value, ct);
 
             return userProfile?.ProfileSettingPreference?.Language ?? LanguageConst.En;
         }
