@@ -6,6 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import {
   buildJsonSchema,
   buildUiSchema,
+  hasEmptyCombination,
   isEmptyCombination,
   removeEmptyCombinations,
 } from '@altinn/schema-model';
@@ -27,10 +28,15 @@ export const useSchemaMutation = () => {
 };
 
 /**
- * The editor keeps combinations without subschemas while the user works on them, but the backend
- * rejects them.
+ * Returns the model as valid JSON Schema, leaving out the states that the editor allows while the
+ * user is working but that the backend rejects - currently combinations without subschemas. The
+ * model is returned unchanged when it is already valid.
  */
 const toValidJsonSchema = (model: JsonSchema): JsonSchema => {
+  // This runs on every autosave, and scanning the raw schema is much cheaper than converting it.
+  if (!hasEmptyCombination(model)) return model;
+  // Removal happens on nodes, which know about parents, references and required lists, so whatever
+  // pointed at a removed combination is cleaned up too.
   const nodes = buildUiSchema(model);
   if (!nodes.some(isEmptyCombination)) return model;
   return buildJsonSchema(removeEmptyCombinations(nodes));

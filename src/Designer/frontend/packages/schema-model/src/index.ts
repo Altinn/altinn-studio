@@ -25,6 +25,7 @@ export {
   replaceLastPointerSegment,
   splitPointerInBaseAndName,
 } from './lib/utils';
+export { hasEmptyCombination } from './lib/has-empty-combination';
 export * from './lib/mutations/custom-properties';
 export { removeEmptyCombinations } from './lib/mutations/remove-empty-combinations';
 export * from './lib/mutations/ui-schema-reducers';
