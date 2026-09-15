@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features.Maskinporten;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 
@@ -67,6 +68,20 @@ public static class WebHostBuilderExtensions
 
         string[] jsonFiles = Directory.GetFiles(secretsDirectory, "*.json", SearchOption.TopDirectoryOnly);
         Array.Sort(jsonFiles, StringComparer.OrdinalIgnoreCase);
+
+        // The Maskinporten credentials are bound through a configuration root of their own (see
+        // MaskinportenSettingsSource) and must not also land in the app's: nothing built in reads them from
+        // here, and a package binding a MaskinportenSettings section by convention would otherwise pick up the
+        // provisioned client.
+        jsonFiles = Array.FindAll(
+            jsonFiles,
+            file =>
+                !string.Equals(
+                    Path.GetFileName(file),
+                    MaskinportenSettingsSource.FileName,
+                    StringComparison.OrdinalIgnoreCase
+                )
+        );
 
         PhysicalFileProvider? secretsFileProvider = null;
         HashSet<string> existingJsonFilePaths = [];
