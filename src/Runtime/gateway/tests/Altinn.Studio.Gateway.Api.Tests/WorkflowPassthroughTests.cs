@@ -476,7 +476,10 @@ public sealed class WorkflowPassthroughTests
             set => throw new NotSupportedException();
         }
 
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default
+        )
         {
             await Task.Delay(Timeout.Infinite, cancellationToken);
             return 0;
