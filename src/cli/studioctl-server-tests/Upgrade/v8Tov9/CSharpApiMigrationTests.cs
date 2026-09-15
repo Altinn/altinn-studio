@@ -1923,7 +1923,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient(\"MyOwnMaskinporten\")")
         );
         Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
-        Assert.Contains(Summaries(result), s => s.Contains("studioctl app maskinporten set --from-appsettings"));
+        Assert.Contains(Summaries(result), s => s.Contains("studioctl app maskinporten set"));
     }
 
     [Fact]

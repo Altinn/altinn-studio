@@ -176,7 +176,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(scanner, projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -815,15 +815,19 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) a <c>MaskinportenSettings</c> configuration section that v9 no longer reads.
-    /// Reads configuration rather than C#, so it runs separately from <see cref="CheckRemovedCSharpApis"/>.
+    /// Reports (never rewrites) the configuration the built-in Maskinporten client was fed in v8 and that v9
+    /// no longer reads: the sections the code named through <c>ConfigureMaskinportenClient</c>, the default
+    /// <c>MaskinportenSettings</c> section, and objects that look like leftovers of either. Reads
+    /// configuration rather than C#, so it runs separately from <see cref="CheckRemovedCSharpApis"/>, but it
+    /// takes the section names the C# scan found.
     /// </summary>
-    static async Task<int> CheckMaskinportenSettingsSection(string projectFolder)
+    static async Task<int> CheckMaskinportenSettingsSection(CSharpSourceScanner scanner, string projectFolder)
     {
         UpgradeConsole.BeginStep("Maskinporten settings");
         try
         {
-            var result = new MaskinportenSettingsSectionDetector(projectFolder).Detect();
+            var boundSections = new MaskinportenClientOverrideDetector(scanner).NamedSections();
+            var result = new MaskinportenSettingsSectionDetector(projectFolder, boundSections).Detect();
             return ReportMigrationResult(
                 result,
                 cleanText: "No obsolete MaskinportenSettings configuration found",
