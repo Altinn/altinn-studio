@@ -1,0 +1,11 @@
+*.bpmn text eol=lf
+*.cs text eol=lf
+*.cshtml text eol=lf
+*.csproj text eol=lf
+*.json text eol=lf
+*.sln text eol=lf
+*.slnx text eol=lf
+*.xml text eol=lf
+*.xsd text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
