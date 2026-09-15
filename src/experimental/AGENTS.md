@@ -69,8 +69,9 @@ CI-only; `.github/workflows/experimental-changelog.yaml` enforces this on every 
 Run `make changelog-validate` to check the file's structure, and `make changelog-test` for the tests covering
 [changelog.sh](changelog.sh) itself. `make check` runs the validation, and `make test` runs the tests.
 
-Releasing is a promotion pull request that renames `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`, adds a fresh
-empty `## [Unreleased]` above it, and carries the `skip-changelog` label. Once it is merged, push the tag
+Releasing is a promotion pull request that renames `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and adds a fresh
+empty `## [Unreleased]` above it. That rename is itself a change to the Unreleased section, so the pull request
+needs no `skip-changelog` label. Once it is merged, push the tag
 `experimental-agent/v<version>`; the release workflow extracts that section with `changelog.sh extract` and
 publishes it as the GitHub release body, and fails before creating the release when the section is missing or has
 no date.

@@ -59,6 +59,27 @@ assert_output() {
   fi
 }
 
+# assert_message <name> <expected status> <stderr substring> <command…>
+# Asserting on the message as well as the status keeps two different rules from covering for
+# each other when one of them is removed.
+assert_message() {
+  name="$1"
+  expected="$2"
+  needle="$3"
+  shift 3
+  status=0
+  "$@" >"${WORK}/stdout" 2>"${WORK}/stderr" || status=$?
+  if [ "${status}" -ne "${expected}" ]; then
+    report_failure "${name}" "expected status ${expected}, got ${status}"
+    sed 's/^/     /' "${WORK}/stderr"
+  elif ! grep -qF "${needle}" "${WORK}/stderr"; then
+    report_failure "${name}" "stderr did not mention \"${needle}\""
+    sed 's/^/     /' "${WORK}/stderr"
+  else
+    report_pass "${name}"
+  fi
+}
+
 header() {
   cat <<'HEADER'
 # Changelog
@@ -407,6 +428,112 @@ BODY
 )"
 assert_status 'validate accepts an indented continuation line' 0 "${CHANGELOG}" validate "${continuation}"
 
+duplicate_version="$(fixture duplicate-version <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0] - 2026-09-01
+
+### Added
+
+- First release.
+
+## [1.0.0] - 2026-08-01
+
+### Added
+
+- The same version again.
+BODY
+)"
+assert_message 'validate rejects a duplicate released version' 1 'duplicate section for version 1.0.0' \
+  "${CHANGELOG}" validate "${duplicate_version}"
+
+deep_heading="$(fixture deep-heading <<'BODY'
+
+## [Unreleased]
+
+### Added
+
+- Something.
+
+#### Details
+
+- More.
+BODY
+)"
+assert_message 'validate rejects a heading deeper than "###"' 1 'deeper than' \
+  "${CHANGELOG}" validate "${deep_heading}"
+
+outside_section="$(fixture outside-section <<'BODY'
+
+## [Unreleased]
+
+Some prose before any category.
+
+### Added
+
+- Something.
+BODY
+)"
+assert_message 'validate rejects content outside a "###" section' 1 'must sit under' \
+  "${CHANGELOG}" validate "${outside_section}"
+
+bad_month="$(fixture bad-month <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0] - 2026-13-45
+
+### Added
+
+- An impossible date.
+BODY
+)"
+assert_status 'validate rejects an impossible month and day' 1 "${CHANGELOG}" validate "${bad_month}"
+
+header_in_entry="${WORK}/header-in-entry.md"
+cat >"${header_in_entry}" <<'BODY'
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- A link to https://keepachangelog.com/en/1.1.0/ and https://semver.org/spec/v2.0.0.html in an entry.
+BODY
+assert_message 'validate does not accept header links found inside an entry' 1 'Keep a Changelog' \
+  "${CHANGELOG}" validate "${header_in_entry}"
+
+link_references="$(fixture link-references <<'BODY'
+
+## [Unreleased]
+
+### Added
+
+- Something.
+
+## [1.0.0] - 2026-09-01
+
+### Added
+
+- First release.
+
+[Unreleased]: https://example.com/compare/1.0.0...HEAD
+[1.0.0]: https://example.com/releases/1.0.0
+BODY
+)"
+assert_status 'validate accepts Keep a Changelog link reference definitions' 0 \
+  "${CHANGELOG}" validate "${link_references}"
+assert_output 'extract leaves link reference definitions out of the body' \
+  '### Added
+
+- First release.' \
+  "${CHANGELOG}" extract 1.0.0 "${link_references}"
+
+crlf="${WORK}/crlf.md"
+sed 's/$/\r/' "${good}" >"${crlf}"
+assert_message 'validate reports CRLF line endings' 1 'CRLF' "${CHANGELOG}" validate "${crlf}"
+
 assert_status 'validate reports a missing file' 1 "${CHANGELOG}" validate "${WORK}/absent.md"
 
 # ----------------------------------------------------------------- extract ---
@@ -423,9 +550,28 @@ assert_output 'extract accepts a leading v' \
 - First release candidate.' \
   "${CHANGELOG}" extract v1.0.0-rc.1 "${good}"
 
-assert_status 'extract fails for a missing version' 1 "${CHANGELOG}" extract 2.0.0 "${good}"
-assert_status 'extract fails for an undated version' 1 "${CHANGELOG}" extract 1.0.0 "${undated}"
-assert_status 'extract fails for an empty section' 1 "${CHANGELOG}" extract Unreleased "${good}"
+assert_message 'extract fails for a missing version' 1 'no section for version 2.0.0' \
+  "${CHANGELOG}" extract 2.0.0 "${good}"
+assert_message 'extract fails for an undated version' 1 'has no release date' \
+  "${CHANGELOG}" extract 1.0.0 "${undated}"
+assert_message 'extract rejects an undated section by name' 1 'has no release date' \
+  "${CHANGELOG}" extract Unreleased "${good}"
+
+dated_but_empty="$(fixture dated-but-empty <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0] - 2026-09-01
+
+## [0.9.0] - 2026-08-01
+
+### Added
+
+- First release.
+BODY
+)"
+assert_message 'extract rejects a dated section with no content' 1 'is empty' \
+  "${CHANGELOG}" extract 1.0.0 "${dated_but_empty}"
 
 # -------------------------------------------------------- check-unreleased ---
 
@@ -462,6 +608,23 @@ git -C "${REPOSITORY}" commit --quiet -a -m 'add an entry'
 changed="$(git -C "${REPOSITORY}" rev-parse HEAD)"
 assert_status 'check-unreleased passes when an entry is added' 0 \
   "${CHANGELOG}" check-unreleased "${base}" "${changed}" "${tracked}"
+
+# An entry another pull request added to the base branch after this branch forked must not
+# satisfy the check.
+git -C "${REPOSITORY}" checkout --quiet -b feature "${base}"
+printf 'code\n' >"${REPOSITORY}/code.txt"
+git -C "${REPOSITORY}" add -A
+git -C "${REPOSITORY}" commit --quiet -m 'change code only'
+feature="$(git -C "${REPOSITORY}" rev-parse HEAD)"
+git -C "${REPOSITORY}" checkout --quiet main 2>/dev/null || git -C "${REPOSITORY}" checkout --quiet master
+moved_on="$(git -C "${REPOSITORY}" rev-parse HEAD)"
+assert_status 'check-unreleased ignores entries the base branch gained after the fork' 1 \
+  "${CHANGELOG}" check-unreleased "${moved_on}" "${feature}" "${tracked}"
+
+assert_message 'check-unreleased rejects an unresolvable base reference' 1 'cannot resolve base' \
+  "${CHANGELOG}" check-unreleased no-such-ref "${feature}" "${tracked}"
+assert_message 'check-unreleased rejects an unresolvable head reference' 1 'cannot resolve head' \
+  "${CHANGELOG}" check-unreleased "${base}" no-such-ref "${tracked}"
 
 # -------------------------------------------------------------------------- #
 

@@ -23,9 +23,11 @@
 #
 #   changelog.sh check-unreleased <base-ref> <head-ref> [path]
 #       Compare the `## [Unreleased]` section between two Git references and exit non-zero when it
-#       is unchanged. A file that does not exist at the base reference counts as changed. Used by
-#       the pull request workflow; a pull request with no user-visible change carries the
-#       `skip-changelog` label instead.
+#       is unchanged. The comparison uses the commit where the two references diverged, not the tip
+#       of the base reference, so an entry another pull request added in the meantime cannot
+#       satisfy the check. A file missing at that commit counts as changed, but a reference that
+#       cannot be resolved is an error rather than a pass. Used by the pull request workflow; a
+#       pull request with no user-visible change carries the `skip-changelog` label instead.
 #
 # `path` defaults to CHANGELOG.md beside this script.
 
@@ -168,7 +170,8 @@ validate_structure() {
       count = split("Added Changed Fixed Removed Security Deprecated", allowed, " ")
       for (index_ = 1; index_ <= count; index_++) rank[allowed[index_]] = index_
       order = "Added, Changed, Fixed, Removed, Security, Deprecated"
-      version_heading = "^## \\[" semver "\\] - [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$"
+      date = "[0-9][0-9][0-9][0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+      version_heading = "^## \\[" semver "\\] - " date "$"
     }
 
     function problem(message) {
@@ -185,12 +188,16 @@ validate_structure() {
       entries = 0
     }
 
+    { if (sub(/\r$/, "")) carriage_returns++ }
+
     NR == 1 {
       if ($0 != "# Changelog") problem("the first line must be \"# Changelog\"")
     }
 
-    /keepachangelog\.com\/en\/1\.1\.0/ { keep_a_changelog = 1 }
-    /semver\.org\/spec\/v2\.0\.0\.html/ { semantic_versioning = 1 }
+    # Only the introduction counts as the header, so the same links inside an entry cannot stand
+    # in for it.
+    headings == 0 && /keepachangelog\.com\/en\/1\.1\.0/ { keep_a_changelog = 1 }
+    headings == 0 && /semver\.org\/spec\/v2\.0\.0\.html/ { semantic_versioning = 1 }
 
     /^# / && NR > 1 { problem("only the first line may be a level 1 heading"); next }
 
@@ -235,6 +242,7 @@ validate_structure() {
 
     {
       if ($0 ~ /^[ \t]*$/) next
+      if ($0 ~ /^\[[^]]+\]: /) next   # Keep a Changelog link reference definitions
       if (headings == 0) next      # introduction above the first version section
       if (section == "") { problem("content must sit under a \"###\" section: " $0); next }
       if ($0 ~ /^- ./) { entries++; next }
@@ -254,6 +262,10 @@ validate_structure() {
       }
       if (unreleased == 0) {
         printf "%s: an \"## [Unreleased]\" section is required\n", label > "/dev/stderr"
+        failures++
+      }
+      if (carriage_returns > 0) {
+        printf "%s: the file uses CRLF line endings; write the changelog with LF\n", label > "/dev/stderr"
         failures++
       }
       if (failures > 0) exit 1
@@ -284,6 +296,10 @@ VERSIONS
 # date, and 5 when the section has no content.
 section_body() {
   awk -v version="$2" -v dated="$3" '
+    { sub(/\r$/, "") }
+
+    capture && /^\[[^]]+\]: / { capture = 0; next }
+
     $0 ~ /^## / {
       capture = 0
       if (index($0, "## [" version "]") == 1) {
@@ -323,6 +339,8 @@ command_extract() {
   esac
 }
 
+# Print the Unreleased section's body at one reference. Returns 1 when the file does not exist
+# there, which the caller reads as "nothing to compare against".
 unreleased_at_reference() {
   directory="$1"
   reference="$2"
@@ -338,8 +356,13 @@ unreleased_at_reference() {
   # Exit 3 (missing) and 5 (empty) both mean "nothing recorded", which compares as empty.
   case "${status}" in
   0 | 3 | 5) return 0 ;;
-  *) return 1 ;;
+  *) fail "could not read the \"## [Unreleased]\" section of ${tracked} at ${reference}" ;;
   esac
+}
+
+require_commit() {
+  git -C "$1" cat-file -e "$2^{commit}" 2>/dev/null ||
+    fail "cannot resolve $3 reference: $2"
 }
 
 command_check_unreleased() {
@@ -352,15 +375,23 @@ command_check_unreleased() {
   directory="$(CDPATH='' cd -- "$(dirname -- "${path}")" && pwd)" ||
     fail "changelog directory not found: $(dirname -- "${path}")"
   tracked="$(repository_path "${path}")"
-  if ! base_body="$(unreleased_at_reference "${directory}" "${base}" "${tracked}")"; then
-    printf 'No %s at %s; treating the Unreleased section as changed.\n' "${tracked}" "${base}"
+  # An unresolvable reference is a broken invocation, not a passing check.
+  require_commit "${directory}" "${base}" base
+  require_commit "${directory}" "${head}" head
+  # Compare against the commit the two references diverged from, not the tip of the base branch.
+  # Otherwise an entry another pull request added to Unreleased in the meantime makes the two
+  # sections differ, and a pull request that never touched the changelog passes.
+  fork_point="$(git -C "${directory}" merge-base "${base}" "${head}" 2>/dev/null)" || fork_point=''
+  [ -n "${fork_point}" ] || fork_point="${base}"
+  if ! base_body="$(unreleased_at_reference "${directory}" "${fork_point}" "${tracked}")"; then
+    printf 'No %s at %s; treating the Unreleased section as changed.\n' "${tracked}" "${fork_point}"
     return 0
   fi
   head_body="$(unreleased_at_reference "${directory}" "${head}" "${tracked}")" ||
-    fail "could not read ${tracked} at ${head}"
+    fail "${tracked} does not exist at ${head}"
   if [ "${base_body}" = "${head_body}" ]; then
     cat >&2 <<MESSAGE
-${SCRIPT_NAME}: the "## [Unreleased]" section of ${tracked} is unchanged between ${base} and ${head}.
+${SCRIPT_NAME}: the "## [Unreleased]" section of ${tracked} is unchanged since ${fork_point}.
 
 Add an entry describing what a user of the Agent will notice, under Added, Changed, Fixed,
 Removed, Security or Deprecated. If this change is a refactor, or is test-only or CI-only, apply
@@ -368,7 +399,7 @@ the "skip-changelog" label to the pull request instead.
 MESSAGE
     exit 1
   fi
-  printf 'The "## [Unreleased]" section of %s changed between %s and %s.\n' "${tracked}" "${base}" "${head}"
+  printf 'The "## [Unreleased]" section of %s changed since %s.\n' "${tracked}" "${fork_point}"
 }
 
 [ $# -ge 1 ] || usage
