@@ -28,16 +28,22 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     /// </summary>
     internal const string FilePathKey = "MaskinportenSettingsFilepath";
 
-    /// <summary>The file the platform provisions the app's credentials as.</summary>
+    /// <summary>
+    /// The file the platform provisions the app's credentials as.
+    /// </summary>
     internal const string FileName = "maskinporten-settings.json";
 
-    /// <summary>The object the provisioned file wraps its credentials in.</summary>
+    /// <summary>
+    /// The object the provisioned file wraps its credentials in.
+    /// </summary>
     private const string SectionName = "MaskinportenSettings";
 
     private readonly PhysicalFileProvider _fileProvider;
     private readonly IConfigurationRoot _root;
 
-    /// <summary>The provisioned credentials, as a configuration section to bind options against.</summary>
+    /// <summary>
+    /// The provisioned credentials, as a configuration section to bind options against.
+    /// </summary>
     public IConfiguration Section { get; }
 
     public MaskinportenSettingsSource(IConfiguration appConfiguration)
