@@ -14,7 +14,9 @@ namespace Altinn.Studio.Gateway.Api.Application;
 /// </summary>
 internal static partial class AppName
 {
-    [GeneratedRegex("^[a-z][a-z0-9-]{0,62}$")]
+    // \z, not $: in .NET, $ also matches just before a single trailing newline, so "my-app\n"
+    // would pass and reach the audit log unescaped via the namespace it is built into.
+    [GeneratedRegex(@"^[a-z][a-z0-9-]{0,62}\z")]
     private static partial Regex AppNameRegex();
 
     public static bool IsValid(string app) => AppNameRegex().IsMatch(app);
