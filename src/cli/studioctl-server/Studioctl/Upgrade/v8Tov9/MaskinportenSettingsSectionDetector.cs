@@ -56,8 +56,11 @@ internal sealed class MaskinportenSettingsSectionDetector
         + " configuration section that v9 never reads. An app has one Maskinporten identity, the client "
         + "Studio provisions for it, and the app libraries read those credentials from the provisioned "
         + "settings file rather than from the app's configuration. Delete the section; if it holds a private "
-        + "key, that key is worth removing from the repository on its own merits. (A section configuring the "
-        + "external Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) "
+        + "key, that key is worth removing from the repository on its own merits. If the section held the client "
+        + "you use for local runs, hand it to studioctl before deleting it - studioctl app maskinporten set "
+        + "--from-appsettings <the file> - and studioctl provisions the client to the app for local runs the way "
+        + "Studio does when the app is deployed. (A section configuring the external "
+        + "Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) "
         + "Sections found:";
 
     private readonly string _projectFolder;

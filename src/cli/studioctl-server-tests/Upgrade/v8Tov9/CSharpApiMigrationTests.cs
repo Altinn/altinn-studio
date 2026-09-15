@@ -1917,8 +1917,13 @@ public sealed class CSharpApiMigrationTests : IDisposable
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
         Assert.NotEmpty(result.Todos);
-        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient"));
+        // The section name is what the studioctl command needs, so the call site is reported with it.
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient(\"MyOwnMaskinporten\")")
+        );
         Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+        Assert.Contains(Summaries(result), s => s.Contains("studioctl app maskinporten set --from-appsettings"));
     }
 
     [Fact]

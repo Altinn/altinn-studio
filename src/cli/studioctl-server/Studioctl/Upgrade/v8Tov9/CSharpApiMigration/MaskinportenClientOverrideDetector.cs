@@ -35,7 +35,11 @@ internal sealed class MaskinportenClientOverrideDetector
         + "declare them on the provisioned client in Studio instead. If it configured a Maskinporten client for "
         + "the app's own integration, give that integration its own client - the Altinn.ApiClients.Maskinporten "
         + "package is the supported way to bring your own credentials - and leave the built-in client alone: it "
-        + "is what mints the service owner tokens this app's process transitions run on. Call sites found:";
+        + "is what mints the service owner tokens this app's process transitions run on. Where a call named a "
+        + "configuration section holding the client you use for local runs, hand that section to studioctl "
+        + "instead - studioctl app maskinporten set --from-appsettings App/appsettings.Development.json "
+        + "--section <the name in the call> - and studioctl provisions the client to the app for local runs the "
+        + "way Studio does when the app is deployed. Call sites found:";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -46,7 +50,10 @@ internal sealed class MaskinportenClientOverrideDetector
 
     public MigrationResult Detect()
     {
-        var matches = _scanner.Files.SelectMany(file => CSharpSyntaxQueries.InvokedMethods(file, _removedMethods));
+        // The section name in the call is the value the studioctl command needs, so it is quoted in the report.
+        var matches = _scanner.Files.SelectMany(file =>
+            CSharpSyntaxQueries.InvokedMethods(file, _removedMethods, describeFirstStringArgument: true)
+        );
         return WarnOnlyDetector.Report(Summary, matches);
     }
 }
