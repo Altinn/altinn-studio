@@ -114,6 +114,62 @@ describe('SupportedPaletteProvider', () => {
       expect(result['create.altinn-confirmation-task']).toBeDefined();
       expect(result['create.altinn-payment-task']).toBeDefined();
       expect(result['create.altinn-pdf-task']).toBeDefined();
+      expect(result['create.altinn-eformidling-task']).toBeDefined();
+      expect(result['create.altinn-subform-pdf-task']).toBeDefined();
+      expect(result['create.altinn-fiks-arkiv-task']).toBeDefined();
+      expect(result['create.altinn-custom-service-task']).toBeDefined();
+    });
+  });
+
+  describe('service task creation', () => {
+    const clickEntry = (entry: string) => {
+      const paletteEntries = provider.getPaletteEntries();
+      paletteEntries({})[entry].action.click({});
+    };
+
+    const createdTaskExtension = () =>
+      mockBpmnFactory.create.mock.calls.find((call) => call[0] === 'altinn:TaskExtension')[1];
+
+    const createdShapeTypes = () =>
+      mockElementFactory.createShape.mock.calls.map((call) => call[0].type);
+
+    it.each([
+      ['create.altinn-eformidling-task', 'eFormidling', 'altinn:EFormidlingConfig'],
+      ['create.altinn-subform-pdf-task', 'subformPdf', 'altinn:SubformPdfConfig'],
+      ['create.altinn-fiks-arkiv-task', 'fiksArkiv', undefined],
+      ['create.altinn-custom-service-task', '', undefined],
+    ])('%s creates a ServiceTask with task type "%s"', (entry, taskType) => {
+      clickEntry(entry);
+
+      expect(createdShapeTypes()).toEqual(['bpmn:ServiceTask']);
+      expect(createdTaskExtension().taskType).toBe(taskType);
+    });
+
+    it.each([
+      ['create.altinn-eformidling-task', 'eFormidlingConfig', 'altinn:EFormidlingConfig'],
+      ['create.altinn-subform-pdf-task', 'subformPdfConfig', 'altinn:SubformPdfConfig'],
+    ])('%s seeds an empty %s for the developer to fill in', (entry, property, moddleType) => {
+      clickEntry(entry);
+
+      expect(mockBpmnFactory.create).toHaveBeenCalledWith(moddleType);
+      expect(createdTaskExtension()[property]).toEqual({ $type: moddleType });
+    });
+
+    it.each([
+      ['create.altinn-fiks-arkiv-task', 'Fiks Arkiv is configured outside process.bpmn'],
+      ['create.altinn-custom-service-task', 'the app owns whatever configuration it needs'],
+    ])('%s seeds no configuration block, because %s', (entry) => {
+      clickEntry(entry);
+
+      expect(Object.keys(createdTaskExtension())).toEqual(['taskType']);
+    });
+
+    it('names the generic service task without leaving a gap for the empty task type', () => {
+      clickEntry('create.altinn-custom-service-task');
+
+      expect(mockBpmnFactory.create).toHaveBeenCalledWith('bpmn:ServiceTask', {
+        name: 'Altinn service task',
+      });
     });
   });
 
@@ -309,5 +365,4 @@ describe('SupportedPaletteProvider', () => {
       expect(pdfConfigCalls.length).toBeGreaterThan(0);
     });
   });
-
 });

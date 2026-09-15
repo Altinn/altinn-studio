@@ -35,16 +35,18 @@ type SigningTaskConfig = {
   dataTypeName: string;
 };
 
-type UserControlledSigningTaskConfig = {
-  configNode: string;
-  dataTypeName: string;
-};
-
 type BpmnTaskConfig = {
   payment: PaymentTaskConfig;
   signing: SigningTaskConfig;
-  userControlledSigning: UserControlledSigningTaskConfig;
 };
+
+/**
+ * The task types that keep their data types in a per-type config node. Deliberately narrower than
+ * `BpmnTaskType`, which is open: a custom service task's type is an arbitrary string, and the
+ * lookup below has no entry for it. Requiring this type at the call site keeps the lookup total
+ * instead of letting it throw on a key it was never given.
+ */
+export type BpmnDataTypeCarryingTaskType = keyof BpmnTaskConfig;
 
 const bpmnTaskConfig: BpmnTaskConfig = {
   payment: {
@@ -53,10 +55,6 @@ const bpmnTaskConfig: BpmnTaskConfig = {
     receiptPdfDataTypeName: 'paymentReceiptPdfDataType',
   },
   signing: {
-    configNode: 'signatureConfig',
-    dataTypeName: 'signatureDataType',
-  },
-  userControlledSigning: {
     configNode: 'signatureConfig',
     dataTypeName: 'signatureDataType',
   },
@@ -119,17 +117,16 @@ export class StudioModeler {
     return this.elementRegistry.getAll().map((element) => element.id);
   }
 
+  /** Payment is the only task type with a receipt pdf data type, so it takes no task type. */
   public getReceiptPdfDataTypeIdFromBusinessObject(
-    bpmnTaskType: BpmnTaskType,
     businessObject: BpmnBusinessObjectEditor,
   ): string {
-    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-    const receiptPdfDataTypeName = bpmnTaskConfig[bpmnTaskType].receiptPdfDataTypeName;
+    const { configNode, receiptPdfDataTypeName } = bpmnTaskConfig.payment;
     return businessObject?.extensionElements?.values[0][configNode][receiptPdfDataTypeName];
   }
 
   public getDataTypeIdFromBusinessObject(
-    bpmnTaskType: BpmnTaskType,
+    bpmnTaskType: BpmnDataTypeCarryingTaskType,
     businessObject: BpmnBusinessObjectEditor,
   ): string {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
@@ -138,7 +135,7 @@ export class StudioModeler {
   }
 
   public getSigneeStatesDataTypeId(
-    bpmnTaskType: BpmnTaskType,
+    bpmnTaskType: BpmnDataTypeCarryingTaskType,
     businessObject: BpmnBusinessObjectEditor,
   ): string {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;

@@ -8,6 +8,7 @@ import type {
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
+import type { BpmnTaskType as LayoutSetTaskType } from 'app-shared/types/BpmnTaskType';
 
 export enum AllowedContributor {
   AppOwned = 'app:owned',
@@ -51,7 +52,7 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleDataTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata, 'data'));
   }
 
   /**
@@ -60,11 +61,11 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata, 'payment'));
 
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
+      'payment',
       taskMetadata.taskEvent.element.businessObject,
     );
     this.addDataTypeToAppMetadata({
@@ -74,7 +75,6 @@ export class OnProcessTaskAddHandler {
     });
 
     const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
     this.addDataTypeToAppMetadata({
@@ -108,23 +108,28 @@ export class OnProcessTaskAddHandler {
   }
 
   /**
-   * Creates the layout set config for the task
+   * Creates the layout set config for the task. The caller names the task type rather than
+   * forwarding the event's own value, because only the three types handled here get a layout set
+   * and the layout set api accepts only those.
    * @returns {{layoutSetConfig: LayoutSetConfig}}
    * @private
    */
-  private createLayoutSetConfig(taskMetadata: OnProcessTaskEvent): AddLayoutSetMutationPayload {
+  private createLayoutSetConfig(
+    taskMetadata: OnProcessTaskEvent,
+    taskType: LayoutSetTaskType,
+  ): AddLayoutSetMutationPayload {
     const elementId = taskMetadata.taskEvent.element.id;
     return {
-      taskType: taskMetadata.taskType,
+      taskType,
       layoutSetConfig: { id: elementId, taskId: elementId },
     };
   }
 
   private handleGenericSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata, 'signing'));
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
+      'signing',
       taskMetadata.taskEvent.element.businessObject,
     );
 
@@ -138,11 +143,11 @@ export class OnProcessTaskAddHandler {
   private addSigneeStateToApplicationMetadata(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const signeeStatesDataTypeId = studioModeler.getSigneeStatesDataTypeId(
-      taskMetadata.taskType,
+      'signing',
       taskMetadata.taskEvent.element.businessObject,
     );
 
-    // A task can be recognised as user controlled while still missing its signee states data type.
+    // A task can be recognized as user controlled while still missing its signee states data type.
     // There is nothing to register until the developer has added one.
     if (!signeeStatesDataTypeId) return;
 

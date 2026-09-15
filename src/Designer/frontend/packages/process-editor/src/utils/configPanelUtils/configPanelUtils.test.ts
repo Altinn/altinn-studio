@@ -3,6 +3,8 @@ import {
   getConfigTitleKey,
   getDataTypeFromLayoutSetsWithExistingId,
 } from './configPanelUtils';
+import { builtInBpmnTaskTypes } from '../../types/BpmnTaskType';
+import nb from '../../../../../language/src/nb.json';
 
 describe('configPanelUtils', () => {
   describe('getConfigTitleKey', () => {
@@ -24,6 +26,19 @@ describe('configPanelUtils', () => {
     it('returns signing task key when taskType is "signing"', () => {
       const key = getConfigTitleKey('signing');
       expect(key).toEqual('process_editor.configuration_panel_signing_task');
+    });
+
+    it.each(['myServiceTask', ''])(
+      'falls back to one generic key for the custom type "%s", which has no key of its own',
+      (taskType) => {
+        expect(getConfigTitleKey(taskType)).toEqual(
+          'process_editor.configuration_panel_custom_service_task',
+        );
+      },
+    );
+
+    it('returns the missing task key when there is no task type at all', () => {
+      expect(getConfigTitleKey(null)).toEqual('process_editor.configuration_panel_missing_task');
     });
   });
 
@@ -47,6 +62,33 @@ describe('configPanelUtils', () => {
       const key = getConfigTitleHelpTextKey('signing');
       expect(key).toEqual('process_editor.configuration_panel_header_help_text_signing');
     });
+
+    it.each(['myServiceTask', ''])(
+      'falls back to one generic helptext key for the custom type "%s"',
+      (taskType) => {
+        expect(getConfigTitleHelpTextKey(taskType)).toEqual(
+          'process_editor.configuration_panel_header_help_text_custom_service_task',
+        );
+      },
+    );
+
+    it('returns the missing helptext key when there is no task type at all', () => {
+      expect(getConfigTitleHelpTextKey(null)).toEqual(
+        'process_editor.configuration_panel_header_help_text_missing',
+      );
+    });
+  });
+
+  // The keys above are built from the task type, so a new task type, a renamed key or a deleted
+  // translation all fail here rather than surfacing as a raw key in the panel header.
+  describe('the keys resolve in nb.json', () => {
+    it.each([...builtInBpmnTaskTypes, 'myServiceTask', '', null])(
+      'has a title and a help text for %p',
+      (taskType) => {
+        expect(nb).toHaveProperty([getConfigTitleKey(taskType)]);
+        expect(nb).toHaveProperty([getConfigTitleHelpTextKey(taskType)]);
+      },
+    );
   });
 
   describe('getDataTypeFromLayoutSetsWithExistingId', () => {

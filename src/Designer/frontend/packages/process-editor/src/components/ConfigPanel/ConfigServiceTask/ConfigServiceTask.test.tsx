@@ -127,6 +127,61 @@ describe('ConfigServiceTask', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should not offer an editable task type for pdf, which has a panel of its own', () => {
+    const pdfBpmnDetails = createPdfBpmnDetails({});
+
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
+      bpmnApiContextProps: { layoutSets: [] },
+    });
+
+    expect(queryTaskTypeField()).not.toBeInTheDocument();
+  });
+
+  // Studio has no panel for these yet, so the type field stays — otherwise typing one of these
+  // names into it would unmount the only control the task has, with no way back.
+  it.each(['', 'myServiceTask', 'eFormidling', 'subformPdf', 'fiksArkiv'])(
+    'should offer an editable task type for "%s"',
+    (taskType) => {
+      renderConfigServiceTask({
+        bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+      });
+
+      expect(queryTaskTypeField()).toBeInTheDocument();
+    },
+  );
+
+  it.each([
+    ['eFormidling', 'process_editor.configuration_panel_eformidling_incomplete_config_alert'],
+    ['subformPdf', 'process_editor.configuration_panel_subform_pdf_incomplete_config_alert'],
+  ])('should warn that %s must be configured in process.bpmn', (taskType, alertKey) => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+    });
+
+    expect(screen.getByText(textMock(alertKey))).toBeInTheDocument();
+  });
+
+  it.each(['fiksArkiv', 'myServiceTask'])(
+    'should show no incomplete configuration warning for %s',
+    (taskType) => {
+      renderConfigServiceTask({
+        bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+      });
+
+      expect(
+        screen.queryByText(
+          textMock('process_editor.configuration_panel_eformidling_incomplete_config_alert'),
+        ),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          textMock('process_editor.configuration_panel_subform_pdf_incomplete_config_alert'),
+        ),
+      ).not.toBeInTheDocument();
+    },
+  );
+
   it('should render pdf configuration for pdf service task', () => {
     const pdfBpmnDetails = createPdfBpmnDetails({});
 
@@ -146,6 +201,11 @@ describe('ConfigServiceTask', () => {
     ).toBeInTheDocument();
   });
 });
+
+const queryTaskTypeField = (): HTMLElement | null =>
+  screen.queryByRole('button', {
+    name: textMock('process_editor.configuration_panel_service_task_type_label'),
+  });
 
 type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;

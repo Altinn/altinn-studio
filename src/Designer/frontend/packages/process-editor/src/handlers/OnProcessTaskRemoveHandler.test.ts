@@ -310,4 +310,20 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
     expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
   });
+
+  // These service task types own no layout set, data type or policy rule, so no branch in the
+  // handler matches them and there is nothing to clean up when they are deleted.
+  it.each(['subformPdf', ''])(
+    'should clean up nothing when a task of type "%s" is deleted',
+    (taskType) => {
+      const layoutSets: LayoutSets = [{ id: 'someLayoutSetId', taskId: 'testElementId' }];
+      const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({ layoutSets });
+
+      onProcessTaskRemoveHandler.handleOnProcessTaskRemove(createTaskMetadataMock(taskType));
+
+      expect(deleteLayoutSetMock).not.toHaveBeenCalled();
+      expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
+      expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+    },
+  );
 });
