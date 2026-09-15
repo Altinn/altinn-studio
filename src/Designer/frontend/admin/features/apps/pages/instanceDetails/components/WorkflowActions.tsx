@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { ReactElement } from 'react';
 import { StudioAlert } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +30,9 @@ export type WorkflowActionsProps = {
  *
  * The outcome is rendered whether or not the verbs are still on offer: a verb that succeeded moves
  * the workflow out of the failed state it was offered on, so gating the feedback on the buttons
- * would hide every success behind the refresh that proves it worked.
+ * would hide every success behind the refresh that proves it worked. It lives until the workflow
+ * fails again: the list keys items by workflow id and a resume reuses the id, so without that reset
+ * a stale "queued again" would sit next to the verbs for the new failure.
  */
 export const WorkflowActions = ({
   context,
@@ -42,6 +45,15 @@ export const WorkflowActions = ({
   const canRetry = RESUMABLE_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const canAbandon = FAILED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const hasOutcome = resume.isSuccess || abandon.isSuccess || resume.isError || abandon.isError;
+
+  const { reset: resetResume } = resume;
+  const { reset: resetAbandon } = abandon;
+  useEffect(() => {
+    if (FAILED_WORKFLOW_STATUSES.includes(workflow.overallStatus)) {
+      resetResume();
+      resetAbandon();
+    }
+  }, [workflow.overallStatus, resetResume, resetAbandon]);
 
   if (!canRetry && !canAbandon && !hasOutcome) {
     return null;
@@ -58,7 +70,10 @@ export const WorkflowActions = ({
               description={t('admin.workflows.actions.retry.description')}
               confirmLabel={t('admin.workflows.actions.retry.confirm')}
               isPending={resume.isPending}
-              onConfirm={() => resume.mutate(workflow.databaseId)}
+              onConfirm={() => {
+                abandon.reset();
+                resume.mutate(workflow.databaseId);
+              }}
             />
           )}
           {canAbandon && (
@@ -69,7 +84,10 @@ export const WorkflowActions = ({
               confirmLabel={t('admin.workflows.actions.abandon.confirm')}
               color='danger'
               isPending={abandon.isPending}
-              onConfirm={() => abandon.mutate(workflow.databaseId)}
+              onConfirm={() => {
+                resume.reset();
+                abandon.mutate(workflow.databaseId);
+              }}
             />
           )}
         </div>

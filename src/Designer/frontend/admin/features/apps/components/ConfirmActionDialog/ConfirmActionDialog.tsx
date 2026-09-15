@@ -33,6 +33,15 @@ export const ConfirmActionDialog = ({
 }: ConfirmActionDialogProps): ReactElement => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
+
+  // showModal() hands the initial focus to the first focusable descendant, which is the confirm
+  // button — so a keyboard user pressing Enter as the dialog appears would confirm without reading
+  // it. Cancel takes the focus instead; confirming has to be a deliberate move.
+  const handleOpen = () => {
+    dialogRef.current?.showModal();
+    cancelRef.current?.focus();
+  };
 
   const handleConfirm = () => {
     dialogRef.current?.close();
@@ -46,7 +55,7 @@ export const ConfirmActionDialog = ({
         data-color={color}
         variant='secondary'
         disabled={isPending}
-        onClick={() => dialogRef.current?.showModal()}
+        onClick={handleOpen}
       >
         {isPending && <StudioSpinner aria-label={t('general.loading')} />}
         {triggerLabel}
@@ -65,6 +74,7 @@ export const ConfirmActionDialog = ({
             {confirmLabel}
           </StudioButton>
           <StudioButton
+            ref={cancelRef}
             data-size='sm'
             variant='tertiary'
             onClick={() => dialogRef.current?.close()}
