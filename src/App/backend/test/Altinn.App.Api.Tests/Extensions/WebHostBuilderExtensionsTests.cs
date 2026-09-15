@@ -234,13 +234,15 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [Fact]
-    public void AddRuntimeConfigFiles_Production_NeverAddsTheMaskinportenSettingsFile()
+    public void AddRuntimeConfigFiles_Production_NeverAddsAMaskinportenSettingsFile()
     {
         // The provisioned credentials are bound through the Maskinporten client's own configuration root. If
         // the sweep of the secrets mount also loaded them, a MaskinportenSettings section would be back in the
-        // app's configuration - where a package binding that name by convention would pick it up.
+        // app's configuration - where a package binding that name by convention would pick it up. Every file
+        // named like it stays out, including a variant an older platform might still mount.
         using var tempDirectory = new TempDirectory(_outputHelper);
         File.WriteAllText(Path.Join(tempDirectory.Path, "maskinporten-settings.json"), "{}");
+        File.WriteAllText(Path.Join(tempDirectory.Path, "maskinporten-settings-internal.json"), "{}");
         File.WriteAllText(Path.Join(tempDirectory.Path, "Maskinporten-Settings.override.json"), "{}");
         File.WriteAllText(Path.Join(tempDirectory.Path, "platform-settings.json"), "{}");
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
@@ -256,7 +258,7 @@ public sealed class WebHostBuilderExtensionsTests
             .Select(source => source.Path ?? string.Empty)
             .ToArray();
 
-        Assert.Equal(new[] { "platform-settings.json", "Maskinporten-Settings.override.json" }, jsonSourcePaths);
+        Assert.Equal(new[] { "platform-settings.json" }, jsonSourcePaths);
     }
 
     private static void AssertUsesPollingFileProvider(JsonConfigurationSource source)

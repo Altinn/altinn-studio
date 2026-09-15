@@ -41,7 +41,28 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// </summary>
     private static readonly TimeSpan _requestTimeout = TimeSpan.FromSeconds(30);
 
-    internal MaskinportenSettings Settings => _options.CurrentValue;
+    /// <summary>
+    /// The provisioned credentials. Reading them is the first thing every token path does, so a file that is
+    /// missing or incomplete surfaces here, as a <see cref="MaskinportenConfigurationException"/> carrying the
+    /// options failure - which says where the file was expected and, on a local run, what to run.
+    /// </summary>
+    internal MaskinportenSettings Settings
+    {
+        get
+        {
+            try
+            {
+                return _options.CurrentValue;
+            }
+            catch (OptionsValidationException e)
+            {
+                throw new MaskinportenConfigurationException(
+                    "The app's Maskinporten credentials are missing or invalid: " + e.Message,
+                    e
+                );
+            }
+        }
+    }
 
     private const string MaskinportenCacheKeySalt = "maskinportenScope";
     private const string AltinnCacheKeySalt = "maskinportenScope-altinn";
@@ -298,18 +319,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// <exception cref="MaskinportenConfigurationException"></exception>
     internal string GenerateJwtGrant(MaskinportenTokenRequest request, string audience)
     {
-        MaskinportenSettings? settings;
-        try
-        {
-            settings = Settings;
-        }
-        catch (OptionsValidationException e)
-        {
-            throw new MaskinportenConfigurationException(
-                "The app's Maskinporten credentials are missing or invalid: " + e.Message,
-                e
-            );
-        }
+        var settings = Settings;
 
         var claims = request.ToClaims();
         claims[JwtClaimTypes.JwtId] = Guid.NewGuid().ToString();

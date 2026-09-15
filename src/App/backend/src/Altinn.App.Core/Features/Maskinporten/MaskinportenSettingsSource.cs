@@ -34,6 +34,12 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     internal const string FileName = "maskinporten-settings.json";
 
     /// <summary>
+    /// What every Maskinporten credentials file is named after; the app's configuration root keeps anything
+    /// with this prefix out of the secrets mount sweep.
+    /// </summary>
+    internal const string FileNamePrefix = "maskinporten-settings";
+
+    /// <summary>
     /// Where the platform provisions the app's credentials in a cluster. Deliberately not reachable from the
     /// app's configuration: an app able to move this could point the client at an identity of its own, which
     /// is the whole thing this type exists to prevent. It stays internal rather than becoming a constant so
@@ -170,8 +176,9 @@ internal sealed class ConfigureMaskinportenSettings(MaskinportenSettingsSource s
 
 /// <summary>
 /// Says where the credentials were expected, and how to supply them, when nothing at all was read. The data
-/// annotations on <see cref="MaskinportenSettings"/> already report a partial file field by field; this covers
-/// the empty file, which is the case a developer meets first, with the fix rather than a field name.
+/// annotations on <see cref="MaskinportenSettings"/> report a missing field by name, and the options factory
+/// aggregates every validator's failures, so for the empty file - the case a developer meets first - this adds
+/// the fix to those field names.
 /// </summary>
 internal sealed class ValidateMaskinportenSettingsProvisioned(MaskinportenSettingsSource source)
     : IValidateOptions<MaskinportenSettings>

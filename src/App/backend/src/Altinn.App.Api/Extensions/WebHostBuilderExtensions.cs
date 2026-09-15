@@ -72,15 +72,13 @@ public static class WebHostBuilderExtensions
         // The Maskinporten credentials are bound through a configuration root of their own (see
         // MaskinportenSettingsSource) and must not also land in the app's: nothing built in reads them from
         // here, and a package binding a MaskinportenSettings section by convention would otherwise pick up the
-        // provisioned client.
+        // provisioned client. Anything named like the file is kept out, so a variant an older platform still
+        // mounts (maskinporten-settings-internal.json once existed) stays out too.
         jsonFiles = Array.FindAll(
             jsonFiles,
             file =>
-                !string.Equals(
-                    Path.GetFileName(file),
-                    MaskinportenSettingsSource.FileName,
-                    StringComparison.OrdinalIgnoreCase
-                )
+                !Path.GetFileName(file)
+                    .StartsWith(MaskinportenSettingsSource.FileNamePrefix, StringComparison.OrdinalIgnoreCase)
         );
 
         PhysicalFileProvider? secretsFileProvider = null;
