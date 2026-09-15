@@ -474,9 +474,6 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
-    'process_workflow.advancing_title': 'Vi jobber med skjemaet ditt',
-    'process_workflow.advancing_body':
-      'Du trenger ikke gjøre noe. Vi sender deg videre så snart alt er klart.',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
@@ -493,8 +490,6 @@ export function nb() {
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og vi fortsetter automatisk – du kan trygt lukke siden og komme tilbake på et senere tidspunkt. Allerede påbegynte skjema kan åpnes fra innboksen eller utkast-mappen.',
-    'process_workflow.connection_trouble':
-      'Vi får ikke kontakt med tjenesten akkurat nå. Prøver igjen …',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
     'pdfPreview.defaultButtonText': 'Forhåndsvis PDF',
     'taskTypes.data': 'Utfylling',

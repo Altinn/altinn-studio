@@ -2,20 +2,26 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
-import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { invalidateInstanceData, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
-import { instanceDataQuery, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
+import {
+  instanceDataQuery,
+  instanceQueryKeys,
+  invalidateInstanceData,
+  useOptimisticallyUpdateInstance,
+} from 'src/core/queries/instance';
+import { skipToken, useIsMutating, useQuery, useQueryClient } from 'src/core/queries/reactQuery';
 import { FileScanResults } from 'src/features/attachments/types';
+import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
+import type { UseQueryOptions } from 'src/core/queries/reactQuery';
 import type { IData, IInstance, IInstanceDataSources, WorkflowActivityStatus } from 'src/types/shared';
 
 const emptyArray: never[] = [];
@@ -25,19 +31,17 @@ const InstanceContext = React.createContext<IInstance | null>(null);
  * How many consecutive failed refetch cycles (each cycle already retries 3 times with backoff
  * internally) we tolerate while still holding renderable instance data, before replacing the UI
  * with the full error page. A transient blip or a single pod restart must not tear a user off a
- * working view — especially the "advancing" screen during a workflow transition, where the poll
- * loop recovers by itself. With the ~2–3s processing poll plus per-cycle retries this threshold
- * amounts to roughly 30–45s of continuous failure, at which point the outage is real and the
- * error page is honest. Counted in cycles rather than wall-clock so a tab that was hidden (polling
- * pauses) doesn't blow through the threshold on its first refetch after refocus.
+ * working view, especially the loader during a workflow transition where the poll loop recovers
+ * by itself. Counted in cycles rather than wall-clock so a hidden tab does not escalate on its
+ * first refetch after regaining focus.
  */
-export const INSTANCE_POLL_FAILURE_ESCALATION_CYCLES = 3;
+const INSTANCE_POLL_FAILURE_ESCALATION_CYCLES = 3;
 
 /**
  * Number of consecutive failed instance refetch cycles since the last successful fetch.
  * 0 whenever the latest fetch succeeded (or nothing has failed since mount).
  */
-export function useInstancePollFailureCount(): number {
+function useInstancePollFailureCount(): number {
   const { isError, errorUpdateCount, dataUpdatedAt } = useInstanceDataQuery();
 
   // Baseline the (monotonic) error count at the moment of the last successful fetch, so the
@@ -59,23 +63,33 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 
   const hasPendingScans = useHasPendingScans();
   const workflowStatus = useWorkflowStatus();
+  const isProcessNextPending = useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
+  const shouldPollProcess = isProcessNextPending || workflowStatus === 'processing';
   const pollFailureCount = useInstancePollFailureCount();
-  const { error: instanceDataError, data } = useInstanceDataQuery({
-    // Poll while a workflow transition is in flight (~2-3s, jittered so many clients waiting on the
-    // same engine don't synchronize into a thundering herd — which would otherwise peak exactly when
-    // the engine is already slow) so we converge on the committed task once it settles. The FAILED
-    // state deliberately does NOT poll: a terminal failure requires manual (ops) intervention either
-    // way, so the error page is static and an open tab doesn't pay the expensive failed-path read
-    // (two engine calls) every tick indefinitely — after an ops resume, a manual refresh picks up the
-    // recovered state. Otherwise fall back to the slower pending-scans poll.
-    refetchInterval:
-      workflowStatus === 'processing' ? () => 2000 + Math.floor(Math.random() * 1000) : hasPendingScans ? 5000 : false,
+  const {
+    error: instanceDataError,
+    data,
+    refetch,
+  } = useInstanceDataQuery({
+    // Process transitions use the shared fast-first backoff below. Pending scans retain their
+    // simpler fixed cadence when no transition poll is already refreshing the same query.
+    refetchInterval: !shouldPollProcess && hasPendingScans ? 5000 : false,
+    refetchOnWindowFocus: shouldPollProcess || hasPendingScans,
   });
+  const pollInstance = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
+  // A process/next response can take up to the backend's synchronous wait limit. Polling while the
+  // mutation is pending lets the submitting tab discover server-side processing without replacing
+  // the form during client validation. The same episode continues until processing settles, then
+  // stops. Resume has a separate mutation key and deliberately keeps its task view mounted.
+  usePollingWithBackoff(pollInstance, shouldPollProcess);
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've
   // been failing for a while" (sustained outage). A background refetch error while we hold
   // renderable data keeps the last known UI — during a workflow transition that keeps the
-  // advancing screen and its recovering poll loop alive instead of flashing an error page over a
+  // loading screen and its recovering poll loop alive instead of flashing an error page over a
   // transient blip. The fatal state is sticky (adjusted during render, per React's
   // adjust-state-on-change pattern): the error page itself mounts subscribers to the instance
   // query (e.g. <Lang> resolving instance data sources), and a mounting observer refetches an

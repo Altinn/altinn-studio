@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
-import { AccordionItem, Flex, Spinner } from '@app/form-component';
+import { AccordionItem, Flex } from '@app/form-component';
 import { Alert, Heading } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/process/ProcessWrapper.module.css';
-import { useInstancePollFailureCount, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { Loader } from 'src/core/loading/Loader';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IProcessWorkflowFailure } from 'src/types/shared';
 
@@ -17,24 +17,15 @@ import type { IProcessWorkflowFailure } from 'src/types/shared';
  * time keeps the threshold stable across refreshes and sessions; older backends fall back to the
  * page-mount time. A single escalation avoids a series of near-identical slow-wait messages.
  */
-const STILL_WORKING_MS = 30_000;
-/**
- * Consecutive failed poll cycles before the waiting view reports connection trouble. A single
- * failed cycle is treated as a transient blip while the poll loop recovers.
- */
-const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
+const STILL_WORKING_MS = 5_000;
 
 /**
- * Renders the live workflow-transition state. Every message is a text resource, so an app can
- * override it. The spinner, title, and body are always present; the slow-processing alert is shown
- * after 30 seconds; and connection trouble is shown independently when polling has repeatedly
- * failed. The wire model also reports step progress, but it is deliberately not rendered - internal
- * engine step counts mean nothing to the user.
+ * Uses the ordinary form loader while a workflow transition is running. If the transition lasts
+ * more than five seconds, the user also sees the existing safe-to-leave message. The server start
+ * time keeps that delay stable across reloads and sessions.
  */
 export function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
-  const pollFailureCount = useInstancePollFailureCount();
-  const { langAsString } = useLanguage();
   const [stillWorking, setStillWorking] = useState(false);
   const startedAt = workflow?.status === 'processing' ? workflow.startedAt : undefined;
 
@@ -50,41 +41,26 @@ export function WorkflowProcessing() {
   }, [startedAt]);
 
   return (
-    <Flex
-      item
-      size={{ xs: 12 }}
-      aria-live='polite'
-    >
-      <div className={classes.processingContainer}>
-        <Spinner
-          aria-hidden='true'
-          aria-label={langAsString('general.loading')}
-          data-size='xl'
-        />
-        <Heading
-          level={2}
-          data-size='sm'
-        >
-          <Lang id='process_workflow.advancing_title' />
-        </Heading>
-        <div className={classes.processingNote}>
-          <Lang id='process_workflow.advancing_body' />
-        </div>
-        {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
-          <div className={classes.processingNote}>
-            <Lang id='process_workflow.connection_trouble' />
-          </div>
-        )}
-        {stillWorking && (
-          <Alert
-            data-color='info'
-            className={classes.stillWorkingAlert}
+    <Loader
+      reason='workflow-processing'
+      overlay={
+        stillWorking ? (
+          <div
+            role='status'
+            aria-live='polite'
+            aria-atomic='true'
+            className={classes.stillWorkingOverlay}
           >
-            <Lang id='process_workflow.still_working' />
-          </Alert>
-        )}
-      </div>
-    </Flex>
+            <Alert
+              data-color='info'
+              className={classes.stillWorkingAlert}
+            >
+              <Lang id='process_workflow.still_working' />
+            </Alert>
+          </div>
+        ) : undefined
+      }
+    />
   );
 }
 
