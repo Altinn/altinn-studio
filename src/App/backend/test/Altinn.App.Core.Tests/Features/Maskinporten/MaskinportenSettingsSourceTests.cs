@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
 
-public sealed class MaskinportenConfigurationTests
+public sealed class MaskinportenSettingsSourceTests
 {
     private const string SettingsFileName = "maskinporten-settings.json";
 
@@ -20,7 +20,7 @@ public sealed class MaskinportenConfigurationTests
             ("AppSettings:RuntimeSecretsDirectory", "/ignored")
         );
 
-        Assert.Equal("/somewhere/else.json", MaskinportenConfiguration.ResolveFilePath(configuration));
+        Assert.Equal("/somewhere/else.json", MaskinportenSettingsSource.ResolveFilePath(configuration));
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class MaskinportenConfigurationTests
 
         Assert.Equal(
             Path.Join("/custom-secrets", SettingsFileName),
-            MaskinportenConfiguration.ResolveFilePath(configuration)
+            MaskinportenSettingsSource.ResolveFilePath(configuration)
         );
     }
 
@@ -39,7 +39,7 @@ public sealed class MaskinportenConfigurationTests
     {
         Assert.Equal(
             Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, SettingsFileName),
-            MaskinportenConfiguration.ResolveFilePath(ConfigurationWith())
+            MaskinportenSettingsSource.ResolveFilePath(ConfigurationWith())
         );
     }
 
@@ -48,7 +48,7 @@ public sealed class MaskinportenConfigurationTests
     {
         using var tempDirectory = new TempDirectory();
 
-        Assert.Equal(tempDirectory.Path, MaskinportenConfiguration.GetExistingProviderRoot(tempDirectory.Path));
+        Assert.Equal(tempDirectory.Path, MaskinportenSettingsSource.GetExistingProviderRoot(tempDirectory.Path));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class MaskinportenConfigurationTests
         using var tempDirectory = new TempDirectory();
         string missingDirectory = Path.Join(tempDirectory.Path, "missing", "app-secrets");
 
-        Assert.Equal(tempDirectory.Path, MaskinportenConfiguration.GetExistingProviderRoot(missingDirectory));
+        Assert.Equal(tempDirectory.Path, MaskinportenSettingsSource.GetExistingProviderRoot(missingDirectory));
     }
 
     [Fact]
@@ -65,9 +65,9 @@ public sealed class MaskinportenConfigurationTests
     {
         using var tempDirectory = new TempDirectory();
 
-        using var configuration = new MaskinportenConfiguration(Path.Join(tempDirectory.Path, SettingsFileName));
+        using var configuration = new MaskinportenSettingsSource(Path.Join(tempDirectory.Path, SettingsFileName));
 
-        Assert.Empty(configuration.Settings.AsEnumerable(makePathsRelative: true));
+        Assert.Empty(configuration.Section.AsEnumerable(makePathsRelative: true));
     }
 
     [Fact]
@@ -75,11 +75,11 @@ public sealed class MaskinportenConfigurationTests
     {
         using var tempDirectory = new TempDirectory();
 
-        using var configuration = new MaskinportenConfiguration(
+        using var configuration = new MaskinportenSettingsSource(
             Path.Join(tempDirectory.Path, "missing", SettingsFileName)
         );
 
-        Assert.Empty(configuration.Settings.AsEnumerable(makePathsRelative: true));
+        Assert.Empty(configuration.Section.AsEnumerable(makePathsRelative: true));
     }
 
     [Fact]

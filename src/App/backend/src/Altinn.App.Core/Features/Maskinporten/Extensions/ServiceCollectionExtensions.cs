@@ -12,7 +12,7 @@ internal static class ServiceCollectionExtensions
     /// <para>Adds the app's <see cref="IMaskinportenClient"/> to the service collection, bound to the one
     /// Maskinporten identity the app has: the client Studio provisions for it.</para>
     /// <para>There is deliberately no way to configure those credentials — see
-    /// <see cref="MaskinportenConfiguration"/> for why.</para>
+    /// <see cref="MaskinportenSettingsSource"/> for why.</para>
     /// </summary>
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenClient(this IServiceCollection services)
@@ -34,7 +34,7 @@ internal static class ServiceCollectionExtensions
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        services.TryAddSingleton<MaskinportenConfiguration>();
+        services.TryAddSingleton<MaskinportenSettingsSource>();
         services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IConfigureOptions<MaskinportenSettings>, ConfigureMaskinportenSettings>()

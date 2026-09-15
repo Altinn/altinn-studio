@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Models;
 /// <p>A configuration object that represents all required Maskinporten authentication settings.</p>
 /// <p>Serialized as <c>maskinporten-settings.json</c> and injected in the runtime. Deliberately internal:
 /// an app has exactly one Maskinporten identity, and nothing an app writes may change it. See
-/// <see cref="MaskinportenConfiguration"/>.</p>
+/// <see cref="MaskinportenSettingsSource"/>.</p>
 /// </summary>
 internal sealed record MaskinportenSettings
 {
