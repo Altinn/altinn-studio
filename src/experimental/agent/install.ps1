@@ -46,7 +46,7 @@ if ($LocalArchive -and -not $Version) { throw "AGENT_VERSION is required when AG
 if (-not $Version) {
     $Page = 1
     do {
-        $Releases = @(Invoke-RestMethod "https://api.github.com/repos/$Repository/releases?per_page=100&page=$Page")
+        $Releases = Invoke-RestMethod "https://api.github.com/repos/$Repository/releases?per_page=100&page=$Page"
         $Release = $Releases | Where-Object { $_.tag_name -like "experimental-agent/v*" } | Select-Object -First 1
         $Page++
     } while (-not $Release -and $Releases.Count -eq 100)
