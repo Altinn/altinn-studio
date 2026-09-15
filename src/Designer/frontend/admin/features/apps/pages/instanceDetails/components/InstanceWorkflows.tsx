@@ -3,7 +3,6 @@ import {
   StudioButton,
   StudioCard,
   StudioDetails,
-  StudioError,
   StudioHeading,
   StudioList,
   StudioParagraph,
@@ -11,24 +10,19 @@ import {
   StudioTable,
   StudioTag,
 } from '@studio/components';
-import { useMutation } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
-import { useCurrentOrg } from 'admin/contexts/OrgContext';
-import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
+import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';
 import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
-import {
-  extractInstanceGuid,
-  isEngineUnavailableError,
-} from 'admin/features/apps/utils/workflowHealth';
+import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 import { WorkflowActions } from './WorkflowActions';
 
 import classes from './InstanceWorkflows.module.css';
@@ -52,12 +46,8 @@ export const InstanceWorkflows = ({
 }: InstanceWorkflowsProps) => {
   const { t } = useTranslation();
   const collectionKey = extractInstanceGuid(instanceId);
-  const { data, status, error, fetchNextPage, hasNextPage } = useInstanceWorkflowsQuery(
-    org,
-    environment,
-    app,
-    collectionKey,
-  );
+  const { data, status, error, fetchNextPage, hasNextPage, isFetchNextPageError } =
+    useInstanceWorkflowsQuery(org, environment, app, collectionKey);
 
   return (
     <StudioCard>
@@ -73,6 +63,7 @@ export const InstanceWorkflows = ({
         workflows={data}
         hasMoreResults={hasNextPage}
         fetchMoreResults={fetchNextPage}
+        isFetchMoreError={isFetchNextPageError}
       />
     </StudioCard>
   );
@@ -86,6 +77,7 @@ type InstanceWorkflowsContentProps = {
   workflows?: WorkflowStatus[];
   hasMoreResults: boolean;
   fetchMoreResults: () => Promise<unknown>;
+  isFetchMoreError: boolean;
 };
 
 const InstanceWorkflowsContent = ({
@@ -96,61 +88,49 @@ const InstanceWorkflowsContent = ({
   workflows,
   hasMoreResults,
   fetchMoreResults,
+  isFetchMoreError,
 }: InstanceWorkflowsContentProps) => {
   const { t } = useTranslation();
-  const currentOrg = useCurrentOrg();
-  const orgName = currentOrg.full_name || currentOrg.username;
-  const envTitle = useEnvironmentTitle(environment);
-  const { isPending: isFetchingMoreResults, mutate: doFetchMoreResults } = useMutation({
-    mutationFn: fetchMoreResults,
-  });
+  const { isFetchingMoreResults, doFetchMoreResults } = useFetchMoreResults(fetchMoreResults);
 
   if (context.collectionKey === undefined) {
     return <StudioAlert data-color='info'>{t('admin.workflows.no_results')}</StudioAlert>;
   }
-
-  switch (status) {
-    case 'pending':
-      return <StudioSpinner aria-label={t('general.loading')} />;
-    case 'error':
-      if (isEngineUnavailableError(error)) {
-        return (
-          <StudioAlert data-color='info'>
-            {t('admin.workflows.unavailable', { envTitle })}
-          </StudioAlert>
-        );
-      }
-      if (isAxiosError(error) && error.response?.status === 403) {
-        return (
-          <StudioAlert data-color='info'>
-            {t('admin.instances.missing_rights', { envTitle, orgName })}
-          </StudioAlert>
-        );
-      }
-      return <StudioError>{t('general.page_error_title')}</StudioError>;
-    case 'success':
-      if (!workflows?.length) {
-        return <StudioAlert data-color='info'>{t('admin.workflows.no_results')}</StudioAlert>;
-      }
-      return (
-        <div className={classes.workflows}>
-          {workflows.map((workflow) => (
-            <WorkflowItem key={workflow.databaseId} context={context} workflow={workflow} />
-          ))}
-          {hasMoreResults && (
-            <StudioButton
-              data-size='sm'
-              variant='secondary'
-              disabled={isFetchingMoreResults}
-              onClick={() => doFetchMoreResults()}
-            >
-              {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
-              {t('admin.workflows.fetch_more')}
-            </StudioButton>
-          )}
-        </div>
-      );
+  if (status === 'pending') {
+    return <StudioSpinner aria-label={t('general.loading')} />;
   }
+  // The query is in error whenever any page failed, a later "load more" included. Rows already
+  // loaded stay on screen; only a failure with nothing to show becomes the error state.
+  if (workflows === undefined) {
+    return <WorkflowEngineError environment={environment} error={error} />;
+  }
+  if (!workflows.length) {
+    return <StudioAlert data-color='info'>{t('admin.workflows.no_results')}</StudioAlert>;
+  }
+
+  return (
+    <div className={classes.workflows}>
+      {workflows.map((workflow) => (
+        <WorkflowItem key={workflow.databaseId} context={context} workflow={workflow} />
+      ))}
+      {isFetchMoreError && (
+        <StudioAlert data-color='danger' data-size='sm'>
+          {t('admin.workflows.fetch_more_error')}
+        </StudioAlert>
+      )}
+      {hasMoreResults && (
+        <StudioButton
+          data-size='sm'
+          variant='secondary'
+          disabled={isFetchingMoreResults}
+          onClick={doFetchMoreResults}
+        >
+          {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
+          {t('admin.workflows.fetch_more')}
+        </StudioButton>
+      )}
+    </div>
+  );
 };
 
 type WorkflowItemProps = {
@@ -268,10 +248,12 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
   return (
     <div className={classes.stepDetails}>
       {/* Engine-provided free text (defer reasons, error messages) is rendered as its own node
-          rather than interpolated into a translation, since i18next HTML-escapes interpolations. */}
+          rather than interpolated into a translation, since i18next HTML-escapes interpolations.
+          It is also set apart as verbatim technical output: the app runtime writes these in
+          English, so they must not read as part of the Norwegian sentence around them. */}
       {deferReason && (
         <span>
-          {deferReasonLabel}: {deferReason}
+          {deferReasonLabel}: <code className={classes.engineText}>{deferReason}</code>
         </span>
       )}
       {(step.deferCount ?? 0) > 1 && (
@@ -285,7 +267,8 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
           <StudioList.Unordered className={classes.errorHistory}>
             {errorHistory.map((entry, index) => (
               <StudioList.Item key={`${entry.timestamp}-${index}`}>
-                {formatDateAndTime(entry.timestamp)}: {entry.message}
+                {formatDateAndTime(entry.timestamp)}:{' '}
+                <code className={classes.engineText}>{entry.message}</code>
               </StudioList.Item>
             ))}
           </StudioList.Unordered>

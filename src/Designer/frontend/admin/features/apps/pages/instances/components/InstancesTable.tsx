@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppInstancesQuery } from 'admin/features/apps/hooks/queries/useAppInstancesQuery';
 import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
-import { useMutation } from '@tanstack/react-query';
+import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { InstanceStatus } from './InstanceStatus';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
@@ -147,9 +147,7 @@ const InstancesTableWithData = ({
   fetchMoreResults,
 }: InstancesTableWithDataProps) => {
   const { t } = useTranslation();
-  const { isPending: isFetchingMoreResults, mutate: doFetchMoreResults } = useMutation({
-    mutationFn: fetchMoreResults,
-  });
+  const { isFetchingMoreResults, doFetchMoreResults } = useFetchMoreResults(fetchMoreResults);
 
   // The engine's collection key is the bare instance GUID, which is exactly what Storage's Studio
   // instance list already reports as the instance id.

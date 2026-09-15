@@ -85,6 +85,27 @@ describe('WorkflowProblems', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('keeps the loaded rows when loading more of them fails', async () => {
+    const user = userEvent.setup();
+    respondWith((url) =>
+      url.includes(`cursor=${cursor}`)
+        ? Promise.reject(new AxiosError())
+        : { status: 200, data: page(firstPageKey, cursor) },
+    );
+    renderWorkflowProblems();
+
+    await screen.findByRole('link', { name: firstPageKey });
+    await user.click(
+      screen.getByRole('button', { name: textMock('admin.workflows.problems.fetch_more') }),
+    );
+
+    expect(
+      await screen.findByText(textMock('admin.workflows.problems.fetch_more_error')),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: firstPageKey })).toBeInTheDocument();
+    expect(screen.queryByText(textMock('general.page_error_title'))).not.toBeInTheDocument();
+  });
+
   it('narrows the discovery filter to a single failure kind', async () => {
     const user = userEvent.setup();
     respondWith(() => ({ status: 200, data: page(firstPageKey, null) }));

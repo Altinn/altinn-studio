@@ -2,26 +2,20 @@ import type { ReactElement } from 'react';
 import {
   StudioAlert,
   StudioButton,
-  StudioError,
   StudioParagraph,
   StudioSpinner,
   StudioTable,
 } from '@studio/components';
-import { useMutation } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCurrentOrg } from 'admin/contexts/OrgContext';
-import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
+import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import type { WorkflowProblems as WorkflowProblemsData } from 'admin/features/apps/hooks/queries/useWorkflowProblemsQuery';
 import { useWorkflowProblemsQuery } from 'admin/features/apps/hooks/queries/useWorkflowProblemsQuery';
 import type { CollectionFailureFilter } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
-import {
-  extractInstanceGuid,
-  isEngineUnavailableError,
-} from 'admin/features/apps/utils/workflowHealth';
+import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 import { StatusFilter } from 'admin/features/apps/pages/instances/components/StatusFilter';
 
 import classes from './WorkflowProblems.module.css';
@@ -52,12 +46,8 @@ export const WorkflowProblems = ({ org, environment, app }: WorkflowProblemsProp
   );
   const activeFilter = failures ?? DEFAULT_FAILURE_FILTER;
 
-  const { data, status, error, fetchNextPage, hasNextPage } = useWorkflowProblemsQuery(
-    org,
-    environment,
-    app,
-    activeFilter,
-  );
+  const { data, status, error, fetchNextPage, hasNextPage, isFetchNextPageError } =
+    useWorkflowProblemsQuery(org, environment, app, activeFilter);
 
   return (
     <div className={classes.container}>
@@ -77,6 +67,7 @@ export const WorkflowProblems = ({ org, environment, app }: WorkflowProblemsProp
         data={data}
         hasMoreResults={hasNextPage}
         fetchMoreResults={fetchNextPage}
+        isFetchMoreError={isFetchNextPageError}
       />
     </div>
   );
@@ -89,6 +80,7 @@ type WorkflowProblemsContentProps = {
   data?: WorkflowProblemsData;
   hasMoreResults: boolean;
   fetchMoreResults: () => Promise<unknown>;
+  isFetchMoreError: boolean;
 };
 
 const WorkflowProblemsContent = ({
@@ -98,41 +90,27 @@ const WorkflowProblemsContent = ({
   data,
   hasMoreResults,
   fetchMoreResults,
+  isFetchMoreError,
 }: WorkflowProblemsContentProps) => {
   const { t } = useTranslation();
-  const currentOrg = useCurrentOrg();
-  const orgName = currentOrg.full_name || currentOrg.username;
-  const envTitle = useEnvironmentTitle(environment);
 
-  switch (status) {
-    case 'pending':
-      return <StudioSpinner aria-label={t('general.loading')} />;
-    case 'error':
-      if (isEngineUnavailableError(error)) {
-        return (
-          <StudioAlert data-color='info'>
-            {t('admin.workflows.unavailable', { envTitle })}
-          </StudioAlert>
-        );
-      }
-      if (isAxiosError(error) && error.response?.status === 403) {
-        return (
-          <StudioAlert data-color='info'>
-            {t('admin.instances.missing_rights', { envTitle, orgName })}
-          </StudioAlert>
-        );
-      }
-      return <StudioError>{t('general.page_error_title')}</StudioError>;
-    case 'success':
-      return (
-        <WorkflowProblemsTable
-          collections={data?.collections ?? []}
-          totalCount={data?.totalCount ?? 0}
-          hasMoreResults={hasMoreResults}
-          fetchMoreResults={fetchMoreResults}
-        />
-      );
+  if (status === 'pending') {
+    return <StudioSpinner aria-label={t('general.loading')} />;
   }
+  // The query is in error whenever any page failed, a later "load more" included. Rows already
+  // loaded stay on screen; only a failure with nothing to show becomes the error state.
+  if (data === undefined) {
+    return <WorkflowEngineError environment={environment} error={error} />;
+  }
+  return (
+    <WorkflowProblemsTable
+      collections={data.collections}
+      totalCount={data.totalCount}
+      hasMoreResults={hasMoreResults}
+      fetchMoreResults={fetchMoreResults}
+      isFetchMoreError={isFetchMoreError}
+    />
+  );
 };
 
 type WorkflowProblemsTableProps = {
@@ -140,6 +118,7 @@ type WorkflowProblemsTableProps = {
   totalCount: number;
   hasMoreResults: boolean;
   fetchMoreResults: () => Promise<unknown>;
+  isFetchMoreError: boolean;
 };
 
 const COLUMN_COUNT = 5;
@@ -149,11 +128,10 @@ const WorkflowProblemsTable = ({
   totalCount,
   hasMoreResults,
   fetchMoreResults,
+  isFetchMoreError,
 }: WorkflowProblemsTableProps) => {
   const { t } = useTranslation();
-  const { isPending: isFetchingMoreResults, mutate: doFetchMoreResults } = useMutation({
-    mutationFn: fetchMoreResults,
-  });
+  const { isFetchingMoreResults, doFetchMoreResults } = useFetchMoreResults(fetchMoreResults);
 
   if (!collections.length) {
     return <StudioAlert data-color='info'>{t('admin.workflows.problems.no_results')}</StudioAlert>;
@@ -195,7 +173,12 @@ const WorkflowProblemsTable = ({
           <StudioTable.Foot>
             <StudioTable.Row>
               <StudioTable.Cell className={classes.footerCell} colSpan={COLUMN_COUNT}>
-                <StudioButton disabled={isFetchingMoreResults} onClick={() => doFetchMoreResults()}>
+                {isFetchMoreError && (
+                  <StudioAlert data-color='danger' data-size='sm'>
+                    {t('admin.workflows.problems.fetch_more_error')}
+                  </StudioAlert>
+                )}
+                <StudioButton disabled={isFetchingMoreResults} onClick={doFetchMoreResults}>
                   {isFetchingMoreResults && <StudioSpinner aria-label={t('general.loading')} />}
                   {t('admin.workflows.problems.fetch_more')}
                 </StudioButton>
