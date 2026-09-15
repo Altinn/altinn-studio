@@ -18,8 +18,9 @@ func TestStoreMaskinportenClient_RoundTrips(t *testing.T) {
 
 	stored, err := service.StoreMaskinportenClient(appsvc.MaskinportenClientRequest{
 		AppPath: appPath,
-		Input: []byte(`{"clientId":"client-1","authority":"https://test.maskinporten.no/",` +
-			`"jwk":{"kty":"RSA","kid":"k1","d":"private","n":"m","e":"AQAB"}}`),
+		Input: []byte(`{"clientId":"client-1","authority":"https://test.maskinporten.no/","jwk":` +
+			`{"kty":"RSA","use":"sig","kid":"k1","alg":"RS256","n":"m","e":"AQAB","d":"private",` +
+			`"p":"p","q":"q","qi":"qi","dp":"dp","dq":"dq"}}`),
 	})
 	if err != nil {
 		t.Fatalf("StoreMaskinportenClient() error = %v", err)
@@ -28,7 +29,7 @@ func TestStoreMaskinportenClient_RoundTrips(t *testing.T) {
 		stored.KeyID != "k1" {
 		t.Fatalf("stored = %+v, want ttd/test-app client-1 test k1", stored)
 	}
-	if stored.Path != filepath.Join(home, "apps", "ttd-test-app", "secrets", "maskinporten-settings.json") {
+	if stored.Path != filepath.Join(home, "apps", "ttd", "test-app", "secrets", "maskinporten-settings.json") {
 		t.Fatalf("Path = %q, want the file in the app's secrets directory", stored.Path)
 	}
 

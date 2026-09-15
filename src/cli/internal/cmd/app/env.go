@@ -50,9 +50,10 @@ func (e appEnv) addRunDefaults(
 	// The app's secrets directory, provisioned by studioctl the way the operator provisions /mnt/app-secrets
 	// in a cluster. It holds the Maskinporten client stored with `studioctl app maskinporten set`; the app
 	// libraries honor the variable on the localtest platform only. Always named, even before anything is
-	// stored, so that a client stored while the app runs is picked up without a restart.
+	// stored, so that a client stored while the app runs is picked up without a restart - and never taken
+	// from the inherited environment: where the secrets live is studioctl's decision, not the shell's.
 	if secretsDir != "" {
-		e.setDefault(appsecrets.EnvSecretsDir, secretsDir)
+		e.values[appsecrets.EnvSecretsDir] = secretsDir
 	}
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)

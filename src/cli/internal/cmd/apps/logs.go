@@ -33,7 +33,7 @@ type RunMetadata struct {
 	HostPort  int       `json:"hostPort,omitempty"`
 }
 
-// SanitizeAppID returns the directory-safe app id used for app-scoped folders such as logs and secrets.
+// SanitizeAppID returns the directory-safe app id used for app log folders.
 func SanitizeAppID(appID string) string {
 	return strings.ReplaceAll(appID, "/", "-")
 }

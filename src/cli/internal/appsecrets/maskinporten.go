@@ -72,11 +72,36 @@ type MaskinportenClientSummary struct {
 	KeyID       string `json:"keyId,omitempty"`
 }
 
-// privateKey is the part of a JWK that decides whether it can sign anything.
+// privateKey is the RSA JWK exactly as the app libraries require it: their converter rejects a key missing
+// any of these fields, so a key that would fail there is rejected here, at store time, instead.
 type privateKey struct {
 	Kty string `json:"kty"`
+	Use string `json:"use"`
 	Kid string `json:"kid"`
+	Alg string `json:"alg"`
+	N   string `json:"n"`
+	E   string `json:"e"`
 	D   string `json:"d"`
+	P   string `json:"p"`
+	Q   string `json:"q"`
+	Qi  string `json:"qi"`
+	Dp  string `json:"dp"`
+	Dq  string `json:"dq"`
+}
+
+// missingFields names the required fields that are empty, in the order the app libraries list them.
+func (k privateKey) missingFields() []string {
+	fields := []struct{ name, value string }{
+		{"kty", k.Kty}, {"use", k.Use}, {"kid", k.Kid}, {"alg", k.Alg}, {"n", k.N}, {"e", k.E},
+		{"d", k.D}, {"p", k.P}, {"q", k.Q}, {"qi", k.Qi}, {"dp", k.Dp}, {"dq", k.Dq},
+	}
+	var missing []string
+	for _, field := range fields {
+		if field.value == "" {
+			missing = append(missing, field.name)
+		}
+	}
+	return missing
 }
 
 // MaskinportenPath returns the path of the Maskinporten file in a secrets directory.
@@ -238,13 +263,12 @@ func (c MaskinportenClient) privateKey() (privateKey, error) {
 	if err := json.Unmarshal(raw, &key); err != nil {
 		return privateKey{}, fmt.Errorf("%w: the key is not a JWK object: %w", ErrInvalidMaskinportenClient, err)
 	}
-	if key.Kty == "" {
-		return privateKey{}, fmt.Errorf("%w: the JWK has no kty", ErrInvalidMaskinportenClient)
-	}
-	if key.D == "" {
+	if missing := key.missingFields(); len(missing) > 0 {
 		return privateKey{}, fmt.Errorf(
-			"%w: the JWK has no private part (d) - the app signs with it, a public key is not enough",
+			"%w: the JWK is missing %s - the app libraries need a complete RSA private key "+
+				"(kty, use, kid, alg, n, e, d, p, q, qi, dp, dq); a public key is not enough",
 			ErrInvalidMaskinportenClient,
+			strings.Join(missing, ", "),
 		)
 	}
 	return key, nil
@@ -394,6 +418,10 @@ func writeFileAtomic(path string, data []byte) error {
 	tmpPath := tmp.Name()
 	if err := writeAndClose(tmp, data); err != nil {
 		return errors.Join(fmt.Errorf("write %s: %w", filepath.Base(path), err), removeIfPresent(tmpPath))
+	}
+	// File modes mean nothing on Windows; the owner-only ACL is set explicitly, as for the credentials file.
+	if err := osutil.SecureFile(tmpPath); err != nil {
+		return errors.Join(fmt.Errorf("secure %s: %w", filepath.Base(path), err), removeIfPresent(tmpPath))
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
 		return errors.Join(fmt.Errorf("replace %s: %w", filepath.Base(path), err), removeIfPresent(tmpPath))
