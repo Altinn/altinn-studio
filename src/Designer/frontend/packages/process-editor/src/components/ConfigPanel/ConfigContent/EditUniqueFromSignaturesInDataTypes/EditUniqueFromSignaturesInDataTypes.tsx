@@ -6,6 +6,7 @@ import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
+import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 
 export const EditUniqueFromSignaturesInDataTypes = () => {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
   const [isSelectVisible, setIsSelectVisible] = useState(false);
 
   const studioModeler = new StudioModeler();
-  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const signingTasks = tasks
     .filter(
       ({

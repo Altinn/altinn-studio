@@ -4,10 +4,6 @@
   gap: var(--ds-size-2);
 }
 
-.displayTile {
-  padding-inline: var(--ds-size-5);
-}
-
 .detailsContent {
   margin: 0;
   padding: var(--ds-size-5);

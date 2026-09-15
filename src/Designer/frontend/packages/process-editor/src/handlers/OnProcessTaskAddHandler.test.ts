@@ -4,7 +4,11 @@ import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddH
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
-import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
+import {
+  getMockBpmnElementForTask,
+  mockBpmnElementForUserControlledSigningTask,
+  mockSigneeStatesDataTypeId,
+} from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
 
 jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {
@@ -135,6 +139,7 @@ describe('OnProcessTaskAddHandler', () => {
       taskType: 'signing',
     });
 
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(1);
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
@@ -143,12 +148,14 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it('should add layoutset and datatype when userControlledSigning task is added', () => {
+  it('should also add the signee states datatype when userControlledSigning task is added', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     const taskMetadata: OnProcessTaskEvent = {
       taskType: 'signing',
-      taskEvent: createTaskEvent(getMockBpmnElementForTask('signing').businessObject),
+      taskEvent: createTaskEvent(
+        mockBpmnElementForUserControlledSigningTask.businessObject as BpmnBusinessObjectEditor,
+      ),
     };
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
@@ -163,8 +170,42 @@ describe('OnProcessTaskAddHandler', () => {
       dataTypeId: 'signatureInformation-1234',
       taskId: testElementId,
     });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributors: [AllowedContributor.AppOwned],
+      dataTypeId: mockSigneeStatesDataTypeId,
+      taskId: testElementId,
+    });
 
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
+  it('should not register a signee states datatype when the signing task does not declare one', () => {
+    const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+    const businessObjectWithoutSigneeStates = {
+      extensionElements: {
+        values: [
+          {
+            signatureConfig: {
+              signatureDataType: 'signatureInformation-1234',
+              signeeProviderId: 'myProvider',
+            },
+          },
+        ],
+      },
+    } as unknown as BpmnBusinessObjectEditor;
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd({
+      taskType: 'signing',
+      taskEvent: createTaskEvent(businessObjectWithoutSigneeStates),
+    });
+
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(1);
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributors: [AllowedContributor.AppOwned],
+      dataTypeId: 'signatureInformation-1234',
+      taskId: testElementId,
+    });
   });
 
   it.each(['confirmation', 'feedback'])(

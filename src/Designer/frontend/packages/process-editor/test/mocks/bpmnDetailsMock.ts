@@ -143,3 +143,23 @@ export const paymentActions = {
     ],
   },
 };
+
+export const mockSigneeStatesDataTypeId: string = 'signees-states-1234';
+
+export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [
+        {
+          actions: signingActions,
+          signatureConfig: {
+            signatureDataType: 'signatureInformation-1234',
+            dataTypesToSign: [],
+            signeeStatesDataTypeId: mockSigneeStatesDataTypeId,
+            signeeProviderId: '',
+          },
+        },
+      ],
+    },
+  },
+};

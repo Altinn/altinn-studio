@@ -1,4 +1,6 @@
 #nullable disable
+using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -56,6 +58,13 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
         );
     }
 
+    /// <summary>
+    /// Rule ids generated for a task embed the task id as their last segment, after ":ruleid:".
+    /// See PaymentPolicyBuilder in the frontend, which both creates these rules and looks them up by
+    /// the id it rebuilds from the current task id.
+    /// </summary>
+    private const string RuleIdTaskSegmentPrefix = ":ruleid:";
+
     private static bool TryChangeTaskIds(ResourcePolicy resourcePolicy, string oldId, string newId)
     {
         if (resourcePolicy.Rules is null)
@@ -67,11 +76,31 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
 
         foreach (var rule in resourcePolicy.Rules)
         {
-            // Replace the oldId with the newId in the description if it exists
-            if (rule.Description is not null && rule.Description.Contains(oldId))
+            // Replace the task id segment of the rule id, leaving any other occurrence of the old id alone
+            if (
+                rule.RuleId is not null
+                && rule.RuleId.EndsWith($"{RuleIdTaskSegmentPrefix}{oldId}", StringComparison.Ordinal)
+            )
             {
-                rule.Description = rule.Description.Replace(oldId, newId);
+                rule.RuleId = string.Concat(rule.RuleId.AsSpan(0, rule.RuleId.Length - oldId.Length), newId);
                 hasChanges = true;
+            }
+
+            // Replace whole-word occurrences of the oldId in the description. A plain Replace would
+            // rewrite the "Task_1" inside a mention of "Task_10"; '_' and digits are word characters,
+            // so the word boundaries keep the match to the id itself.
+            if (rule.Description is not null)
+            {
+                string updatedDescription = Regex.Replace(
+                    rule.Description,
+                    $@"\b{Regex.Escape(oldId)}\b",
+                    newId.Replace("$", "$$")
+                );
+                if (!string.Equals(updatedDescription, rule.Description, StringComparison.Ordinal))
+                {
+                    rule.Description = updatedDescription;
+                    hasChanges = true;
+                }
             }
 
             // Skip the rest of the loop if there are no resources

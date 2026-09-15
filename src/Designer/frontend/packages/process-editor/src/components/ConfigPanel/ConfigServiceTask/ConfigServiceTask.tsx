@@ -5,7 +5,8 @@ import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer'
 import classes from './ConfigServiceTask.module.css';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
-import { StudioDetails, StudioDisplayTile } from '@studio/components';
+import { StudioDetails } from '@studio/components';
+import { EditTaskName } from '../ConfigContent/EditTaskName';
 import { EditActions } from '../ConfigContent/EditActions';
 import { EditPolicy } from '../ConfigContent/EditPolicy';
 
@@ -18,12 +19,7 @@ export const ConfigServiceTask = (): React.ReactElement => {
     <ConfigContentContainer>
       <div className={classes.configContent}>
         <EditTaskId />
-        <StudioDisplayTile
-          label={t('process_editor.configuration_panel_name_label')}
-          value={bpmnDetails.name}
-          className={classes.displayTile}
-          showPadlock={false}
-        />
+        <EditTaskName />
         {isPdfTask && <ConfigPdfServiceTask />}
         <div>
           <StudioDetails>

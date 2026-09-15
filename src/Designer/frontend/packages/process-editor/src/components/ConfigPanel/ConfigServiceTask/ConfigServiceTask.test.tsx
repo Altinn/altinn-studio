@@ -70,7 +70,8 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(tasks),
+        getElementsByType: jest.fn().mockReturnValue(tasks),
+        getAllElementIds: jest.fn().mockReturnValue(tasks.map((task) => task.id)),
       };
     }),
   };
@@ -105,13 +106,15 @@ describe('ConfigServiceTask', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render task name display tile', () => {
+  it('should render an editable task name field', () => {
     renderConfigServiceTask();
 
-    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_name_label')),
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_name_label'),
+      }),
     ).toBeInTheDocument();
+    expect(screen.getByText(mockBpmnDetails.name)).toBeInTheDocument();
   });
 
   it('should not render pdf configuration for non-pdf service task', () => {

@@ -137,12 +137,17 @@ export class OnProcessTaskAddHandler {
 
   private addSigneeStateToApplicationMetadata(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
+    const signeeStatesDataTypeId = studioModeler.getSigneeStatesDataTypeId(
+      taskMetadata.taskType,
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    // A task can be recognised as user controlled while still missing its signee states data type.
+    // There is nothing to register until the developer has added one.
+    if (!signeeStatesDataTypeId) return;
 
     this.addDataTypeToAppMetadata({
-      dataTypeId: studioModeler.getSigneeStatesDataTypeId(
-        taskMetadata.taskType,
-        taskMetadata.taskEvent.element.businessObject,
-      ),
+      dataTypeId: signeeStatesDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
       allowedContributors: [AllowedContributor.AppOwned],
     });
