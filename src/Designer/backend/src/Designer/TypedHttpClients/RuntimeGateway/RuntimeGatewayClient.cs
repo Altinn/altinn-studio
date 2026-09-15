@@ -38,8 +38,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/origin/{_generalSettings.OriginEnvironment}/apps";
 
         var response = await client.GetFromJsonAsync<List<AppDeployment>>(requestUrl, cancellationToken);
@@ -56,8 +58,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}";
 
         var response = await client.GetFromJsonAsync<AppDeployment>(requestUrl, cancellationToken);
@@ -74,8 +78,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         var requestUrl =
             $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}/deployed";
 
@@ -90,8 +96,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/alerts";
 
         return await client.GetFromJsonAsync<IEnumerable<AlertRule>>(requestUrl, cancellationToken) ?? [];
@@ -105,8 +113,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/errors?range={range}";
 
         return await client.GetFromJsonAsync<IEnumerable<ErrorMetric>>(requestUrl, cancellationToken) ?? [];
@@ -121,8 +131,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         string requestUrl =
             $"{baseUrl}/runtime/gateway/api/v1/metrics/app?app={Uri.EscapeDataString(app)}&range={range}";
 
@@ -138,8 +150,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         string requestUrl =
             $"{baseUrl}/runtime/gateway/api/v1/metrics/app/errors?app={Uri.EscapeDataString(app)}&range={range}";
 
@@ -154,8 +168,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/health?app={Uri.EscapeDataString(app)}";
 
         return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
@@ -170,8 +186,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
 
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/activity?windowDays={windowDays}";
 
         var response = await client.GetFromJsonAsync<AppActivityMetricsResponse>(requestUrl, cancellationToken);
@@ -189,8 +207,10 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
         var requestUrl =
             $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{app}/{_generalSettings.OriginEnvironment}/reconcile";
 
@@ -353,7 +373,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         // unreachable runtime gateway.
         Uri baseUrl = await ResolveAppClusterUriAsync(org, environment, cancellationToken);
 
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.WorkflowsHttpClientName);
         string requestUrl =
             $"{TrimTrailingSlash(baseUrl)}/runtime/gateway/api/v1/workflows/apps/{Uri.EscapeDataString(app)}"
             + $"{pathSuffix}{query?.ToQueryString().ToUriComponent()}";
@@ -378,7 +398,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     {
         try
         {
-            return await _environmentsService.GetAppClusterUri(org, environment.Name);
+            return await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken);
         }
         catch (KeyNotFoundException)
         {
@@ -402,7 +422,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     /// <summary>
     /// The configured app cluster pattern is authority-only in hosted environments, so
     /// <see cref="Uri"/> canonicalizes it with a trailing slash, while the local pattern carries a
-    /// path and has none. Trimming keeps the joined path single-slashed either way.
+    /// path and has none. Trimming keeps the joined path single-slashed either way, and every
+    /// gateway URL in this class goes through it.
     /// </summary>
     private static string TrimTrailingSlash(Uri baseUrl) => baseUrl.AbsoluteUri.TrimEnd('/');
 

@@ -11,8 +11,9 @@ using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Moq;
 using Moq.Protected;
 using Xunit;
+using RuntimeGatewayServices = Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.ServiceCollectionExtensions;
 
-namespace Designer.Tests.TypedHttpClients;
+namespace Designer.Tests.TypedHttpClients.RuntimeGateway;
 
 public class RuntimeGatewayClientWorkflowsTests
 {
@@ -49,11 +50,11 @@ public class RuntimeGatewayClientWorkflowsTests
 
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         httpClientFactoryMock
-            .Setup(factory => factory.CreateClient("runtime-gateway"))
+            .Setup(factory => factory.CreateClient(RuntimeGatewayServices.WorkflowsHttpClientName))
             .Returns(() => new HttpClient(_messageHandlerMock.Object, disposeHandler: false));
 
         _environmentsServiceMock
-            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Uri(ClusterBaseUrl));
 
         _client = new RuntimeGatewayClient(
@@ -103,7 +104,7 @@ public class RuntimeGatewayClientWorkflowsTests
         // the last segment, so a relative-Uri join is not an option here.
         const string localClusterBaseUrl = "http://host.docker.internal:6161/apps/ttd/at23";
         _environmentsServiceMock
-            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Uri(localClusterBaseUrl));
 
         using var response = await _client.GetWorkflowCollectionsAsync(
@@ -296,7 +297,7 @@ public class RuntimeGatewayClientWorkflowsTests
     {
         var registryFailure = new HttpRequestException("environments.json fetch failed");
         _environmentsServiceMock
-            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name, It.IsAny<CancellationToken>()))
             .ThrowsAsync(registryFailure);
 
         var exception = await Assert.ThrowsAsync<EnvironmentsRegistryUnavailableException>(() =>
@@ -311,7 +312,7 @@ public class RuntimeGatewayClientWorkflowsTests
     public async Task WorkflowRequests_PropagateUnknownEnvironmentUnwrapped()
     {
         _environmentsServiceMock
-            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name))
+            .Setup(service => service.GetAppClusterUri(Org, s_environment.Name, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new KeyNotFoundException("Environment 'at23' not found."));
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
