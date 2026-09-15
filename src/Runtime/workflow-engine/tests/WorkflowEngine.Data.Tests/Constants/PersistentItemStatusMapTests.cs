@@ -42,6 +42,10 @@ public class PersistentItemStatusMapTests
             PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Fetchable)
         );
         Assert.Equal(
+            PersistentItemStatusMap.FailedSqlList,
+            PersistentItemStatusMap.ToSqlList(PersistentItemStatusMap.Failed)
+        );
+        Assert.Equal(
             PersistentItemStatusMap.ProcessingSqlLiteral,
             PersistentItemStatusMap.ToSqlList([PersistentItemStatus.Processing])
         );

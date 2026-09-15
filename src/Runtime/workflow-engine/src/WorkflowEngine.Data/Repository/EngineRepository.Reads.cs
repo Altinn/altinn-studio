@@ -50,11 +50,12 @@ internal sealed partial class EngineRepository
             }
             else if (failures is not null)
             {
-                // Discovery is driven workflows → collections: an index scan on (namespace, status)
-                // finds the failed workflows, their distinct collection keys form a small set, and
-                // only those collection rows are fetched. The inverted shape (scan collections with
-                // an EXISTS per row) is pathological exactly when failures are rare, which is the
-                // normal state.
+                // Discovery is driven workflows → collections: the partial index
+                // ix_workflows_namespace_collection_key_failed indexes only the failed rows and
+                // carries collection_key and is_head, so the distinct keys resolve without
+                // touching the heap; only those collection rows are then fetched. The inverted
+                // shape (scan collections with an EXISTS per row) is pathological exactly when
+                // failures are rare, which is the normal state. QueryPlanTests pins the index.
                 var failedStatuses = PersistentItemStatusMap.Failed;
                 var failedWorkflows = context.Workflows.Where(w =>
                     w.Namespace == normalizedNs && w.CollectionKey != null && failedStatuses.Contains(w.Status)
