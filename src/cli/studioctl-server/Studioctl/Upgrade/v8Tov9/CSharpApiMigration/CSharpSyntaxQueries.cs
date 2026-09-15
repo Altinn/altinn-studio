@@ -106,9 +106,16 @@ internal static class CSharpSyntaxQueries
     /// removed <c>ServiceTaskResult.FailedContinueProcessNext(...)</c> factory. Matches both
     /// <c>Type.Method(...)</c> and bare <c>Method(...)</c> call sites.
     /// </summary>
+    /// <param name="file">The file to search.</param>
+    /// <param name="methodSimpleNames">The simple names of the methods to find.</param>
+    /// <param name="describeFirstStringArgument">
+    /// When set, a call whose first argument is a string literal is reported as <c>Method("literal")</c>,
+    /// for guidance that needs the value - a configuration section name, say - rather than the bare call.
+    /// </param>
     public static IEnumerable<CSharpApiMatch> InvokedMethods(
         ScannedCSharpFile file,
-        IReadOnlySet<string> methodSimpleNames
+        IReadOnlySet<string> methodSimpleNames,
+        bool describeFirstStringArgument = false
     )
     {
         foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -117,14 +124,25 @@ internal static class CSharpSyntaxQueries
 
             if (invokedName is not null && methodSimpleNames.Contains(invokedName.Identifier.Text))
             {
-                yield return new CSharpApiMatch(
-                    file.RelativePath,
-                    file.GetLine(invokedName),
-                    invokedName.Identifier.Text
-                );
+                var symbol = invokedName.Identifier.Text;
+                if (describeFirstStringArgument && FirstStringArgument(invocation) is { } argument)
+                {
+                    symbol = $"{symbol}(\"{argument}\")";
+                }
+
+                yield return new CSharpApiMatch(file.RelativePath, file.GetLine(invokedName), symbol);
             }
         }
     }
+
+    /// <summary>
+    /// The value of the invocation's first argument when it is a string literal, else <c>null</c>.
+    /// </summary>
+    private static string? FirstStringArgument(InvocationExpressionSyntax invocation) =>
+        invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression
+            is LiteralExpressionSyntax { Token.Value: string value }
+            ? value
+            : null;
 
     /// <summary>
     /// Invocations <c>Receiver.Method(...)</c> where the receiver's trailing simple name is

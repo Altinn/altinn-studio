@@ -38,6 +38,8 @@ public sealed class MaskinportenSettingsSectionDetectorTests : IDisposable
 
         Assert.Contains(result.Warnings, w => w.Contains("configuration section that v9 never reads"));
         Assert.Contains(result.Warnings, w => w.Contains("appsettings.json"));
+        // A developer who used the section for local runs is told where those credentials go now.
+        Assert.Contains(result.Warnings, w => w.Contains("studioctl app maskinporten set --from-appsettings"));
     }
 
     /// <summary>
