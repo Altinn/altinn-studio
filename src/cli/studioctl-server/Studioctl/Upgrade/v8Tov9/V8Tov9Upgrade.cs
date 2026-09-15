@@ -359,7 +359,9 @@ internal static class V8Tov9Upgrade
         return ExitError;
     }
 
-    /// <summary>Reports that the current step failed with <paramref name="exception"/>.</summary>
+    /// <summary>
+    /// Reports that the current step failed with <paramref name="exception"/>.
+    /// </summary>
     private static int Fail(string description, Exception exception) =>
         Fail($"{description}: {FileAccessDiagnostics.Describe(exception)}");
 
@@ -505,7 +507,9 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    /// <summary>Rewrites the eFormidling client namespace usings across all app C# files.</summary>
+    /// <summary>
+    /// Rewrites the eFormidling client namespace usings across all app C# files.
+    /// </summary>
     static async Task<int> MigrateEFormidlingClientNamespaces(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("eFormidling client namespaces");
@@ -525,7 +529,9 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
+    /// <summary>
+    /// Rewrites the IServiceTask namespace usings across all app C# files.
+    /// </summary>
     static async Task<int> MigrateServiceTaskNamespace(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("IServiceTask namespace");
