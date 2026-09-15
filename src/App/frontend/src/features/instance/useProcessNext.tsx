@@ -13,6 +13,7 @@ import {
   useInstanceDataQueryArgs,
   useLaxInstanceId,
 } from 'src/features/instance/InstanceContext';
+import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
@@ -36,13 +37,6 @@ interface ProcessNextProps {
 interface ProcessNextInternalProps extends ProcessNextProps {
   beforeProcessNext?: () => Promise<boolean>;
   onValidationIssues?: (validationIssues: BackendValidationIssue[]) => Promise<void>;
-}
-
-export function getProcessNextMutationKey(action?: IActionType) {
-  if (!action) {
-    return ['processNext'] as const;
-  }
-  return ['processNext', action] as const;
 }
 
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
@@ -151,6 +145,10 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         navigateToTask(newCurrentTask.elementId);
       }
 
+      if (isRenderedByWorkflowStateMachine(newInstance)) {
+        return;
+      }
+
       toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
         type: 'error',
         autoClose: false,
@@ -253,12 +251,30 @@ export function useProcessResume() {
         navigateToTask(newCurrentTask.elementId);
       }
 
+      if (isRenderedByWorkflowStateMachine(newInstance)) {
+        return;
+      }
+
       toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
         type: 'error',
         autoClose: false,
       });
     },
   });
+}
+
+/**
+ * Whether the refetched live workflow status is one ProcessWrapper renders as a page of its own: the
+ * advancing view while processing, the failure views when failed. A failure the mutationFn could not
+ * classify - an intermediary cutting the synchronous wait with a bodiless 504, a dropped connection -
+ * may still describe a transition the engine is running or has failed terminally. The refetched
+ * status is the truth, and once it is on screen an error toast repeating the transport error would
+ * only contradict it. While processing that page also keeps polling, so the session converges on the
+ * settled task exactly as if the request had returned.
+ */
+function isRenderedByWorkflowStateMachine(instance: IInstance | undefined) {
+  const status = instance?.process?.workflow?.status;
+  return status === 'processing' || status === 'failed';
 }
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {

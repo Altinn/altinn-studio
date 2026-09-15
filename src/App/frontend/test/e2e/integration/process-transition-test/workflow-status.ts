@@ -568,6 +568,44 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
+  it('processing (post-commit): the submitting session swaps to the advancing view mid-request, then lands on Task_2', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', delayMs: 15000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The process/next call is still in flight (the service task delays ~15s), yet the page swaps to
+    // the advancing view well before it returns: the instance provider polls the live status while
+    // its own call is pending, so the button spinner gives way as soon as the engine has the workflow
+    // - no reload, no second session. The 10s budget is deliberately shorter than the delay.
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 10000 }).should('be.visible');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
+    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
+
+    // When the service task completes the transition settles on Task_2, and the same session lands
+    // there whether the in-flight call or a poll observes it first.
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('processing (pre-commit): the submitting session swaps to the advancing view mid-request, then lands on Task_2', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'preCommit', delayMs: 15000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // Same as above, but the committed task is still Task_1 for the whole delay: the advancing view
+    // replaces Task_1's form in place, and the session moves on when the call returns with Task_2.
+    cy.contains('Vi jobber med skjemaet ditt', { timeout: 10000 }).should('be.visible');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
+    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
+    cy.get('#finishedLoading').should('exist');
+  });
+
   it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'preCommit', delayMs: 3000, attempts: 2, endState: 'success' });
