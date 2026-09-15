@@ -10,21 +10,25 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Extensions.Options;
 using Polly.CircuitBreaker;
 using Xunit;
 using RuntimeGatewayServices = Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.ServiceCollectionExtensions;
 
-namespace Designer.Tests.TypedHttpClients;
+namespace Designer.Tests.TypedHttpClients.RuntimeGateway;
 
 /// <summary>
-/// Covers the retry narrowing applied to the shared "runtime-gateway" named client: mutating verbs
-/// must never be replayed, and the gateway's deliberate 502 ("workflow engine unavailable in this
-/// environment") must not be treated as a transient fault.
+/// Covers the resilience of the "runtime-gateway-workflows" named client — mutating verbs are never
+/// replayed, reads retry once, and the gateway's deliberate 502 ("workflow engine unavailable in
+/// this environment") is neither a transient fault nor a strike against the circuit — and pins
+/// that the shared "runtime-gateway" client keeps the standard handler's behavior untouched.
 /// </summary>
 public class RuntimeGatewayResilienceTests : IDisposable
 {
-    // The standard resilience handler retries three times on top of the initial attempt.
-    private const int AttemptsWhenRetried = 4;
+    // The standard resilience handler retries three times on top of the initial attempt; the
+    // workflows client retries once.
+    private const int StandardAttemptsWhenRetried = 4;
+    private const int WorkflowAttemptsWhenRetried = 2;
 
     // Comfortably more than the lowered minimum throughput the circuit-breaker tests configure, so
     // a breaker that reacts at all has reacted well before the probe run ends.
@@ -46,26 +50,26 @@ public class RuntimeGatewayResilienceTests : IDisposable
     [Theory]
     [InlineData(HttpStatusCode.InternalServerError)]
     [InlineData(HttpStatusCode.RequestTimeout)]
-    public async Task TransientStatus_OnRead_IsRetried(HttpStatusCode statusCode)
+    public async Task TransientStatus_OnRead_IsRetriedOnce(HttpStatusCode statusCode)
     {
         var handler = CountingHandler.Returning(statusCode);
-        using HttpClient client = CreateClient(handler);
+        using HttpClient client = CreateWorkflowsClient(handler);
 
         using HttpResponseMessage response = await client.GetAsync("http://runtime-gateway.test/probe");
 
         Assert.Equal(statusCode, response.StatusCode);
-        Assert.Equal(AttemptsWhenRetried, handler.Invocations);
+        Assert.Equal(WorkflowAttemptsWhenRetried, handler.Invocations);
     }
 
     [Fact]
-    public async Task TransientException_OnRead_IsRetried()
+    public async Task TransientException_OnRead_IsRetriedOnce()
     {
         var handler = CountingHandler.Throwing(() => new HttpRequestException("connection refused"));
-        using HttpClient client = CreateClient(handler);
+        using HttpClient client = CreateWorkflowsClient(handler);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => client.GetAsync("http://runtime-gateway.test/probe"));
 
-        Assert.Equal(AttemptsWhenRetried, handler.Invocations);
+        Assert.Equal(WorkflowAttemptsWhenRetried, handler.Invocations);
     }
 
     [Theory]
@@ -74,7 +78,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
     public async Task TransientStatus_OnMutation_IsNotRetried(HttpStatusCode statusCode)
     {
         var handler = CountingHandler.Returning(statusCode);
-        using HttpClient client = CreateClient(handler);
+        using HttpClient client = CreateWorkflowsClient(handler);
 
         using HttpResponseMessage response = await client.PostAsync(
             "http://runtime-gateway.test/workflows/resume",
@@ -91,7 +95,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
     public async Task TransientException_OnMutation_IsNotRetried()
     {
         var handler = CountingHandler.Throwing(() => new HttpRequestException("connection reset"));
-        using HttpClient client = CreateClient(handler);
+        using HttpClient client = CreateWorkflowsClient(handler);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
             client.PostAsync("http://runtime-gateway.test/workflows/abandon", content: null)
@@ -104,7 +108,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
     public async Task BadGateway_OnRead_IsNotRetried()
     {
         var handler = CountingHandler.Returning(HttpStatusCode.BadGateway);
-        using HttpClient client = CreateClient(handler);
+        using HttpClient client = CreateWorkflowsClient(handler);
 
         using HttpResponseMessage response = await client.GetAsync("http://runtime-gateway.test/probe");
 
@@ -118,24 +122,24 @@ public class RuntimeGatewayResilienceTests : IDisposable
     public async Task OtherServerErrors_OnRead_StayRetryable(HttpStatusCode statusCode)
     {
         var handler = CountingHandler.Returning(statusCode);
-        using HttpClient client = CreateClient(handler);
+        using HttpClient client = CreateWorkflowsClient(handler);
 
         using HttpResponseMessage response = await client.GetAsync("http://runtime-gateway.test/probe");
 
         Assert.Equal(statusCode, response.StatusCode);
-        Assert.Equal(AttemptsWhenRetried, handler.Invocations);
+        Assert.Equal(WorkflowAttemptsWhenRetried, handler.Invocations);
     }
 
     [Fact]
     public async Task BadGateway_DoesNotOpenTheCircuit()
     {
         var handler = CountingHandler.Returning(HttpStatusCode.BadGateway);
-        using HttpClient client = CreateClient(handler, circuitBreakerMinimumThroughput: 4);
+        using HttpClient client = CreateWorkflowsClient(handler, circuitBreakerMinimumThroughput: 4);
 
         (int requests, bool circuitOpened) = await SendUntilCircuitOpens(client, HttpMethod.Get, CircuitProbeRequests);
 
-        // The client is shared with deploy, metrics and alerts calls. An admin polling a workflows
-        // view in an environment without an engine must not open the circuit on them.
+        // An admin polling a workflows view in an environment without an engine must not open
+        // the circuit on the next admin.
         Assert.False(circuitOpened);
         Assert.Equal(CircuitProbeRequests, requests);
         Assert.Equal(CircuitProbeRequests, handler.Invocations);
@@ -147,7 +151,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
     public async Task OtherServerErrors_StillOpenTheCircuit(HttpStatusCode statusCode)
     {
         var handler = CountingHandler.Returning(statusCode);
-        using HttpClient client = CreateClient(handler, circuitBreakerMinimumThroughput: 4);
+        using HttpClient client = CreateWorkflowsClient(handler, circuitBreakerMinimumThroughput: 4);
 
         (_, bool circuitOpened) = await SendUntilCircuitOpens(client, HttpMethod.Get, CircuitProbeRequests);
 
@@ -158,12 +162,80 @@ public class RuntimeGatewayResilienceTests : IDisposable
     public async Task TransientException_OnMutation_StillOpensTheCircuit()
     {
         var handler = CountingHandler.Throwing(() => new HttpRequestException("connection refused"));
-        using HttpClient client = CreateClient(handler, circuitBreakerMinimumThroughput: 4);
+        using HttpClient client = CreateWorkflowsClient(handler, circuitBreakerMinimumThroughput: 4);
 
         // Retries are off for mutations, but the breaker must still see their failures.
         (_, bool circuitOpened) = await SendUntilCircuitOpens(client, HttpMethod.Post, CircuitProbeRequests);
 
         Assert.True(circuitOpened);
+    }
+
+    [Fact]
+    public void AttemptBudget_OutlastsTheGatewayEnginePhase()
+    {
+        using ServiceProvider provider = BuildProvider(CountingHandler.Returning(HttpStatusCode.OK));
+        HttpStandardResilienceOptions options = ResilienceOptions(
+            provider,
+            RuntimeGatewayServices.WorkflowsHttpClientName
+        );
+
+        // Shorter, and Designer gives up on a mutation the gateway is still waiting on — reported
+        // as a failure to the operator while the engine completes it anyway.
+        Assert.True(options.AttemptTimeout.Timeout > RuntimeGatewayServices.GatewayEnginePhaseBudget);
+        Assert.True(options.TotalRequestTimeout.Timeout >= 2 * options.AttemptTimeout.Timeout);
+        Assert.True(options.CircuitBreaker.SamplingDuration >= 2 * options.AttemptTimeout.Timeout);
+        Assert.Equal(1, options.Retry.MaxRetryAttempts);
+    }
+
+    // ---- The shared client is untouched by all of the above -------------------------------------
+
+    [Fact]
+    public async Task SharedClient_RetriesReadsTheStandardNumberOfTimes()
+    {
+        var handler = CountingHandler.Returning(HttpStatusCode.InternalServerError);
+        using HttpClient client = CreateSharedClient(handler);
+
+        using HttpResponseMessage response = await client.GetAsync("http://runtime-gateway.test/probe");
+
+        Assert.Equal(StandardAttemptsWhenRetried, handler.Invocations);
+    }
+
+    [Fact]
+    public async Task SharedClient_StillRetriesMutations()
+    {
+        var handler = CountingHandler.Throwing(() => new HttpRequestException("connection refused"));
+        using HttpClient client = CreateSharedClient(handler);
+
+        // The deploy reconcile is a POST that relies on the standard retry to ride out a
+        // gateway restart; narrowing that away was the original defect.
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.PostAsync("http://runtime-gateway.test/deployments/reconcile", content: null)
+        );
+
+        Assert.Equal(StandardAttemptsWhenRetried, handler.Invocations);
+    }
+
+    [Fact]
+    public async Task SharedClient_StillTreatsBadGatewayAsTransient()
+    {
+        var handler = CountingHandler.Returning(HttpStatusCode.BadGateway);
+        using HttpClient client = CreateSharedClient(handler);
+
+        using HttpResponseMessage response = await client.GetAsync("http://runtime-gateway.test/probe");
+
+        Assert.Equal(StandardAttemptsWhenRetried, handler.Invocations);
+    }
+
+    [Fact]
+    public void SharedClient_KeepsTheStandardTimeouts()
+    {
+        using ServiceProvider provider = BuildProvider(CountingHandler.Returning(HttpStatusCode.OK));
+        var standard = new HttpStandardResilienceOptions();
+        HttpStandardResilienceOptions options = ResilienceOptions(provider, RuntimeGatewayServices.HttpClientName);
+
+        Assert.Equal(standard.AttemptTimeout.Timeout, options.AttemptTimeout.Timeout);
+        Assert.Equal(standard.TotalRequestTimeout.Timeout, options.TotalRequestTimeout.Timeout);
+        Assert.Equal(standard.Retry.MaxRetryAttempts, options.Retry.MaxRetryAttempts);
     }
 
     private static async Task<(int Requests, bool CircuitOpened)> SendUntilCircuitOpens(
@@ -192,7 +264,19 @@ public class RuntimeGatewayResilienceTests : IDisposable
         return (maxRequests, false);
     }
 
-    private HttpClient CreateClient(CountingHandler handler, int? circuitBreakerMinimumThroughput = null)
+    private HttpClient CreateWorkflowsClient(CountingHandler handler, int? circuitBreakerMinimumThroughput = null) =>
+        CreateClient(RuntimeGatewayServices.WorkflowsHttpClientName, handler, circuitBreakerMinimumThroughput);
+
+    private HttpClient CreateSharedClient(CountingHandler handler) =>
+        CreateClient(RuntimeGatewayServices.HttpClientName, handler, circuitBreakerMinimumThroughput: null);
+
+    private HttpClient CreateClient(string name, CountingHandler handler, int? circuitBreakerMinimumThroughput)
+    {
+        ServiceProvider provider = BuildProvider(handler, circuitBreakerMinimumThroughput);
+        return provider.GetRequiredService<IHttpClientFactory>().CreateClient(name);
+    }
+
+    private ServiceProvider BuildProvider(CountingHandler handler, int? circuitBreakerMinimumThroughput = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -200,7 +284,16 @@ public class RuntimeGatewayResilienceTests : IDisposable
             new ConfigurationBuilder().Build(),
             new StubHostEnvironment { EnvironmentName = Environments.Development }
         );
-        services.AddHttpClient(RuntimeGatewayServices.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => handler);
+        foreach (
+            string name in new[]
+            {
+                RuntimeGatewayServices.HttpClientName,
+                RuntimeGatewayServices.WorkflowsHttpClientName,
+            }
+        )
+        {
+            services.AddHttpClient(name).ConfigurePrimaryHttpMessageHandler(() => handler);
+        }
 
         // Only the backoff delay and — for the circuit-breaker tests — the number of samples the
         // breaker needs before it reacts are neutralized. The predicates under test are left alone.
@@ -216,9 +309,15 @@ public class RuntimeGatewayResilienceTests : IDisposable
 
         ServiceProvider provider = services.BuildServiceProvider();
         _providers.Add(provider);
-
-        return provider.GetRequiredService<IHttpClientFactory>().CreateClient(RuntimeGatewayServices.HttpClientName);
+        return provider;
     }
+
+    /// <summary>
+    /// The options the standard handler registers for a named client; the name it uses is the
+    /// client name suffixed with the handler's own pipeline name.
+    /// </summary>
+    private static HttpStandardResilienceOptions ResilienceOptions(ServiceProvider provider, string clientName) =>
+        provider.GetRequiredService<IOptionsMonitor<HttpStandardResilienceOptions>>().Get($"{clientName}-standard");
 
     private sealed class CountingHandler : HttpMessageHandler
     {
