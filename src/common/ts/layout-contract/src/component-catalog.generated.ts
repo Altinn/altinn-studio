@@ -380,6 +380,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the address.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre adressen.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     zipCode: {
@@ -391,6 +392,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the zip code.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre postnummeret.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     postPlace: {
@@ -402,6 +404,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the post place.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre poststedet.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     careOf: {
@@ -413,6 +416,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store care of.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre c/o-adressen.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     houseNumber: {
@@ -424,6 +428,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the house number.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre husnummeret.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -965,6 +970,7 @@ const IDataModelBindingsOptionsSimple = {
         en: 'Describes the location in the data model where the component should store its values.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre verdiene.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     label: {
@@ -976,6 +982,7 @@ const IDataModelBindingsOptionsSimple = {
         en: 'Describes the location in the data model where the component should store its labels',
         nb: 'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     metadata: {
@@ -987,6 +994,7 @@ const IDataModelBindingsOptionsSimple = {
         en: 'Describes the location in the data model where the component should store its metadata',
         nb: 'Angir hvor i datamodellen komponenten skal lagre metadata.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -1008,6 +1016,7 @@ const IDataModelBindingsForGroupCheckbox = {
         en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
         nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     checked: {
@@ -1019,6 +1028,7 @@ const IDataModelBindingsForGroupCheckbox = {
         en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
         nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -1047,6 +1057,7 @@ const IDataModelBindingsForCustom = {
     type: 'object',
     properties: IDataModelReference['properties'],
     additionalProperties: false,
+    semanticType: 'dataModelBinding',
   },
   title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
   description: {
@@ -1208,6 +1219,7 @@ const IDataModelBindingsSimple = {
         en: 'Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre verdien. En enkel binding brukes for komponenter som lagrer én verdi, vanligvis en streng.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -1226,6 +1238,7 @@ const IDataModelBindingsList = {
         en: 'Describes the location in the data model where the component should store its values. A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).',
         nb: 'Angir hvor i datamodellen komponenten skal lagre verdiene. En listebinding brukes for komponenter som lagrer flere enkle verdier.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -2081,6 +2094,7 @@ const IDataModelBindingsLikert = {
         en: 'Dot notation location for the answers. This must point to a property of the objects inside the question array. The answer for each question will be stored in the answer property of the corresponding question object.',
         nb: 'Plassering i punktnotasjon for svarene. Må peke på en egenskap i objektene i spørsmålslisten.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     questions: {
@@ -2092,6 +2106,7 @@ const IDataModelBindingsLikert = {
         en: 'Dot notation location for a likert structure (array of objects), where the data is stored',
         nb: 'Plassering i punktnotasjon for Likert-strukturen, en liste med objekter, der dataene lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -2143,6 +2158,7 @@ const IDataModelBindingsForList = {
         en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
         nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     checked: {
@@ -2154,6 +2170,7 @@ const IDataModelBindingsForList = {
         en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
         nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2161,6 +2178,7 @@ const IDataModelBindingsForList = {
     type: 'object',
     properties: IDataModelReference['properties'],
     additionalProperties: false,
+    semanticType: 'dataModelBinding',
   },
   title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
   description: {
@@ -2209,6 +2227,7 @@ const IDataModelBindingsForMap = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometries: {
@@ -2219,6 +2238,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to an array of objects like {data: string, label: string} (these can also be configured via separate bindings)',
         nb: 'Skal peke på en liste med objekter på formen {data: string, label: string}. Verdiene kan også konfigureres med separate bindinger.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryLabel: {
@@ -2229,6 +2249,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a string (defaults to a "label" property on the geometries array objects)',
         nb: 'Skal peke på en streng. Standard er «label»-egenskapen i objektene i geometrilisten.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryData: {
@@ -2239,6 +2260,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a string (defaults to a "data" property on the geometries array objects)',
         nb: 'Skal peke på en streng. Standard er «data»-egenskapen i objektene i geometrilisten.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryIsEditable: {
@@ -2249,6 +2271,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a boolean indicating if this geometry is editable. This has no default value, geometries will not be editable if this is not specified.',
         nb: 'Skal peke på en boolsk verdi som angir om geometrien kan redigeres. Geometrien kan ikke redigeres hvis egenskapen ikke er satt.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryIsHidden: {
@@ -2259,6 +2282,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a boolean indicating if this geometry is hidden. Geometries will be visible by default if this is not specified.',
         nb: 'Skal peke på en boolsk verdi som angir om geometrien er skjult. Geometrien er synlig hvis egenskapen ikke er satt.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryStyle: {
@@ -2269,6 +2293,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a JSON-serialized Leaflet PathOptions object (e.g. \'{"color":"#ff0000","weight":2,"fillOpacity":0.3}\') used as the style for this geometry. Overrides the default style. Invalid JSON is ignored.',
         nb: 'Skal peke på et JSON-serialisert Leaflet PathOptions-objekt som brukes som stil for geometrien. Overstyrer standardstilen. Ugyldig JSON ignoreres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2517,6 +2542,7 @@ const IDataModelBindingsForGroupMultiselect = {
         en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
         nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     checked: {
@@ -2528,6 +2554,7 @@ const IDataModelBindingsForGroupMultiselect = {
         en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
         nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2561,6 +2588,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the ssn of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre fødselsnummeret til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     fullName: {
@@ -2575,6 +2603,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre navnet på personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     lastName: {
@@ -2589,6 +2618,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the last name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre etternavnet til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     middleName: {
@@ -2603,6 +2633,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the middle name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre mellomnavnet til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     firstName: {
@@ -2617,6 +2648,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the first name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre fornavnet til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2640,6 +2672,7 @@ const IDataModelBindingsForGroup = {
         en: 'Dot notation location for a repeating group structure (array of objects), where the data is stored',
         nb: 'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -2834,6 +2867,7 @@ const IDataModelBindingsForTable = {
         en: 'Array of objects where the data is stored',
         nb: 'Liste over objektene der dataene lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -4963,6 +4997,7 @@ const generatedContract = {
                 en: 'Dot notation location for a repeating group structure (array of objects), where the data is stored',
                 nb: 'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
               },
+              semanticType: 'dataModelBinding',
               required: true,
             },
           },
@@ -8284,6 +8319,7 @@ const generatedContract = {
                 en: 'Describes the location in the data model where the component should store the organization number of the organization to look up.',
                 nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp.',
               },
+              semanticType: 'dataModelBinding',
               required: true,
             },
             name: {
@@ -8298,6 +8334,7 @@ const generatedContract = {
                 en: 'Describes the location in the data model where the component should store the name of the organization.',
                 nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet.',
               },
+              semanticType: 'dataModelBinding',
               required: false,
             },
           },

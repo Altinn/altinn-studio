@@ -1,27 +1,241 @@
-Komponenten støtter også de felles egenskapene [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/) og [`pageBreak`](../page-break/).
+Komponenten støtter også de [felles komponentegenskapene](../common-properties/).
 
-| Egenskap                                      | Type                                                                                                         | Påkrevd | Standardverdi | Beskrivelse                                                                                                                                                                  |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `readOnly`                                    | `boolean \| expression<boolean>`                                                                             | Nei     | `false`       | Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet. |
-| `required`                                    | `boolean \| expression<boolean>`                                                                             | Nei     | `false`       | Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.                                                                                                       |
-| `showValidations`                             | `"Schema" \| "Component" \| "Expression" \| "CustomBackend" \| "Required" \| "AllExceptRequired" \| "All"[]` | Nei     |               | Liste over valideringstypene som skal vises.                                                                                                                                 |
-| `renderAsSummary`                             | `boolean`                                                                                                    | Nei     | `false`       | Angir om komponenten skal vises som en oppsummering.                                                                                                                         |
-| `forceShowInSummary`                          | `boolean \| expression<boolean>`                                                                             | Nei     | `false`       | Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.                                                                |
-| `type`                                        | `"OrganizationLookup"`                                                                                       | Ja      |               | Angir hvilken komponenttype konfigurasjonen gjelder.                                                                                                                         |
-| `textResourceBindings`                        | `object`                                                                                                     | Nei     |               | Kobler tekstene i komponenten til tekstressurser eller uttrykk.                                                                                                              |
-| `textResourceBindings.tableTitle`             | `string \| expression<string>`                                                                               | Nei     |               | Tittelen som vises i tabellvisningen. Overstyrer den vanlige tittelen.                                                                                                       |
-| `textResourceBindings.shortName`              | `string \| expression<string>`                                                                               | Nei     |               | Alternativt navn i valideringsmeldinger for påkrevde felt. Overstyrer den vanlige tittelen.                                                                                  |
-| `textResourceBindings.requiredValidation`     | `string \| expression<string>`                                                                               | Nei     |               | Hele valideringsmeldingen som vises når komponenten er påkrevd og mangler verdi. Overstyrer både standardmeldingen og kortnavnet.                                            |
-| `textResourceBindings.summaryTitle`           | `string \| expression<string>`                                                                               | Nei     |               | Tittelen som vises i oppsummeringen. Overstyrer den vanlige tittelen.                                                                                                        |
-| `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>`                                                                               | Nei     |               | Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen.                                      |
-| `textResourceBindings.title`                  | `string \| expression<string>`                                                                               | Nei     |               | Ledeteksten til komponenten.                                                                                                                                                 |
-| `textResourceBindings.description`            | `string \| expression<string>`                                                                               | Nei     |               | Valgfri beskrivelse som vises under ledeteksten.                                                                                                                             |
-| `textResourceBindings.help`                   | `string \| expression<string>`                                                                               | Nei     |               | Valgfri hjelpetekst som vises ved ledeteksten.                                                                                                                               |
-| `removeWhenHidden`                            | `boolean \| expression<boolean>`                                                                             | Nei     |               | Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.                                                                                             |
-| `dataModelBindings`                           | `object`                                                                                                     | Ja      |               | Kobler verdiene i komponenten til felter i datamodellen.                                                                                                                     |
-| `dataModelBindings.orgnr`                     | `object`                                                                                                     | Ja      |               | Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp.                                                                      |
-| `dataModelBindings.orgnr.dataType`            | `string`                                                                                                     | Ja      |               | Navnet på datamodelltypen det skal refereres til.                                                                                                                            |
-| `dataModelBindings.orgnr.field`               | `string`                                                                                                     | Ja      |               | Stien til egenskapen i punktnotasjon.                                                                                                                                        |
-| `dataModelBindings.name`                      | `object`                                                                                                     | Nei     |               | Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet.                                                                                                        |
-| `dataModelBindings.name.dataType`             | `string`                                                                                                     | Ja      |               | Navnet på datamodelltypen det skal refereres til.                                                                                                                            |
-| `dataModelBindings.name.field`                | `string`                                                                                                     | Ja      |               | Stien til egenskapen i punktnotasjon.                                                                                                                                        |
+<details class="card adocs-expand adocs-expand-small component-property" id="type">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="type">type</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required is-required">Påkrevd</span>
+      <span class="component-property-type" title="&quot;OrganizationLookup&quot;">Type: <span class="component-property-value">&quot;OrganizationLookup&quot;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvilken komponenttype konfigurasjonen gjelder.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="readonly">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="readOnly">readOnly</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="required">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="required">required</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="showvalidations">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="showValidations">showValidations</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-type" title="&quot;Schema&quot; | &quot;Component&quot; | &quot;Expression&quot; | &quot;CustomBackend&quot; | &quot;Required&quot; | &quot;AllExceptRequired&quot; | &quot;All&quot;[]">Type: <span class="component-property-value">&quot;Schema&quot; | &quot;Component&quot; | &quot;Expression&quot; | &quot;CustomBackend&quot; | &quot;Required&quot; | &quot;AllExceptRequired&quot; | &quot;All&quot;[]</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Liste over valideringstypene som skal vises.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir om komponenten skal vises som en oppsummering.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.</div></div>
+</details>
+
+<details class="component-property-group" id="textresourcebindings">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="textResourceBindings">textResourceBindings</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="component-property-group-content">
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler tekstene i komponenten til tekstressurser eller uttrykk.</div></div>
+    <div class="component-property-list">
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.tabletitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.tableTitle">textResourceBindings.tableTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Tittelen som vises i tabellvisningen. Overstyrer den vanlige tittelen.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.shortname">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.shortName">textResourceBindings.shortName</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Alternativt navn i valideringsmeldinger for påkrevde felt. Overstyrer den vanlige tittelen.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.requiredvalidation">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.requiredValidation">textResourceBindings.requiredValidation</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Hele valideringsmeldingen som vises når komponenten er påkrevd og mangler verdi. Overstyrer både standardmeldingen og kortnavnet.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summarytitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.summaryTitle">textResourceBindings.summaryTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Tittelen som vises i oppsummeringen. Overstyrer den vanlige tittelen.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summaryaccessibletitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.summaryAccessibleTitle">textResourceBindings.summaryAccessibleTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.title">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.title">textResourceBindings.title</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Ledeteksten til komponenten.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.description">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.description">textResourceBindings.description</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Valgfri beskrivelse som vises under ledeteksten.</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.help">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.help">textResourceBindings.help</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Valgfri hjelpetekst som vises ved ledeteksten.</div></div>
+      </details>
+    </div>
+
+  </div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="removewhenhidden">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="removeWhenHidden">removeWhenHidden</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.</div></div>
+</details>
+
+<details class="component-property-group" id="datamodelbindings">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="dataModelBindings">dataModelBindings</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required is-required">Påkrevd</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="component-property-group-content">
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler verdiene i komponenten til felter i datamodellen.</div></div>
+    <div class="component-property-list">
+      <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.orgnr">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="dataModelBindings.orgnr">dataModelBindings.orgnr</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required is-required">Påkrevd</span>
+            <span class="component-property-type" title="datamodellbinding">Type: <span class="component-property-value"><a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">datamodellbinding</a></span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.name">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="dataModelBindings.name">dataModelBindings.name</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="datamodellbinding">Type: <span class="component-property-value"><a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">datamodellbinding</a></span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
+      </details>
+    </div>
+
+  </div>
+</details>
