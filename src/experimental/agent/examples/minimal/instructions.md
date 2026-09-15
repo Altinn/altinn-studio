@@ -9,4 +9,3 @@ Agent is configured with GitHub access; use the installed `gh repo clone OWNER/R
 workspaces; never delete and reclone one as a retry strategy.
 
 Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
-These instructions are followed across harnesses and models, and the attribution adds no value.

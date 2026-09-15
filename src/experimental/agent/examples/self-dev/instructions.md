@@ -19,7 +19,6 @@ recording; the `pr-evidence` skill describes how to record and attach it. `make 
 `make user-install` work here too: the Sandbox has `/dev/kvm` and Podman.
 
 Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
-These instructions are followed across harnesses and models, and the attribution adds no value.
 
 To run a nested Agent, log the nested `agentd` in with the placeholders this Sandbox already holds, then apply the
 `nested` variant with its secret file outside any bind-mounted directory:
