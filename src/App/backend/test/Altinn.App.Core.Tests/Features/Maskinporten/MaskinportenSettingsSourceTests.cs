@@ -12,34 +12,16 @@ public sealed class MaskinportenSettingsSourceTests
 {
     private const string SettingsFileName = "maskinporten-settings.json";
 
+    /// <summary>
+    /// The provisioned location is not reachable from the app's configuration - there is no key for it, and
+    /// nothing composes it from one. This pins the path the platform actually mounts.
+    /// </summary>
     [Fact]
-    public void ResolveFilePath_PrefersTheConfiguredPath()
-    {
-        var configuration = ConfigurationWith(
-            ("MaskinportenSettingsFilepath", "/somewhere/else.json"),
-            ("AppSettings:RuntimeSecretsDirectory", "/ignored")
-        );
-
-        Assert.Equal("/somewhere/else.json", MaskinportenSettingsSource.ResolveFilePath(configuration));
-    }
-
-    [Fact]
-    public void ResolveFilePath_FallsBackToTheRuntimeSecretsDirectory()
-    {
-        var configuration = ConfigurationWith(("AppSettings:RuntimeSecretsDirectory", "/custom-secrets"));
-
-        Assert.Equal(
-            Path.Join("/custom-secrets", SettingsFileName),
-            MaskinportenSettingsSource.ResolveFilePath(configuration)
-        );
-    }
-
-    [Fact]
-    public void ResolveFilePath_FallsBackToThePlatformSecretsDirectory()
+    public void DefaultFilePath_IsTheProvisionedLocation()
     {
         Assert.Equal(
             Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, SettingsFileName),
-            MaskinportenSettingsSource.ResolveFilePath(ConfigurationWith())
+            MaskinportenSettingsSource.DefaultFilePath
         );
     }
 
@@ -97,7 +79,7 @@ public sealed class MaskinportenSettingsSourceTests
     }
 
     [Fact]
-    public async Task Options_IgnoreAMaskinportenSettingsSectionInTheAppConfiguration()
+    public async Task Options_IgnoreAnyMaskinportenInputInTheAppConfiguration()
     {
         // The whole point of the private configuration root: an app cannot supply, extend or displace the
         // credentials the platform provisions, no matter what it puts in its own configuration.
@@ -108,7 +90,9 @@ public sealed class MaskinportenSettingsSourceTests
         await using var serviceProvider = BuildOptionsProvider(
             settingsPath,
             ("MaskinportenSettings:clientId", "app-supplied-client"),
-            ("MaskinportenSettings:jwkBase64", "app-supplied-key")
+            ("MaskinportenSettings:jwkBase64", "app-supplied-key"),
+            ("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
+            ("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own")
         );
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
@@ -176,6 +160,7 @@ public sealed class MaskinportenSettingsSourceTests
     /// <summary>
     /// The Maskinporten options exactly as an app binds them, for a settings file at
     /// <paramref name="settingsFilePath"/> and an app configuration of <paramref name="appConfiguration"/>.
+    /// Registering the source first is the only way to move the file - an app has no such lever.
     /// </summary>
     private static ServiceProvider BuildOptionsProvider(
         string settingsFilePath,
@@ -183,9 +168,8 @@ public sealed class MaskinportenSettingsSourceTests
     )
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(
-            ConfigurationWith([("MaskinportenSettingsFilepath", settingsFilePath), .. appConfiguration])
-        );
+        services.AddSingleton<IConfiguration>(ConfigurationWith(appConfiguration));
+        services.AddSingleton(_ => new MaskinportenSettingsSource(settingsFilePath));
         services.AddMaskinportenSettings();
 
         return services.BuildStrictServiceProvider();

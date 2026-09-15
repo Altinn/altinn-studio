@@ -34,7 +34,9 @@ internal static class ServiceCollectionExtensions
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        services.TryAddSingleton<MaskinportenSettingsSource>();
+        // The one line that decides where the credentials come from. TryAdd so a test can put its own
+        // source in first; nothing an app configures reaches this.
+        services.TryAddSingleton(_ => new MaskinportenSettingsSource(MaskinportenSettingsSource.DefaultFilePath));
         services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IConfigureOptions<MaskinportenSettings>, ConfigureMaskinportenSettings>()
