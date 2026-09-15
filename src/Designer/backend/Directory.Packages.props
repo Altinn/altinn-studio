@@ -7,7 +7,15 @@
     <PackageVersion Include="Altinn.App.Core" Version="8.0.0" />
     <PackageVersion Include="Altinn.Common.AccessToken" Version="5.0.5" />
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="3.0.15" />
-    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="4.7.1" />
+    <!--
+      Two packages ship the same Altinn.Platform.Storage.Interface.dll: this one, and the
+      Altinn.Platform.Storage.Interface 3.24.0 that Altinn.App.Core 8.0.0 pulls in transitively.
+      Both resolve, and assembly conflict resolution currently keeps this one only because its
+      assembly version (4.7.1) sorts above 3.24.0. If Altinn.App.Core ever moves to a 4.x+ of the
+      stable package, that tie-break flips silently and DataType.EnablePdfCreation stops being
+      nullable again. Verify with the assembly version of the DLL in the build output.
+    -->
+    <PackageVersion Include="Altinn.Platform.Storage.Interface.Experimental" Version="4.7.1-pr.2536.interface-aggregate-mutation.8f6e285a" />
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.0.8" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />

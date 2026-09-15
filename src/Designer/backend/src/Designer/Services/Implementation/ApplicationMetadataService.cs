@@ -161,7 +161,6 @@ public class ApplicationMetadataService : IApplicationMetadataService
                     TaskId = "Task_1",
                     MaxCount = 1,
                     MinCount = 1,
-                    EnablePdfCreation = true,
                     EnableFileScan = false,
                     ValidationErrorOnPendingFileScan = false,
                 },
