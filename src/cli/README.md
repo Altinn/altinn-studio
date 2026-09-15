@@ -62,8 +62,8 @@ studioctl auth login --env dev --with-token < token.txt
 `studioctl app maskinporten set --file <client.json>` stores the Maskinporten client an app uses for local
 runs - to send a Fiks Arkiv test shipment, say. studioctl provisions it to the app the way Studio does when
 the app is deployed, so the app never reads Maskinporten credentials from its own configuration; a running
-app picks up a stored client without a restart. `--from-appsettings App/appsettings.Development.json` lifts
-the client out of a v8 app's settings section instead.
+app picks up a stored client without a restart. A section pasted out of a v8 app's appsettings file, name
+and all, is accepted as input.
 
 ## Core commands
 

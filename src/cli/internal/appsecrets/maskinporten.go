@@ -52,12 +52,6 @@ var (
 
 	// ErrInvalidMaskinportenClient is returned when the supplied credentials cannot be used as the app's client.
 	ErrInvalidMaskinportenClient = errors.New("invalid Maskinporten client")
-
-	// ErrSectionNotFound is returned when an appsettings file has no section to read the client from.
-	ErrSectionNotFound = errors.New("no Maskinporten section found")
-
-	// ErrAmbiguousSection is returned when an appsettings file has several candidate sections.
-	ErrAmbiguousSection = errors.New("several Maskinporten sections found")
 )
 
 // MaskinportenClient is the app's Maskinporten identity as the app libraries bind it: the content of the
@@ -107,15 +101,17 @@ func Environment(authority string) string {
 }
 
 // ParseMaskinportenClient reads a client from any of the shapes a developer is likely to have at hand: the
-// provisioned file itself (the credentials wrapped in a MaskinportenSettings object), the bare credentials,
-// or a section written for the Altinn.ApiClients.Maskinporten package (Environment and EncodedJwk instead of
-// authority and jwkBase64). Keys are matched case-insensitively, as .NET configuration matches them.
+// provisioned file itself (the credentials wrapped in a MaskinportenSettings object), the bare credentials, a
+// section written for the Altinn.ApiClients.Maskinporten package (Environment and EncodedJwk instead of
+// authority and jwkBase64), or a section pasted out of an appsettings file together with its name - a
+// single wrapper object of any name, such as {"my-app--MaskinportenSettings": {...}}. Keys are matched
+// case-insensitively, as .NET configuration matches them.
 func ParseMaskinportenClient(data []byte) (MaskinportenClient, error) {
 	object, err := parseObject(data)
 	if err != nil {
 		return MaskinportenClient{}, err
 	}
-	if wrapped, ok := lookup(object, wrapperKey); ok {
+	if wrapped, ok := unwrap(object); ok {
 		object, err = parseObject(wrapped)
 		if err != nil {
 			return MaskinportenClient{}, err
@@ -124,25 +120,25 @@ func ParseMaskinportenClient(data []byte) (MaskinportenClient, error) {
 	return clientFromObject(object)
 }
 
-// ReadMaskinportenSection reads a client out of an appsettings file: the named top-level section, or, when no
-// name is given, the one top-level section named MaskinportenSettings or ending in it - the v8 convention
-// was an app-prefixed name such as my-app--MaskinportenSettings.
-func ReadMaskinportenSection(data []byte, section string) (MaskinportenClient, error) {
-	object, err := parseObject(data)
-	if err != nil {
-		return MaskinportenClient{}, err
+// unwrap returns the one object a wrapper holds: the provisioned file's MaskinportenSettings object, or a
+// pasted section under whatever name the app gave it. An object that carries a credential key itself is the
+// credentials, not a wrapper.
+func unwrap(object map[string]json.RawMessage) (json.RawMessage, bool) {
+	if _, ok := hasAny(object, "clientId", "authority", "jwk", "jwkBase64", "encodedJwk", "environment"); ok {
+		return nil, false
 	}
-	if section == "" {
-		section, err = findMaskinportenSection(object)
-		if err != nil {
-			return MaskinportenClient{}, err
+	if wrapped, ok := lookup(object, wrapperKey); ok {
+		return wrapped, true
+	}
+	if len(object) != 1 {
+		return nil, false
+	}
+	for _, raw := range object {
+		if isObject(raw) {
+			return raw, true
 		}
 	}
-	raw, ok := lookup(object, section)
-	if !ok {
-		return MaskinportenClient{}, fmt.Errorf("%w: %q", ErrSectionNotFound, section)
-	}
-	return ParseMaskinportenClient(raw)
+	return nil, false
 }
 
 // Validate reports whether the client is complete enough for the app libraries to sign a JWT grant with.
@@ -308,24 +304,6 @@ func authorityFromEnvironment(object map[string]json.RawMessage) (string, error)
 			ErrInvalidMaskinportenClient,
 			environment,
 		)
-	}
-}
-
-// findMaskinportenSection picks the one top-level section a Maskinporten client would live in.
-func findMaskinportenSection(object map[string]json.RawMessage) (string, error) {
-	var candidates []string
-	for key, value := range object {
-		if strings.HasSuffix(strings.ToLower(key), strings.ToLower(wrapperKey)) && isObject(value) {
-			candidates = append(candidates, key)
-		}
-	}
-	switch len(candidates) {
-	case 0:
-		return "", fmt.Errorf("%w: name it with --section", ErrSectionNotFound)
-	case 1:
-		return candidates[0], nil
-	default:
-		return "", fmt.Errorf("%w: %s - name one with --section", ErrAmbiguousSection, strings.Join(candidates, ", "))
 	}
 }
 

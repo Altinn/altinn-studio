@@ -18,10 +18,8 @@ func TestStoreMaskinportenClient_RoundTrips(t *testing.T) {
 
 	stored, err := service.StoreMaskinportenClient(appsvc.MaskinportenClientRequest{
 		AppPath: appPath,
-		Section: "",
 		Input: []byte(`{"clientId":"client-1","authority":"https://test.maskinporten.no/",` +
 			`"jwk":{"kty":"RSA","kid":"k1","d":"private","n":"m","e":"AQAB"}}`),
-		FromAppsettings: false,
 	})
 	if err != nil {
 		t.Fatalf("StoreMaskinportenClient() error = %v", err)

@@ -24,11 +24,9 @@ const (
 var errMaskinportenInputRequired = errors.New("no Maskinporten client supplied")
 
 type appMaskinportenSetFlags struct {
-	appPath         string
-	file            string
-	fromAppsettings string
-	section         string
-	jsonOutput      bool
+	appPath    string
+	file       string
+	jsonOutput bool
 }
 
 type appMaskinportenFlags struct {
@@ -77,10 +75,8 @@ func (c *AppCommand) runMaskinportenSet(ctx context.Context, args []string) erro
 	}
 
 	result, err := c.service.StoreMaskinportenClient(appsvc.MaskinportenClientRequest{
-		AppPath:         appPath,
-		Section:         flags.section,
-		Input:           input,
-		FromAppsettings: flags.fromAppsettings != "",
+		AppPath: appPath,
+		Input:   input,
 	})
 	if err != nil {
 		return fmt.Errorf("store Maskinporten client: %w", err)
@@ -166,16 +162,10 @@ func (c *AppCommand) resolveMaskinportenApp(ctx context.Context, appPath string)
 	return detection.AppRoot, nil
 }
 
-// readMaskinportenInput reads the client JSON from the appsettings file, the given file, or standard
-// input. The key never travels as a command-line argument, where it would land in shell history.
+// readMaskinportenInput reads the client JSON from the given file or from standard input. The key never
+// travels as a command-line argument, where it would land in shell history.
 func readMaskinportenInput(flags appMaskinportenSetFlags) ([]byte, error) {
 	switch {
-	case flags.fromAppsettings != "" && flags.file != "":
-		return nil, fmt.Errorf("%w: --file and --from-appsettings are alternatives", ErrInvalidFlagValue)
-	case flags.section != "" && flags.fromAppsettings == "":
-		return nil, fmt.Errorf("%w: --section only applies with --from-appsettings", ErrInvalidFlagValue)
-	case flags.fromAppsettings != "":
-		return readMaskinportenFile(flags.fromAppsettings)
 	case flags.file != "" && flags.file != stdinFileName:
 		return readMaskinportenFile(flags.file)
 	case flags.file == stdinFileName || !ui.StdinIsTerminal():
@@ -186,7 +176,7 @@ func readMaskinportenInput(flags appMaskinportenSetFlags) ([]byte, error) {
 		return data, nil
 	default:
 		return nil, fmt.Errorf(
-			"%w: pass --file FILE or --from-appsettings FILE, or pipe the client JSON on standard input",
+			"%w: pass --file FILE, or pipe the client JSON on standard input",
 			errMaskinportenInputRequired,
 		)
 	}
@@ -217,13 +207,6 @@ func parseAppMaskinportenSetFlags(args []string) (appMaskinportenSetFlags, bool,
 	fs.StringVar(&flags.appPath, "p", "", "App directory path")
 	fs.StringVar(&flags.appPath, "path", "", "App directory path")
 	fs.StringVar(&flags.file, "file", "", "Read the client from this file (- for standard input)")
-	fs.StringVar(
-		&flags.fromAppsettings,
-		"from-appsettings",
-		"",
-		"Read the client from a section of this appsettings file",
-	)
-	fs.StringVar(&flags.section, "section", "", "The section to read with --from-appsettings")
 	fs.BoolVar(&flags.jsonOutput, "json", false, "Output as JSON")
 
 	if err := fs.Parse(args); err != nil {
@@ -268,7 +251,7 @@ func (c *AppCommand) appMaskinportenUsage() string {
 		"own configuration. A running app picks up a stored client without a restart.",
 		"",
 		"Subcommands:",
-		"  set       Store the client for this app (from --file, --from-appsettings, or standard input)",
+		"  set       Store the client for this app (from --file or standard input)",
 		"  show      Show the stored client - never its private key",
 		"  remove    Remove the stored client",
 		"",
@@ -279,24 +262,22 @@ func (c *AppCommand) appMaskinportenUsage() string {
 func (c *AppCommand) appMaskinportenSetUsage() string {
 	return joinLines(
 		fmt.Sprintf(
-			"Usage: %s app maskinporten set [-p PATH] [--file FILE | --from-appsettings FILE [--section NAME]] [--json]",
+			"Usage: %s app maskinporten set [-p PATH] [--file FILE] [--json]",
 			osutil.CurrentBin(),
 		),
 		"",
 		"Store the Maskinporten client this app uses for local runs. The input is the client as JSON: the",
 		"provisioned maskinporten-settings.json format, the bare credentials (authority, clientId, and jwk or",
-		"jwkBase64), or a section written for the Altinn.ApiClients.Maskinporten package (Environment, ClientId,",
-		"EncodedJwk). Without --file, the JSON is read from standard input. The private key is stored readable",
-		"by you only, and is never printed.",
+		"jwkBase64), a section written for the Altinn.ApiClients.Maskinporten package (Environment, ClientId,",
+		"EncodedJwk), or a section pasted out of an appsettings file together with its name. Without --file,",
+		"the JSON is read from standard input. The private key is stored readable by you only, and is never",
+		"printed.",
 		"",
 		"Options:",
-		"  -p, --path PATH           App directory path",
-		"  --file FILE               Read the client from FILE (- for standard input)",
-		"  --from-appsettings FILE   Read the client from a section of an appsettings file",
-		"  --section NAME            The section to read with --from-appsettings (default: the one section",
-		"                            named MaskinportenSettings or ending in it, e.g. my-app--MaskinportenSettings)",
-		"  --json                    Output as JSON",
-		"  -h, --help                Show this help",
+		"  -p, --path PATH       App directory path",
+		"  --file FILE           Read the client from FILE (- for standard input)",
+		"  --json                Output as JSON",
+		"  -h, --help            Show this help",
 	)
 }
 
