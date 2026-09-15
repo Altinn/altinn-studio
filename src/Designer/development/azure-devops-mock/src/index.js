@@ -20,6 +20,18 @@ import { environmentsRoute } from './routes/environments.js';
 import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
 import { notificationRoute } from './routes/notifications.js';
 import { accessibleForAllScopesRoute, accessScopesRoute } from './routes/maskinporten.js';
+import {
+  instancesFromLocaltest,
+  localtestInstanceDeleteRoute,
+  localtestInstanceDetailsRoute,
+  localtestInstancesRoute,
+  workflowAbandonRoute,
+  workflowCollectionRoute,
+  workflowCollectionsRoute,
+  workflowResumeRoute,
+  workflowRoute,
+  workflowsRoute,
+} from './routes/localtest.js';
 
 const app = express();
 
@@ -45,9 +57,29 @@ app.get('/apps/:org/:env/:org/:app/api/v1/applicationmetadata', appMetadataRoute
 app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
-app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
-app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDetailsRoute);
-app.delete('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDeleteRoute);
+// The admin app's instance views: random data by default, or the instances the studioctl
+// environment on the host actually holds (INSTANCES_FROM_LOCALTEST=true).
+const useLocaltest = instancesFromLocaltest();
+app.get(
+  '/storage/api/v1/studio/instances/:org/:app',
+  useLocaltest ? localtestInstancesRoute : storageInstancesRoute,
+);
+app.get(
+  '/storage/api/v1/studio/instances/:org/:app/:instanceId',
+  useLocaltest ? localtestInstanceDetailsRoute : storageInstanceDetailsRoute,
+);
+app.delete(
+  '/storage/api/v1/studio/instances/:org/:app/:instanceId',
+  useLocaltest ? localtestInstanceDeleteRoute : storageInstanceDeleteRoute,
+);
+// The runtime gateway's workflow pass-through, served by the studioctl environment's engine.
+const workflowsBase = '/apps/:org/:env/runtime/gateway/api/v1/workflows/apps/:app';
+app.get(`${workflowsBase}/collections`, workflowCollectionsRoute);
+app.get(`${workflowsBase}/collections/:key`, workflowCollectionRoute);
+app.get(`${workflowsBase}/workflows`, workflowsRoute);
+app.get(`${workflowsBase}/workflows/:workflowId`, workflowRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/resume`, workflowResumeRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/abandon`, workflowAbandonRoute);
 app.get('/api/v1/scopes/all', accessibleForAllScopesRoute);
 app.get('/api/v1/scopes/access/all', accessScopesRoute);
 app.post('/_apis/build/builds/', buildsRoute);
@@ -57,5 +89,5 @@ app.all('/{*splat}', function (req, res) {
   console.log(req.method + ' ' + req.originalUrl);
   res.send('Ok, you are at the foxy mockzy');
 });
-const port = 6161;
+const port = process.env.PORT ?? 6161;
 app.listen(port, () => console.log(`Azure Devops API Mock listening on port ${port}`));
