@@ -12,6 +12,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.2] - 2026-09-15
+
 ### Added
 
 - `agentctl self update` installs a newer release, and `--check` only reports whether one exists. It migrates your Agent state behind a backup, relaunches resumable Sessions, and refuses to run while work is in flight. ([#20397](https://github.com/Altinn/altinn-studio/pull/20397))
