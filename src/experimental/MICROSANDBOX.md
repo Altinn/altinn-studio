@@ -310,9 +310,19 @@ Only update Altinn Studio after the downstream runtime release is complete and v
 1. Update every `microsandbox*` Git revision together in the root `Cargo.toml`.
 2. Regenerate the root `Cargo.lock` and confirm every Git-sourced Microsandbox package resolves to
    the same revision and downstream version.
-3. Update all supported runtime bundle digests in `sandbox-microsandbox/src/client.rs`.
-4. Update comments that name the pinned downstream version.
-5. Confirm that the Cargo revision is tagged by either the corresponding `digdir-v*` release or an
+3. Search the repository for every remaining reference to the previous pin and replace each hit.
+   Do not rely on a list of known files; search for the identifiers themselves:
+
+   ```bash
+   git grep -n -e '<previous-downstream-version>' -e '<previous-revision-sha>'
+   git grep -n -F -f <(printf '%s\n' <previous-bundle-digests>)
+   ```
+
+   Expected hits include the runtime bundle digest table in `sandbox-microsandbox/src/client.rs`,
+   container images that download the runtime bundle (CI fails on any skew between such a pin and
+   `Cargo.lock`), and comments that name the pinned downstream version. Repeat the search until it
+   returns only this runbook and changelog history.
+4. Confirm that the Cargo revision is tagged by either the corresponding `digdir-v*` release or an
    explicitly runtime-compatible `digdir-source-v*` tag. A source-only tag is only valid when the
    diff from the runtime tag stays inside the host SDK library:
 
@@ -324,13 +334,13 @@ Only update Altinn Studio after the downstream runtime release is complete and v
    change under `crates/protocol`, `crates/agentd`, `crates/runtime`, `crates/network`,
    `vendor/libkrunfw` or the release workflow means a new Digdir runtime revision is required.
 
-6. Run the experimental formatting, lint, build and unit-test targets.
-7. Run the ignored Microsandbox end-to-end tests on hosts with Docker, Internet access and hardware
+5. Run the experimental formatting, lint, build and unit-test targets.
+6. Run the ignored Microsandbox end-to-end tests on hosts with Docker, Internet access and hardware
    virtualization.
-8. Exercise first-run runtime installation from an empty provider home so stale local artifacts
+7. Exercise first-run runtime installation from an empty provider home so stale local artifacts
    cannot mask a release or checksum error, and separately exercise an upgrade from a provider home
    and database populated by the previously pinned version, since migrations only run there.
-9. Run `yarn spell:quick` for the changed documentation and source files.
+8. Run `yarn spell:quick` for the changed documentation and source files.
 
 The Altinn change is internal maintenance unless it changes behavior visible to Agent users. Use the
 `skip-changelog` label for internal-only synchronization; otherwise describe the user-visible effect
