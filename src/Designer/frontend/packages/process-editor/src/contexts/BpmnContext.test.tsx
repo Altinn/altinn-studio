@@ -7,7 +7,7 @@ describe('BpmnContext', () => {
   });
   it('should render children', () => {
     render(
-      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
+      <BpmnContextProvider>
         <button>My button</button>
       </BpmnContextProvider>,
     );
@@ -22,7 +22,7 @@ describe('BpmnContext', () => {
     };
 
     render(
-      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
+      <BpmnContextProvider>
         <TestComponent />
       </BpmnContextProvider>,
     );
@@ -43,7 +43,7 @@ describe('BpmnContext', () => {
 
   it('should throw an error when modelerRef.current is undefined', async () => {
     const wrapper = ({ children }) => (
-      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
+      <BpmnContextProvider>
         {children}
       </BpmnContextProvider>
     );
@@ -52,14 +52,5 @@ describe('BpmnContext', () => {
     });
     const { getUpdatedXml } = result.current;
     await expect(async () => await getUpdatedXml()).rejects.toThrow('Modeler not initialized');
-  });
-
-  describe('isEditAllowed', () => {
-    it('should be false when appVersion is undefined', () => {
-      const { result } = renderHook(() => useBpmnContext(), {
-        wrapper: ({ children }) => <BpmnContextProvider>{children}</BpmnContextProvider>,
-      });
-      expect(result.current.isEditAllowed).toBe(false);
-    });
   });
 });
