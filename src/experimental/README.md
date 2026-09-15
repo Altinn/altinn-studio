@@ -18,6 +18,9 @@ The main goals are:
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
 installs `agentctl` and `agentd` for the current user.
 
+Maintainers updating the Microsandbox or libkrunfw forks should follow the
+[downstream maintenance runbook](MICROSANDBOX.md).
+
 User-visible changes are recorded in [CHANGELOG.md](CHANGELOG.md), which covers the whole stack and provides the
 release notes for each `experimental-agent/v*` release.
 
