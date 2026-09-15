@@ -35,12 +35,14 @@ The frontend consists of several React packages in the following directories:
   - `studio-pure-functions` - A collection of general utility classes for handling arrays, blobs, dates, files, numbers, strings, etc. Use these utilities to avoid code duplication for common operations.
 - `./packages` - Contains tools for individual Altinn apps.
   - `policy-editor` - Handles access policy.
-  - `process-editor` - Handles the BPMN process.
+  - `process-editor` - Handles the BPMN process. Serves apps on Altinn.App v9 and newer.
+  - `process-editor-v8` - Legacy package for apps on Altinn.App v8 and older, frozen.
   - `schema-editor` - Handles editing data models.
   - `schema-model` - Underlying model for the `schema-editor` package.
   - `shared` - Shared resources for the `./packages` directory.
   - `text-editor` - Handles editing of texts and their translations.
-  - `ux-editor` - Layout and form component configurations.
+  - `ux-editor` - Layout and form component configurations. Serves apps on app-frontend v9 and newer.
+  - `ux-editor-v4` - Legacy package for apps on app-frontend v4.
   - `ux-editor-v3` - Legacy package, not maintained.
 - `./resourceadm` - Altinn resource register.
 - `./scripts` - Independent scripts for configuration of form components.

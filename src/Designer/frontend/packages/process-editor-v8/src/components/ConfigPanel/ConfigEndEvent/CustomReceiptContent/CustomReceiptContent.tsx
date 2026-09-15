@@ -1,0 +1,39 @@
+import React, { useState } from 'react';
+import classes from './CustomReceiptContent.module.css';
+import { StudioProperty, StudioSpinner } from '@studio/components';
+import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import { CustomReceipt } from './CustomReceipt';
+import { useTranslation } from 'react-i18next';
+import { CreateCustomReceipt } from './CreateCustomReceiptForm/CreateCustomReceipt';
+
+export const CustomReceiptContent = (): React.ReactElement => {
+  const { t } = useTranslation();
+  const { existingCustomReceiptLayoutSetId, pendingApiOperations } = useBpmnApiContext();
+
+  const [showCreateCustomReceiptFields, setShowCreateCustomReceiptFields] = useState(false);
+
+  const openCustomReceiptFields = () => setShowCreateCustomReceiptFields(true);
+  const closeCustomReceiptFields = () => setShowCreateCustomReceiptFields(false);
+
+  if (pendingApiOperations) {
+    return (
+      <StudioSpinner
+        aria-label={t('process_editor.configuration_panel_custom_receipt_spinner_title')}
+        className={classes.spinner}
+      />
+    );
+  }
+  if (!existingCustomReceiptLayoutSetId && !showCreateCustomReceiptFields) {
+    return (
+      <StudioProperty.Button
+        onClick={openCustomReceiptFields}
+        property={t('process_editor.configuration_panel_custom_receipt_create_your_own_button')}
+        className={classes.createButton}
+      />
+    );
+  }
+  if (showCreateCustomReceiptFields) {
+    return <CreateCustomReceipt onCloseForm={closeCustomReceiptFields} />;
+  }
+  return <CustomReceipt />;
+};
