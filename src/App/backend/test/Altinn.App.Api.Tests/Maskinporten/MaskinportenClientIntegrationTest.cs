@@ -21,99 +21,74 @@ public class MaskinportenClientIntegrationTests
     }
 
     [Fact]
-    public void ConfigureMaskinportenClient_OverridesDefaultMaskinportenConfiguration()
+    public async Task ProvisionedSettingsFile_IsWhatTheClientAuthenticatesWith()
     {
-        // Arrange
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
+        // Arrange - the platform mounts the credentials as a file; this is the only way in
+        using var secretsDirectory = new TempDirectory();
+        string settingsPath = Path.Join(secretsDirectory.Path, "maskinporten-settings.json");
+        await File.WriteAllTextAsync(settingsPath, SettingsJson("provisioned-client"));
 
-        // Act
+        // Act - RegisterCustomAppServices runs before AddAltinnAppServices, so this source wins the TryAdd
         var app = AppBuilder.Build(registerCustomAppServices: services =>
-        {
-            services.ConfigureMaskinportenClient(config =>
-            {
-                config.ClientId = clientId;
-                config.Authority = authority;
-                config.JwkBase64 = "gibberish";
-            });
-        });
-
-        // Assert
-        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-    }
-
-    [Fact]
-    public void ConfigureMaskinportenClient_LastConfigurationOverwritesOthers()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
-
-        // Act
-        services.ConfigureMaskinportenClient(config =>
-        {
-            config.ClientId = "this should be overwritten";
-            config.Authority = "ditto";
-            config.JwkBase64 = "gibberish";
-        });
-        services.ConfigureMaskinportenClient(config =>
-        {
-            config.ClientId = clientId;
-            config.Authority = authority;
-            config.JwkBase64 = "gibberish";
-        });
-
-        // Assert
-        var serviceProvider = services.BuildStrictServiceProvider();
-        var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-    }
-
-    [Fact]
-    public void ConfigureMaskinportenClient_BindsToSpecifiedConfigPath()
-    {
-        // Arrange
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
-        var jwkBase64 = "gibberish";
-
-        List<KeyValuePair<string, string?>> configData =
-        [
-            new("CustomMaskinportenSettings:clientId", clientId),
-            new("CustomMaskinportenSettings:authority", authority),
-            new("CustomMaskinportenSettings:jwkBase64", jwkBase64),
-        ];
-
-        // Act
-        var app = AppBuilder.Build(
-            configData: configData,
-            registerCustomAppServices: services =>
-            {
-                services.ConfigureMaskinportenClient("CustomMaskinportenSettings");
-            }
+            services.AddSingleton(_ => new MaskinportenSettingsSource(settingsPath))
         );
 
         // Assert
-        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.Equal("https://maskinporten.dev/", settings.Authority);
+    }
 
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-        Assert.Equal(jwkBase64, settings.JwkBase64);
+    [Fact]
+    public async Task AppConfiguration_CannotChangeTheProvisionedIdentity()
+    {
+        // Arrange - an app supplying its own MaskinportenSettings section, the pre-v9 hazard
+        using var secretsDirectory = new TempDirectory();
+        string settingsPath = Path.Join(secretsDirectory.Path, "maskinporten-settings.json");
+        await File.WriteAllTextAsync(settingsPath, SettingsJson("provisioned-client"));
+
+        // Act
+        var app = AppBuilder.Build(
+            configData:
+            [
+                new("MaskinportenSettings:clientId", "app-supplied-client"),
+                new("MaskinportenSettings:jwkBase64", "app-supplied-key"),
+                new("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
+                new("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own"),
+            ],
+            registerCustomAppServices: services =>
+                services.AddSingleton(_ => new MaskinportenSettingsSource(settingsPath))
+        );
+
+        // Assert - the app's section is not a Maskinporten configuration surface at all
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.Null(settings.JwkBase64);
+    }
+
+    private static string SettingsJson(string clientId) =>
+        $$"""
+            {
+              "MaskinportenSettings": {
+                "authority": "https://maskinporten.dev/",
+                "clientId": "{{clientId}}"
+              }
+            }
+            """;
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public TempDirectory() => Path = Directory.CreateTempSubdirectory().FullName;
+
+        public string Path { get; }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path))
+            {
+                Directory.Delete(Path, recursive: true);
+            }
+        }
     }
 
     [Theory]

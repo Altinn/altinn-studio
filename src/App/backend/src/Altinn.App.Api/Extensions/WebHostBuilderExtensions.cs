@@ -1,6 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Altinn.App.Core.Features.Maskinporten;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 
@@ -39,17 +39,6 @@ public static class WebHostBuilderExtensions
                     runtimeSecretsDirectory = AppSettings.DefaultRuntimeSecretsDirectory;
                 }
 
-                configBuilder.AddMaskinportenSettingsFile(
-                    context,
-                    "MaskinportenSettingsFilepath",
-                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings.json")
-                );
-                configBuilder.AddMaskinportenSettingsFile(
-                    context,
-                    "MaskinportenSettingsInternalFilepath",
-                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings-internal.json")
-                );
-
                 AddRuntimeConfigFiles(configBuilder, context.HostingEnvironment, runtimeSecretsDirectory);
                 configBuilder.LoadAppConfig(args);
             }
@@ -79,6 +68,18 @@ public static class WebHostBuilderExtensions
 
         string[] jsonFiles = Directory.GetFiles(secretsDirectory, "*.json", SearchOption.TopDirectoryOnly);
         Array.Sort(jsonFiles, StringComparer.OrdinalIgnoreCase);
+
+        // The Maskinporten credentials are bound through a configuration root of their own (see
+        // MaskinportenSettingsSource) and must not also land in the app's: nothing built in reads them from
+        // here, and a package binding a MaskinportenSettings section by convention would otherwise pick up the
+        // provisioned client. Anything named like the file is kept out, so a variant an older platform still
+        // mounts (maskinporten-settings-internal.json once existed) stays out too.
+        jsonFiles = Array.FindAll(
+            jsonFiles,
+            file =>
+                !Path.GetFileName(file)
+                    .StartsWith(MaskinportenSettingsSource.FileNamePrefix, StringComparison.OrdinalIgnoreCase)
+        );
 
         PhysicalFileProvider? secretsFileProvider = null;
         HashSet<string> existingJsonFilePaths = [];

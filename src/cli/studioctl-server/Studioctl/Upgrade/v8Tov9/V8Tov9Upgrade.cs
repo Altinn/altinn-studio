@@ -176,7 +176,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsCollision(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -359,7 +359,9 @@ internal static class V8Tov9Upgrade
         return ExitError;
     }
 
-    /// <summary>Reports that the current step failed with <paramref name="exception"/>.</summary>
+    /// <summary>
+    /// Reports that the current step failed with <paramref name="exception"/>.
+    /// </summary>
     private static int Fail(string description, Exception exception) =>
         Fail($"{description}: {FileAccessDiagnostics.Describe(exception)}");
 
@@ -505,7 +507,9 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    /// <summary>Rewrites the eFormidling client namespace usings across all app C# files.</summary>
+    /// <summary>
+    /// Rewrites the eFormidling client namespace usings across all app C# files.
+    /// </summary>
     static async Task<int> MigrateEFormidlingClientNamespaces(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("eFormidling client namespaces");
@@ -525,7 +529,9 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
+    /// <summary>
+    /// Rewrites the IServiceTask namespace usings across all app C# files.
+    /// </summary>
     static async Task<int> MigrateServiceTaskNamespace(CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("IServiceTask namespace");
@@ -809,19 +815,18 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Reports (never rewrites) an app-owned <c>MaskinportenSettings</c> configuration section clashing
-    /// with the one Studio provisions for the built-in client. Reads configuration rather than C#, so it
-    /// runs separately from <see cref="CheckRemovedCSharpApis"/>.
+    /// Reports (never rewrites) a <c>MaskinportenSettings</c> configuration section that v9 no longer reads.
+    /// Reads configuration rather than C#, so it runs separately from <see cref="CheckRemovedCSharpApis"/>.
     /// </summary>
-    static async Task<int> CheckMaskinportenSettingsCollision(string projectFolder)
+    static async Task<int> CheckMaskinportenSettingsSection(string projectFolder)
     {
         UpgradeConsole.BeginStep("Maskinporten settings");
         try
         {
-            var result = new MaskinportenSettingsCollisionDetector(projectFolder).Detect();
+            var result = new MaskinportenSettingsSectionDetector(projectFolder).Detect();
             return ReportMigrationResult(
                 result,
-                cleanText: "No conflicting MaskinportenSettings configuration found",
+                cleanText: "No obsolete MaskinportenSettings configuration found",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }

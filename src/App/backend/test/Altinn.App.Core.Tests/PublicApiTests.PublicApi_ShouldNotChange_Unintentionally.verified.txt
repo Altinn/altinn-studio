@@ -1876,57 +1876,6 @@ namespace Altinn.App.Core.Features.Maskinporten
 }
 namespace Altinn.App.Core.Features.Maskinporten.Models
 {
-    public class JwkWrapper : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper>
-    {
-        public JwkWrapper() { }
-        [System.Text.Json.Serialization.JsonPropertyName("alg")]
-        public string? Alg { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("d")]
-        public string? D { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("dp")]
-        public string? Dp { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("dq")]
-        public string? Dq { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("e")]
-        public string? E { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("kid")]
-        public string? Kid { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("kty")]
-        public string? Kty { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("n")]
-        public string? N { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("p")]
-        public string? P { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("q")]
-        public string? Q { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("qi")]
-        public string? Qi { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("use")]
-        public string? Use { get; init; }
-        public Microsoft.IdentityModel.Tokens.JsonWebKey ToJsonWebKey() { }
-        public Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper.ValidationResult Validate() { }
-        public readonly struct ValidationResult : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper.ValidationResult>
-        {
-            public System.Collections.Generic.IEnumerable<string>? InvalidProperties { get; init; }
-            public bool IsValid() { }
-            public override string ToString() { }
-        }
-    }
-    public sealed class MaskinportenSettings : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings>
-    {
-        public MaskinportenSettings() { }
-        [System.ComponentModel.DataAnnotations.Required]
-        [System.Text.Json.Serialization.JsonPropertyName("authority")]
-        public required string Authority { get; set; }
-        [System.ComponentModel.DataAnnotations.Required]
-        [System.Text.Json.Serialization.JsonPropertyName("clientId")]
-        public required string ClientId { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("jwk")]
-        public Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper? Jwk { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("jwkBase64")]
-        public string? JwkBase64 { get; set; }
-        public Microsoft.IdentityModel.Tokens.JsonWebKey GetJsonWebKey() { }
-    }
     public sealed class MaskinportenSystemUser : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser>
     {
         public MaskinportenSystemUser() { }
