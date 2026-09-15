@@ -277,6 +277,8 @@ public class WorkflowsController : ControllerBase
             LogAuditAttempt(audit, org, environment, app);
         }
 
+        // Every outcome, success or failure, is attributed through Outcome, so a failure mode added
+        // later cannot forget the audit line.
         HttpResponseMessage response;
         try
         {
@@ -284,16 +286,14 @@ public class WorkflowsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            if (audit is not null)
-            {
-                LogAuditOutcome(audit, org, environment, app, outcome: "environment not found");
-            }
-
-            return Problem(
-                type: EnvironmentNotFoundType,
-                title: "Environment not found",
-                statusCode: StatusCodes.Status404NotFound,
-                detail: $"Environment '{environment.Name}' does not exist."
+            return Outcome(
+                "environment not found",
+                Problem(
+                    type: EnvironmentNotFoundType,
+                    title: "Environment not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Environment '{environment.Name}' does not exist."
+                )
             );
         }
         catch (EnvironmentsRegistryUnavailableException exception)
@@ -306,21 +306,19 @@ public class WorkflowsController : ControllerBase
                 environment.Name
             );
 
-            if (audit is not null)
-            {
-                LogAuditOutcome(audit, org, environment, app, outcome: "environments registry unavailable");
-            }
-
-            return Problem(
-                type: EnvironmentsRegistryUnavailableType,
-                title: "Environments registry unavailable",
-                statusCode: StatusCodes.Status503ServiceUnavailable,
-                detail: "The environments registry could not be read, so the environment address is unknown."
+            return Outcome(
+                "environments registry unavailable",
+                Problem(
+                    type: EnvironmentsRegistryUnavailableType,
+                    title: "Environments registry unavailable",
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    detail: "The environments registry could not be read, so the environment address is unknown."
+                )
             );
         }
         catch (OperationCanceledException) when (IsClientDisconnect(cancellationToken))
         {
-            return ClientClosedRequest(audit, org, environment, app);
+            return Outcome("canceled by client", StatusCode(StatusCodes.Status499ClientClosedRequest));
         }
         catch (Exception exception)
             when (exception is HttpRequestException or TaskCanceledException or ExecutionRejectedException)
@@ -332,7 +330,7 @@ public class WorkflowsController : ControllerBase
             // another name and belong on the same problem type rather than a bare 500.
             if (IsClientDisconnect(cancellationToken))
             {
-                return ClientClosedRequest(audit, org, environment, app);
+                return Outcome("canceled by client", StatusCode(StatusCodes.Status499ClientClosedRequest));
             }
 
             _logger.LogWarning(
@@ -343,52 +341,37 @@ public class WorkflowsController : ControllerBase
                 environment.Name
             );
 
-            if (audit is not null)
-            {
-                LogAuditOutcome(audit, org, environment, app, outcome: "runtime gateway unavailable");
-            }
-
-            return Problem(
-                type: RuntimeGatewayUnavailableType,
-                title: "Runtime gateway unavailable",
-                statusCode: StatusCodes.Status502BadGateway,
-                detail: "The runtime gateway could not be reached."
-            );
-        }
-
-        if (audit is not null)
-        {
-            LogAuditOutcome(
-                audit,
-                org,
-                environment,
-                app,
-                outcome: ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture)
+            return Outcome(
+                "runtime gateway unavailable",
+                Problem(
+                    type: RuntimeGatewayUnavailableType,
+                    title: "Runtime gateway unavailable",
+                    statusCode: StatusCodes.Status502BadGateway,
+                    detail: "The runtime gateway could not be reached."
+                )
             );
         }
 
         // Ownership of the buffered response moves to the result, which disposes it after MVC has
         // streamed the body — the action returning here must not dispose it first.
-        return new UpstreamPassthroughResult(response);
+        return Outcome(
+            ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture),
+            new UpstreamPassthroughResult(response)
+        );
+
+        IActionResult Outcome(string outcome, IActionResult result)
+        {
+            if (audit is not null)
+            {
+                LogAuditOutcome(audit, org, environment, app, outcome);
+            }
+
+            return result;
+        }
     }
 
     private bool IsClientDisconnect(CancellationToken cancellationToken) =>
         cancellationToken.IsCancellationRequested || HttpContext?.RequestAborted.IsCancellationRequested is true;
-
-    private IActionResult ClientClosedRequest(
-        AuditContext? audit,
-        string org,
-        AltinnEnvironment environment,
-        string app
-    )
-    {
-        if (audit is not null)
-        {
-            LogAuditOutcome(audit, org, environment, app, outcome: "canceled by client");
-        }
-
-        return StatusCode(StatusCodes.Status499ClientClosedRequest);
-    }
 
     private void LogAuditAttempt(AuditContext audit, string org, AltinnEnvironment environment, string app)
     {
