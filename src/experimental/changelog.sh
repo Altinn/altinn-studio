@@ -35,7 +35,12 @@ SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIRECTORY="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 DEFAULT_CHANGELOG="${SCRIPT_DIRECTORY}/CHANGELOG.md"
 
-SEMVER_PATTERN='[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?'
+# Semantic Versioning 2.0.0, without build metadata: the core numbers carry no leading zeroes, and a
+# prerelease is a dot-separated list of identifiers that are alphanumeric or numeric without leading
+# zeroes. Written out because a version that cannot be compared must not be accepted as a heading.
+SEMVER_NUMBER='(0|[1-9][0-9]*)'
+SEMVER_IDENTIFIER='([0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*|0|[1-9][0-9]*)'
+SEMVER_PATTERN="${SEMVER_NUMBER}[.]${SEMVER_NUMBER}[.]${SEMVER_NUMBER}(-${SEMVER_IDENTIFIER}([.]${SEMVER_IDENTIFIER})*)?"
 
 fail() {
   printf '%s: %s\n' "${SCRIPT_NAME}" "$1" >&2

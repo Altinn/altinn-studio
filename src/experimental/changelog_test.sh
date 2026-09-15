@@ -289,6 +289,62 @@ BODY
 assert_status 'validate ranks a longer prerelease above a shorter prefix of it' 0 \
   "${CHANGELOG}" validate "${prerelease_lengths}"
 
+malformed_versions="$(fixture malformed-versions <<'BODY'
+
+## [Unreleased]
+
+## [01.0.0] - 2026-09-01
+
+### Added
+
+- A core number with a leading zero.
+BODY
+)"
+assert_status 'validate rejects a leading zero in a core version number' 1 \
+  "${CHANGELOG}" validate "${malformed_versions}"
+
+empty_identifier="$(fixture empty-identifier <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0-alpha..1] - 2026-09-01
+
+### Added
+
+- An empty prerelease identifier.
+BODY
+)"
+assert_status 'validate rejects an empty prerelease identifier' 1 \
+  "${CHANGELOG}" validate "${empty_identifier}"
+
+numeric_leading_zero="$(fixture numeric-leading-zero <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0-preview.01] - 2026-09-01
+
+### Added
+
+- A numeric prerelease identifier with a leading zero.
+BODY
+)"
+assert_status 'validate rejects a leading zero in a numeric prerelease identifier' 1 \
+  "${CHANGELOG}" validate "${numeric_leading_zero}"
+
+hyphenated_prerelease="$(fixture hyphenated-prerelease <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0-rc-1.2] - 2026-09-01
+
+### Added
+
+- A hyphenated alphanumeric prerelease identifier.
+BODY
+)"
+assert_status 'validate accepts hyphens inside a prerelease identifier' 0 \
+  "${CHANGELOG}" validate "${hyphenated_prerelease}"
+
 section_order="$(fixture section-order <<'BODY'
 
 ## [Unreleased]
