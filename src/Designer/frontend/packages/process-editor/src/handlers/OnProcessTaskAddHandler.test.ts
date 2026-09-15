@@ -208,8 +208,10 @@ describe('OnProcessTaskAddHandler', () => {
     });
   });
 
-  it.each(['confirmation', 'feedback'])(
-    'should not add layoutSet, dataType or default policy when task type is %s',
+  // The new service task types need no layout set, data type or policy rule of their own, so no
+  // branch in the handler matches them and nothing happens.
+  it.each(['confirmation', 'feedback', 'subformPdf', ''])(
+    'should not add layoutSet, dataType or default policy when task type is "%s"',
     (task) => {
       const onProcessTaskAddHandler = createOnProcessTaskHandler();
 

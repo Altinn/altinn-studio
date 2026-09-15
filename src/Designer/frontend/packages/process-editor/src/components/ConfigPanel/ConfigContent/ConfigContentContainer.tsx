@@ -16,16 +16,21 @@ export const ConfigContentContainer = ({
 }: ConfigContentContainerProps): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const { t } = useTranslation();
+  // Both key functions answer for every task type, the empty one and the absent one included, so
+  // the header always has a heading. Gating on a truthy task type here used to leave a service task
+  // with an empty type — or none at all — under a blank heading, right above the field that repairs
+  // it.
+  const taskType = bpmnDetails?.taskType;
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
-    title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
-    helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
+    title: t(getConfigTitleKey(taskType)),
+    helpText: t(getConfigTitleHelpTextKey(taskType)),
   };
 
   return (
     <>
       <StudioSectionHeader
         className={className}
-        icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
+        icon={<ConfigIcon taskType={taskType} />}
         heading={{
           text: configHeaderTexts.title,
           level: 2,

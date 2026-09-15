@@ -209,6 +209,58 @@ class SupportedPaletteProvider {
       };
     }
 
+    /**
+     * Creates a `bpmn:ServiceTask` carrying nothing but the given `altinn:taskType`, plus whatever
+     * `buildTaskExtension` adds. The callback runs per invocation so every created task gets its
+     * own moddle elements rather than sharing one instance.
+     */
+    function createAltinnServiceTask(taskType, taskName, buildTaskExtension) {
+      return function (event) {
+        const task = buildAltinnServiceTask(taskType, taskName);
+
+        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
+          values: [
+            bpmnFactory.create('altinn:TaskExtension', {
+              taskType: taskType,
+              ...(buildTaskExtension ? buildTaskExtension() : {}),
+            }),
+          ],
+        });
+
+        modeling.updateProperties(task, {
+          extensionElements,
+        });
+
+        create.start(event, task);
+      };
+    }
+
+    function createEFormidlingServiceTask() {
+      // An empty config block, like the pdf task's, gives the developer something to fill in.
+      // Its five required values are app and environment specific, so Studio has none to seed.
+      return createAltinnServiceTask('eFormidling', undefined, () => ({
+        eFormidlingConfig: bpmnFactory.create('altinn:EFormidlingConfig'),
+      }));
+    }
+
+    function createSubformPdfServiceTask() {
+      // The subform component and data type are app specific, so the block starts out empty.
+      return createAltinnServiceTask('subformPdf', undefined, () => ({
+        subformPdfConfig: bpmnFactory.create('altinn:SubformPdfConfig'),
+      }));
+    }
+
+    function createFiksArkivServiceTask() {
+      // Fiks Arkiv is configured outside process.bpmn, so the task type is the whole of it here.
+      return createAltinnServiceTask('fiksArkiv');
+    }
+
+    function createCustomServiceTask() {
+      // A service task the app implements itself. The task type is left empty for the developer
+      // to fill in with the type their implementation registers.
+      return createAltinnServiceTask('', 'Altinn service task');
+    }
+
     const buildAltinnTask = (taskType) => {
       const businessObject = bpmnFactory.create('bpmn:Task', {
         name: `Altinn ${taskType} task`,
@@ -222,9 +274,9 @@ class SupportedPaletteProvider {
       return task;
     };
 
-    const buildAltinnServiceTask = (taskType) => {
+    const buildAltinnServiceTask = (taskType, name = `Altinn ${taskType} task`) => {
       const businessObject = bpmnFactory.create('bpmn:ServiceTask', {
-        name: `Altinn ${taskType} task`,
+        name,
       });
 
       const task = elementFactory.createShape({
@@ -299,6 +351,42 @@ class SupportedPaletteProvider {
           action: {
             click: createCustomPdfServiceTask(),
             dragstart: createCustomPdfServiceTask(),
+          },
+        },
+        'create.altinn-eformidling-task': {
+          group: 'activity',
+          className: `bpmn-icon-task-generic bpmn-icon-eformidling-task`,
+          title: t('process_editor.palette_create_eformidling_service_task'),
+          action: {
+            click: createEFormidlingServiceTask(),
+            dragstart: createEFormidlingServiceTask(),
+          },
+        },
+        'create.altinn-subform-pdf-task': {
+          group: 'activity',
+          className: `bpmn-icon-task-generic bpmn-icon-subform-pdf-task`,
+          title: t('process_editor.palette_create_subform_pdf_service_task'),
+          action: {
+            click: createSubformPdfServiceTask(),
+            dragstart: createSubformPdfServiceTask(),
+          },
+        },
+        'create.altinn-fiks-arkiv-task': {
+          group: 'activity',
+          className: `bpmn-icon-task-generic bpmn-icon-fiks-arkiv-task`,
+          title: t('process_editor.palette_create_fiks_arkiv_service_task'),
+          action: {
+            click: createFiksArkivServiceTask(),
+            dragstart: createFiksArkivServiceTask(),
+          },
+        },
+        'create.altinn-custom-service-task': {
+          group: 'activity',
+          className: `bpmn-icon-task-generic bpmn-icon-custom-service-task`,
+          title: t('process_editor.palette_create_custom_service_task'),
+          action: {
+            click: createCustomServiceTask(),
+            dragstart: createCustomServiceTask(),
           },
         },
       };

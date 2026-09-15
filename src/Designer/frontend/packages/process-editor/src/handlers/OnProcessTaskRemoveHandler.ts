@@ -53,7 +53,7 @@ export class OnProcessTaskRemoveHandler {
   private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
+      'payment',
       taskMetadata.taskEvent.element.businessObject,
     );
     this.deleteDataTypeFromAppMetadata({
@@ -61,7 +61,6 @@ export class OnProcessTaskRemoveHandler {
     });
 
     const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
     this.deleteDataTypeFromAppMetadata({
@@ -139,7 +138,7 @@ export class OnProcessTaskRemoveHandler {
   private handleGenericSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
+      'signing',
       taskMetadata.taskEvent.element.businessObject,
     );
     this.deleteDataTypeFromAppMetadata({
@@ -163,11 +162,11 @@ export class OnProcessTaskRemoveHandler {
   private handleRemoveSigneeState(taskMetadata: OnProcessTaskEvent): void {
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getSigneeStatesDataTypeId(
-      taskMetadata.taskType,
+      'signing',
       taskMetadata.taskEvent.element.businessObject,
     );
 
-    // A task can be recognised as user controlled while still missing its signee states data type.
+    // A task can be recognized as user controlled while still missing its signee states data type.
     // There is then nothing registered to remove.
     if (!dataTypeId) return;
 

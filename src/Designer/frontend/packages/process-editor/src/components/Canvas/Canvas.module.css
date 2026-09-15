@@ -63,3 +63,25 @@ div[class*='bpmn-icon-pdf-task'] {
   -webkit-mask: url('../../../img/PdfTask.svg') var(--mask-icon-size);
   mask: url('../../../img/PdfTask.svg') var(--mask-icon-size);
 }
+
+div[class*='bpmn-icon-eformidling-task'] {
+  -webkit-mask: url('../../../img/EFormidlingTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/EFormidlingTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-subform-pdf-task'] {
+  -webkit-mask: url('../../../img/SubformPdfTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/SubformPdfTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-fiks-arkiv-task'] {
+  -webkit-mask: url('../../../img/FiksArkivTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/FiksArkivTask.svg') var(--mask-icon-size);
+}
+
+/* Not named `bpmn-icon-service-task`: that class already exists in bpmn-js' own icon font and
+   would draw its glyph on top of this mask. */
+div[class*='bpmn-icon-custom-service-task'] {
+  -webkit-mask: url('../../../img/CustomServiceTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/CustomServiceTask.svg') var(--mask-icon-size);
+}

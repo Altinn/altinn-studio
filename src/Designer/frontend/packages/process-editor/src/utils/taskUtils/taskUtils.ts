@@ -1,9 +1,36 @@
-import type { BpmnTaskType } from '../../types/BpmnTaskType';
+import type { BpmnTaskType, BuiltInBpmnTaskType } from '../../types/BpmnTaskType';
+import { builtInBpmnTaskTypes } from '../../types/BpmnTaskType';
 import type { Element } from 'bpmn-js/lib/model/Types';
+import { StringUtils } from '@studio/pure-functions';
 
 export class TaskUtils {
   public static isSigningTask(taskType: BpmnTaskType): boolean {
     return taskType === 'signing';
+  }
+
+  /**
+   * Whether the task type is one the app runtime ships with, and therefore one Studio has a
+   * dedicated panel and icon for. Anything else is a service task the app implements itself.
+   * @param taskType the task type to check.
+   * @returns true if the task type is built in.
+   */
+  public static isBuiltInTaskType(taskType: BpmnTaskType): taskType is BuiltInBpmnTaskType {
+    return builtInBpmnTaskTypes.some((builtInTaskType) => builtInTaskType === taskType);
+  }
+
+  /**
+   * The same check, ignoring case, which is how the runtime resolves a service task
+   * (`ServiceTaskLookupExtensions.FindServiceTask` compares with `OrdinalIgnoreCase`). Use this
+   * when warning a developer that a type they typed collides with a built-in one; use
+   * {@link isBuiltInTaskType} when deciding which panel to render, since that follows the exact
+   * value Studio itself writes.
+   * @param taskType the task type to check.
+   * @returns true if the task type matches a built in one apart from casing.
+   */
+  public static isBuiltInTaskTypeIgnoringCase(taskType: BpmnTaskType): boolean {
+    return builtInBpmnTaskTypes.some((builtInTaskType) =>
+      StringUtils.areCaseInsensitiveEqual(builtInTaskType, taskType),
+    );
   }
 
   /**
@@ -13,7 +40,7 @@ export class TaskUtils {
    * (see `SigningProcessTask.ValidateSigningConfiguration` in Altinn.App.Core).
    *
    * The two properties therefore agree on every valid configuration, and differ only on invalid
-   * ones. Recognising either is what serves the developer: a task that declares just one of them
+   * ones. Recognizing either is what serves the developer: a task that declares just one of them
    * is a delegated signing task waiting to be completed, and the panel should offer the fields
    * that complete it rather than hide them.
    *
