@@ -17,13 +17,13 @@ use tokio::sync::OnceCell;
 
 use crate::{backend::RuntimeBundle, error};
 
-// Published runtime bundle digests for Microsandbox 0.6.9-digdir.3. Update these
+// Published runtime bundle digests for Microsandbox 0.6.18-digdir.1. Update these
 // together with the pinned Microsandbox revisions in the workspace manifest.
-const LINUX_X86_64_RUNTIME_SHA256: &str = "92d228f36124ad6ff3f6a9392c5c738444d96f490e12dfddf625582c43fb6c8a";
-const LINUX_AARCH64_RUNTIME_SHA256: &str = "6f0f95b88d3ca3e4eb20c5b7c4e1b3afb1180bc2e7469fc5cdc305e204f0ba08";
-const MACOS_AARCH64_RUNTIME_SHA256: &str = "f00e7502be920da08d26b6320c3b2a948dd3137f404c85a2e4d5aea09aab2eeb";
-const WINDOWS_X86_64_RUNTIME_SHA256: &str = "8f66798f2f5a07a7b03aba55388ca287c9c327d3e0fabbbc18d9b6167aea2789";
-const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "a1bd058f98d89a6a3dc42a32bf0c970ff6fbefd6858568e67c549516cb6a17ce";
+const LINUX_X86_64_RUNTIME_SHA256: &str = "61ac30d1188ab75a80501d9668c255e8f47f372215ca79b525fd8b95e71ed575";
+const LINUX_AARCH64_RUNTIME_SHA256: &str = "4d1c22877e3e06de7edaf5b0f164cfd762e9c08f2e0731741953f27e258bafaf";
+const MACOS_AARCH64_RUNTIME_SHA256: &str = "aed61c351ea9c3fac5a45fece87cbfb3d97081ff3816a9469fe9672dc619e1b1";
+const WINDOWS_X86_64_RUNTIME_SHA256: &str = "b82d42a602ce2f5c24f9def88b9f4bfbd5803d330b16a31c01aa60acefcd377a";
+const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "799d383ca8e456affa57db176a5abc210aebba0b3c96f8602d56ff44572dcb08";
 
 /// Keeps Microsandbox's thread-safe ownership model at the SDK boundary.
 #[derive(Clone)]
@@ -170,8 +170,10 @@ impl Client {
         Ok(())
     }
 
-    /// Uses SDK defaults rather than `Sandbox::builder`, which reads the
-    /// process-global Microsandbox Backend before returning its builder.
+    /// Starts from Microsandbox's built-in sandbox defaults. Both
+    /// `Sandbox::builder` and `SandboxBuilder::new` overlay the process-global
+    /// Backend's `config.json` sandbox defaults, which this Client must not
+    /// inherit.
     pub(crate) fn sandbox_builder(
         name: impl Into<String>,
         image: impl Into<String>,
@@ -179,7 +181,7 @@ impl Client {
     ) -> Result<microsandbox::sandbox::SandboxBuilder, Error> {
         let root_filesystem_mode = resources.root_filesystem().mode();
         let resources = RuntimeResources::try_from(resources)?;
-        let builder = microsandbox::sandbox::SandboxBuilder::new(name)
+        let builder = microsandbox::sandbox::SandboxBuilder::from_builtin_defaults(name)
             .image(image.into())
             .cpus(resources.cpus)
             .memory(resources.memory_mib);

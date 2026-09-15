@@ -89,6 +89,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
+name = "ambient-authority"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9d4ee0d472d1cd2e28c97dfa124b3d8d992e10eb0a035f33f5d12e3a177ba3b"
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -836,6 +842,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "cap-primitives"
+version = "4.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b5f74729fd2f44701d1a8eb47e906cdb3ccd9ec0f02baad85a744b791940b18"
+dependencies = [
+ "ambient-authority",
+ "fs-set-times",
+ "io-extras",
+ "io-lifetimes 3.0.1",
+ "ipnet",
+ "maybe-owned",
+ "rustix",
+ "rustix-linux-procfs",
+ "windows-sys 0.61.2",
+ "winx",
+]
+
+[[package]]
+name = "cap-std"
+version = "4.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1ec78e242cfa2cfe276807ac2ecc00315a6c97786977414bcd1c3963b6c91b8"
+dependencies = [
+ "cap-primitives",
+ "io-extras",
+ "io-lifetimes 3.0.1",
+ "rustix",
+]
+
+[[package]]
 name = "capng"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1380,15 +1416,6 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "defmt"
-version = "0.3.100"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0963443817029b2024136fc4dd07a5107eb8f977eaf18fcd1fdeb11306b64ad"
-dependencies = [
- "defmt 1.1.1",
-]
-
-[[package]]
-name = "defmt"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2953bfe4f93bbd20cc71198842756f77d161884c99ebbabc41d80231ded88d1"
@@ -1769,6 +1796,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fs-set-times"
+version = "0.20.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94e7099f6313ecacbe1256e8ff9d617b75d1bcb16a6fddef94866d225a01a14a"
+dependencies = [
+ "io-lifetimes 2.0.4",
+ "rustix",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2567,6 +2605,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "io-extras"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20fd6de4ccfcc187e38bc21cfa543cb5a302cb86a8b114eb7f0bf0dc9f8ac00f"
+dependencies = [
+ "io-lifetimes 3.0.1",
+ "windows-sys 0.60.2",
+]
+
+[[package]]
+name = "io-lifetimes"
+version = "2.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06432fb54d3be7964ecd3649233cddf80db2832f47fec34c01f65b3d9d774983"
+
+[[package]]
+name = "io-lifetimes"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f0fb0570afe1fed943c5c3d4102d5358592d8625fda6a0007fdbe65a92fba96"
+
+[[package]]
 name = "ipnet"
 version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2974,6 +3034,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
+name = "maybe-owned"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4facc753ae494aeb6e3c22f839b158aebd4f9270f55cd3c79906c45476c47ab4"
+
+[[package]]
 name = "md-5"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3006,14 +3072,16 @@ dependencies = [
 
 [[package]]
 name = "microsandbox"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
  "base64 0.23.1",
  "blake3",
  "bytes",
+ "cap-primitives",
+ "cap-std",
  "chrono",
  "ciborium",
  "crossterm",
@@ -3061,8 +3129,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-agent-client"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "ciborium",
  "microsandbox-protocol",
@@ -3074,8 +3142,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-db"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "async-trait",
  "sea-orm",
@@ -3086,8 +3154,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-filesystem"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "libc",
  "microsandbox-utils",
@@ -3095,12 +3163,13 @@ dependencies = [
  "scopeguard",
  "tempfile",
  "tracing",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
 name = "microsandbox-image"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -3127,8 +3196,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-metrics"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "chrono",
  "libc",
@@ -3139,8 +3208,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-migration"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "sea-orm-migration",
  "serde_json",
@@ -3148,8 +3217,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-network"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -3186,6 +3255,7 @@ dependencies = [
  "time",
  "tokio",
  "tokio-rustls",
+ "tokio-socks",
  "tracing",
  "windows-sys 0.61.2",
  "zeroize",
@@ -3193,8 +3263,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-protocol"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "chrono",
  "ciborium",
@@ -3208,8 +3278,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-runtime"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "bytes",
  "chrono",
@@ -3243,22 +3313,34 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-types"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "chrono",
  "ipnetwork",
+ "microsandbox-types-macros",
  "serde",
  "serde_json",
  "sha2 0.11.0",
  "thiserror 2.0.20",
+ "typed-path",
  "zeroize",
 ]
 
 [[package]]
+name = "microsandbox-types-macros"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
+]
+
+[[package]]
 name = "microsandbox-utils"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "dirs",
  "libc",
@@ -3270,8 +3352,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-vsock"
-version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
+version = "0.6.18-digdir.1"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1d03f19d4c737541a6c0286072a7e8444842e576#1d03f19d4c737541a6c0286072a7e8444842e576"
 dependencies = [
  "libc",
  "msb_krun",
@@ -3347,9 +3429,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40e6b83f6cf90f676779409ac026f4429adfd7a11886085a59773ddd3aa8207f"
+checksum = "d4c0de669aeda774c3da60692af7e693fdf000f4813922b15389dd1209b042ac"
 dependencies = [
  "crossbeam-channel",
  "kvm-bindings",
@@ -3367,9 +3449,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_arch"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "929f9765edd9e12cc45e5876998456bf2dfb0d2244d4fe6ddf2fdb5c3dd7e99c"
+checksum = "0e9631350df54bde880a7cf3fda67ff03132b115abae95f7b668599611286c87"
 dependencies = [
  "kvm-bindings",
  "kvm-ioctls",
@@ -3382,15 +3464,15 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_arch_gen"
-version = "0.1.31"
+version = "0.1.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df83bf780774e4e131547a4e17d0ca389e5bbb04cdebcb626880b090cae20f2c"
+checksum = "c702db3ef885cba2c206e367889fdea4db6c7990b5e1cface8dfcab297a3262c"
 
 [[package]]
 name = "msb_krun_cpuid"
-version = "0.1.31"
+version = "0.1.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c569d5d7285ed8f8f80e58454fb3ee213fd2c06ec647cc108a16a2e095558bb"
+checksum = "defe5de4f6aeeeb521847db53a36f6d0e931e9a2f5eb7f7851610cafb707115b"
 dependencies = [
  "kvm-bindings",
  "kvm-ioctls",
@@ -3399,9 +3481,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_devices"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "422da6e72923c2debae8eaeddd2990b924df9042079b51a323b4f3de37ebbdaf"
+checksum = "b54befdee0428ae481ecd894306f2ceef19ad951275908bd4d9182a4216a4933"
 dependencies = [
  "bitflags 1.3.2",
  "capng",
@@ -3429,9 +3511,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_hvf"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5034e7b5ebd4f2f8caefb199f5f18483f8ed0c5cc6afb944b6ed0d127d59aa9"
+checksum = "cbde98ef6b71b920af6e4a8ee89110ffac6204942620799772dad12dcf2273ac"
 dependencies = [
  "crossbeam-channel",
  "libloading",
@@ -3441,9 +3523,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_kernel"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04163d07028500bf08e6247c40c64dd5bae462bbb1997cf6a9613d019976a055"
+checksum = "080d35863dad4a81a5eb6c5ff9292caab0219e50e7c8b3d0da4ebe74e7797322"
 dependencies = [
  "msb-vm-memory",
  "msb_krun_utils",
@@ -3451,9 +3533,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_polly"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9812193639b368ab800b5f87e18509ad30fd85a2e6a77a05265ffadfed2553d1"
+checksum = "af85cc51c6f8f196224793975aad7da7e51ef8247b42b5cd8f7635561a9d5fdb"
 dependencies = [
  "libc",
  "msb_krun_utils",
@@ -3461,18 +3543,18 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_smbios"
-version = "0.1.31"
+version = "0.1.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cfd3f05f6447f0ad85f04f688b106eb9f04bb64525fee1183757cf9705070a0"
+checksum = "22d46149e9eeb80c379b7c0419946688861da8e76ace11a0f387a3adfde1f3ff"
 dependencies = [
  "msb-vm-memory",
 ]
 
 [[package]]
 name = "msb_krun_utils"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5ce62484f07792ab43a5ac64baa84435556f56a7633805e15030e990c3b98a3"
+checksum = "112be8806546f721718a88ba01f9e86d4189aff39f79d5816a90465e9eb4dbe0"
 dependencies = [
  "bitflags 1.3.2",
  "crossbeam-channel",
@@ -3486,9 +3568,9 @@ dependencies = [
 
 [[package]]
 name = "msb_krun_vmm"
-version = "0.1.31"
+version = "0.1.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67546eb70fa306e3c7e97f525dac2db44b9cc1642b6684aec4369e3b7f9b3af3"
+checksum = "f9865e5331c61d4dea48fae764f5c6a8248f83cd8d0f961dd03598b79885ace4"
 dependencies = [
  "bzip2",
  "crossbeam-channel",
@@ -4745,6 +4827,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustix-linux-procfs"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2fc84bf7e9aa16c4f2c758f27412dc9841341e16aa682d9c7ac308fe3ee12056"
+dependencies = [
+ "once_cell",
+ "rustix",
+]
+
+[[package]]
 name = "rustls"
 version = "0.23.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5361,14 +5453,14 @@ dependencies = [
 
 [[package]]
 name = "smoltcp"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f73d40463bba65efc9adc6370b56df76d563cc46e2482bba58351b4afb7535e"
+checksum = "b6f8b28ad56c6e35524a37dd492af5d1a47e31e1a4d175cd12f89c075f01980f"
 dependencies = [
  "bitflags 1.3.2",
  "byteorder",
  "cfg-if",
- "defmt 0.3.100",
+ "defmt",
  "heapless",
  "managed",
 ]
@@ -5994,6 +6086,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61"
 dependencies = [
  "rustls",
+ "tokio",
+]
+
+[[package]]
+name = "tokio-socks"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7e2948f60dbe26b35f2c7fb74ac2854c1fddded0fe9d7548fcc674a246f7615"
+dependencies = [
+ "either",
+ "futures-util",
+ "thiserror 1.0.69",
  "tokio",
 ]
 
@@ -7048,6 +7152,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "winx"
+version = "0.36.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f3fd376f71958b862e7afb20cfe5a22830e1963462f3a17f49d82a6c1d1f42d"
+dependencies = [
+ "bitflags 2.13.1",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
