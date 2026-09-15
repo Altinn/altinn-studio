@@ -52,3 +52,26 @@ Use Tokio's `LocalRuntime` for asynchronous work. Keep control-plane state singl
 Run `make help` in this directory to list the available development targets.
 
 When adding or updating a harness installation or adapter, follow [HARNESSES.md](agent/HARNESSES.md).
+
+## Changelog and releases
+
+[CHANGELOG.md](CHANGELOG.md) is the release notes for the whole experimental Agent stack: `agentctl`, `agentd` and
+the Agent images under `agents/`. There is one changelog because there is one release unit, the `agentctl` and
+`agentd` binaries published by the `experimental-agent/v*` tag. The version in the changelog is that release
+version; the Rust workspace version is a build detail and is not tracked there.
+
+Every pull request that changes something a user of the Agent will notice, anywhere under `src/experimental` or
+`agents/`, adds an entry under `## [Unreleased]`. Describe the change from the user's side, including a change in
+`sandbox*` in terms of what an Agent user notices, and leave implementation detail out unless it changes how people
+use the platform. Apply the `skip-changelog` label instead when the change is a refactor, or is test-only or
+CI-only; `.github/workflows/experimental-changelog.yaml` enforces this on every pull request.
+
+Run `make changelog-validate` to check the file's structure, and `make changelog-test` for the tests covering
+[changelog.sh](changelog.sh) itself. `make check` runs the validation, and `make test` runs the tests.
+
+Releasing is a promotion pull request that renames `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and adds a fresh
+empty `## [Unreleased]` above it. That rename is itself a change to the Unreleased section, so the pull request
+needs no `skip-changelog` label. Once it is merged, push the tag
+`experimental-agent/v<version>`; the release workflow extracts that section with `changelog.sh extract` and
+publishes it as the GitHub release body, and fails before creating the release when the section is missing or has
+no date.

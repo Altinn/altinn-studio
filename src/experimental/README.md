@@ -18,6 +18,9 @@ The main goals are:
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
 installs `agentctl` and `agentd` for the current user.
 
+User-visible changes are recorded in [CHANGELOG.md](CHANGELOG.md), which covers the whole stack and provides the
+release notes for each `experimental-agent/v*` release.
+
 The Agent database and local protocol are intentionally clean-slate while this code is experimental. Breaking schema
 changes require stopping `agentd` and removing the configured Agent home rather than migrating old state.
 
