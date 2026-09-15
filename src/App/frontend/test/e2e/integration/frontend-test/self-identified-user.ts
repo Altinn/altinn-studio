@@ -9,14 +9,12 @@ type IncomingHttpResponse<T> = CyHttpMessages.IncomingHttpResponse<T>;
 
 const appFrontend = new AppFrontend();
 
-// TODO: We should enable these tests again when we find out how to log in to tt02 with a self-identified user. It broke when sunsetting A2.
-
 describe('Self identified user', () => {
-  it.skip('should be able to log in and create an instance', () => {
+  it('should be able to log in and create an instance', () => {
     testSelfIdentifiedUser();
   });
 
-  it.skip('should be able to log in and create an instance when only persons are allowed', () => {
+  it('should be able to log in and create an instance when only persons are allowed', () => {
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
       req.on('response', (res: IncomingHttpResponse<ApplicationMetadata>) => {
         res.body.partyTypesAllowed = {

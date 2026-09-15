@@ -73,7 +73,14 @@ public class InstanceCreatedAltinnEventTests
         var instance = CreateInstance();
         var eventsClientMock = new Mock<IEventsClient>();
         eventsClientMock
-            .Setup(x => x.AddEvent(It.IsAny<string>(), It.IsAny<Instance>(), It.IsAny<StorageAuthenticationMethod>()))
+            .Setup(x =>
+                x.AddEvent(
+                    It.IsAny<string>(),
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new Exception("AddEvent failed"));
         var command = new InstanceCreatedAltinnEvent(eventsClientMock.Object);
         var context = CreateContext(instance);

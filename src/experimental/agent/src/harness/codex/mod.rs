@@ -61,6 +61,13 @@ pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str
         || matches!(placeholder, Some(ACCESS_PLACEHOLDER | ACCOUNT_PLACEHOLDER))
 }
 
+pub(super) fn manages_environment(name: &str) -> bool {
+    matches!(
+        name,
+        ACCESS_ENVIRONMENT | ACCOUNT_ENVIRONMENT | "CODEX_HOME" | "CODEX_CA_CERTIFICATE"
+    )
+}
+
 /// Creates a separate `ChatGPT` login grant without reading the user's Codex home.
 pub(super) fn acquire_host_credential(
     control_plane_home: &std::path::Path,

@@ -43,17 +43,21 @@ public class AuthorizationService : IAuthorizationService
     }
 
     /// <inheritdoc />
-    public async Task<List<Party>?> GetPartyList(int userId)
+    public async Task<List<Party>?> GetPartyList(int userId, CancellationToken cancellationToken = default)
     {
         using var activity = _telemetry?.StartGetPartyListActivity(userId);
-        return await _authorizationClient.GetPartyList(userId);
+        return await _authorizationClient.GetPartyList(userId, cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
+    public async Task<bool?> ValidateSelectedParty(
+        int userId,
+        int partyId,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = _telemetry?.StartValidateSelectedPartyActivity(userId, partyId);
-        return await _authorizationClient.ValidateSelectedParty(userId, partyId);
+        return await _authorizationClient.ValidateSelectedParty(userId, partyId, cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
@@ -62,11 +66,21 @@ public class AuthorizationService : IAuthorizationService
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartAuthorizeActionActivity(instanceIdentifier, action, taskId);
-        if (!await _authorizationClient.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+        if (
+            !await _authorizationClient.AuthorizeAction(
+                appIdentifier,
+                instanceIdentifier,
+                user,
+                action,
+                taskId,
+                cancellationToken
+            )
+        )
         {
             return false;
         }
@@ -94,14 +108,16 @@ public class AuthorizationService : IAuthorizationService
     public async Task<List<UserAction>> AuthorizeActions(
         Instance instance,
         ClaimsPrincipal user,
-        List<AltinnAction> actions
+        List<AltinnAction> actions,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartAuthorizeActionsActivity(instance, actions);
         var authDecisions = await _authorizationClient.AuthorizeActions(
             instance,
             user,
-            actions.Select(a => a.Value).ToList()
+            actions.Select(a => a.Value).ToList(),
+            cancellationToken
         );
         List<UserAction> authorizedActions = [];
         foreach (var action in actions)

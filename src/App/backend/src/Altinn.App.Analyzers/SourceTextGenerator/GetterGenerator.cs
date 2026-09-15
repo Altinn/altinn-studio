@@ -112,11 +112,11 @@ internal static class GetterGenerator
                 child switch
                 {
                     { ListType: not null } =>
-                        $"            \"{child.JsonName}\" => GetRecursive(model.{child.CSharpName}, path, literalIndex, nextOffset),\r\n",
+                        $"            \"{child.JsonName}\" => GetRecursive(model.{child.CSharpName}, path, literalIndex, nextOffset),\n",
                     { Properties.Count: 0 } =>
-                        $"            \"{child.JsonName}\" when nextOffset is -1 && literalIndex is -1 => model.{child.CSharpName},\r\n",
+                        $"            \"{child.JsonName}\" when nextOffset is -1 && literalIndex is -1 => model.{child.CSharpName},\n",
                     _ =>
-                        $"            \"{child.JsonName}\" when literalIndex is -1 => GetRecursive(model.{child.CSharpName}, path, nextOffset),\r\n",
+                        $"            \"{child.JsonName}\" when literalIndex is -1 => GetRecursive(model.{child.CSharpName}, path, nextOffset),\n",
                 }
             );
         }

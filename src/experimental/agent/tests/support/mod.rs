@@ -57,6 +57,7 @@ pub(crate) fn agent(name: &str) -> Agent {
                 auth: HarnessAuthMode::Mediated,
                 default: false,
             }],
+            environment: Vec::new(),
             secrets: Vec::new(),
             network: NetworkSpec {
                 mode: NetworkMode::Mediated,

@@ -30,7 +30,8 @@ internal sealed class InstanceCreatedAltinnEvent : IWorkflowEngineCommand
                 await _eventsClient.AddEvent(
                     "app.instance.created",
                     instance,
-                    StorageAuthenticationMethod.ServiceOwner()
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    parameters.CancellationToken
                 );
             }
 

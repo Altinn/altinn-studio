@@ -18,6 +18,7 @@ RUN apt-get update \
         ca-certificates \
         clang \
         curl \
+        fonts-liberation \
         git \
         iproute2 \
         jq \

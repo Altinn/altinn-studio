@@ -7,6 +7,7 @@ pub mod authorization;
 pub mod control_api;
 pub mod control_plane;
 mod controller;
+mod environment;
 pub mod harness;
 pub mod local;
 pub mod manifest;
@@ -21,9 +22,9 @@ pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
 pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
 pub use manifest::{
-    API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec,
-    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec, SecretSpec,
-    SkillSpec, Spec, Status,
+    API_VERSION, Agent, Condition, ConditionStatus, EnvironmentSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
+    MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec,
+    SecretSpec, SkillSpec, Spec, Status,
 };
 
 /// Version embedded in a matched `agentctl`/`agentd` build.

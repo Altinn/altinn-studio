@@ -41,23 +41,37 @@ internal class NetsClient : INetsClient
     ///
     /// On success, this method returns a paymentId that can be used in subsequent requests to refer to the newly created payment object. Optionally, the response object will also contain a hostedPaymentPageUrl, which is the URL you should redirect to if using a hosted pre-built checkout page.
     /// </summary>
-    public async Task<HttpApiResult<NetsCreatePaymentSuccess>> CreatePayment(NetsCreatePayment payment)
+    public async Task<HttpApiResult<NetsCreatePaymentSuccess>> CreatePayment(
+        NetsCreatePayment payment,
+        CancellationToken cancellationToken = default
+    )
     {
-        using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/v1/payments", payment);
-        return await HttpApiResult<NetsCreatePaymentSuccess>.FromHttpResponse(response);
+        using HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
+            "/v1/payments",
+            payment,
+            cancellationToken
+        );
+        return await HttpApiResult<NetsCreatePaymentSuccess>.FromHttpResponse(response, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<HttpApiResult<NetsPaymentFull>> RetrievePayment(string paymentId)
+    public async Task<HttpApiResult<NetsPaymentFull>> RetrievePayment(
+        string paymentId,
+        CancellationToken cancellationToken = default
+    )
     {
-        using HttpResponseMessage response = await _httpClient.GetAsync($"/v1/payments/{paymentId}");
-        return await HttpApiResult<NetsPaymentFull>.FromHttpResponse(response);
+        using HttpResponseMessage response = await _httpClient.GetAsync($"/v1/payments/{paymentId}", cancellationToken);
+        return await HttpApiResult<NetsPaymentFull>.FromHttpResponse(response, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<bool> TerminatePayment(string paymentId)
+    public async Task<bool> TerminatePayment(string paymentId, CancellationToken cancellationToken = default)
     {
-        using HttpResponseMessage response = await _httpClient.PutAsync($"v1/payments/{paymentId}/terminate", null);
+        using HttpResponseMessage response = await _httpClient.PutAsync(
+            $"v1/payments/{paymentId}/terminate",
+            null,
+            cancellationToken
+        );
         return response.IsSuccessStatusCode;
     }
 }

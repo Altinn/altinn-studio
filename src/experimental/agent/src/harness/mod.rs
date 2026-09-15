@@ -190,6 +190,13 @@ pub(crate) fn conflicts_with_managed_secret(harness: Harness, name: &str, placeh
     }
 }
 
+pub(crate) fn manages_environment(harness: Harness, name: &str) -> bool {
+    match harness {
+        Harness::ClaudeCode => claude_code::manages_environment(name),
+        Harness::Codex => codex::manages_environment(name),
+    }
+}
+
 pub(crate) async fn bootstrap_linux(
     harness: Harness,
     sandbox: &sandbox::SandboxHandle,

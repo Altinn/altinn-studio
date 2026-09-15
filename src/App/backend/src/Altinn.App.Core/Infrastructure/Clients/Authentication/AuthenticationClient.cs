@@ -41,15 +41,19 @@ public class AuthenticationClient : IAuthenticationClient
     }
 
     /// <inheritdoc />
-    public async Task<string> RefreshToken()
+    public async Task<string> RefreshToken(CancellationToken cancellationToken = default)
     {
         string endpointUrl = $"refresh";
         string token = _authenticationContext.Current.Token; // TODO: check if authenticated?
-        using HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
+        using HttpResponseMessage response = await _client.GetAsync(
+            token,
+            endpointUrl,
+            cancellationToken: cancellationToken
+        );
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            string refreshedToken = await response.Content.ReadAsStringAsync();
+            string refreshedToken = await response.Content.ReadAsStringAsync(cancellationToken);
             refreshedToken = refreshedToken.Replace('"', ' ').Trim();
             return refreshedToken;
         }

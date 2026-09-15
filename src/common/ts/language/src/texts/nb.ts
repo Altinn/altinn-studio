@@ -249,7 +249,7 @@ export function nb() {
     'instance_selection.changed_by': 'Endret av',
     'instance_selection.continue': 'Fortsett her',
     'instance_selection.description':
-      'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
+      'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på nytt.',
     'instance_selection.header': 'Du har allerede startet å fylle ut dette skjemaet.',
     'instance_selection.last_changed': 'Sist endret',
     'instance_selection.left_of': 'Fortsett der du slapp',

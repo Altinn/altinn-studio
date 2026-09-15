@@ -53,7 +53,8 @@ public class ProcessClientMock : IProcessClient
     public Task<ProcessHistoryList> GetProcessHistory(
         string instanceGuid,
         string instanceOwnerPartyId,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         throw new NotImplementedException();

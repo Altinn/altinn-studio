@@ -1,6 +1,9 @@
 # Container images for studioctl
 # This file is embedded in the binary as defaults
-# Renovate will automatically update image tags in the repository version
+# Tags are updated by hand. Renovate does not manage this file: no custom manager in
+# renovate.json matches this path, and the Altinn images are tagged with the first 10
+# characters of the commit that built them, which no datasource can order. See
+# src/Runtime/workflow-engine-app/README.md for how to find the tag for a build.
 
 images:
   core:
@@ -12,7 +15,7 @@ images:
       tag: "694406e93c"
     workflow-engine:
       image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
-      tag: "3e51b27bdd"
+      tag: "a45a743b78"
     workflow-engine-db:
       image: postgres
       tag: "18.3"

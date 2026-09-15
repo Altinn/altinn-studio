@@ -19,14 +19,23 @@ internal sealed class FakePaymentProcessor : IPaymentProcessor
         _generalSettings = generalSettings.Value;
     }
 
-    public Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language)
+    public Task<PaymentDetails> StartPayment(
+        Instance instance,
+        OrderDetails orderDetails,
+        string? language,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.FromResult(
             new PaymentDetails { PaymentId = "fake-payment-id", RedirectUrl = GetAltinnAppUrl(instance) }
         );
     }
 
-    public Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation)
+    public Task<bool> TerminatePayment(
+        Instance instance,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.FromResult(true);
     }
@@ -35,7 +44,8 @@ internal sealed class FakePaymentProcessor : IPaymentProcessor
         Instance instance,
         string paymentId,
         decimal expectedTotalIncVat,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     )
     {
         return Task.FromResult(
