@@ -15,13 +15,8 @@ var errStudioctlHomeRequired = errors.New("studioctl home directory is not confi
 // MaskinportenClientRequest carries the credentials to store for an app.
 type MaskinportenClientRequest struct {
 	AppPath string
-	// Section names the appsettings section to read when FromAppsettings is set; empty picks the one
-	// Maskinporten section in the file.
-	Section string
-	// Input is the client as JSON: the provisioned file, the bare credentials, an external-package section,
-	// or - with FromAppsettings - a whole appsettings file.
-	Input           []byte
-	FromAppsettings bool
+	// Input is the client as JSON in any shape ParseMaskinportenClient accepts.
+	Input []byte
 }
 
 // MaskinportenClientResult describes the client stored for an app, without its key material.
@@ -67,12 +62,7 @@ func (s *Service) StoreMaskinportenClient(req MaskinportenClientRequest) (Maskin
 		return MaskinportenClientResult{}, err
 	}
 
-	var client appsecrets.MaskinportenClient
-	if req.FromAppsettings {
-		client, err = appsecrets.ReadMaskinportenSection(req.Input, req.Section)
-	} else {
-		client, err = appsecrets.ParseMaskinportenClient(req.Input)
-	}
+	client, err := appsecrets.ParseMaskinportenClient(req.Input)
 	if err != nil {
 		return MaskinportenClientResult{}, fmt.Errorf("read Maskinporten client: %w", err)
 	}

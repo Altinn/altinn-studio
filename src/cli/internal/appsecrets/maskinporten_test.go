@@ -12,7 +12,10 @@ import (
 	"altinn.studio/studioctl/internal/appsecrets"
 )
 
-const testJwk = `{"kty":"RSA","kid":"test-key","d":"private-part","n":"modulus","e":"AQAB"}`
+const (
+	testJwk       = `{"kty":"RSA","kid":"test-key","d":"private-part","n":"modulus","e":"AQAB"}`
+	testAuthority = "https://test.maskinporten.no/"
+)
 
 func testJwkBase64() string {
 	return base64.StdEncoding.EncodeToString([]byte(testJwk))
@@ -31,7 +34,7 @@ func TestParseMaskinportenClient_AcceptsTheProvisionedFileFormat(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseMaskinportenClient() error = %v", err)
 	}
-	if client.ClientID != "client-1" || client.Authority != "https://test.maskinporten.no/" {
+	if client.ClientID != "client-1" || client.Authority != testAuthority {
 		t.Fatalf("client = %+v, want client-1 at test.maskinporten.no", client)
 	}
 	if len(client.Jwk) == 0 || client.JwkBase64 != "" {
@@ -69,7 +72,7 @@ func TestParseMaskinportenClient_ConvertsAnExternalPackageSection(t *testing.T) 
 	if err != nil {
 		t.Fatalf("ParseMaskinportenClient() error = %v", err)
 	}
-	if client.Authority != "https://test.maskinporten.no/" {
+	if client.Authority != testAuthority {
 		t.Fatalf("Authority = %q, want the test instance", client.Authority)
 	}
 	if client.JwkBase64 != testJwkBase64() {
@@ -142,48 +145,28 @@ func TestParseMaskinportenClient_Rejects(t *testing.T) {
 	}
 }
 
-func TestReadMaskinportenSection_FindsTheOneMaskinportenSection(t *testing.T) {
+func TestParseMaskinportenClient_UnwrapsAPastedSectionUnderAnyName(t *testing.T) {
 	t.Parallel()
 
-	appsettings := []byte(`{
-		"Logging": { "LogLevel": { "Default": "Information" } },
+	// A v8 developer copies the section out of appsettings.Development.json, name and all.
+	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
 		"my-app--MaskinportenSettings": {
 			"authority": "https://test.maskinporten.no/",
 			"clientId": "client-4",
 			"jwkBase64": "` + testJwkBase64() + `"
 		}
-	}`)
-
-	client, err := appsecrets.ReadMaskinportenSection(appsettings, "")
+	}`))
 	if err != nil {
-		t.Fatalf("ReadMaskinportenSection() error = %v", err)
+		t.Fatalf("ParseMaskinportenClient() error = %v", err)
 	}
 	if client.ClientID != "client-4" {
 		t.Fatalf("ClientID = %q, want client-4", client.ClientID)
 	}
-}
 
-func TestReadMaskinportenSection_NeedsANameWhenSeveralMatch(t *testing.T) {
-	t.Parallel()
-
-	appsettings := []byte(`{
-		"MaskinportenSettings": {"clientId": "a"},
-		"other--MaskinportenSettings": {"clientId": "b"}
-	}`)
-
-	_, err := appsecrets.ReadMaskinportenSection(appsettings, "")
-	if !errors.Is(err, appsecrets.ErrAmbiguousSection) {
-		t.Fatalf("error = %v, want ErrAmbiguousSection", err)
-	}
-
-	_, err = appsecrets.ReadMaskinportenSection([]byte(`{"Logging": {}}`), "")
-	if !errors.Is(err, appsecrets.ErrSectionNotFound) {
-		t.Fatalf("error = %v, want ErrSectionNotFound", err)
-	}
-
-	_, err = appsecrets.ReadMaskinportenSection(appsettings, "Missing")
-	if !errors.Is(err, appsecrets.ErrSectionNotFound) {
-		t.Fatalf("error = %v, want ErrSectionNotFound for a named section that is absent", err)
+	// Two sections is not a paste of one client.
+	_, err = appsecrets.ParseMaskinportenClient([]byte(`{"a": {"clientId": "x"}, "b": {"clientId": "y"}}`))
+	if !errors.Is(err, appsecrets.ErrInvalidMaskinportenClient) {
+		t.Fatalf("error = %v, want ErrInvalidMaskinportenClient for two wrapped objects", err)
 	}
 }
 
@@ -272,7 +255,7 @@ func TestEnvironment(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]string{
-		"https://test.maskinporten.no/": appsecrets.EnvironmentTest,
+		testAuthority:                   appsecrets.EnvironmentTest,
 		"https://maskinporten.no":       appsecrets.EnvironmentProd,
 		"https://MASKINPORTEN.NO/":      appsecrets.EnvironmentProd,
 		"https://ver2.maskinporten.no/": appsecrets.EnvironmentUnknown,
