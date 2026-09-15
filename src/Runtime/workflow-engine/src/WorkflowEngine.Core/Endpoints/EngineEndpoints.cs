@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -813,7 +814,7 @@ internal static class EngineRequestHandlers
         var parsed = new PersistentItemStatus[raw.Length];
         for (int i = 0; i < raw.Length; i++)
         {
-            if (!Enum.TryParse(raw[i], ignoreCase: true, out PersistentItemStatus status) || !Enum.IsDefined(status))
+            if (!EnumNames.TryParse(raw[i], out PersistentItemStatus status))
             {
                 statuses = [];
                 invalid = raw[i];
@@ -929,18 +930,13 @@ internal static class EngineRequestHandlers
         CollectionFailureFilter? failureFilter = null;
         if (failures is not null)
         {
-            // Match the named values explicitly: Enum.TryParse also accepts the underlying numeric
-            // strings ("0"/"1"/"2"), which this endpoint's contract does not offer.
-            var names = Enum.GetNames<CollectionFailureFilter>();
-            var match = Array.Find(names, name => name.Equals(failures, StringComparison.OrdinalIgnoreCase));
-
-            if (match is null)
+            if (!EnumNames.TryParse(failures, out CollectionFailureFilter parsedFilter))
                 return TypedResults.Problem(
-                    detail: $"'{failures}' is not a valid failures filter. Valid values (case-insensitive): {string.Join(", ", names)}.",
+                    detail: $"'{failures}' is not a valid failures filter. Valid values (case-insensitive): {string.Join(", ", EnumNames.Of<CollectionFailureFilter>())}.",
                     statusCode: StatusCodes.Status400BadRequest
                 );
 
-            failureFilter = Enum.Parse<CollectionFailureFilter>(match);
+            failureFilter = parsedFilter;
         }
 
         // Annotate mode is a single page by construction: the page must fit every requested key

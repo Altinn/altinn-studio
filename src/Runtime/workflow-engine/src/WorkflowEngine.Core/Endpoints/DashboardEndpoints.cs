@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -393,8 +394,7 @@ internal static class DashboardEndpoints
                         : status
                             .Split(',')
                             .Select(s =>
-                                Enum.TryParse(s.Trim(), ignoreCase: true, out PersistentItemStatus parsed)
-                                && Enum.IsDefined(parsed)
+                                EnumNames.TryParse(s.Trim(), out PersistentItemStatus parsed)
                                     ? (PersistentItemStatus?)parsed
                                     : null
                             )
