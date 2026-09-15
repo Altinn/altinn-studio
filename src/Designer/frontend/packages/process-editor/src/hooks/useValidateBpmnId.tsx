@@ -5,22 +5,16 @@ import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import { StringUtils } from '@studio/pure-functions';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import {
-  isVersionEqualOrGreater,
-  MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK,
-} from '../utils/processEditorUtils/processEditorUtils';
 
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();
-  const { bpmnDetails, appVersion } = useBpmnContext();
+  const { bpmnDetails } = useBpmnContext();
   const { layoutSets } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
-  const isLayoutSetNamedAfterTask =
-    isVersionEqualOrGreater(
-      appVersion?.backendVersion ?? '',
-      MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK,
-    ) && !!layoutSets?.some((layoutSet) => layoutSet.id === bpmnDetails.id);
+  const isLayoutSetNamedAfterTask = layoutSets?.some(
+    (layoutSet) => layoutSet.id === bpmnDetails.id,
+  );
 
   const validateBpmnTaskId = (newId: string): string => {
     const errorMessages = {
