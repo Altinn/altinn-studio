@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ import (
 	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
+	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
 	"altinn.studio/studioctl/internal/config"
@@ -257,8 +259,9 @@ func (c *RunCommand) printResolvedRunTarget(target appsvc.RunTarget) error {
 	return nil
 }
 
-func (c *RunCommand) printAppReady(baseURL string, details ...appRunDetail) {
+func (c *RunCommand) printAppReady(appID, baseURL string, details ...appRunDetail) {
 	printRunStatusf(c.out, "%s %s", runStatusLabel("App ready:", ui.ColorGreen), baseURL)
+	details = append(details, c.maskinportenRunDetail(appID))
 	for _, detail := range details {
 		if detail.value == "" {
 			continue
@@ -266,6 +269,21 @@ func (c *RunCommand) printAppReady(baseURL string, details ...appRunDetail) {
 		printRunStatusf(c.out, "  - %s %s", runStatusLabel(detail.label+":", ui.ColorGray), detail.value)
 	}
 	printRunStatusf(c.out, "%s %s", runStatusLabel("Logs:", ui.ColorBlue), "studioctl app logs")
+}
+
+// maskinportenRunDetail names the Maskinporten client studioctl provisions to the run, when one is stored.
+// Nothing is printed otherwise: most local runs never mint a Maskinporten token.
+func (c *RunCommand) maskinportenRunDetail(appID string) appRunDetail {
+	detail := appRunDetail{label: "Maskinporten", value: ""}
+	if c.cfg == nil || c.cfg.Home == "" {
+		return detail
+	}
+	client, err := appsecrets.LoadMaskinportenClient(c.cfg.AppSecretsDir(appsupport.SanitizeAppID(appID)))
+	if err != nil {
+		return detail
+	}
+	detail.value = client.ClientID + " (" + appsecrets.Environment(client.Authority) + ")"
+	return detail
 }
 
 func (c *RunCommand) printAppStopped() {
@@ -781,7 +799,7 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	}
 
 	if !jsonOutput {
-		c.printAppReady(appRunDisplayURL(topology, appID), processRunDetails(runInfo.ProcessID)...)
+		c.printAppReady(appID, appRunDisplayURL(topology, appID), processRunDetails(runInfo.ProcessID)...)
 	}
 	return baseURL, nil
 }
@@ -848,7 +866,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	}
 
 	if !jsonOutput {
-		c.printAppReady(appRunDisplayURL(topology, appID), containerRunDetails(containerName)...)
+		c.printAppReady(appID, appRunDisplayURL(topology, appID), containerRunDetails(containerName)...)
 	}
 	return baseURL, nil
 }
@@ -885,7 +903,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	}
 
 	if !jsonOutput {
-		c.printAppReady(appRunDisplayURL(topology, appID), processRunDetails(processID)...)
+		c.printAppReady(appID, appRunDisplayURL(topology, appID), processRunDetails(processID)...)
 	}
 	return baseURL, nil
 }
@@ -1303,6 +1321,9 @@ func (c *RunCommand) runDocker(
 	if err := validateDockerRunImageFlags(flags); err != nil {
 		return err
 	}
+	if err := ensureAppSecretsDir(spec.SecretsDir); err != nil {
+		return err
+	}
 
 	client, err := containerruntime.Detect(ctx)
 	if err != nil {
@@ -1357,7 +1378,7 @@ func (c *RunCommand) runDocker(
 
 	displayURL := appRunDisplayURL(topology, target.AppID)
 	if !flags.jsonOutput && progress.Enabled() {
-		c.printAppReady(displayURL, containerRunDetails(info.Name)...)
+		c.printAppReady(target.AppID, displayURL, containerRunDetails(info.Name)...)
 	}
 
 	return c.runStartedContainerApp(ctx, client, target, containerID, info, baseURL, displayURL, flags)
@@ -1412,6 +1433,7 @@ func (c *RunCommand) createDockerAppContainer(
 	}
 
 	progress.ApplyStart(progress.containerID)
+	spec.Config.Volumes = relabelBindMountsFor(client, spec.Config.Volumes)
 	containerID, err := client.CreateContainer(ctx, spec.Config)
 	if err != nil {
 		progress.ApplyFailed(progress.containerID, err)
@@ -1634,4 +1656,36 @@ func (c *RunCommand) followContainer(
 		return fmt.Errorf("%w with status %d", errAppContainerExited, exitCode)
 	}
 	return nil
+}
+
+// ensureAppSecretsDir creates the app's secrets directory before it is bind-mounted: a missing host
+// directory is otherwise created by the runtime, on Linux as root, where everything else under the
+// studioctl home is the user's.
+func ensureAppSecretsDir(dir string) error {
+	if dir == "" {
+		return nil
+	}
+	if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
+		return fmt.Errorf("create app secrets directory: %w", err)
+	}
+	return nil
+}
+
+// relabelBindMountsFor marks bind mounts shared for SELinux where the runtime needs it, as the localtest
+// components do for theirs.
+func relabelBindMountsFor(
+	client containerruntime.ContainerClient,
+	volumes []containertypes.VolumeMount,
+) []containertypes.VolumeMount {
+	toolchain := client.Toolchain()
+	if toolchain.Platform != containertypes.PlatformPodman || !toolchain.SELinux {
+		return volumes
+	}
+	result := slices.Clone(volumes)
+	for i := range result {
+		if result[i].Type == containertypes.VolumeMountTypeBind {
+			result[i].SELinuxRelabel = containertypes.SELinuxRelabelShared
+		}
+	}
+	return result
 }

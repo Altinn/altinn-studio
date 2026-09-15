@@ -16,8 +16,10 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -454,7 +456,7 @@ func TestPrintAppReadyUsesStudioctlStatusLinesWithoutPortsOrLogPath(t *testing.T
 	var out bytes.Buffer
 	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
 
-	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
+	cmd.printAppReady("ttd/app", "http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
 
 	rendered := out.String()
 	for _, want := range []string{
@@ -467,10 +469,40 @@ func TestPrintAppReadyUsesStudioctlStatusLinesWithoutPortsOrLogPath(t *testing.T
 			t.Fatalf("output %q missing %q", rendered, want)
 		}
 	}
-	for _, unwanted := range []string{"Log:", "Container:", "Port:", "/tmp/"} {
+	for _, unwanted := range []string{"Log:", "Container:", "Port:", "/tmp/", "Maskinporten"} {
 		if strings.Contains(rendered, unwanted) {
 			t.Fatalf("output %q contains %q", rendered, unwanted)
 		}
+	}
+}
+
+func TestPrintAppReadyNamesTheStoredMaskinportenClient(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, Version: config.NewVersion("test-version")}
+	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
+		"clientId": "client-1", "authority": "https://test.maskinporten.no/",
+		"jwk": {"kty": "RSA", "kid": "k1", "d": "private", "n": "m", "e": "AQAB"}
+	}`))
+	if err != nil {
+		t.Fatalf("ParseMaskinportenClient() error = %v", err)
+	}
+	if _, err := appsecrets.StoreMaskinportenClient(cfg.AppSecretsDir("ttd-app"), client); err != nil {
+		t.Fatalf("StoreMaskinportenClient() error = %v", err)
+	}
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false), cfg: cfg}
+
+	cmd.printAppReady("ttd/app", "http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "studioctl    - Maskinporten: client-1 (test)") {
+		t.Fatalf("output %q missing the Maskinporten client line", rendered)
+	}
+	if strings.Contains(rendered, "private") {
+		t.Fatalf("output %q leaks key material", rendered)
 	}
 }
 
@@ -480,7 +512,10 @@ func TestPrintAppReadyUsesContainerDetails(t *testing.T) {
 	var out bytes.Buffer
 	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
 
-	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", containerRunDetails("localtest-app-test")...)
+	cmd.printAppReady(
+		"ttd/app",
+		"http://local.altinn.cloud:8000/ttd/app/",
+		containerRunDetails("localtest-app-test")...)
 
 	rendered := out.String()
 	for _, want := range []string{

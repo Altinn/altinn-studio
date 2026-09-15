@@ -397,3 +397,82 @@ func writeAppProject(t *testing.T, appPath string) string {
 	}
 	return projectPath
 }
+
+func TestBuildDotnetRunSpec_NamesTheSecretsDirectory(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	home := t.TempDir()
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	spec, err := service.BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	want := filepath.Join(home, "apps", "ttd-test-app", "secrets")
+	if spec.SecretsDir != want {
+		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
+	}
+	if got := envValue(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR"); got != want {
+		t.Fatalf("STUDIOCTL_APP_SECRETS_DIR = %q, want %q", got, want)
+	}
+}
+
+func TestBuildDotnetRunSpec_NamesNoSecretsDirectoryWithoutAHome(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+
+	spec, err := testService().BuildDotnetRunSpec(t.Context(), appPath, nil, nil, defaultTopology(), appsvc.DotnetRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	if spec.SecretsDir != "" {
+		t.Fatalf("SecretsDir = %q, want none", spec.SecretsDir)
+	}
+	assertEnvMissing(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR")
+}
+
+func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	home := t.TempDir()
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	spec, err := service.BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+
+	want := filepath.Join(home, "apps", "ttd-test-app", "secrets")
+	if spec.SecretsDir != want {
+		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
+	}
+	if len(spec.Config.Volumes) != 1 {
+		t.Fatalf("Volumes = %+v, want the one secrets mount", spec.Config.Volumes)
+	}
+	mount := spec.Config.Volumes[0]
+	if mount.HostPath != want || mount.ContainerPath != "/mnt/app-secrets" || !mount.ReadOnly {
+		t.Fatalf("mount = %+v, want %s read-only at /mnt/app-secrets", mount, want)
+	}
+	// The container reads the deployed location, so it is not told about the directory.
+	assertEnvMissing(t, spec.Config.Env, "STUDIOCTL_APP_SECRETS_DIR")
+}
