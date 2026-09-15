@@ -126,6 +126,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             .Setup(p => p.GetProcessDefinition())
             .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(bpmn)));
         bool callbackStarted = false;
+        bool authenticationReadAfterCallbackStarted = false;
+        bool formReadAfterCallbackStarted = false;
         int formReads = 0;
         using var client = GetRootedUserClient(
             Org,
@@ -138,7 +140,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     userPartyId: InstanceOwnerPartyId,
                     profileSettingPreference: new() { Language = language }
                 );
-                services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == authentication));
+                var authenticationContext = new Mock<IAuthenticationContext>(MockBehavior.Strict);
+                authenticationContext
+                    .SetupGet(a => a.Current)
+                    .Returns(() =>
+                    {
+                        authenticationReadAfterCallbackStarted |= callbackStarted;
+                        return authentication;
+                    });
+                services.AddSingleton(authenticationContext.Object);
                 services.AddSingleton(processClient.Object);
                 services.AddSingleton(SetupPdfGeneratorMock().Object);
                 var acquire = Assert.Single(services, d => d.ImplementationType == typeof(AcquireProcessingStatus));
@@ -175,10 +185,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                                 CancellationToken cancellationToken
                             ) =>
                             {
-                                Assert.False(
-                                    callbackStarted,
-                                    "Callback form data must come from the restored unit of work, with no Storage read under the callback principal."
-                                );
+                                formReadAfterCallbackStarted |= callbackStarted;
                                 formReads++;
                                 return underlying.GetDataBytesWithExpectedBlobVersionId(
                                     partyId,
@@ -197,6 +204,14 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var response = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
         Assert.True(callbackStarted);
+        Assert.False(
+            authenticationReadAfterCallbackStarted,
+            "The continuation must build the transition from the captured actor, not the callback request's authentication context."
+        );
+        Assert.False(
+            formReadAfterCallbackStarted,
+            "Callback form data must come from the restored unit of work, with no Storage read under the callback principal."
+        );
         Assert.True(formReads > 0);
         var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         Assert.Equal(expectedEnd, instance.Process.EndEvent);
