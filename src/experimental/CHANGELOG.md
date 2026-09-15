@@ -19,6 +19,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Fixed
 
 - On Windows, starting a Sandbox with a large root filesystem could take an hour while its disk was copied. The copy now takes seconds.
+- Linkerd could not start inside a kind cluster running in a Sandbox because the Sandbox kernel lacked the iptables owner match its proxy-init needs. The match is now built in.
 
 ## [0.1.0-preview.2] - 2026-09-15
 
