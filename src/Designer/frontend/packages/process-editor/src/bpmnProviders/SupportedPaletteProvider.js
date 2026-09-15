@@ -101,7 +101,7 @@ class SupportedPaletteProvider {
                 signeeStatesDataTypeId: `signees-states-${generateRandomId(4)}`,
                 signeeProviderId: '', // No default interface exists in the apps
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
-                correspondenceResource: '', // No default
+                correspondenceResource: [], // No default; environment-scoped entries are added in the panel
                 runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
                   value: true,
                 }),
