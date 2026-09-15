@@ -245,6 +245,26 @@ func (c *Config) AppLogDir(appID string) string {
 	return filepath.Join(c.AppLogsDir(), appID)
 }
 
+// ErrInvalidAppID is returned when an app id cannot name a directory safely.
+var ErrInvalidAppID = errors.New("invalid app id")
+
+// AppSecretsDir returns the directory studioctl provisions one app's secrets into for local runs - what
+// /mnt/app-secrets is to a deployed app. It lives under the home directory alongside the credentials file
+// rather than under the data directory, whose contents are container volumes that env down may discard.
+// The id's two parts are two path segments, so distinct ids never share a directory (flattening org/app
+// with a separator would make a/b-c and a-b/c the same), and a part that could escape the tree is refused.
+func (c *Config) AppSecretsDir(appID string) (string, error) {
+	org, app, ok := strings.Cut(appID, "/")
+	if !ok || !isSafePathSegment(org) || !isSafePathSegment(app) {
+		return "", fmt.Errorf("%w: %q", ErrInvalidAppID, appID)
+	}
+	return filepath.Join(c.Home, "apps", org, app, "secrets"), nil
+}
+
+func isSafePathSegment(segment string) bool {
+	return segment != "" && segment != "." && segment != ".." && !strings.ContainsAny(segment, `/\`)
+}
+
 // StudioctlServerBinaryPath returns the path to the studioctl server binary.
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) StudioctlServerBinaryPath() string {

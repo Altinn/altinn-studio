@@ -35,7 +35,10 @@ internal sealed class MaskinportenClientOverrideDetector
         + "declare them on the provisioned client in Studio instead. If it configured a Maskinporten client for "
         + "the app's own integration, give that integration its own client - the Altinn.ApiClients.Maskinporten "
         + "package is the supported way to bring your own credentials - and leave the built-in client alone: it "
-        + "is what mints the service owner tokens this app's process transitions run on. Call sites found:";
+        + "is what mints the service owner tokens this app's process transitions run on. Where a call names a "
+        + "configuration section, the Maskinporten settings step reports that section; if it holds the client "
+        + "you use for local runs, paste it into studioctl app maskinporten set before deleting it. Call sites "
+        + "found:";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -44,9 +47,24 @@ internal sealed class MaskinportenClientOverrideDetector
         _scanner = scanner;
     }
 
+    /// <summary>
+    /// The configuration section paths the removed calls named -
+    /// <c>ConfigureMaskinportenClient("my-app--MaskinportenSettings")</c> - which is where the app's own
+    /// Maskinporten client lived. <see cref="MaskinportenSettingsSectionDetector"/> looks those sections up in the
+    /// app's settings files and says what to do with each.
+    /// </summary>
+    public IReadOnlySet<string> NamedSections() =>
+        _scanner
+            .Files.SelectMany(file => CSharpSyntaxQueries.FirstStringArguments(file, _removedMethods))
+            .Where(static section => !string.IsNullOrWhiteSpace(section))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
     public MigrationResult Detect()
     {
-        var matches = _scanner.Files.SelectMany(file => CSharpSyntaxQueries.InvokedMethods(file, _removedMethods));
+        // The section name in the call is the value the studioctl command needs, so it is quoted in the report.
+        var matches = _scanner.Files.SelectMany(file =>
+            CSharpSyntaxQueries.InvokedMethods(file, _removedMethods, describeFirstStringArgument: true)
+        );
         return WarnOnlyDetector.Report(Summary, matches);
     }
 }

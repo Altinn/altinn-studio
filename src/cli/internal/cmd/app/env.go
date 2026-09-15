@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"altinn.studio/studioctl/internal/appsecrets"
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
@@ -16,9 +17,10 @@ func newAppRunEnv(
 	kestrelURL string,
 	topology envtopology.Local,
 	appFrontendAssetBaseUrl string,
+	secretsDir string,
 ) []string {
 	env := newAppEnv(current)
-	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl)
+	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir)
 	return env.entries()
 }
 
@@ -36,10 +38,23 @@ func newAppEnv(current []string) appEnv {
 	return appEnv{values: values}
 }
 
-func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local, appFrontendAssetBaseUrl string) {
+func (e appEnv) addRunDefaults(
+	kestrelURL string,
+	topology envtopology.Local,
+	appFrontendAssetBaseUrl string,
+	secretsDir string,
+) {
 	endpoints := newAppEndpointConfig(topology)
 
 	e.values["STUDIOCTL_APP_RUN"] = "1"
+	// The app's secrets directory, provisioned by studioctl the way the operator provisions /mnt/app-secrets
+	// in a cluster. It holds the Maskinporten client stored with `studioctl app maskinporten set`; the app
+	// libraries honor the variable on the localtest platform only. Always named, even before anything is
+	// stored, so that a client stored while the app runs is picked up without a restart - and never taken
+	// from the inherited environment: where the secrets live is studioctl's decision, not the shell's.
+	if secretsDir != "" {
+		e.values[appsecrets.EnvSecretsDir] = secretsDir
+	}
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)
 	if appFrontendAssetBaseUrl != "" {

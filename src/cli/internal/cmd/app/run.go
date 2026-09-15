@@ -14,6 +14,7 @@ import (
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/appnaming"
+	"altinn.studio/studioctl/internal/appsecrets"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -37,6 +38,7 @@ type DotnetRunSpec struct {
 	Dir            string
 	ProjectPath    string
 	BaseURL        string
+	SecretsDir     string
 	AppArgs        []string
 	BuildArgs      []string
 	TargetPathArgs []string
@@ -52,7 +54,8 @@ type DotnetRunOptions struct {
 
 // DockerRunSpec contains container execution details for `studioctl app run --mode container`.
 type DockerRunSpec struct {
-	Config types.ContainerConfig
+	SecretsDir string
+	Config     types.ContainerConfig
 }
 
 // DockerRunOptions contains docker run-specific app options.
@@ -110,16 +113,18 @@ func (s *Service) BuildDotnetRunSpec(
 		port = "0"
 	}
 	baseURL := nativeAppBaseURL(port)
+	secretsDir := s.appSecretsDirOrEmpty(appPath)
 
 	return DotnetRunSpec{
 		Dir:            filepath.Dir(projectPath),
 		ProjectPath:    projectPath,
 		BaseURL:        baseURL,
+		SecretsDir:     secretsDir,
 		Port:           nativeAppPort(port),
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl),
+		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl, secretsDir),
 	}, nil
 }
 
@@ -205,8 +210,10 @@ func (s *Service) BuildDockerRunSpec(
 	if imageTag == "" {
 		imageTag = appimage.DefaultLocalTag(appPath)
 	}
+	secretsDir := s.appSecretsDirOrEmpty(appPath)
 
 	return DockerRunSpec{
+		SecretsDir: secretsDir,
 		Config: types.ContainerConfig{
 			Labels:         appcontainers.Labels(appPath),
 			HealthCheck:    nil,
@@ -217,7 +224,7 @@ func (s *Service) BuildDockerRunSpec(
 			RestartPolicy:  "",
 			ExtraHosts:     nil,
 			NetworkAliases: nil,
-			Volumes:        nil,
+			Volumes:        appSecretsMounts(secretsDir),
 			Networks: []string{
 				components.NetworkName,
 			},
@@ -229,15 +236,33 @@ func (s *Service) BuildDockerRunSpec(
 					Protocol:      "tcp",
 				},
 			},
+			// The container finds its secrets where a deployed app does, so it needs no directory named.
 			Env: newAppRunEnv(
 				nil,
 				"http://*:"+appcontainers.DefaultContainerPort,
 				topology,
 				opts.AppFrontendAssetBaseUrl,
+				"",
 			),
 			Command: args,
 			CapAdd:  nil,
 			Detach:  true,
 		},
 	}, nil
+}
+
+// appSecretsMounts mounts the app's secrets directory where a deployed app finds its own, read-only: the
+// container runs the production mechanism verbatim. The directory, not the file, so that a client stored
+// while the container runs - an atomic replace on the host - is seen inside it.
+func appSecretsMounts(secretsDir string) []types.VolumeMount {
+	if secretsDir == "" {
+		return nil
+	}
+	return []types.VolumeMount{{
+		HostPath:       secretsDir,
+		ContainerPath:  appsecrets.ContainerDir,
+		Type:           types.VolumeMountTypeBind,
+		SELinuxRelabel: types.SELinuxRelabelNone,
+		ReadOnly:       true,
+	}}
 }
