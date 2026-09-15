@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
@@ -26,6 +27,18 @@ internal sealed partial class EngineRepository
         try
         {
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            // The page, its counts and the total are three statements describing one moment, so
+            // they read from one snapshot. Under the default READ COMMITTED each takes its own,
+            // which lets a collection returned *because* it has a failed workflow come back with
+            // that failure already counted away — a row that contradicts the filter that found it.
+            // Postgres never raises a serialization failure for a read-only REPEATABLE READ
+            // transaction, so this costs a BEGIN/COMMIT and nothing else.
+            await using var transaction = await context.Database.BeginTransactionAsync(
+                IsolationLevel.RepeatableRead,
+                cancellationToken
+            );
+
             var normalizedNs = WorkflowNamespace.Normalize(ns);
 
             var baseQuery = context.WorkflowCollections.Where(c => c.Namespace == normalizedNs);
@@ -98,7 +111,11 @@ internal sealed partial class EngineRepository
                     Heads = e.Heads,
                     CreatedAt = e.CreatedAt,
                     UpdatedAt = e.UpdatedAt,
-                    WorkflowCounts = counts.GetValueOrDefault(e.Key, _emptyCounts),
+                    // Absent rather than all-zero: a collection row whose workflows are gone
+                    // (retention purged them) knows nothing about the instance, and an all-zero
+                    // rollup is indistinguishable from "everything settled cleanly" to a caller.
+                    // The field is optional precisely so absence can mean "no data".
+                    WorkflowCounts = counts.GetValueOrDefault(e.Key),
                 })
                 .ToList();
 
@@ -108,6 +125,8 @@ internal sealed partial class EngineRepository
                 var matched = collections.Select(c => c.Key).ToHashSet(StringComparer.Ordinal);
                 unmatchedKeys = requestedKeys.Where(k => !matched.Contains(k)).ToList();
             }
+
+            await transaction.CommitAsync(cancellationToken);
 
             return new CollectionQueryResult(collections, nextCursor, totalCount, unmatchedKeys);
         }
@@ -122,14 +141,6 @@ internal sealed partial class EngineRepository
             throw;
         }
     }
-
-    private static readonly CollectionWorkflowCounts _emptyCounts = new()
-    {
-        Active = 0,
-        FailedVisible = 0,
-        FailedInvisible = 0,
-        Total = 0,
-    };
 
     /// <summary>
     /// Computes the per-collection workflow status rollup for a page of collection keys in a single
