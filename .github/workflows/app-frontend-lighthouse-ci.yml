@@ -76,7 +76,7 @@ jobs:
 
       - name: Run Lighthouse CI
         env:
-          ENV: 'CI' # Signals to src/App/frontend/lighthouserc.js that we're running in CI
+          ENV: 'CI' # Signals to src/App/frontend/lighthouserc.cjs that we're running in CI
           LHCI_SERVER_URL: ${{ secrets.LHCI_SERVER_URL }}
           LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
           LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}

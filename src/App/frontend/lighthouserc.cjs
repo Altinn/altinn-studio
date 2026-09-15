@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+// This file is CommonJS (`.cjs`) on purpose in an otherwise ESM package: `@lhci/cli` `require()`s its config and
+// puppeteerScript, and supports no other module format.
+
 // Configuration
-const { BASE_URL, APP_PATH } = require('./scripts/lighthouse/lighthouse-config-constants');
+const { BASE_URL, APP_PATH } = require('./scripts/lighthouse/lighthouse-config-constants.cjs');
 
 const chromePath =
   process.env.CHROME_PATH || process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath();
@@ -17,7 +20,7 @@ module.exports = {
       url: [`${BASE_URL}/${APP_PATH}/`],
       startServerCommand: process.env.ENV === 'CI' ? '' : 'yarn serve 8080',
       startServerReadyPattern: String.raw`Available on:\n\s*http://127\.0\.0\.1:8080`,
-      puppeteerScript: './scripts/lighthouse/puppeteer-script.js',
+      puppeteerScript: './scripts/lighthouse/puppeteer-script.cjs',
       puppeteerLaunchOptions: {
         headless: true,
         args: ['--disable-features=HttpsFirstBalancedModeAutoEnable', '--no-sandbox', '--disable-setuid-sandbox'],

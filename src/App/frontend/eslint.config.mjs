@@ -18,10 +18,8 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import langKey from './src/language/eslint.js';
+import { langKey } from './src/language/eslint.js';
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig([
   globalIgnores([
     '**/node_modules',
@@ -193,9 +191,11 @@ export default defineConfig([
     },
   },
   {
-    // Vite loads these before any tsconfig path aliases are in play, so their imports must be relative.
-    files: ['vite.config*.ts'],
+    // Config files loaded directly by their own tool: each tool reads a default export, and
+    // reads the file before tsconfig path aliases are in play, so their imports must be relative.
+    files: ['vite.config*.ts', 'vitest.config.ts', 'cypress.config.js', 'prettier.config.js', 'eslint.config.mjs'],
     rules: {
+      'import/no-default-export': 'off',
       'no-relative-import-paths/no-relative-import-paths': 'off',
     },
   },
