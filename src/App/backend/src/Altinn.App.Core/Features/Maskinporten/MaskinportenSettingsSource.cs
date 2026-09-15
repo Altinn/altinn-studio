@@ -23,15 +23,13 @@ namespace Altinn.App.Core.Features.Maskinporten;
 internal sealed class MaskinportenSettingsSource : IDisposable
 {
     /// <summary>
-    /// Configuration key naming an alternative location for the settings file. It carries a path, never
-    /// credentials: local development and non-cluster hosting supply the very same file this way.
+    /// Where the platform provisions the app's credentials. Deliberately not reachable from the app's
+    /// configuration: an app able to move this could point the client at an identity of its own, which is
+    /// the whole thing this type exists to prevent. It stays internal rather than becoming a constant so
+    /// the library can source the file elsewhere should the need ever arise, and so tests can supply one.
     /// </summary>
-    internal const string FilePathKey = "MaskinportenSettingsFilepath";
-
-    /// <summary>
-    /// The file the platform provisions the app's credentials as.
-    /// </summary>
-    internal const string FileName = "maskinporten-settings.json";
+    internal static string DefaultFilePath { get; } =
+        Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, "maskinporten-settings.json");
 
     /// <summary>
     /// The object the provisioned file wraps its credentials in.
@@ -46,12 +44,15 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     /// </summary>
     public IConfiguration Section { get; }
 
-    public MaskinportenSettingsSource(IConfiguration appConfiguration)
-        : this(ResolveFilePath(appConfiguration)) { }
+    /// <summary>
+    /// The absolute path this source reads the credentials from.
+    /// </summary>
+    public string FilePath { get; }
 
     internal MaskinportenSettingsSource(string filePath)
     {
         string absolutePath = Path.GetFullPath(filePath);
+        FilePath = absolutePath;
         string providerRoot = GetExistingProviderRoot(Path.GetDirectoryName(absolutePath) ?? string.Empty);
 
         _fileProvider = new PhysicalFileProvider(providerRoot)
@@ -72,27 +73,6 @@ internal sealed class MaskinportenSettingsSource : IDisposable
             .Build();
 
         Section = _root.GetSection(SectionName);
-    }
-
-    /// <summary>
-    /// Where the settings file lives. The app's configuration root is read for the location only — the
-    /// credentials themselves never travel through it.
-    /// </summary>
-    internal static string ResolveFilePath(IConfiguration appConfiguration)
-    {
-        string? configuredPath = appConfiguration[FilePathKey];
-        if (!string.IsNullOrWhiteSpace(configuredPath))
-        {
-            return configuredPath;
-        }
-
-        string? secretsDirectory = appConfiguration[$"AppSettings:{nameof(AppSettings.RuntimeSecretsDirectory)}"];
-        if (string.IsNullOrWhiteSpace(secretsDirectory))
-        {
-            secretsDirectory = AppSettings.DefaultRuntimeSecretsDirectory;
-        }
-
-        return Path.Join(secretsDirectory, FileName);
     }
 
     /// <summary>

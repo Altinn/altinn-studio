@@ -28,8 +28,10 @@ public class MaskinportenClientIntegrationTests
         string settingsPath = Path.Join(secretsDirectory.Path, "maskinporten-settings.json");
         await File.WriteAllTextAsync(settingsPath, SettingsJson("provisioned-client"));
 
-        // Act
-        var app = AppBuilder.Build(configData: [new("MaskinportenSettingsFilepath", settingsPath)]);
+        // Act - RegisterCustomAppServices runs before AddAltinnAppServices, so this source wins the TryAdd
+        var app = AppBuilder.Build(registerCustomAppServices: services =>
+            services.AddSingleton(_ => new MaskinportenSettingsSource(settingsPath))
+        );
 
         // Assert
         var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
@@ -49,10 +51,13 @@ public class MaskinportenClientIntegrationTests
         var app = AppBuilder.Build(
             configData:
             [
-                new("MaskinportenSettingsFilepath", settingsPath),
                 new("MaskinportenSettings:clientId", "app-supplied-client"),
                 new("MaskinportenSettings:jwkBase64", "app-supplied-key"),
-            ]
+                new("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
+                new("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own"),
+            ],
+            registerCustomAppServices: services =>
+                services.AddSingleton(_ => new MaskinportenSettingsSource(settingsPath))
         );
 
         // Assert - the app's section is not a Maskinporten configuration surface at all

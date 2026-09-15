@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
@@ -263,13 +264,8 @@ public class MaskinportenSettingsTest
             await File.WriteAllTextAsync(filePath, json);
 
             var services = new ServiceCollection();
-            services.AddSingleton<IConfiguration>(
-                new ConfigurationBuilder()
-                    .AddInMemoryCollection([
-                        new KeyValuePair<string, string?>("MaskinportenSettingsFilepath", filePath),
-                    ])
-                    .Build()
-            );
+            services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+            services.AddSingleton(_ => new MaskinportenSettingsSource(filePath));
             services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();
@@ -314,13 +310,8 @@ public class MaskinportenSettingsTest
             await File.WriteAllTextAsync(filePath, json);
 
             var services = new ServiceCollection();
-            services.AddSingleton<IConfiguration>(
-                new ConfigurationBuilder()
-                    .AddInMemoryCollection([
-                        new KeyValuePair<string, string?>("MaskinportenSettingsFilepath", filePath),
-                    ])
-                    .Build()
-            );
+            services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
+            services.AddSingleton(_ => new MaskinportenSettingsSource(filePath));
             services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();
