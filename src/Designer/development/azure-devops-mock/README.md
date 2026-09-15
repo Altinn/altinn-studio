@@ -52,9 +52,10 @@ workflows behind them, start the compose stack with:
 INSTANCES_FROM_LOCALTEST=true docker compose up -d studio_azure_mock
 ```
 
-The admin app lists an app once it has been deployed in local Studio (a mock deploy), so deploy
-the app there under the same org and name you run it with through `studioctl`, then open it
-under an environment. Set `LOCALTEST_URL` if the studioctl ingress is not on port 8000.
+With that flag the apps the local environment holds are also listed under every environment in
+the admin app, next to whatever was deployed through local Studio, so an app you run through
+`studioctl` can be opened right away. Set `LOCALTEST_URL` if the studioctl ingress is not on
+port 8000.
 
 The admin views read the engine's collections health view, which a released engine image does
 not have yet. Run the environment with an engine built from your working tree, either

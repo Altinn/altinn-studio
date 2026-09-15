@@ -190,6 +190,37 @@ const FORWARDED_QUERY_PARAMS = [
   'created',
 ];
 
+/**
+ * The apps the studioctl environment knows for `org`, shaped like the mock's own deployment rows,
+ * so they appear in the admin app's list without a mock deploy first. Nothing when localtest is
+ * not reachable: the list then holds only what was deployed through local Studio.
+ */
+export async function localtestDeployments(org, env, origin) {
+  if (!instancesFromLocaltest()) {
+    return [];
+  }
+  try {
+    const response = await storageRequest(
+      org,
+      `/storage/api/v1/applications/${encodeURIComponent(org)}`,
+    );
+    if (!response.ok) {
+      return [];
+    }
+    return (response.data.applications ?? []).map((application) => ({
+      org,
+      env,
+      app: application.id.slice(application.id.indexOf('/') + 1),
+      sourceEnvironment: origin,
+      buildId: 'localtest',
+      imageTag: 'localtest',
+    }));
+  } catch (error) {
+    console.warn(`localtest unreachable at ${localtestUrl()}: ${error.message}`);
+    return [];
+  }
+}
+
 export const localtestInstancesRoute = async (req, res) => {
   const { org, app } = req.params;
   const query = new URLSearchParams({ appId: `${org}/${app}` });
