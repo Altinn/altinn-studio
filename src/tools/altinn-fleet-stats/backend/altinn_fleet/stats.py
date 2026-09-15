@@ -736,3 +736,340 @@ def apps_by_frontend_version(db: Path, version: str) -> list[dict]:
             }
             for r in rows
         ]
+
+
+# ---------- Public interfaces (Altinn.App extension surface) ----------
+
+# Usage counts per interface, one row per interface name that any app touches.
+_INTERFACE_USAGE_SQL = """
+    SELECT interface_name,
+           COUNT(DISTINCT CASE WHEN usage_kind = 'implements' THEN app_id END) AS apps_implementing,
+           COUNT(DISTINCT CASE WHEN usage_kind = 'registers' THEN app_id END) AS apps_registering,
+           COUNT(DISTINCT CASE WHEN usage_kind = 'injects' THEN app_id END) AS apps_injecting,
+           COUNT(DISTINCT app_id) AS apps_using,
+           SUM(CASE WHEN usage_kind = 'implements' THEN 1 ELSE 0 END) AS implementations
+    FROM app_interfaces
+    GROUP BY interface_name
+"""
+
+# How adoption is bucketed for the "what is moving out there" distribution.
+_ADOPTION_BUCKETS = [
+    ("none", 0, 0),
+    ("1", 1, 1),
+    ("2-5", 2, 5),
+    ("6-20", 6, 20),
+    ("21-100", 21, 100),
+    ("100+", 101, None),
+]
+
+
+def _bucket_for(apps: int) -> str:
+    for label, low, high in _ADOPTION_BUCKETS:
+        if apps >= low and (high is None or apps <= high):
+            return label
+    return "none"
+
+
+def _pct(part: int, whole: int) -> float:
+    return round(part * 100.0 / whole, 1) if whole else 0.0
+
+
+def interfaces_overview(db: Path) -> dict:
+    """Headline numbers for the interface view: catalog size against real adoption."""
+    with get_conn(db) as conn:
+        total_apps = conn.execute("SELECT COUNT(*) AS n FROM apps").fetchone()["n"]
+        apps_with_code = conn.execute(
+            "SELECT COUNT(*) AS n FROM apps WHERE cs_file_count > 0"
+        ).fetchone()["n"]
+        apps_implementing = conn.execute(
+            "SELECT COUNT(*) AS n FROM apps WHERE implemented_interface_count > 0"
+        ).fetchone()["n"]
+
+        rows = conn.execute(
+            f"""SELECT i.name, i.area, i.implementable_by_apps, i.is_obsolete,
+                       COALESCE(u.apps_implementing, 0) AS apps_implementing,
+                       COALESCE(u.apps_using, 0) AS apps_using
+                FROM interfaces i
+                LEFT JOIN ({_INTERFACE_USAGE_SQL}) u ON u.interface_name = i.name"""
+        ).fetchall()
+
+        catalog_total = len(rows)
+        implementable = [r for r in rows if r["implementable_by_apps"]]
+        used = [r for r in rows if r["apps_using"] > 0]
+        implemented = [r for r in rows if r["apps_implementing"] > 0]
+        obsolete = [r for r in rows if r["is_obsolete"]]
+
+        buckets = {label: 0 for label, _, _ in _ADOPTION_BUCKETS}
+        for r in rows:
+            buckets[_bucket_for(r["apps_using"])] += 1
+
+        by_area: dict[str, dict] = {}
+        for r in rows:
+            entry = by_area.setdefault(
+                r["area"], {"area": r["area"], "total": 0, "used": 0, "implemented": 0}
+            )
+            entry["total"] += 1
+            entry["used"] += 1 if r["apps_using"] else 0
+            entry["implemented"] += 1 if r["apps_implementing"] else 0
+
+        outside = conn.execute(
+            """SELECT COUNT(DISTINCT interface_name) AS n
+               FROM app_interfaces WHERE origin = 'unknown'"""
+        ).fetchone()["n"]
+
+        return {
+            "catalog_total": catalog_total,
+            "implementable_total": len(implementable),
+            "obsolete_total": len(obsolete),
+            "used_total": len(used),
+            "implemented_total": len(implemented),
+            "unused_total": catalog_total - len(used),
+            "implementable_used": sum(1 for r in implementable if r["apps_using"]),
+            "implementable_unused": sum(1 for r in implementable if not r["apps_using"]),
+            "obsolete_in_use": sum(1 for r in obsolete if r["apps_using"]),
+            "outside_catalog_total": outside,
+            "total_apps": total_apps,
+            "apps_with_code": apps_with_code,
+            "apps_implementing": apps_implementing,
+            "adoption_buckets": [
+                {"bucket": label, "interfaces": buckets[label]}
+                for label, _, _ in _ADOPTION_BUCKETS
+            ],
+            "by_area": sorted(by_area.values(), key=lambda e: -e["total"]),
+        }
+
+
+def interfaces_list(
+    db: Path,
+    area: str | None = None,
+    implementable: bool | None = None,
+    usage: str | None = None,
+    q: str | None = None,
+    limit: int = 500,
+) -> list[dict]:
+    """Every public interface with the adoption numbers behind it.
+
+    `usage` filters the list: `implemented` (someone implements it), `used`
+    (implemented, registered or injected) or `unused` (nobody touches it).
+    """
+    clauses: list[str] = []
+    params: list = []
+    if area:
+        clauses.append("i.area = ?")
+        params.append(area)
+    if implementable is not None:
+        clauses.append("i.implementable_by_apps = ?")
+        params.append(1 if implementable else 0)
+    if q:
+        clauses.append("(i.name LIKE ? OR i.summary LIKE ? OR i.namespace LIKE ?)")
+        params.extend([f"%{q}%"] * 3)
+    if usage == "implemented":
+        clauses.append("COALESCE(u.apps_implementing, 0) > 0")
+    elif usage == "used":
+        clauses.append("COALESCE(u.apps_using, 0) > 0")
+    elif usage == "unused":
+        clauses.append("COALESCE(u.apps_using, 0) = 0")
+    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+
+    with get_conn(db) as conn:
+        total_apps = conn.execute("SELECT COUNT(*) AS n FROM apps").fetchone()["n"]
+        rows = conn.execute(
+            f"""SELECT i.name, i.namespace, i.assembly, i.area, i.group_name,
+                       i.implementable_by_apps, i.is_obsolete, i.obsolete_message,
+                       i.summary, i.member_count,
+                       COALESCE(u.apps_implementing, 0) AS apps_implementing,
+                       COALESCE(u.apps_registering, 0) AS apps_registering,
+                       COALESCE(u.apps_injecting, 0) AS apps_injecting,
+                       COALESCE(u.apps_using, 0) AS apps_using,
+                       COALESCE(u.implementations, 0) AS implementations
+                FROM interfaces i
+                LEFT JOIN ({_INTERFACE_USAGE_SQL}) u ON u.interface_name = i.name
+                {where}
+                ORDER BY apps_implementing DESC, apps_using DESC, i.name
+                LIMIT ?""",
+            (*params, limit),
+        ).fetchall()
+        return [
+            {
+                **dict(r),
+                "implementable_by_apps": bool(r["implementable_by_apps"]),
+                "is_obsolete": bool(r["is_obsolete"]),
+                "adoption_pct": _pct(r["apps_using"], total_apps),
+                "implemented_pct": _pct(r["apps_implementing"], total_apps),
+            }
+            for r in rows
+        ]
+
+
+def interface_detail(db: Path, name: str, app_limit: int = 500) -> dict:
+    """Everything the detail view shows for one interface."""
+    import json as _json
+
+    with get_conn(db) as conn:
+        total_apps = conn.execute("SELECT COUNT(*) AS n FROM apps").fetchone()["n"]
+        row = conn.execute("SELECT * FROM interfaces WHERE name = ?", (name,)).fetchone()
+
+        counts = conn.execute(
+            """SELECT
+                 COUNT(DISTINCT CASE WHEN usage_kind = 'implements' THEN app_id END) AS apps_implementing,
+                 COUNT(DISTINCT CASE WHEN usage_kind = 'registers' THEN app_id END) AS apps_registering,
+                 COUNT(DISTINCT CASE WHEN usage_kind = 'injects' THEN app_id END) AS apps_injecting,
+                 COUNT(DISTINCT app_id) AS apps_using,
+                 SUM(CASE WHEN usage_kind = 'implements' THEN 1 ELSE 0 END) AS implementations
+               FROM app_interfaces WHERE interface_name = ?""",
+            (name,),
+        ).fetchone()
+
+        by_org = [
+            dict(r)
+            for r in conn.execute(
+                """SELECT a.org, COUNT(DISTINCT a.app_id) AS apps
+                   FROM app_interfaces ai JOIN apps a ON a.app_id = ai.app_id
+                   WHERE ai.interface_name = ?
+                   GROUP BY a.org ORDER BY apps DESC, a.org""",
+                (name,),
+            ).fetchall()
+        ]
+
+        by_backend = [
+            dict(r)
+            for r in conn.execute(
+                """SELECT COALESCE(NULLIF(a.backend_version, ''), '(unknown)') AS backend_version,
+                          COUNT(DISTINCT a.app_id) AS apps
+                   FROM app_interfaces ai JOIN apps a ON a.app_id = ai.app_id
+                   WHERE ai.interface_name = ?
+                   GROUP BY backend_version ORDER BY apps DESC""",
+                (name,),
+            ).fetchall()
+        ]
+
+        # Extension points are rarely used alone — what travels with this one?
+        together = [
+            dict(r)
+            for r in conn.execute(
+                """SELECT other.interface_name AS name, COUNT(DISTINCT other.app_id) AS apps
+                   FROM app_interfaces mine
+                   JOIN app_interfaces other
+                     ON other.app_id = mine.app_id
+                    AND other.interface_name <> mine.interface_name
+                   WHERE mine.interface_name = ?
+                     AND mine.usage_kind = 'implements'
+                     AND other.usage_kind = 'implements'
+                     AND other.origin = 'altinn'
+                   GROUP BY other.interface_name
+                   ORDER BY apps DESC, name
+                   LIMIT 8""",
+                (name,),
+            ).fetchall()
+        ]
+
+        app_rows = conn.execute(
+            """SELECT a.app_id, a.org, a.app_name, a.backend_version, a.frontend_version,
+                      a.repo_url,
+                      GROUP_CONCAT(DISTINCT ai.usage_kind) AS usage_kinds,
+                      GROUP_CONCAT(DISTINCT ai.class_name) AS class_names,
+                      GROUP_CONCAT(DISTINCT ai.file_path) AS file_paths,
+                      GROUP_CONCAT(DISTINCT ai.via) AS via
+               FROM app_interfaces ai JOIN apps a ON a.app_id = ai.app_id
+               WHERE ai.interface_name = ?
+               GROUP BY a.app_id
+               ORDER BY (CASE WHEN GROUP_CONCAT(ai.usage_kind) LIKE '%implements%' THEN 0 ELSE 1 END),
+                        a.app_id
+               LIMIT ?""",
+            (name, app_limit),
+        ).fetchall()
+
+        apps = [
+            {
+                "app_id": r["app_id"],
+                "org": r["org"],
+                "app_name": r["app_name"],
+                "backend_version": r["backend_version"],
+                "frontend_version": r["frontend_version"],
+                "usage_kinds": sorted(filter(None, (r["usage_kinds"] or "").split(","))),
+                "class_names": sorted(filter(None, (r["class_names"] or "").split(","))),
+                "file_paths": sorted(filter(None, (r["file_paths"] or "").split(","))),
+                "via": sorted(filter(None, (r["via"] or "").split(","))),
+                "gitea_url": _gitea_web_url(r["repo_url"]),
+            }
+            for r in app_rows
+        ]
+
+        catalog = dict(row) if row else {}
+        if catalog:
+            catalog["members"] = _json.loads(catalog.get("members") or "[]")
+            catalog["base_interfaces"] = _json.loads(catalog.get("base_interfaces") or "[]")
+            catalog["implementable_by_apps"] = bool(catalog["implementable_by_apps"])
+            catalog["is_obsolete"] = bool(catalog["is_obsolete"])
+
+        return {
+            "name": name,
+            "in_catalog": bool(row),
+            "catalog": catalog,
+            "total_apps": total_apps,
+            "apps_implementing": counts["apps_implementing"] or 0,
+            "apps_registering": counts["apps_registering"] or 0,
+            "apps_injecting": counts["apps_injecting"] or 0,
+            "apps_using": counts["apps_using"] or 0,
+            "implementations": counts["implementations"] or 0,
+            "adoption_pct": _pct(counts["apps_using"] or 0, total_apps),
+            "by_org": by_org,
+            "by_backend": by_backend,
+            "used_together_with": together,
+            "apps": apps,
+            "apps_truncated": len(apps) >= app_limit,
+        }
+
+
+def interfaces_outside_catalog(db: Path, origin: str = "unknown",
+                               limit: int = 100) -> list[dict]:
+    """Interfaces apps use that the current library does not expose.
+
+    `unknown` is the interesting one: an interface that is neither in the catalog,
+    declared by the app, nor part of .NET — most often one an older library
+    version exposed and apps still carry.
+    """
+    with get_conn(db) as conn:
+        total_apps = conn.execute("SELECT COUNT(*) AS n FROM apps").fetchone()["n"]
+        rows = conn.execute(
+            """SELECT interface_name,
+                      COUNT(DISTINCT CASE WHEN usage_kind = 'implements' THEN app_id END) AS apps_implementing,
+                      COUNT(DISTINCT app_id) AS apps_using,
+                      MIN(file_path) AS sample_file
+               FROM app_interfaces
+               WHERE origin = ?
+               GROUP BY interface_name
+               ORDER BY apps_using DESC, interface_name
+               LIMIT ?""",
+            (origin, limit),
+        ).fetchall()
+        return [
+            {**dict(r), "adoption_pct": _pct(r["apps_using"], total_apps)} for r in rows
+        ]
+
+
+def apps_by_interface_usage(db: Path, limit: int = 25) -> list[dict]:
+    """Apps ranked by how much of the extension surface they use."""
+    with get_conn(db) as conn:
+        rows = conn.execute(
+            """SELECT app_id, org, app_name, backend_version, repo_url,
+                      cs_file_count, implemented_interface_count, app_interface_count
+               FROM apps
+               WHERE implemented_interface_count > 0
+               ORDER BY implemented_interface_count DESC, cs_file_count DESC, app_id
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "app_id": r["app_id"],
+                "org": r["org"],
+                "app_name": r["app_name"],
+                "backend_version": r["backend_version"],
+                "cs_file_count": r["cs_file_count"],
+                "implemented_interface_count": r["implemented_interface_count"],
+                "app_interface_count": r["app_interface_count"],
+                "gitea_url": _gitea_web_url(r["repo_url"]),
+            }
+            for r in rows
+        ]
