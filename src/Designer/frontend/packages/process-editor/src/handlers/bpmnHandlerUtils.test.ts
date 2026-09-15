@@ -1,4 +1,4 @@
-import { mockBpmnDetails } from '../../../../packages/process-editor/test/mocks/bpmnDetailsMock';
+import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 
 const layoutSets = [
