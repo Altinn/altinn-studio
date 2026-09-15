@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	testJwk       = `{"kty":"RSA","kid":"test-key","d":"private-part","n":"modulus","e":"AQAB"}`
+	testJwk       = `{"kty":"RSA","use":"sig","kid":"test-key","alg":"RS256","n":"modulus","e":"AQAB","d":"private-part","p":"p","q":"q","qi":"qi","dp":"dp","dq":"dq"}`
 	testAuthority = "https://test.maskinporten.no/"
 )
 
@@ -113,8 +113,13 @@ func TestParseMaskinportenClient_Rejects(t *testing.T) {
 			want:  "exactly one of jwk and jwkBase64",
 		},
 		"public key only": {
-			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwk": {"kty":"RSA","n":"m","e":"AQAB"}}`,
-			want:  "no private part",
+			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwk": {"kty":"RSA","kid":"k","use":"sig","alg":"RS256","n":"m","e":"AQAB"}}`,
+			want:  "missing d, p, q, qi, dp, dq",
+		},
+		"incomplete private key": {
+			// The app libraries' converter refuses a key missing any RSA field; better to hear it now.
+			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwk": {"kty":"RSA","d":"x"}}`,
+			want:  "missing use, kid, alg, n, e, p, q, qi, dp, dq",
 		},
 		"jwk as a string": {
 			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwk": "` + testJwkBase64() + `"}`,

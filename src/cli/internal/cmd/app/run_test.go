@@ -419,12 +419,40 @@ func TestBuildDotnetRunSpec_NamesTheSecretsDirectory(t *testing.T) {
 		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
 	}
 
-	want := filepath.Join(home, "apps", "ttd-test-app", "secrets")
+	want := filepath.Join(home, "apps", "ttd", "test-app", "secrets")
 	if spec.SecretsDir != want {
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
 	if got := envValue(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR"); got != want {
 		t.Fatalf("STUDIOCTL_APP_SECRETS_DIR = %q, want %q", got, want)
+	}
+}
+
+func TestBuildDotnetRunSpec_OverridesAnInheritedSecretsDirectory(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	home := t.TempDir()
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	// Where the secrets live is studioctl's decision; a stray value in the shell must not redirect the app.
+	spec, err := service.BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		[]string{"STUDIOCTL_APP_SECRETS_DIR=/somewhere/else"},
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	want := filepath.Join(home, "apps", "ttd", "test-app", "secrets")
+	if got := envValue(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR"); got != want {
+		t.Fatalf("STUDIOCTL_APP_SECRETS_DIR = %q, want %q (studioctl's own directory)", got, want)
 	}
 }
 
@@ -462,7 +490,7 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 		t.Fatalf("BuildDockerRunSpec() error = %v", err)
 	}
 
-	want := filepath.Join(home, "apps", "ttd-test-app", "secrets")
+	want := filepath.Join(home, "apps", "ttd", "test-app", "secrets")
 	if spec.SecretsDir != want {
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}

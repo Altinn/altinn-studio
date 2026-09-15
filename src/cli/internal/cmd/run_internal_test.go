@@ -483,12 +483,17 @@ func TestPrintAppReadyNamesTheStoredMaskinportenClient(t *testing.T) {
 	cfg := &config.Config{Home: home, Version: config.NewVersion("test-version")}
 	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
 		"clientId": "client-1", "authority": "https://test.maskinporten.no/",
-		"jwk": {"kty": "RSA", "kid": "k1", "d": "private", "n": "m", "e": "AQAB"}
+		"jwk": {"kty": "RSA", "use": "sig", "kid": "k1", "alg": "RS256", "n": "m", "e": "AQAB",
+			"d": "private", "p": "p", "q": "q", "qi": "qi", "dp": "dp", "dq": "dq"}
 	}`))
 	if err != nil {
 		t.Fatalf("ParseMaskinportenClient() error = %v", err)
 	}
-	if _, err := appsecrets.StoreMaskinportenClient(cfg.AppSecretsDir("ttd-app"), client); err != nil {
+	dir, err := cfg.AppSecretsDir("ttd/app")
+	if err != nil {
+		t.Fatalf("AppSecretsDir() error = %v", err)
+	}
+	if _, err := appsecrets.StoreMaskinportenClient(dir, client); err != nil {
 		t.Fatalf("StoreMaskinportenClient() error = %v", err)
 	}
 

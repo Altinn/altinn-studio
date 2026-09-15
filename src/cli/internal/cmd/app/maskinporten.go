@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"altinn.studio/studioctl/internal/appsecrets"
-	"altinn.studio/studioctl/internal/cmd/apps"
 )
 
 // errStudioctlHomeRequired is returned when the app's secrets directory cannot be placed.
@@ -42,7 +41,11 @@ func (s *Service) AppSecretsDir(appPath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("read app id: %w", err)
 	}
-	return s.cfg.AppSecretsDir(apps.SanitizeAppID(appID)), nil
+	dir, err := s.cfg.AppSecretsDir(appID)
+	if err != nil {
+		return "", fmt.Errorf("place app secrets: %w", err)
+	}
+	return dir, nil
 }
 
 // appSecretsDirOrEmpty is AppSecretsDir for the run and env specs, which are built for app directories

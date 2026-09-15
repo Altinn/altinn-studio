@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -262,5 +263,35 @@ func TestNew_EnvRelativeSocketDirIsResolvedToAbsolute(t *testing.T) {
 	want := filepath.Join(tempDir, "env-socket")
 	if cfg.SocketDir != want {
 		t.Errorf("SocketDir = %q, want %q", cfg.SocketDir, want)
+	}
+}
+
+func TestAppSecretsDir(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: filepath.Join(string(filepath.Separator), "home")}
+
+	got, err := cfg.AppSecretsDir("ttd/my-app")
+	if err != nil {
+		t.Fatalf("AppSecretsDir() error = %v", err)
+	}
+	want := filepath.Join(string(filepath.Separator), "home", "apps", "ttd", "my-app", "secrets")
+	if got != want {
+		t.Fatalf("AppSecretsDir() = %q, want %q", got, want)
+	}
+
+	// Two segments, so ids that a separator would flatten to the same name stay apart.
+	other, err := cfg.AppSecretsDir("ttd-my/app")
+	if err != nil {
+		t.Fatalf("AppSecretsDir() error = %v", err)
+	}
+	if other == got {
+		t.Fatalf("AppSecretsDir() gave the same directory for two different app ids: %q", got)
+	}
+
+	for _, bad := range []string{"noslash", "/app", "org/", "../x", "org/..", `org/a\b`, "a/b/c"} {
+		if _, err := cfg.AppSecretsDir(bad); !errors.Is(err, config.ErrInvalidAppID) {
+			t.Errorf("AppSecretsDir(%q) error = %v, want ErrInvalidAppID", bad, err)
+		}
 	}
 }

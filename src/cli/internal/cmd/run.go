@@ -278,7 +278,11 @@ func (c *RunCommand) maskinportenRunDetail(appID string) appRunDetail {
 	if c.cfg == nil || c.cfg.Home == "" {
 		return detail
 	}
-	client, err := appsecrets.LoadMaskinportenClient(c.cfg.AppSecretsDir(appsupport.SanitizeAppID(appID)))
+	dir, err := c.cfg.AppSecretsDir(appID)
+	if err != nil {
+		return detail
+	}
+	client, err := appsecrets.LoadMaskinportenClient(dir)
 	if err != nil {
 		return detail
 	}
