@@ -172,21 +172,26 @@ FROM base AS full
 ARG PLAYWRIGHT_CLI_VERSION=0.1.19
 ARG RUST_VERSION=1.97.1
 
-ENV CARGO_HOME=/usr/local/cargo
+# Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and
+# ~/.cargo lives in the Agent's home volume, so the registry cache and anything `cargo install`
+# places there survive the Agent being recreated.
+ENV CARGO_HOME=/home/agent/.cargo
 # Standalone scripts resolve the globally installed `playwright` package from any directory.
 ENV NODE_PATH=/usr/local/lib/node_modules
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ENV RUSTUP_HOME=/usr/local/rustup
-ENV PATH=/usr/local/cargo/bin:${PATH}
+ENV PATH=/home/agent/.cargo/bin:${PATH}
 
 # Podman's netavark backend invokes nft for rootful bridge networking and aardvark-dns for
-# container-name resolution between compose services.
+# container-name resolution between compose services. libcap-ng-dev links the Microsandbox runtime,
+# as in the self-dev example.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
         clang \
         ffmpeg \
         iproute2 \
+        libcap-ng-dev \
         lldb \
         linux-perf \
         nftables \
@@ -197,9 +202,9 @@ RUN apt-get update \
         rustup \
         strace \
     && rm -rf /var/lib/apt/lists/* \
-    && rustup set profile minimal \
-    && rustup default "${RUST_VERSION}" \
-    && rustup component add clippy rustfmt
+    && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
+    && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
+    && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt
 
 # Playwright ties every package version to one Chromium build. The browser CLI owns the version:
 # the `playwright` package is installed at exactly the version the CLI depends on, so the CLI,
