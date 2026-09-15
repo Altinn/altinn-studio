@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -17,7 +18,7 @@ namespace Altinn.App.Core.Features.Maskinporten;
 /// <para>Where the file lives is the platform's to say, never the app's. In a cluster that is the fixed
 /// secrets mount. On the localtest platform the launcher of the run — studioctl — provisions the file the
 /// way the operator does in a cluster, and names the directory it provisions into through
-/// <see cref="LauncherSecretsDirectoryKey"/>; see <see cref="Create"/>.</para>
+/// <see cref="LauncherSecretsDirectoryKey"/>; see <see cref="ForPlatform"/>.</para>
 /// <para>The file provider polls, because in a cluster this path is a Kubernetes projected volume: operator-driven
 /// key rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a restart. The same
 /// polling is what lets a developer store a client for a local run that is already up.</para>
@@ -102,20 +103,32 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     }
 
     /// <summary>
-    /// The source for the platform the app runs on: the launcher's directory when one was named, the cluster's
-    /// fixed mount otherwise. The caller decides whether a launcher may name one at all — only on localtest.
+    /// <para>The source for the platform the app runs on. In a cluster the file is at the fixed mount. On the
+    /// localtest platform, and only there, the launcher of the run may name the directory it provisions into
+    /// through <see cref="LauncherSecretsDirectoryKey"/>.</para>
+    /// <para>The key is read from the app's configuration because that is the one channel that reaches an app
+    /// however it was started — an environment variable from <c>studioctl app run</c>, or the
+    /// <c>studioctl app env</c> callback for <c>dotnet run</c>. It is the only thing read from there, and it is
+    /// ignored everywhere but localtest: the same gate every other local-only behavior in the app libraries
+    /// sits behind (<c>AuthenticationTokenResolver</c>, <c>MaskinportenWellKnownRefreshService</c>), and one an
+    /// app cannot pass without breaking its own platform calls.</para>
     /// </summary>
-    /// <param name="launcherSecretsDirectory">
-    /// The value of <see cref="LauncherSecretsDirectoryKey"/>, or <c>null</c> where none was supplied or where
-    /// the platform does not honor it.
-    /// </param>
-    internal static MaskinportenSettingsSource Create(string? launcherSecretsDirectory) =>
-        string.IsNullOrWhiteSpace(launcherSecretsDirectory)
+    internal static MaskinportenSettingsSource ForPlatform(
+        RuntimeEnvironment runtimeEnvironment,
+        IConfiguration configuration
+    )
+    {
+        string? launcherSecretsDirectory = runtimeEnvironment.IsLocaltestPlatform()
+            ? configuration[LauncherSecretsDirectoryKey]
+            : null;
+
+        return string.IsNullOrWhiteSpace(launcherSecretsDirectory)
             ? new MaskinportenSettingsSource(DefaultFilePath)
             : new MaskinportenSettingsSource(
                 Path.Join(launcherSecretsDirectory, FileName),
                 provisionedByLauncher: true
             );
+    }
 
     /// <summary>
     /// The nearest existing ancestor of <paramref name="path"/>. A <see cref="PhysicalFileProvider"/> must be

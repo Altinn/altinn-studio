@@ -37,18 +37,13 @@ internal static class ServiceCollectionExtensions
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        // The one place that decides where the credentials come from. TryAdd so a test can put its own
-        // source in first. Only the launcher of a localtest run may move the file, and only there: the same
-        // gate every other local-only behavior in the app libraries sits behind (AuthenticationTokenResolver,
-        // MaskinportenWellKnownRefreshService), and one an app cannot pass without breaking its own platform
-        // calls. Nothing an app configures reaches this in a deployed environment.
+        // TryAdd so a test can put its own source in first. Where the file lives is the source's decision.
         services.TryAddSingleton(sp =>
-        {
-            string? launcherSecretsDirectory = sp.GetRequiredService<RuntimeEnvironment>().IsLocaltestPlatform()
-                ? sp.GetRequiredService<IConfiguration>()[MaskinportenSettingsSource.LauncherSecretsDirectoryKey]
-                : null;
-            return MaskinportenSettingsSource.Create(launcherSecretsDirectory);
-        });
+            MaskinportenSettingsSource.ForPlatform(
+                sp.GetRequiredService<RuntimeEnvironment>(),
+                sp.GetRequiredService<IConfiguration>()
+            )
+        );
         services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<MaskinportenSettings>, ValidateMaskinportenSettingsPresent>()
