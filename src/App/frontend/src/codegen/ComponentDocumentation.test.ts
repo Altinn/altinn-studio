@@ -97,6 +97,27 @@ describe('generateComponentDocumentation', () => {
               value: { type: 'string', required: false },
             },
           },
+          bindingWrapper: {
+            type: 'object',
+            required: false,
+            properties: {
+              nested: {
+                type: 'object',
+                required: false,
+                properties: {
+                  binding: {
+                    type: 'object',
+                    semanticType: 'dataModelBinding',
+                    required: false,
+                    properties: {
+                      dataType: { type: 'string', required: true },
+                      field: { type: 'string', required: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     } as const satisfies ComponentCatalog;
@@ -108,6 +129,7 @@ describe('generateComponentDocumentation', () => {
     expect(documentation).toContain('id="settings.first"');
     expect(documentation).not.toContain('class="component-property-group" id="queryparameters"');
     expect(documentation).toContain('id="queryparameters.value"');
+    expect(documentation).not.toContain('class="component-property-group" id="bindingwrapper"');
   });
 
   it('renders data model bindings as a semantic type without internal normalized fields', () => {
@@ -144,6 +166,7 @@ describe('generateComponentDocumentation', () => {
     );
     expect(documentation).not.toContain('dataModelBindings.simpleBinding.dataType');
     expect(documentation).not.toContain('dataModelBindings.simpleBinding.field');
+    expect(documentation).toContain('<details class="component-property-group" id="datamodelbindings">');
   });
 
   it('moves selected top-level properties first and preserves the order of all other properties', () => {

@@ -77,13 +77,19 @@ function renderProperties(
   for (const [name, definition] of sortTopLevelProperties(properties)) {
     const row = { path: name, definition };
     const nestedRows = collectNestedRows(definition, name);
-    if (countNestedRows(definition) >= propertyGroupMinimumRows) {
+    if (shouldGroupProperty(definition, nestedRows)) {
       rendered.push(renderPropertyGroup(row, nestedRows, locale));
     } else {
       rendered.push(renderProperty(row, locale), ...nestedRows.map((nestedRow) => renderProperty(nestedRow, locale)));
     }
   }
   return `${rendered.join('\n\n')}\n`;
+}
+
+function shouldGroupProperty(definition: PropertyValueDefinition, nestedRows: readonly PropertyRow[]): boolean {
+  const isDataModelBindingCollection =
+    nestedRows.length > 0 && nestedRows.every((row) => row.definition.semanticType === 'dataModelBinding');
+  return isDataModelBindingCollection || countNestedRows(definition) >= propertyGroupMinimumRows;
 }
 
 function renderPropertyGroup(
@@ -202,6 +208,9 @@ function collectNestedRows(definition: PropertyValueDefinition, path: string): P
 }
 
 function countNestedRows(definition: PropertyValueDefinition): number {
+  if (definition.semanticType === 'dataModelBinding') {
+    return 0;
+  }
   if (definition.type === 'object') {
     return Object.values(definition.properties).reduce(
       (count, nestedDefinition) => count + 1 + countNestedRows(nestedDefinition),
