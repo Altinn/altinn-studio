@@ -1588,7 +1588,7 @@ GET /api/v1/{namespace}/collections
 
 | Parameter  | Repeatable | Description                                                                                                                                                                             |
 | ---------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `key`      | Yes        | Annotate mode: report health for these collection keys. Mutually exclusive with `cursor` and `failures` (400). More keys than the maximum page size → 400 (rejected, never truncated). |
+| `key`      | Yes        | Annotate mode: report health for these collection keys. Mutually exclusive with `cursor` and `failures` (400). More distinct keys than `pagination.maxAnnotateKeys` (default 100) → 400 (rejected, never truncated — a dropped key would read as healthy). That cap is deliberately separate from `maxPageSize`: a page size is clamped, a key list is refused. |
 | `failures` | No         | Discover mode: only collections with at least one failed workflow (`Failed`, `Canceled`, `DependencyFailed`; `Abandoned` never matches). `any`, `visible`, or `invisible` (case-insensitive). |
 | `cursor`   | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                            |
 | `pageSize` | No         | Items per page. Defaults to 25, clamped to the range 1–100. Ignored in annotate (`key`) mode.                                                                                           |

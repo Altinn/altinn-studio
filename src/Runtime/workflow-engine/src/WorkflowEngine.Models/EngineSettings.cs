@@ -475,6 +475,21 @@ public sealed record PaginationSettings
     /// </summary>
     [JsonPropertyName("maxPageSize")]
     public int MaxPageSize { get; set; } = 100;
+
+    /// <summary>
+    /// Maximum number of distinct collection keys one annotate request may carry
+    /// (<c>GET /collections?key=…</c>).
+    /// </summary>
+    /// <remarks>
+    /// Deliberately separate from <see cref="MaxPageSize"/> even though both default to 100:
+    /// a page size above the maximum is <em>clamped</em>, while a key list above this one is
+    /// <em>rejected</em>. Silently dropping keys from a health read would let their failures
+    /// pass as healthy, which is the failure class the endpoint exists to surface. Sharing one
+    /// knob would mean that lowering the page size to control query cost also shrinks what a
+    /// health caller may ask about, and callers sized against the old value start failing.
+    /// </remarks>
+    [JsonPropertyName("maxAnnotateKeys")]
+    public int MaxAnnotateKeys { get; set; } = 100;
 }
 
 /// <summary>
