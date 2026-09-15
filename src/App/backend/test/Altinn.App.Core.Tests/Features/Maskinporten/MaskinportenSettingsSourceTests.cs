@@ -2,6 +2,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -104,12 +105,35 @@ public sealed class MaskinportenSettingsSourceTests
     public async Task Options_FailValidation_WhenNothingIsProvisioned()
     {
         using var tempDirectory = new TempDirectory();
+        string settingsPath = Path.Join(tempDirectory.Path, SettingsFileName);
 
-        await using var serviceProvider = BuildOptionsProvider(Path.Join(tempDirectory.Path, SettingsFileName));
+        await using var serviceProvider = BuildOptionsProvider(settingsPath);
 
-        Assert.Throws<OptionsValidationException>(() =>
+        var exception = Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
         );
+        // The failure names the place the platform provisions into, not a field, and points a developer who
+        // hits it on their own machine at the tool that provisions locally.
+        Assert.Contains(settingsPath, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Options_FailValidationFieldByField_WhenTheFileIsIncomplete()
+    {
+        // A partial file is a different problem from a missing one, and the data annotations describe it.
+        using var tempDirectory = new TempDirectory();
+        string settingsPath = Path.Join(tempDirectory.Path, SettingsFileName);
+        await File.WriteAllTextAsync(settingsPath, """{ "MaskinportenSettings": { "clientId": "half-a-client" } }""");
+
+        await using var serviceProvider = BuildOptionsProvider(settingsPath);
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
+        );
+        Assert.Contains("Authority", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("studioctl", exception.Message, StringComparison.Ordinal);
     }
 
     [LinuxOnlyFact]
@@ -155,6 +179,129 @@ public sealed class MaskinportenSettingsSourceTests
         projectedVolume.SwapDataSymlink(KubernetesProjectedVolume.UpdatedVersionDirectoryName);
 
         await Wait.Until(() => options.CurrentValue.ClientId == "client-after", TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>
+    /// On localtest the launcher of the run - studioctl - provisions the credentials the way the operator does
+    /// in a cluster, and names the directory it provisions into. That is how a developer tests a real
+    /// Maskinporten integration from a local run without the credentials ever entering the app's configuration.
+    /// </summary>
+    [Fact]
+    public async Task Options_ReadTheLauncherDirectory_OnLocaltest()
+    {
+        using var tempDirectory = new TempDirectory();
+        await File.WriteAllTextAsync(
+            Path.Join(tempDirectory.Path, SettingsFileName),
+            CreateSettingsJson("developers-own-client")
+        );
+
+        await using var serviceProvider = BuildAppProvider(
+            hostName: "local.altinn.cloud",
+            (MaskinportenSettingsSource.LauncherSecretsDirectoryKey, tempDirectory.Path)
+        );
+
+        var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
+        Assert.Equal("developers-own-client", settings.ClientId);
+        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
+        Assert.True(source.ProvisionedByLauncher);
+        Assert.Equal(Path.Join(tempDirectory.Path, SettingsFileName), source.FilePath);
+    }
+
+    /// <summary>
+    /// The same key in a deployed environment moves nothing. This is the invariant: an app cannot hand itself
+    /// an identity where a provisioned one is meant to be, not even by borrowing the launcher's key.
+    /// </summary>
+    [Fact]
+    public async Task Options_IgnoreTheLauncherDirectory_WhenNotOnLocaltest()
+    {
+        using var tempDirectory = new TempDirectory();
+        await File.WriteAllTextAsync(
+            Path.Join(tempDirectory.Path, SettingsFileName),
+            CreateSettingsJson("developers-own-client")
+        );
+
+        await using var serviceProvider = BuildAppProvider(
+            hostName: "at22.altinn.cloud",
+            (MaskinportenSettingsSource.LauncherSecretsDirectoryKey, tempDirectory.Path)
+        );
+
+        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
+        Assert.False(source.ProvisionedByLauncher);
+        Assert.Equal(MaskinportenSettingsSource.DefaultFilePath, source.FilePath);
+    }
+
+    /// <summary>
+    /// A MaskinportenSettings section in the app's own configuration is not a Maskinporten surface anywhere,
+    /// localtest included: the file is the only input, so there is never a section name to get right.
+    /// </summary>
+    [Fact]
+    public async Task Options_IgnoreAMaskinportenSection_OnLocaltest()
+    {
+        await using var serviceProvider = BuildAppProvider(
+            hostName: "local.altinn.cloud",
+            ("MaskinportenSettings:authority", "https://test.maskinporten.no/"),
+            ("MaskinportenSettings:clientId", "developers-own-client")
+        );
+
+        Assert.Throws<OptionsValidationException>(() =>
+            serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
+        );
+    }
+
+    [Fact]
+    public async Task Options_UseTheProvisionedLocation_WhenTheLauncherNamesNoDirectory()
+    {
+        await using var serviceProvider = BuildAppProvider(hostName: "local.altinn.cloud");
+
+        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
+        Assert.False(source.ProvisionedByLauncher);
+        Assert.Equal(MaskinportenSettingsSource.DefaultFilePath, source.FilePath);
+    }
+
+    /// <summary>
+    /// The launcher named a directory but nothing has been stored there yet - the state a developer is in the
+    /// first time their integration asks for a token. The failure says exactly what to run.
+    /// </summary>
+    [Fact]
+    public async Task Options_NameTheStudioctlCommand_WhenTheLauncherDirectoryIsEmpty()
+    {
+        using var tempDirectory = new TempDirectory();
+
+        await using var serviceProvider = BuildAppProvider(
+            hostName: "local.altinn.cloud",
+            (MaskinportenSettingsSource.LauncherSecretsDirectoryKey, tempDirectory.Path)
+        );
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
+        );
+        Assert.Contains(
+            "No Maskinporten client is stored for this local run",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(Path.Join(tempDirectory.Path, SettingsFileName), exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The Maskinporten options as an app binds them, through the real registration, for a given platform
+    /// hostname and app configuration. Nothing is provisioned at the cluster's location - which is the
+    /// situation on a developer's machine.
+    /// </summary>
+    private static ServiceProvider BuildAppProvider(
+        string hostName,
+        params (string Key, string? Value)[] appConfiguration
+    )
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(ConfigurationWith(appConfiguration));
+        services.AddRuntimeEnvironment();
+        services.Configure<GeneralSettings>(options => options.HostName = hostName);
+        services.Configure<PlatformSettings>(_ => { });
+        services.AddMaskinportenSettings();
+
+        return services.BuildStrictServiceProvider();
     }
 
     /// <summary>

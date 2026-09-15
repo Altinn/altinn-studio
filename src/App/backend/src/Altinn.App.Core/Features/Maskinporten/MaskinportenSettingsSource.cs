@@ -14,8 +14,13 @@ namespace Altinn.App.Core.Features.Maskinporten;
 /// never added to the app's own configuration root. Nothing an app supplies — a configuration section, an
 /// environment variable, a <c>Configure&lt;T&gt;</c> call — can reach these options, so the identity an app
 /// authenticates as is the provisioned one and cannot be renegotiated.</para>
+/// <para>Where the file lives is the platform's to say, never the app's. In a cluster that is the fixed
+/// secrets mount. On the localtest platform the launcher of the run — studioctl — provisions the file the
+/// way the operator does in a cluster, and names the directory it provisions into through
+/// <see cref="LauncherSecretsDirectoryKey"/>; see <see cref="Create"/>.</para>
 /// <para>The file provider polls, because in a cluster this path is a Kubernetes projected volume: operator-driven
-/// key rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a restart.</para>
+/// key rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a restart. The same
+/// polling is what lets a developer store a client for a local run that is already up.</para>
 /// <para>Despite the name, this is not an <see cref="IConfigurationSource"/>: it is not handed to a
 /// <see cref="IConfigurationBuilder"/>, it is a DI singleton holding the built root open, and the container
 /// disposes it. "Source" here means the place the settings come from.</para>
@@ -28,12 +33,22 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     internal const string FileName = "maskinporten-settings.json";
 
     /// <summary>
-    /// Where the platform provisions the app's credentials. Deliberately not reachable from the app's
-    /// configuration: an app able to move this could point the client at an identity of its own, which is
-    /// the whole thing this type exists to prevent. It stays internal rather than becoming a constant so
+    /// Where the platform provisions the app's credentials in a cluster. Deliberately not reachable from the
+    /// app's configuration: an app able to move this could point the client at an identity of its own, which
+    /// is the whole thing this type exists to prevent. It stays internal rather than becoming a constant so
     /// the library can source the file elsewhere should the need ever arise, and so tests can supply one.
     /// </summary>
     internal static string DefaultFilePath { get; } = Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, FileName);
+
+    /// <summary>
+    /// <para>The configuration key through which the launcher of a local run names the directory it provisions
+    /// the app's secrets into. studioctl sets it as an environment variable for <c>studioctl app run</c> and
+    /// includes it in <c>studioctl app env</c>, which is how an app started with <c>dotnet run</c> learns it.</para>
+    /// <para>Honored on the localtest platform only, and deliberately not shaped like a configuration section
+    /// an app would think to write: the directory belongs to the launcher, the way the secrets mount belongs to
+    /// the operator.</para>
+    /// </summary>
+    internal const string LauncherSecretsDirectoryKey = "STUDIOCTL_APP_SECRETS_DIR";
 
     /// <summary>
     /// The object the provisioned file wraps its credentials in.
@@ -53,10 +68,17 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     /// </summary>
     public string FilePath { get; }
 
-    internal MaskinportenSettingsSource(string filePath)
+    /// <summary>
+    /// Whether the file is provisioned by the launcher of a local run rather than by the platform's operator.
+    /// Decides what a developer is told when the file is missing, nothing else.
+    /// </summary>
+    public bool ProvisionedByLauncher { get; }
+
+    internal MaskinportenSettingsSource(string filePath, bool provisionedByLauncher = false)
     {
         string absolutePath = Path.GetFullPath(filePath);
         FilePath = absolutePath;
+        ProvisionedByLauncher = provisionedByLauncher;
         string providerRoot = GetExistingProviderRoot(Path.GetDirectoryName(absolutePath) ?? string.Empty);
 
         _fileProvider = new PhysicalFileProvider(providerRoot)
@@ -78,6 +100,22 @@ internal sealed class MaskinportenSettingsSource : IDisposable
 
         Section = _root.GetSection(SectionName);
     }
+
+    /// <summary>
+    /// The source for the platform the app runs on: the launcher's directory when one was named, the cluster's
+    /// fixed mount otherwise. The caller decides whether a launcher may name one at all — only on localtest.
+    /// </summary>
+    /// <param name="launcherSecretsDirectory">
+    /// The value of <see cref="LauncherSecretsDirectoryKey"/>, or <c>null</c> where none was supplied or where
+    /// the platform does not honor it.
+    /// </param>
+    internal static MaskinportenSettingsSource Create(string? launcherSecretsDirectory) =>
+        string.IsNullOrWhiteSpace(launcherSecretsDirectory)
+            ? new MaskinportenSettingsSource(DefaultFilePath)
+            : new MaskinportenSettingsSource(
+                Path.Join(launcherSecretsDirectory, FileName),
+                provisionedByLauncher: true
+            );
 
     /// <summary>
     /// The nearest existing ancestor of <paramref name="path"/>. A <see cref="PhysicalFileProvider"/> must be
@@ -115,4 +153,31 @@ internal sealed class ConfigureMaskinportenSettings(MaskinportenSettingsSource s
     public void Configure(MaskinportenSettings options) => source.Section.Bind(options);
 
     public IChangeToken GetChangeToken() => source.Section.GetReloadToken();
+}
+
+/// <summary>
+/// Says where the credentials were expected, and how to supply them, when nothing at all was read. The data
+/// annotations on <see cref="MaskinportenSettings"/> already report a partial file field by field; this covers
+/// the empty file, which is the case a developer meets first, with the fix rather than a field name.
+/// </summary>
+internal sealed class ValidateMaskinportenSettingsPresent(MaskinportenSettingsSource source)
+    : IValidateOptions<MaskinportenSettings>
+{
+    public ValidateOptionsResult Validate(string? name, MaskinportenSettings options)
+    {
+        if (!string.IsNullOrWhiteSpace(options.Authority) || !string.IsNullOrWhiteSpace(options.ClientId))
+        {
+            return ValidateOptionsResult.Skip;
+        }
+
+        return ValidateOptionsResult.Fail(MissingCredentialsMessage(source));
+    }
+
+    internal static string MissingCredentialsMessage(MaskinportenSettingsSource source) =>
+        source.ProvisionedByLauncher
+            ? $"No Maskinporten client is stored for this local run: nothing was read from '{source.FilePath}'. "
+                + "Store one with 'studioctl app maskinporten set'; a running app picks it up without a restart."
+            : $"No Maskinporten credentials were read from '{source.FilePath}', where the platform provisions "
+                + "them. Studio provisions the app's client when the app is deployed. For a local run, start the "
+                + "app through studioctl and store a client with 'studioctl app maskinporten set'.";
 }

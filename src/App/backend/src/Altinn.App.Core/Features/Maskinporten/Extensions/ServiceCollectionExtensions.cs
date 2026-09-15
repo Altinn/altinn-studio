@@ -1,4 +1,6 @@
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -10,8 +12,9 @@ internal static class ServiceCollectionExtensions
 {
     /// <summary>
     /// <para>Adds the app's <see cref="IMaskinportenClient"/> to the service collection, bound to the one
-    /// Maskinporten identity the app has: the client Studio provisions for it.</para>
-    /// <para>There is deliberately no way to configure those credentials — see
+    /// Maskinporten identity the app has: the client Studio provisions for it, or the one studioctl provisions
+    /// for a local run.</para>
+    /// <para>There is deliberately no way for the app to configure those credentials — see
     /// <see cref="MaskinportenSettingsSource"/> for why.</para>
     /// </summary>
     /// <param name="services">The service collection</param>
@@ -34,10 +37,22 @@ internal static class ServiceCollectionExtensions
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        // The one line that decides where the credentials come from. TryAdd so a test can put its own
-        // source in first; nothing an app configures reaches this.
-        services.TryAddSingleton(_ => new MaskinportenSettingsSource(MaskinportenSettingsSource.DefaultFilePath));
+        // The one place that decides where the credentials come from. TryAdd so a test can put its own
+        // source in first. Only the launcher of a localtest run may move the file, and only there: the same
+        // gate every other local-only behavior in the app libraries sits behind (AuthenticationTokenResolver,
+        // MaskinportenWellKnownRefreshService), and one an app cannot pass without breaking its own platform
+        // calls. Nothing an app configures reaches this in a deployed environment.
+        services.TryAddSingleton(sp =>
+        {
+            string? launcherSecretsDirectory = sp.GetRequiredService<RuntimeEnvironment>().IsLocaltestPlatform()
+                ? sp.GetRequiredService<IConfiguration>()[MaskinportenSettingsSource.LauncherSecretsDirectoryKey]
+                : null;
+            return MaskinportenSettingsSource.Create(launcherSecretsDirectory);
+        });
         services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IValidateOptions<MaskinportenSettings>, ValidateMaskinportenSettingsPresent>()
+        );
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IConfigureOptions<MaskinportenSettings>, ConfigureMaskinportenSettings>()
         );
