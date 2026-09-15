@@ -5,13 +5,6 @@ namespace Altinn.Studio.Gateway.Api.Clients.WorkflowEngine;
 
 internal static class WorkflowEngineClientRegistration
 {
-    /// <summary>
-    /// Upstream request timeout. Kept short: the engine is namespace-local and the caller
-    /// (Designer admin UI) waits synchronously — a hung engine should degrade to the
-    /// "engine unavailable" envelope quickly.
-    /// </summary>
-    private static readonly TimeSpan _requestTimeout = TimeSpan.FromSeconds(30);
-
     public static IServiceCollection AddWorkflowEngineClient(
         this IServiceCollection services,
         IConfiguration configuration
@@ -23,6 +16,10 @@ internal static class WorkflowEngineClientRegistration
             .Validate(
                 settings => settings.BaseUrl.IsAbsoluteUri && string.IsNullOrEmpty(settings.BaseUrl.Query),
                 "WorkflowEngine.BaseUrl must be an absolute URI without a query string."
+            )
+            .Validate(
+                settings => settings.RequestTimeout > TimeSpan.Zero,
+                "WorkflowEngine.RequestTimeout must be a positive duration."
             )
             .ValidateOnStart();
 
@@ -37,7 +34,10 @@ internal static class WorkflowEngineClientRegistration
                     .GetRequiredService<IOptionsMonitor<WorkflowEngineSettings>>()
                     .CurrentValue;
                 client.BaseAddress = NormalizeBaseUrl(settings.BaseUrl);
-                client.Timeout = _requestTimeout;
+                // Bounds the header phase only: responses are read headers-first so the body can
+                // stream through, and HttpClient disposes its timeout once the headers are in.
+                // UpstreamPassthroughResult bounds the body phase with the same setting.
+                client.Timeout = settings.RequestTimeout;
             }
         );
 
