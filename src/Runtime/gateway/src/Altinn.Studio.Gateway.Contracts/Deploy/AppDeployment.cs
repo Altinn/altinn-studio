@@ -4,7 +4,10 @@ public record AppDeployment(
     string Org,
     string Env,
     string App,
-    string SourceEnvironment,
-    string BuildId,
-    string ImageTag
+    string? SourceEnvironment,
+    string? BuildId,
+    string? ImageTag,
+    string? CurrentVersion = null,
+    bool UpdateInProgress = false,
+    bool IsGitOpsManaged = false
 );
