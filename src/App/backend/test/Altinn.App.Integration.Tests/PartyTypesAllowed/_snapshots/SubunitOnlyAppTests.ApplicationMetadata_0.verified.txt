@@ -77,7 +77,6 @@
         ],
         MaxCount: 0,
         MinCount: 0,
-        EnablePdfCreation: true,
         EnableFileScan: false,
         ValidationErrorOnPendingFileScan: false
       },
@@ -95,7 +94,6 @@
           DisallowUserDelete: false
         },
         TaskId: Task_1,
-        EnablePdfCreation: true,
         EnableFileScan: false,
         ValidationErrorOnPendingFileScan: false
       }

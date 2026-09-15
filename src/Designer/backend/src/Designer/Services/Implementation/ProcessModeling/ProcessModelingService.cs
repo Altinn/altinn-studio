@@ -143,7 +143,6 @@ public class ProcessModelingService : IProcessModelingService
                 AllowedContentTypes = new List<string> { "application/json" },
                 MaxCount = 1,
                 TaskId = taskId,
-                EnablePdfCreation = false,
             };
 
             if (allowedContributors?.Count > 0)
