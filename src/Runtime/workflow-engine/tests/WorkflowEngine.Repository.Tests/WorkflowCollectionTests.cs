@@ -433,6 +433,35 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task GetCollections_CollectionWithNoWorkflowsLeft_ReportsNoCountsRatherThanZeroes()
+    {
+        // Retention hard-deletes settled workflows but the collection row outlives them. An
+        // all-zero rollup would be indistinguishable from "everything settled cleanly", so the
+        // engine reports no counts at all and the caller can say "no data" instead of "healthy".
+        var repo = fixture.CreateRepository();
+        await EnqueueWithCollection(repo, "pruned", [CreateWorkflowRequest("a")]);
+
+        await using (var context = fixture.CreateDbContext())
+        {
+            await context
+                .Workflows.Where(w => w.CollectionKey == "pruned")
+                .ExecuteDeleteAsync(TestContext.Current.CancellationToken);
+        }
+
+        var collections = (
+            await repo.GetCollections(
+                "test-ns",
+                pageSize: 100,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).Collections;
+
+        var collection = Assert.Single(collections);
+        Assert.Equal("pruned", collection.Key);
+        Assert.Null(collection.WorkflowCounts);
+    }
+
+    [Fact]
     public async Task GetCollections_IsolatedByNamespace()
     {
         // Arrange — create collections in different namespaces
