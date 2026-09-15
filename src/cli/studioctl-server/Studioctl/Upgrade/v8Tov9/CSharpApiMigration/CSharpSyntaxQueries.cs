@@ -136,6 +136,30 @@ internal static class CSharpSyntaxQueries
     }
 
     /// <summary>
+    /// The string-literal first arguments of every invocation of a method in <paramref name="methodSimpleNames"/>
+    /// - the configuration section paths handed to <c>ConfigureMaskinportenClient("...")</c>, say. A call whose
+    /// first argument is not a string literal is not represented.
+    /// </summary>
+    public static IEnumerable<string> FirstStringArguments(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> methodSimpleNames
+    )
+    {
+        foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            var invokedName = InvokedName(invocation);
+            if (
+                invokedName is not null
+                && methodSimpleNames.Contains(invokedName.Identifier.Text)
+                && FirstStringArgument(invocation) is { } argument
+            )
+            {
+                yield return argument;
+            }
+        }
+    }
+
+    /// <summary>
     /// The value of the invocation's first argument when it is a string literal, else <c>null</c>.
     /// </summary>
     private static string? FirstStringArgument(InvocationExpressionSyntax invocation) =>

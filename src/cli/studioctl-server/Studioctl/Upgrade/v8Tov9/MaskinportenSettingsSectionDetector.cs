@@ -1,35 +1,34 @@
 using System.Text.Json;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
-/// Warn-only detector for a <c>MaskinportenSettings</c> configuration section that no longer does anything.
-/// <para>
-/// In v9 an app has exactly one Maskinporten identity, and Studio provisions its credentials as a
-/// <c>maskinporten-settings.json</c> file that the app libraries read through a configuration root of their
-/// own. The app's configuration is not a Maskinporten configuration surface at all any more: a section named
-/// <c>MaskinportenSettings</c> is simply never read, and one carrying a private key is a key in the
-/// repository doing nothing.
-/// </para>
-/// <para>
-/// The exception is the external <c>Altinn.ApiClients.Maskinporten</c> package, whose own convention is a
-/// section of that name. Its settings shape is distinguishable by keys the app libraries never had
-/// (<c>Environment</c>, <c>EncodedJwk</c>, ...), and it is live configuration - the package is the supported
-/// way to bring your own credentials now that the provisioned ones no longer transit the app's configuration
-/// - so such a section is left alone.
-/// </para>
-/// <para>
-/// This reads <c>appsettings*.json</c> rather than C#, because a dead section is a configuration fact: an
-/// app can carry one with no Maskinporten code of its own.
-/// </para>
+/// <para>Warn-only detector for the configuration the built-in Maskinporten client was fed in v8 and that v9
+/// never reads. An app has one Maskinporten identity, the client Studio provisions for it, and the app
+/// libraries read those credentials from the provisioned settings file rather than from the app's
+/// configuration - so every section below is inert, and one holding a private key is a key in the
+/// repository for no reason.</para>
+/// <para>Two tiers, because they differ in confidence. The <b>bound</b> sections are known: the paths the code
+/// handed to <c>ConfigureMaskinportenClient</c> or the Fiks builder's <c>WithMaskinportenConfig</c>, which is
+/// how a v8 app pointed the built-in client at a section of its own (<c>my-app--MaskinportenSettings</c> was
+/// the convention), plus the default <c>MaskinportenSettings</c> section the client bound when nothing was
+/// configured. The <b>leftovers</b> are objects nothing binds but that carry the built-in model's own keys -
+/// <c>jwk</c> or <c>jwkBase64</c>, which the external package spells differently, or <c>authority</c> under a
+/// name that says Maskinporten. An <c>authority</c> on its own is not evidence: OpenID Connect options use
+/// that key too, and would be the false positive.</para>
+/// <para>Every hit names its file and configuration path, so the section can be pasted into
+/// <c>studioctl app maskinporten set</c> before it is deleted - the one thing a developer may still want
+/// from it. An object configuring the external
+/// <c>Altinn.ApiClients.Maskinporten</c> package is still read by that package and is not reported - unless
+/// the code explicitly bound the built-in client to it, in which case the binding is what is dead.</para>
 /// </summary>
 internal sealed class MaskinportenSettingsSectionDetector
 {
-    private const string SectionName = "MaskinportenSettings";
+    private const string DefaultSectionName = "MaskinportenSettings";
 
     /// <summary>
-    /// Keys that only ever belong to the external package's settings shape. Their presence is what
-    /// distinguishes "this app configures the external client" from "this section is left over from v8".
+    /// Keys that only ever belong to the external package's settings shape.
     /// </summary>
     private static readonly IReadOnlySet<string> _externalOnlyKeys = new HashSet<string>(
         StringComparer.OrdinalIgnoreCase
@@ -50,50 +49,222 @@ internal sealed class MaskinportenSettingsSectionDetector
         "ClientKey",
     };
 
-    private const string Summary =
-        "This app has a "
-        + SectionName
-        + " configuration section that v9 never reads. An app has one Maskinporten identity, the client "
-        + "Studio provisions for it, and the app libraries read those credentials from the provisioned "
-        + "settings file rather than from the app's configuration. Delete the section; if it holds a private "
-        + "key, that key is worth removing from the repository on its own merits. If the section held the client "
-        + "you use for local runs, hand it to studioctl before deleting it - studioctl app maskinporten set "
-        + "--from-appsettings <the file> - and studioctl provisions the client to the app for local runs the way "
-        + "Studio does when the app is deployed. (A section configuring the external "
+    /// <summary>
+    /// Keys only the built-in client's settings model ever had. The external package's key is <c>EncodedJwk</c>.
+    /// </summary>
+    private static readonly IReadOnlySet<string> _builtInOnlyKeys = new HashSet<string>(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        "jwk",
+        "jwkBase64",
+    };
+
+    private const string BoundSummary =
+        "This app fed the built-in Maskinporten client from these configuration sections, which v9 never reads. "
+        + "An app has one Maskinporten identity, the client Studio provisions for it, and the app libraries read "
+        + "those credentials from the provisioned settings file rather than from the app's configuration. Delete "
+        + "the sections; if one holds a private key, that key is worth removing from the repository on its own "
+        + "merits. If one holds the client you use for local runs, paste the section into studioctl app "
+        + "maskinporten set first, and studioctl provisions the client to the app for local runs the way Studio "
+        + "does when the app is deployed. Sections found:";
+
+    private const string LeftoverSummary =
+        "These configuration objects look like credentials for the built-in Maskinporten client - they carry "
+        + "the keys its settings had - but nothing in the app binds them, and v9 reads nothing there either. "
+        + "Most likely leftovers: delete them, and if one is the client you use for local runs, paste it into "
+        + "studioctl app maskinporten set first. (An object configuring the external "
         + "Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) "
-        + "Sections found:";
+        + "Objects found:";
 
     private readonly string _projectFolder;
+    private readonly IReadOnlySet<string> _boundSections;
 
-    public MaskinportenSettingsSectionDetector(string projectFolder)
+    /// <param name="projectFolder">The app repository root; settings files are found anywhere beneath it.</param>
+    /// <param name="boundSections">
+    /// The configuration section paths the code bound the built-in client to (from
+    /// <see cref="MaskinportenClientOverrideDetector.NamedSections"/>). The default section is always included.
+    /// </param>
+    public MaskinportenSettingsSectionDetector(string projectFolder, IReadOnlySet<string>? boundSections = null)
     {
         _projectFolder = projectFolder;
+        var sections = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { DefaultSectionName };
+        if (boundSections is not null)
+        {
+            sections.UnionWith(boundSections);
+        }
+        _boundSections = sections;
     }
 
     public MigrationResult Detect()
     {
-        var deadSections = new List<string>();
+        var bound = new List<string>();
+        var leftovers = new List<string>();
 
         foreach (var file in EnumerateAppSettingsFiles())
         {
-            var section = ReadSectionKeys(file);
-            if (section is null || section.Any(_externalOnlyKeys.Contains))
+            using var document = TryParse(file);
+            if (document is null || document.RootElement.ValueKind != JsonValueKind.Object)
             {
                 continue;
             }
 
-            deadSections.Add(Path.GetRelativePath(_projectFolder, file));
+            var relativeFile = Path.GetRelativePath(_projectFolder, file);
+            var matched = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var section in _boundSections.Order(StringComparer.OrdinalIgnoreCase))
+            {
+                if (!TryResolve(document.RootElement, section, out var element, out var actualPath))
+                {
+                    continue;
+                }
+
+                matched.Add(actualPath);
+                // The default section was bound implicitly; shaped for the external package, it is that package's
+                // to read. A section the code named explicitly is dead whatever its shape.
+                var isDefault = string.Equals(section, DefaultSectionName, StringComparison.OrdinalIgnoreCase);
+                if (isDefault && HasAnyKey(element, _externalOnlyKeys))
+                {
+                    continue;
+                }
+
+                bound.Add(Describe(relativeFile, actualPath));
+            }
+
+            foreach (var (path, element) in EnumerateObjects(document.RootElement, parentPath: null))
+            {
+                if (matched.Contains(path) || IsUnderAny(path, matched))
+                {
+                    continue;
+                }
+                if (LooksLikeBuiltInCredentials(element, path) && !HasAnyKey(element, _externalOnlyKeys))
+                {
+                    leftovers.Add(Describe(relativeFile, path));
+                }
+            }
         }
 
         var messages = new List<UpgradeMessage>();
-        if (deadSections.Count > 0)
+        if (bound.Count > 0)
         {
-            messages.Warn(Summary);
-            messages.WarnRange(deadSections);
+            messages.Warn(BoundSummary);
+            messages.WarnRange(bound);
+        }
+        if (leftovers.Count > 0)
+        {
+            messages.Warn(LeftoverSummary);
+            messages.WarnRange(leftovers);
         }
 
         return new MigrationResult(messages);
     }
+
+    private static string Describe(string relativeFile, string path) => $"{relativeFile}: {path}";
+
+    /// <summary>
+    /// The object at a configuration path, matched the way .NET configuration matches: case-insensitively,
+    /// with <c>:</c> separating levels. A key that itself contains the separator (<c>"a:b": {...}</c>) is
+    /// tried before descending, since the JSON provider flattens both spellings to the same path.
+    /// </summary>
+    private static bool TryResolve(JsonElement root, string path, out JsonElement element, out string actualPath)
+    {
+        element = root;
+        actualPath = string.Empty;
+        var remaining = path;
+
+        while (remaining.Length > 0)
+        {
+            if (element.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            if (TryGetProperty(element, remaining, out var whole, out var wholeName))
+            {
+                element = whole;
+                actualPath = Join(actualPath, wholeName);
+                break;
+            }
+
+            var separator = remaining.IndexOf(':', StringComparison.Ordinal);
+            if (separator < 0 || !TryGetProperty(element, remaining[..separator], out var next, out var nextName))
+            {
+                return false;
+            }
+
+            element = next;
+            actualPath = Join(actualPath, nextName);
+            remaining = remaining[(separator + 1)..];
+        }
+
+        return element.ValueKind == JsonValueKind.Object;
+    }
+
+    private static bool TryGetProperty(JsonElement element, string name, out JsonElement value, out string actualName)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = property.Value;
+                actualName = property.Name;
+                return true;
+            }
+        }
+
+        value = default;
+        actualName = string.Empty;
+        return false;
+    }
+
+    private static string Join(string parent, string name) => parent.Length == 0 ? name : parent + ":" + name;
+
+    private static IEnumerable<(string Path, JsonElement Element)> EnumerateObjects(
+        JsonElement element,
+        string? parentPath
+    )
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (property.Value.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var path = parentPath is null ? property.Name : parentPath + ":" + property.Name;
+            yield return (path, property.Value);
+            foreach (var nested in EnumerateObjects(property.Value, path))
+            {
+                yield return nested;
+            }
+        }
+    }
+
+    private static bool IsUnderAny(string path, IEnumerable<string> parents) =>
+        parents.Any(parent => path.StartsWith(parent + ":", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Whether an object carries the built-in client's own keys: a <c>jwk</c>/<c>jwkBase64</c> (names only that
+    /// model had), or an <c>authority</c> under a name that says Maskinporten. <c>authority</c> alone is what
+    /// OpenID Connect options are configured with, so it is deliberately not enough.
+    /// </summary>
+    private static bool LooksLikeBuiltInCredentials(JsonElement element, string path)
+    {
+        if (HasAnyKey(element, _builtInOnlyKeys))
+        {
+            return true;
+        }
+
+        return HasKey(element, "authority") && path.Contains("maskinporten", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool HasKey(JsonElement element, string key) =>
+        element
+            .EnumerateObject()
+            .Any(property => string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasAnyKey(JsonElement element, IReadOnlySet<string> keys) =>
+        element.EnumerateObject().Any(property => keys.Contains(property.Name));
 
     private IEnumerable<string> EnumerateAppSettingsFiles()
     {
@@ -130,24 +301,19 @@ internal sealed class MaskinportenSettingsSectionDetector
             new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
             StringSplitOptions.RemoveEmptyEntries
         );
-
-        return Array.Exists(
-            segments,
-            static segment =>
-                segment.Equals("node_modules", StringComparison.OrdinalIgnoreCase)
-                || segment.Equals(".git", StringComparison.Ordinal)
+        return segments.Any(static segment =>
+            segment.Equals("node_modules", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals(".git", StringComparison.Ordinal)
         );
     }
 
     /// <summary>
-    /// The property names of the file's <c>MaskinportenSettings</c> object, or <c>null</c> when the file
-    /// has no such section. Unparsable files are skipped rather than reported: appsettings files legally
-    /// contain comments and trailing commas, and a JSON complaint from an upgrade step about Maskinporten
-    /// would be a confusing way to learn that.
+    /// The parsed file, or <c>null</c> when it cannot be read. Unparsable files are skipped rather than
+    /// reported: appsettings files legally contain comments and trailing commas, and a JSON complaint from
+    /// an upgrade step about Maskinporten would be a confusing way to learn that.
     /// </summary>
-    private static IReadOnlyCollection<string>? ReadSectionKeys(string file)
+    private static JsonDocument? TryParse(string file)
     {
-        JsonDocument document;
         try
         {
             var options = new JsonDocumentOptions
@@ -155,41 +321,11 @@ internal sealed class MaskinportenSettingsSectionDetector
                 CommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true,
             };
-            document = JsonDocument.Parse(File.ReadAllText(file), options);
+            return JsonDocument.Parse(File.ReadAllText(file), options);
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
             return null;
-        }
-
-        using (document)
-        {
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                return null;
-            }
-
-            // .NET configuration keys are case-insensitive, so a section spelled "maskinportensettings" is
-            // the same section. Every match is merged so the result does not depend on which spelling
-            // appears first.
-            var keys = new List<string>();
-            var found = false;
-
-            foreach (var property in document.RootElement.EnumerateObject())
-            {
-                if (
-                    !string.Equals(property.Name, SectionName, StringComparison.OrdinalIgnoreCase)
-                    || property.Value.ValueKind != JsonValueKind.Object
-                )
-                {
-                    continue;
-                }
-
-                found = true;
-                keys.AddRange(property.Value.EnumerateObject().Select(static child => child.Name));
-            }
-
-            return found ? keys : null;
         }
     }
 }
