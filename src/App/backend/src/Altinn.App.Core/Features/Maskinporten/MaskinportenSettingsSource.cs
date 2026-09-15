@@ -16,8 +16,11 @@ namespace Altinn.App.Core.Features.Maskinporten;
 /// authenticates as is the provisioned one and cannot be renegotiated.</para>
 /// <para>The file provider polls, because in a cluster this path is a Kubernetes projected volume: operator-driven
 /// key rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a restart.</para>
+/// <para>Despite the name, this is not an <see cref="IConfigurationSource"/>: it is not handed to a
+/// <see cref="IConfigurationBuilder"/>, it is a DI singleton holding the built root open, and the container
+/// disposes it. "Source" here means the place the settings come from.</para>
 /// </summary>
-internal sealed class MaskinportenConfiguration : IDisposable
+internal sealed class MaskinportenSettingsSource : IDisposable
 {
     /// <summary>
     /// Configuration key naming an alternative location for the settings file. It carries a path, never
@@ -35,12 +38,12 @@ internal sealed class MaskinportenConfiguration : IDisposable
     private readonly IConfigurationRoot _root;
 
     /// <summary>The provisioned credentials, as a configuration section to bind options against.</summary>
-    public IConfiguration Settings { get; }
+    public IConfiguration Section { get; }
 
-    public MaskinportenConfiguration(IConfiguration appConfiguration)
+    public MaskinportenSettingsSource(IConfiguration appConfiguration)
         : this(ResolveFilePath(appConfiguration)) { }
 
-    internal MaskinportenConfiguration(string filePath)
+    internal MaskinportenSettingsSource(string filePath)
     {
         string absolutePath = Path.GetFullPath(filePath);
         string providerRoot = GetExistingProviderRoot(Path.GetDirectoryName(absolutePath) ?? string.Empty);
@@ -62,7 +65,7 @@ internal sealed class MaskinportenConfiguration : IDisposable
             )
             .Build();
 
-        Settings = _root.GetSection(SectionName);
+        Section = _root.GetSection(SectionName);
     }
 
     /// <summary>
@@ -113,13 +116,13 @@ internal sealed class MaskinportenConfiguration : IDisposable
 /// Binds <see cref="MaskinportenSettings"/> to the provisioned credentials, and reloads them when the platform
 /// rotates the key.
 /// </summary>
-internal sealed class ConfigureMaskinportenSettings(MaskinportenConfiguration configuration)
+internal sealed class ConfigureMaskinportenSettings(MaskinportenSettingsSource source)
     : IConfigureOptions<MaskinportenSettings>,
         IOptionsChangeTokenSource<MaskinportenSettings>
 {
     public string Name => Microsoft.Extensions.Options.Options.DefaultName;
 
-    public void Configure(MaskinportenSettings options) => configuration.Settings.Bind(options);
+    public void Configure(MaskinportenSettings options) => source.Section.Bind(options);
 
-    public IChangeToken GetChangeToken() => configuration.Settings.GetReloadToken();
+    public IChangeToken GetChangeToken() => source.Section.GetReloadToken();
 }
