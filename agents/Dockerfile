@@ -282,6 +282,16 @@ RUN case "${TARGETARCH}" in \
 
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 
+# Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
+# source path is missing where Docker would create it, and the Sandbox kernel is built without
+# loadable modules, so nothing else creates the directory the mount needs.
+RUN install -d /lib/modules
+
+# devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in
+# each node's trust store and mounts it into the Flux controllers. Without it the mediated CA is
+# unknown inside the cluster and every Helm repository fetch fails certificate verification.
+ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+
 COPY common/full-tmpfiles.conf /usr/lib/tmpfiles.d/agent-full.conf
 COPY common/full-hosts-init.service /etc/systemd/system/agent-full-hosts-init.service
 
