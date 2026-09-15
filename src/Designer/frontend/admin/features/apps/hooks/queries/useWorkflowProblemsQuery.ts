@@ -9,6 +9,10 @@ import type {
 import { workflowCollectionsPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
 import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
+import {
+  hasActiveCollectionPages,
+  refetchWhileActive,
+} from 'admin/features/apps/utils/workflowRefetch';
 
 export const WORKFLOW_PROBLEMS_PAGE_SIZE = 25;
 
@@ -43,6 +47,9 @@ export const useWorkflowProblemsQuery = (
         signal,
       ),
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
+    // A failing instance being retried has work in flight; keep asking until it settles, so the
+    // row leaves the list (or comes back red) without a reload.
+    refetchInterval: (query) => refetchWhileActive(hasActiveCollectionPages(query.state.data)),
     select: (data) => ({
       collections: data.pages.flatMap((page) => page?.data ?? []),
       totalCount: data.pages[0]?.totalCount ?? 0,

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
@@ -134,6 +135,39 @@ describe('InstanceWorkflows', () => {
     expect(
       screen.queryByText(textMock('admin.workflows.step.waiting_reason'), { exact: false }),
     ).not.toHaveTextContent('venter på signering');
+  });
+
+  it('keeps the loaded workflows when loading more of them fails', async () => {
+    const user = userEvent.setup();
+    const cursor = 'opaque-cursor';
+    jest.mocked(axios.get).mockImplementation(async (url: string) => {
+      if (url.includes(`cursor=${cursor}`)) {
+        throw new AxiosError();
+      }
+      return { status: 200, data: { ...workflowsResponse, nextCursor: cursor } } as AxiosResponse;
+    });
+    renderInstanceWorkflows();
+
+    await screen.findAllByRole('group');
+    await user.click(screen.getByRole('button', { name: textMock('admin.workflows.fetch_more') }));
+
+    // The query as a whole reports an error, but page one is still valid and still cached.
+    expect(
+      await screen.findByText(textMock('admin.workflows.fetch_more_error')),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('group')).toHaveLength(2);
+    expect(screen.queryByText(textMock('general.page_error_title'))).not.toBeInTheDocument();
+  });
+
+  it('sets engine free text apart from the Norwegian copy around it', async () => {
+    jest
+      .mocked(axios.get)
+      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const message = await screen.findByText('Boom went the pipeline');
+    expect(message.tagName).toBe('CODE');
+    expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {

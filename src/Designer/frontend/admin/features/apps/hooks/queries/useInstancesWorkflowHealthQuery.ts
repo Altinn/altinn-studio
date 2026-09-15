@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { useQueries } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
@@ -6,6 +7,10 @@ import type { WorkflowHealthLookup } from 'admin/features/apps/utils/workflowHea
 import { mergeWorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
 import { workflowCollectionsPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
+import {
+  hasActiveCollections,
+  refetchWhileActive,
+} from 'admin/features/apps/utils/workflowRefetch';
 
 /**
  * Upper bound on keys per annotate request. Must stay at or below the engine's `MaxPageSize` (100):
@@ -38,17 +43,10 @@ export const useInstancesWorkflowHealthQuery = (
   const pageFingerprint = instanceGuidPages.map((page) => page.join(',')).join(PAGE_SEPARATOR);
   const chunks = useMemo(() => chunkPages(pageFingerprint), [pageFingerprint]);
 
-  return useQueries({
-    queries: chunks.map((keys) => ({
-      queryKey: [QueryKey.AppInstancesWorkflowHealth, org, env, app, keys],
-      queryFn: async ({ signal }: { signal: AbortSignal }) =>
-        getWorkflowEngineResource<WorkflowCollectionListResponse>(
-          workflowCollectionsPath(org, env, app, { keys }),
-          signal,
-        ),
-      meta: { hideDefaultError: true },
-    })),
-    combine: (results) =>
+  // A stable combine lets TanStack Query reuse its result between renders, so the rows get the
+  // same lookup object back until an answer actually changes.
+  const combine = useCallback(
+    (results: UseQueryResult<WorkflowCollectionListResponse | null>[]) =>
       mergeWorkflowHealth(
         results.map((result, index) => ({
           keys: chunks[index],
@@ -57,6 +55,23 @@ export const useInstancesWorkflowHealthQuery = (
           error: result.error,
         })),
       ),
+    [chunks],
+  );
+
+  return useQueries({
+    queries: chunks.map((keys) => ({
+      queryKey: [QueryKey.AppInstancesWorkflowHealth, org, env, app, keys],
+      queryFn: async ({ signal }: { signal: AbortSignal }) =>
+        getWorkflowEngineResource<WorkflowCollectionListResponse>(
+          workflowCollectionsPath(org, env, app, { keys }),
+          signal,
+        ),
+      // An instance with work in flight will change color on its own; keep asking until it settles.
+      refetchInterval: (query: { state: { data?: WorkflowCollectionListResponse | null } }) =>
+        refetchWhileActive(hasActiveCollections(query.state.data)),
+      meta: { hideDefaultError: true },
+    })),
+    combine,
   });
 };
 

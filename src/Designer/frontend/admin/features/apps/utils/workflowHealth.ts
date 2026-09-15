@@ -18,7 +18,11 @@ export enum WorkflowHealth {
   SideEffectsFailed = 'sideEffectsFailed',
   /** Work still in flight. Expected to resolve itself. */
   Active = 'active',
-  /** Every workflow settled without an outstanding failure. */
+  /**
+   * Nothing in flight and no outstanding failure. A written-off (`Abandoned`) failure counts as
+   * settled here — the engine reports it in neither failed bucket — so the copy for this state
+   * must claim only that nothing is outstanding, never that all work completed.
+   */
   Healthy = 'healthy',
   /** The engine has no data for this instance: pre-v9 app, no transition activity, or pruned. */
   NoData = 'noData',

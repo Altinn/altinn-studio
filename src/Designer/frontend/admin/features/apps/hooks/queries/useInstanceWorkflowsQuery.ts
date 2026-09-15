@@ -8,6 +8,7 @@ import type {
 import { workflowsListPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
 import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
+import { hasActiveWorkflows, refetchWhileActive } from 'admin/features/apps/utils/workflowRefetch';
 
 export const INSTANCE_WORKFLOWS_PAGE_SIZE = 25;
 
@@ -35,6 +36,9 @@ export const useInstanceWorkflowsQuery = (
         signal,
       ),
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
+    // A retried or newly enqueued workflow is only enqueued by the verb; the state the operator
+    // waits for arrives later, so the drill-down keeps asking while anything is in flight.
+    refetchInterval: (query) => refetchWhileActive(hasActiveWorkflows(query.state.data)),
     select: (data) =>
       data.pages
         .flatMap((page) => page?.data ?? [])
