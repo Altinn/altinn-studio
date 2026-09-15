@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
-import { PlusCircleIcon, TasklistIcon } from '@studio/icons';
+import { PadlockLockedIcon, PlusCircleIcon, TasklistIcon } from '@studio/icons';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
@@ -17,6 +17,8 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink/ButtonRouterLink';
 
 /**
  * @component
@@ -27,6 +29,9 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
+  const isEnableAltinn2RolesPolicyEditor = useFeatureFlag(
+    FeatureFlag.EnableAltinn2RolesPolicyEditor,
+  );
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
@@ -125,14 +130,27 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </StudioHeading>
         <div className={classes.topRightWrapper}>
-          <StudioButton
-            variant='tertiary'
-            onClick={() => navigate(`${getResourceDashboardURL(org, app)}/accesslists`)}
-            data-size='md'
+          {isEnableAltinn2RolesPolicyEditor && (
+            <>
+              <ButtonRouterLink
+                to={`${getResourceDashboardURL(org, app)}/altinn2resourcepolicies`}
+                icon={<PadlockLockedIcon />}
+                variant='tertiary'
+                data-size='md'
+              >
+                <strong>{t('resourceadm.altinn2policy_dashboard_link')}</strong>
+              </ButtonRouterLink>
+              <div className={classes.verticalDivider} data-color='neutral' />
+            </>
+          )}
+          <ButtonRouterLink
+            to={`${getResourceDashboardURL(org, app)}/accesslists`}
             icon={<TasklistIcon />}
+            variant='tertiary'
+            data-size='md'
           >
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-          </StudioButton>
+          </ButtonRouterLink>
           <div className={classes.verticalDivider} data-color='neutral' />
           <StudioButton
             variant='tertiary'
