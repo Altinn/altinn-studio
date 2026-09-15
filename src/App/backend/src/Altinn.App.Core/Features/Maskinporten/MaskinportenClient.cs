@@ -306,7 +306,7 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
         catch (OptionsValidationException e)
         {
             throw new MaskinportenConfigurationException(
-                "Error reading MaskinportenSettings from the current app configuration",
+                "The app's Maskinporten credentials are missing or invalid: " + e.Message,
                 e
             );
         }
