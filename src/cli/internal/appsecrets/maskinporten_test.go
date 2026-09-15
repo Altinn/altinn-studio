@@ -150,6 +150,69 @@ func TestParseMaskinportenClient_Rejects(t *testing.T) {
 	}
 }
 
+func TestParseMaskinportenClient_StoresTheKeyInTheAlphabetTheAppDecodes(t *testing.T) {
+	t.Parallel()
+
+	// The app libraries decode with the standard padded alphabet only; a key encoded by a base64url tool,
+	// unpadded, must not be stored as pasted or the first token request fails where set said all was well.
+	urlEncoded := base64.RawURLEncoding.EncodeToString([]byte(testJwk))
+	if urlEncoded == testJwkBase64() {
+		t.Fatal("fixture does not distinguish the alphabets")
+	}
+
+	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
+		"clientId": "c", "authority": "https://test.maskinporten.no/", "jwkBase64": "` + urlEncoded + `"
+	}`))
+	if err != nil {
+		t.Fatalf("ParseMaskinportenClient() error = %v", err)
+	}
+	if client.JwkBase64 != testJwkBase64() {
+		t.Fatalf("JwkBase64 = %q, want the standard padded encoding %q", client.JwkBase64, testJwkBase64())
+	}
+}
+
+func TestParseMaskinportenClient_UnwrapsTheDefaultSectionBesideOtherKeys(t *testing.T) {
+	t.Parallel()
+
+	// A whole appsettings file pasted with the default section in it: the section wins over the noise.
+	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
+		"Logging": { "LogLevel": { "Default": "Information" } },
+		"MaskinportenSettings": { "clientId": "c-default", "authority": "https://test.maskinporten.no/", "jwk": ` + testJwk + ` }
+	}`))
+	if err != nil {
+		t.Fatalf("ParseMaskinportenClient() error = %v", err)
+	}
+	if client.ClientID != "c-default" {
+		t.Fatalf("ClientID = %q, want c-default", client.ClientID)
+	}
+}
+
+func TestParseMaskinportenClient_UnwrapsANestedSectionAndExplainsAWholeFile(t *testing.T) {
+	t.Parallel()
+
+	// The upgrade report names nested paths such as Integrations:Fiks:Maskinporten; pasting the chain works.
+	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
+		"Integrations": { "Fiks": { "Maskinporten": {
+			"clientId": "c-nested", "authority": "https://test.maskinporten.no/", "jwk": ` + testJwk + `
+		} } }
+	}`))
+	if err != nil {
+		t.Fatalf("ParseMaskinportenClient() error = %v", err)
+	}
+	if client.ClientID != "c-nested" {
+		t.Fatalf("ClientID = %q, want c-nested", client.ClientID)
+	}
+
+	// A whole file with an app-prefixed section beside other keys cannot be unwrapped; say what to paste.
+	_, err = appsecrets.ParseMaskinportenClient([]byte(`{
+		"Logging": {},
+		"my-app--MaskinportenSettings": { "clientId": "c", "authority": "https://test.maskinporten.no/", "jwk": ` + testJwk + ` }
+	}`))
+	if !errors.Is(err, appsecrets.ErrInvalidMaskinportenClient) || !strings.Contains(err.Error(), "paste the section") {
+		t.Fatalf("error = %v, want ErrInvalidMaskinportenClient telling the developer to paste the section", err)
+	}
+}
+
 func TestParseMaskinportenClient_UnwrapsAPastedSectionUnderAnyName(t *testing.T) {
 	t.Parallel()
 
@@ -170,8 +233,8 @@ func TestParseMaskinportenClient_UnwrapsAPastedSectionUnderAnyName(t *testing.T)
 
 	// Two sections is not a paste of one client.
 	_, err = appsecrets.ParseMaskinportenClient([]byte(`{"a": {"clientId": "x"}, "b": {"clientId": "y"}}`))
-	if !errors.Is(err, appsecrets.ErrInvalidMaskinportenClient) {
-		t.Fatalf("error = %v, want ErrInvalidMaskinportenClient for two wrapped objects", err)
+	if !errors.Is(err, appsecrets.ErrInvalidMaskinportenClient) || !strings.Contains(err.Error(), "paste the section") {
+		t.Fatalf("error = %v, want ErrInvalidMaskinportenClient telling the developer to paste the section", err)
 	}
 }
 
@@ -201,15 +264,8 @@ func TestStoreMaskinportenClient_WritesTheProvisionedFormatForTheOwnerOnly(t *te
 	if !strings.Contains(string(data), `"MaskinportenSettings"`) {
 		t.Fatalf("file = %s, want the credentials wrapped as the operator writes them", data)
 	}
-	if runtime.GOOS != "windows" {
-		info, statErr := os.Stat(path)
-		if statErr != nil {
-			t.Fatalf("Stat() error = %v", statErr)
-		}
-		if perm := info.Mode().Perm(); perm != 0o600 {
-			t.Fatalf("permissions = %o, want 600", perm)
-		}
-	}
+	assertOwnerOnly(t, path, 0o600)
+	assertOwnerOnly(t, dir, 0o700)
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatalf("ReadDir() error = %v", err)
@@ -270,5 +326,20 @@ func TestEnvironment(t *testing.T) {
 		if got := appsecrets.Environment(authority); got != want {
 			t.Errorf("Environment(%q) = %q, want %q", authority, got, want)
 		}
+	}
+}
+
+// assertOwnerOnly checks a Unix mode; on Windows the owner-only guarantee is an ACL the test cannot read.
+func assertOwnerOnly(t *testing.T, path string, want os.FileMode) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		return
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("Stat(%s) error = %v", path, err)
+	}
+	if perm := info.Mode().Perm(); perm != want {
+		t.Fatalf("permissions of %s = %o, want %o", path, perm, want)
 	}
 }

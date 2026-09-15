@@ -136,23 +136,41 @@ func ParseMaskinportenClient(data []byte) (MaskinportenClient, error) {
 	if err != nil {
 		return MaskinportenClient{}, err
 	}
-	if wrapped, ok := unwrap(object); ok {
+	for {
+		wrapped, ok := unwrap(object)
+		if !ok {
+			break
+		}
 		object, err = parseObject(wrapped)
 		if err != nil {
 			return MaskinportenClient{}, err
 		}
 	}
+	if !hasCredentialKeys(object) {
+		return MaskinportenClient{}, fmt.Errorf(
+			"%w: this JSON holds no Maskinporten client - paste the section that carries clientId and the key, "+
+				"with or without its name, not the whole file",
+			ErrInvalidMaskinportenClient,
+		)
+	}
 	return clientFromObject(object)
 }
 
-// unwrap returns the one object a wrapper holds: the provisioned file's MaskinportenSettings object, or a
-// pasted section under whatever name the app gave it. An object that carries a credential key itself is the
-// credentials, not a wrapper.
+// hasCredentialKeys reports whether an object is the credentials themselves rather than something around them.
+func hasCredentialKeys(object map[string]json.RawMessage) bool {
+	_, ok := hasAny(object, "clientId", "authority", "jwk", "jwkBase64", "encodedJwk", "environment")
+	return ok
+}
+
+// unwrap returns the one object a wrapper holds: the provisioned file's MaskinportenSettings object (even
+// beside other keys, as in a pasted appsettings file), or a pasted section under whatever name the app gave
+// it - through as many single-key levels as it was nested in. An object that carries a credential key itself
+// is the credentials, not a wrapper.
 func unwrap(object map[string]json.RawMessage) (json.RawMessage, bool) {
-	if _, ok := hasAny(object, "clientId", "authority", "jwk", "jwkBase64", "encodedJwk", "environment"); ok {
+	if hasCredentialKeys(object) {
 		return nil, false
 	}
-	if wrapped, ok := lookup(object, wrapperKey); ok {
+	if wrapped, ok := lookup(object, wrapperKey); ok && isObject(wrapped) {
 		return wrapped, true
 	}
 	if len(object) != 1 {
@@ -299,6 +317,19 @@ func clientFromObject(object map[string]json.RawMessage) (MaskinportenClient, er
 	}
 	if client.JwkBase64, err = stringField(object, "jwkBase64", "encodedJwk"); err != nil {
 		return MaskinportenClient{}, err
+	}
+	if client.JwkBase64 != "" {
+		// Encoders differ, but the app libraries decode with the standard padded alphabet and nothing else, so
+		// the stored value is re-encoded that way whatever the input used.
+		decoded, decodeErr := decodeBase64(client.JwkBase64)
+		if decodeErr != nil {
+			return MaskinportenClient{}, fmt.Errorf(
+				"%w: jwkBase64 is not base64: %w",
+				ErrInvalidMaskinportenClient,
+				decodeErr,
+			)
+		}
+		client.JwkBase64 = base64.StdEncoding.EncodeToString(decoded)
 	}
 	if jwk, ok := lookup(object, "jwk"); ok {
 		if !isObject(jwk) {

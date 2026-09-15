@@ -67,7 +67,9 @@ internal sealed class MaskinportenSettingsSectionDetector
         + "the sections; if one holds a private key, that key is worth removing from the repository on its own "
         + "merits. If one holds the client you use for local runs, paste the section into studioctl app "
         + "maskinporten set first, and studioctl provisions the client to the app for local runs the way Studio "
-        + "does when the app is deployed. Sections found:";
+        + "does when the app is deployed. One exception: a default MaskinportenSettings section that configures "
+        + "the external Altinn.ApiClients.Maskinporten package, with its Environment and key kept in user "
+        + "secrets or a key vault, is still read by that package - keep it. Sections found:";
 
     private const string LeftoverSummary =
         "These configuration objects look like credentials for the built-in Maskinporten client - they carry "
