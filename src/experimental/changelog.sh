@@ -174,6 +174,12 @@ validate_structure() {
       version_heading = "^## \\[" semver "\\] - " date "$"
     }
 
+    function days_in_month(year, month,   lengths) {
+      split("31 28 31 30 31 30 31 31 30 31 30 31", lengths, " ")
+      if (month == 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) return 29
+      return lengths[month] + 0
+    }
+
     function problem(message) {
       printf "%s:%d: %s\n", label, NR, message > "/dev/stderr"
       failures++
@@ -209,6 +215,10 @@ validate_structure() {
         if (headings > 0) problem("\"## [Unreleased]\" must be the first version section")
       } else if ($0 ~ version_heading) {
         if (unreleased == 0) problem("\"## [Unreleased]\" must be the first version section")
+        released = substr($0, length($0) - 9)
+        if (substr(released, 9, 2) + 0 > days_in_month(substr(released, 1, 4) + 0, substr(released, 6, 2) + 0)) {
+          problem(released " is not a date that exists")
+        }
         version = $0
         sub(/^## \[/, "", version)
         sub(/\].*$/, "", version)
@@ -298,7 +308,7 @@ section_body() {
   awk -v version="$2" -v dated="$3" '
     { sub(/\r$/, "") }
 
-    capture && /^\[[^]]+\]: / { capture = 0; next }
+    capture && /^\[[^]]+\]: / { next }   # skipped, but the section continues past it
 
     $0 ~ /^## / {
       capture = 0
@@ -318,7 +328,16 @@ section_body() {
       last = count
       while (last >= first && body[last] ~ /^[ \t]*$/) last--
       if (first > last) exit 5
-      for (index_ = first; index_ <= last; index_++) print body[index_]
+      # Collapse runs of blank lines, which a skipped link reference can leave behind.
+      for (index_ = first; index_ <= last; index_++) {
+        if (body[index_] ~ /^[ \t]*$/) {
+          if (blank) continue
+          blank = 1
+        } else {
+          blank = 0
+        }
+        print body[index_]
+      }
     }
   ' "$1"
 }

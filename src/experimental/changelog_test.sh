@@ -491,6 +491,81 @@ BODY
 )"
 assert_status 'validate rejects an impossible month and day' 1 "${CHANGELOG}" validate "${bad_month}"
 
+impossible_dates="$(fixture impossible-dates <<'BODY'
+
+## [Unreleased]
+
+## [1.0.2] - 2026-02-31
+
+### Added
+
+- The 31st of February.
+BODY
+)"
+assert_message 'validate rejects a day past the end of the month' 1 '2026-02-31 is not a date' \
+  "${CHANGELOG}" validate "${impossible_dates}"
+
+short_month="$(fixture short-month <<'BODY'
+
+## [Unreleased]
+
+## [1.0.1] - 2026-04-31
+
+### Added
+
+- The 31st of April.
+BODY
+)"
+assert_message 'validate rejects the 31st of a 30-day month' 1 '2026-04-31 is not a date' \
+  "${CHANGELOG}" validate "${short_month}"
+
+common_year="$(fixture common-year <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0] - 2025-02-29
+
+### Added
+
+- The 29th of February in a common year.
+BODY
+)"
+assert_message 'validate rejects 29 February outside a leap year' 1 '2025-02-29 is not a date' \
+  "${CHANGELOG}" validate "${common_year}"
+
+leap_years="$(fixture leap-years <<'BODY'
+
+## [Unreleased]
+
+## [2.0.0] - 2024-02-29
+
+### Added
+
+- A leap year divisible by four.
+
+## [1.0.0] - 2000-02-29
+
+### Added
+
+- A leap year divisible by four hundred.
+BODY
+)"
+assert_status 'validate accepts 29 February in a leap year' 0 "${CHANGELOG}" validate "${leap_years}"
+
+century="$(fixture century <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0] - 1900-02-29
+
+### Added
+
+- A century that is not a leap year.
+BODY
+)"
+assert_message 'validate rejects 29 February in a non-leap century' 1 '1900-02-29 is not a date' \
+  "${CHANGELOG}" validate "${century}"
+
 header_in_entry="${WORK}/header-in-entry.md"
 cat >"${header_in_entry}" <<'BODY'
 # Changelog
@@ -529,6 +604,34 @@ assert_output 'extract leaves link reference definitions out of the body' \
 
 - First release.' \
   "${CHANGELOG}" extract 1.0.0 "${link_references}"
+
+# A link reference between categories must not truncate the section.
+interleaved="$(fixture interleaved-link <<'BODY'
+
+## [Unreleased]
+
+## [1.0.0] - 2026-09-01
+
+### Added
+
+- Something.
+
+[1.0.0]: https://example.com/releases/1.0.0
+
+### Fixed
+
+- Something else.
+BODY
+)"
+assert_output 'extract keeps categories that follow a link reference' \
+  '### Added
+
+- Something.
+
+### Fixed
+
+- Something else.' \
+  "${CHANGELOG}" extract 1.0.0 "${interleaved}"
 
 crlf="${WORK}/crlf.md"
 sed 's/$/\r/' "${good}" >"${crlf}"
