@@ -364,7 +364,7 @@ Three mutually exclusive modes:
 | annotate | `key` (repeatable)                      | health for a set of keys the caller already holds          |
 | discover | `failures=any\|visible\|invisible`, `cursor` | the errors view                                       |
 
-`key` × `cursor` → 400. `key` × `failures` → 400. More keys than the maximum page size → 400 — the
+`key` × `cursor` → 400. `key` × `failures` → 400. More distinct keys than `pagination.maxAnnotateKeys` → 400 — the
 request is **rejected, never truncated**, because silently dropping keys from a health read is the
 exact failure class this endpoint exists to fix. Annotate mode additionally returns
 `unmatchedKeys: [...]` for requested keys with no collection row; absence must not collapse into

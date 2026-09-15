@@ -921,9 +921,9 @@ internal static class EngineRequestHandlers
 
         // Reject rather than truncate: silently dropping keys from a health read would let their
         // failures pass as healthy, which is the exact failure class this endpoint exists to fix.
-        if (keyCount > pagination.MaxPageSize)
+        if (keyCount > pagination.MaxAnnotateKeys)
             return TypedResults.Problem(
-                detail: $"Too many keys: {keyCount} distinct keys supplied, maximum is {pagination.MaxPageSize}. Split the request instead — keys are never silently truncated.",
+                detail: $"Too many keys: {keyCount} distinct keys supplied, maximum is {pagination.MaxAnnotateKeys}. Split the request instead — keys are never silently truncated.",
                 statusCode: StatusCodes.Status400BadRequest
             );
 
@@ -940,7 +940,7 @@ internal static class EngineRequestHandlers
         }
 
         // Annotate mode is a single page by construction: the page must fit every requested key
-        // (their count is already capped at MaxPageSize above), so pageSize is ignored.
+        // (their count is already capped at MaxAnnotateKeys above), so pageSize is ignored.
         var effectivePageSize = annotate
             ? keyCount
             : Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);

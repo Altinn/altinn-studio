@@ -1299,7 +1299,8 @@ public class EngineEndpointTests
         string[]? keys = null,
         string? failures = null,
         string? cursor = null,
-        int? pageSize = null
+        int? pageSize = null,
+        IOptions<EngineSettings>? settings = null
     ) =>
         EngineRequestHandlers.ListCollections(
             DefaultNamespace,
@@ -1308,7 +1309,7 @@ public class EngineEndpointTests
             cursor,
             pageSize,
             repository,
-            _defaultSettings,
+            settings ?? _defaultSettings,
             TestContext.Current.CancellationToken
         );
 
@@ -1341,13 +1342,13 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListCollections_MoreKeysThanMaxPageSize_ReturnsBadRequest_NeverTruncates()
+    public async Task ListCollections_MoreKeysThanMaxAnnotateKeys_ReturnsBadRequest_NeverTruncates()
     {
         // Strict mock: the repository must never be reached — rejecting instead of truncating is
         // the contract (dropped keys would read as healthy).
         var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
         var keys = Enumerable
-            .Range(0, _defaultSettings.Value.Pagination.MaxPageSize + 1)
+            .Range(0, _defaultSettings.Value.Pagination.MaxAnnotateKeys + 1)
             .Select(i => $"k-{i}")
             .ToArray();
 
@@ -1494,5 +1495,40 @@ public class EngineEndpointTests
         Assert.Empty(ok.Value.Data);
         Assert.NotNull(ok.Value.UnmatchedKeys);
         Assert.Equal(["ghost"], ok.Value.UnmatchedKeys.ToArray());
+    }
+
+    [Fact]
+    public async Task ListCollections_AnnotateKeyCap_IsIndependentOfMaxPageSize()
+    {
+        // An operator lowering MaxPageSize to control list-query cost must not shrink what a
+        // health caller may ask about: the two knobs answer different questions, and a page size
+        // is clamped where a key list is rejected.
+        var settings = Options.Create(
+            _defaultSettings.Value with
+            {
+                Pagination = new PaginationSettings { MaxPageSize = 5, MaxAnnotateKeys = 100 },
+            }
+        );
+        var keys = Enumerable.Range(0, 50).Select(i => $"k-{i}").ToArray();
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r =>
+                r.GetCollections(
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IReadOnlyCollection<string>?>(),
+                    It.IsAny<CollectionFailureFilter?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new CollectionQueryResult([], null, 0, keys));
+
+        var result = await InvokeListCollections(repositoryMock.Object, keys: keys, settings: settings);
+
+        // Accepted, and the echoed page size is the key count — not the far smaller MaxPageSize.
+        var ok = Assert.IsType<Ok<WorkflowCollectionListResponse>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Equal(keys.Length, ok.Value.PageSize);
     }
 }
