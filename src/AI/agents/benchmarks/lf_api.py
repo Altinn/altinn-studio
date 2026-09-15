@@ -53,6 +53,16 @@ class LangfuseApi:
         response.raise_for_status()
         return response.json()
 
+    def _patch(self, path: str, body: dict) -> dict:
+        response = self._client.patch(path, json=body)
+        response.raise_for_status()
+        return response.json()
+
+    def _delete(self, path: str, **params: Any) -> dict:
+        response = self._client.request("DELETE", path, params=params)
+        response.raise_for_status()
+        return response.json() if response.content else {}
+
     def upsert_dataset_item(
         self,
         dataset_name: str,

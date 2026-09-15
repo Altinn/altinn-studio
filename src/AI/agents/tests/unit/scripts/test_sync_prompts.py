@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
 import httpx
 import pytest
+
+from benchmarks.lf_api import LangfuseApi
 
 SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "sync_prompts.py"
 _spec = importlib.util.spec_from_file_location("sync_prompts", SCRIPT)
@@ -36,6 +39,7 @@ class _Langfuse:
         self._published = published or {}
         self.published = []
         self.patched = []
+        self.deleted = []
         self.pages_read = 0
         self.get_error = None
 
@@ -54,7 +58,7 @@ class _Langfuse:
                 request=httpx.Request("GET", path),
                 response=httpx.Response(404),
             )
-        return {"prompt": self._prompts[name], "version": 1}
+        return {"prompt": self._prompts[name], "version": params.get("version", 1)}
 
     def _post(self, path, body):
         self.published.append(body)
@@ -63,6 +67,10 @@ class _Langfuse:
     def _patch(self, path, body):
         self.patched.append((path, body))
         return {"version": int(path.rsplit("/", 1)[-1]), "labels": body["newLabels"]}
+
+    def _delete(self, path, **params):
+        self.deleted.append(path.rsplit("/", 1)[-1])
+        return {}
 
 
 class TestPromptsLangfuseHoldsAlone:
@@ -353,3 +361,115 @@ class TestPushFollowsTheServedName:
 
         assert api.published[0]["name"] == LOCAL
         assert "serving" not in capsys.readouterr().out
+
+
+DECOY = "intent_security"
+SERVED = "intent_check"
+
+
+class TestTheFakeCannotOutrunTheRealClient:
+    """`--promote` called `_patch`, which only this fake had, so it raised
+    AttributeError against the real Langfuse for as long as it existed."""
+
+    def test_every_method_the_script_calls_exists_on_the_real_client(self):
+        called = {
+            name
+            for name in dir(_Langfuse)
+            if name.startswith("_") and not name.startswith("__")
+        }
+
+        assert called <= set(dir(LangfuseApi))
+
+
+class TestAFileThatServesAnotherNameDoesNotShieldItsOwn:
+    def test_the_decoy_is_an_orphan_while_the_file_serves_the_other_name(self):
+        assert DECOY in sync_prompts._orphan_prompts(
+            _Langfuse([_page([DECOY, SERVED])])
+        )[0]["name"]
+
+    def test_the_name_the_file_serves_is_not_an_orphan(self):
+        orphans = sync_prompts._orphan_prompts(_Langfuse([_page([DECOY, SERVED])]))
+
+        assert [prompt["name"] for prompt in orphans] == [DECOY]
+
+
+class TestRetiringIsGated:
+    def test_retiring_without_the_override_is_refused(self, monkeypatch):
+        monkeypatch.delenv(sync_prompts.DELETE_OVERRIDE_VARIABLE, raising=False)
+        api = _Langfuse([_page([RETIRED])])
+
+        with pytest.raises(SystemExit, match="cannot be"):
+            _run(monkeypatch, api, ["--retire"], names=[LOCAL])
+
+        assert api.deleted == []
+
+
+class TestRetiring:
+    @pytest.fixture(autouse=True)
+    def _archive_in_a_temp_file(self, tmp_path, monkeypatch):
+        monkeypatch.setenv(sync_prompts.DELETE_OVERRIDE_VARIABLE, "1")
+        self.archive = tmp_path / "retired.json"
+        monkeypatch.setattr(sync_prompts, "RETIRED_FILE", self.archive)
+
+    def _api(self):
+        listing = {
+            "data": [{"name": RETIRED, "labels": ["latest"], "versions": [1, 2]}],
+            "meta": {"totalPages": 1},
+        }
+        return _Langfuse([listing], prompts={RETIRED: "the retired text"})
+
+    def test_it_deletes_every_orphan(self, monkeypatch):
+        api = self._api()
+
+        _run(monkeypatch, api, ["--retire"], names=[LOCAL])
+
+        assert api.deleted == [RETIRED]
+
+    def test_it_keeps_the_text_of_every_version(self, monkeypatch):
+        api = self._api()
+
+        _run(monkeypatch, api, ["--retire"], names=[LOCAL])
+
+        kept = json.loads(self.archive.read_text(encoding="utf-8"))
+        assert [version["version"] for version in kept[RETIRED][0]["versions"]] == [1, 2]
+
+    def test_the_text_is_written_before_the_prompt_is_deleted(self, monkeypatch):
+        """Deleting first would lose the only copy if the write then failed."""
+        api = self._api()
+        seen = []
+        monkeypatch.setattr(
+            sync_prompts, "_archive", lambda *a, **kw: seen.append("archived") or 2
+        )
+        original = api._delete
+        api._delete = lambda path, **kw: seen.append("deleted") or original(path)
+
+        _run(monkeypatch, api, ["--retire"], names=[LOCAL])
+
+        assert seen == ["archived", "deleted"]
+
+    def test_a_named_prompt_with_a_repo_file_is_refused(self, monkeypatch):
+        api = self._api()
+
+        with pytest.raises(SystemExit, match="not a Langfuse prompt"):
+            _run(monkeypatch, api, ["--retire", LOCAL], names=[LOCAL])
+
+        assert api.deleted == []
+
+    def test_a_second_retirement_of_the_same_name_keeps_the_first(self, monkeypatch):
+        """Langfuse deletion cannot be undone, so an overwritten record is text lost."""
+        _run(monkeypatch, self._api(), ["--retire"], names=[LOCAL])
+        first = json.loads(self.archive.read_text(encoding="utf-8"))[RETIRED]
+
+        _run(monkeypatch, self._api(), ["--retire"], names=[LOCAL])
+
+        kept = json.loads(self.archive.read_text(encoding="utf-8"))[RETIRED]
+        assert len(kept) == 2
+        assert kept[0] == first[0]
+
+    def test_retiring_deletes_nothing_when_there_are_no_orphans(self, monkeypatch, capsys):
+        api = _Langfuse([_page([])])
+
+        _run(monkeypatch, api, ["--retire"], names=[LOCAL])
+
+        assert api.deleted == []
+        assert "nothing retired" in capsys.readouterr().out

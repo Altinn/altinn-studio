@@ -15,6 +15,7 @@ prompts/
 ├── intent_security.md
 ├── goal_suggestions.md
 ├── scope_check.md
+├── retired.json                 # Prompts deleted from Langfuse, kept readable
 ├── llm-as-a-judge/              # Langfuse-managed evaluator prompts
 └── templates/                   # User prompts (with variables)
     ├── intake_planning_user.md
@@ -119,15 +120,24 @@ get_prompt_with_langfuse("intake_planning")
 | `intake_planning.md`                | `intake_planning`           |
 | `spec_extraction.md`                | `spec_extraction`           |
 | `semantic_query_extraction.md`      | `semantic_query_extraction` |
-| `intent_security.md`                | `intent_security`           |
+| `intent_security.md`                | `intent_check`              |
 | `goal_suggestions.md`               | `goal_suggestions`          |
 | `scope_check.md`                    | `scope_check`               |
 | `templates/intake_planning_user.md` | `intake_planning_user`      |
 | `templates/spec_extraction_user.md` | `spec_extraction_user`      |
 | `templates/semantic_query_user.md`  | `semantic_query_user`       |
 
-One exception: the intent gate loads Langfuse prompt `intent_check` from local
-`intent_security.md`. Pass `local_path` when the two names diverge.
+`intent_security.md` is the one file whose name differs from the prompt it
+serves. Pass `local_path` when the two diverge, and add the pair to
+`SERVED_FROM` in `scripts/sync_prompts.py` so the drift report follows it.
+
+### Retired prompts
+
+A prompt left in Langfuse after its file is deleted keeps serving the version it
+last held, so re-adding the name later silently serves that old text.
+`scripts/sync_prompts.py --diff` reports any Langfuse prompt with no file, and
+`--retire` writes its every version into `retired.json` before deleting it there.
+Deletion cannot be undone, so it is gated behind `ALLOW_PROMPT_DELETE=1`.
 
 ### LLM-as-a-judge prompts
 
