@@ -31,6 +31,14 @@ internal sealed class GatewayApiFactory : WebApplicationFactory<Program>
 {
     public const string ConfiguredServiceOwner = "TTD";
 
+    /// <summary>
+    /// Pinned here rather than inherited: the factory runs in the Development environment, whose
+    /// appsettings point the engine at localhost for <c>dotnet run</c>, while the tests assert the
+    /// exact in-cluster upstream URI.
+    /// </summary>
+    public const string ConfiguredEngineBaseUrl =
+        "http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local";
+
     public FakeWorkflowEngineHandler EngineHandler { get; } = new();
 
     public CollectingLoggerProvider Logs { get; } = new();
@@ -42,7 +50,14 @@ internal sealed class GatewayApiFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration(
             (_, configuration) =>
                 configuration.AddInMemoryCollection(
-                    new Dictionary<string, string?> { ["Gateway:ServiceOwner"] = ConfiguredServiceOwner }
+                    new Dictionary<string, string?>
+                    {
+                        ["Gateway:ServiceOwner"] = ConfiguredServiceOwner,
+                        ["WorkflowEngine:BaseUrl"] = ConfiguredEngineBaseUrl,
+                        // Short on purpose so the stalled-body test proves the budget without a
+                        // 30-second wait; the fake engine answers instantly, so nothing else notices.
+                        ["WorkflowEngine:RequestTimeout"] = "00:00:02",
+                    }
                 )
         );
 

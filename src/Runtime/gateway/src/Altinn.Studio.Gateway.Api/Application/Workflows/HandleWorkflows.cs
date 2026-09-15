@@ -21,7 +21,10 @@ internal static class HandleWorkflows
     /// <summary>Logger category for the audit lines emitted on the two mutating verbs.</summary>
     internal const string AuditLoggerCategory = "Altinn.Studio.Gateway.Api.WorkflowAudit";
 
-    private const string DiagnosticsLoggerCategory = "Altinn.Studio.Gateway.Api.Application.HandleWorkflows";
+    internal const string DiagnosticsLoggerCategory = "Altinn.Studio.Gateway.Api.Application.HandleWorkflows";
+
+    /// <summary>Title of the 502 problem for an engine that could not be reached or stopped answering.</summary>
+    internal const string WorkflowEngineUnavailableTitle = "Workflow engine unavailable";
 
     // Per-route query whitelists. Unrecognized parameters are rejected (400) rather than
     // silently dropped: Designer is deployed centrally while gateways roll out per cluster,
@@ -279,7 +282,7 @@ internal static class HandleWorkflows
 
             return Problem(
                 GatewayProblem.WorkflowEngineUnavailableType,
-                "Workflow engine unavailable",
+                WorkflowEngineUnavailableTitle,
                 StatusCodes.Status502BadGateway,
                 "The workflow engine could not be reached. It may not be deployed in this environment."
             );
@@ -293,7 +296,7 @@ internal static class HandleWorkflows
                 outcome: ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture)
             );
 
-        return new UpstreamPassthroughResult(response);
+        return new UpstreamPassthroughResult(response, engineClient.RequestTimeout);
     }
 
 #pragma warning disable CA1308 // Engine namespaces are canonically lowercase, not uppercase
