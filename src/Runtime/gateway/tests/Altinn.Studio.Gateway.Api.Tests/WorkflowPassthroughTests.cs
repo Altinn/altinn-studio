@@ -19,8 +19,7 @@ public sealed class WorkflowPassthroughTests
     /// app as {org}/{app}, and escaped as a single path segment (%2F). Getting this wrong would
     /// address a different engine route, so the exact string is pinned here.
     /// </summary>
-    private const string UpstreamPrefix =
-        "http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/ttd%2Fmy-app";
+    private const string UpstreamPrefix = GatewayApiFactory.ConfiguredEngineBaseUrl + "/api/v1/ttd%2Fmy-app";
 
     private static readonly GatewayApiFactory _factory = new();
 
@@ -101,17 +100,30 @@ public sealed class WorkflowPassthroughTests
         Assert.Equal($"{UpstreamPrefix}/collections?failures=any&cursor=abc&pageSize=10", upstream.Uri.AbsoluteUri);
     }
 
-    [Fact]
-    public async Task GetCollection_EscapesKeyAsSinglePathSegment()
+    [Theory]
+    // Whatever the key contains, it must reach the engine as one escaped path segment under
+    // /collections/ — never as a path that addresses a different engine route.
+    [InlineData("my%20key", "my%20key")]
+    // Dot-dot and a slash: an escape lapse would step out of /collections/. ASP.NET leaves %2F
+    // encoded in route values, so the gateway sees "..%2Fworkflows" and escapes the percent
+    // sign too — the engine receives one segment, and a key with a literal slash cannot be
+    // addressed through the gateway at all, which is the safe side to land on.
+    [InlineData("..%2Fworkflows", "..%252Fworkflows")]
+    [InlineData("a%3Fb%23c", "a%3Fb%23c")] // ? and #: an escape lapse would start a query or fragment
+    [InlineData("key%0A", "key%0A")] // a control character
+    public async Task GetCollection_EscapesKeyAsSinglePathSegment(string requestedKey, string forwardedKey)
     {
         var ct = TestContext.Current.CancellationToken;
         using var client = CreateAuthorizedClient();
 
-        var response = await client.GetAsync(new Uri($"{GatewayPrefix}/collections/my%20key", UriKind.Relative), ct);
+        var response = await client.GetAsync(
+            new Uri($"{GatewayPrefix}/collections/{requestedKey}", UriKind.Relative),
+            ct
+        );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
-        Assert.Equal($"{UpstreamPrefix}/collections/my%20key", upstream.Uri.AbsoluteUri);
+        Assert.Equal($"{UpstreamPrefix}/collections/{forwardedKey}", upstream.Uri.AbsoluteUri);
     }
 
     [Fact]
@@ -317,6 +329,7 @@ public sealed class WorkflowPassthroughTests
     [InlineData("my_app")]
     [InlineData("1app")]
     [InlineData("-app")]
+    [InlineData("my-app%0A")] // a trailing newline: $ would admit it, \z does not
     public async Task InvalidAppName_ReturnsBadRequest_WithoutContactingEngine(string app)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -396,6 +409,14 @@ public sealed class WorkflowPassthroughTests
     [InlineData("POST", "/workflows", HttpStatusCode.MethodNotAllowed)] // enqueue
     [InlineData("POST", "/collections", HttpStatusCode.MethodNotAllowed)]
     [InlineData("DELETE", "/workflows/00000000-0000-0000-0000-000000000001", HttpStatusCode.MethodNotAllowed)]
+    [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/fail", HttpStatusCode.NotFound)]
+    [InlineData("GET", "/throttle", HttpStatusCode.NotFound)]
+    [InlineData("POST", "/throttle/trip", HttpStatusCode.NotFound)]
+    [InlineData("POST", "/throttle/clear", HttpStatusCode.NotFound)]
+    [InlineData("POST", "/mailboxes", HttpStatusCode.NotFound)]
+    [InlineData("GET", "/mailboxes/00000000-0000-0000-0000-000000000001", HttpStatusCode.NotFound)]
+    [InlineData("DELETE", "/mailboxes/00000000-0000-0000-0000-000000000001", HttpStatusCode.NotFound)]
+    [InlineData("POST", "/mailboxes/00000000-0000-0000-0000-000000000001/deliveries", HttpStatusCode.NotFound)]
     public async Task RoutesOutsideTheWhitelist_AreNotReachable(
         string method,
         string path,
@@ -413,6 +434,63 @@ public sealed class WorkflowPassthroughTests
 
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Empty(_factory.EngineHandler.Requests);
+    }
+
+    [Fact]
+    public async Task EngineStallsAfterHeaders_DegradesToEngineUnavailable()
+    {
+        // The engine answers its headers and then never sends a byte. HttpClient's own timeout
+        // is gone once the headers are in (the response is read headers-first so the body can
+        // stream), so only the pass-through's body budget stands between this and a request that
+        // lasts as long as the caller is prepared to wait.
+        var ct = TestContext.Current.CancellationToken;
+        _factory.EngineHandler.ResponseFactory = _ =>
+        {
+            var stalled = new HttpResponseMessage(HttpStatusCode.OK);
+            stalled.Content = new StreamContent(new StallingStream());
+            stalled.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            return stalled;
+        };
+        using var client = CreateAuthorizedClient();
+
+        var response = await client.GetAsync(new Uri($"{GatewayPrefix}/workflows", UriKind.Relative), ct);
+
+        Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.Contains(
+            $"\"type\":\"{GatewayProblem.WorkflowEngineUnavailableType}\"",
+            await response.Content.ReadAsStringAsync(ct),
+            StringComparison.Ordinal
+        );
+    }
+
+    /// <summary>A read-only stream whose reads complete only by cancellation.</summary>
+    private sealed class StallingStream : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return 0;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override void Flush() { }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     [Fact]
