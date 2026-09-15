@@ -1,10 +1,10 @@
-import { PaymentPolicyBuilder } from '../../../utils/policy';
+import { PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
 import type {
   AddLayoutSetMutation,
   AddLayoutSetMutationPayload,
-} from '../../../hooks/mutations/useAddLayoutSetMutation';
+} from 'app-development/hooks/mutations/useAddLayoutSetMutation';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';

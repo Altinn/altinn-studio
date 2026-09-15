@@ -4,7 +4,7 @@ import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddH
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
-import { getMockBpmnElementForTask } from '../../../../packages/process-editor/test/mocks/bpmnDetailsMock';
+import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
 
 jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {

@@ -1,8 +1,8 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import { PaymentPolicyBuilder } from '../../../utils/policy';
+import { PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { getLayoutSetIdFromTaskId } from '../bpmnHandlerUtils/bpmnHandlerUtils';
+import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
