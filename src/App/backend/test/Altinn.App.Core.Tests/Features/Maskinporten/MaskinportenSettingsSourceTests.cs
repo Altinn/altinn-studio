@@ -227,7 +227,7 @@ public sealed class MaskinportenSettingsSourceTests
 
         var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
         Assert.False(source.ProvisionedByLauncher);
-        Assert.Equal(MaskinportenSettingsSource.DefaultFilePath, source.FilePath);
+        Assert.Equal(Path.GetFullPath(MaskinportenSettingsSource.DefaultFilePath), source.FilePath);
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public sealed class MaskinportenSettingsSourceTests
 
         var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
         Assert.False(source.ProvisionedByLauncher);
-        Assert.Equal(MaskinportenSettingsSource.DefaultFilePath, source.FilePath);
+        Assert.Equal(Path.GetFullPath(MaskinportenSettingsSource.DefaultFilePath), source.FilePath);
     }
 
     /// <summary>
