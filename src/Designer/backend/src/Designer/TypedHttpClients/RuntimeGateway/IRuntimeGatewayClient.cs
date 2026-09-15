@@ -78,7 +78,8 @@ public interface IRuntimeGatewayClient
     /// Lists workflow collections for an app through the runtime gateway's workflow pass-through.
     /// Three mutually exclusive modes: list (<paramref name="cursor"/>, <paramref name="pageSize"/>),
     /// annotate (<paramref name="keys"/>, repeatable), and discover (<paramref name="failures"/>).
-    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
     Task<HttpResponseMessage> GetWorkflowCollectionsAsync(
         string org,
@@ -93,7 +94,8 @@ public interface IRuntimeGatewayClient
 
     /// <summary>
     /// Gets a single workflow collection by key through the runtime gateway's workflow pass-through.
-    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
     Task<HttpResponseMessage> GetWorkflowCollectionAsync(
         string org,
@@ -105,7 +107,8 @@ public interface IRuntimeGatewayClient
 
     /// <summary>
     /// Lists workflows for an app through the runtime gateway's workflow pass-through.
-    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
     Task<HttpResponseMessage> GetWorkflowsAsync(
         string org,
@@ -122,7 +125,8 @@ public interface IRuntimeGatewayClient
 
     /// <summary>
     /// Gets a single workflow by id through the runtime gateway's workflow pass-through.
-    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
     Task<HttpResponseMessage> GetWorkflowAsync(
         string org,
@@ -134,7 +138,8 @@ public interface IRuntimeGatewayClient
 
     /// <summary>
     /// Resumes a terminal workflow through the runtime gateway's workflow pass-through.
-    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
     Task<HttpResponseMessage> ResumeWorkflowAsync(
         string org,
@@ -147,7 +152,8 @@ public interface IRuntimeGatewayClient
 
     /// <summary>
     /// Abandons an unsuccessful terminal workflow through the runtime gateway's workflow pass-through.
-    /// The gateway/engine response is returned unmodified, whatever its status code.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
     Task<HttpResponseMessage> AbandonWorkflowAsync(
         string org,
