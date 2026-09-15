@@ -13,6 +13,23 @@ public sealed class FiksArkivSettingsMigratorTests : IDisposable
 
     private async Task<MigrationResult> Migrate() => await new FiksArkivSettingsMigrator(_app.Root).Migrate();
 
+    [Fact]
+    public async Task PreservesBomAndIsIdempotent()
+    {
+        var text =
+            Settings("      \"MoveToNextTask\": true", "      \"Action\": \"reject\"").Replace("\n", "\r\n") + "\r\n";
+        _app.WriteBytes(
+            "appsettings.json",
+            System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(text)).ToArray()
+        );
+        await Migrate();
+        var first = _app.ReadBytes("appsettings.json");
+        Assert.True(first.AsSpan().StartsWith(System.Text.Encoding.UTF8.GetPreamble()));
+        Assert.EndsWith("\r\n", System.Text.Encoding.UTF8.GetString(first));
+        await Migrate();
+        Assert.Equal(first, _app.ReadBytes("appsettings.json"));
+    }
+
     /// <summary>A process whose Fiks Arkiv task is followed by a gateway with two ways out, as v9 requires.</summary>
     private static string ProcessWithGateway() =>
         Process(
