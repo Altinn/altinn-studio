@@ -154,6 +154,28 @@ export const queryStatusIds = [
     'abandoned',
 ];
 
+/**
+ * Element ids of the query tab's head-visibility checkboxes. Both query.js (the `isHead` fetch
+ * parameter) and url.js (the `qh` URL parameter) read them, and url.js cannot import query.js
+ * without a cycle — so the ids and the reader live here, for the same reason queryStatusIds does.
+ * @type {readonly string[]}
+ */
+export const headVisibilityCheckIds = ['head-check', 'nonhead-check'];
+
+/**
+ * The head-visibility facet as one value: `true` for heads only, `false` for side chains only,
+ * `null` when both or neither box is checked — no filter, the same "nothing selected means
+ * everything" idiom the status chips use.
+ * @returns {boolean | null}
+ */
+export const headVisibilityParam = () => {
+    const [head, nonHead] = headVisibilityCheckIds.map(
+        (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
+    );
+    if (!head || !nonHead || head.checked === nonHead.checked) return null;
+    return head.checked;
+};
+
 /* ── DOM references ──────────────────────────────────────── */
 
 export const dom = {

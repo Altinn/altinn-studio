@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Models;
 
 // Urls should not be hard-coded
@@ -105,57 +106,61 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             };
         }
 
-        if (operationId == "ListWorkflows" && operation.Parameters is not null)
-        {
-            foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
-            {
-                if (parameter.Name is { } name && _listWorkflowParamDescriptions.TryGetValue(name, out var description))
-                    parameter.Description = description;
+        if (operationId == "ListWorkflows")
+            ApplyParameterDocs(
+                operation,
+                _listWorkflowParamDescriptions,
+                enumParameterName: "status",
+                new OpenApiSchema { Type = JsonSchemaType.Array, Items = EnumSchema<PersistentItemStatus>() }
+            );
 
-                if (parameter.Name == "status")
-                {
-                    parameter.Schema = new OpenApiSchema
-                    {
-                        Type = JsonSchemaType.Array,
-                        Items = new OpenApiSchema
-                        {
-                            Type = JsonSchemaType.String,
-                            Enum =
-                            [
-                                .. Enum.GetNames<PersistentItemStatus>().Select(JsonNode (x) => JsonValue.Create(x)),
-                            ],
-                        },
-                    };
-                }
-            }
-        }
-
-        if (operationId == "ListCollections" && operation.Parameters is not null)
-        {
-            foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
-            {
-                if (
-                    parameter.Name is { } name
-                    && _listCollectionParamDescriptions.TryGetValue(name, out var description)
-                )
-                    parameter.Description = description;
-
-                if (parameter.Name == "failures")
-                {
-                    parameter.Schema = new OpenApiSchema
-                    {
-                        Type = JsonSchemaType.String,
-                        Enum =
-                        [
-                            .. Enum.GetNames<CollectionFailureFilter>().Select(JsonNode (x) => JsonValue.Create(x)),
-                        ],
-                    };
-                }
-            }
-        }
+        if (operationId == "ListCollections")
+            ApplyParameterDocs(
+                operation,
+                _listCollectionParamDescriptions,
+                enumParameterName: "failures",
+                EnumSchema<CollectionFailureFilter>()
+            );
 
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Describes an operation's query parameters and replaces one of them with an enum schema.
+    /// Minimal APIs infer a bare string for a name-parsed enum parameter, so the schema is set
+    /// here to list exactly the names the endpoint accepts.
+    /// </summary>
+    private static void ApplyParameterDocs(
+        OpenApiOperation operation,
+        IReadOnlyDictionary<string, string> descriptions,
+        string enumParameterName,
+        OpenApiSchema enumSchema
+    )
+    {
+        if (operation.Parameters is null)
+            return;
+
+        foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
+        {
+            if (parameter.Name is { } name && descriptions.TryGetValue(name, out var description))
+                parameter.Description = description;
+
+            if (parameter.Name == enumParameterName)
+                parameter.Schema = enumSchema;
+        }
+    }
+
+    /// <summary>
+    /// A string schema enumerating the declared names of <typeparamref name="TEnum"/> — the same
+    /// list <see cref="EnumNames"/> accepts, so the document and the parser cannot disagree.
+    /// </summary>
+    private static OpenApiSchema EnumSchema<TEnum>()
+        where TEnum : struct, Enum =>
+        new()
+        {
+            Type = JsonSchemaType.String,
+            Enum = [.. EnumNames.Of<TEnum>().Select(JsonNode (x) => JsonValue.Create(x))],
+        };
 }
 
 /// <summary>
