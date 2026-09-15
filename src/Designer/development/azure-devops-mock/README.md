@@ -34,6 +34,34 @@ The following endpoints return deterministic scope data for local development:
 `studio_designer` points `MaskinPortenHttpClientSettings:BaseUrl` to this service in
 `compose.yaml`.
 
+## Workflow engine and instances from the studioctl environment
+
+The admin app's workflow views (health column, drill-down, "instances with problems", retry and
+write-off) reach the runtime gateway through the app cluster address, which in compose is this
+mock. The mock plays the gateway's part and forwards those routes to the workflow engine that
+`studioctl env up` runs on the host, through the localtest ingress
+(`host.docker.internal:8000`, `Host: workflow-engine.local.altinn.cloud`). Nothing to enable:
+when no studioctl environment is running, the admin app shows the engine as unavailable, exactly
+as in an environment without one.
+
+The instance list and details come from random data by default, so the health column reads
+"no data" for every row. To see the instances the local environment actually holds, and their
+workflows behind them, start the compose stack with:
+
+```bash
+INSTANCES_FROM_LOCALTEST=true docker compose up -d studio_azure_mock
+```
+
+The admin app lists an app once it has been deployed in local Studio (a mock deploy), so deploy
+the app there under the same org and name you run it with through `studioctl`, then open it
+under an environment. Set `LOCALTEST_URL` if the studioctl ingress is not on port 8000.
+
+The admin views read the engine's collections health view, which a released engine image does
+not have yet. Run the environment with an engine built from your working tree, either
+`STUDIOCTL_INTERNAL_DEV=true studioctl env up` (builds the engine image from the checkout) or
+`studioctl env up --dev-workflow-engine` with `dotnet run` in `src/Runtime/workflow-engine-app`
+(a host process on port 9090; the same routing applies).
+
 ### Restart / rebuild this docker service
 
 ```bash
