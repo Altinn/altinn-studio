@@ -121,6 +121,14 @@ pagebreak
 pageref
 showaddbutton
 
+# Component names displayed verbatim from the generated App catalog
+addtolist
+signeelist
+signingactions
+signingdocumentlist
+simpletable
+timepicker
+
 # JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
 # schema-editor UI text
 allof

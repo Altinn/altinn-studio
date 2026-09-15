@@ -6,12 +6,11 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
 import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
 const mockHandleComponentUpdate = jest.fn();
@@ -107,10 +106,10 @@ describe('PropertiesHeader', () => {
     const subformLayoutSetId = 'subformLayoutSetId';
     renderPropertiesHeader({
       formItem: {
-        ...component1Mock,
         type: ComponentType.Subform,
         layoutSet: layoutSetName,
         id: subformLayoutSetId,
+        tableColumns: [],
       },
     });
     expect(subformLayoutSetId).toBe('subformLayoutSetId');
@@ -124,8 +123,10 @@ describe('PropertiesHeader', () => {
   it('should render recommendedNextAction when component is subform and has no layoutset ', () => {
     renderPropertiesHeader({
       formItem: {
-        ...component1Mock,
         type: ComponentType.Subform,
+        id: 'subform',
+        layoutSet: '',
+        tableColumns: [],
       },
     });
     expect(
@@ -136,8 +137,10 @@ describe('PropertiesHeader', () => {
   it('should not render other accordions config when component type is subform and has no layoutset', () => {
     renderPropertiesHeader({
       formItem: {
-        ...component1Mock,
         type: ComponentType.Subform,
+        id: 'subform',
+        layoutSet: '',
+        tableColumns: [],
       },
     });
     expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();
@@ -195,13 +198,6 @@ describe('PropertiesHeader', () => {
 });
 
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
-  const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
-
-  queryClientMock.setQueryData(
-    [QueryKey.FormComponent, componentType],
-    componentSchemaMocks[componentType],
-  );
-
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(<PropertiesHeader {...defaultProps} {...props} />);

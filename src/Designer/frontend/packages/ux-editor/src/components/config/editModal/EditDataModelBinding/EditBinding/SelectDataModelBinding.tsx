@@ -26,7 +26,6 @@ export const SelectDataModelBinding = ({
   const { layoutSet } = useUxEditorParams();
   const { selectedDataModel } = useValidDataModels(currentDataModel);
   const { defaultDataTypeName, bindableDataTypes } = useGetBindableDataTypes(org, app, layoutSet);
-  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
 
   const handleDataModelChange = (newDataModel: string) => {
     const dataModelBinding = {
@@ -41,7 +40,6 @@ export const SelectDataModelBinding = ({
       id={id}
       onChange={handleDataModelChange}
       value={selectedDataModel}
-      propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model_binding')}
       renderField={({ fieldProps }) => (
         <StudioSelect

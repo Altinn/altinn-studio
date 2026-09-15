@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/Designer/frontend/**'
       - 'src/Designer/frontend/testing/cypress/**'
+      - 'src/common/ts/layout-contract/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
@@ -72,7 +73,7 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests'
-        run:  |
+        run: |
           cd src/Designer/frontend
           yarn test:ci
 

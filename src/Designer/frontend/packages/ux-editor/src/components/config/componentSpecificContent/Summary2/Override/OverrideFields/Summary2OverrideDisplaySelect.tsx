@@ -1,7 +1,7 @@
 import type {
   OverrideDisplay,
   Summary2OverrideConfig,
-} from 'app-shared/types/ComponentSpecificConfig';
+} from '@altinn/ux-editor/types/Summary2Config';
 import { StudioSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 

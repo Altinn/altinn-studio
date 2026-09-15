@@ -2,7 +2,7 @@ import { mapSelectedTypeToConfig } from './utils';
 import {
   type Summary2OverrideConfig,
   type OverrideDisplayType,
-} from 'app-shared/types/ComponentSpecificConfig';
+} from '@altinn/ux-editor/types/Summary2Config';
 
 //Test data
 const stringSelectedType: OverrideDisplayType = 'string';
