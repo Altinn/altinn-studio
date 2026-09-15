@@ -232,26 +232,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddSingleton<AltinityAttachmentBuffer>();
     var signalRBuilder = services.AddSignalR();
-    var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
-    if (redisSettings.UseRedisCache)
-    {
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = redisSettings.ConnectionString;
-            options.InstanceName = redisSettings.InstanceName;
-        });
-        signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
-    }
-    else if (env.IsDevelopment() || env.IsEnvironment("Test"))
-    {
-        services.AddDistributedMemoryCache();
-    }
-    else
-    {
-        throw new InvalidOperationException(
-            "Redis cache must be enabled outside Development/Test because studioctl auth codes require a shared distributed cache."
-        );
-    }
+    services.AddConfiguredDistributedCache(configuration, signalRBuilder);
 
     if (!env.IsDevelopment())
     {
