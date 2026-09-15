@@ -1,7 +1,7 @@
 ﻿[*.cs]
 
 # CS1998: Async method lacks 'await' operators and will run synchronously
-dotnet_diagnostic.CS1998.severity = warning
+dotnet_diagnostic.CS1998.severity = none
 csharp_indent_labels = one_less_than_current
 csharp_using_directive_placement = outside_namespace:silent
 csharp_prefer_simple_using_statement = true:suggestion
@@ -40,6 +40,10 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_prefer_auto_properties = true:silent
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
+
+[*.{bpmn,cshtml,csproj,json,sln,slnx,xml,xsd,yaml,yml}]
+end_of_line = lf
+
 [*.{cs,vb}]
 #### Naming styles ####
 
