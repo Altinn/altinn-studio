@@ -245,6 +245,13 @@ func (c *Config) AppLogDir(appID string) string {
 	return filepath.Join(c.AppLogsDir(), appID)
 }
 
+// AppSecretsDir returns the directory studioctl provisions one app's secrets into for local runs - what
+// /mnt/app-secrets is to a deployed app. It lives under the home directory alongside the credentials file
+// rather than under the data directory, whose contents are container volumes that env down may discard.
+func (c *Config) AppSecretsDir(appID string) string {
+	return filepath.Join(c.Home, "apps", appID, "secrets")
+}
+
 // StudioctlServerBinaryPath returns the path to the studioctl server binary.
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) StudioctlServerBinaryPath() string {
