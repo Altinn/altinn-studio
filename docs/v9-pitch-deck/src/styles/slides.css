@@ -1,0 +1,1373 @@
+/* =========================================================
+   Slide styles for the v8 -> v9 town-hall deck.
+
+   Every size is ABSOLUTE px on the 1920x1080 canvas.
+   Loaded once, from src/slides/index.ts.
+
+   Digdir template rules (branding/BRAND.md): white ground, navy
+   ink, flat colour blocks, hairlines, square corners. No
+   gradients, no glows, no shadows.
+
+   Colour language:
+     v8 / today  = Digdir gold, failing to red
+     v9 / engine = Digdir blue, completed to green
+   ========================================================= */
+
+/* The v8 / v9 / outcome colours now live in tokens.css so the simulations
+   can share them. Nothing is redefined here. */
+
+/* ---------- Type, sized for a room of 300 ---------- */
+
+.slide:not(.slide--title) .slide__title {
+  font-size: var(--fs-h2);
+}
+
+.slide:not(.slide--title) .slide__subtitle {
+  max-width: 1500px;
+  font-size: var(--fs-lead);
+  color: var(--text-300);
+}
+
+.slide .card__body {
+  font-size: var(--fs-body);
+  line-height: 1.32;
+}
+
+/* ---------- Body helpers ---------- */
+
+/* Keep in-flow content above the positioned backdrop. */
+.slide__header,
+.s-fill,
+.s-cover,
+.s-arch,
+.s-dash {
+  position: relative;
+  z-index: 1;
+}
+
+.s-fill {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-5);
+  height: 100%;
+}
+
+.s-dim {
+  opacity: 0.42;
+}
+
+.s-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.s-lead {
+  font-size: 36px;
+  line-height: 1.3;
+  color: var(--text-100);
+  text-wrap: balance;
+}
+
+/* =========================================================
+   Brand geometry (opening + closing slide)
+
+   The templates build their intro slides out of two shapes: one
+   big navy quadrilateral tilted a few degrees and bleeding off
+   the edge, and one coral circle segment anchored to a corner.
+   That is the whole vocabulary — flat, no motion, no blur.
+   ========================================================= */
+
+.s-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* The tilted navy field. Leans left towards the bottom, like the template. */
+.s-backdrop__block {
+  position: absolute;
+  inset: 0;
+  background: var(--navy-800);
+  clip-path: polygon(50% 0, 100% 0, 100% 100%, 47% 100%);
+}
+
+/* Coral quarter-disc in the bottom-left corner.
+   Drawn as a corner-anchored SQUARE with one rounded corner rather than as a
+   whole circle pushed off the edge: the painted shape is the same quarter disc,
+   but the element's own box now stays inside the 1920x1080 canvas. A circle hung
+   off the corner is only invisible because an ancestor clips it — its geometry
+   still reports as content poking outside the stage (the QA pass flagged exactly
+   that on all eight opener and closing states), and one lost `overflow` rule
+   away it bleeds for real. */
+.s-backdrop__disc {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 260px;
+  height: 260px;
+  /* Only the corner facing into the slide is rounded. */
+  border-radius: 0 100% 0 0;
+  background: var(--coral-500);
+}
+
+.s-backdrop--closing .s-backdrop__disc {
+  left: auto;
+  bottom: auto;
+  right: 0;
+  top: 0;
+  width: 260px;
+  height: 260px;
+  border-radius: 0 0 0 100%;
+}
+
+/* =========================================================
+   Slide 1 — the fan: one button, ten things
+   ========================================================= */
+
+.s-cover {
+  display: flex;
+  align-items: center;
+  gap: 96px;
+  height: 100%;
+}
+
+.s-cover__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 740px;
+  flex: 0 0 auto;
+}
+
+.s-cover__kicker {
+  font-size: 24px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--blue-500);
+}
+
+.s-cover__title {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  line-height: 1.06;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-100);
+}
+
+.s-cover__lead {
+  font-size: 36px;
+  line-height: 1.34;
+  color: var(--text-300);
+  text-wrap: pretty;
+}
+
+.s-fan {
+  position: relative;
+  width: 820px;
+  height: 700px;
+  flex: 0 0 auto;
+}
+
+.s-fan__svg {
+  position: absolute;
+  inset: 0;
+}
+
+/* The button sits on the navy field, so it is the one solid blue block. */
+.s-fan__btn {
+  position: absolute;
+  left: 0;
+  top: 284px;
+  display: grid;
+  place-items: center;
+  width: 300px;
+  height: 132px;
+  border-radius: var(--r-md);
+  background: var(--blue-500);
+  color: #fff;
+  font-size: 36px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-snug);
+}
+
+.s-fan__chip {
+  position: absolute;
+  left: 440px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 380px;
+  height: 54px;
+  padding: 0 20px;
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--text-100);
+  font-size: 24px;
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
+.s-fan__chip .icon {
+  color: var(--blue-500);
+}
+
+/* =========================================================
+   Flow chain — slides 2, 3, 4
+   ========================================================= */
+
+.s-flow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.s-node {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 204px;
+  height: 178px;
+  padding: 24px 14px 18px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: #fff;
+  text-align: center;
+}
+
+.s-node .icon {
+  color: var(--text-400);
+}
+
+.s-node__label {
+  font-size: 25px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  color: var(--text-100);
+}
+
+.s-node__num {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-500);
+}
+
+.s-node__mark {
+  position: absolute;
+  top: -15px;
+  right: -13px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--ok-line);
+  background: #fff;
+  color: var(--success);
+}
+
+.s-node--done {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+}
+
+.s-node--done .icon {
+  color: var(--success);
+}
+
+.s-node--failed {
+  border-color: var(--bad-line);
+  background: var(--bad-soft);
+}
+
+.s-node--failed .icon,
+.s-node--failed .s-node__mark {
+  color: var(--danger);
+  border-color: var(--bad-line);
+}
+
+.s-node--ghost {
+  border-style: dashed;
+  background: transparent;
+  opacity: 0.34;
+}
+
+.s-conn {
+  position: relative;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 2px;
+  background: var(--line-strong);
+}
+
+.s-conn::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -6px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 10px solid var(--line-strong);
+}
+
+.s-conn--done {
+  background: var(--success);
+}
+
+.s-conn--done::after {
+  border-left-color: var(--success);
+}
+
+.s-conn--ghost {
+  opacity: 0.3;
+}
+
+.s-crash {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 250px;
+}
+
+.s-crash__bar {
+  width: 6px;
+  height: 100%;
+  background: var(--danger);
+}
+
+.s-crash__tag {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: var(--r-sm);
+  background: var(--danger);
+  color: #fff;
+  font-size: 20px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The v8 request bubble the whole chain sits inside — a flat sand block. */
+.s-bubble {
+  position: relative;
+  padding: 30px 24px 28px;
+  border: 2px dashed var(--v8-line);
+  border-radius: var(--r-lg);
+  background: rgb(229 170 32 / 14%);
+}
+
+.s-bubble__label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 24px 14px;
+  color: var(--v8);
+  font-size: 22px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.s-bubble--quiet {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.s-bubble--quiet .s-bubble__label {
+  color: var(--text-400);
+}
+
+/* =========================================================
+   Outcome strip — slide 4
+   ========================================================= */
+
+.s-outcomes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+
+.s-outcomes--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.s-outcomes > * {
+  height: 100%;
+}
+
+.s-outcome {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 20px;
+  padding: 24px 28px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  border-left: 8px solid var(--line-strong);
+  background: var(--surface-1);
+  font-size: 30px;
+  line-height: 1.2;
+  color: var(--text-100);
+}
+
+.s-outcome__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--r-sm);
+}
+
+.s-outcome--ok {
+  border-color: var(--ok-line);
+  border-left-color: var(--success);
+  background: var(--ok-soft);
+}
+.s-outcome--ok .s-outcome__icon {
+  color: var(--success);
+  background: #fff;
+}
+
+.s-outcome--warn {
+  border-color: var(--v8-line);
+  border-left-color: var(--gold-500);
+  background: var(--v8-soft);
+}
+.s-outcome--warn .s-outcome__icon {
+  color: var(--warning);
+  background: #fff;
+}
+
+.s-outcome--bad {
+  border-color: var(--bad-line);
+  border-left-color: var(--danger);
+  background: var(--bad-soft);
+}
+.s-outcome--bad .s-outcome__icon {
+  color: var(--danger);
+  background: #fff;
+}
+
+.s-outcome__sub {
+  display: block;
+  margin-top: 6px;
+  font-size: 23px;
+  color: var(--text-300);
+}
+
+/* =========================================================
+   Slide 6 — failure-mode cards
+   ========================================================= */
+
+.s-fcards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.s-fcard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 350px;
+  padding: 34px 34px 36px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, currentColor 34%, transparent);
+  background: color-mix(in srgb, currentColor 10%, #fff);
+}
+
+.s-fcard__icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+  border-radius: var(--r-sm);
+  background: #fff;
+}
+
+.s-fcard__status {
+  font-size: 20px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.s-fcard__title {
+  font-size: 38px;
+  font-weight: var(--fw-bold);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-snug);
+  color: var(--text-100);
+}
+
+.s-fcard__body {
+  font-size: 27px;
+  line-height: 1.3;
+  color: var(--text-300);
+  text-wrap: pretty;
+}
+
+/* The fifth failure mode, which is not a card: two clicks, or one click sent
+   twice. Today's half-answer on the left, the engine's answer on the right. */
+.s-fnote {
+  display: grid;
+  grid-template-columns: 78px 1fr 1fr;
+  align-items: center;
+  gap: 32px;
+  margin-top: 36px;
+  padding: 24px 32px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+
+.s-fnote__icon {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text-300);
+}
+
+.s-fnote__half {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 24px;
+  border-left: 5px solid var(--line);
+}
+
+.s-fnote__half.is-v8 {
+  border-left-color: var(--v8-rule);
+}
+
+.s-fnote__half.is-v9 {
+  border-left-color: var(--v9-rule);
+}
+
+.s-fnote__label {
+  font-size: 20px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-400);
+}
+
+.s-fnote__half.is-v8 .s-fnote__label {
+  color: var(--v8);
+}
+
+.s-fnote__half.is-v9 .s-fnote__label {
+  color: var(--v9);
+}
+
+.s-fnote__text {
+  font-size: 27px;
+  line-height: 1.3;
+  color: var(--text-200);
+  text-wrap: pretty;
+}
+
+/* =========================================================
+   Slide 3 — the empty notebook
+   ========================================================= */
+
+.s-note {
+  position: relative;
+  width: 760px;
+  padding: 32px 40px 28px;
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.s-note__label {
+  margin-bottom: 22px;
+  color: var(--text-400);
+  font-size: 21px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.s-note__lines {
+  height: 132px;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 32px,
+    rgb(30 43 60 / 14%) 32px 34px
+  );
+}
+
+.s-underline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--v8);
+  font-size: 26px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.s-underline__rule {
+  flex: 1 1 auto;
+  height: 3px;
+  background: var(--gold-500);
+}
+
+/* =========================================================
+   Slide 5 — double submit diagram
+   ========================================================= */
+
+/* Full body width, hung off the template's single left margin — the caveat
+   card below it starts at the same edge, and a centred diagram did not. */
+.s-diagram {
+  position: relative;
+  width: 1668px;
+  height: 420px;
+}
+
+.s-diagram__svg {
+  position: absolute;
+  inset: 0;
+}
+
+.s-box {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 28px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.s-box__title {
+  font-size: 30px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-100);
+  white-space: nowrap;
+}
+
+.s-box__sub {
+  font-size: 23px;
+  color: var(--text-300);
+}
+
+.s-box--click {
+  border-color: var(--v9-line);
+  background: var(--tint-blue);
+}
+
+.s-box--out {
+  border-color: var(--bad-line);
+  background: var(--bad-soft);
+}
+
+.s-box--center {
+  align-items: center;
+  text-align: center;
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+
+.s-x2 {
+  font-size: 34px;
+  font-weight: var(--fw-bold);
+  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   Slide 7 — the log wall
+
+   A screenshot of a terminal: the one place the deck goes dark,
+   because that is what the thing being shown actually looks like.
+   ========================================================= */
+
+.s-logwall {
+  position: relative;
+  padding: 24px 28px;
+  border-radius: var(--r-md);
+  background: var(--surface-dark);
+  overflow: hidden;
+}
+
+.s-logwall::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 110px;
+  background: linear-gradient(180deg, rgb(30 43 60 / 0%), rgb(30 43 60 / 96%));
+}
+
+.s-logwall__bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.s-logwall__bar span {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 22%);
+}
+
+.s-logline {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1.85;
+  color: rgb(255 255 255 / 62%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-logline--warn {
+  color: #f0c25a;
+}
+
+.s-logline--err {
+  color: #f4908f;
+}
+
+.s-question {
+  position: relative;
+  padding-left: 34px;
+  font-size: 44px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-snug);
+  color: var(--text-100);
+  text-wrap: balance;
+}
+
+.s-question::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  background: var(--blue-500);
+}
+
+.s-qmark {
+  font-size: 190px;
+  font-weight: var(--fw-bold);
+  line-height: 0.8;
+  color: var(--tint-blue);
+}
+
+/* =========================================================
+   Slide 8 — architecture
+   ========================================================= */
+
+.s-arch {
+  position: relative;
+  width: 1656px;
+  height: 540px;
+  margin: 0 auto;
+}
+
+.s-arch__svg {
+  position: absolute;
+  inset: 0;
+}
+
+.s-unit {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: #fff;
+  text-align: center;
+}
+
+.s-unit__title {
+  font-size: 36px;
+  font-weight: var(--fw-bold);
+  color: var(--text-100);
+}
+
+.s-unit__sub {
+  font-size: 24px;
+  color: var(--text-300);
+}
+
+.s-unit--app {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+
+.s-unit--app .icon {
+  color: var(--text-300);
+}
+
+.s-unit--engine {
+  border-color: var(--v9-line);
+  background: var(--v9-soft);
+}
+
+.s-unit--engine .icon {
+  color: var(--v9);
+}
+
+.s-db {
+  position: absolute;
+  padding: 22px 24px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.s-db__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--text-300);
+  font-size: 21px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.s-steprow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  font-size: 24px;
+  color: var(--text-200);
+}
+
+.s-steprow + .s-steprow {
+  margin-top: 10px;
+}
+
+.s-steprow__state {
+  margin-left: auto;
+  font-size: 21px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.s-dot {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.is-ok {
+  color: var(--success);
+}
+.is-run {
+  color: var(--blue-500);
+}
+.is-wait {
+  color: var(--warning);
+}
+.is-bad {
+  color: var(--danger);
+}
+.is-idle {
+  color: var(--text-500);
+}
+.is-warn {
+  color: var(--warning);
+}
+
+.s-arrowlabel {
+  position: absolute;
+  padding: 7px 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--chip-ground);
+  color: var(--text-200);
+  font-size: 23px;
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Simulation slides — full bleed
+   ========================================================= */
+
+.slide.s-bleed {
+  padding: 0;
+  gap: 0;
+}
+
+/* The simulations own everything under the title chip. The bottom edge clears
+   the deck's progress bar and slide counter; the top edge clears the chip. */
+.s-simstage {
+  position: absolute;
+  inset: 132px var(--slide-pad-x) 84px;
+}
+
+.s-simchip {
+  position: absolute;
+  left: var(--slide-pad-x);
+  top: 56px;
+  z-index: 5;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  pointer-events: none;
+}
+
+.s-simchip__no {
+  color: var(--blue-500);
+  font-size: 22px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.s-simchip__title {
+  color: var(--text-100);
+  font-size: 34px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-snug);
+}
+
+/* =========================================================
+   Slide 13 — dashboard mock
+   ========================================================= */
+
+.s-dash {
+  display: grid;
+  grid-template-columns: 1fr 600px;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 32px;
+  height: 100%;
+}
+
+.s-dash .s-panel {
+  height: 100%;
+  min-height: 0;
+}
+
+.s-dash > * {
+  min-height: 0;
+}
+
+.s-panel {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: #fff;
+  overflow: hidden;
+}
+
+.s-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 26px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-200);
+  font-size: 21px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.s-live {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--success);
+  font-size: 19px;
+}
+
+.s-chainrow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 21px 26px;
+}
+
+.s-legend {
+  display: flex;
+  gap: 30px;
+  margin-top: auto;
+  padding: 18px 26px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--text-400);
+  font-size: 20px;
+}
+
+.s-legend span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.s-chainrow + .s-chainrow {
+  border-top: 1px solid var(--line-soft);
+}
+
+.s-chainrow--sel {
+  background: var(--tint-blue);
+  box-shadow: inset 4px 0 0 var(--blue-500);
+}
+
+.s-chainrow__id {
+  width: 210px;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--text-300);
+}
+
+.s-pipe {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 7px;
+}
+
+.s-pipe__seg {
+  position: relative;
+  height: 26px;
+  flex: 1 1 0;
+  border-radius: var(--r-sm);
+  background: var(--surface-3);
+}
+
+.s-pipe__seg--ok {
+  background: var(--success);
+}
+.s-pipe__seg--run {
+  background: var(--blue-500);
+}
+.s-pipe__seg--wait {
+  background: var(--gold-500);
+}
+.s-pipe__seg--bad {
+  background: var(--danger);
+}
+
+.s-chainrow__time {
+  width: 104px;
+  flex: 0 0 auto;
+  text-align: right;
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-400);
+}
+
+.s-chainrow__state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 168px;
+  flex: 0 0 auto;
+  font-size: 20px;
+  font-weight: var(--fw-semibold);
+}
+
+.s-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 26px;
+}
+
+.s-drawer__title {
+  font-size: 28px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-100);
+}
+
+.s-drawer__meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.s-tag {
+  padding: 6px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  color: var(--text-300);
+  font-size: 19px;
+  white-space: nowrap;
+}
+
+.s-tag--bad {
+  border-color: var(--bad-line);
+  background: var(--bad-soft);
+  color: var(--danger-dim);
+}
+
+.s-tag--ok {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+  color: var(--success-dim);
+}
+
+.s-err {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-soft);
+  background: var(--surface-1);
+}
+
+.s-err__time {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 19px;
+  color: var(--text-400);
+}
+
+.s-err__body {
+  flex: 1 1 auto;
+  font-size: 21px;
+  line-height: 1.3;
+  color: var(--text-200);
+}
+
+.s-err__badge {
+  flex: 0 0 auto;
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid currentColor;
+  font-size: 17px;
+  font-weight: var(--fw-semibold);
+}
+
+.s-opswrap {
+  margin-top: auto;
+}
+
+.s-opsbar {
+  display: flex;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.s-opbtn {
+  flex: 1 1 0;
+  padding: 14px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--text-100);
+  font-size: 22px;
+  font-weight: var(--fw-semibold);
+  text-align: center;
+}
+
+.s-opbtn--primary {
+  border-color: var(--blue-500);
+  background: var(--blue-500);
+  color: #fff;
+}
+
+/* =========================================================
+   Slide 14 — developer impact
+   ========================================================= */
+
+.s-bpmn {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 30px 32px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+
+.s-bpmn__caption {
+  font-size: 24px;
+  color: var(--text-300);
+}
+
+.s-term {
+  padding: 24px 28px 26px;
+  border-radius: var(--r-md);
+  background: var(--surface-dark);
+}
+
+.s-term__line {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  line-height: 1.72;
+  color: rgb(255 255 255 / 70%);
+  white-space: nowrap;
+}
+
+.s-term__line--cmd {
+  color: #fff;
+  font-weight: var(--fw-semibold);
+}
+
+.s-term__ok {
+  color: #7bd18a;
+}
+
+.s-term__todo {
+  color: #f0c25a;
+  font-weight: var(--fw-bold);
+}
+
+.s-term__note {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-on-dark);
+  color: var(--text-on-dark-dim);
+  font-size: 24px;
+}
+
+.s-bullet {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 28px;
+  line-height: 1.28;
+  color: var(--text-200);
+}
+
+.s-bullet .icon {
+  color: var(--blue-500);
+}
+
+/* =========================================================
+   Slide 15 — call to action
+   ========================================================= */
+
+.s-steps {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 26px;
+}
+
+/* The reveal wrapper is the flex item; make it a flex box so the card
+   inside stretches to the tallest sibling instead of hugging its text. */
+.s-stepwrap {
+  display: flex;
+}
+
+.s-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  width: 430px;
+  flex: 0 0 auto;
+  padding: 34px 34px 36px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--blue-500);
+  background: var(--surface-1);
+}
+
+.s-step__no {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-sm);
+  background: var(--tint-blue);
+  color: var(--blue-600);
+  font-size: 30px;
+  font-weight: var(--fw-bold);
+}
+
+/* Two lines' worth of room whether the title needs them or not, so the
+   bodies below sit on the same baseline across all three cards. */
+.s-step__title {
+  min-height: calc(36px * 1.16 * 2);
+  font-size: 36px;
+  font-weight: var(--fw-bold);
+  line-height: 1.16;
+  color: var(--text-100);
+}
+
+.s-step__body {
+  font-size: 26px;
+  line-height: 1.34;
+  color: var(--text-300);
+}
+
+.s-step__arrow {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 56px;
+  color: var(--line-strong);
+  font-size: 44px;
+  line-height: 1;
+}
+
+.s-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  margin: 0 auto;
+  gap: 22px;
+  padding: 26px 48px;
+  border-radius: var(--r-md);
+  background: var(--navy-800);
+  color: #fff;
+  font-size: 34px;
+  font-weight: var(--fw-semibold);
+}
+
+.s-cta .icon {
+  color: var(--coral-500);
+}
