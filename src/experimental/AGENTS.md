@@ -51,6 +51,9 @@ Use Tokio's `LocalRuntime` for asynchronous work. Keep control-plane state singl
 
 Run `make help` in this directory to list the available development targets.
 
+Follow [MICROSANDBOX.md](MICROSANDBOX.md) when synchronizing the Microsandbox or libkrunfw forks,
+publishing a downstream runtime or updating this workspace's source and artifact pins.
+
 When adding or updating a harness installation or adapter, follow [HARNESSES.md](agent/HARNESSES.md).
 
 ## Changelog and releases

@@ -5,7 +5,9 @@ old_version="v0.0.1-dev.upgrade-smoke"
 target_version="v0.1.0-preview.2.smoke"
 smoke_root="$(mktemp -d /tmp/au.XXXXXXXX)"
 export AGENT_SMOKE_ID="${smoke_root##*/}"
-smoke_target="${smoke_root}/target"
+# Build outside smoke_root: CI runners keep /tmp on a small tmpfs, and the two
+# dev-profile builds below do not fit there.
+smoke_target="${CARGO_TARGET_DIR:-$(git rev-parse --show-toplevel)/target}/upgrade-smoke-${AGENT_SMOKE_ID}"
 binary_directory="${smoke_target}/debug"
 target_binaries="${smoke_root}/target-binaries"
 old_archive="${smoke_root}/old.tar.gz"
@@ -35,15 +37,15 @@ cleanup() {
   else
     pkill -f "agentd.*--home ${AGENT_HOME}" 2>/dev/null || true
   fi
-  rm -rf -- "${smoke_root}"
+  rm -rf -- "${smoke_root}" "${smoke_target}"
 }
 trap cleanup EXIT HUP INT TERM
 
 mkdir -p "${smoke_root}"
-CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 \
+CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 \
   AGENT_VERSION="${old_version}" cargo build --locked -p agent --bins
 ./agent/package.sh "${old_archive}" "${binary_directory}"
-CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 \
+CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 \
   AGENT_VERSION="${target_version}" cargo build --locked -p agent --bins
 suffix=""
 if [ -f "${binary_directory}/agentctl.exe" ]; then

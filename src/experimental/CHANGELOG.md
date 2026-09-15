@@ -12,6 +12,15 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Changed
+
+- The Sandbox runtime (microsandbox) was updated. Linux hosts with older system libraries, such as Ubuntu 22.04, can now install it, and a Sandbox that fails to start reports the runtime's own error instead of a bare timeout.
+
+### Fixed
+
+- On Windows, starting a Sandbox with a large root filesystem could take an hour while its disk was copied. The copy now takes seconds.
+- Linkerd could not start inside a kind cluster running in a Sandbox because the Sandbox kernel lacked the iptables owner match its proxy-init needs. The match is now built in.
+
 ## [0.1.0-preview.2] - 2026-09-15
 
 ### Added
