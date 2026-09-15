@@ -182,12 +182,12 @@ public sealed class MaskinportenSettingsSourceTests
     }
 
     /// <summary>
-    /// On localtest the launcher of the run - studioctl - provisions the credentials the way the operator does
+    /// On localtest studioctl provisions the credentials the way the operator does
     /// in a cluster, and names the directory it provisions into. That is how a developer tests a real
     /// Maskinporten integration from a local run without the credentials ever entering the app's configuration.
     /// </summary>
     [Fact]
-    public async Task Options_ReadTheLauncherDirectory_OnLocaltest()
+    public async Task Options_ReadTheStudioctlDirectory_OnLocaltest()
     {
         using var tempDirectory = new TempDirectory();
         await File.WriteAllTextAsync(
@@ -197,22 +197,22 @@ public sealed class MaskinportenSettingsSourceTests
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "local.altinn.cloud",
-            (MaskinportenSettingsSource.LauncherSecretsDirectoryKey, tempDirectory.Path)
+            (MaskinportenSettingsSource.StudioctlSecretsDirectoryKey, tempDirectory.Path)
         );
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
         Assert.Equal("developers-own-client", settings.ClientId);
         var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.True(source.ProvisionedByLauncher);
+        Assert.True(source.ProvisionedByStudioctl);
         Assert.Equal(Path.Join(tempDirectory.Path, SettingsFileName), source.FilePath);
     }
 
     /// <summary>
     /// The same key in a deployed environment moves nothing. This is the invariant: an app cannot hand itself
-    /// an identity where a provisioned one is meant to be, not even by borrowing the launcher's key.
+    /// an identity where a provisioned one is meant to be, not even by borrowing studioctl's key.
     /// </summary>
     [Fact]
-    public async Task Options_IgnoreTheLauncherDirectory_WhenNotOnLocaltest()
+    public async Task Options_IgnoreTheStudioctlDirectory_WhenNotOnLocaltest()
     {
         using var tempDirectory = new TempDirectory();
         await File.WriteAllTextAsync(
@@ -222,11 +222,11 @@ public sealed class MaskinportenSettingsSourceTests
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "at22.altinn.cloud",
-            (MaskinportenSettingsSource.LauncherSecretsDirectoryKey, tempDirectory.Path)
+            (MaskinportenSettingsSource.StudioctlSecretsDirectoryKey, tempDirectory.Path)
         );
 
         var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.False(source.ProvisionedByLauncher);
+        Assert.False(source.ProvisionedByStudioctl);
         Assert.Equal(Path.GetFullPath(MaskinportenSettingsSource.DefaultFilePath), source.FilePath);
     }
 
@@ -249,27 +249,27 @@ public sealed class MaskinportenSettingsSourceTests
     }
 
     [Fact]
-    public async Task Options_UseTheProvisionedLocation_WhenTheLauncherNamesNoDirectory()
+    public async Task Options_UseTheProvisionedLocation_WhenStudioctlNamesNoDirectory()
     {
         await using var serviceProvider = BuildAppProvider(hostName: "local.altinn.cloud");
 
         var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.False(source.ProvisionedByLauncher);
+        Assert.False(source.ProvisionedByStudioctl);
         Assert.Equal(Path.GetFullPath(MaskinportenSettingsSource.DefaultFilePath), source.FilePath);
     }
 
     /// <summary>
-    /// The launcher named a directory but nothing has been stored there yet - the state a developer is in the
+    /// studioctl named a directory but nothing has been stored there yet - the state a developer is in the
     /// first time their integration asks for a token. The failure says exactly what to run.
     /// </summary>
     [Fact]
-    public async Task Options_NameTheStudioctlCommand_WhenTheLauncherDirectoryIsEmpty()
+    public async Task Options_NameTheStudioctlCommand_WhenTheStudioctlDirectoryIsEmpty()
     {
         using var tempDirectory = new TempDirectory();
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "local.altinn.cloud",
-            (MaskinportenSettingsSource.LauncherSecretsDirectoryKey, tempDirectory.Path)
+            (MaskinportenSettingsSource.StudioctlSecretsDirectoryKey, tempDirectory.Path)
         );
 
         var exception = Assert.Throws<OptionsValidationException>(() =>

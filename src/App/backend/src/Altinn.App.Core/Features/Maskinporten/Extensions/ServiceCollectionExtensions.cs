@@ -46,7 +46,10 @@ internal static class ServiceCollectionExtensions
         );
         services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
         services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IValidateOptions<MaskinportenSettings>, ValidateMaskinportenSettingsPresent>()
+            ServiceDescriptor.Singleton<
+                IValidateOptions<MaskinportenSettings>,
+                ValidateMaskinportenSettingsProvisioned
+            >()
         );
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IConfigureOptions<MaskinportenSettings>, ConfigureMaskinportenSettings>()
