@@ -154,6 +154,7 @@ func TestResourceBuilder_DevWorkflowEngineExposesDbAndDisablesEngine(t *testing.
 
 func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine components.ContainerSpec) {
 	t.Helper()
+	assertWorkflowEngineHealthCheck(t, workflowEngine)
 	if got := workflowEngine.Ports; got != nil {
 		t.Fatalf("workflowEngine.Ports = %v, want nil", got)
 	}
@@ -491,4 +492,34 @@ func dependencyNames(deps []resource.ResourceRef) []string {
 		names = append(names, name)
 	}
 	return names
+}
+
+// The engine reports ready as soon as its process is launched unless a health check says otherwise,
+// which used to let `env up` return before an enqueue would be accepted. The probe has to target the
+// versioned readiness endpoint: /health/ready is a 301 redirect and would pass while the engine was
+// still starting.
+func assertWorkflowEngineHealthCheck(t *testing.T, workflowEngine components.ContainerSpec) {
+	t.Helper()
+	hc := workflowEngine.HealthCheck
+	if hc == nil {
+		t.Fatal("workflowEngine.HealthCheck = nil, want a readiness probe")
+	}
+	if len(hc.Test) != 2 || hc.Test[0] != "CMD-SHELL" {
+		t.Fatalf("workflowEngine.HealthCheck.Test = %v, want a CMD-SHELL probe", hc.Test)
+	}
+	probe := hc.Test[1]
+	if !strings.Contains(probe, "/api/v1/health/ready") {
+		t.Fatalf("workflowEngine.HealthCheck probe = %q, want it to request /api/v1/health/ready", probe)
+	}
+	if !strings.Contains(probe, "/dev/tcp/127.0.0.1/9090") {
+		t.Fatalf("workflowEngine.HealthCheck probe = %q, want it to connect to port 9090", probe)
+	}
+	if got := hc.Interval; got != 500*time.Millisecond {
+		t.Fatalf("workflowEngine.HealthCheck.Interval = %s, want 500ms", got)
+	}
+	// Interval * Retries has to cover a slow cold start (migrations plus warm-up) without letting a
+	// genuinely broken engine hold `env up` for long.
+	if budget := time.Duration(hc.Retries) * hc.Interval; budget < 20*time.Second {
+		t.Fatalf("workflowEngine.HealthCheck retry budget = %s, want at least 20s", budget)
+	}
 }

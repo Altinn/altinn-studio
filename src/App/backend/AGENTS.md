@@ -53,6 +53,20 @@ dotnet csharpier check .
 dotnet minver
 ```
 
+**C# sources and generated code use LF:**
+
+`.gitattributes` declares `*.cs text eol=lf` for checkouts on every platform, and `.editorconfig`
+sets `end_of_line = lf` to match. CSharpier.MSBuild applies that setting during builds.
+
+Raw string literals inherit their source file's line endings. Keep explicit newlines in
+`SourceTextGenerator` and its helpers as `\n` so generated code also uses LF consistently.
+Avoid `AppendLine()` and `Environment.NewLine` when generating source, since they introduce CRLF
+on Windows.
+
+`Altinn.App.SourceGenerator.Tests` enables `AutoVerify(includeBuildServer: false)`, which can silently
+accept changed snapshots on a developer machine. Set `TF_BUILD=true` (or another build-server
+variable) when validating changes so snapshot mismatches fail as they do in CI.
+
 ## Architecture Overview
 
 The solution follows a **layered architecture** with feature-based organization:

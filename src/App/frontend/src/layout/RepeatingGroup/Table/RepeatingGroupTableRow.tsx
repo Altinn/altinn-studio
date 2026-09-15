@@ -5,6 +5,11 @@ import { Button, Flex, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
+import type { ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
+import type {
+  CompRepeatingGroupExternal,
+  IGroupEditProperties,
+} from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -31,9 +36,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { ITableColumnFormatting } from 'src/layout/common.generated';
 import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
-import type { CompRepeatingGroupExternal, IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';
 

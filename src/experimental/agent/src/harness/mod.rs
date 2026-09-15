@@ -7,7 +7,13 @@ use crate::{Error, persistence};
 
 mod claude_code;
 mod codex;
-mod session_start;
+mod hook_script;
+mod skills;
+
+const VERSION_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+const MAX_INITIAL_PROMPT_ARGUMENT_BYTES: usize = 64 * 1024;
+
+pub(crate) use skills::{Skill, SkillFile};
 
 /// Supported harnesses.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -63,8 +69,9 @@ pub struct HarnessSpec {
     /// Closed harness family identifier.
     #[serde(rename = "type")]
     pub kind: Harness,
-    /// Version installed by the Agent image.
-    pub version: String,
+    /// Exact version installed by the Agent image; omitted when the image owns the version, so image bumps need no manifest change.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
     /// Authentication delivery mode.
     pub auth: HarnessAuthMode,
     /// Whether new Sessions select this installation when no harness is specified.
@@ -100,7 +107,10 @@ impl AuthenticationManager {
         }
     }
 
-    /// Stores a host-acquired credential for the selected harness.
+    /// Stores a credential for the selected harness.
+    ///
+    /// `imported` marks a credential supplied by the caller rather than minted by the host login
+    /// flow; adapters whose host grant must stay isolated only accept mediated placeholders that way.
     ///
     /// # Errors
     ///
@@ -109,10 +119,11 @@ impl AuthenticationManager {
         &self,
         harness: Harness,
         credential: Zeroizing<String>,
+        imported: bool,
     ) -> Result<ImportedAuthentication, Error> {
         match harness {
             Harness::ClaudeCode => self.claude_code.login(credential).await,
-            Harness::Codex => self.codex.login(credential).await,
+            Harness::Codex => self.codex.login(credential, imported).await,
         }
     }
 }
@@ -179,27 +190,60 @@ pub(crate) fn conflicts_with_managed_secret(harness: Harness, name: &str, placeh
     }
 }
 
+pub(crate) fn manages_environment(harness: Harness, name: &str) -> bool {
+    match harness {
+        Harness::ClaudeCode => claude_code::manages_environment(name),
+        Harness::Codex => codex::manages_environment(name),
+    }
+}
+
 pub(crate) async fn bootstrap_linux(
     harness: Harness,
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[Skill],
 ) -> Result<(), Error> {
     match harness {
-        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions).await,
-        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions).await,
+        Harness::ClaudeCode => claude_code::bootstrap_linux(sandbox, home, instructions, skills).await,
+        Harness::Codex => codex::bootstrap_linux(sandbox, home, instructions, skills).await,
     }
 }
 
-/// Verifies that the declared harness installation exists at the exact version.
+/// Verifies that the declared harness installation exists, at the exact version when one is declared.
 pub(crate) async fn verify_linux(
     harness: Harness,
     sandbox: &sandbox::SandboxHandle,
-    expected_version: &str,
+    expected_version: Option<&str>,
 ) -> Result<(), Error> {
     match harness {
         Harness::ClaudeCode => claude_code::verify_linux(sandbox, expected_version).await,
         Harness::Codex => codex::verify_linux(sandbox, expected_version).await,
+    }
+}
+
+async fn version_output(
+    sandbox: &sandbox::SandboxHandle,
+    executable: &str,
+) -> Result<sandbox::execution::ExecutionOutput, Error> {
+    use sandbox::{SandboxPath, execution::ExecutionSpec};
+
+    let started = sandbox
+        .start_execution(sandbox::execution::StartExecutionRequest::new(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/env"),
+            [executable.to_owned(), "--version".into()],
+        )))
+        .await?;
+    let execution_id = started.id.clone();
+    match tokio::time::timeout(VERSION_PROBE_TIMEOUT, started.collect()).await {
+        Ok(output) => output.map_err(Error::from),
+        Err(_elapsed) => {
+            let _ignored = sandbox.kill_execution(&execution_id).await;
+            Err(Error::SandboxSetup(format!(
+                "`{executable} --version` did not finish within {}s",
+                VERSION_PROBE_TIMEOUT.as_secs()
+            )))
+        }
     }
 }
 
@@ -214,16 +258,84 @@ pub struct ProcessLaunch {
 /// Resolves the selected harness's terminal launch configuration.
 ///
 /// A `resume` value continues the given harness-native conversation instead of
-/// starting a fresh one.
+/// starting a fresh one. `initial_prompt` is the first prompt of a fresh
+/// conversation, passed as the harness's positional prompt argument so the
+/// harness starts working on it immediately; it is ignored when resuming.
 #[must_use]
-pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>) -> ProcessLaunch {
+pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     match harness {
-        Harness::ClaudeCode => claude_code::launch_linux(home, resume),
-        Harness::Codex => codex::launch_linux(home, resume),
+        Harness::ClaudeCode => claude_code::launch_linux(home, resume, initial_prompt),
+        Harness::Codex => codex::launch_linux(home, resume, initial_prompt),
+    }
+}
+
+/// Quotes `value` as one POSIX shell word, safe for any content.
+pub(crate) fn shell_single_quoted(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\\''"))
+}
+
+/// Validates an initial prompt before it is persisted for an argv-based launch.
+pub(crate) fn validate_initial_prompt(prompt: &str) -> Result<(), Error> {
+    if prompt.contains('\0') {
+        return Err(Error::Invalid("initial prompt must not contain NUL".into()));
+    }
+    let quoted_bytes = prompt
+        .len()
+        .saturating_add(prompt.bytes().filter(|byte| *byte == b'\'').count().saturating_mul(3))
+        .saturating_add(2);
+    if quoted_bytes > MAX_INITIAL_PROMPT_ARGUMENT_BYTES {
+        return Err(Error::Invalid(format!(
+            "initial prompt is too large; its encoded launch argument must not exceed {} KiB",
+            MAX_INITIAL_PROMPT_ARGUMENT_BYTES / 1024
+        )));
+    }
+    Ok(())
+}
+
+/// Recognizes an initialized input line before a harness reports its conversation.
+/// The runtime supplies the visible cursor line and pane title.
+pub(crate) fn input_ready_without_report(harness: Harness, cursor_line: &str, title: &str) -> bool {
+    match harness {
+        Harness::ClaudeCode => false,
+        Harness::Codex => codex::input_ready_without_report(cursor_line, title),
+    }
+}
+
+/// Parses harness transcript bytes into ordered, runtime-neutral turns.
+///
+/// # Errors
+///
+/// Returns an error when the transcript cannot be decoded.
+pub(crate) fn parse_transcript(harness: Harness, bytes: &[u8]) -> Result<Vec<crate::sessions::Turn>, Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::transcript::parse(bytes),
+        Harness::Codex => codex::transcript::parse(bytes),
+    }
+}
+
+/// Trims a transcript suffix to its first complete harness turn.
+pub(crate) fn trim_partial_transcript(harness: Harness, bytes: &[u8]) -> &[u8] {
+    match harness {
+        Harness::ClaudeCode => claude_code::transcript::trim_partial(bytes),
+        Harness::Codex => codex::transcript::trim_partial(bytes),
     }
 }
 
 #[cfg(test)]
 pub(crate) const fn test_harness() -> Harness {
     Harness::ClaudeCode
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn initial_prompt_validation_measures_the_shell_quoted_argument() {
+        validate_initial_prompt(&"a".repeat(MAX_INITIAL_PROMPT_ARGUMENT_BYTES - 2)).expect("boundary prompt");
+
+        let expanded = "'".repeat(MAX_INITIAL_PROMPT_ARGUMENT_BYTES / 4);
+        assert!(validate_initial_prompt(&expanded).is_err());
+        assert!(validate_initial_prompt("before\0after").is_err());
+    }
 }

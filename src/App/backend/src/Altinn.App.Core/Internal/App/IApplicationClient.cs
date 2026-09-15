@@ -12,5 +12,6 @@ public interface IApplicationClient
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organization.</param>
-    Task<Application?> GetApplication(string org, string app);
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<Application?> GetApplication(string org, string app, CancellationToken cancellationToken = default);
 }

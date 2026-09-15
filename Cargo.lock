@@ -15,6 +15,7 @@ dependencies = [
  "base64 0.22.1",
  "clap",
  "crossterm",
+ "flate2",
  "futures-util",
  "ignore",
  "ratatui",
@@ -23,15 +24,19 @@ dependencies = [
  "sandbox",
  "sandbox-authorization",
  "sandbox-microsandbox",
+ "semver",
  "serde",
  "serde_json",
  "serde_yaml_ng",
+ "sha2 0.11.0",
  "tar",
  "tempfile",
  "thiserror 2.0.20",
  "time",
  "tokio",
  "tokio-util",
+ "tracing",
+ "tracing-subscriber",
  "uuid",
  "win_uds",
  "zeroize",
@@ -884,9 +889,9 @@ checksum = "f079e83a288787bcd14a6aea84cee5c87a67c5a3e660c30f557a3d24761b3527"
 
 [[package]]
 name = "chacha20"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d524456ba66e72eb8b115ff89e01e497f8e6d11d78b70b1aa13c0fbd97540a81"
+checksum = "65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06"
 dependencies = [
  "cfg-if",
  "cpufeatures 0.3.0",
@@ -3002,7 +3007,7 @@ dependencies = [
 [[package]]
 name = "microsandbox"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -3057,7 +3062,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-agent-client"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "ciborium",
  "microsandbox-protocol",
@@ -3070,7 +3075,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-db"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "async-trait",
  "sea-orm",
@@ -3082,7 +3087,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-filesystem"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "libc",
  "microsandbox-utils",
@@ -3095,7 +3100,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-image"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -3123,7 +3128,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-metrics"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "chrono",
  "libc",
@@ -3135,7 +3140,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-migration"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "sea-orm-migration",
  "serde_json",
@@ -3144,7 +3149,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-network"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -3189,7 +3194,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-protocol"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "chrono",
  "ciborium",
@@ -3204,7 +3209,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-runtime"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "bytes",
  "chrono",
@@ -3239,7 +3244,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-types"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "chrono",
  "ipnetwork",
@@ -3253,7 +3258,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-utils"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "dirs",
  "libc",
@@ -3266,7 +3271,7 @@ dependencies = [
 [[package]]
 name = "microsandbox-vsock"
 version = "0.6.9-digdir.3"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=1969126cab06c65695990750a8d1489b87cbaa94#1969126cab06c65695990750a8d1489b87cbaa94"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=1db49dd79caa8b1ed36769256dd044be8e14575a#1db49dd79caa8b1ed36769256dd044be8e14575a"
 dependencies = [
  "libc",
  "msb_krun",
@@ -3581,6 +3586,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42b8cfee0e339a0337359f3c88165702ac6e600dc01c0cc9579a92d62b08477a"
 dependencies = [
  "bitflags 2.13.1",
+]
+
+[[package]]
+name = "nu-ansi-term"
+version = "0.50.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
+dependencies = [
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4880,7 +4894,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sandbox-self-dev"
+name = "sandbox-worktree"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -6175,6 +6189,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+ "valuable",
+]
+
+[[package]]
+name = "tracing-log"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee855f1f400bd0e5c02d150ae5de3840039a3f54b025156404e34c23c03f47c3"
+dependencies = [
+ "log",
+ "once_cell",
+ "tracing-core",
 ]
 
 [[package]]
@@ -6184,12 +6210,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb7f578e5945fb242538965c2d0b04418d38ec25c79d160cd279bf0731c8d319"
 dependencies = [
  "matchers",
+ "nu-ansi-term",
  "once_cell",
  "regex-automata",
  "sharded-slab",
+ "smallvec",
  "thread_local",
  "tracing",
  "tracing-core",
+ "tracing-log",
 ]
 
 [[package]]
@@ -6406,6 +6435,12 @@ dependencies = [
  "serde_core",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "valuable"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
 name = "vcpkg"

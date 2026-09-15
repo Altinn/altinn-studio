@@ -12,6 +12,8 @@ use crate::{
 
 pub(super) mod authentication;
 mod bootstrap;
+mod hooks;
+pub(super) mod transcript;
 
 const PROVIDER: &str = "codex";
 const ACCESS_SECRET: &str = "codex-access-token";
@@ -57,6 +59,13 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
 pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str>) -> bool {
     matches!(name, ACCESS_ENVIRONMENT | ACCOUNT_ENVIRONMENT)
         || matches!(placeholder, Some(ACCESS_PLACEHOLDER | ACCOUNT_PLACEHOLDER))
+}
+
+pub(super) fn manages_environment(name: &str) -> bool {
+    matches!(
+        name,
+        ACCESS_ENVIRONMENT | ACCOUNT_ENVIRONMENT | "CODEX_HOME" | "CODEX_CA_CERTIFICATE"
+    )
 }
 
 /// Creates a separate `ChatGPT` login grant without reading the user's Codex home.
@@ -122,24 +131,25 @@ pub(super) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
 ) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home, instructions).await
+    bootstrap::configure_linux(sandbox, home, instructions, skills).await
 }
 
-pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {
-    use sandbox::{SandboxPath, execution::ExecutionSpec};
-
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/env"),
-            ["codex".into(), "--version".into()],
-        ))
-        .await?;
+pub(super) async fn verify_linux(
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
+    let output = super::version_output(sandbox, "codex").await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
-            "declared Codex {expected_version:?} is missing or `codex --version` exited with code {}",
-            output.status.code
-        )));
+        let message = format!("`codex --version` exited with code {}", output.status.code);
+        // 126/127 mean the image does not provide the harness; retrying cannot change that.
+        // Any other failure this early in the guest's life may be transient.
+        return Err(if matches!(output.status.code, 126 | 127) {
+            Error::Invalid(format!("Codex is missing: {message}"))
+        } else {
+            Error::SandboxSetup(message)
+        });
     }
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|_| Error::SandboxSetup("`codex --version` returned non-UTF-8 output".into()))?;
@@ -147,33 +157,58 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .split_whitespace()
         .nth(1)
         .ok_or_else(|| Error::SandboxSetup("`codex --version` returned no version".into()))?;
-    if installed != expected_version {
-        return Err(Error::SandboxSetup(format!(
-            "declared Codex version {expected_version:?} does not match installed version {installed:?}"
+    if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
+        return Err(Error::Invalid(format!(
+            "declared Codex version {expected:?} does not match installed version {installed:?}"
         )));
     }
     Ok(())
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
+/// Codex's provisional composer accepts pastes but drops submission keys. The
+/// launch-owned session-ID title appears only after `SessionConfigured`, and
+/// survives the header scrolling offscreen during resume. The pinned TUI
+/// truncates UUIDs to 29 ASCII characters plus three dots.
+pub(super) fn input_ready_without_report(cursor_line: &str, title: &str) -> bool {
+    cursor_line.trim_start().starts_with("› ")
+        && title.strip_suffix("...").is_some_and(|prefix| {
+            prefix.len() == 29
+                && prefix.bytes().enumerate().all(|(index, byte)| {
+                    if matches!(index, 8 | 13 | 18 | 23) {
+                        byte == b'-'
+                    } else {
+                        byte.is_ascii_hexdigit()
+                    }
+                })
+        })
+}
+
+pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.codex");
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
     let configuration = format!(
-        "-c 'cli_auth_credentials_store=\"file\"' -c 'projects.{}.trust_level=\"trusted\"'",
+        "-c 'cli_auth_credentials_store=\"file\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+         -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );
     let base = format!("codex {flags} {configuration}");
+    // A fresh conversation may start on a positional prompt; `--` keeps a prompt
+    // that begins with `-` or names a subcommand (`resume`) positional.
+    let fresh = initial_prompt.map_or_else(
+        || base.clone(),
+        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+    );
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
     let command = match resume {
         Some(native) => format!(
             "if /usr/bin/find {config}/sessions -type f \\( \
              -name 'rollout-*-{native}.jsonl' -o -name 'rollout-*-{native}.jsonl.zst' \\) \
              -print -quit 2>/dev/null | /usr/bin/grep -q .; \
-             then exec codex resume {flags} {configuration} {native}; else exec {base}; fi"
+             then exec codex resume {flags} {configuration} {native}; else exec {fresh}; fi"
         ),
-        None => base,
+        None => fresh,
     };
     ProcessLaunch {
         command,
@@ -190,6 +225,19 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
+
+    #[test]
+    fn input_readiness_waits_for_the_initialized_composer() {
+        let title = "01234567-1234-1234-1234-12345...";
+        assert!(super::input_ready_without_report("› Ask Codex to do anything", title));
+        assert!(super::input_ready_without_report("  › Find a bug", title));
+        for title in ["", "agent-dev", "model: loading", "01234567-1234-1234-1234-1234g..."] {
+            assert!(!super::input_ready_without_report("› Ask Codex to do anything", title));
+        }
+        for cursor in ["Starting Codex...", "Select a model", ""] {
+            assert!(!super::input_ready_without_report(cursor, title));
+        }
+    }
 
     #[test]
     fn stale_private_login_homes_are_removed_without_touching_other_files() {
@@ -209,7 +257,7 @@ mod tests {
     #[test]
     fn resume_launch_requires_a_native_rollout() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native));
+        let launch = super::launch_linux("/home/agent", Some(native), None);
 
         assert!(launch.command.contains("/home/agent/.codex/sessions"));
         assert!(
@@ -241,8 +289,21 @@ mod tests {
 
     #[test]
     fn non_uuid_native_id_is_not_a_codex_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"));
+        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
 
+        assert!(!launch.command.contains("codex resume"));
+    }
+
+    #[test]
+    fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
+        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+
+        assert!(
+            // `--` keeps a prompt that starts with `-` or names a subcommand positional.
+            launch.command.ends_with(" -- 'fix it'\\''s\nbroken'"),
+            "{}",
+            launch.command
+        );
         assert!(!launch.command.contains("codex resume"));
     }
 }

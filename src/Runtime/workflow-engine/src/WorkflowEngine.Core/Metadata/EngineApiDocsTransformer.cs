@@ -38,8 +38,18 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["ResumeWorkflow"] = "resume",
         ["AbandonWorkflow"] = "abandon",
         ["NudgeWorkflow"] = "nudge",
+        ["FailWorkflow"] = "fail",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
+        ["ListNamespaceThrottles"] = "list-namespace-throttles",
+        ["GetNamespaceThrottle"] = "get-namespace-throttle",
+        ["TripNamespaceThrottle"] = "force-trip-throttle",
+        ["ClearNamespaceThrottle"] = "force-clear-throttle",
+
+        ["MintMailbox"] = "mint-mailbox",
+        ["GetMailbox"] = "get-mailbox",
+        ["CloseMailbox"] = "close-mailbox",
+        ["DeliverToMailbox"] = "deliver-to-mailbox",
     };
 
     private static readonly Dictionary<string, string> _listWorkflowParamDescriptions = new()

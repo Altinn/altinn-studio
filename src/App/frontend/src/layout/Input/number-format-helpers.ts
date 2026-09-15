@@ -1,4 +1,4 @@
-import type { NumberFormatProps, PatternFormatProps } from 'src/layout/common.generated';
+import type { NumberFormatProps, PatternFormatProps } from '@app/layout-contract/generated/common.generated';
 
 export const isPatternFormat = (
   format: NumberFormatProps | PatternFormatProps | undefined,

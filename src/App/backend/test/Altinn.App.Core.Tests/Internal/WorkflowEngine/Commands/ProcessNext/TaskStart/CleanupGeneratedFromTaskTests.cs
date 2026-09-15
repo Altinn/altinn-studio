@@ -22,6 +22,7 @@ public class CleanupGeneratedFromTaskTests
 
         var context = new ProcessEngineCommandContext
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = mutatorMock.Object,
@@ -31,10 +32,10 @@ public class CleanupGeneratedFromTaskTests
                 CommandKey = CleanupGeneratedFromTask.Key,
                 Actor = new Actor { UserId = 1337 },
                 Payload = null,
-                LockToken = Guid.NewGuid().ToString(),
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
         return (context, mutatorMock);

@@ -1,0 +1,265 @@
+﻿[
+  {
+    Plan: {
+      Node Type: Sort,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Sort Key: [
+        m.created_at DESC,
+        m.id,
+        (COALESCE(mailbox_deliveries.idx, mailbox_receivers.seq))
+      ],
+      Plans: [
+        {
+          Node Type: Nested Loop,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Join Type: Left,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Inner Unique: false,
+          Plans: [
+            {
+              Node Type: Nested Loop,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Join Type: Inner,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Inner Unique: false,
+              Plans: [
+                {
+                  Node Type: Unique,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Plans: [
+                    {
+                      Node Type: Sort,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Sort Key: [
+                        (unnest('{seed-collection-3,seed-collection-7}'::text[]))
+                      ],
+                      Plans: [
+                        {
+                          Node Type: ProjectSet,
+                          Parent Relationship: Outer,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Plans: [
+                            {
+                              Node Type: Result,
+                              Parent Relationship: Outer,
+                              Parallel Aware: {Scrubbed},
+                              Async Capable: {Scrubbed},
+                              Startup Cost: {Scrubbed},
+                              Total Cost: {Scrubbed},
+                              Plan Rows: {Scrubbed},
+                              Plan Width: {Scrubbed},
+                              Disabled: false
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  Node Type: Limit,
+                  Parent Relationship: Inner,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Plans: [
+                    {
+                      Node Type: Sort,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Sort Key: [
+                        m.created_at DESC,
+                        m.id
+                      ],
+                      Plans: [
+                        {
+                          Node Type: Bitmap Heap Scan,
+                          Parent Relationship: Outer,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Relation Name: mailboxes,
+                          Alias: m,
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Recheck Cond: (((namespace)::text = 'test-ns'::text) AND ((collection_key)::text = (unnest('{seed-collection-3,seed-collection-7}'::text[])))),
+                          Plans: [
+                            {
+                              Node Type: Bitmap Index Scan,
+                              Parent Relationship: Outer,
+                              Parallel Aware: {Scrubbed},
+                              Async Capable: {Scrubbed},
+                              Index Name: ix_mailboxes_namespace_collection_key,
+                              Startup Cost: {Scrubbed},
+                              Total Cost: {Scrubbed},
+                              Plan Rows: {Scrubbed},
+                              Plan Width: {Scrubbed},
+                              Disabled: false,
+                              Index Cond: (((namespace)::text = 'test-ns'::text) AND ((collection_key)::text = (unnest('{seed-collection-3,seed-collection-7}'::text[]))))
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              Node Type: Memoize,
+              Parent Relationship: Inner,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Cache Key: m.id,
+              Cache Mode: binary,
+              Plans: [
+                {
+                  Node Type: Hash Join,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Join Type: Full,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Inner Unique: true,
+                  Hash Cond: (mailbox_deliveries.idx = mailbox_receivers.seq),
+                  Plans: [
+                    {
+                      Node Type: Bitmap Heap Scan,
+                      Parent Relationship: Outer,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Relation Name: mailbox_deliveries,
+                      Alias: mailbox_deliveries,
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Recheck Cond: (mailbox_id = m.id),
+                      Plans: [
+                        {
+                          Node Type: Bitmap Index Scan,
+                          Parent Relationship: Outer,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Index Name: ix_mailbox_deliveries_mailbox_id_idempotency_key,
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Index Cond: (mailbox_id = m.id)
+                        }
+                      ]
+                    },
+                    {
+                      Node Type: Hash,
+                      Parent Relationship: Inner,
+                      Parallel Aware: {Scrubbed},
+                      Async Capable: {Scrubbed},
+                      Startup Cost: {Scrubbed},
+                      Total Cost: {Scrubbed},
+                      Plan Rows: {Scrubbed},
+                      Plan Width: {Scrubbed},
+                      Disabled: false,
+                      Plans: [
+                        {
+                          Node Type: Bitmap Heap Scan,
+                          Parent Relationship: Outer,
+                          Parallel Aware: {Scrubbed},
+                          Async Capable: {Scrubbed},
+                          Relation Name: mailbox_receivers,
+                          Alias: mailbox_receivers,
+                          Startup Cost: {Scrubbed},
+                          Total Cost: {Scrubbed},
+                          Plan Rows: {Scrubbed},
+                          Plan Width: {Scrubbed},
+                          Disabled: false,
+                          Recheck Cond: (mailbox_id = m.id),
+                          Plans: [
+                            {
+                              Node Type: Bitmap Index Scan,
+                              Parent Relationship: Outer,
+                              Parallel Aware: {Scrubbed},
+                              Async Capable: {Scrubbed},
+                              Index Name: pk_mailbox_receivers,
+                              Startup Cost: {Scrubbed},
+                              Total Cost: {Scrubbed},
+                              Plan Rows: {Scrubbed},
+                              Plan Width: {Scrubbed},
+                              Disabled: false,
+                              Index Cond: (mailbox_id = m.id)
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

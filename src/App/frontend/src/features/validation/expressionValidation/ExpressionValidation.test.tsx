@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 
 import { waitFor } from '@testing-library/react';
 import fs from 'node:fs';
+import path from 'node:path';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
@@ -18,10 +19,12 @@ interface SimpleValidation {
   severity: string;
   field: string;
   componentId?: string;
+  componentIdFrontend?: string;
 }
 
 type ExpressionValidationTest = {
   name: string;
+  disabledFrontend?: boolean;
   expects: SimpleValidation[];
   validationConfig: IExpressionValidationConfig;
   formData: object;
@@ -85,7 +88,7 @@ function sortValidations(validations: SimpleValidation[]) {
 }
 
 function getSharedTests() {
-  const fullPath = `${__dirname}/shared-expression-validation-tests`;
+  const fullPath = path.resolve(__dirname, '../../../../../../common/expression-tests/validation');
   const out: ExpressionValidationTest[] = [];
   fs.readdirSync(fullPath).forEach((name) => {
     if (name.endsWith('.json')) {
@@ -103,7 +106,7 @@ describe('Expression validation shared tests', () => {
     window.altinnAppGlobalData.ui = getUiConfigMock();
   });
 
-  const sharedTests = getSharedTests();
+  const sharedTests = getSharedTests().filter((test) => !test.disabledFrontend);
   it.each(sharedTests)('$name', async ({ name: _, expects, validationConfig, formData, textResources, layouts }) => {
     let result: SimpleValidation[] = [];
     window.altinnAppGlobalData.textResources!.resources = [
@@ -138,8 +141,10 @@ describe('Expression validation shared tests', () => {
     await waitFor(() => {
       const includeComponentId = expects.some((validation) => validation.componentId);
       const normalize = (validations: SimpleValidation[]) =>
-        validations.map(({ message, severity, field, componentId }) =>
-          includeComponentId ? { message, severity, field, componentId } : { message, severity, field },
+        validations.map(({ message, severity, field, componentId, componentIdFrontend }) =>
+          includeComponentId
+            ? { message, severity, field, componentId: componentIdFrontend ?? componentId }
+            : { message, severity, field },
         );
       const validations = JSON.stringify(sortValidations(normalize([...result])), null, 2);
       const expectedValidations = JSON.stringify(sortValidations(normalize([...expects])), null, 2);

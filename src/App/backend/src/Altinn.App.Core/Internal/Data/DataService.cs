@@ -25,7 +25,7 @@ internal class DataService : IDataService
         Instance instance,
         string dataTypeId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         DataElement? dataElement = instance.Data.SingleOrDefault(d =>
@@ -41,7 +41,7 @@ internal class DataService : IDataService
             new InstanceIdentifier(instance),
             dataElement,
             authenticationMethod,
-            ct
+            cancellationToken
         );
 
         return (Guid.Parse(dataElement.Id), data);
@@ -52,7 +52,7 @@ internal class DataService : IDataService
         Instance instance,
         Guid dataElementId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         DataElement dataElement =
@@ -60,7 +60,12 @@ internal class DataService : IDataService
             ?? throw new ArgumentNullException(
                 $"Failed to locate data element with id {dataElementId} in instance {instance.Id}"
             );
-        return await GetDataForDataElement<T>(new InstanceIdentifier(instance), dataElement, authenticationMethod, ct);
+        return await GetDataForDataElement<T>(
+            new InstanceIdentifier(instance),
+            dataElement,
+            authenticationMethod,
+            cancellationToken
+        );
     }
 
     /// <inheritdoc/>
@@ -69,11 +74,11 @@ internal class DataService : IDataService
         string dataTypeId,
         object data,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var referenceStream = new MemoryStream();
-        await JsonSerializer.SerializeAsync(referenceStream, data, _jsonSerializerOptions, ct);
+        await JsonSerializer.SerializeAsync(referenceStream, data, _jsonSerializerOptions, cancellationToken);
         referenceStream.Position = 0;
         return await _dataClient.InsertBinaryData(
             instanceIdentifier.ToString(),
@@ -83,7 +88,7 @@ internal class DataService : IDataService
             referenceStream,
             generatedFromTask: null,
             authenticationMethod: authenticationMethod,
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
     }
 
@@ -94,11 +99,11 @@ internal class DataService : IDataService
         Guid dataElementId,
         object data,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var referenceStream = new MemoryStream();
-        await JsonSerializer.SerializeAsync(referenceStream, data, _jsonSerializerOptions, ct);
+        await JsonSerializer.SerializeAsync(referenceStream, data, _jsonSerializerOptions, cancellationToken);
         referenceStream.Position = 0;
         return await _dataClient.UpdateBinaryData(
             instanceIdentifier,
@@ -107,7 +112,7 @@ internal class DataService : IDataService
             dataElementId,
             referenceStream,
             authenticationMethod,
-            ct
+            cancellationToken
         );
     }
 
@@ -116,7 +121,7 @@ internal class DataService : IDataService
         InstanceIdentifier instanceIdentifier,
         Guid dataElementId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         return await _dataClient.DeleteData(
@@ -125,7 +130,7 @@ internal class DataService : IDataService
             dataElementId,
             false,
             authenticationMethod,
-            ct
+            cancellationToken
         );
     }
 
@@ -133,7 +138,7 @@ internal class DataService : IDataService
         InstanceIdentifier instanceIdentifier,
         DataElement dataElement,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using Stream dataStream = await _dataClient.GetBinaryData(
@@ -141,10 +146,10 @@ internal class DataService : IDataService
             instanceIdentifier.InstanceGuid,
             new Guid(dataElement.Id),
             authenticationMethod,
-            ct
+            cancellationToken
         );
 
-        return await JsonSerializer.DeserializeAsync<T>(dataStream, _jsonSerializerOptions, ct)
+        return await JsonSerializer.DeserializeAsync<T>(dataStream, _jsonSerializerOptions, cancellationToken)
             ?? throw new InvalidOperationException($"Unable to deserialize data from dataStream to type {nameof(T)}.");
     }
 }

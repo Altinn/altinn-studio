@@ -3,7 +3,7 @@ module altinn.studio/sandbox-node
 go 1.26.6
 
 require (
-	google.golang.org/grpc v1.83.0
+	google.golang.org/grpc v1.83.1
 	k8s.io/kubelet v0.35.7
 )
 

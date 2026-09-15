@@ -5,11 +5,6 @@ using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Moq;
-using Polly;
-using Polly.DependencyInjection;
-using Polly.Retry;
-using Polly.Testing;
-using Polly.Timeout;
 
 namespace Altinn.App.Clients.Fiks.Tests.Extensions;
 
@@ -24,45 +19,12 @@ public class ServiceCollectionExtensionsTests
         // Act
         var fiksIOClient = fixture.FiksIOClient;
         var fiksIOSettings = fixture.FiksIOSettings;
-        var resiliencePipeline = fixture.FiksIOResiliencePipeline;
 
         // Assert
         Assert.NotNull(fiksIOClient);
         Assert.NotNull(fiksIOSettings);
-        Assert.NotNull(resiliencePipeline);
         Assert.IsType<FiksIOClient>(fiksIOClient);
         Assert.Equal(TestHelpers.DefaultFiksIOSettings, fiksIOSettings);
-
-        AssertDefaultResiliencePipeline(resiliencePipeline);
-    }
-
-    [Fact]
-    public async Task AddFiksIOClient_OverridesResiliencePipeline()
-    {
-        // Arrange
-        var pipelineOverride = (
-            ResiliencePipelineBuilder<FiksIOMessageResponse> builder,
-            AddResiliencePipelineContext<string> context
-        ) =>
-        {
-            builder.AddRetry(new RetryStrategyOptions<FiksIOMessageResponse> { MaxRetryAttempts = int.MaxValue });
-        };
-
-        await using var fixture = TestFixture.Create(services =>
-            services.AddFiksIOClient().WithResiliencePipeline(pipelineOverride)
-        );
-
-        // Act
-        var resiliencePipeline = fixture.FiksIOResiliencePipeline;
-        var resiliencePipelineDescriptor = resiliencePipeline.GetPipelineDescriptor();
-
-        // Assert
-        Assert.NotNull(resiliencePipeline);
-        Assert.Single(resiliencePipelineDescriptor.Strategies);
-        var retryOptions = Assert.IsType<RetryStrategyOptions<FiksIOMessageResponse>>(
-            resiliencePipelineDescriptor.Strategies[0].Options
-        );
-        Assert.Equal(int.MaxValue, retryOptions.MaxRetryAttempts);
     }
 
     [Theory]
@@ -161,71 +123,39 @@ public class ServiceCollectionExtensionsTests
         var fiksIOClient = fixture.FiksIOClient;
         var fiksIOSettings = fixture.FiksIOSettings;
         var fiksIOClientFactory = fixture.FiksIOClientFactory;
-        var resiliencePipeline = fixture.FiksIOResiliencePipeline;
         var altinnCdnClient = fixture.AltinnCdnClient;
-        var fiksArkivHost = fixture.FiksArkivHost;
+        var fiksArkivSubscriber = fixture.FiksArkivSubscriber;
+        var fiksArkivMessageSender = fixture.FiksArkivMessageSender;
         var fiksArkivServiceTask = fixture.FiksArkivServiceTask;
         var fiksArkivConfigValidationService = fixture.FiksArkivConfigValidationService;
         var fiksArkivConfigResolver = fixture.FiksArkivConfigResolver;
         var fiksArkivInstanceClient = fixture.FiksArkivInstanceClient;
         var fiksArkivPayloadGenerator = fixture.FiksArkivPayloadGenerator;
-        var fiksArkivResponseHandler = fixture.FiksArkivResponseHandler;
 
         // Assert
         Assert.NotNull(fiksIOClient);
         Assert.NotNull(fiksIOSettings);
         Assert.NotNull(fiksIOClientFactory);
-        Assert.NotNull(resiliencePipeline);
         Assert.NotNull(altinnCdnClient);
-        Assert.NotNull(fiksArkivHost);
+        Assert.NotNull(fiksArkivSubscriber);
+        Assert.NotNull(fiksArkivMessageSender);
         Assert.NotNull(fiksArkivServiceTask);
         Assert.NotNull(fiksArkivConfigValidationService);
         Assert.NotNull(fiksArkivConfigResolver);
         Assert.NotNull(fiksArkivInstanceClient);
         Assert.NotNull(fiksArkivPayloadGenerator);
-        Assert.NotNull(fiksArkivResponseHandler);
+        // No message handler is registered by default — the hook is optional.
+        Assert.Null(fixture.FiksArkivMessageHandler);
         Assert.Equal(TestHelpers.DefaultFiksIOSettings, fiksIOSettings);
         Assert.IsType<FiksIOClient>(fiksIOClient);
         Assert.IsType<FiksIOClientFactory>(fiksIOClientFactory);
         Assert.IsType<AltinnCdnClient>(altinnCdnClient);
-        Assert.IsType<FiksArkivHost>(fiksArkivHost);
+        Assert.IsType<FiksArkivMessageSender>(fiksArkivMessageSender);
         Assert.IsType<FiksArkivServiceTask>(fiksArkivServiceTask);
         Assert.IsType<FiksArkivConfigValidationService>(fiksArkivConfigValidationService);
         Assert.IsType<FiksArkivConfigResolver>(fiksArkivConfigResolver);
         Assert.IsType<FiksArkivInstanceClient>(fiksArkivInstanceClient);
         Assert.IsType<FiksArkivDefaultPayloadGenerator>(fiksArkivPayloadGenerator);
-        Assert.IsType<FiksArkivDefaultResponseHandler>(fiksArkivResponseHandler);
-
-        AssertDefaultResiliencePipeline(resiliencePipeline);
-    }
-
-    [Fact]
-    public async Task AddFiksArkiv_OverridesResiliencePipeline()
-    {
-        // Arrange
-        var pipelineOverride = (
-            ResiliencePipelineBuilder<FiksIOMessageResponse> builder,
-            AddResiliencePipelineContext<string> context
-        ) =>
-        {
-            builder.AddRetry(new RetryStrategyOptions<FiksIOMessageResponse> { MaxRetryAttempts = int.MaxValue });
-        };
-
-        await using var fixture = TestFixture.Create(services =>
-            services.AddFiksArkiv().WithResiliencePipeline(pipelineOverride)
-        );
-
-        // Act
-        var resiliencePipeline = fixture.FiksIOResiliencePipeline;
-        var resiliencePipelineDescriptor = resiliencePipeline.GetPipelineDescriptor();
-
-        // Assert
-        Assert.NotNull(resiliencePipeline);
-        Assert.Single(resiliencePipelineDescriptor.Strategies);
-        var retryOptions = Assert.IsType<RetryStrategyOptions<FiksIOMessageResponse>>(
-            resiliencePipelineDescriptor.Strategies[0].Options
-        );
-        Assert.Equal(int.MaxValue, retryOptions.MaxRetryAttempts);
     }
 
     [Theory]
@@ -341,34 +271,18 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public async Task AddFiksArkiv_OverridesResponseHandler()
+    public async Task AddFiksArkiv_RegistersMessageHandler()
     {
         // Arrange
         await using var fixture = TestFixture.Create(services =>
-            services.AddFiksArkiv().WithResponseHandler<TestHelpers.CustomFiksArkivResponseHandler>()
+            services.AddFiksArkiv().WithMessageHandler<TestHelpers.CustomFiksArkivMessageHandler>()
         );
 
         // Act
-        var fiksArkivMessageHandler = fixture.FiksArkivResponseHandler;
+        var fiksArkivMessageHandler = fixture.FiksArkivMessageHandler;
 
         // Assert
         Assert.NotNull(fiksArkivMessageHandler);
-        Assert.IsType<TestHelpers.CustomFiksArkivResponseHandler>(fiksArkivMessageHandler);
-    }
-
-    private static void AssertDefaultResiliencePipeline(ResiliencePipeline<FiksIOMessageResponse> pipeline)
-    {
-        var pipelineDescriptor = pipeline.GetPipelineDescriptor();
-
-        Assert.Equal(2, pipelineDescriptor.Strategies.Count);
-        var retryOptions = Assert.IsType<RetryStrategyOptions<FiksIOMessageResponse>>(
-            pipelineDescriptor.Strategies[0].Options
-        );
-        var timeoutOptions = Assert.IsType<TimeoutStrategyOptions>(pipelineDescriptor.Strategies[1].Options);
-        Assert.Equal(5, retryOptions.MaxRetryAttempts);
-        Assert.Equal(TimeSpan.FromSeconds(10), retryOptions.MaxDelay);
-        Assert.Equal(TimeSpan.FromSeconds(1), retryOptions.Delay);
-        Assert.Equal(DelayBackoffType.Exponential, retryOptions.BackoffType);
-        Assert.Equal(TimeSpan.FromSeconds(2), timeoutOptions.Timeout);
+        Assert.IsType<TestHelpers.CustomFiksArkivMessageHandler>(fiksArkivMessageHandler);
     }
 }

@@ -35,7 +35,8 @@ internal sealed class MovedToAltinnEvent : IWorkflowEngineCommand
                 await _eventsClient.AddEvent(
                     $"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}",
                     instance,
-                    StorageAuthenticationMethod.ServiceOwner()
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    parameters.CancellationToken
                 );
             }
 

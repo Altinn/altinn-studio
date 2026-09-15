@@ -1,5 +1,6 @@
+import type { GridCell } from '@app/layout-contract/generated/common.generated';
+
 import { getGridCellHiddenExpr } from 'src/layout/Grid/tools';
-import type { GridCell } from 'src/layout/common.generated';
 
 describe('getGridCellHiddenExpr', () => {
   it('returns undefined for non-object or null cells', () => {

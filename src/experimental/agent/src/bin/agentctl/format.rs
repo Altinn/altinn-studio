@@ -13,9 +13,39 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         .and_then(agent::sandbox::Assignment::id)
         .map_or_else(|| "-".into(), ToString::to_string);
 
+    let source = agent.status.provenance.as_ref().map_or_else(
+        || "-".into(),
+        |provenance| {
+            provenance
+                .manifest_path
+                .as_ref()
+                .unwrap_or(&provenance.source_directory)
+                .display()
+                .to_string()
+        },
+    );
+
+    let secrets = if agent.spec.secrets.is_empty() {
+        "-".to_owned()
+    } else {
+        agent.status.provenance.as_ref().map_or_else(
+            || "-".into(),
+            |provenance| {
+                provenance
+                    .env_file
+                    .clone()
+                    .unwrap_or_else(|| provenance.source_directory.join(agent::control_plane::ENV_FILE))
+                    .display()
+                    .to_string()
+            },
+        )
+    };
+
     let mut lines = vec![
         format!("Name:       {}", agent.metadata.name),
         format!("Generation: {}", agent.metadata.generation),
+        format!("Source:     {source}"),
+        format!("Secrets:    {secrets}"),
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
@@ -59,7 +89,12 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
             } else {
                 ""
             };
-            format!("{} {}{suffix}", harness.kind.as_str(), harness.version)
+            let version = harness
+                .version
+                .as_deref()
+                .map(|version| format!(" {version}"))
+                .unwrap_or_default();
+            format!("{}{version}{suffix}", harness.kind.as_str())
         })
         .collect::<Vec<_>>()
         .join(", ")
@@ -68,7 +103,8 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
 pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str {
     match state {
         agent::sessions::State::Starting => "Starting",
-        agent::sessions::State::Running => "Running",
+        agent::sessions::State::Working => "Working",
+        agent::sessions::State::WaitingForInput => "WaitingForInput",
         agent::sessions::State::Idle => "Idle",
         agent::sessions::State::Failed => "Failed",
     }
@@ -126,7 +162,11 @@ mod tests {
     #[test]
     fn session_state_output_does_not_depend_on_debug_names() {
         assert_eq!(session_state(agent::sessions::State::Starting), "Starting");
-        assert_eq!(session_state(agent::sessions::State::Running), "Running");
+        assert_eq!(session_state(agent::sessions::State::Working), "Working");
+        assert_eq!(
+            session_state(agent::sessions::State::WaitingForInput),
+            "WaitingForInput"
+        );
         assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
         assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
     }

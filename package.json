@@ -62,6 +62,7 @@
     "src/common/ts/**"
   ],
   "resolutions": {
-    "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"
+    "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch",
+    "qs": "6.16.0"
   }
 }

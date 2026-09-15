@@ -2,10 +2,9 @@ import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown, studioBetaTagClasses } from '@studio/components';
 import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
-import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuSmallItem;

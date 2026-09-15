@@ -1,5 +1,0 @@
-{
-  "name": "Empty array gives error",
-  "expression": [],
-  "expectsFailure": "Missing function name in expression"
-}

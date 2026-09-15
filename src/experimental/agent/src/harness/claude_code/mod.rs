@@ -9,6 +9,8 @@ use sandbox::secret_store::SecretReference;
 
 pub(super) mod authentication;
 mod bootstrap;
+mod hooks;
+pub(super) mod transcript;
 
 const PROVIDER: &str = "claude";
 const ACCESS_SECRET: &str = "claude-access-token";
@@ -32,6 +34,10 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
 
 pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str>) -> bool {
     name == ACCESS_ENVIRONMENT || placeholder == Some(ACCESS_PLACEHOLDER)
+}
+
+pub(super) fn manages_environment(name: &str) -> bool {
+    matches!(name, ACCESS_ENVIRONMENT | "CLAUDE_CONFIG_DIR" | "DISABLE_AUTOUPDATER")
 }
 
 /// Long-lived Claude setup tokens carry this prefix.
@@ -98,24 +104,25 @@ pub(super) async fn bootstrap_linux(
     sandbox: &sandbox::SandboxHandle,
     home: &str,
     instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
 ) -> Result<(), Error> {
-    bootstrap::configure_linux(sandbox, home, instructions).await
+    bootstrap::configure_linux(sandbox, home, instructions, skills).await
 }
 
-pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_version: &str) -> Result<(), Error> {
-    use sandbox::{SandboxPath, execution::ExecutionSpec};
-
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/env"),
-            ["claude".into(), "--version".into()],
-        ))
-        .await?;
+pub(super) async fn verify_linux(
+    sandbox: &sandbox::SandboxHandle,
+    expected_version: Option<&str>,
+) -> Result<(), Error> {
+    let output = super::version_output(sandbox, "claude").await?;
     if !output.status.success() {
-        return Err(Error::SandboxSetup(format!(
-            "declared Claude Code {expected_version:?} is missing or `claude --version` exited with code {}",
-            output.status.code
-        )));
+        let message = format!("`claude --version` exited with code {}", output.status.code);
+        // 126/127 mean the image does not provide the harness; retrying cannot change that.
+        // Any other failure this early in the guest's life may be transient.
+        return Err(if matches!(output.status.code, 126 | 127) {
+            Error::Invalid(format!("Claude Code is missing: {message}"))
+        } else {
+            Error::SandboxSetup(message)
+        });
     }
     let stdout = std::str::from_utf8(&output.stdout)
         .map_err(|_| Error::SandboxSetup("`claude --version` returned non-UTF-8 output".into()))?;
@@ -123,22 +130,28 @@ pub(super) async fn verify_linux(sandbox: &sandbox::SandboxHandle, expected_vers
         .split_whitespace()
         .next()
         .ok_or_else(|| Error::SandboxSetup("`claude --version` returned no version".into()))?;
-    if installed != expected_version {
-        return Err(Error::SandboxSetup(format!(
-            "declared Claude Code version {expected_version:?} does not match installed version {installed:?}"
+    if let Some(expected) = expected_version.filter(|expected| *expected != installed) {
+        return Err(Error::Invalid(format!(
+            "declared Claude Code version {expected:?} does not match installed version {installed:?}"
         )));
     }
     Ok(())
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
+pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
     let config = format!("{home}/.claude");
-    // The mediated setup token cannot enumerate models, so Fable 5 never appears in the /model
+    // The mediated setup token cannot enumerate models, so Fable never appears in the /model
     // picker (same inference-only-scope limitation as the usage-credits gate handled in bootstrap).
-    // Launch on Fable 5 directly; users can still switch to the listed models via /model. Revisit
-    // when github.com/anthropics/claude-code#79360 ships.
-    let base =
-        format!("claude --dangerously-skip-permissions --model claude-fable-5 --settings {config}/agent-settings.json");
+    // Launch on the `fable` alias directly so the sandbox tracks the latest Fable release; users
+    // can still switch to the listed models via /model. Revisit when
+    // github.com/anthropics/claude-code#79360 ships.
+    let base = format!("claude --dangerously-skip-permissions --model fable --settings {config}/agent-settings.json");
+    // A fresh conversation may start on a positional prompt; `--` keeps a prompt
+    // that begins with `-` from being read as an option.
+    let fresh = initial_prompt.map_or_else(
+        || base.clone(),
+        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+    );
     // Claude Code currently reports UUID conversation IDs. Keep that
     // harness-specific constraint out of the generic Session reconciler.
     let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
@@ -148,13 +161,18 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>) -> ProcessLaunch {
         // an untouched Session can still wake from Idle as a fresh Session.
         Some(native) => format!(
             "if /usr/bin/find {config}/projects -type f -name '{native}.jsonl' -print -quit 2>/dev/null \
-             | /usr/bin/grep -q .; then exec {base} --resume {native}; else exec {base}; fi"
+             | /usr/bin/grep -q .; then exec {base} --resume {native}; else exec {fresh}; fi"
         ),
-        None => base,
+        None => fresh,
     };
     ProcessLaunch {
         command,
-        environment: vec![("CLAUDE_CONFIG_DIR".into(), config)],
+        // Launch-only override keeps the tmux session non-interactive without
+        // depending on image ENV propagating into it.
+        environment: vec![
+            ("CLAUDE_CONFIG_DIR".into(), config),
+            ("DISABLE_AUTOUPDATER".into(), "1".into()),
+        ],
     }
 }
 
@@ -163,18 +181,32 @@ mod tests {
     #[test]
     fn resume_launch_requires_a_native_transcript() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native));
+        let launch = super::launch_linux("/home/agent", Some(native), None);
 
         assert!(launch.command.contains("/home/agent/.claude/projects"));
         assert!(launch.command.contains("160cdb4b-5997-464c-9d22-602786eb45d4.jsonl"));
         assert!(launch.command.contains("--resume 160cdb4b-5997-464c-9d22-602786eb45d4"));
         assert!(launch.command.contains("else exec claude"));
+        assert!(launch.environment.contains(&("DISABLE_AUTOUPDATER".into(), "1".into())));
     }
 
     #[test]
     fn non_uuid_native_id_is_not_a_claude_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"));
+        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
 
+        assert!(!launch.command.contains("--resume"));
+    }
+
+    #[test]
+    fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
+        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+
+        assert!(
+            // `--` keeps a prompt that starts with `-` or names a subcommand positional.
+            launch.command.ends_with(" -- 'fix it'\\''s\nbroken'"),
+            "{}",
+            launch.command
+        );
         assert!(!launch.command.contains("--resume"));
     }
 }

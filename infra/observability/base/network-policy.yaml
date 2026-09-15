@@ -12,6 +12,9 @@ spec:
     - from:
         - namespaceSelector: {}
       ports:
+        # Linkerd rewrites meshed ingress to the proxy's inbound port.
+        - protocol: TCP
+          port: 4143
         - protocol: TCP
           port: 4317
         - protocol: TCP
@@ -33,6 +36,9 @@ spec:
             matchLabels:
               altinn.studio/otel-collector: otel-router
       ports:
+        # Linkerd rewrites meshed ingress to the proxy's inbound port.
+        - protocol: TCP
+          port: 4143
         - protocol: TCP
           port: 4317
         - protocol: TCP

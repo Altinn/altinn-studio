@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { AllowedValidationMasks } from '@app/layout-contract/generated/common.generated';
 
 import { type BackendValidationIssue, BackendValidationSeverity, type FieldValidation, ValidationMask } from '.';
 
@@ -12,7 +13,6 @@ import { Form } from 'src/components/form/Form';
 import { FormStore } from 'src/features/form/FormContext';
 import { useGetNodesWithErrors } from 'src/features/validation/validationHooks';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
 function FormDataValue() {
   const formDataValue = FormStore.data.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });

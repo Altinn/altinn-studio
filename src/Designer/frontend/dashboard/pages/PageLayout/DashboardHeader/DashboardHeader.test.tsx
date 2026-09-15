@@ -10,7 +10,7 @@ import { mockOrg1, mockOrg2 } from '../../../testing/organizationMock';
 import { userMock } from '../../../testing/userMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { headerContextValueMock } from '../../../testing/headerContextMock';
-import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
+import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -31,7 +31,7 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
+jest.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 describe('DashboardHeader', () => {
   afterEach(jest.clearAllMocks);

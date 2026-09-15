@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -85,6 +87,7 @@ internal static class EngineEndpoints
                 """
                 Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) back to Enqueued
                 for re-processing. Pass cascade=true to also resume workflows left in DependencyFailed by this one.
+                Also clears any throttled_until stamp: an explicit resume wins over the namespace circuit breaker.
 
                 202 Accepted when the workflow was resumed (the processor picks it up on its next cycle).
                 409 Conflict when the workflow is not in a resumable state, 404 Not Found when it does not exist.
@@ -121,7 +124,8 @@ internal static class EngineEndpoints
             .WithDescription(
                 """
                 Clears the pending backoff of a parked workflow (Requeued or Waiting) so the processor
-                picks it up on its next cycle instead of when the timer elapses.
+                picks it up on its next cycle instead of when the timer elapses. Also clears any
+                throttled_until stamp: an explicit nudge wins over the namespace circuit breaker.
 
                 This is the engine's push channel: a step that deferred while awaiting an external
                 outcome can be told the outcome has arrived, turning a scheduled poll into an immediate
@@ -132,6 +136,105 @@ internal static class EngineEndpoints
                 202 Accepted when this call cleared a pending backoff, 200 OK when the workflow was
                 already runnable (idempotent replay), 409 Conflict when it is not parked, and
                 404 Not Found when it does not exist.
+                """
+            );
+
+        workflowGroup
+            .MapPost("/{workflowId:guid}/fail", EngineRequestHandlers.FailWorkflow)
+            .WithName("FailWorkflow")
+            .WithSummary("Fail workflow")
+            .WithDescription(
+                """
+                Fails a parked workflow (Requeued or Waiting) by caller decision — the way to give up on a
+                step instead of waiting for its retries or wait budget to run out. The workflow moves to
+                Failed with its backoff cleared, and the parked step is marked Failed with the optional
+                body's reason recorded as its final, non-retryable error entry (a default text when the body
+                is omitted), so the failure reads exactly like an exhausted retry: consumers surface it
+                through their normal failure path, dependents settle as DependencyFailed, and resume brings
+                it back.
+
+                Fail is not cancel. Cancel withdraws the work and leaves a parked step where it was under a
+                Canceled workflow; fail rules on the step's outcome so that everyone reads it as a failure.
+                An in-flight step is never failed out from under its worker — cancel it instead.
+
+                202 Accepted when this call failed the workflow. 409 Conflict when it is not parked,
+                including when it is already Failed: a manual failure is indistinguishable from one the
+                engine produced, so there is no idempotent replay. 404 Not Found when it does not exist,
+                400 Bad Request when the reason is blank or longer than 500 characters.
+                """
+            );
+
+        app.MapGet("/api/v1/throttles", EngineRequestHandlers.ListThrottles)
+            .WithTags("Throttling")
+            .WithName("ListNamespaceThrottles")
+            .WithSummary("List namespace throttles")
+            .WithDescription(
+                """
+                Lists the failure-storm circuit breaker state of every namespace that currently has one
+                (tripped, recovering, or recently cleared — cleared rows linger for a short grace period).
+
+                Purely observational: works whether or not throttling is enabled.
+                Returns 204 No Content when no breaker state exists.
+                """
+            );
+
+        var throttleGroup = app.MapGroup("/api/v1/{namespace}/throttle").WithTags("Throttling");
+
+        throttleGroup
+            .MapGet("", EngineRequestHandlers.GetThrottle)
+            .WithName("GetNamespaceThrottle")
+            .WithSummary("Get namespace throttle")
+            .WithDescription(
+                """
+                Gets the namespace's failure-storm circuit breaker state: breaker state
+                (Tripped, Recovering, Clear), when it tripped, the current throttle window, canary count,
+                and the population counts observed at the last sweep evaluation.
+
+                Purely observational: works whether or not throttling is enabled.
+                404 Not Found when the namespace has no breaker state row.
+                """
+            );
+
+        throttleGroup
+            .MapPost("/trip", EngineRequestHandlers.TripThrottle)
+            .WithName("TripNamespaceThrottle")
+            .WithSummary("Force-trip namespace throttle")
+            .WithDescription(
+                """
+                Trips the namespace's failure-storm circuit breaker immediately, regardless of the
+                detection thresholds: state Tripped with the configured initial window, a fresh canary set
+                probing on the normal retry schedule, and the rest of the Requeued population parked.
+                Coordinates with the throttle sweep's advisory lock, so the override never interleaves
+                with a running sweep cycle.
+
+                This is a one-shot intervention, not standing policy: it does not prevent canary-driven
+                recovery — once a canary progresses, the breaker starts releasing as usual. Force-tripping
+                an already-tripped breaker re-trips it (initial window, fresh canaries).
+
+                202 Accepted with the resulting breaker state. 409 Conflict when throttling is disabled
+                (Throttling.Enabled = false): with the feature off the workflow fetch ignores
+                throttled_until entirely, so a force-trip would be inert.
+                """
+            );
+
+        throttleGroup
+            .MapPost("/clear", EngineRequestHandlers.ClearThrottle)
+            .WithName("ClearNamespaceThrottle")
+            .WithSummary("Force-clear namespace throttle")
+            .WithDescription(
+                """
+                Clears the namespace's failure-storm circuit breaker immediately: state Clear and every
+                throttled_until stamp in the namespace cleared, so the parked population re-enters the
+                normal retry schedule at once. The state row lingers through the normal cleared grace
+                period so stragglers parked by stale replica snapshots are still cleaned up.
+
+                This is a one-shot intervention ("release now"), not standing policy ("never throttle"):
+                it does not prevent the next sweep from re-tripping if the trip condition still holds —
+                by design. To keep a namespace released, fix the underlying failure or disable throttling.
+
+                202 Accepted with the resulting breaker state, 200 OK when the breaker was already clear
+                (idempotent replay), 404 Not Found when the namespace has no breaker state, and
+                409 Conflict when throttling is disabled.
                 """
             );
 
@@ -148,6 +251,100 @@ internal static class EngineEndpoints
             .WithName("GetCollection")
             .WithSummary("Get collection")
             .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
+
+        var mailboxGroup = app.MapGroup("/api/v1/{namespace}/mailboxes").WithTags("Mailboxes");
+
+        mailboxGroup
+            .MapPost("", EngineRequestHandlers.MintMailbox)
+            .WithName("MintMailbox")
+            .WithSummary("Mint mailbox")
+            .WithDescription(
+                """
+                Mints a mailbox: a durable inbox that external messages are delivered into, addressed by the
+                engine-generated id this returns.
+
+                The caller supplies an idempotencyKey unique within the namespace, so a retried step replays
+                onto the same mailbox instead of forking a second one, and a required positive timeout from
+                which the engine stamps the mailbox's one absolute deadline (createdAt + timeout). An optional
+                collectionKey groups the mailbox under a workflow collection and scopes the open-mailboxes cap.
+                Both keys are limited to 200 characters and may not be empty or whitespace.
+
+                201 Created when this call minted the mailbox, 200 OK when the idempotency key had already
+                minted one (the existing mailbox is returned unchanged, even when the collection is at its cap),
+                400 Bad Request for a key that is empty or too long, or a timeout that is not positive or
+                exceeds the configured maximum, and 429 Too Many Requests when the collection already holds
+                the maximum number of open mailboxes.
+
+                That cap is a best-effort resource guard, not an exact bound: it is evaluated against the
+                snapshot the mint runs on, so mints in flight at the same instant can each see room and the
+                collection can end up slightly over. The overshoot is bounded by how many mints are in flight
+                together, and is deliberate — serializing every mint to make the guard exact would cost more
+                than the guard is worth.
+                """
+            );
+
+        mailboxGroup
+            .MapGet("/{mailboxId:guid}", EngineRequestHandlers.GetMailbox)
+            .WithName("GetMailbox")
+            .WithSummary("Get mailbox")
+            .WithDescription(
+                """
+                Gets a mailbox: its status and deadline, both log counters, and how many accepted deliveries
+                no receiver was ever enqueued for.
+
+                200 OK with the mailbox, 404 Not Found when no mailbox with that id exists in the namespace.
+                """
+            );
+
+        mailboxGroup
+            .MapDelete("/{mailboxId:guid}", EngineRequestHandlers.CloseMailbox)
+            .WithName("CloseMailbox")
+            .WithSummary("Close mailbox")
+            .WithDescription(
+                """
+                Closes a mailbox for deliveries. Terminal and idempotent: nothing reopens a mailbox, and a
+                repeat close reports the original disposedAt and disposedReason rather than overwriting them —
+                so does a close that lost the race to the mailbox's deadline.
+
+                202 Accepted when this call closed the mailbox, 200 OK when it was already closed (an
+                idempotent replay, reporting the original disposedAt and disposedReason), and 404 Not Found
+                when no mailbox with that id exists in the namespace.
+                """
+            );
+
+        mailboxGroup
+            .MapPost("/{mailboxId:guid}/deliveries", EngineRequestHandlers.DeliverToMailbox)
+            .WithName("DeliverToMailbox")
+            .WithSummary("Deliver to mailbox")
+            .WithDescription(
+                """
+                Delivers one message into a mailbox, appending it to the mailbox's log at the next gapless
+                position. The engine stores the payload verbatim and never parses it.
+
+                The caller supplies an idempotencyKey unique within the mailbox — pass the source's own
+                message id — so an at-least-once forwarder that sends the same message twice gets one
+                delivery at one position rather than two. The key is limited to 200 characters and may not
+                be empty or whitespace.
+
+                202 Accepted when this call appended the delivery (the assigned idx is returned), and
+                200 OK when the key had already delivered a message into this mailbox, returning it at the
+                position it has held since. Treat the two alike: both mean the message is durably held.
+
+                Acceptance is not consumption. A message with no receiver yet simply sits at its position
+                until one is enqueued for it, so an early delivery is first-class and there is no "too
+                early" answer.
+
+                404 Not Found when no mailbox with that id exists in the namespace, 409 Conflict when the
+                mailbox is closed — by request or at its deadline, and always meaning too late, so it can
+                be logged or dead-lettered without inspecting anything else — 413 when the payload exceeds
+                the configured cap, and 429 when the mailbox's log has reached its length cap.
+
+                A refusal stores nothing, so the idempotency key stays free: the same key may be offered
+                again, and a repeat of a refused delivery is refused identically. The converse holds too —
+                a delivery the mailbox accepted replays as 200 even after the mailbox has closed, because
+                the engine kept it and it is still waiting to be read.
+                """
+            );
 
         return app;
     }
@@ -365,7 +562,7 @@ internal static class EngineRequestHandlers
     > ResumeWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
-        [FromQuery] bool cascade,
+        [FromQuery] bool? cascade,
         [FromServices] IEngine engine,
         CancellationToken cancellationToken
     )
@@ -373,7 +570,7 @@ internal static class EngineRequestHandlers
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
 
         var ns = NormalizeNamespace(@namespace);
-        var result = await engine.ResumeWorkflow(workflowId, ns, cascade, cancellationToken);
+        var result = await engine.ResumeWorkflow(workflowId, ns, cascade ?? false, cancellationToken);
 
         return result switch
         {
@@ -461,6 +658,54 @@ internal static class EngineRequestHandlers
                     Detail =
                         $"Workflow {workflowId} is in {r.CurrentStatus} state and holds no pending backoff to skip.",
                     Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>
+    /// The error entry recorded when a fail request carries no reason of its own.
+    /// </summary>
+    internal const string DefaultFailReason = "Failed by the caller through the workflow engine API";
+
+    public static async Task<
+        Results<Accepted<FailWorkflowResponse>, NotFound, Conflict<ProblemDetails>, BadRequest<ProblemDetails>>
+    > FailWorkflow(
+        [FromRoute] string @namespace,
+        [FromRoute] Guid workflowId,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] FailWorkflowRequest? request,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "fail"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await engine.FailWorkflow(workflowId, ns, request?.Reason ?? DefaultFailReason, cancellationToken);
+
+        return result switch
+        {
+            FailWorkflowResult.Failed r => TypedResults.Accepted(
+                (string?)null,
+                new FailWorkflowResponse(r.WorkflowId, r.FailedAt)
+            ),
+            FailWorkflowResult.NotFound => TypedResults.NotFound(),
+            FailWorkflowResult.NotParked r => TypedResults.Conflict(
+                new ProblemDetails
+                {
+                    Title = "Workflow cannot be failed",
+                    Detail =
+                        $"Workflow {workflowId} is in {r.CurrentStatus} state; only a parked (Requeued or Waiting) workflow can be failed.",
+                    Status = StatusCodes.Status409Conflict,
+                }
+            ),
+            FailWorkflowResult.Invalid r => TypedResults.BadRequest(
+                new ProblemDetails
+                {
+                    Title = "Invalid fail request",
+                    Detail = r.Message,
+                    Status = StatusCodes.Status400BadRequest,
                 }
             ),
             _ => throw new UnreachableException(),
@@ -635,4 +880,234 @@ internal static class EngineRequestHandlers
 
         return TypedResults.Ok(collection);
     }
+
+    public static async Task<Results<Ok<IReadOnlyList<NamespaceThrottleResponse>>, NoContent>> ListThrottles(
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-throttles"));
+
+        var throttles = await repository.GetNamespaceThrottles(cancellationToken);
+        if (throttles.Count == 0)
+            return TypedResults.NoContent();
+
+        IReadOnlyList<NamespaceThrottleResponse> responses =
+        [
+            .. throttles
+                .OrderBy(t => t.Namespace, StringComparer.Ordinal)
+                .Select(NamespaceThrottleResponse.FromThrottle),
+        ];
+        return TypedResults.Ok(responses);
+    }
+
+    public static async Task<Results<Ok<NamespaceThrottleResponse>, NotFound>> GetThrottle(
+        [FromRoute] string @namespace,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-throttle"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var throttle = (await repository.GetNamespaceThrottles(cancellationToken)).FirstOrDefault(t =>
+            t.Namespace == ns
+        );
+
+        if (throttle is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(NamespaceThrottleResponse.FromThrottle(throttle));
+    }
+
+    public static async Task<Results<Accepted<NamespaceThrottleResponse>, Conflict<ProblemDetails>>> TripThrottle(
+        [FromRoute] string @namespace,
+        [FromServices] INamespaceThrottleOperator throttleOperator,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-trip"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await throttleOperator.ForceTrip(ns, cancellationToken);
+
+        return result switch
+        {
+            ThrottleForceTripResult.Tripped r => TypedResults.Accepted(
+                (string?)null,
+                NamespaceThrottleResponse.FromThrottle(r.Throttle)
+            ),
+            ThrottleForceTripResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<Results<Created<MailboxResponse>, Ok<MailboxResponse>, ProblemHttpResult>> MintMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromBody] MailboxCreateRequest request,
+        [FromServices] IEngine engine,
+        [FromServices] IOptions<EngineSettings> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "mint-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.MintMailbox(ns, request, cancellationToken);
+
+        return result switch
+        {
+            MailboxMintResult.Minted minted => TypedResults.Created(
+                $"/api/v1/{Uri.EscapeDataString(ns)}/mailboxes/{minted.Mailbox.Id}",
+                minted.Mailbox
+            ),
+            MailboxMintResult.Existing existing => TypedResults.Ok(existing.Mailbox),
+            MailboxMintResult.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            MailboxMintResult.AtCollectionCapacity => TypedResults.Problem(
+                detail: $"Collection '{request.CollectionKey}' already holds the maximum of "
+                    + $"{settings.Value.MaxOpenMailboxesPerCollection} open mailboxes.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<Results<Ok<MailboxResponse>, NotFound>> GetMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var mailbox = await repository.GetMailbox(mailboxId, ns, cancellationToken);
+
+        return mailbox is null ? TypedResults.NotFound() : TypedResults.Ok(mailbox);
+    }
+
+    public static async Task<Results<Accepted<MailboxResponse>, Ok<MailboxResponse>, NotFound>> CloseMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromServices] IEngine engine,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "close-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.CloseMailbox(mailboxId, ns, cancellationToken);
+
+        return result switch
+        {
+            MailboxCloseResult.Closed closed => TypedResults.Accepted((string?)null, closed.Mailbox),
+            MailboxCloseResult.AlreadyClosed already => TypedResults.Ok(already.Mailbox),
+            MailboxCloseResult.NotFound => TypedResults.NotFound(),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<
+        Results<Accepted<NamespaceThrottleResponse>, Ok<NamespaceThrottleResponse>, NotFound, Conflict<ProblemDetails>>
+    > ClearThrottle(
+        [FromRoute] string @namespace,
+        [FromServices] INamespaceThrottleOperator throttleOperator,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-clear"));
+
+        var ns = NormalizeNamespace(@namespace);
+        var result = await throttleOperator.ForceClear(ns, cancellationToken);
+
+        return result switch
+        {
+            ThrottleForceClearResult.Cleared r => TypedResults.Accepted(
+                (string?)null,
+                NamespaceThrottleResponse.FromThrottle(r.Throttle)
+            ),
+            ThrottleForceClearResult.AlreadyClear r => TypedResults.Ok(
+                NamespaceThrottleResponse.FromThrottle(r.Throttle)
+            ),
+            ThrottleForceClearResult.NotFound => TypedResults.NotFound(),
+            ThrottleForceClearResult.ThrottlingDisabled => TypedResults.Conflict(ThrottlingDisabledProblem()),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static async Task<
+        Results<Accepted<MailboxDeliveryResponse>, Ok<MailboxDeliveryResponse>, NotFound, ProblemHttpResult>
+    > DeliverToMailbox(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] Guid mailboxId,
+        [FromBody] MailboxDeliveryRequest request,
+        [FromServices] IEngine engine,
+        [FromServices] IOptions<EngineSettings> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "deliver-to-mailbox"));
+
+        ns = NormalizeNamespace(ns);
+
+        var result = await engine.DeliverToMailbox(mailboxId, ns, request, cancellationToken);
+
+        return result switch
+        {
+            MailboxDeliveryResult.Accepted accepted => TypedResults.Accepted((string?)null, accepted.Delivery),
+            MailboxDeliveryResult.Duplicate duplicate => TypedResults.Ok(duplicate.Delivery),
+            MailboxDeliveryResult.NotFound => TypedResults.NotFound(),
+
+            // The reason and instant ride the detail: "closed at its deadline" is actionable, "409" is not.
+            MailboxDeliveryResult.Closed closed => TypedResults.Problem(
+                detail: $"Mailbox {mailboxId} was closed {DescribeDisposal(closed.Mailbox.DisposedReason)} "
+                    + $"at {closed.Mailbox.DisposedAt:O} and no longer accepts deliveries.",
+                statusCode: StatusCodes.Status409Conflict
+            ),
+            MailboxDeliveryResult.LogFull full => TypedResults.Problem(
+                detail: $"Mailbox {mailboxId} already holds {full.LogLength} deliveries, the maximum of "
+                    + $"{settings.Value.MaxMailboxLogLength}.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            ),
+            MailboxDeliveryResult.PayloadTooLarge tooLarge => TypedResults.Problem(
+                detail: tooLarge.Message,
+                statusCode: StatusCodes.Status413PayloadTooLarge
+            ),
+            MailboxDeliveryResult.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    private static ProblemDetails ThrottlingDisabledProblem() =>
+        new()
+        {
+            Title = "Throttling is disabled",
+            Detail =
+                "EngineSettings.Throttling.Enabled is false: the sweep is not running and the workflow "
+                + "fetch ignores throttled_until entirely, so throttle overrides would be inert. "
+                + "Enable throttling (restart required) to use the breaker.",
+            Status = StatusCodes.Status409Conflict,
+        };
+
+    /// <summary>Exhaustive on purpose: a new reason must fail loudly here.</summary>
+    private static string DescribeDisposal(MailboxDisposedReason? reason) =>
+        reason switch
+        {
+            MailboxDisposedReason.Request => "by request",
+            MailboxDisposedReason.Deadline => "at its deadline",
+
+            // The check constraint makes a disposed mailbox without a reason unrepresentable.
+            null => throw new UnreachableException("A closed mailbox always carries its disposal reason."),
+            _ => throw new UnreachableException($"Unknown mailbox disposal reason {reason}."),
+        };
 }

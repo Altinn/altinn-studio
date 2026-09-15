@@ -3,6 +3,7 @@ kind: PodDisruptionBudget
 metadata:
   name: gateway-pdb
 spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
   maxUnavailable: 1
   selector:
     matchLabels:

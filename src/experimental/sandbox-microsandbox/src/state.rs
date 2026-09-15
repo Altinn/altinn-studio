@@ -1,8 +1,8 @@
 use std::{collections::BTreeMap, io::Write as _, path::PathBuf};
 
 use sandbox::{
-    SandboxId, SandboxName, SandboxResources, backend::CreateSandboxRequest, image::ResolvedImage, init::InitSystem,
-    mount::Mount, network::NetworkAttachment, volume::VolumeId,
+    Hostname, SandboxId, SandboxName, SandboxResources, backend::CreateSandboxRequest, image::ResolvedImage,
+    init::InitSystem, mount::Mount, network::NetworkAttachment, volume::VolumeId,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest as _, Sha256};
@@ -19,6 +19,10 @@ pub(crate) struct SandboxRecord {
     pub(crate) id: SandboxId,
     pub(crate) runtime_name: String,
     pub(crate) name: SandboxName,
+    /// Absent in records written before hostnames were persisted; those
+    /// Sandboxes report their name once their runtime is recreated.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    hostname: Option<Hostname>,
     pub(crate) image: ResolvedImage,
     pub(crate) resources: SandboxResources,
     #[serde(default)]
@@ -36,6 +40,7 @@ impl SandboxRecord {
             runtime_name,
             id: request.id,
             name: request.name,
+            hostname: Some(request.hostname),
             image: request.image,
             resources: request.resources,
             init_system: request.init_system,
@@ -43,6 +48,11 @@ impl SandboxRecord {
             environment: request.environment,
             network: request.network,
         }
+    }
+
+    /// Returns the hostname the guest reports, defaulting to the Sandbox name.
+    pub(crate) fn hostname(&self) -> Hostname {
+        self.hostname.clone().unwrap_or_else(|| self.name.clone().into())
     }
 }
 
@@ -294,7 +304,7 @@ mod tests {
     use std::{collections::BTreeMap, path::PathBuf};
 
     use sandbox::{
-        ByteQuantity, CpuQuantity, Platform, RootFilesystem, SandboxName, SandboxResources,
+        ByteQuantity, CpuQuantity, Hostname, Platform, RootFilesystem, SandboxName, SandboxResources,
         backend::CreateSandboxRequest, image, init::InitSystem,
     };
 
@@ -335,6 +345,7 @@ mod tests {
         SandboxRecord::new(CreateSandboxRequest {
             id: sandbox_id(id),
             name: sandbox_name(),
+            hostname: Hostname::new("worker-host").expect("test hostname should be valid"),
             image: image(),
             resources: resources(),
             init_system: InitSystem::Backend,
@@ -370,6 +381,21 @@ mod tests {
                 .expect("record should be found by identifier"),
             record
         );
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn records_without_a_persisted_hostname_report_the_sandbox_name() {
+        let mut record = sandbox_record("00000000-0000-4000-8000-000000000005");
+        assert_eq!(record.hostname().as_str(), "worker-host");
+
+        let mut serialized = serde_json::to_value(&record).expect("record should serialize");
+        let fields = serialized.as_object_mut().expect("record should be an object");
+        assert!(fields.remove("hostname").is_some(), "hostname should be persisted");
+        let legacy: SandboxRecord = serde_json::from_value(serialized).expect("legacy record should deserialize");
+        assert_eq!(legacy.hostname().as_str(), "worker");
+
+        record.hostname = None;
+        assert_eq!(legacy, record);
     }
 
     #[tokio::test(flavor = "local")]

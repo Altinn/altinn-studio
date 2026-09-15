@@ -13,28 +13,40 @@ public interface IAltinnPartyClient
     /// </summary>
     /// <param name="partyId">The partyId</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The party for the given partyId</returns>
-    Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null);
+    Task<Party?> GetParty(
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Looks up a party by person or organization number.
     /// </summary>
     /// <param name="partyLookup">A populated lookup object with information about what to look for.</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The party lookup containing either SSN or organization number.</returns>
-    Task<Party> LookupParty(PartyLookup partyLookup, StorageAuthenticationMethod? authenticationMethod = null);
+    Task<Party> LookupParty(
+        PartyLookup partyLookup,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Looks up a partyId by a URN. The URN should be in the format urn:altinn:personnumber:12345678901 or urn:altinn:orgnumber:987654321.
     /// </summary>
     /// <param name="urn">The URN to look up.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The partyId for the given URN, or null if not found.</returns>
-    Task<int?> GetPartyIdByUrn(string urn);
+    Task<int?> GetPartyIdByUrn(string urn, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Looks up a partyUuid by a URN. The URN should be in the format urn:altinn:personnumber:12345678901 or urn:altinn:orgnumber:987654321.
     /// </summary>
     /// <param name="urn">The URN to look up.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The partyUuid for the given URN, or null if not found.</returns>
-    Task<Guid?> GetPartyUuidByUrn(string urn);
+    Task<Guid?> GetPartyUuidByUrn(string urn, CancellationToken cancellationToken = default);
 }

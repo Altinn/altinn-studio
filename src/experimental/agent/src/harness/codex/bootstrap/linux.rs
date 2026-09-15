@@ -2,17 +2,23 @@
 
 use std::io::Cursor;
 
-use sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
+use sandbox::{SandboxHandle, SandboxPath};
 
-use crate::Error;
+use crate::{Error, sandbox::platform::run_checked};
 
 use super::super::{ACCESS_PLACEHOLDER, ACCOUNT_PLACEHOLDER, REFRESH_PLACEHOLDER};
 
-pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions: Option<&[u8]>) -> Result<(), Error> {
+pub(super) async fn configure(
+    sandbox: &SandboxHandle,
+    home: &str,
+    instructions: Option<&[u8]>,
+    skills: &[crate::harness::Skill],
+) -> Result<(), Error> {
+    let skills_path = format!("{home}/.agents/skills");
     let config = format!("{home}/.codex");
     let hooks_path = format!("{config}/hooks");
     let auth_path = format!("{config}/auth.json");
-    let hook_path = format!("{config}/hooks/session-start.mjs");
+    let hook_path = format!("{config}/hooks/activity-hook.mjs");
     let hooks_config_path = format!("{config}/hooks.json");
     let instructions_path = format!("{config}/AGENTS.md");
 
@@ -49,20 +55,10 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
     sandbox
         .write_file(
             &SandboxPath::new(hook_path.clone()),
-            Box::pin(Cursor::new(crate::harness::session_start::HOOK.as_bytes().to_vec())),
+            Box::pin(Cursor::new(super::super::hooks::script()?.into_bytes())),
         )
         .await?;
-    let hooks = serde_json::to_vec(&serde_json::json!({
-        "hooks": {
-            "SessionStart": [{
-                "hooks": [{
-                    "type": "command",
-                    "command": format!("node {hook_path}"),
-                    "timeout": 2,
-                }]
-            }]
-        }
-    }))?;
+    let hooks = serde_json::to_vec(&super::super::hooks::configuration(&hook_path))?;
     sandbox
         .write_file(
             &SandboxPath::new(hooks_config_path.clone()),
@@ -94,22 +90,5 @@ pub(super) async fn configure(sandbox: &SandboxHandle, home: &str, instructions:
         .await?;
         run_checked(sandbox, "/usr/bin/chmod", ["644", instructions_path.as_str()]).await?;
     }
-    Ok(())
-}
-
-async fn run_checked<const N: usize>(sandbox: &SandboxHandle, executable: &str, args: [&str; N]) -> Result<(), Error> {
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new(executable),
-            args.into_iter().map(str::to_owned),
-        ))
-        .await?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(Error::SandboxSetup(format!(
-            "command {executable:?} exited with code {}",
-            output.status.code
-        )))
-    }
+    crate::harness::skills::install_linux(sandbox, &skills_path, skills).await
 }

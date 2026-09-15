@@ -5,7 +5,7 @@
 //! dialed from inside the guest network namespace without any configuration
 //! on the Sandbox itself.
 
-use std::sync::Arc;
+use std::{cell::Cell, sync::Arc};
 
 use microsandbox::{
     agent::AgentClient,
@@ -71,12 +71,17 @@ impl GuestTcpDialer {
     /// Returns an error when the relay stream cannot be opened or the guest
     /// dial is rejected.
     pub async fn connect(&self, host: &str, port: u16) -> Result<GuestTcpStream, Error> {
+        GuestTcpStream::open(Arc::clone(&self.client), host, port).await
+    }
+}
+
+impl GuestTcpStream {
+    async fn open(client: Arc<AgentClient>, host: &str, port: u16) -> Result<Self, Error> {
         let request = TcpConnect {
             host: host.to_owned(),
             port,
         };
-        let (id, mut receiver) = self
-            .client
+        let (id, mut receiver) = client
             .stream(MessageType::TcpConnect, &request)
             .await
             .map_err(error::backend)?;
@@ -88,11 +93,7 @@ impl GuestTcpDialer {
         match first.t {
             MessageType::TcpConnected => {
                 let _: TcpConnected = first.payload().map_err(error::backend)?;
-                Ok(GuestTcpStream {
-                    id,
-                    client: Arc::clone(&self.client),
-                    receiver,
-                })
+                Ok(Self { id, client, receiver })
             }
             MessageType::TcpFailed => {
                 let failed: TcpFailed = first.payload().map_err(error::backend)?;
@@ -124,8 +125,8 @@ impl Drop for GuestTcpStream {
 }
 
 impl GuestTcpStream {
-    /// Pipes bytes between a host socket and the guest connection until either
-    /// side closes; dropping the stream releases the guest session.
+    /// Pipes bytes between a host socket and the guest connection until both
+    /// directions have closed; dropping the stream releases the guest session.
     ///
     /// # Errors
     ///
@@ -135,6 +136,8 @@ impl GuestTcpStream {
         let (mut host_reader, mut host_writer) = stream.into_split();
         let client = Arc::clone(&self.client);
         let id = self.id;
+        let host_closed = Cell::new(false);
+        let guest_closed = Cell::new(false);
 
         let host_to_guest = async {
             let mut buffer = vec![0u8; RELAY_READ_BUFFER_BYTES];
@@ -148,6 +151,7 @@ impl GuestTcpStream {
                         .send(id, MessageType::TcpEof, &TcpEof {})
                         .await
                         .map_err(error::backend)?;
+                    host_closed.set(true);
                     return Ok::<(), Error>(());
                 }
                 let data = TcpData {
@@ -175,6 +179,10 @@ impl GuestTcpStream {
                             .shutdown()
                             .await
                             .map_err(|source| error::io("shut down forwarded host connection", source))?;
+                        guest_closed.set(true);
+                        if host_closed.get() {
+                            return Ok(());
+                        }
                     }
                     MessageType::TcpClosed => return Ok::<(), Error>(()),
                     other => {
@@ -189,14 +197,142 @@ impl GuestTcpStream {
         };
 
         // A host-side EOF is a half-close: the guest may still be writing its
-        // response, so only a guest-side completion or an error ends the relay.
+        // response, so the relay ends when the guest side has closed too.
+        // Neither end sends a terminal frame after a mutual half-close, so
+        // waiting for one here would pin the closed socket forever.
         tokio::pin!(guest_to_host);
         tokio::select! {
             result = &mut guest_to_host => result,
             result = host_to_guest => match result {
+                Ok(()) if guest_closed.get() => Ok(()),
                 Ok(()) => guest_to_host.await,
                 Err(error) => Err(error),
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used, clippy::panic)]
+
+    use std::{sync::Arc, time::Duration};
+
+    use microsandbox::{
+        agent::AgentClient,
+        protocol::{
+            codec,
+            core::Ready,
+            message::{Message, MessageType},
+            tcp::{TcpConnected, TcpEof},
+        },
+    };
+    use tokio::{
+        io::{AsyncReadExt as _, AsyncWriteExt as _, DuplexStream},
+        net::{TcpListener, TcpStream},
+    };
+
+    use super::GuestTcpStream;
+
+    const RELAY_ID_MIN: u32 = 1;
+    const RELAY_ID_MAX: u32 = 1 << 20;
+
+    /// The guest end of the agent relay, driven by the test one frame at a time.
+    struct FakeGuestAgent {
+        wire: DuplexStream,
+        pending: Vec<u8>,
+    }
+
+    impl FakeGuestAgent {
+        async fn handshake() -> (Arc<AgentClient>, Self) {
+            let (host, guest) = tokio::io::duplex(64 * 1024);
+            let mut agent = Self {
+                wire: guest,
+                pending: Vec::new(),
+            };
+            agent
+                .wire
+                .write_all(&RELAY_ID_MIN.to_be_bytes())
+                .await
+                .expect("write relay id range start");
+            agent
+                .wire
+                .write_all(&RELAY_ID_MAX.to_be_bytes())
+                .await
+                .expect("write relay id range end");
+            agent
+                .write(&Message::with_payload(MessageType::Ready, 0, &Ready::default()).expect("ready frame"))
+                .await;
+            let client = AgentClient::connect_stream_with_timeout(host, Duration::from_secs(5))
+                .await
+                .expect("relay handshake");
+            (Arc::new(client), agent)
+        }
+
+        async fn write(&mut self, message: &Message) {
+            let mut frame = Vec::new();
+            codec::encode_to_buf(message, &mut frame).expect("encode frame");
+            self.wire.write_all(&frame).await.expect("write frame");
+        }
+
+        async fn expect(&mut self, expected: MessageType) -> Message {
+            loop {
+                if let Some(message) = codec::try_decode_from_buf(&mut self.pending).expect("decode frame") {
+                    assert_eq!(message.t, expected, "unexpected frame from the host relay");
+                    return message;
+                }
+                let mut chunk = [0u8; 4096];
+                let read = self.wire.read(&mut chunk).await.expect("read frame");
+                assert!(read > 0, "host closed the relay before sending {expected:?}");
+                self.pending.extend_from_slice(&chunk[..read]);
+            }
+        }
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn relay_ends_once_both_directions_have_closed() {
+        let (client, mut agent) = FakeGuestAgent::handshake().await;
+        let (opened, ()) = tokio::join!(GuestTcpStream::open(client, "127.0.0.1", 80), async {
+            let connect = agent.expect(MessageType::TcpConnect).await;
+            agent
+                .write(
+                    &Message::with_payload(MessageType::TcpConnected, connect.id, &TcpConnected {})
+                        .expect("connected frame"),
+                )
+                .await;
+        });
+        let stream = opened.expect("guest connect should succeed");
+        let session = stream.id;
+
+        let listener = TcpListener::bind(("127.0.0.1", 0)).await.expect("bind host listener");
+        let mut browser = TcpStream::connect(listener.local_addr().expect("listener address"))
+            .await
+            .expect("connect browser side");
+        let (forwarded, _) = listener.accept().await.expect("accept forwarded connection");
+        let relay = tokio::task::spawn_local(stream.relay(forwarded));
+
+        browser.shutdown().await.expect("half-close the browser side");
+        agent.expect(MessageType::TcpEof).await;
+
+        agent
+            .write(&Message::with_payload(MessageType::TcpEof, session, &TcpEof {}).expect("eof frame"))
+            .await;
+        let mut sink = [0u8; 1];
+        let read = browser
+            .read(&mut sink)
+            .await
+            .expect("read guest EOF on the browser side");
+        assert_eq!(read, 0, "guest EOF should half-close the browser side");
+
+        tokio::time::timeout(Duration::from_secs(2), relay)
+            .await
+            .expect("relay should finish once both directions have closed")
+            .expect("relay task should not panic")
+            .expect("relay should end cleanly");
+        let close = agent.expect(MessageType::TcpClose).await;
+        assert_eq!(
+            close.id, session,
+            "dropping the finished relay should release the guest session"
+        );
     }
 }

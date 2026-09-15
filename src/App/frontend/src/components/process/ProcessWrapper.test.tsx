@@ -391,7 +391,7 @@ describe('ProcessWrapper workflow state machine', () => {
     // support (the form/instance id and the workflow id). Raw error detail is never shipped by the
     // backend, so it cannot appear here - and step/task identities are deliberately omitted too
     // (internal ids; the target task's type label was just misleading).
-    await user.click(screen.getByRole('button', { name: 'Vis detaljer om feilen' }));
+    await user.click(screen.getByText('Vis detaljer om feilen').closest('summary')!);
     expect(screen.getByText('Et steg i behandlingen feilet')).toBeInTheDocument();
     expect(screen.getByText('Skjemareferanse')).toBeInTheDocument();
     expect(screen.getByText('0f1d5f88-1e5c-4c1f-9a25-4d9f66b6e5a1')).toBeInTheDocument();
@@ -411,9 +411,9 @@ describe('ProcessWrapper workflow state machine', () => {
 
   it('failed on the current service task renders the recoverable failure view, even over a custom layout', async () => {
     // A failed workflow that targeted the CURRENT task, when that task is a service task, is owned
-    // by that task and renders ServiceTaskFailed (retry via process/resume + the bpmn-allowed
-    // reject) instead of the terminal error page - the terminal page is only for failures no task
-    // UI can recover from (e.g. the pre-commit failure above, which targets ANOTHER task).
+    // by that task and renders ServiceTaskFailed (retry via process/resume) instead of the
+    // terminal error page - the terminal page is only for failures no task UI can recover from
+    // (e.g. the pre-commit failure above, which targets ANOTHER task).
     // The harness registers a layout for the task, so this also pins failure-over-layout
     // precedence: a custom layout would classify the task as Data and silently render its form
     // with no trace of the failure, so the failure view must win (#18935).

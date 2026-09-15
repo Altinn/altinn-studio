@@ -1,5 +1,0 @@
-{
-  "name": "Should UPPERCASE the whole string",
-  "expression": ["upperCase", "heLlo"],
-  "expects": "HELLO"
-}

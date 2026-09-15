@@ -15,9 +15,7 @@
 .github/workflows/designer-frontend-playwright-staging.yml                @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-run-playwright-on-pr.yaml             @altinn/team-altinn-studio-utforming
 .github/workflows/designer-frontend-unit-tests.yml                        @altinn/team-altinn-studio-utforming
-.github/workflows/storybook-to-github-pages.yaml                          @altinn/team-altinn-studio-utforming
 .github/workflows/studio-components-deploy.yaml                           @altinn/team-altinn-studio-utforming
-.github/workflows/studio-components-legacy-deploy.yaml                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/docker-compose.yml                                    @altinn/team-altinn-studio-utforming
 src/App/frontend/**/package.json                                          @altinn/team-altinn-studio-utforming
 src/common/ts/**/package.json                                             @altinn/team-altinn-studio-utforming

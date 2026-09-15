@@ -5,8 +5,8 @@ use std::{io::Cursor, path::PathBuf, rc::Rc};
 use bytes::Bytes;
 use futures_util::StreamExt as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, OperationEvent, Platform, RetentionPolicy, RootFilesystem,
-    Sandbox, SandboxEvent, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Hostname, OperationEvent, Platform, RetentionPolicy,
+    RootFilesystem, Sandbox, SandboxEvent, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
     backend::SandboxBackend as _,
     execution::{self, ExecutionSpec, StartExecutionRequest},
     image::ImageSource,
@@ -48,6 +48,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
             retention_policy: RetentionPolicy::Retain,
         },
     )
+    .with_hostname(Hostname::new("integration-host").expect("test hostname should be valid"))
     .with_mounts([Mount::Volume {
         id: home.id.clone(),
         target: sandbox::SandboxPath::new("/workspace"),
@@ -58,6 +59,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
         .expect("Sandbox should be built and started");
     assert_provisioning_progress(&events);
     assert_eq!(sandbox.state, SandboxState::Running);
+    assert_hostname(backend.as_ref(), &sandbox, "integration-host").await;
     assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
     assert_nested_container_networking(backend.as_ref(), &sandbox).await;
 
@@ -100,6 +102,13 @@ async fn retained_lifecycle_execution_files_and_volumes() {
     assert_immediate_restart_and_delete(&backend, &request, &sandbox).await;
     assert_build_cache_reused(backend, &request, &home.id).await;
     assert_reference_image_resolves(reference_backend_home).await;
+}
+
+async fn assert_hostname(backend: &MicrosandboxProvider, sandbox: &Sandbox, expected: &str) {
+    assert_eq!(sandbox.hostname.as_str(), expected);
+    let output = run(backend, &sandbox.id, shell("hostname")).await;
+    assert!(output.status.success());
+    assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), expected);
 }
 
 async fn assert_direct_root_filesystem(backend: &MicrosandboxProvider, sandbox: &Sandbox) {
@@ -212,6 +221,7 @@ async fn assert_reference_image_resolves(backend_home: PathBuf) {
     let output = run(backend.as_ref(), &sandbox.id, shell("cat /etc/alpine-release")).await;
     assert!(output.status.success());
     assert!(String::from_utf8_lossy(&output.stdout).starts_with("3.22."));
+    assert_hostname(backend.as_ref(), &sandbox, "reference-worker").await;
 
     service
         .release(request.name(), request.spec().retention_policy)

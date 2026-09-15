@@ -95,3 +95,25 @@ jobs:
             --target "${TARGET}" \
             "$@" \
             agents
+
+      # The multi-platform build above only pushes. Load the native image separately (fully
+      # cached by the step above) and exercise the pull request evidence tooling in it.
+      - name: Smoke test amd64 image
+        env:
+          IMAGE_REPOSITORY: ${{ matrix.repository }}
+          TARGET: ${{ matrix.variant }}
+        run: |
+          set -eu
+          docker buildx build \
+            --provenance=false \
+            --sbom=false \
+            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
+            --file agents/Dockerfile \
+            --platform linux/amd64 \
+            --target "${TARGET}" \
+            --load \
+            --tag "agent-${TARGET}:smoke" \
+            agents
+          docker run --rm --init --ipc=host --security-opt seccomp=unconfined --entrypoint bash \
+            --volume "${PWD}/agents/smoke.sh:/smoke.sh:ro" \
+            "agent-${TARGET}:smoke" /smoke.sh "${TARGET}"

@@ -111,10 +111,11 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         rejectProblem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.Conflict);
         rejectProblem["processNextState"]!.Value<string>().Should().Be("resumeRequired");
 
-        // Double check that process stays on the failed service task until resume
+        // The target service task is committed before its side effects run. A failure leaves
+        // that durable task in place so resume retries ExecuteServiceTask without reacquiring.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
-        instance.Process.CurrentTask.AltinnTaskType.Should().Be(AltinnTaskTypes.Pdf);
+        instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");
     }
 
     [Fact]
@@ -194,7 +195,7 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
         problem["processStateChanged"]!.Value<bool>().Should().BeTrue();
         problem["processState"]!["currentTask"]!["elementId"]!.Value<string>().Should().Be("Task_2");
 
-        // Double check that process did not move to the next task
+        // The target service task was committed with processing ownership before execution failed.
         Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
         instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");

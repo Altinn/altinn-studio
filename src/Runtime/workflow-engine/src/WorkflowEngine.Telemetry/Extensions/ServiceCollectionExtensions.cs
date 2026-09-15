@@ -141,6 +141,61 @@ public static class ServiceCollectionExtensions
                     ];
                     var durationView = new ExplicitBucketHistogramConfiguration { Boundaries = durationBuckets };
 
+                    // Bucket boundaries (in seconds) for mailbox receiver wake latency. A release is
+                    // accelerated by NOTIFY (debounced 10ms) and bounded by the processor's 500ms idle
+                    // poll, so the healthy population is entirely below where `durationBuckets` gets
+                    // interesting — it needs resolution around the poll ceiling, not around 5 minutes.
+                    // The tail past 1s is worker starvation rather than wake latency, so it is coarse.
+                    double[] wakeLatencyBuckets =
+                    [
+                        0.0005,
+                        0.001,
+                        0.0025,
+                        0.005,
+                        0.01,
+                        0.02,
+                        0.05,
+                        0.1,
+                        0.2,
+                        0.5,
+                        1,
+                        2,
+                        5,
+                        10,
+                        30,
+                        60,
+                    ];
+                    var wakeLatencyView = new ExplicitBucketHistogramConfiguration { Boundaries = wakeLatencyBuckets };
+
+                    // Bucket boundaries (in seconds) for consumed step wait budget. The population runs
+                    // from `MinStepDeferDelay` (1s) to `MaxStepWaitBudget` (14d), so every boundary in
+                    // `durationBuckets` above 1s would sit inside a single decade of it and everything
+                    // else would land in the +Inf overflow, where `histogram_quantile` cannot report at
+                    // all. Boundaries at 86400 and 1209600 are the two configured budgets themselves —
+                    // `DefaultStepWaitBudget` and the `MaxStepWaitBudget` cap — so "approaching budget"
+                    // is a bucket an operator can read directly, and nothing overflows.
+                    double[] waitBudgetBuckets =
+                    [
+                        1,
+                        2,
+                        5,
+                        10,
+                        30,
+                        60,
+                        300,
+                        900,
+                        1800,
+                        3600,
+                        10800,
+                        21600,
+                        43200,
+                        86400,
+                        259200,
+                        604800,
+                        1209600,
+                    ];
+                    var waitBudgetView = new ExplicitBucketHistogramConfiguration { Boundaries = waitBudgetBuckets };
+
                     builder.AddMeter(Metrics.ServiceName);
 
                     if (enableDatabaseInstrumentation)
@@ -163,6 +218,8 @@ public static class ServiceCollectionExtensions
                         .AddView("engine.mainloop.time.queue", durationView)
                         .AddView("engine.mainloop.time.service", durationView)
                         .AddView("engine.mainloop.time.total", durationView)
+                        .AddView("engine.mailboxes.receivers.wake_latency", wakeLatencyView)
+                        .AddView("engine.steps.wait.duration", waitBudgetView)
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()

@@ -99,6 +99,7 @@ namespace LocalTest
             services.AddSingleton<Altinn.Platform.Authorization.Services.Interface.IParties, PartiesService>();
             services.AddSingleton<IClaims, ClaimsService>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
+            services.AddSingleton<IInstanceMutationRepository, InstanceMutationRepository>();
             services.AddSingleton<IInstanceAndEventsRepository, InstanceAndEventsRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IBlobRepository, BlobRepository>();
@@ -240,8 +241,10 @@ namespace LocalTest
                 app.UseHsts();
             }
 
-            app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
+
+            // After the proxy: /health on a proxied component host must reach that component, not us.
+            app.UseHealthChecks("/health");
             app.UseWebSockets();
 
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);

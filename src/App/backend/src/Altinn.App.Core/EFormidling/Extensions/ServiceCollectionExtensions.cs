@@ -2,8 +2,6 @@ using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Extensions;
-using Altinn.Common.EFormidlingClient;
-using Altinn.Common.EFormidlingClient.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -49,7 +47,7 @@ public static class ServiceCollectionExtensions
             services.AddOptions<EFormidlingClientSettings>().BindConfiguration(DefaultConfigSectionPath);
         }
 
-        services.AddHttpClient<IEFormidlingClient, Common.EFormidlingClient.EFormidlingClient>();
+        services.AddHttpClient<IEFormidlingClient, EFormidlingClient>();
 
         // TryAdd for both: an app that registered its own implementation before this call keeps it,
         // and one registering after still wins by last-in for a single-service resolve.

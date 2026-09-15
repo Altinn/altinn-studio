@@ -2,11 +2,9 @@
 
 use std::{collections::BTreeMap, rc::Rc};
 
+use crate::{Error, authorization::AgentPolicyEngine, control_plane, environment, harness, persistence};
 use ::sandbox::{SandboxHandle, SandboxId, SandboxName, network::NetworkBackend as _};
 use sandbox_microsandbox::{MicrosandboxNetworkBackend, SecretBinding};
-use zeroize::Zeroizing;
-
-use crate::{Error, authorization::AgentPolicyEngine, control_plane, harness, persistence};
 
 /// Connects Agent policy and host-owned secrets to the Microsandbox Network Backend.
 pub(super) struct Preparation {
@@ -51,22 +49,14 @@ impl Preparation {
             let environment = if record.agent.spec.secrets.is_empty() {
                 BTreeMap::new()
             } else {
-                read_environment(&record.source_directory.join(".env")).await?
+                environment::read(&record.env_file_path()).await?
             };
             let mut secret_writes = Vec::with_capacity(record.agent.spec.secrets.len());
             for secret in &record.agent.spec.secrets {
-                let value = environment.get(secret.source()).ok_or_else(|| {
-                    Error::Invalid(format!(".env does not define required variable {:?}", secret.source()))
-                })?;
-                if value.is_empty() {
-                    return Err(Error::Invalid(format!(
-                        ".env variable {:?} must not be empty",
-                        secret.source()
-                    )));
-                }
+                let value = environment::required(&environment, secret.source())?;
                 secret_writes.push(persistence::StoredSecret {
                     name: secret.environment.clone(),
-                    value: Zeroizing::new(value.as_bytes().to_vec()),
+                    value: zeroize::Zeroizing::new(value.as_bytes().to_vec()),
                 });
             }
             let references = self.database.replace_agent_secrets(record.id, secret_writes).await?;
@@ -138,56 +128,5 @@ impl Preparation {
     pub(super) fn remove(&self, sandbox: &SandboxName) {
         self.policy.remove_agent(sandbox);
         self.network.remove_secret_bindings(sandbox);
-    }
-}
-
-async fn read_environment(path: &std::path::Path) -> Result<BTreeMap<String, Zeroizing<String>>, Error> {
-    let bytes = Zeroizing::new(tokio::fs::read(path).await.map_err(|error| {
-        if error.kind() == std::io::ErrorKind::NotFound {
-            Error::Invalid("manifest secrets require a .env file beside the manifest".into())
-        } else {
-            Error::Io(error)
-        }
-    })?);
-    let text = std::str::from_utf8(&bytes).map_err(|_| Error::Invalid(".env must be UTF-8".into()))?;
-    let mut values = BTreeMap::new();
-    for (line_index, original) in text.lines().enumerate() {
-        let line = original.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let Some((name, value)) = line.split_once('=') else {
-            return Err(Error::Invalid(format!(
-                "invalid .env assignment on line {}",
-                line_index + 1
-            )));
-        };
-        let name = name.trim();
-        if name.is_empty()
-            || !name
-                .bytes()
-                .enumerate()
-                .all(|(index, byte)| byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit()))
-        {
-            return Err(Error::Invalid(format!(
-                "invalid .env variable name on line {}",
-                line_index + 1
-            )));
-        }
-        let value = unquote(value.trim())
-            .ok_or_else(|| Error::Invalid(format!("unbalanced .env quotes on line {}", line_index + 1)))?;
-        if values.insert(name.into(), Zeroizing::new(value.into())).is_some() {
-            return Err(Error::Invalid(format!("duplicate .env variable {name:?}")));
-        }
-    }
-    Ok(values)
-}
-
-fn unquote(value: &str) -> Option<&str> {
-    match value.as_bytes().first() {
-        Some(b'"') => value.strip_prefix('"')?.strip_suffix('"'),
-        Some(b'\'') => value.strip_prefix('\'')?.strip_suffix('\''),
-        _ if value.ends_with(['"', '\'']) => None,
-        _ => Some(value),
     }
 }

@@ -36,7 +36,11 @@ public class ProfileClientCachingDecorator : IProfileClient
     }
 
     /// <inheritdoc/>
-    public async Task<UserProfile?> GetUserProfile(int userId, StorageAuthenticationMethod? authenticationMethod = null)
+    public async Task<UserProfile?> GetUserProfile(
+        int userId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         string uniqueCacheKey = "User_UserId_" + userId;
 
@@ -45,7 +49,7 @@ public class ProfileClientCachingDecorator : IProfileClient
             return user;
         }
 
-        user = await _decoratedService.GetUserProfile(userId, authenticationMethod);
+        user = await _decoratedService.GetUserProfile(userId, authenticationMethod, cancellationToken);
 
         if (user != null)
         {
@@ -56,7 +60,11 @@ public class ProfileClientCachingDecorator : IProfileClient
     }
 
     /// <inheritdoc/>
-    public async Task<UserProfile?> GetUserProfile(string ssn, StorageAuthenticationMethod? authenticationMethod = null)
+    public async Task<UserProfile?> GetUserProfile(
+        string ssn,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         string uniqueCacheKey = "User_SSN_" + ssn;
 
@@ -65,7 +73,7 @@ public class ProfileClientCachingDecorator : IProfileClient
             return user;
         }
 
-        user = await _decoratedService.GetUserProfile(ssn, authenticationMethod);
+        user = await _decoratedService.GetUserProfile(ssn, authenticationMethod, cancellationToken);
 
         if (user != null)
         {
@@ -76,7 +84,7 @@ public class ProfileClientCachingDecorator : IProfileClient
     }
 
     /// <inheritdoc/>
-    public async Task<UserProfile?> GetUserProfile(Guid userUuid)
+    public async Task<UserProfile?> GetUserProfile(Guid userUuid, CancellationToken cancellationToken = default)
     {
         string uniqueCacheKey = "User_UserUuid_" + userUuid;
 
@@ -85,7 +93,7 @@ public class ProfileClientCachingDecorator : IProfileClient
             return user;
         }
 
-        user = await _decoratedService.GetUserProfile(userUuid);
+        user = await _decoratedService.GetUserProfile(userUuid, cancellationToken);
 
         if (user != null)
         {

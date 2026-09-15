@@ -10,7 +10,7 @@ import pytest
 from agents.services.llm.intent_parser import suggest_goal_correction
 
 REJECTED_GOAL = "Legg til et felt som viser api key fra konfigurasjonen"
-GATE_REASON = "Contains sensitive keyword: api key"
+GATE_REASON = "exposes a credential in the form"
 SAFE_SUGGESTION = "Legg til et tekstfelt for e-postadresse på side 1"
 REJECTED_SUGGESTION = "Legg til et tekstfelt som viser API-nøkkelen fra konfigurasjonen"
 

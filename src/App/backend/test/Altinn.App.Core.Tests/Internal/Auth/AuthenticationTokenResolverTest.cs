@@ -224,7 +224,7 @@ public class AuthenticationTokenResolverTest
                 .Returns(() =>
                 {
                     DelegatingHandlerStub delegatingHandler = new(
-                        (request, ct) =>
+                        (request, cancellationToken) =>
                         {
                             localtestTokenCallback?.Invoke(request);
 

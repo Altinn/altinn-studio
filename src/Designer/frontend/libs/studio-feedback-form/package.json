@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "main": "./src/index.ts",
   "dependencies": {
-    "@studio/components-legacy": "workspace:^"
+    "@studio/components": "workspace:^",
+    "@studio/icons": "workspace:^"
   }
 }

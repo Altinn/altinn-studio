@@ -1,8 +1,7 @@
 import type { PropsWithChildren } from 'react';
 import React from 'react';
 import classes from './LibraryHeader.module.css';
-import { studioBetaTagClasses } from '@studio/components-legacy';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading, studioBetaTagClasses } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import cn from 'classnames';
 

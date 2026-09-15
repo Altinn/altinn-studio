@@ -28,6 +28,12 @@ type Resetter interface {
 	Reset(ctx context.Context) error
 }
 
+// WorkflowEngineResetter optionally extends Env with a destructive reset of the persisted
+// workflow-engine data that keeps every other persisted environment data.
+type WorkflowEngineResetter interface {
+	ResetWorkflowEngineData(ctx context.Context) error
+}
+
 // UpOptions configures environment startup.
 type UpOptions struct {
 	Detach            bool

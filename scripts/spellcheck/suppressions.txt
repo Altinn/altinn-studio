@@ -98,8 +98,9 @@ Axe
 
 # --------------------------------------------------- codes and slugs ---
 
-# Altinn service-owner org slugs (als, staf) used as config/test values
-@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/development/setup.js
+# Altinn service-owner org slugs (als, staf) used as config/test values and
+# in the AI assistant beta allow list
+@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/backend/src/Designer/Infrastructure/Authorization/AiAssistantPermissionHandler.cs src/Designer/development/setup.js src/Designer/frontend/app-development/features/aiAssistant/hooks/useAssistantPermissions/useAssistantPermissions.ts
 als
 staf
 
@@ -144,6 +145,14 @@ Statistisk
 # KS.Fiks.Arkiv Norwegian model and member names (SvarPaaForespoersel/Som*, …)
 @paths src/App/backend/**/Altinn.App.Clients.Fiks*/**
 Dokument
+Registrering
+registrering
+Som
+
+# Noark 5 arkivmelding schema names carried by the eFormidling model in Altinn.App.Core:
+# the tilknyttetRegistreringSom element and its property, and the schema's registrering type
+# quoted in a doc comment. The English prose around them stays enforced.
+@paths src/App/backend/src/Altinn.App.Core/EFormidling/Models/Arkivmelding.cs
 Registrering
 registrering
 Som
@@ -280,6 +289,10 @@ litres
 # login page; no Nordic letter or signal word on the line for the classifier
 @paths src/Designer/development/fake-ansattporten/main.go
 selv
+
+# "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
+@paths src/AI/agents/agents/prompts/intent_security.md
+ser
 
 # didi is the dependency-injection package bpmn-js pulls in (see yarn.lock)
 @paths src/Designer/frontend/jest.config.js

@@ -378,13 +378,24 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
+    /// <summary>
+    /// Creates the files of a PDF service task's layout set: the PDF layout the task renders (initially
+    /// empty) and one ordinary page. The page is not optional. The app frontend renders any task that has
+    /// a ui folder as a form task, using that folder's pages in place of its built-in service task views,
+    /// so the set must contain the page a user sees while the PDF is being generated. That is a waiting
+    /// page bound to the same <c>service_task.waiting_*</c> text keys as the built-in waiting view, so an
+    /// app's overrides apply to both. A failed generation needs no page here: the v9 frontend renders its
+    /// own failure view, with retry, over any custom layout. The v8 generator in
+    /// <see cref="AppDevelopmentService"/> still emits an error page with retry and back buttons, since
+    /// the v8 runtime relies on the layout's own buttons for recovery.
+    /// </summary>
     private static async Task CreatePdfLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
         LayoutSetConfig layoutSet
     )
     {
         const string PdfLayoutFilename = "PdfLayout";
-        const string ErrorLayoutFilename = "ServiceTask";
+        const string ServiceTaskLayoutFilename = "ServiceTask";
         string layoutSchema = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>();
 
         await altinnAppGitRepository.SaveLayout(
@@ -399,7 +410,7 @@ public class UiFoldersService : IUiFoldersService
 
         await altinnAppGitRepository.SaveLayout(
             layoutSet.Id,
-            ErrorLayoutFilename,
+            ServiceTaskLayoutFilename,
             new JsonObject
             {
                 ["$schema"] = layoutSchema,
@@ -409,56 +420,15 @@ public class UiFoldersService : IUiFoldersService
                         new JsonObject
                         {
                             ["size"] = "L",
-                            ["id"] = "service-task-title",
+                            ["id"] = "service-task-waiting-title",
                             ["type"] = "Heading",
-                            ["textResourceBindings"] = new JsonObject
-                            {
-                                ["title"] = "service_task_custom_pdf_default.title",
-                            },
+                            ["textResourceBindings"] = new JsonObject { ["title"] = "service_task.waiting_title" },
                         },
                         new JsonObject
                         {
-                            ["id"] = "service-task-body",
+                            ["id"] = "service-task-waiting-body",
                             ["type"] = "Paragraph",
-                            ["textResourceBindings"] = new JsonObject
-                            {
-                                ["title"] = "service_task_custom_pdf_default.body",
-                            },
-                        },
-                        new JsonObject
-                        {
-                            ["id"] = "service-task-help-text",
-                            ["type"] = "Paragraph",
-                            ["textResourceBindings"] = new JsonObject
-                            {
-                                ["title"] = "service_task_custom_pdf_default.help_text",
-                            },
-                        },
-                        new JsonObject
-                        {
-                            ["id"] = "service-task-button-group",
-                            ["type"] = "ButtonGroup",
-                            ["children"] = new JsonArray("service-task-retry-button", "service-task-back-button"),
-                        },
-                        new JsonObject
-                        {
-                            ["id"] = "service-task-retry-button",
-                            ["type"] = "Button",
-                            ["textResourceBindings"] = new JsonObject
-                            {
-                                ["title"] = "service_task_custom_pdf_default.retry_button",
-                            },
-                        },
-                        new JsonObject
-                        {
-                            ["id"] = "service-task-back-button",
-                            ["type"] = "ActionButton",
-                            ["textResourceBindings"] = new JsonObject
-                            {
-                                ["title"] = "service_task_custom_pdf_default.back_button",
-                            },
-                            ["action"] = "reject",
-                            ["buttonStyle"] = "secondary",
+                            ["textResourceBindings"] = new JsonObject { ["title"] = "service_task.waiting_body" },
                         },
                     ]),
                 },
@@ -471,7 +441,7 @@ public class UiFoldersService : IUiFoldersService
             ["pages"] = new JsonObject
             {
                 ["pdfLayoutName"] = PdfLayoutFilename,
-                ["order"] = new JsonArray([ErrorLayoutFilename]),
+                ["order"] = new JsonArray([ServiceTaskLayoutFilename]),
             },
         };
         ApplyLayoutSetMetadata(settings, layoutSet);

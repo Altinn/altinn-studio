@@ -13,7 +13,7 @@ https://docs.altinn.studio/app/development/data/options/
 - Register all providers at once with `services.AddAltinnCodelists();`, or register individual code
   lists (to override the option ID or pass parameters), e.g.
   `services.AddSSBClassificationCodelistProvider("næring", Classification.IndustryGrouping);`.
-- Connect a component to a code list via its *Kodeliste-ID* in Studio, or the `optionsId` property in
+- Connect a component to a code list via its _Kodeliste-ID_ in Studio, or the `optionsId` property in
   `FormLayout.json`.
 
 ## Build & test
@@ -30,4 +30,9 @@ dotnet test                           # run tests (test projects under test/)
 - Code lists are grouped by source (e.g. SSB). Each source exposes its own registration extension
   methods and supports custom option IDs and source-specific parameters (level filters, etc.).
 - This is a public, versioned NuGet package — treat the public API as a compatibility surface.
+- **The `Altinn.App.Core` reference has two shapes**, wired in `../AppCoreDependency.props`. In-repo
+  builds use a `ProjectReference` to the app backend, so the test apps under `src/test/apps` resolve
+  one Core rather than two; a release pack passes `-p:UseAppLibsFromSource=false` and compiles
+  against the version pinned in `Directory.Packages.props`, which is what the nuspec declares. Use a
+  Core API newer than that pin and the `Build against the pinned Altinn.App.Core` CI job fails.
 - See `README.md` for the current provider catalogue and configuration examples.

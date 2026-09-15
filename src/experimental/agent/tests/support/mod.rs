@@ -47,15 +47,17 @@ pub(crate) fn agent(name: &str) -> Agent {
             home: HomeSpec {
                 source: PathBuf::from("home"),
             },
-            instructions: Some(InstructionsSpec {
+            instructions: vec![InstructionsSpec {
                 source: PathBuf::from("instructions.md"),
-            }),
+            }],
+            skills: vec![],
             harnesses: vec![HarnessSpec {
                 kind: Harness::ClaudeCode,
-                version: "2.1.239".into(),
+                version: Some("2.1.266".into()),
                 auth: HarnessAuthMode::Mediated,
                 default: false,
             }],
+            environment: Vec::new(),
             secrets: Vec::new(),
             network: NetworkSpec {
                 mode: NetworkMode::Mediated,

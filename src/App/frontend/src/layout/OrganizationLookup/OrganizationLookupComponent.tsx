@@ -10,6 +10,7 @@ import {
   RequiredIndicator,
 } from '@app/form-component';
 import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';

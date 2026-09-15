@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared package version resolution for the independently released App packages: the Altinn.App
+  libraries (`app/v*`), Altinn.Codelists (`codelists/v*`) and Altinn.FileAnalyzers
+  (`fileanalyzers/v*`).
+
+  Derives the package version from the component's own git release tags, so that packages sharing
+  this monorepo with the Designer are not affected by the Designer's weekly `vYYYY.NN` tags.
+
+  Consumers set, before importing this file:
+    RepoRoot                  - repository root (used as the git working directory)
+    PackageVersionTagPrefix   - release tag prefix, e.g. `codelists/v`
+    PackageDefaultBaseVersion - version to assume when no release tag is reachable
+
+  Consumers may override the computed values (a release pipeline passes the version it is releasing):
+    ReleasePackageVersion, ReleaseAssemblyVersion, ReleaseInformationalVersion
+
+  An unrecognized override name is NOT an error — it falls back to the derived version, and the
+  release then ships as <version>.dev.N. Renaming these means updating every caller; today that is
+  `runDotnetPack` in src/tools/releaser/builder_app.go and the two release-*.yaml pack steps.
+
+  Version shape:
+    on a release tag        9.0.0-preview.1
+    N commits past a tag    9.0.0-preview.1.dev.N   (prerelease base)
+                            9.0.1-dev.N             (stable base)
+-->
+<Project>
+
+  <PropertyGroup>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <GetPackageVersionDependsOn>ResolvePackageVersionFromGit;$(GetPackageVersionDependsOn)</GetPackageVersionDependsOn>
+  </PropertyGroup>
+
+  <Target Name="ResolvePackageVersionFromGit" BeforeTargets="GetAssemblyVersion;GenerateNuspec">
+    <Error
+      Condition="'$(PackageVersionTagPrefix)' == '' OR '$(PackageDefaultBaseVersion)' == ''"
+      Text="PackageVersioning.props requires PackageVersionTagPrefix and PackageDefaultBaseVersion to be set."
+    />
+
+    <PropertyGroup>
+      <PackageVersionTagPattern Condition="'$(PackageVersionTagPattern)' == ''">$(PackageVersionTagPrefix)[0-9]*</PackageVersionTagPattern>
+    </PropertyGroup>
+
+    <Exec
+      Command="git -C &quot;$(RepoRoot)&quot; describe --tags --match &quot;$(PackageVersionTagPattern)&quot; --abbrev=0"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="Low"
+      Condition="'$(ReleasePackageVersion)' == '' OR '$(ReleaseAssemblyVersion)' == '' OR '$(ReleaseInformationalVersion)' == ''"
+    >
+      <Output TaskParameter="ConsoleOutput" ItemName="_PackageLatestTagOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_PackageLatestTagExitCode" />
+    </Exec>
+
+    <PropertyGroup Condition="'$(_PackageLatestTagExitCode)' == '0' AND '@(_PackageLatestTagOutput)' != ''">
+      <_PackageLatestTag>@(_PackageLatestTagOutput->'%(Identity)')</_PackageLatestTag>
+    </PropertyGroup>
+
+    <Exec
+      Command="git -C &quot;$(RepoRoot)&quot; rev-list --count $(_PackageLatestTag)..HEAD"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="Low"
+      Condition="'$(_PackageLatestTag)' != '' AND ('$(ReleasePackageVersion)' == '' OR '$(ReleaseAssemblyVersion)' == '')"
+    >
+      <Output TaskParameter="ConsoleOutput" ItemName="_PackageVersionHeightOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_PackageVersionHeightExitCode" />
+    </Exec>
+
+    <Exec
+      Command="git -C &quot;$(RepoRoot)&quot; rev-parse --short=12 HEAD"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="true"
+      StandardOutputImportance="Low"
+      StandardErrorImportance="Low"
+      Condition="'$(ReleaseInformationalVersion)' == ''"
+    >
+      <Output TaskParameter="ConsoleOutput" ItemName="_PackageCommitOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_PackageCommitExitCode" />
+    </Exec>
+
+    <PropertyGroup>
+      <_PackageBaseVersion Condition="'$(_PackageLatestTag)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(_PackageLatestTag)', '^$(PackageVersionTagPrefix)', ''))</_PackageBaseVersion>
+      <_PackageBaseVersion Condition="'$(_PackageBaseVersion)' == ''">$(PackageDefaultBaseVersion)</_PackageBaseVersion>
+      <_PackageVersionHeight Condition="'$(_PackageVersionHeightExitCode)' == '0' AND '@(_PackageVersionHeightOutput)' != ''">@(_PackageVersionHeightOutput->'%(Identity)')</_PackageVersionHeight>
+      <_PackageVersionHeight Condition="'$(_PackageVersionHeight)' == ''">0</_PackageVersionHeight>
+      <_PackageCommit Condition="'$(_PackageCommitExitCode)' == '0' AND '@(_PackageCommitOutput)' != ''">@(_PackageCommitOutput->'%(Identity)')</_PackageCommit>
+      <_PackageVersionSuffix Condition="'$(_PackageLatestTag)' == '' AND '$(_PackageVersionHeight)' == '0'">.dev.0</_PackageVersionSuffix>
+      <_PackageVersionSuffix Condition="'$(_PackageVersionHeight)' != '0' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(_PackageBaseVersion)', '-'))">.dev.$(_PackageVersionHeight)</_PackageVersionSuffix>
+      <_PackageVersionSuffix Condition="'$(_PackageVersionHeight)' != '0' AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$(_PackageBaseVersion)', '-'))">-dev.$(_PackageVersionHeight)</_PackageVersionSuffix>
+      <ReleasePackageVersion Condition="'$(ReleasePackageVersion)' == ''">$(_PackageBaseVersion)$(_PackageVersionSuffix)</ReleasePackageVersion>
+      <_PackageVersionMajor>$([System.Text.RegularExpressions.Regex]::Match('$(ReleasePackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[1].Value)</_PackageVersionMajor>
+      <_PackageVersionMinor>$([System.Text.RegularExpressions.Regex]::Match('$(ReleasePackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[2].Value)</_PackageVersionMinor>
+      <_PackageVersionPatch>$([System.Text.RegularExpressions.Regex]::Match('$(ReleasePackageVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+)').Groups[3].Value)</_PackageVersionPatch>
+      <ReleaseAssemblyVersion Condition="'$(ReleaseAssemblyVersion)' == ''">$(_PackageVersionMajor).$(_PackageVersionMinor).$(_PackageVersionPatch).$(_PackageVersionHeight)</ReleaseAssemblyVersion>
+      <ReleaseInformationalVersion Condition="'$(ReleaseInformationalVersion)' == '' AND '$(_PackageCommit)' != ''">$(ReleasePackageVersion)+$(_PackageCommit)</ReleaseInformationalVersion>
+      <ReleaseInformationalVersion Condition="'$(ReleaseInformationalVersion)' == ''">$(ReleasePackageVersion)</ReleaseInformationalVersion>
+      <Version>$(ReleasePackageVersion)</Version>
+      <PackageVersion>$(ReleasePackageVersion)</PackageVersion>
+      <FileVersion>$(ReleaseAssemblyVersion)</FileVersion>
+      <AssemblyVersion>$(ReleaseAssemblyVersion)</AssemblyVersion>
+      <InformationalVersion>$(ReleaseInformationalVersion)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+
+</Project>

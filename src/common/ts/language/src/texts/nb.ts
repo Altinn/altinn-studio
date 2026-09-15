@@ -249,7 +249,7 @@ export function nb() {
     'instance_selection.changed_by': 'Endret av',
     'instance_selection.continue': 'Fortsett her',
     'instance_selection.description':
-      'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
+      'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på nytt.',
     'instance_selection.header': 'Du har allerede startet å fylle ut dette skjemaet.',
     'instance_selection.last_changed': 'Sist endret',
     'instance_selection.left_of': 'Fortsett der du slapp',
@@ -582,7 +582,6 @@ export function nb() {
     'service_task.help_text':
       'Du kan prøve å utføre behandlingen på nytt ved å klikke på "{0}". Hvis problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
     'service_task.retry_button': 'Prøv igjen',
-    'service_task.back_button': 'Gå tilbake',
     'service_task.waiting_title': 'Vi behandler forespørselen din',
     'service_task.waiting_body':
       'Dette kan ta litt tid. Du trenger ikke å gjøre noe, vi går automatisk videre når alt er klart.',

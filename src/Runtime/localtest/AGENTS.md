@@ -9,8 +9,11 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
 ## What it provides
 
 - Local stand-ins for the Platform services apps call at runtime, served at `local.altinn.cloud`.
-- Configurable **test data**: users, parties, roles, and authorization. For example, to grant a role,
-  edit `testdata/authorization/roles/User_{userId}/party_{partyId}/roles.json` and restart Localtest.
+- Configurable **test data**: users, parties, roles, and authorization. An app defines its own test
+  users in `App/wwwroot/testData.json`, which Localtest fetches from the running app — that is where
+  app-specific users and roles belong, and it is what to recommend to app developers. The `testdata/`
+  folder here holds the built-in users, is baked into the image at `/testdata`, and changing it means
+  rebuilding (`STUDIOCTL_INTERNAL_DEV=true studioctl env up`). See `README.md` for how the two combine.
 - k6 sample load test (`k6/loadtest.sample.js`) that can be adapted to run against a local app.
 
 ## Build & run

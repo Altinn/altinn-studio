@@ -4,6 +4,8 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -11,10 +13,11 @@ using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
-public sealed class InstanceClientMockSi : IInstanceClient
+internal sealed class InstanceClientMockSi : IInstanceClient, IInstanceClientWithStorageMetadata
 {
     private readonly ILogger _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ApiTestStorageMetadata _storageMetadata;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -28,10 +31,15 @@ public sealed class InstanceClientMockSi : IInstanceClient
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
-    public InstanceClientMockSi(ILogger<IInstanceClient> logger, IHttpContextAccessor httpContextAccessor)
+    public InstanceClientMockSi(
+        ILogger<IInstanceClient> logger,
+        IHttpContextAccessor httpContextAccessor,
+        ApiTestStorageMetadata storageMetadata
+    )
     {
         _logger = logger;
         _httpContextAccessor = httpContextAccessor;
+        _storageMetadata = storageMetadata;
     }
 
     public async Task<Instance> CreateInstance(
@@ -39,7 +47,18 @@ public sealed class InstanceClientMockSi : IInstanceClient
         string app,
         Instance instanceTemplate,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
+    ) =>
+        (
+            await CreateInstanceWithStorageMetadata(org, app, instanceTemplate, authenticationMethod, cancellationToken)
+        ).Instance;
+
+    public async Task<InstanceWithStorageMetadata> CreateInstanceWithStorageMetadata(
+        string org,
+        string app,
+        Instance instanceTemplate,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         string partyId = instanceTemplate.InstanceOwner.PartyId;
@@ -55,6 +74,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
             ?? throw new IOException($"Could not get directory name of specified path {instancePath}");
         _ = Directory.CreateDirectory(directory);
         await WriteJsonFile(instancePath, instanceTemplate);
+        StorageVersionMetadata metadata = _storageMetadata.RegisterLoadedInstance(instanceTemplate);
 
         _logger.LogInformation(
             "Created instance for app {org}/{app}. writing to path: {instancePath}",
@@ -63,14 +83,20 @@ public sealed class InstanceClientMockSi : IInstanceClient
             instancePath
         );
 
-        return instanceTemplate;
+        return new InstanceWithStorageMetadata(instanceTemplate, metadata);
     }
 
     /// <inheritdoc />
     public async Task<Instance> GetInstance(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
+    ) => (await GetInstanceWithStorageMetadata(instance, authenticationMethod, cancellationToken)).Instance;
+
+    public async Task<InstanceWithStorageMetadata> GetInstanceWithStorageMetadata(
+        Instance instance,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         string app = instance.AppId.Split("/")[1];
@@ -78,7 +104,14 @@ public sealed class InstanceClientMockSi : IInstanceClient
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-        return await GetInstance(app, org, instanceOwnerId, instanceGuid, authenticationMethod, ct);
+        return await GetInstanceWithStorageMetadata(
+            app,
+            org,
+            instanceOwnerId,
+            instanceGuid,
+            authenticationMethod,
+            cancellationToken
+        );
     }
 
     public async Task<Instance> GetInstance(
@@ -87,7 +120,28 @@ public sealed class InstanceClientMockSi : IInstanceClient
         int instanceOwnerPartyId,
         Guid instanceId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
+    )
+    {
+        return (
+            await GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceId,
+                authenticationMethod,
+                cancellationToken
+            )
+        ).Instance;
+    }
+
+    public async Task<InstanceWithStorageMetadata> GetInstanceWithStorageMetadata(
+        string app,
+        string org,
+        int instanceOwnerPartyId,
+        Guid instanceId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         Instance instance = await GetTestInstance(app, org, instanceOwnerPartyId, instanceId);
@@ -100,13 +154,22 @@ public sealed class InstanceClientMockSi : IInstanceClient
         instance.Data = await GetDataElements(org, app, instanceOwnerPartyId, instanceId);
         (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
 
-        return instance;
+        StorageVersionMetadata metadata = _storageMetadata.RegisterLoadedInstance(instance);
+        var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceId);
+        foreach (DataElement dataElement in instance.Data)
+        {
+            dataElement.BlobVersionId = _storageMetadata.GetDataElementBlobVersionId(
+                instanceIdentifier,
+                Guid.Parse(dataElement.Id)
+            );
+        }
+        return new InstanceWithStorageMetadata(instance, metadata);
     }
 
     public async Task<Instance> UpdateProcess(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         ProcessState process = instance.Process;
@@ -135,18 +198,39 @@ public sealed class InstanceClientMockSi : IInstanceClient
         storedInstance.LastChanged = DateTime.UtcNow;
 
         await WriteJsonFile(instancePath, storedInstance);
+        _storageMetadata.BumpInstance(storedInstance, processStateChanged: true);
 
         return storedInstance;
     }
 
-    public Task<Instance> UpdateProcessAndEvents(
+    public async Task<Instance> UpdateProcessAndEvents(
         Instance instance,
         List<InstanceEvent> events,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
-        return UpdateProcess(instance, authenticationMethod, ct);
+        return (
+            await UpdateProcessAndEventsWithStorageMetadata(
+                instance,
+                events,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).Instance;
+    }
+
+    public async Task<InstanceWithStorageMetadata> UpdateProcessAndEventsWithStorageMetadata(
+        Instance instance,
+        List<InstanceEvent> events,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        StorageWritePreconditions? preconditions = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Instance updatedInstance = await UpdateProcess(instance, authenticationMethod, cancellationToken);
+        StorageVersionMetadata metadata = _storageMetadata.GetVersions(updatedInstance);
+        return new InstanceWithStorageMetadata(updatedInstance, metadata);
     }
 
     private static async Task<Instance> GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
@@ -236,7 +320,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         int instanceOwnerPartyId,
         Guid instanceGuid,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string org;
@@ -266,7 +350,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         Guid instanceGuid,
         string readStatus,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         if (!Enum.TryParse(readStatus, true, out ReadStatus newStatus))
@@ -290,6 +374,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         storedInstance.Status.ReadStatus = newStatus;
 
         await WriteJsonFile(instancePath, storedInstance);
+        _storageMetadata.BumpInstance(storedInstance);
         return storedInstance;
     }
 
@@ -298,7 +383,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         Guid instanceGuid,
         Substatus substatus,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         DateTime creationTime = DateTime.UtcNow;
@@ -327,7 +412,9 @@ public sealed class InstanceClientMockSi : IInstanceClient
         storedInstance.LastChangedBy = string.Empty;
 
         await WriteJsonFile(instancePath, storedInstance);
-        return await GetInstance(storedInstance);
+        Instance updatedInstance = await GetInstance(storedInstance);
+        _storageMetadata.BumpInstance(updatedInstance);
+        return updatedInstance;
     }
 
     public async Task<Instance> UpdatePresentationTexts(
@@ -335,7 +422,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         Guid instanceGuid,
         PresentationTexts presentationTexts,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -369,8 +456,29 @@ public sealed class InstanceClientMockSi : IInstanceClient
 
         storedInstance.Data = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
         (storedInstance.LastChangedBy, storedInstance.LastChanged) = FindLastChanged(storedInstance);
+        _storageMetadata.BumpInstance(storedInstance);
 
         return storedInstance;
+    }
+
+    public async Task<InstanceWithStorageMetadata> UpdatePresentationTextsWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        PresentationTexts presentationTexts,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        StorageWritePreconditions? preconditions = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Instance instance = await UpdatePresentationTexts(
+            instanceOwnerPartyId,
+            instanceGuid,
+            presentationTexts,
+            authenticationMethod,
+            cancellationToken
+        );
+        StorageVersionMetadata metadata = _storageMetadata.GetVersions(instance);
+        return new InstanceWithStorageMetadata(instance, metadata);
     }
 
     public async Task<Instance> UpdateDataValues(
@@ -378,7 +486,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         Guid instanceGuid,
         DataValues dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -412,8 +520,29 @@ public sealed class InstanceClientMockSi : IInstanceClient
 
         storedInstance.Data = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
         (storedInstance.LastChangedBy, storedInstance.LastChanged) = FindLastChanged(storedInstance);
+        _storageMetadata.BumpInstance(storedInstance);
 
         return storedInstance;
+    }
+
+    public async Task<InstanceWithStorageMetadata> UpdateDataValuesWithStorageMetadata(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        DataValues dataValues,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        StorageWritePreconditions? preconditions = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Instance instance = await UpdateDataValues(
+            instanceOwnerPartyId,
+            instanceGuid,
+            dataValues,
+            authenticationMethod,
+            cancellationToken
+        );
+        StorageVersionMetadata metadata = _storageMetadata.GetVersions(instance);
+        return new InstanceWithStorageMetadata(instance, metadata);
     }
 
     public async Task<Instance> DeleteInstance(
@@ -421,7 +550,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
         Guid instanceGuid,
         bool hard,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -457,7 +586,7 @@ public sealed class InstanceClientMockSi : IInstanceClient
     public async Task<List<Instance>> GetInstances(
         Dictionary<string, StringValues> queryParams,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         List<string> validQueryParams =

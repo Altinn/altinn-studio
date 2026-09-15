@@ -57,6 +57,10 @@ public sealed record FiksArkivReceiptSettings
     /// <summary>
     /// Settings for the storage of the confirmation record (arkivkvittering).
     /// </summary>
+    /// <remarks>
+    /// Written when the receipt arrives, in the transition that sent the record. An unreadable receipt fails
+    /// the task instead of advancing without evidence. See <see cref="FiksArkivServiceTask"/>.
+    /// </remarks>
     [JsonPropertyName("confirmationRecord")]
     public required FiksArkivDataTypeSettings ConfirmationRecord { get; set; }
 
@@ -123,11 +127,28 @@ public sealed record FiksArkivMetadataSettings
     public FiksArkivBindableValue<string>? CaseFileTitle { get; set; }
 
     /// <summary>
+    /// Optional classifications (klassifikasjon) to attach to the generated saksmappe (case file) element in the arkivmelding.xml.
+    /// Entries are emitted in the order listed. Each entry is either a built-in dynamic
+    /// <see cref="FiksArkivClassification.Source"/> (e.g. the instance owner identity) or an explicitly
+    /// configured system/class/title. The instance owner classification is no longer added implicitly;
+    /// add an entry with <see cref="FiksArkivClassificationSource.InstanceOwner"/> to include it.
+    /// </summary>
+    [JsonPropertyName("caseFileClassifications")]
+    public IReadOnlyList<FiksArkivClassification>? CaseFileClassifications { get; set; }
+
+    /// <summary>
     /// The title to use for the generated journalpost (journal entry) element in the arkivmelding.xml.
     /// If no title is provided, the value will default to the application title as defined in applicationmetadata.json.
     /// </summary>
     [JsonPropertyName("journalEntryTitle")]
     public FiksArkivBindableValue<string>? JournalEntryTitle { get; set; }
+
+    /// <summary>
+    /// The administrative unit (administrativEnhet) to use for the generated saksmappe (case file) element in the arkivmelding.xml.
+    /// If no value is provided, the application owner's organization code will be used.
+    /// </summary>
+    [JsonPropertyName("caseFileAdministrativeUnit")]
+    public FiksArkivBindableValue<string>? CaseFileAdministrativeUnit { get; set; }
 
     /// <summary>
     /// Internal validation based on the requirements of <see cref="FiksArkivDefaultPayloadGenerator"/>
@@ -141,6 +162,16 @@ public sealed record FiksArkivMetadataSettings
         CaseFileId?.Validate($"{propertyName}.{nameof(CaseFileId)}", dataTypes, appModelResolver);
         CaseFileTitle?.Validate($"{propertyName}.{nameof(CaseFileTitle)}", dataTypes, appModelResolver);
         JournalEntryTitle?.Validate($"{propertyName}.{nameof(JournalEntryTitle)}", dataTypes, appModelResolver);
+        CaseFileAdministrativeUnit?.Validate(
+            $"{propertyName}.{nameof(CaseFileAdministrativeUnit)}",
+            dataTypes,
+            appModelResolver
+        );
+
+        foreach (var classification in CaseFileClassifications ?? [])
+        {
+            classification.Validate($"{propertyName}.{nameof(CaseFileClassifications)}");
+        }
     }
 }
 
@@ -186,28 +217,32 @@ public sealed record FiksArkivDocumentSettings
 /// <summary>
 /// Represents the settings for success handling.
 /// </summary>
+/// <remarks>
+/// Applies once <strong>the archive has confirmed the record</strong> — not when the message was handed to
+/// Fiks IO. A confirmed archiving always moves the process on to the next task; these settings decide how.
+/// Applied by <see cref="FiksArkivServiceTask"/>.
+/// </remarks>
 public sealed record FiksArkivSuccessHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task after successfully sending the message?
-    /// Default to <c>true</c>.
-    /// </summary>
-    [JsonPropertyName("moveToNextTask")]
-    public bool MoveToNextTask { get; set; } = true;
-
-    /// <summary>
-    /// When progressing to the next task, which action should we send?
-    /// Defaults to <c>null</c>.
+    /// The action the process moves on with once the archive has confirmed the record.
+    /// Defaults to <c>null</c>, which follows the process's default flow.
     /// </summary>
     [JsonPropertyName("action")]
     public string? Action { get; set; }
 
     /// <summary>
-    /// Should we mark the instance as `completed` after successfully sending the message?
-    /// Defaults to <c>false</c>.
+    /// Should we mark the instance as `completed` once the archive has confirmed the record?
+    /// Defaults to <c>true</c>.
     /// </summary>
+    /// <remarks>
+    /// The confirmation is sent before the process advances, because advancing can end the process and
+    /// an ended process can take the instance with it.
+    /// </remarks>
     [JsonPropertyName("markInstanceComplete")]
-    public bool MarkInstanceComplete { get; set; }
+    public bool MarkInstanceComplete { get; set; } = DefaultMarkInstanceComplete;
+
+    internal const bool DefaultMarkInstanceComplete = true;
 
     /// <summary>
     /// Gets the action if set to an actual value, otherwise returns null.
@@ -219,27 +254,31 @@ public sealed record FiksArkivSuccessHandlingSettings
 /// <summary>
 /// Represents the settings for error handling.
 /// </summary>
+/// <remarks>
+/// Applies when <strong>the archiving cannot succeed for this case</strong>: the archive reports it could
+/// not create the record, or the recipient account does not exist. Such an archiving always moves the
+/// process on, with <see cref="Action"/> — so the process must branch on that action right after the Fiks
+/// Arkiv task, which the app verifies at startup. Fiks IO refusing the app's integration credentials is
+/// outside its reach — an operations problem, so it fails the workflow for the app owner to fix and
+/// resume — and so are transient and unknown-outcome send failures, Maskinporten and transport failures
+/// included, which are retried and then fail the task. Applied by <see cref="FiksArkivServiceTask"/>.
+/// </remarks>
 public sealed record FiksArkivErrorHandlingSettings
 {
     /// <summary>
-    /// Should we automatically progress to the next task after failing to send the message?
-    /// Defaults to <c>true</c>.
-    /// </summary>
-    [JsonPropertyName("moveToNextTask")]
-    public bool MoveToNextTask { get; set; } = true;
-
-    /// <summary>
-    /// When progressing to the next task, which action should we send?
+    /// The action the process moves on with when the archiving cannot succeed for this case.
     /// Defaults to <c>reject</c>.
     /// </summary>
     [JsonPropertyName("action")]
-    public string? Action { get; set; } = "reject";
+    public string? Action { get; set; } = DefaultAction;
+
+    internal const string DefaultAction = "reject";
 
     /// <summary>
-    /// Gets the action if set to an actual value, otherwise returns null.
+    /// Gets the action if set to an actual value, otherwise the default <c>reject</c>.
     /// </summary>
     /// <remarks><c>IOptions</c> can on occasion deserialize null as empty string, which is undesirable.</remarks>
-    internal string? GetActionOrDefault() => string.IsNullOrWhiteSpace(Action) ? null : Action;
+    internal string GetActionOrDefault() => string.IsNullOrWhiteSpace(Action) ? DefaultAction : Action;
 }
 
 /// <summary>
@@ -412,6 +451,20 @@ public sealed record FiksArkivDataTypeSettings
     public string? Filename { get; set; }
 
     /// <summary>
+    /// Optional override for the document format (<c>dokumentobjekt.format</c>), e.g. <c>PDF/A</c>.
+    /// If not specified, the dotless file extension is used.
+    /// </summary>
+    [JsonPropertyName("format")]
+    public FiksArkivCode? Format { get; set; }
+
+    /// <summary>
+    /// Optional variant descriptor for the document (<c>dokumentobjekt.variantformat</c>), e.g. "P/Produksjonsformat" or "A/Arkivformat".
+    /// If not specified, the variant information is omitted.
+    /// </summary>
+    [JsonPropertyName("variant")]
+    public FiksArkivCode? Variant { get; set; }
+
+    /// <summary>
     /// Internal validation based on the requirements of <see cref="FiksArkivDefaultPayloadGenerator"/>
     /// </summary>
     internal void Validate(string propertyName, IReadOnlyList<DataType> dataTypes, bool requireFilename = false)
@@ -429,6 +482,9 @@ public sealed record FiksArkivDataTypeSettings
             throw new FiksArkivConfigurationException(
                 $"{propertyName}.{nameof(Filename)} configuration is required, but missing."
             );
+
+        Format?.Validate($"{propertyName}.{nameof(Format)}");
+        Variant?.Validate($"{propertyName}.{nameof(Variant)}");
     }
 
     /// <summary>
@@ -436,4 +492,116 @@ public sealed record FiksArkivDataTypeSettings
     /// </summary>
     public string GetFilenameOrDefault(string defaultExtension = "xml") =>
         !string.IsNullOrWhiteSpace(Filename) ? Filename : $"{DataType}.{defaultExtension.TrimStart('.')}";
+}
+
+/// <summary>
+/// Represents a code + description, analogous to <c>KS.Fiks.Arkiv.Models.V1.Metadatakatalog.Kode</c>
+/// </summary>
+public sealed record FiksArkivCode
+{
+    /// <summary>
+    /// The code.
+    /// </summary>
+    [JsonPropertyName("code")]
+    public required string Code { get; set; }
+
+    /// <summary>
+    /// An optional description.
+    /// </summary>
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    internal void Validate(string propertyName)
+    {
+        if (string.IsNullOrWhiteSpace(Code))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(Code)} cannot be empty or contain only whitespace. If you wish to omit this item, remove the {propertyName} configuration entry entirely."
+            );
+    }
+}
+
+/// <summary>
+/// Represents a single classification (klassifikasjon) entry attached to the saksmappe (case file).
+/// </summary>
+public sealed record FiksArkivClassification
+{
+    /// <summary>
+    /// Opt-in to a built-in, library-resolved dynamic classification (e.g. the instance owner identity).
+    /// When set, the system/class/title are resolved at shipment time and the explicit
+    /// <see cref="SystemId"/>/<see cref="ClassificationId"/>/<see cref="Title"/> fields must be left unset.
+    /// The optional <see cref="IsRestricted"/> flag is still honored.
+    /// </summary>
+    [JsonPropertyName("source")]
+    public FiksArkivClassificationSource? Source { get; set; }
+
+    /// <summary>
+    /// The identifier of the classification system this entry belongs to (klassifikasjonssystemID).
+    /// Required for an explicit entry; omit when <see cref="Source"/> is set.
+    /// </summary>
+    [JsonPropertyName("systemId")]
+    public string? SystemId { get; set; }
+
+    /// <summary>
+    /// The identifier of the class within the classification system (klasseID).
+    /// Required for an explicit entry; omit when <see cref="Source"/> is set.
+    /// </summary>
+    [JsonPropertyName("classificationId")]
+    public string? ClassificationId { get; set; }
+
+    /// <summary>
+    /// A human-readable title for the classification entry (tittel).
+    /// Required for an explicit entry; omit when <see cref="Source"/> is set.
+    /// </summary>
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// Optional flag indicating that the classification is restricted (erSkjermet).
+    /// Leave <c>null</c> to omit the property from the resulting XML. Applies to both explicitly configured
+    /// and <see cref="Source"/>-resolved classifications.
+    /// </summary>
+    [JsonPropertyName("isRestricted")]
+    public bool? IsRestricted { get; set; }
+
+    internal void Validate(string propertyName)
+    {
+        if (Source is not null)
+        {
+            if (SystemId is not null || ClassificationId is not null || Title is not null)
+                throw new FiksArkivConfigurationException(
+                    $"{propertyName}.{nameof(Source)} cannot be combined with {nameof(SystemId)}, {nameof(ClassificationId)} or {nameof(Title)}. A source-based classification is fully resolved by the library."
+                );
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SystemId))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(SystemId)} configuration is required, but missing. Did you mean to set {nameof(Source)}?"
+            );
+
+        if (string.IsNullOrWhiteSpace(ClassificationId))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(ClassificationId)} configuration is required, but missing."
+            );
+
+        if (string.IsNullOrWhiteSpace(Title))
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(Title)} configuration is required, but missing."
+            );
+    }
+}
+
+/// <summary>
+/// Built-in, library-resolved dynamic classification sources for a <see cref="FiksArkivClassification"/>.
+/// </summary>
+public enum FiksArkivClassificationSource
+{
+    /// <summary>
+    /// The instance owner as recorded on the instance: an organization by its organization number (<c>ORGNR</c>),
+    /// a person by their national identity number (<c>PNR</c>), titled with the party's registered name when the
+    /// register knows it. The shipment runs asynchronously in the workflow engine, so this is the owner of the case,
+    /// not whoever performed the submission.
+    /// </summary>
+    InstanceOwner,
 }

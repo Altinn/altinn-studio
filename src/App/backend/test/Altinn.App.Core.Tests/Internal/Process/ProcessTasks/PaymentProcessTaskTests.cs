@@ -12,7 +12,6 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,7 +70,8 @@ public class PaymentProcessTaskTests
                     instance,
                     It.Is<PaymentInformation>(payment =>
                         payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    )
+                    ),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -83,7 +83,8 @@ public class PaymentProcessTaskTests
                 instance,
                 It.Is<PaymentInformation>(payment =>
                     payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                )
+                ),
+                It.IsAny<CancellationToken>()
             )
         );
         dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));
@@ -106,7 +107,8 @@ public class PaymentProcessTaskTests
         await _paymentProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
 
         _paymentProcessorMock.Verify(
-            x => x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()),
+            x =>
+                x.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
         dataMutator.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
@@ -141,56 +143,6 @@ public class PaymentProcessTaskTests
                 taskId,
                 It.IsAny<List<KeyValueEntry>?>()
             )
-        );
-    }
-
-    [Fact]
-    public async Task End_ExistingTaskGeneratedReceipt_ShouldUpdatePdfReceipt()
-    {
-        DataElement paymentDataElement = CreatePaymentDataElement();
-        DataElement existingReceipt = new()
-        {
-            Id = Guid.NewGuid().ToString(),
-            DataType = "paymentReceiptPdfDataType",
-            ContentType = "application/pdf",
-            Filename = "Betalingskvittering.pdf",
-            References =
-            [
-                new Reference
-                {
-                    Relation = RelationType.GeneratedFrom,
-                    ValueType = ReferenceType.Task,
-                    Value = "Task_1",
-                },
-            ],
-        };
-        Instance instance = CreateInstance(paymentDataElement, existingReceipt);
-        var dataMutator = CreateDataMutator(instance);
-
-        var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
-
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
-        SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Paid);
-        _pdfServiceMock
-            .Setup(x => x.GeneratePdf(dataMutator.Object, "Task_1", false, null, CancellationToken.None))
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
-
-        await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
-
-        dataMutator.Verify(x =>
-            x.UpdateBinaryDataElement(existingReceipt, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())
-        );
-        dataMutator.Verify(
-            x =>
-                x.AddBinaryDataElement(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<List<KeyValueEntry>?>()
-                ),
-            Times.Never
         );
     }
 
@@ -284,7 +236,8 @@ public class PaymentProcessTaskTests
                     instance,
                     It.Is<PaymentInformation>(payment =>
                         payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    )
+                    ),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -296,7 +249,8 @@ public class PaymentProcessTaskTests
                 instance,
                 It.Is<PaymentInformation>(payment =>
                     payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                )
+                ),
+                It.IsAny<CancellationToken>()
             )
         );
         dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));

@@ -42,6 +42,21 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    /// <summary>
+    /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
+    /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
+    /// mapping - notably <c>Altinn.EFormidlingClient.Extensions</c> is deliberately absent, having no
+    /// destination; <see cref="CSharpApiMigration.RemovedEFormidlingClientApiDetector"/> reports it
+    /// instead.
+    /// </summary>
+    internal static readonly (string Old, string New)[] EFormidlingNamespaces =
+    [
+        ("Altinn.Common.EFormidlingClient", "Altinn.App.Core.EFormidling.Interface"),
+        ("Altinn.Common.EFormidlingClient.Configuration", "Altinn.App.Core.EFormidling.Configuration"),
+        ("Altinn.Common.EFormidlingClient.Models", "Altinn.App.Core.EFormidling.Models"),
+        ("Altinn.Common.EFormidlingClient.Models.SBD", "Altinn.App.Core.EFormidling.Models.SBD"),
+    ];
+
     internal static async Task<int> RunAsync(V8Tov9UpgradeOptions options)
     {
         using var outputScope = UpgradeConsole.Use(options.Report, options.Error);
@@ -128,13 +143,22 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskNamespace(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingClientNamespaces(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingRegistration(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingReceiversSignature(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateCorrespondenceApis(scanner));
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateCancellationTokenParameters(scanner, options.CancellationToken)
+        );
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigrateCorrespondenceApis(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePlatformHttpExceptionApis(scanner));
@@ -144,6 +168,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFileAnalysisNamespace(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
@@ -211,7 +238,88 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
+
+        // All source writers must finish first, including generated data processors and their Program.cs
+        // registrations. Detection keeps the v8 view; spelling decisions use the actual upgraded project.
+        await FinalizeGeneratedTypeReferencesAsync(
+            scanner,
+            options.SkipSemanticAnalysis,
+            cancellationToken => TargetProjectLoader.LoadAsync(projectFolder, projectFile, cancellationToken),
+            options.CancellationToken
+        );
+
         return returnCode;
+    }
+
+    /// <summary>
+    /// Optional presentation cleanup. An unavailable target build leaves generated names qualified and
+    /// does not change the upgrade's outcome or the manual work reported by earlier steps.
+    /// </summary>
+    internal static async Task FinalizeGeneratedTypeReferencesAsync(
+        CSharpSourceScanner scanner,
+        bool skipSemanticAnalysis,
+        Func<CancellationToken, Task<TargetProjectAnalysis>> loadTarget,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!GeneratedTypeReferenceFinalizer.HasReferences(scanner))
+        {
+            return;
+        }
+
+        UpgradeConsole.BeginStep("Generated type names");
+        if (skipSemanticAnalysis)
+        {
+            UpgradeConsole.Skip("Kept generated type names qualified because semantic analysis is disabled.");
+            return;
+        }
+
+        try
+        {
+            using var target = await loadTarget(cancellationToken);
+            if (target.Projects.Count == 0)
+            {
+                UpgradeConsole.Warning(
+                    $"Kept generated type names qualified: target analysis is unavailable ({target.UnavailableReason})."
+                );
+                return;
+            }
+
+            var result = await GeneratedTypeReferenceFinalizer.FinalizeAsync(
+                scanner,
+                target.Projects,
+                cancellationToken
+            );
+            if (result.ChangedFiles == 0)
+            {
+                UpgradeConsole.Skip(
+                    result.SkipReason is { } reason
+                        ? $"Kept generated type names qualified because {reason}."
+                        : "Kept generated type names qualified where simplification could not be verified."
+                );
+            }
+            else
+            {
+                UpgradeConsole.Ok(
+                    $"Simplified generated type names in {result.ChangedFiles} file(s) against the upgraded project's "
+                        + "Debug and Release configurations."
+                );
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            UpgradeConsole.Warning(
+                $"Could not finish simplifying generated type names ({exception.Message}). "
+                    + "Remaining names were kept qualified."
+            );
+        }
     }
 
     /// <summary>
@@ -397,6 +505,26 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>Rewrites the eFormidling client namespace usings across all app C# files.</summary>
+    static async Task<int> MigrateEFormidlingClientNamespaces(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("eFormidling client namespaces");
+        try
+        {
+            var migration = new UsingNamespaceMigration(scanner);
+            foreach (var (oldNamespace, newNamespace) in EFormidlingNamespaces)
+            {
+                migration.Migrate(oldNamespace, newNamespace, _allCSharpFilesMatcher);
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating eFormidling client namespaces", ex);
+        }
+    }
+
     /// <summary>Rewrites the IServiceTask namespace usings across all app C# files.</summary>
     static async Task<int> MigrateServiceTaskNamespace(CSharpSourceScanner scanner)
     {
@@ -461,15 +589,41 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Adds the new <c>cancellationToken</c> parameter to app implementations of the payment interfaces that
+    /// gained one in v9 (<c>IPaymentProcessor</c>, <c>IOrderDetailsCalculator</c>) so they satisfy the interface.
+    /// </summary>
+    static int MigrateCancellationTokenParameters(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("CancellationToken parameters");
+        try
+        {
+            var result = new CancellationTokenParameterMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: $"No {string.Join(" or ", CancellationTokenParameterMigration.InterfaceNames)} implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating CancellationToken parameters", ex);
+        }
+    }
+
+    /// <summary>
     /// Rewrites the Correspondence v9 breaks that have a mechanical, semantics-preserving fix. Runs before
     /// <see cref="CheckRemovedCSharpApis"/> so that whatever it cannot rewrite is reported there instead.
     /// </summary>
-    static async Task<int> MigrateCorrespondenceApis(CSharpSourceScanner scanner)
+    static int MigrateCorrespondenceApis(CSharpSourceScanner scanner, CancellationToken cancellationToken)
     {
         UpgradeConsole.BeginStep("Correspondence APIs");
         try
         {
-            var result = new CorrespondenceApiMigration(scanner).Migrate();
+            var result = new CorrespondenceApiMigration(scanner).Migrate(cancellationToken);
 
             // Unlike the other auto-fixes, this one can leave work behind: a `WithData` argument whose type
             // cannot be determined from syntax is reported rather than rewritten, and the app will not
@@ -479,6 +633,10 @@ internal static class V8Tov9Upgrade
                 cleanText: "No removed Correspondence APIs in use",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -532,6 +690,30 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Rewrites the mechanical IText/TextClient breaks: a field, parameter or property typed IText is
+    /// retyped to IAppResources, and a GetText(..) call reached through it is renamed to GetTexts(..).
+    /// A class implementing IText directly, or a direct reference to the concrete TextClient type, is
+    /// reported instead - IAppResources is a much larger interface, so there is no mechanical fix.
+    /// </summary>
+    static async Task<int> MigrateTextService(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IText/TextClient");
+        try
+        {
+            var result = new TextServiceMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IText/TextClient usages to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IText/TextClient", ex);
+        }
+    }
+
+    /// <summary>
     /// Rewrites usings of the misspelled v8 <c>Features.FileAnalyzis</c> namespace. Runs after
     /// <see cref="MigrateMisspelledApis"/>, which leaves those using directives alone precisely so this
     /// step can merge them with an existing using of the correctly spelled sibling namespace.
@@ -558,7 +740,8 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
-    /// code, removed internal engine handler types, and the deprecated Correspondence surfaces.
+    /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
+    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
@@ -581,12 +764,14 @@ internal static class V8Tov9Upgrade
                 new RemovedEventsReceiveStackDetector(scanner).Detect(),
                 new ServiceTaskResultApiDetector(pristineView).Detect(),
                 new LegacyEFormidlingCodeDetector(pristineView).Detect(),
+                new RemovedEFormidlingClientApiDetector(scanner).Detect(),
                 new RemovedInternalProcessTypeDetector(scanner).Detect(),
                 new LegacyCorrespondenceCodeDetector(scanner).Detect(),
                 new PlatformHttpExceptionApiDetector(scanner).Detect(),
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
-                new MaskinportenClientOverrideDetector(scanner).Detect()
+                new MaskinportenClientOverrideDetector(scanner).Detect(),
+                new RemovedAppResourcesApiDetector(pristineView).Detect()
             );
 
             return ReportMigrationResult(
@@ -1220,6 +1405,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 12: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
+    /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
+    /// not followed by the exclusive gateway the v9 app requires at startup.
+    /// </summary>
+    static async Task<int> MigrateFiksArkivSettings(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Fiks Arkiv settings");
+        try
+        {
+            var migrator = new FiksArkivSettingsMigration.FiksArkivSettingsMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No Fiks Arkiv settings to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Fiks Arkiv settings", ex);
         }
     }
 

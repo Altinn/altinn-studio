@@ -5,7 +5,7 @@ use std::{future::poll_fn, io::Cursor, path::PathBuf, pin::Pin, rc::Rc};
 use bytes::Bytes;
 use futures_core::Stream as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Error, OperationEvent, PendingOperation, Platform,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Error, Hostname, OperationEvent, PendingOperation, Platform,
     RetentionPolicy, RootFilesystem, RootFilesystemMode, SandboxEvent, SandboxFeature, SandboxName, SandboxPath,
     SandboxPhase, SandboxResources, SandboxService, SandboxSpec,
     execution::{ExecutionEvent, ExecutionSpec, ExitStatus, StartExecutionRequest},
@@ -48,6 +48,34 @@ fn resources(cpu: &str, memory: &str, root_filesystem: &str) -> SandboxResources
                 .expect("test root filesystem should be valid"),
         ),
     )
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_defaults_the_hostname_to_the_sandbox_name() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend);
+    let request = request();
+    assert_eq!(request.hostname().as_str(), "worker");
+
+    let sandbox = service.ensure(&request).await.expect("ensure");
+    assert_eq!(sandbox.snapshot().hostname, Hostname::from(sandbox_name()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_creates_the_sandbox_with_an_explicit_hostname() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend);
+    let hostname = Hostname::new("agent-test").expect("test hostname should be valid");
+    let request = request().with_hostname(hostname.clone());
+    assert_eq!(request.hostname(), hostname);
+
+    let sandbox = service.ensure(&request).await.expect("ensure");
+    assert_eq!(sandbox.name(), &sandbox_name());
+    assert_eq!(sandbox.snapshot().hostname, hostname);
+    assert_eq!(
+        service.inspect(request.name()).await.expect("inspect").hostname,
+        hostname
+    );
 }
 
 #[tokio::test(flavor = "local")]

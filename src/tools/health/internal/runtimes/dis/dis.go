@@ -39,14 +39,18 @@ func (d *DisContainerRuntime) GetKubernetesClient() *kubernetes.ClusterClient {
 // Compile-time check to ensure DisContainerRuntime implements KubernetesRuntime.
 var _ kubernetes.KubernetesRuntime = (*DisContainerRuntime)(nil)
 
-func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
+func ListFromAzure(
+	environments []string,
+	serviceowner string,
+	kubeconfigPath string,
+) ([]kubernetes.KubernetesRuntime, error) {
 	var runtimes []kubernetes.KubernetesRuntime
 
 	clusters, err := az.ListClusters()
 	if err != nil {
 		return nil, fmt.Errorf("list clusters from azure: %w", err)
 	}
-	contexts, err := kubernetes.ListContexts()
+	contexts, err := kubernetes.ListContexts(kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("list kube contexts: %w", err)
 	}
@@ -74,7 +78,7 @@ func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.Kub
 }
 
 func ListFromContext(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
-	contexts, err := kubernetes.ListContexts()
+	contexts, err := kubernetes.ListContexts("")
 	if err != nil {
 		return nil, fmt.Errorf("list kube contexts: %w", err)
 	}

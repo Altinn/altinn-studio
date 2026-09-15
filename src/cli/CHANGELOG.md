@@ -9,8 +9,54 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` now adds the new `cancellationToken` parameter to your app's own `IPaymentProcessor` implementations (`StartPayment`, `TerminatePayment` and `GetPaymentStatus`) and `IOrderDetailsCalculator` implementations (`CalculateOrderDetails`), so they satisfy the v9 interfaces again. Each change is listed, with a reminder to forward the token to the calls the implementation makes. Existing uses of the `cancellationToken` name, shared interface signatures, partial methods, delegate uses and ambiguous matches are reported as TODOs for manual updating.
+
 ### Changed
 
+- Localtest now uses the test data bundled with its own image, so the test data always matches the localtest version you are running. Installing or updating no longer places a copy of the test data on your machine, and **deletes the existing copy in your studioctl data directory**, including any users, parties or roles you had changed or added there. `studioctl self update` prints the directory it removed. Edits in that copy were only ever half-preserved across updates — a file the release also shipped was silently overwritten, while a file you added survived — so back up anything you want to keep before updating. To define your own test users from now on, add them to your app in `App/wwwroot/testData.json`, where they are version-controlled with the app and shared with everyone working on it.
+- `studioctl app upgrade v9` checks generated type names against the upgraded app's dependencies before shortening them or adding `using` directives. This avoids name conflicts introduced by the new SDK or framework. Names stay qualified when target analysis is unavailable, the app uses conditional compilation, or a shorter name cannot be verified in both Debug and Release. When generated names need cleanup, dependency restores and analysis of both Debug and Release add time to the upgrade. The upgrade still completes when this optional cleanup is unavailable.
+
+### Fixed
+
+- `studioctl app upgrade v9` preserves your C# files' indentation and line endings when simplifying generated type names.
+
+## [0.1.0-preview.25] - 2026-09-14
+
+### Added
+
+- The bundled workflow engine now protects your app from a failure storm. When a large share of one app's workflows are failing and retrying, the engine parks the rest for a while rather than keep calling an app that cannot answer, and releases them gradually as it recovers. The workflow engine dashboard gains a "Throttled namespaces" panel showing the state of each parked app, with controls to park or release one by hand. Tripping it locally takes at least 50 failing workflows for the same app, so ordinary development will not run into it.
+
+### Fixed
+
+- The workflow engine dashboard shows how long work actually took. "Execution started" was always blank, and the durations on cards and chains counted the time a workflow spent queued as though it were processing time; they now report the most recent attempt. The Processing counter in a step's details also ticks while the step runs.
+
+## [0.1.0-preview.24] - 2026-09-14
+
+### Added
+
+- `studioctl app upgrade` accepts `--json`, which prints the upgrade result as JSON instead of the rendered report, like the other `--json` flags. The output holds the exit code, the message and error text, and every step with its messages, so tooling such as Altinn Studio can read the outcome without parsing the rendered table.
+- `studioctl app upgrade v9` now rewrites the removed `IText` interface to `IAppResources.GetTexts(org, app, language)` - the same method under its v9 name. A field, parameter or property typed `IText` is retyped to `IAppResources`, and the `.GetText(..)` call reached through it is renamed to `.GetTexts(..)`. A class implementing `IText` directly, or a direct reference to the concrete `TextClient` type, has no mechanical fix and is reported instead.
+- `studioctl app upgrade v9` now reports (rather than staying silent about) two more removed APIs that need manual porting: `IAppResources.GetApplication()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()` (replaced by the asynchronous `IAppMetadata.GetApplicationMetadata()`/`GetApplicationXACMLPolicy()`/`GetApplicationBPMNProcess()`), and the two `IDataClient.UpdateBinaryData` overloads that took an `HttpRequest` and separate `org`/`app` strings (replaced by the overload taking an `InstanceIdentifier` and a `Stream`).
+
+### Changed
+
+- `studioctl app upgrade v9` removes `moveToNextTask` from the Fiks Arkiv `successHandling` and `errorHandling` settings in your appsettings files. A Fiks Arkiv task in v9 always moves the process on once the archiving is decided, so the setting no longer exists; left in place it would be ignored without notice. Where it was `false`, the upgrade reports a TODO explaining what changes: a success that used to leave the instance on the task now moves on with the success action, and a rejection that used to fail the task now moves on with the error action, `reject` by default. The upgrade also reports a TODO for a Fiks Arkiv task that is not followed by an exclusive gateway, since the v9 app refuses to start until one separates a confirmed archiving from a rejected one.
+
+### Fixed
+
+- `studioctl app upgrade v9` no longer fails immediately with `Upgrade output writer is not configured.` This broke every v9 upgrade in 0.1.0-preview.23. The compilation the upgrade runs for exact API detection now reports as its own `Semantic analysis` step, marked OK when the app compiled and WARN with the reason when the upgrade falls back to syntax-based detection.
+
+## [0.1.0-preview.23] - 2026-09-04
+
+### Added
+
+- `studioctl app upgrade v9` warns about the eFormidling client changes it cannot rewrite: `Altinn.EFormidlingClient.Extensions`, which has no replacement namespace; the `IEFormidlingClient` endpoints v9 removed, and the models that went with them; the status types now nested inside `Statuses`; the arkivmelding properties that became lists; the renamed Standard Business Document `Arkivmelding`; and references the namespace rewrite cannot reach — an aliased `using X = Altinn.Common.EFormidlingClient;`, one written with `global::`, or a name written out in full — since it only rewrites plain `using` directives matched by name. Each is reported separately, with the fix to apply.
+
+### Changed
+
+- Localtest now provides the storage endpoint v9 apps use to commit an instance's data, process state and events in one request. The localtest front page links to the workflow engine control panel.
 - Report a TODO in `studioctl app upgrade v9` when a layout set in `layout-sets.json` has no `dataType`, so `defaultDataType` is not migrated into `Settings.json` without notice. Connect the datamodel in the process editor after upgrade.
 - `studioctl app upgrade v9` now renames the SDK's misspelled C# API names to their corrected v9 US English spellings in your app code: the `OrganisationNumber`/`OrganisationOrPersonIdentifier` family becomes `OrganizationNumber`/`OrganizationOrPersonIdentifier` (with the Maskinporten `Organisation` properties), `IFileAnalyser`/`IFileAnalyserFactory` become `IFileAnalyzer`/`IFileAnalyzerFactory` with `Analyse` implementations renamed to `Analyze`, the `Features.FileAnalyzis` namespace becomes `Features.FileAnalysis`, and `InstansiationInstance` becomes `InstantiationInstance`. Only C# names and the OpenTelemetry contract change — routes and JSON payload keys keep their shipped spelling. The telemetry renames are deliberate and cannot be migrated by studioctl, because the affected state lives in your monitoring systems: the span `FileAnalysis.Analyse` is now `FileAnalysis.Analyze`, and the attribute keys `organisation.name`, `organisation.number` and `organisation.systemuser.id` are now spelled `organization.*` — update dashboards and alerts that key on them before upgrading. Names your app plausibly owns itself (such as an `OrganisationNumber` property on your own form model) are only renamed when they provably refer to the SDK, and every rewrite is listed in the upgrade output.
 - `studioctl app upgrade v9` renames the datepicker validation text keys in your app's own text resources: an override of `date_picker.min_date_exeeded` or `date_picker.max_date_exeeded` in `resource.*.json` is moved to the corrected v9 key (`…_exceeded`), so your customized message keeps applying instead of silently falling back to the built-in text.
@@ -21,9 +67,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` renames legacy snake_case data model and text resource bindings on OrganizationLookup, PersonLookup, and RepeatingGroup components to their supported camelCase names.
 - `studioctl app upgrade v9` converts the two layout properties v9 removes from the components that fetch options or data lists. `mapping` becomes `queryParameters` holding `["dataModel", "<field>"]` expressions on `Checkboxes`, `Dropdown`, `FileUploadWithTag`, `Likert`, `List`, `MultipleSelect`, `Option` and `RadioButtons`, and `bindingToShowInSummary` on `List` becomes `summaryBinding`, naming the key in `dataModelBindings` instead of repeating the field. Repeating group row markers (`[{0}]`) are dropped, because an expression already resolves relative to the row it is rendered in. Anything the upgrade cannot decide for you — a query parameter name that is already taken, or a summary field no data model binding points at — is left in place and reported. `mapping` on `Button`, `InstantiationButton` and `PaymentDetails` is untouched: it is prefill and refetch configuration there, and v9 still supports it.
 - `studioctl app upgrade v9` now removes an explicit `Microsoft.Extensions.Logging.Debug` package reference, which fails to build on .NET 10 because the debug logger it provides is already built into the framework.
+- `studioctl app upgrade v9` rewrites the eFormidling client namespaces, which moved into `Altinn.App.Core` in v9: `Altinn.Common.EFormidlingClient` becomes `Altinn.App.Core.EFormidling.Interface`, and its `.Configuration`, `.Models` and `.Models.SBD` namespaces become the matching ones under `Altinn.App.Core.EFormidling`. For most apps this is a single `using` in the file implementing `IEFormidlingReceivers`.
+- Installing or updating studioctl now deletes the local workflow-engine database once. The app runtime changed how it hands process transitions to the workflow engine, so workflows started by earlier versions can no longer be resumed and would fail on their next step. Localtest instances and their data are kept; instances left mid-transition continue from the process step that was last saved. Run `studioctl env reset` if you also want to start from empty instance data.
 
 ### Fixed
 
+- Localtest no longer stops answering on the host bridge after a client aborts a request.
+- The workflow engine dashboard shows why a waiting step is deferred, keeps its horizontal scroll position while cards update, and reports the HTTP status of a failed app callback instead of a generic error.
+- `studioctl env up` now waits for the workflow engine to actually be able to serve requests before reporting that the environment has started. It previously returned around 0.8 seconds early, and instantiating an app inside that window failed with "Instance initialization failed" and left an unusable instance behind.
 - `studioctl app upgrade` no longer fails when the upgrade completed but left steps for you to finish by hand.
 - `studioctl app upgrade v9` no longer adds a byte order mark to layout files that did not have one, and keeps Norwegian characters as they are instead of rewriting every "æ", "ø" and "å" as an escape sequence. Both turned a two-line migration into a diff across the whole file. Layout files containing comments are now left untouched and reported, rather than silently losing the comments to the rewrite.
 

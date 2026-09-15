@@ -26,7 +26,7 @@ pub mod volume;
 
 pub use backend::{LocalFuture, Sandbox, SandboxId, SandboxResources, SandboxState};
 pub use feature::{SandboxCapabilities, SandboxFeature, SandboxFeatureSet};
-pub use name::{InvalidSandboxName, MAX_SANDBOX_NAME_BYTES, SandboxName};
+pub use name::{Hostname, InvalidHostname, InvalidSandboxName, MAX_SANDBOX_NAME_BYTES, SandboxName};
 pub use path::SandboxPath;
 pub use platform::Platform;
 pub use progress::{

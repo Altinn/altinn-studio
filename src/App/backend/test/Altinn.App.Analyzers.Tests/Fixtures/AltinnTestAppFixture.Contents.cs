@@ -36,5 +36,10 @@ partial class AltinnTestAppFixture
             "additional",
             "DiscardedEFormidlingBuilder.cs"
         );
+
+        public static readonly DocumentSelector MailboxHandleConsumption = new DocumentSelector(
+            "additional",
+            "MailboxHandleConsumption.cs"
+        );
     }
 }

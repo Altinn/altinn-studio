@@ -33,6 +33,28 @@ public sealed class FetchAndLockTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task FetchAndLock_WithZeroCount_ClaimsNothing()
+    {
+        // The startup warm-up calls FetchAndLock with a count of zero to compile this statement
+        // without taking work. If a zero count ever started claiming, the warm-up would stamp a lease
+        // on a workflow nobody is executing and strand it until the stale sweep reclaimed it.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+
+        var wf = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
+
+        var workflows = await repo.FetchAndLockWorkflows(0, TestContext.Current.CancellationToken);
+
+        Assert.Empty(workflows);
+
+        var dbWf = await fixture.GetWorkflow(wf.DatabaseId);
+        Assert.NotNull(dbWf);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbWf.Status);
+        Assert.Null(dbWf.LeaseToken);
+        Assert.Null(dbWf.HeartbeatAt);
+    }
+
+    [Fact]
     public async Task FetchAndLock_SkipsCompletedAndFailed()
     {
         await using var context = fixture.CreateDbContext();

@@ -1,9 +1,15 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from 'src/layout/Input/constants';
 
 export const Config = new CG.component({
   category: CompCategory.Form,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Lite tekstfelt', en: 'Short text' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: true,
     renderInButtonGroup: false,
@@ -20,15 +26,15 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'prefix',
-      title: 'Prefix',
-      description: 'Prefix shown before the input field',
+      title: { en: 'Prefix', nb: 'Prefiks' },
+      description: { en: 'Prefix shown before the input field', nb: 'Prefiks som vises foran inndatafeltet.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'suffix',
-      title: 'Suffix',
-      description: 'Suffix shown after the input field',
+      title: { en: 'Suffix', nb: 'Suffiks' },
+      description: { en: 'Suffix shown after the input field', nb: 'Suffiks som vises etter inndatafeltet.' },
     }),
   )
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
@@ -39,8 +45,11 @@ export const Config = new CG.component({
       'variant',
       new CG.enum(...EXTERNAL_INPUT_TYPE)
         .optional({ default: 'text' })
-        .setTitle('Input variant')
-        .setDescription('The variant of the input field (text or search).'),
+        .setTitle('Input variant', 'Variant for inndatafelt')
+        .setDescription(
+          'The variant of the input field (text or search).',
+          'Varianten til inndatafeltet: tekst eller søk.',
+        ),
     ),
   )
   .addProperty(new CG.prop('autocomplete', CG.common('HTMLAutoCompleteValues').optional()))
@@ -49,9 +58,10 @@ export const Config = new CG.component({
       'maxLength',
       new CG.int()
         .optional()
-        .setTitle('Max length')
+        .setTitle('Max length', 'Maksimal lengde')
         .setDescription(
           'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+          'Maksimal lengde for inndatafeltet. Viser en teller med antall gjenstående tegn.',
         ),
     ),
   )
@@ -60,9 +70,10 @@ export const Config = new CG.component({
       'autocomplete',
       new CG.enum(...INPUT_AUTO_COMPLETE)
         .optional()
-        .setTitle('Autocomplete')
+        .setTitle('Autocomplete', 'Autofullføring')
         .setDescription(
           'The HTML autocomplete attribute helps browsers suggest or autofill input values based on the expected type of data.',
+          'HTML-attributtet autocomplete hjelper nettleseren med å foreslå eller fylle ut verdier ut fra forventet datatype.',
         ),
     ),
   )

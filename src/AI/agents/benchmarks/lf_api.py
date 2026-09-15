@@ -1,27 +1,15 @@
-"""Thin raw-REST Langfuse client for the benchmark runner.
-
-Deliberately not the Langfuse SDK: the self-hosted server (v3.x) omits
-fields newer SDK models require (`media_references` pydantic failures),
-and the runner only needs six endpoints.
-"""
+"""Raw-REST Langfuse client for dataset-item upsert and score configs."""
 
 from __future__ import annotations
 
 import os
-import uuid
-from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
-from shared.utils.langfuse_public_api import root_span_filter
-
-MAX_OBSERVATION_PAGES = 10
-OBSERVATION_PAGE_SIZE = 50
-
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+RUN_PAGE_SIZE = 50
+MAX_RUN_PAGES = 200
 
 
 class LangfuseApi:
@@ -65,26 +53,6 @@ class LangfuseApi:
         response.raise_for_status()
         return response.json()
 
-    def _patch(self, path: str, body: dict) -> dict:
-        response = self._client.patch(path, json=body)
-        response.raise_for_status()
-        return response.json()
-
-    # -- datasets ---------------------------------------------------------
-
-    def dataset_items(self, dataset_name: str) -> list[dict]:
-        items: list[dict] = []
-        page = 1
-        while True:
-            data = self._get(
-                "/api/public/dataset-items", datasetName=dataset_name, page=page, limit=50
-            )
-            items.extend(data.get("data") or [])
-            if page >= (data.get("meta") or {}).get("totalPages", 1):
-                break
-            page += 1
-        return [item for item in items if item.get("status") != "ARCHIVED"]
-
     def upsert_dataset_item(
         self,
         dataset_name: str,
@@ -92,8 +60,11 @@ class LangfuseApi:
         input: Any = None,
         expected_output: Any = None,
         metadata: Any = None,
+        status: str | None = None,
     ) -> dict:
         body: dict[str, Any] = {"datasetName": dataset_name, "id": item_id}
+        if status:
+            body["status"] = status
         if input is not None:
             body["input"] = input
         if expected_output is not None:
@@ -104,6 +75,14 @@ class LangfuseApi:
 
     # -- scores -----------------------------------------------------------
 
+    def models_by_connection(self) -> dict[str, list[str]]:
+        """The models each LLM connection offers."""
+        data = self._get("/api/public/llm-connections", limit=50)
+        return {
+            row["provider"]: sorted(row.get("customModels") or [])
+            for row in data.get("data") or []
+        }
+
     def score_configs_by_name(self) -> dict[str, dict]:
         data = self._get("/api/public/score-configs", limit=100)
         return {sc["name"]: sc for sc in data.get("data") or []}
@@ -113,52 +92,24 @@ class LangfuseApi:
             "/api/public/score-configs", {"name": name, "dataType": data_type, **extra}
         )
 
-    def create_score(
-        self,
-        trace_id: str,
-        name: str,
-        value: float,
-        data_type: str,
-        comment: str = "",
-        config_id: str | None = None,
-    ) -> None:
-        body: dict[str, Any] = {
-            "id": str(uuid.uuid4()),
-            "traceId": trace_id,
-            "name": name,
-            "value": value,
-            "dataType": data_type,
-            "comment": comment,
-        }
-        if config_id:
-            body["configId"] = config_id
-        self._post("/api/public/scores", body)
 
-    # -- observations -----------------------------------------------------
-
-    def find_trace_for_session(
-        self, session_id: str, trace_name: str, from_timestamp: str
-    ) -> str | None:
-        """Find the trace whose root span metadata carries `session_id`."""
-        cursor: str | None = None
-        for _ in range(MAX_OBSERVATION_PAGES):
-            params: dict[str, Any] = {
-                "name": trace_name,
-                "fields": "core,basic,metadata",
-                "fromStartTime": from_timestamp,
-                "toStartTime": _now_iso(),
-                "limit": OBSERVATION_PAGE_SIZE,
-                # Child observations would otherwise consume the page budget.
-                "filter": root_span_filter(),
-            }
-            if cursor:
-                params["cursor"] = cursor
-            data = self._get("/api/public/v2/observations", **params)
-            rows = data.get("data") or []
-            for row in rows:
-                if (row.get("metadata") or {}).get("session_id") == session_id:
-                    return row.get("traceId")
-            cursor = (data.get("meta") or {}).get("cursor")
-            if not cursor or not rows:
-                break
-        return None
+def assert_run_is_new(lf: "LangfuseApi", dataset: str, run_name: str) -> None:
+    """Refuse to write into a run that already exists."""
+    encoded = quote(dataset, safe="")
+    for page in range(1, MAX_RUN_PAGES + 1):
+        existing = lf._get(
+            f"/api/public/datasets/{encoded}/runs", page=page, limit=RUN_PAGE_SIZE
+        ).get("data") or []
+        if not existing:
+            return
+        if any((run.get("name") or "") == run_name for run in existing):
+            raise SystemExit(
+                f"A run named {run_name!r} already exists on {dataset!r}. Re-using the "
+                "name merges the results rather than replacing them. Pick another name, "
+                "or delete the run first."
+            )
+    raise SystemExit(
+        f"Stopped after {MAX_RUN_PAGES} pages of runs on {dataset!r} without reaching the "
+        f"end, so {run_name!r} could not be shown to be new. Delete some runs, or raise "
+        "MAX_RUN_PAGES."
+    )

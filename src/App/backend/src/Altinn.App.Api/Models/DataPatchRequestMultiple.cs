@@ -12,6 +12,14 @@ namespace Altinn.App.Api.Models;
 public class DataPatchRequestMultiple
 {
     /// <summary>
+    /// The process-state version the caller expects the instance to have.
+    /// When supplied and the current version differs, the request fails with 412 before any data is touched.
+    /// When omitted, no process-state admission check is performed.
+    /// </summary>
+    [JsonPropertyName("expectedProcessStateVersion")]
+    public int? ExpectedProcessStateVersion { get; init; }
+
+    /// <summary>
     /// The Patch operations to perform.
     /// </summary>
     [JsonPropertyName("patches"), Required]

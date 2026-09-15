@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 
+import type { PageValidation } from '@app/layout-contract/generated/common.generated';
+
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import { getValidationsForNode } from 'src/features/validation/deriveValidationState';
@@ -8,7 +10,6 @@ import { useWaitForValidation } from 'src/features/validation/validationContext'
 import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import type { PageValidation } from 'src/layout/common.generated';
 
 /**
  * Checks if a page has validation errors as specified by the config.

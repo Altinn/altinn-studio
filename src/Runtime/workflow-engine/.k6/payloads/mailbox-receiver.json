@@ -1,0 +1,22 @@
+{
+  "labels": { "org": "k6-org", "app": "k6-app" },
+  "context": {},
+  "workflows": [
+    {
+      "ref": "wf-1",
+      "operationId": "mailbox-receiver",
+      "isHead": true,
+      "dependsOnHeads": false,
+      "mailbox": { "id": "00000000-0000-0000-0000-000000000000" },
+      "steps": [
+        {
+          "operationId": "handle-message",
+          "command": {
+            "type": "webhook",
+            "data": { "uri": "http://wiremock:8080/webhook-callback" }
+          }
+        }
+      ]
+    }
+  ]
+}

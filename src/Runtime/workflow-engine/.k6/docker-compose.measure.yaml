@@ -1,0 +1,17 @@
+# Points the engine container at a measurement database of its own, without touching the developer's
+# main one.
+#
+# The hot-path claim these scripts measure is a claim about the shape of `engine.workflows`, and EF
+# applies only the migrations a database is missing — so a database that once ran a different design
+# still carries that design's columns. `mailbox-storm-compare.sh` fails its schema check rather than
+# measuring that. `make reset` is the other way to get a clean database, and the better one when
+# nothing else on the machine depends on it.
+#
+#   psql -c 'CREATE DATABASE workflow_engine_mailbox'      # once, in the postgres container
+#   docker compose -f docker-compose.yaml -f .k6/docker-compose.measure.yaml \
+#       --profile core up -d --force-recreate workflow-engine-testapp
+#   POSTGRES_DB=workflow_engine_mailbox ./.k6/mailbox-storm-compare.sh
+services:
+  workflow-engine-testapp:
+    environment:
+      ConnectionStrings__WorkflowEngine: "Host=postgres;Database=workflow_engine_mailbox;Username=postgres;Password=postgres123"

@@ -95,7 +95,12 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         );
 
         await verifier.Verify(readProblem, snapshotName: "ProcessNextFailure", scrubbers: scrubbers);
-        await verifier.Verify(refreshedInstance, snapshotName: "InstanceAfterFailure", scrubbers: scrubbers);
+        // The patch above minted a new blob version, so the instantiation-time scrubber cannot scrub it.
+        await verifier.Verify(
+            refreshedInstance,
+            snapshotName: "InstanceAfterFailure",
+            scrubbers: new Scrubbers(StringScrubber: Scrubbers.InstanceStringScrubber(refreshedInstance))
+        );
         await verifier
             .Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs")
             .AddScrubber(sb =>
@@ -184,7 +189,8 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         JsonElement failureRoot = failureDocument.RootElement;
         Assert.Equal("stepFailed", failureRoot.GetProperty("workflowFailure").GetProperty("kind").GetString());
         Assert.Equal(
-            "ExecuteServiceTask",
+            // The failing task is a simple IServiceTask, whose whole pipeline is the conclusion at item 0.
+            "ExecuteServiceTask: 0",
             failureRoot.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
         );
         // The raw failure detail (the service task's exception text) is never serialized to

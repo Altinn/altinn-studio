@@ -326,6 +326,7 @@ impl SandboxBackend for Provider {
                     image: request.image,
                     init_system: request.init_system,
                     name: request.name,
+                    hostname: request.hostname,
                     resources: request.resources,
                     state: SandboxState::Stopped,
                     mounts: request.mounts,

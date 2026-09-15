@@ -87,11 +87,17 @@ pub struct Spec {
     pub sandbox: SandboxManifestSpec,
     /// Host directory synchronized into the sandbox user's home at bootstrap.
     pub home: HomeSpec,
-    /// Optional Agent-wide guidance installed through every declared Harness Adapter.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub instructions: Option<InstructionsSpec>,
+    /// Agent-wide guidance installed through every declared Harness Adapter, concatenated in order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub instructions: Vec<InstructionsSpec>,
+    /// Skill directories installed through every declared Harness Adapter.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub skills: Vec<SkillSpec>,
     /// Harness installations available to Sessions in this Agent.
     pub harnesses: Vec<HarnessSpec>,
+    /// Deliberately selected non-secret values exposed in plaintext inside the Sandbox.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub environment: Vec<EnvironmentSpec>,
     /// Host-owned values made available only through mediated requests.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub secrets: Vec<SecretSpec>,
@@ -307,13 +313,16 @@ impl Spec {
         if self.home.source.as_os_str().is_empty() {
             return Err(Error::Invalid("spec.home.source must not be empty".into()));
         }
-        if self
+        if let Some(index) = self
             .instructions
-            .as_ref()
-            .is_some_and(|instructions| instructions.source.as_os_str().is_empty())
+            .iter()
+            .position(|instructions| instructions.source.as_os_str().is_empty())
         {
-            return Err(Error::Invalid("spec.instructions.source must not be empty".into()));
+            return Err(Error::Invalid(format!(
+                "spec.instructions[{index}].source must not be empty"
+            )));
         }
+        self.validate_skills()?;
         if self.harnesses.is_empty() {
             return Err(Error::Invalid("spec.harnesses must not be empty".into()));
         }
@@ -321,7 +330,7 @@ impl Spec {
         let mut duplicate_harness = None;
         let mut default_count = 0;
         for (index, harness) in self.harnesses.iter().enumerate() {
-            if harness.version.is_empty() {
+            if harness.version.as_deref().is_some_and(str::is_empty) {
                 return Err(Error::Invalid(format!(
                     "spec.harnesses[{index}].version must not be empty"
                 )));
@@ -342,10 +351,37 @@ impl Spec {
                 harness.as_str()
             )));
         }
-        let mut environments = std::collections::BTreeSet::new();
+        self.validate_environment()?;
+        self.validate_secrets()?;
+        if self.network.deny.iter().any(|host| !valid_host_pattern(host)) {
+            return Err(Error::Invalid(
+                "spec.network.deny contains an invalid host pattern".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+impl Spec {
+    fn validate_secrets(&self) -> Result<(), Error> {
+        let mut environments = self
+            .environment
+            .iter()
+            .map(|variable| variable.name.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        let environment_sources = self
+            .environment
+            .iter()
+            .map(EnvironmentSpec::source)
+            .collect::<std::collections::BTreeSet<_>>();
         let mut placeholders = std::collections::BTreeSet::new();
         for (index, secret) in self.secrets.iter().enumerate() {
             let placeholder = secret.inert_value();
+            if environments.contains(secret.environment.as_str()) || environment_sources.contains(secret.source()) {
+                return Err(Error::Invalid(format!(
+                    "spec.environment collides with spec.secrets[{index}]"
+                )));
+            }
             if !valid_environment_variable(&secret.environment)
                 || secret
                     .source
@@ -369,12 +405,72 @@ impl Spec {
                 )));
             }
         }
-        if self.network.deny.iter().any(|host| !valid_host_pattern(host)) {
+        Ok(())
+    }
+
+    fn validate_environment(&self) -> Result<(), Error> {
+        let mut names = std::collections::BTreeSet::new();
+        for (index, variable) in self.environment.iter().enumerate() {
+            if !valid_environment_variable(&variable.name)
+                || variable
+                    .source
+                    .as_deref()
+                    .is_some_and(|source| !valid_environment_variable(source))
+                || self
+                    .harnesses
+                    .iter()
+                    .any(|installation| harness::manages_environment(installation.kind, &variable.name))
+                || !names.insert(variable.name.as_str())
+            {
+                return Err(Error::Invalid(format!(
+                    "spec.environment[{index}] is invalid, duplicated, or managed by a declared harness"
+                )));
+            }
+        }
+        let has_git_name = names.contains("GIT_USER_NAME");
+        let has_git_email = names.contains("GIT_USER_EMAIL");
+        if has_git_name != has_git_email {
             return Err(Error::Invalid(
-                "spec.network.deny contains an invalid host pattern".into(),
+                "spec.environment must declare GIT_USER_NAME and GIT_USER_EMAIL together".into(),
             ));
         }
         Ok(())
+    }
+
+    fn validate_skills(&self) -> Result<(), Error> {
+        let mut skill_names = std::collections::BTreeSet::new();
+        for (index, skill) in self.skills.iter().enumerate() {
+            let Some(name) = skill.name() else {
+                return Err(Error::Invalid(format!(
+                    "spec.skills[{index}].source must end in the skill's directory name"
+                )));
+            };
+            if !skill_names.insert(name) {
+                return Err(Error::Invalid(format!(
+                    "spec.skills[{index}] duplicates skill {name:?}"
+                )));
+            }
+        }
+        Ok(())
+    }
+}
+
+/// One explicitly selected non-secret value copied from the Agent environment file.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct EnvironmentSpec {
+    /// Environment variable exposed inside the Sandbox.
+    pub name: String,
+    /// Optional variable name in the Agent environment file; defaults to `name`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+}
+
+impl EnvironmentSpec {
+    /// Returns the environment-file variable that supplies the plaintext value.
+    #[must_use]
+    pub fn source(&self) -> &str {
+        self.source.as_deref().unwrap_or(&self.name)
     }
 }
 
@@ -395,12 +491,31 @@ pub struct HomeSpec {
     pub source: std::path::PathBuf,
 }
 
-/// Harness-neutral Agent-wide instruction source.
+/// One harness-neutral instruction file; several are concatenated in manifest order.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct InstructionsSpec {
     /// Host file, resolved relative to the manifest directory.
     pub source: std::path::PathBuf,
+}
+
+/// One skill directory installed for every declared harness.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct SkillSpec {
+    /// Host directory holding `SKILL.md`, resolved relative to the manifest directory.
+    pub source: std::path::PathBuf,
+}
+
+impl SkillSpec {
+    /// Returns the skill name: the final component of the source directory.
+    #[must_use]
+    pub fn name(&self) -> Option<&str> {
+        self.source
+            .file_name()?
+            .to_str()
+            .filter(|name| !name.is_empty() && *name != ".")
+    }
 }
 
 /// One host-owned value exposed to Sandbox processes only as an inert environment placeholder.
@@ -483,8 +598,12 @@ fn valid_environment_variable(value: &str) -> bool {
 }
 
 /// Most recently observed Agent state.
+///
+/// Unlike the rest of the manifest, unknown fields are tolerated so an older
+/// client can read responses from a newer control plane; status is
+/// API-managed and never authored by hand.
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct Status {
     /// Desired generation observed by the reconciler.
     #[serde(default, skip_serializing_if = "is_zero")]
@@ -495,11 +614,115 @@ pub struct Status {
     /// Normalized readiness conditions.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub conditions: Vec<Condition>,
+    /// Local origin of the desired state. Projected onto API responses from
+    /// the stored Agent record; stores scrub it, so it is never persisted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
 }
 
 impl Status {
+    /// Creates reconciler-observed state; provenance stays API-projected.
+    #[must_use]
+    pub const fn observed(
+        observed_generation: u64,
+        sandbox: Option<crate::sandbox::Assignment>,
+        conditions: Vec<Condition>,
+    ) -> Self {
+        Self {
+            observed_generation,
+            sandbox,
+            conditions,
+            provenance: None,
+        }
+    }
+
     const fn is_empty(&self) -> bool {
-        self.observed_generation == 0 && self.sandbox.is_none() && self.conditions.is_empty()
+        self.observed_generation == 0
+            && self.sandbox.is_none()
+            && self.conditions.is_empty()
+            && self.provenance.is_none()
+    }
+
+    /// Returns the `Ready` condition when the reconciler has reported one.
+    #[must_use]
+    pub fn ready_condition(&self) -> Option<&Condition> {
+        Condition::find_ready(&self.conditions)
+    }
+
+    /// Returns whether the reconciler reported `Ready=True`.
+    #[must_use]
+    pub fn is_ready(&self) -> bool {
+        Condition::any_ready(&self.conditions)
+    }
+}
+
+impl Condition {
+    /// Condition type summarizing whether the Agent can serve Sessions and Executions.
+    pub const READY: &'static str = "Ready";
+    /// Condition type for the Sandbox lifecycle underneath `Ready`.
+    pub const SANDBOX_READY: &'static str = "SandboxReady";
+
+    /// Finds the `Ready` condition in a condition list.
+    #[must_use]
+    pub fn find_ready(conditions: &[Self]) -> Option<&Self> {
+        conditions.iter().find(|condition| condition.kind == Self::READY)
+    }
+
+    /// Returns whether a condition list reports `Ready=True`.
+    #[must_use]
+    pub fn any_ready(conditions: &[Self]) -> bool {
+        Self::find_ready(conditions).is_some_and(|condition| condition.status == ConditionStatus::True)
+    }
+
+    /// Returns `reason: message`, or whichever of the two is present, or `Unknown`.
+    #[must_use]
+    pub fn summary(&self) -> String {
+        match (self.reason.is_empty(), self.message.is_empty()) {
+            (false, false) => format!("{}: {}", self.reason, self.message),
+            (false, true) => self.reason.clone(),
+            (true, false) => self.message.clone(),
+            (true, true) => "Unknown".to_owned(),
+        }
+    }
+
+    /// Returns the human-readable message, falling back to the reason.
+    #[must_use]
+    pub fn detail(&self) -> String {
+        if self.message.is_empty() {
+            self.reason.clone()
+        } else {
+            self.message.clone()
+        }
+    }
+}
+
+/// Conventional Agent manifest filename, used when a record predates path recording.
+pub const MANIFEST_FILE: &str = "agent.yaml";
+
+/// Local origin of an Agent's desired state.
+///
+/// Part of [`Status`], so unknown fields are tolerated for the same reason.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Provenance {
+    /// Absolute directory against which manifest-relative sources are resolved.
+    pub source_directory: std::path::PathBuf,
+    /// Absolute path of the manifest last applied, when the client reported it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest_path: Option<std::path::PathBuf>,
+    /// Absolute path of the secret file, when it is not `.env` beside the manifest.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub env_file: Option<std::path::PathBuf>,
+}
+
+impl Provenance {
+    /// Returns the recorded manifest path, falling back to [`MANIFEST_FILE`]
+    /// in the source directory for records that predate path recording.
+    #[must_use]
+    pub fn manifest_or_default(&self) -> std::path::PathBuf {
+        self.manifest_path
+            .clone()
+            .unwrap_or_else(|| self.source_directory.join(MANIFEST_FILE))
     }
 }
 

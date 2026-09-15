@@ -1,8 +1,9 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// This class represents the parameters for executing a service task — a pipeline stage, or the
-/// concluding step (an <see cref="IServiceTask"/>'s <c>Execute</c>).
+/// This class represents the parameters for executing a service task — a pipeline stage, the concluding
+/// step (an <see cref="IServiceTask"/>'s <c>Execute</c>), or one execution of a reply terminal's
+/// <c>onMessage</c>/<c>onClosed</c> handler.
 /// </summary>
 public sealed record ServiceTaskContext
 {

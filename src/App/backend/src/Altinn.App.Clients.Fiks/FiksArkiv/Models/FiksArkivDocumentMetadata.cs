@@ -8,10 +8,12 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv.Models;
 /// <param name="CaseFileId">The case file's identifier (XML tag: mappe->referanseEksternNoekkel->noekkel)</param>
 /// <param name="CaseFileTitle">The case file's title (XML tag: mappe->tittel)</param>
 /// <param name="JournalEntryTitle">The journal entry's title (XML tag: registrering->tittel)</param>
+/// <param name="CaseFileAdministrativeUnit">The case file's administrative unit (XML tag: mappe->administrativEnhet)</param>
 public sealed record FiksArkivDocumentMetadata(
     string? SystemId,
     string? RuleId,
     string? CaseFileId,
     string? CaseFileTitle,
-    string? JournalEntryTitle
+    string? JournalEntryTitle,
+    string? CaseFileAdministrativeUnit
 );

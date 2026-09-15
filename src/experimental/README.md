@@ -63,7 +63,8 @@ scheduler, which serializes work per resource identity while allowing unrelated 
 
 Desired state is persisted before reconciliation. Wakeups provide low-latency progress, while startup and periodic
 scans ensure dropped notifications or daemon restarts do not lose work. Provider assignment is sticky for an Agent
-incarnation, and a reused Agent name never inherits resources from a deleted incarnation.
+incarnation, and a reused Agent name never inherits resources from a deleted incarnation. The Sandbox is named after the
+incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations. Detaching leaves a Session running. An inactive,
@@ -74,6 +75,8 @@ Tmux is the current Session runtime, not a security boundary or a permanent gene
 runtime must establish the common interface before one is introduced.
 
 ## Images, home and harnesses
+
+See the [harness compatibility test plan](agent/HARNESSES.md) when updating harness installations.
 
 Agent images own installed tools and optional workspace initialization. Repository checkouts are persistent runtime
 data beneath `/home/agent/code`; they are not declared, updated or deleted by the Agent controller. Sessions may clone
@@ -86,6 +89,7 @@ not delete guest files that disappear from the source. Builders may use it to ow
 with the consequence that those files are reapplied on every Agent pass.
 
 `spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
+A declared `version` is verified against the image at setup; omit it when the image owns the version, so image bumps need no manifest change.
 `spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
 at its global instruction location: `~/.claude/CLAUDE.md` for Claude Code and `~/.codex/AGENTS.md` for Codex.
 Repository-local instruction files continue to be discovered by the harness itself.
@@ -99,9 +103,16 @@ image or the user and is not used as a trusted bootstrap marker.
 A secret is any protected host-owned value. Credentials are the subset used for authentication. Generic storage and
 mediation therefore use the `SecretStore` concept, while harness login remains an authentication concern.
 
+`spec.environment` explicitly selects non-secret values from the same `.env` file, with `name` as both the Sandbox
+variable and default source name. An optional `source` selects a differently named entry. Only declared values are
+copied, and they enter the Sandbox in plaintext, where image init and Sandbox Executions inherit them. Reapplying
+after changing the file updates the Sandbox environment. Do not declare secrets here.
+
 Manifest secret bindings name a guest environment variable and the hosts where its value may be substituted. The
-matching real value is loaded from the manifest directory's `.env` file and retained only in the owner-protected host
-database. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
+matching real value is loaded from the manifest directory's `.env` file, or the file named by
+`agentctl apply --env-file`, and retained only in the owner-protected host database. A bind mount whose source
+contains any active Agent's secret file is refused at apply time, because the Sandbox would otherwise read the real
+values from the mounted directory. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
 the current real value only for an authorized request to an allowed host; rotation does not require copying new
 material into the Sandbox. A custom placeholder is optional for clients that validate token shape.
 
@@ -109,7 +120,10 @@ Policy is evaluated for live Sandbox-originated operations and fails closed when
 secret resolution or trusted mediation path is unavailable. Host-destined traffic is restricted to the registered
 Platform API endpoint. This authorization is separate from authorization of users calling the host Agent API.
 When an Agent image includes Podman, the platform makes the guest's mediated CA bundle available to containers and
-build steps through standard trust paths. Docker and dockerd are not covered by this convenience wiring.
+build steps through standard trust paths. An OCI hook copies the bundle into the container root filesystem rather
+than bind-mounting it, so package managers can still replace the bundle, and it adds the mediator CA as a trust
+anchor so a regenerated bundle keeps trusting mediation. Docker and dockerd are not covered by this convenience
+wiring.
 
 SQLite `secure_delete` and owner-only filesystem permissions provide local hygiene. They are not a cryptographic
 erasure guarantee across WAL history, filesystem snapshots or backups.

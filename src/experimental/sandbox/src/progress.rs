@@ -402,7 +402,7 @@ impl SandboxEvents {
         (Self { sender }, receiver)
     }
 
-    fn progress(&self, phase: SandboxPhase) -> SandboxProgress {
+    pub(crate) fn progress(&self, phase: SandboxPhase) -> SandboxProgress {
         SandboxProgress {
             events: self.clone(),
             phase,

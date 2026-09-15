@@ -15,7 +15,7 @@ The implementation is deliberately split:
 - **Analyzers** extract metadata from the raw bytes and produce a standardized result set.
 - **Validators** run against those analysis results.
 
-This split lets an app use an analyzer to extract metadata *without* validating, and keeps validators
+This split lets an app use an analyzer to extract metadata _without_ validating, and keeps validators
 configured against a stable result set rather than embedded in analysis code. Preserve this separation
 when adding new analyzers/validators.
 
@@ -38,5 +38,10 @@ dotnet test                               # run tests (test projects under test/
 ## Working here
 
 - This is a public, versioned NuGet package — treat the public API as a compatibility surface.
+- **The `Altinn.App.Core` reference has two shapes**, wired in `../AppCoreDependency.props`. In-repo
+  builds use a `ProjectReference` to the app backend, so the test apps under `src/test/apps` resolve
+  one Core rather than two; a release pack passes `-p:UseAppLibsFromSource=false` and compiles
+  against the version pinned in `Directory.Packages.props`, which is what the nuspec declares. Use a
+  Core API newer than that pin and the `Build against the pinned Altinn.App.Core` CI job fails.
 - Each analyzer pairs with a corresponding validator (see the catalogue in `README.md`). New file types
   should follow the analyzer → standardized-result → validator flow.

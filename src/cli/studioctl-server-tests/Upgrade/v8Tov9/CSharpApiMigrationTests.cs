@@ -910,14 +910,16 @@ public sealed class CSharpApiMigrationTests : IDisposable
     private IReadOnlyList<string> _lastMigrationWarnings = [];
     private IReadOnlyList<string> _lastMigrationTodos = [];
 
-    private string MigrateCorrespondence(string relativePath, string source)
+    private async Task<string> MigrateCorrespondence(string relativePath, string source)
     {
         var path = _app.Write(relativePath, source);
-        var result = new CorrespondenceApiMigration(Scanner()).Migrate();
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate(TestContext.Current.CancellationToken);
         _lastMigrationWarnings = result.Warnings;
         _lastMigrationTodos = result.Todos;
 
-        var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
+        var migrated = (await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)).ReplaceLineEndings(
+            "\n"
+        );
 
         // A rewriter that emits code the parser rejects would hand the developer an app that no longer
         // builds, which is worse than the warning it replaced. Asserted for every case, not per-test.
@@ -933,9 +935,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_RemovesNoOpCallsFromFluentChain()
+    public async Task CorrespondenceMigration_RemovesNoOpCallsFromFluentChain()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -964,9 +966,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_RemovesNoOpStatementEntirely()
+    public async Task CorrespondenceMigration_RemovesNoOpStatementEntirely()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -985,9 +987,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_UnlinksNoOpButKeepsRestOfStatementChain()
+    public async Task CorrespondenceMigration_UnlinksNoOpButKeepsRestOfStatementChain()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -1005,9 +1007,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_KeepsSurvivingCallsWhenTheNoOpEndsTheStatement()
+    public async Task CorrespondenceMigration_KeepsSurvivingCallsWhenTheNoOpEndsTheStatement()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -1026,7 +1028,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_DoesNotRewriteWithDataWhenTheNameIsAmbiguousAcrossFiles()
+    public async Task CorrespondenceMigration_DoesNotRewriteWithDataWhenTheNameIsAmbiguousAcrossFiles()
     {
         // `payload` is a byte array in one file and a Stream in the other. Letting the first match win
         // would emit `new MemoryStream(stream)`, which does not compile - and the syntax check cannot
@@ -1050,17 +1052,26 @@ public sealed class CSharpApiMigrationTests : IDisposable
             """
         );
 
-        var result = new CorrespondenceApiMigration(Scanner()).Migrate();
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate(TestContext.Current.CancellationToken);
 
         // Each is resolved from its own scope, so both are handled correctly rather than conflated.
-        Assert.Contains("WithData(payload)", File.ReadAllText(pathB));
-        Assert.DoesNotContain("new MemoryStream(payload)", File.ReadAllText(pathB));
-        Assert.Contains("new MemoryStream(payload)", File.ReadAllText(Path.Combine(_app.Root, "App", "logic", "A.cs")));
+        Assert.Contains("WithData(payload)", await File.ReadAllTextAsync(pathB, TestContext.Current.CancellationToken));
+        Assert.DoesNotContain(
+            "new MemoryStream(payload)",
+            await File.ReadAllTextAsync(pathB, TestContext.Current.CancellationToken)
+        );
+        Assert.Contains(
+            "new MemoryStream(payload)",
+            await File.ReadAllTextAsync(
+                Path.Combine(_app.Root, "App", "logic", "A.cs"),
+                TestContext.Current.CancellationToken
+            )
+        );
         Assert.Empty(result.Todos);
     }
 
     [Fact]
-    public void CorrespondenceMigration_ReportsWithDataWhenAnOutOfScopeNameIsAmbiguous()
+    public async Task CorrespondenceMigration_ReportsWithDataWhenAnOutOfScopeNameIsAmbiguous()
     {
         // Nothing in the calling scope declares `Innhold`, and the app-wide fallback finds it declared
         // as both a byte array and a Stream. Picking either would risk emitting code that does not
@@ -1077,17 +1088,23 @@ public sealed class CSharpApiMigrationTests : IDisposable
             """
         );
 
-        var result = new CorrespondenceApiMigration(Scanner()).Migrate();
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate(TestContext.Current.CancellationToken);
 
-        Assert.Contains("WithData(vedlegg.Innhold)", File.ReadAllText(path));
-        Assert.DoesNotContain("new MemoryStream(", File.ReadAllText(path));
+        Assert.Contains(
+            "WithData(vedlegg.Innhold)",
+            await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)
+        );
+        Assert.DoesNotContain(
+            "new MemoryStream(",
+            await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)
+        );
         Assert.Contains(result.Todos, t => t.Contains("could not be rewritten automatically"));
     }
 
     [Fact]
-    public void CorrespondenceMigration_WarnsAboutDiscardedArgumentContainingACall()
+    public async Task CorrespondenceMigration_WarnsAboutDiscardedArgumentContainingACall()
     {
-        MigrateCorrespondence(
+        await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -1104,7 +1121,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_LeavesShapesItCannotRewriteForTheDetector()
+    public async Task CorrespondenceMigration_LeavesShapesItCannotRewriteForTheDetector()
     {
         var source = """
             public class Send
@@ -1114,7 +1131,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
                 public void NullConditional() => builder?.WithRequestedSendTime(_time);
             }
             """;
-        var migrated = MigrateCorrespondence("logic/Send.cs", source);
+        var migrated = await MigrateCorrespondence("logic/Send.cs", source);
 
         // Unchanged: `=> builder;` would not compile, and `?.` binds via a member binding.
         Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
@@ -1128,9 +1145,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_RemovesNoOpInitializersAndRenamesRecipient()
+    public async Task CorrespondenceMigration_RemovesNoOpInitializersAndRenamesRecipient()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -1157,7 +1174,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_DoesNotTouchSameNamedPropertiesOnOtherTypes()
+    public async Task CorrespondenceMigration_DoesNotTouchSameNamedPropertiesOnOtherTypes()
     {
         var source = """
             public class Read
@@ -1168,16 +1185,16 @@ public sealed class CSharpApiMigrationTests : IDisposable
                 public object Unrelated() => new MyOwnModel { Sender = _org, RequestedSendTime = _t };
             }
             """;
-        var migrated = MigrateCorrespondence("logic/Read.cs", source);
+        var migrated = await MigrateCorrespondence("logic/Read.cs", source);
 
         Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
         Assert.Empty(_lastMigrationWarnings);
     }
 
     [Fact]
-    public void CorrespondenceMigration_ReplacesLegacyPayloadConstructors()
+    public async Task CorrespondenceMigration_ReplacesLegacyPayloadConstructors()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             public class Send
@@ -1192,41 +1209,22 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
 
         Assert.Contains(
-            "new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default())",
+            "new SendCorrespondencePayload(request, global::Altinn.App.Core.Features.CorrespondenceAuthenticationMethod.Default())",
             migrated
         );
         Assert.Contains(
-            "CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))",
+            "global::Altinn.App.Core.Features.CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))",
             migrated
         );
         Assert.DoesNotContain("CorrespondenceAuthorisation", migrated);
-        // The replacement type lives in a namespace the file may not have imported.
-        Assert.Contains("using Altinn.App.Core.Features;", migrated);
+        // Importing and simplification happen later, against the upgraded project's references.
+        Assert.DoesNotContain("using Altinn.App.Core.Features;", migrated);
         // The scope widening must be surfaced, not applied silently.
         Assert.Contains(_lastMigrationWarnings, w => w.Contains("instances.read"));
     }
 
     [Fact]
-    public void CorrespondenceMigration_DoesNotDuplicateAnExistingUsing()
-    {
-        var migrated = MigrateCorrespondence(
-            "logic/Send.cs",
-            """
-            using Altinn.App.Core.Features;
-
-            public class Send
-            {
-                public SendCorrespondencePayload Enum(CorrespondenceRequest request) =>
-                    new SendCorrespondencePayload(request, CorrespondenceAuthorisation.Maskinporten);
-            }
-            """
-        );
-
-        Assert.Equal(1, migrated.Split("using Altinn.App.Core.Features;").Length - 1);
-    }
-
-    [Fact]
-    public void CorrespondenceMigration_LeavesMigratedPayloadConstructionAlone()
+    public async Task CorrespondenceMigration_LeavesMigratedPayloadConstructionAlone()
     {
         var source = """
             public class Send
@@ -1235,16 +1233,16 @@ public sealed class CSharpApiMigrationTests : IDisposable
                     new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
             }
             """;
-        var migrated = MigrateCorrespondence("logic/Send.cs", source);
+        var migrated = await MigrateCorrespondence("logic/Send.cs", source);
 
         Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
         Assert.Empty(_lastMigrationWarnings);
     }
 
     [Fact]
-    public void CorrespondenceMigration_RenamesRemovedBuilderStepInterface()
+    public async Task CorrespondenceMigration_RenamesRemovedBuilderStepInterface()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Steps.cs",
             """
             public class Steps
@@ -1262,9 +1260,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_PreservesSurroundingFormatting()
+    public async Task CorrespondenceMigration_PreservesSurroundingFormatting()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Send.cs",
             """
             using Microsoft.Extensions.Logging;
@@ -1306,18 +1304,17 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         // The inserted call must sit where the expression it replaced sat, not at column 0.
         Assert.Contains(
-            "            CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))\n",
+            "            global::Altinn.App.Core.Features.CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))\n",
             migrated
         );
 
-        // And the added using goes in sorted position, not appended after unrelated ones.
-        Assert.StartsWith("using Altinn.App.Core.Features;\nusing Microsoft.Extensions.Logging;", migrated);
+        Assert.StartsWith("using Microsoft.Extensions.Logging;", migrated);
     }
 
     [Fact]
-    public void CorrespondenceMigration_WrapsProvableByteDataAndLeavesStreamsAlone()
+    public async Task CorrespondenceMigration_WrapsProvableByteDataAndLeavesStreamsAlone()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Attach.cs",
             """
             public record Vedlegg(string Navn, ReadOnlyMemory<byte> Innhold);
@@ -1358,9 +1355,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_FollowsVarToItsInitializerToClassifyByteData()
+    public async Task CorrespondenceMigration_FollowsVarToItsInitializerToClassifyByteData()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Attach.cs",
             """
             public class Attach
@@ -1381,9 +1378,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_ReportsWithDataItCannotClassify()
+    public async Task CorrespondenceMigration_ReportsWithDataItCannotClassify()
     {
-        MigrateCorrespondence(
+        await MigrateCorrespondence(
             "logic/Attach.cs",
             """
             public class Attach
@@ -1403,7 +1400,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_CleanApp_ChangesNothing()
+    public async Task CorrespondenceMigration_CleanApp_ChangesNothing()
     {
         var source = """
             public class MyService
@@ -1411,7 +1408,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
                 public Task DoWork() => Task.CompletedTask;
             }
             """;
-        var migrated = MigrateCorrespondence("logic/MyService.cs", source);
+        var migrated = await MigrateCorrespondence("logic/MyService.cs", source);
 
         Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
         Assert.Empty(_lastMigrationWarnings);
@@ -1477,9 +1474,9 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
-    public void CorrespondenceMigration_RewritesTargetTypedNewViaTheDeclaredType()
+    public async Task CorrespondenceMigration_RewritesTargetTypedNewViaTheDeclaredType()
     {
-        var migrated = MigrateCorrespondence(
+        var migrated = await MigrateCorrespondence(
             "logic/Varsel.cs",
             """
             public class Varsel
@@ -1974,6 +1971,612 @@ public sealed class CSharpApiMigrationTests : IDisposable
         );
 
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- TextServiceMigration ---------------------------------------------------------------------
+
+    private string MigrateTextService(string relativePath, string source, out MigrationResult result)
+    {
+        var path = _app.Write(relativePath, source);
+        result = new TextServiceMigration(Scanner()).Migrate();
+
+        var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
+
+        var syntaxErrors = CSharpSyntaxTree
+            .ParseText(migrated)
+            .GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.ToString())
+            .ToList();
+        Assert.Empty(syntaxErrors);
+
+        return migrated;
+    }
+
+    [Fact]
+    public void TextServiceMigration_RetypesFieldAndRenamesCall()
+    {
+        var migrated = MigrateTextService(
+            "logic/Greeter.cs",
+            """
+            using Altinn.App.Core.Internal.Texts;
+
+            public class Greeter
+            {
+                private readonly IText _textService;
+
+                public Greeter(IText textService)
+                {
+                    _textService = textService;
+                }
+
+                public async Task<TextResource?> Greet(string org, string app, string language) =>
+                    await _textService.GetText(org, app, language);
+            }
+            """,
+            out var result
+        );
+
+        Assert.DoesNotContain("IText", migrated);
+        Assert.Contains("IAppResources _textService", migrated);
+        Assert.Contains("IAppResources textService", migrated);
+        Assert.Contains("await _textService.GetTexts(org, app, language)", migrated);
+        Assert.DoesNotContain(".GetText(", migrated);
+        Assert.Empty(result.Todos);
+        Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
+    public void TextServiceMigration_DoesNotRenameUnrelatedAppResourcesGetText()
+    {
+        // IAppResources already declares its own GetText(org, app, textResource) - a byte[] file read,
+        // unrelated to the removed IText.GetText. A receiver never retyped from IText must be left alone.
+        var migrated = MigrateTextService(
+            "logic/Resources.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class Resources
+            {
+                private readonly IAppResources _appResources;
+
+                public Resources(IAppResources appResources)
+                {
+                    _appResources = appResources;
+                }
+
+                public byte[] Read(string org, string app, string name) => _appResources.GetText(org, app, name);
+            }
+            """,
+            out var result
+        );
+
+        Assert.Contains("_appResources.GetText(org, app, name)", migrated);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public void TextServiceMigration_FlagsDirectImplementer_LeavesFileUntouched()
+    {
+        const string source = """
+            using Altinn.App.Core.Internal.Texts;
+
+            public class FakeText : IText
+            {
+                public Task<TextResource?> GetText(string org, string app, string language) => Task.FromResult<TextResource?>(null);
+            }
+            """;
+
+        var migrated = MigrateTextService("logic/FakeText.cs", source, out var result);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("FakeText.cs") && w.Contains("implements IText directly"));
+    }
+
+    [Fact]
+    public void TextServiceMigration_FlagsDirectTextClientReference()
+    {
+        const string source = """
+            using Altinn.App.Core.Infrastructure.Clients.Storage;
+
+            public class Factory
+            {
+                public TextClient Create() => null!;
+            }
+            """;
+
+        var migrated = MigrateTextService("logic/Factory.cs", source, out var result);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Factory.cs") && w.Contains("TextClient referenced directly"));
+    }
+
+    [Fact]
+    public void TextServiceMigration_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Service.cs",
+            """
+            public class Service
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new TextServiceMigration(Scanner()).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- RemovedAppResourcesApiDetector -------------------------------------------------------------
+
+    [Fact]
+    public void AppResourcesDetector_FlagsBareGetApplicationCall()
+    {
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            public class Reader
+            {
+                public object Read(IAppResources resources) => resources.GetApplication();
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Reader.cs") && w.Contains("GetApplication"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_SyntaxOnly_DoesNotFlagAmbiguousXacmlOrBpmnNames()
+    {
+        // Without a semantic model these share their exact name and arity with the still-current
+        // IAppMetadata replacement, so the syntax-only path deliberately does not guess.
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            public class Reader
+            {
+                public object Read(IAppMetadata metadata) => metadata.GetApplicationXACMLPolicy();
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void AppResourcesDetector_FlagsUpdateBinaryDataWithRequestArgument()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            public class Uploader : ControllerBase
+            {
+                public Task Upload(IDataClient client, string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid) =>
+                    client.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Uploader.cs") && w.Contains("UpdateBinaryData"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_DoesNotFlagStreamBasedUpdateBinaryData()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            public class Uploader
+            {
+                public Task Upload(IDataClient client, InstanceIdentifier id, System.Guid dataGuid, System.IO.Stream stream) =>
+                    client.UpdateBinaryData(id, "application/pdf", "file.pdf", dataGuid, stream);
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void AppResourcesDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Service.cs",
+            """
+            public class Service
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- RemovedEFormidlingClientApiDetector -----------------------------------------------------
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheDeletedHttpClientExtension()
+    {
+        // Observed in the wild against unrelated APIs, which is why it is named rather than dropped.
+        _app.Write(
+            "logic/Clients/BevillingsregisterClient.cs",
+            """
+            using Altinn.App.Core.Extensions;
+            using Altinn.EFormidlingClient.Extensions;
+            public class BevillingsregisterClient
+            {
+                public async Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    await client.GetAsync(query, headers);
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using Altinn.EFormidlingClient.Extensions", StringComparison.Ordinal)
+        );
+        Assert.Contains(Summaries(result), w => w.Contains("HttpClientExtension", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsRemovedEndpointsAndModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusPoller.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class StatusPoller
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Poll()
+                {
+                    Capabilities capabilities = await _client.GetCapabilities("991825827", null);
+                    await _client.SubscribeeFormidling(new CreateSubscription(), null);
+                    await _client.FindOutGoingMessages("DPO", null);
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("GetCapabilities", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("SubscribeeFormidling", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("FindOutGoingMessages", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("CreateSubscription", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresTheEndpointsThatSurvived()
+    {
+        // The four the shipment flow is built from keep working; only their namespace changes, and
+        // that is rewritten automatically rather than reported.
+        _app.Write(
+            "logic/Eformidling/Shipment.cs",
+            """
+            using Altinn.App.Core.EFormidling.Interface;
+            public class Shipment
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Send(StandardBusinessDocument sbd, Stream file)
+                {
+                    await _client.CreateMessage(sbd);
+                    await _client.UploadAttachment(file, "id", "name.pdf");
+                    await _client.SendMessage("id");
+                    await _client.GetMessageStatusById("id");
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNestedStatusModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusReader.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class StatusReader
+            {
+                public bool Delivered(Statuses statuses) =>
+                    statuses.Content.Exists((Content entry) => entry.Status == "levert");
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Content", StringComparison.Ordinal));
+        // Statuses itself keeps its name, so it must not be reported as changed.
+        Assert.DoesNotContain(Summaries(result), w => w.Contains("Statuses is ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNowRepeatableArkivmeldingProperties()
+    {
+        _app.Write(
+            "logic/EFormidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Basisregistrering Build() =>
+                    new Basisregistrering
+                    {
+                        Dokumentbeskrivelse = new Dokumentbeskrivelse { Dokumentnummer = 1 },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Basisregistrering", StringComparison.Ordinal));
+        Assert.Contains(Locations(result), w => w.Contains("Dokumentbeskrivelse", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("maxOccurs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheRenamedSbdArkivmelding()
+    {
+        _app.Write(
+            "logic/Eformidling/Envelope.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models.SBD;
+            public class Envelope
+            {
+                public StandardBusinessDocument Build() =>
+                    new StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding
+                        {
+                            Sikkerhetsnivaa = 3,
+                            DPF = new DPF { ForsendelsesType = "annet" },
+                        },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("Sikkerhetsnivaa", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("DPF", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagTheNoarkArkivmelding()
+    {
+        // The Noark 5 Arkivmelding keeps its name. Matching on the type name would report every app
+        // that generates one, which is nearly all of them.
+        _app.Write(
+            "logic/Eformidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Arkivmelding Build() => new Arkivmelding { AntallFiler = 1, System = "app" };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Arkivmelding", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsReferencesTheNamespaceRewriteCannotReach()
+    {
+        // The rewrite only touches plain `using A.B;`. An alias and a fully-qualified name both
+        // survive it, so they are reported rather than silently left broken.
+        _app.Write(
+            "logic/Eformidling/Aliased.cs",
+            """
+            using Client = Altinn.Common.EFormidlingClient;
+            public class Aliased
+            {
+                private Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(
+            locations,
+            w => w.Contains("using Client = Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            locations,
+            w => w.Contains("Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsGlobalQualifiedReferences()
+    {
+        // `global::` is a legal way to write either form, and the rewrite misses both just the same.
+        _app.Write(
+            "logic/Eformidling/Global.cs",
+            """
+            using Legacy = global::Altinn.Common.EFormidlingClient;
+            public class Global
+            {
+                private global::Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("using Legacy = global::", StringComparison.Ordinal));
+        Assert.Contains(
+            locations,
+            w => w.Contains("global::Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsAPlainUsingWrittenWithGlobal()
+    {
+        // Not aliased, so it looks rewritable - but the rewrite compares the name exactly, and
+        // "global::Altinn.Common.EFormidlingClient" is not "Altinn.Common.EFormidlingClient".
+        _app.Write(
+            "logic/Eformidling/PlainGlobal.cs",
+            """
+            using global::Altinn.Common.EFormidlingClient;
+            public class PlainGlobal
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using global::Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_ScopesTheModelChecksByQualifiedNamesToo()
+    {
+        // No `using` anywhere, so scoping on imports alone would give this file only the generic
+        // "repoint these references" warning - and none of the guidance it actually needs about the
+        // nested status types, the list cardinality, or the SBD rename.
+        _app.Write(
+            "logic/Eformidling/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Altinn.Common.EFormidlingClient.Models.Content Entry;
+                public Altinn.Common.EFormidlingClient.Models.Basisregistrering Registration;
+
+                public Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument Build() =>
+                    new Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
+                    };
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("Statuses.Entry", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("maxOccurs", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_GivesTheExtensionsItsOwnGuidanceWhenWrittenInFull()
+    {
+        // The extensions namespace sits under a reported prefix, so without de-duplication this would
+        // arrive only as the generic warning, which does not say what to write instead.
+        _app.Write(
+            "logic/Clients/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(client, query, headers);
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("HttpClientExtension", StringComparison.Ordinal));
+        Assert.DoesNotContain(summaries, s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
+    {
+        // A plain using is rewritten automatically, so reporting it would be noise.
+        _app.Write(
+            "logic/Eformidling/Plain.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class Plain
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(
+            Summaries(result),
+            s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
+    {
+        // "Content" is an everyday identifier. Only files reaching into the eFormidling models
+        // namespace can plausibly mean the nested status type.
+        _app.Write(
+            "logic/Clients/SomeClient.cs",
+            """
+            using System.Net.Http;
+            public class SomeClient
+            {
+                public async Task<string> Read(HttpResponseMessage response) =>
+                    await response.Content.ReadAsStringAsync();
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
 
         Assert.Empty(result.Todos);
         Assert.Empty(result.Warnings);
