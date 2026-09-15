@@ -15,6 +15,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -131,6 +132,12 @@ public class MailboxRelayFrontierTests
 
             return Task.FromResult(new WorkflowEnqueueResponse.Accepted { Workflows = accepted });
         }
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
@@ -319,18 +326,29 @@ public class MailboxRelayFrontierTests
         processEngine
             .Setup(x =>
                 x.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, collectionKey, _, _, idempotencyKey, cancellationToken) =>
+            .Returns<
+                IInstanceDataAccessor,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (_, _, _, collectionKey, _, _, _, idempotencyKey, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,
@@ -376,7 +394,15 @@ public class MailboxRelayFrontierTests
                 StepId = stepId,
                 State = "incoming-state",
             },
-            Instance = CreateInstance(),
+            DataAccessor = new InstanceDataAccessorFake(
+                CreateInstance(),
+                applicationMetadata: null,
+                translationService: null,
+                layout: null,
+                frontEndSettings: null,
+                gatewayAction: null,
+                language: null
+            ),
             State = "published-state",
             AutoAdvanceProcess = true,
             AutoAdvanceAction = null,

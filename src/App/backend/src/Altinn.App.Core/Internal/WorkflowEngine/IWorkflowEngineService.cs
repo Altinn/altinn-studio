@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal interface IWorkflowEngineService
 {
-    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForInitialProcessState(
         Instance instance,
         StorageVersionMetadata instanceVersions,
         ProcessStateChange processStateChange,
@@ -16,6 +16,14 @@ internal interface IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        string? action,
         CancellationToken cancellationToken = default
     );
 

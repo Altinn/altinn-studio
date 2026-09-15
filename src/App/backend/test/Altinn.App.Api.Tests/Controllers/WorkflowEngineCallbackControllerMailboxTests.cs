@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -154,6 +155,12 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
@@ -283,18 +290,29 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                 processEngine
                     .Setup(x =>
                         x.EnqueueProcessNext(
-                            It.IsAny<Instance>(),
+                            It.IsAny<IInstanceDataAccessor>(),
                             It.IsAny<Actor>(),
                             It.IsAny<Guid>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
+                            It.IsAny<DateTimeOffset>(),
                             It.IsAny<string?>(),
                             It.IsAny<string?>(),
                             It.IsAny<CancellationToken>()
                         )
                     )
-                    .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                        (_, _, _, _, state, action, idempotencyKey, _) =>
+                    .Callback<
+                        IInstanceDataAccessor,
+                        Actor,
+                        Guid,
+                        string,
+                        string,
+                        DateTimeOffset,
+                        string?,
+                        string?,
+                        CancellationToken
+                    >(
+                        (_, _, _, _, state, _, action, idempotencyKey, _) =>
                         {
                             recorder.Calls.Add("after-workflow");
                             recorder.EnqueueKeys.Add(idempotencyKey!);

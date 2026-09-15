@@ -162,8 +162,8 @@ public class ExecuteServiceTaskTests
 
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
         Assert.Equal(1, serviceTask.ExecuteCount);
     }
 
@@ -225,7 +225,7 @@ public class ExecuteServiceTaskTests
 
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
     }
 
@@ -468,7 +468,7 @@ public class ExecuteServiceTaskTests
 
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
+        Assert.NotNull(success.ProcessNextContinuation);
     }
 
     private static async Task AssertNonAutoResultPauses(ServiceTaskResult serviceTaskResult)
@@ -527,8 +527,8 @@ public class ExecuteServiceTaskTests
         );
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-        Assert.Null(success.AutoAdvanceAction);
+        Assert.Null(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation?.Action);
         Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
         WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(false),

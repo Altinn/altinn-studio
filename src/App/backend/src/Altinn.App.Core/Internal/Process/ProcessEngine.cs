@@ -118,7 +118,13 @@ internal class ProcessEngine : IProcessEngine
         // start process
         ProcessStateChange? startChange = await ProcessStart(request.Instance, validStartElement);
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
-        ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(request.Instance);
+        InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+            request.Instance,
+            StorageVersionMetadata.Empty,
+            taskId: null,
+            language: null
+        );
+        ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(dataAccessor);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
         List<InstanceEvent> events = [];
         if (startEvent is not null)
@@ -182,7 +188,7 @@ internal class ProcessEngine : IProcessEngine
             );
         }
 
-        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
+        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForInitialProcessState(
             instance,
             versions,
             processStateChange,
@@ -710,10 +716,11 @@ internal class ProcessEngine : IProcessEngine
     /// Computes the next transition and updates instance.Process to reflect the new state.
     /// </summary>
     private async Task<ProcessStateChange?> MoveProcessStateToNextAndGenerateEvents(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string? action = null
     )
     {
+        Instance instance = dataAccessor.Instance;
         if (instance.Process == null)
         {
             return null;
@@ -725,7 +732,7 @@ internal class ProcessEngine : IProcessEngine
         using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType);
 
         PlatformUser user = await ExtractPlatformUser();
-        ProcessStateChange result = await ComputeNextTransition(instance, action, user);
+        ProcessStateChange result = await ComputeNextTransition(dataAccessor, action, user, DateTime.UtcNow);
 
         // Apply the mutation so callers see the updated process state on the instance
         instance.Process = result.NewProcessState;
@@ -738,17 +745,22 @@ internal class ProcessEngine : IProcessEngine
     /// to the next element. Does NOT mutate instance.Process.
     /// Used by both the normal process-next flow and auto-advance.
     /// </summary>
-    private async Task<ProcessStateChange> ComputeNextTransition(Instance instance, string? action, PlatformUser user)
+    private async Task<ProcessStateChange> ComputeNextTransition(
+        IInstanceDataAccessor dataAccessor,
+        string? action,
+        PlatformUser user,
+        DateTime now
+    )
     {
+        Instance instance = dataAccessor.Instance;
         ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
 
-        ProcessElement? nextElement = await _processNavigator.GetNextTask(instance, currentTaskId, action);
+        ProcessElement? nextElement = await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action);
         if (nextElement is null)
             throw new ProcessException("Next process element was unexpectedly null");
 
-        DateTime now = DateTime.UtcNow;
         var events = new List<InstanceEvent>();
 
         ProcessState oldProcessState = new()
@@ -866,8 +878,8 @@ internal class ProcessEngine : IProcessEngine
     {
         using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
 
-        // Compute the transition without mutating instance.Process, then capture the old instance/form-data
-        // snapshot before mutating instance.Process so the callback starts from the task being left.
+        // The acquire callback computes the transition after claiming this authoritative snapshot.
+        ProcessState? oldProcessState = instance.Process?.Copy();
         string state;
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
         {
@@ -881,25 +893,18 @@ internal class ProcessEngine : IProcessEngine
             state = await _workflowCallbackStateService.CaptureState(unitOfWork);
         }
 
-        ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
-        if (processStateChange is null)
-        {
-            throw new InvalidOperationException("Process state was unexpectedly null when moving to the next task.");
-        }
-
         ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
             versions,
-            processStateChange,
             state,
+            action,
             cancellationToken: cancellationToken
         );
 
         ProcessStateChange finalProcessStateChange = new()
         {
-            OldProcessState = processStateChange.OldProcessState,
-            NewProcessState = result.Instance.Process ?? processStateChange.NewProcessState,
-            Events = processStateChange.Events,
+            OldProcessState = oldProcessState,
+            NewProcessState = result.Instance.Process,
         };
 
         return new MoveToNextResult(
@@ -913,18 +918,32 @@ internal class ProcessEngine : IProcessEngine
 
     /// <inheritdoc/>
     public async Task EnqueueProcessNext(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         Actor actor,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,
+        DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default
     )
     {
+        Instance instance = dataAccessor.Instance;
         PlatformUser user = CreatePlatformUser(actor);
-        ProcessStateChange processStateChange = await ComputeNextTransition(instance, action, user);
+        string changeEventType = action is "reject"
+            ? InstanceEventType.process_AbandonTask.ToString()
+            : InstanceEventType.process_EndTask.ToString();
+        ProcessStateChange processStateChange;
+        using (_telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType))
+        {
+            processStateChange = await ComputeNextTransition(
+                dataAccessor,
+                action,
+                user,
+                executionReferenceTime.UtcDateTime
+            );
+        }
 
         await _workflowEngineService.EnqueueDependentProcessNext(
             instance,

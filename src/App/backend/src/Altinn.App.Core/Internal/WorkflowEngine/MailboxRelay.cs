@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -11,7 +12,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -206,8 +206,7 @@ internal sealed class MailboxRelay
 
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    AutoAdvanceProcess = success.AutoAdvanceProcess,
-                    AutoAdvanceAction = success.Action,
+                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
                     MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
                 };
 
@@ -291,8 +290,7 @@ internal sealed class MailboxRelay
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    AutoAdvanceProcess = success.AutoAdvanceProcess,
-                    AutoAdvanceAction = success.Action,
+                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
                     MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
                 };
 
@@ -538,7 +536,7 @@ internal sealed class MailboxRelay
         CancellationToken cancellationToken
     )
     {
-        string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
+        string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
         List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)];
 
@@ -596,7 +594,7 @@ internal sealed class MailboxRelay
         CancellationToken cancellationToken
     )
     {
-        string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
+        string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
         List<StepRequest> steps =
         [
@@ -675,7 +673,7 @@ internal sealed class MailboxRelay
             ),
         };
 
-        if (request.Instance.Process?.CurrentTask is { ElementId.Length: > 0 } currentTask)
+        if (request.DataAccessor.Instance.Process?.CurrentTask is { ElementId.Length: > 0 } currentTask)
         {
             labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel] = ProcessNextRequestFactory.CreateProcessNextId(
                 currentTask.ElementId,
@@ -689,13 +687,14 @@ internal sealed class MailboxRelay
 
     private Task EnqueueAfterWorkflow(MailboxRelayRequest request, CancellationToken cancellationToken) =>
         _processEngine.EnqueueProcessNext(
-            request.Instance,
+            request.DataAccessor,
             request.Payload.Actor,
             request.Payload.WorkflowId,
             // Derived, not read from the Collection-Key header: a header the engine forgot must not decide
             // whether the process advances.
             ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             PublishedState(request),
+            request.Payload.ExecutionReferenceTime,
             request.AutoAdvanceAction,
             request.Payload.StepId.ToString(),
             cancellationToken
@@ -712,7 +711,7 @@ internal readonly record struct MailboxRelayRequest
 
     public required AppCallbackPayload Payload { get; init; }
 
-    public required Instance Instance { get; init; }
+    public required IInstanceDataAccessor DataAccessor { get; init; }
 
     /// <summary>The state blob the handler published, re-signed. <c>null</c> only on a permanent failure.</summary>
     public required string? State { get; init; }

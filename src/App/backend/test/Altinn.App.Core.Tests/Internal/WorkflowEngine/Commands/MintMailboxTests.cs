@@ -83,6 +83,12 @@ public class MintMailboxTests
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,

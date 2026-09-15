@@ -16,6 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Fiks Arkiv messages now declare `arkivmelding.xml` as `text/xml` rather than `application/xml` in the ASiC-E container's manifest. The file itself, its contents and the container's signature are unchanged — only the declared media type differs, and the same applies to any XML attachment the app sends. Both spellings are valid media types for XML, so an archive system that does not inspect the manifest's declared type sees no difference; one that does may need to accept `text/xml`.
+- A process transition now appears as two engine workflows: one to claim the instance, followed by a dependent workflow for the transition. The transition’s steps are created only after the instance has been claimed. Instantiation and process start keep their existing single workflow.
 - A `reject` action no longer replaces a failed workflow. While the current task's workflow has failed, `POST .../process/next` is refused with `409 Conflict` and `processNextState: "resumeRequired"` for every action, `reject` included, until the workflow is resumed with `POST .../process/resume`. Previously a BPMN-allowed `reject` wrote the failed workflow off and moved the process along the reject flow, which could not undo work the failed task had already done.
 
 ### Fixed

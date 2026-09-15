@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -10,15 +11,22 @@ using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
@@ -72,6 +80,168 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(_formDataValidatorMock.Object);
         };
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+    }
+
+    [Theory]
+    [InlineData("Per Olsen", "nb", "EndEvent_1")]
+    [InlineData("Per Olsen", "en", "EndEvent_1")]
+    [InlineData("Per Olsen", "nn", "EndEvent_1")]
+    [InlineData("A different name", "en", "EndEvent_Other")]
+    public async Task NextElement_ExpressionGateway_TakesTheBranchTheDataSelects(
+        string expectedName,
+        string language,
+        string expectedEnd
+    )
+    {
+        string bpmn = await File.ReadAllTextAsync(
+            Path.Join(TestData.GetApplicationDirectory(Org, App), "config/process/process.bpmn")
+        );
+        bpmn = bpmn.Replace(
+            "sourceRef=\"Task_1\" targetRef=\"EndEvent_1\"",
+            "sourceRef=\"Task_1\" targetRef=\"Gateway_1\"",
+            StringComparison.Ordinal
+        );
+        bpmn = bpmn.Replace(
+            "</bpmn:process>",
+            $$"""
+            <bpmn:exclusiveGateway id="Gateway_1">
+              <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
+              <bpmn:outgoing>Flow_match</bpmn:outgoing>
+              <bpmn:outgoing>Flow_other</bpmn:outgoing>
+              <bpmn:extensionElements><altinn:gatewayExtension><altinn:connectedDataTypeId>default</altinn:connectedDataTypeId></altinn:gatewayExtension></bpmn:extensionElements>
+            </bpmn:exclusiveGateway>
+            <bpmn:endEvent id="EndEvent_Other"><bpmn:incoming>Flow_other</bpmn:incoming></bpmn:endEvent>
+            <bpmn:sequenceFlow id="Flow_match" sourceRef="Gateway_1" targetRef="EndEvent_1">
+              <bpmn:conditionExpression>["and", ["equals", ["dataModel", "melding.name"], "{{expectedName}}"], ["equals", ["language"], "{{language}}"]]</bpmn:conditionExpression>
+            </bpmn:sequenceFlow>
+            <bpmn:sequenceFlow id="Flow_other" sourceRef="Gateway_1" targetRef="EndEvent_Other">
+              <bpmn:conditionExpression>["or", ["notEquals", ["dataModel", "melding.name"], "{{expectedName}}"], ["notEquals", ["language"], "{{language}}"]]</bpmn:conditionExpression>
+            </bpmn:sequenceFlow>
+            </bpmn:process>
+            """,
+            StringComparison.Ordinal
+        );
+        var processClient = new Mock<IProcessClient>(MockBehavior.Strict);
+        processClient
+            .Setup(p => p.GetProcessDefinition())
+            .Returns(() => new MemoryStream(Encoding.UTF8.GetBytes(bpmn)));
+        bool callbackStarted = false;
+        bool authenticationReadAfterCallbackStarted = false;
+        bool formReadAfterCallbackStarted = false;
+        int formReads = 0;
+        using var client = GetRootedUserClient(
+            Org,
+            App,
+            1337,
+            InstanceOwnerPartyId,
+            configureServices: services =>
+            {
+                var authentication = TestAuthentication.GetUserAuthentication(
+                    userPartyId: InstanceOwnerPartyId,
+                    profileSettingPreference: new() { Language = language }
+                );
+                var authenticationContext = new Mock<IAuthenticationContext>(MockBehavior.Strict);
+                authenticationContext
+                    .SetupGet(a => a.Current)
+                    .Returns(() =>
+                    {
+                        authenticationReadAfterCallbackStarted |= callbackStarted;
+                        return authentication;
+                    });
+                services.AddSingleton(authenticationContext.Object);
+                services.AddSingleton(processClient.Object);
+                services.AddSingleton(SetupPdfGeneratorMock().Object);
+                var acquire = Assert.Single(services, d => d.ImplementationType == typeof(AcquireProcessingStatus));
+                services.Remove(acquire);
+                services.AddTransient<IWorkflowEngineCommand>(sp => new CallbackPrincipalAcquireCommand(() =>
+                {
+                    callbackStarted = true;
+                    sp.GetRequiredService<IHttpContextAccessor>().HttpContext!.User = new ClaimsPrincipal(
+                        new ClaimsIdentity(authenticationType: WorkflowCallbackAuthentication.Scheme)
+                    );
+                }));
+                services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+                {
+                    var underlying = (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>();
+                    var guard = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+                    guard
+                        .Setup(d =>
+                            d.GetDataBytesWithExpectedBlobVersionId(
+                                It.IsAny<int>(),
+                                It.IsAny<Guid>(),
+                                It.IsAny<Guid>(),
+                                It.IsAny<StorageAuthenticationMethod?>(),
+                                It.IsAny<string?>(),
+                                It.IsAny<CancellationToken>()
+                            )
+                        )
+                        .Returns(
+                            (
+                                int partyId,
+                                Guid instanceId,
+                                Guid dataId,
+                                StorageAuthenticationMethod? auth,
+                                string? version,
+                                CancellationToken cancellationToken
+                            ) =>
+                            {
+                                formReadAfterCallbackStarted |= callbackStarted;
+                                formReads++;
+                                return underlying.GetDataBytesWithExpectedBlobVersionId(
+                                    partyId,
+                                    instanceId,
+                                    dataId,
+                                    auth,
+                                    version,
+                                    cancellationToken
+                                );
+                            }
+                        );
+                    return guard.Object;
+                });
+            }
+        );
+        using var response = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+        Assert.True(callbackStarted);
+        Assert.False(
+            authenticationReadAfterCallbackStarted,
+            "The continuation must build the transition from the captured actor, not the callback request's authentication context."
+        );
+        Assert.False(
+            formReadAfterCallbackStarted,
+            "Callback form data must come from the restored unit of work, with no Storage read under the callback principal."
+        );
+        Assert.True(formReads > 0);
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        Assert.Equal(expectedEnd, instance.Process.EndEvent);
+        var workflows = await Services
+            .GetRequiredService<IWorkflowEngineClient>()
+            .ListWorkflows(
+                Services.GetRequiredService<Altinn.App.Core.Models.AppIdentifier>().ToString(),
+                _instanceGuid.ToString()
+            );
+        var acquireWorkflow = Assert.Single(
+            workflows,
+            w => w.Steps.Count == 1 && w.Steps[0].OperationId == AcquireProcessingStatus.Key
+        );
+        var continuation = Assert.Single(workflows, w => w.Steps.Any(s => s.OperationId == CommitProcessState.Key));
+        Assert.False(acquireWorkflow.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
+        Assert.False(acquireWorkflow.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.Equal(PersistentItemStatus.Completed, acquireWorkflow.OverallStatus);
+        Assert.Equal(PersistentItemStatus.Completed, continuation.OverallStatus);
+        Assert.Equal($"process-next-dependent-{acquireWorkflow.DatabaseId:N}", continuation.IdempotencyKey);
+    }
+
+    private sealed class CallbackPrincipalAcquireCommand(Action enterCallback) : IWorkflowEngineCommand
+    {
+        public string GetKey() => AcquireProcessingStatus.Key;
+
+        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        {
+            enterCallback();
+            return new AcquireProcessingStatus().Execute(context);
+        }
     }
 
     [Fact]

@@ -172,7 +172,7 @@ public class ExecuteServiceTaskStageTests
         var result = await command.Execute(CreateContext(), Payload(0));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
     }
 
     [Fact]
@@ -223,8 +223,8 @@ public class ExecuteServiceTaskStageTests
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Null(success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation?.Action);
     }
 
     [Fact]
@@ -239,8 +239,8 @@ public class ExecuteServiceTaskStageTests
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class ExecuteServiceTaskStageTests
         var result = await command.Execute(CreateContextWithUnitOfWork(), Payload(ConclusionIndex));
 
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
     }
 
     [Fact]
