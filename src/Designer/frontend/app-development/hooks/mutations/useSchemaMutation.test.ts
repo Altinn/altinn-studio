@@ -18,10 +18,9 @@ describe('useSchemaMutation', () => {
       renderHookResult: { result },
     } = render({ saveDataModel });
     result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isPending);
-    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, jsonSchemaMock);
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
 
   it('Leaves combinations without subschemas out of the saved model but keeps them in the cache', async () => {
@@ -33,7 +32,7 @@ describe('useSchemaMutation', () => {
       renderHookResult: { result },
     } = render({ saveDataModel }, queryClient);
     result.current.mutate({ modelPath, model });
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, {
       type: 'object',
       properties: { text },
@@ -48,7 +47,7 @@ describe('useSchemaMutation', () => {
       renderHookResult: { result },
     } = render({ saveDataModel });
     result.current.mutate({ modelPath, model });
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, model);
     expect(saveDataModel.mock.calls[0][3]).toBe(model);
   });
@@ -59,7 +58,7 @@ describe('useSchemaMutation', () => {
       renderHookResult: { result },
     } = render({}, queryClient);
     result.current.mutate({ modelPath, model: jsonSchemaMock });
-    await waitFor(() => result.current.isSuccess);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(
       jsonSchemaMock,
     );
