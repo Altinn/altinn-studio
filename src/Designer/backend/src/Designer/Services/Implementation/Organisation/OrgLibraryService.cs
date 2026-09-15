@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.OrgLibrary;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -24,11 +25,13 @@ public class OrgLibraryService(
     IGiteaClient giteaClient,
     ISourceControl sourceControl,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    ISharedContentClient sharedContentClient
+    ISharedContentClient sharedContentClient,
+    ILockService synchronizationLockService
 ) : IOrgLibraryService
 {
     private const string DefaultCommitMessage = "Update shared resources.";
     private const string JsonExtension = ".json";
+    private static readonly TimeSpan s_lockWaitTimeout = TimeSpan.FromSeconds(30);
 
     /// <inheritdoc />
     public async Task<string> GetLatestCommitOnBranch(
@@ -126,6 +129,11 @@ public class OrgLibraryService(
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
         ValidateCommitMessage(request.CommitMessage);
+        await using var _ = await synchronizationLockService.AcquireRepoUserWideLockAsync(
+            authenticatedContext.RepoEditingContext,
+            s_lockWaitTimeout,
+            cancellationToken: cancellationToken
+        );
         sourceControl.CloneIfNotExists(authenticatedContext);
 
         string latestCommitSha = await giteaClient.GetLatestCommitOnBranch(
