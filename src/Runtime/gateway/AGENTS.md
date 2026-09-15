@@ -17,7 +17,7 @@ make fmt                  # Format code (CSharpier + golangci-lint)
 make tidy                 # Tidy go modules
 
 # Testing
-make test                 # Run unit tests (none yet)
+make test                 # Run unit tests
 make test-e2e             # Run e2e tests (starts cluster if needed)
 
 # Utilities
