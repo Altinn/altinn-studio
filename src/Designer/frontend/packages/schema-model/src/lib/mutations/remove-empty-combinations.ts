@@ -19,8 +19,12 @@ export const removeEmptyCombinations = (nodes: UiSchemaNodes): UiSchemaNodes => 
 };
 
 const deleteNodeWithReferences = (model: SchemaModel, schemaPointer: string): void => {
-  model
-    .getReferringNodes(schemaPointer)
-    .forEach((referringNode) => model.deleteNode(referringNode.schemaPointer));
+  // Deleting a reference renumbers the subschemas of its parent combination, so the referring nodes
+  // must be resolved again between deletions rather than up front.
+  let referringNode = model.getReferringNodes(schemaPointer)[0];
+  while (referringNode) {
+    model.deleteNode(referringNode.schemaPointer);
+    referringNode = model.getReferringNodes(schemaPointer)[0];
+  }
   model.deleteNode(schemaPointer);
 };

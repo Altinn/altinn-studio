@@ -59,6 +59,22 @@ describe('removeEmptyCombinations', () => {
     });
   });
 
+  it('Removes sibling references to the same removed definition', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        text,
+        combination: { anyOf: [{ $ref: '#/$defs/Choice' }, { $ref: '#/$defs/Choice' }] },
+      },
+      $defs: { Choice: { anyOf: [] }, Kept: text },
+    };
+    expect(roundTrip(schema)).toEqual({
+      type: 'object',
+      properties: { text },
+      $defs: { Kept: text },
+    });
+  });
+
   it('Leaves a schema without empty combinations unchanged', () => {
     const schema: JsonSchema = {
       type: 'object',
