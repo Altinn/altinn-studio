@@ -288,7 +288,7 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
   );
   await fs.mkdir(CONTRACT_DOCUMENTATION_ROOT, { recursive: true });
   for (const locale of ['nb', 'en'] satisfies DocumentationLocale[]) {
-    for (const [componentType, markdown] of generateComponentDocumentation(
+    for (const [componentType, documentation] of generateComponentDocumentation(
       componentCatalog.componentCatalog,
       componentCatalog.commonProperties,
       locale,
@@ -300,7 +300,7 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
       promises.push(
         saveFile(
           documentationPath,
-          await format(markdown, {
+          await format(documentation, {
             ...prettierConfig,
             filepath: documentationPath,
           }),
