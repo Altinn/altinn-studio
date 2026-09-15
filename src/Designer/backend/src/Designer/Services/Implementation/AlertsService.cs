@@ -61,7 +61,7 @@ internal sealed class AlertsService(
                 (alert.LogsUrl.OriginalString, "Application Insights"),
             };
 
-            var payload = new NotificationPayload(alert.Id, alert.Name, fields, links);
+            var payload = new NotificationPayload(alert.Id, alert.Name, fields, links, Emoji: "❌");
             await Task.WhenAll(
                 notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
                 notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
