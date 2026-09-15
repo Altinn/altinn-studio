@@ -11,11 +11,13 @@ export type FieldConfig = {
   translationKey: string;
   critical: boolean;
   area: AppValidationArea;
+  hrefPath?: string;
+  translationParams?: Record<string, string>;
 };
 
 export type ErrorItem = {
   errorKey: string;
-  search: string;
+  path: string;
   fullHref: string;
   errorMessage: string;
   area: AppValidationArea;
@@ -62,7 +64,7 @@ export const getAppValidationSummary = (
   errorKeys: string[],
   org: string,
   app: string,
-  t: (key: string) => string,
+  t: (key: string, params?: Record<string, string>) => string,
 ): AppValidationSummary => {
   const errorItems = mapErrorKeyErrorItems(errorKeys, 'danger', org, app, t);
   const warningItems = mapErrorKeyErrorItems(errorKeys, 'warning', org, app, t);
@@ -90,29 +92,27 @@ export const mapErrorKeyErrorItems = (
   org: string,
   app: string,
   t: (key: string, params?: Record<string, string>) => string,
-  group: 'app_metadata' | 'task_settings' = 'app_metadata',
 ): ErrorItem[] => {
   return errorKeys
     .filter((errorKey) => {
       const fieldConfig = getFieldConfig(errorKey);
       if (!fieldConfig) {
         // If there's no specific field config, we treat it as a critical error for 'danger'
-        return severity === 'danger' && group === 'app_metadata';
-      }
-      const itemGroup = fieldConfig.group ?? 'app_metadata';
-      if (itemGroup !== group) {
-        return false;
+        return severity === 'danger';
       }
       return fieldConfig.critical === (severity === 'danger');
     })
     .map((errorKey) => {
       const fieldConfig = getFieldConfig(errorKey);
       const anchor = fieldConfig?.anchor ?? '';
-      const search = `currentTab=about&focus=${anchor}`;
-      const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-settings?${search}`;
-      const errorMessage = t(fieldConfig?.translationKey ?? errorKey);
+      const path = fieldConfig?.hrefPath ?? `app-settings?currentTab=about&focus=${anchor}`;
+      const fullHref = `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/${path}`;
+      const errorMessage = t(
+        fieldConfig?.translationKey ?? errorKey,
+        fieldConfig?.translationParams,
+      );
       const area = fieldConfig?.area ?? 'other';
-      return { errorKey, search, fullHref, errorMessage, area };
+      return { errorKey, path, fullHref, errorMessage, area };
     });
 };
 
@@ -247,9 +247,9 @@ export const getFieldConfig = (errorKey: string): FieldConfig | undefined => {
           ? 'app_validation.task_settings.default_data_type.missing'
           : 'app_validation.task_settings.default_data_type.not_found',
       critical: true,
-      group: 'task_settings',
+      area: 'process',
       hrefPath: 'process-editor',
-      getTranslationParams: () =>
+      translationParams:
         issue === 'missing' ? { taskId } : { taskId, dataTypeId: dataTypeId ?? '' },
     };
   }

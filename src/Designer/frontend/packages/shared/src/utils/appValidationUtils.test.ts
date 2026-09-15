@@ -21,21 +21,21 @@ describe('appValidationUtils', () => {
       expect(result).toEqual([
         {
           errorKey: 'identifier',
-          search: 'currentTab=about&focus=identifier',
+          path: 'app-settings?currentTab=about&focus=identifier',
           fullHref: '/editor/testOrg/testApp/app-settings?currentTab=about&focus=identifier',
           errorMessage: 'translated-app_validation.app_metadata.identifier.required',
           area: 'settings',
         },
         {
           errorKey: 'title',
-          search: 'currentTab=about&focus=title-nb',
+          path: 'app-settings?currentTab=about&focus=title-nb',
           fullHref: '/editor/testOrg/testApp/app-settings?currentTab=about&focus=title-nb',
           errorMessage: 'translated-app_validation.app_metadata.title.required',
           area: 'settings',
         },
         {
           errorKey: 'title.nb',
-          search: 'currentTab=about&focus=title-nb',
+          path: 'app-settings?currentTab=about&focus=title-nb',
           fullHref: '/editor/testOrg/testApp/app-settings?currentTab=about&focus=title-nb',
           errorMessage: 'translated-app_validation.app_metadata.title.nb.required',
           area: 'settings',
@@ -55,7 +55,7 @@ describe('appValidationUtils', () => {
       expect(result).toEqual([
         {
           errorKey: 'title.en',
-          search: 'currentTab=about&focus=title-en',
+          path: 'app-settings?currentTab=about&focus=title-en',
           fullHref: '/editor/testOrg/testApp/app-settings?currentTab=about&focus=title-en',
           errorMessage: 'translated-app_validation.app_metadata.title.en.required',
           area: 'settings',
@@ -75,7 +75,7 @@ describe('appValidationUtils', () => {
       expect(result).toEqual([
         {
           errorKey: 'unknown_error_key',
-          search: 'currentTab=about&focus=',
+          path: 'app-settings?currentTab=about&focus=',
           fullHref: '/editor/testOrg/testApp/app-settings?currentTab=about&focus=',
           errorMessage: 'translated-unknown_error_key',
           area: 'other',
@@ -155,7 +155,7 @@ describe('appValidationUtils', () => {
   describe('groupValidationItemsByArea', () => {
     const settingsError: ErrorItem = {
       errorKey: 'title.nb',
-      search: 'currentTab=about&focus=title-nb',
+      path: 'app-settings?currentTab=about&focus=title-nb',
       fullHref: '/editor/testOrg/testApp/app-settings?currentTab=about&focus=title-nb',
       errorMessage: 'translated-app_validation.app_metadata.title.nb.required',
       area: 'settings',
@@ -233,9 +233,9 @@ describe('appValidationUtils', () => {
         anchor: '',
         translationKey: 'app_validation.task_settings.default_data_type.missing',
         critical: true,
-        group: 'task_settings',
+        area: 'process',
         hrefPath: 'process-editor',
-        getTranslationParams: expect.any(Function),
+        translationParams: { taskId: 'Task_1' },
       });
     });
 
@@ -246,30 +246,32 @@ describe('appValidationUtils', () => {
         'testOrg',
         'testApp',
         (key, params) => `${key}:${params?.taskId}:${params?.dataTypeId}`,
-        'task_settings',
       );
 
       expect(result).toEqual([
         {
           errorKey: 'taskSettings[Task_1].defaultDataType.notFound.model',
-          search: 'currentTab=about&focus=',
+          path: 'process-editor',
           fullHref: '/editor/testOrg/testApp/process-editor',
           errorMessage: 'app_validation.task_settings.default_data_type.not_found:Task_1:model',
+          area: 'process',
         },
       ]);
     });
 
-    it('does not include task settings errors in app_metadata danger group', () => {
+    it('includes task settings errors alongside app metadata errors', () => {
       const result = mapErrorKeyErrorItems(
         ['taskSettings[Task_1].defaultDataType.missing', 'title.nb'],
         'danger',
         'testOrg',
         'testApp',
         (key) => key,
-        'app_metadata',
       );
 
-      expect(result.map((item) => item.errorKey)).toEqual(['title.nb']);
+      expect(result.map((item) => item.errorKey)).toEqual([
+        'taskSettings[Task_1].defaultDataType.missing',
+        'title.nb',
+      ]);
     });
   });
 });

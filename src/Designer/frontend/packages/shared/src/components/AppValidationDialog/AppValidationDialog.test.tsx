@@ -149,19 +149,13 @@ describe('AppValidationDialog', () => {
     expect(link).toHaveAttribute('href', expectedHref);
   });
 
-  it('renders task settings errors in a dedicated danger alert', () => {
+  it('renders task settings errors in the process area', () => {
     renderAppValidationDialog({
       isValid: false,
       errors: { 'taskSettings[Task_1].defaultDataType.missing': ['MISSING'] },
     });
 
-    expect(screen.getByText(textMock('app_validation.task_settings.errors'))).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('app_validation.task_settings.errors_description')),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('app_validation.app_metadata.warnings')),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText(textMock('top_menu.process_editor'))).toBeInTheDocument();
 
     const link = screen.getByText(
       textMock('app_validation.task_settings.default_data_type.missing', { taskId: 'Task_1' }),
