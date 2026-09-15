@@ -30,10 +30,17 @@ public partial class EngineTests
         Assert.Contains(body.Data, w => w.DatabaseId == workflowId);
     }
 
-    [Fact]
-    public async Task ListWorkflows_UnknownStatus_ReturnsBadRequest()
+    [Theory]
+    [InlineData("bogus")]
+    // The numeric forms are the interesting cases: they parse to real enum members, so a
+    // name-only parser is the only thing standing between "?status=4" and a silent filter
+    // to Failed. The sibling failures filter on ListCollections is pinned the same way.
+    [InlineData("0")]
+    [InlineData("4")]
+    [InlineData("-1")]
+    public async Task ListWorkflows_UnknownStatus_ReturnsBadRequest(string status)
     {
-        using var response = await _client.ListWorkflowsRaw("?status=bogus");
+        using var response = await _client.ListWorkflowsRaw($"?status={status}");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
