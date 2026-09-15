@@ -3,11 +3,8 @@ import classes from './ConfigContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { EditTaskId } from './EditTaskId/EditTaskId';
-import {
-  StudioDetails,
-  StudioDisplayTile,
-  useStudioRecommendedNextActionContext,
-} from '@studio/components';
+import { EditTaskName } from './EditTaskName';
+import { StudioDetails, useStudioRecommendedNextActionContext } from '@studio/components';
 import { EditDataTypes } from './EditDataTypes';
 import { useBpmnApiContext } from '../../../contexts/BpmnApiContext';
 import { EditActions } from './EditActions';
@@ -23,6 +20,7 @@ import { EditUserControlledImplementation } from './EditUserControlledImplementa
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
 import { TaskUtils } from '../../../utils/taskUtils';
 import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -40,7 +38,7 @@ export const ConfigContent = (): React.ReactElement => {
   const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
 
   const studioModeler = new StudioModeler();
-  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const isFirstSigningTask = tasks
     .filter((item) =>
       TaskUtils.isSigningTask(item.businessObject.extensionElements?.values[0]?.taskType),
@@ -69,12 +67,7 @@ export const ConfigContent = (): React.ReactElement => {
             existingDataTypeForTask={existingDataTypeForTask}
           />
         )}
-        <StudioDisplayTile
-          label={t('process_editor.configuration_panel_name_label')}
-          value={bpmnDetails.name}
-          className={classes.displayTile}
-          showPadlock={false}
-        />
+        <EditTaskName />
         {shouldDisplayEditDataTypesToSign && (
           <>
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />

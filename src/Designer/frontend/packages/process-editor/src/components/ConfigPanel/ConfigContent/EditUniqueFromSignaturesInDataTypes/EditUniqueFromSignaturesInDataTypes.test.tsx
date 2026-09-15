@@ -69,7 +69,7 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: jest.fn().mockReturnValue(signingTasks),
       };
     }),
   };

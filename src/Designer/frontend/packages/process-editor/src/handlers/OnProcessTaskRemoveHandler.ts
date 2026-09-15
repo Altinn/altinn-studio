@@ -6,6 +6,7 @@ import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
+import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 
 export class OnProcessTaskRemoveHandler {
   constructor(
@@ -107,7 +108,7 @@ export class OnProcessTaskRemoveHandler {
       deletedSigningTask.taskEvent.element.businessObject.extensionElements.values[0]
         .signatureConfig.signatureDataType;
 
-    const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+    const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
     const signingTasksToUpdate = tasks.filter(
       ({
         businessObject: {
@@ -165,6 +166,11 @@ export class OnProcessTaskRemoveHandler {
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
     );
+
+    // A task can be recognised as user controlled while still missing its signee states data type.
+    // There is then nothing registered to remove.
+    if (!dataTypeId) return;
+
     this.deleteDataTypeFromAppMetadata({
       dataTypeId,
     });

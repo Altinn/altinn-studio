@@ -7,6 +7,7 @@ import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
 import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
+import type { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 // We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
@@ -106,8 +107,16 @@ export class StudioModeler {
     this.modeling.updateModdleProperties(this.getElement(), element, { ...properties });
   }
 
-  public getAllTasksByType(elementType: string): Element[] {
+  public getElementsByType(elementType: BpmnTypeEnum): Element[] {
     return this.elementRegistry.filter((element) => element.type === elementType) as Element[];
+  }
+
+  /**
+   * Every id in the diagram, whatever the element type. Bpmn ids are xsd:ID, so they must be unique
+   * across the whole document and not just within a type.
+   */
+  public getAllElementIds(): string[] {
+    return this.elementRegistry.getAll().map((element) => element.id);
   }
 
   public getReceiptPdfDataTypeIdFromBusinessObject(

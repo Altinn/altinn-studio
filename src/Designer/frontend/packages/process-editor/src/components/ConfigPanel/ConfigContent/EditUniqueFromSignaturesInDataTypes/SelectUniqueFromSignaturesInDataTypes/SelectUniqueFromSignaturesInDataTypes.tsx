@@ -10,6 +10,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
+import { BpmnTypeEnum } from '../../../../../enum/BpmnTypeEnum';
 
 export interface SelectUniqueFromSignaturesInDataTypesProps {
   onClose: () => void;
@@ -21,7 +22,7 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   const { bpmnDetails, modelerRef } = useBpmnContext();
 
   const studioModeler = new StudioModeler();
-  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const signingTasks = tasks
     .filter(
       ({

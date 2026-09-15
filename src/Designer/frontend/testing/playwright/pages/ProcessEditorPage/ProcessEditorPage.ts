@@ -79,8 +79,11 @@ export class ProcessEditorPage extends BasePage {
   public async waitForTaskToBeVisibleInConfigPanel(task: BpmnTaskType): Promise<void> {
     const nameLabel = this.textMock('process_editor.configuration_panel_name_label');
     const taskName = `Altinn ${task} task`;
-    const text = this.page.getByText(nameLabel + taskName);
-    await expect(text).toBeVisible();
+    // The name field is a toggleable text field: in view mode it is a button labelled by the field
+    // label, with the current name as its content.
+    const nameField = this.page.getByRole('button', { name: nameLabel });
+    await expect(nameField).toBeVisible();
+    await expect(nameField).toContainText(taskName);
   }
 
   public async getTaskIdFromOpenNewlyAddedTask(): Promise<string> {
