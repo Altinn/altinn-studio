@@ -132,7 +132,7 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
     /// </summary>
     private static void ApplyParameterDocs(
         OpenApiOperation operation,
-        IReadOnlyDictionary<string, string> descriptions,
+        Dictionary<string, string> descriptions,
         string enumParameterName,
         OpenApiSchema enumSchema
     )
