@@ -311,12 +311,14 @@ internal interface IEngineRepository
     /// <param name="keys">
     /// Annotate mode: restrict the result to these collection keys and report the keys without a
     /// collection row via <see cref="CollectionQueryResult.UnmatchedKeys"/>. Mutually exclusive with
-    /// <paramref name="cursor"/> and <paramref name="failures"/> (enforced by the caller).
+    /// <paramref name="cursor"/> and <paramref name="failures"/> (enforced by the caller). Must already
+    /// be distinct (ordinal): the caller deduplicates once, so the page size it echoes and the
+    /// unmatched keys reported here describe the same set.
     /// </param>
     /// <param name="failures">
     /// Discover mode: restrict the result to collections containing at least one failed workflow,
-    /// per <see cref="CollectionFailureFilter"/>. Driven from the workflow side (namespace + status
-    /// index scan, then distinct keys) so the query stays cheap when failures are rare.
+    /// per <see cref="CollectionFailureFilter"/>. Driven from the workflow side (a
+    /// partial index over the failed rows, then distinct keys) so the query stays cheap when failures are rare.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<CollectionQueryResult> GetCollections(

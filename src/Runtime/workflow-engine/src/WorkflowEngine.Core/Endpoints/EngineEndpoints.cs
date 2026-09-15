@@ -900,32 +900,38 @@ internal static class EngineRequestHandlers
         var pagination = settings.Value.Pagination;
 
         // Deduplicate up front so repeated ?key= values neither trip the cap nor inflate the
-        // echoed page size; the repository receives the deduplicated set.
+        // echoed page size. This is the one place keys are deduplicated — the repository trusts
+        // the set it is handed (documented on IEngineRepository.GetCollections), so the page size
+        // echoed here and the unmatched keys it reports describe the same set. Annotate mode is
+        // simply "distinctKeys is not null": Distinct of a non-empty array is never empty, so one
+        // nullable carries both the mode and the count.
         string[]? distinctKeys = keys is { Length: > 0 } ? keys.Distinct(StringComparer.Ordinal).ToArray() : null;
-        var keyCount = distinctKeys?.Length ?? 0;
-        var annotate = keyCount > 0;
 
-        // The three modes are orthogonal by design: annotate answers "how are these specific
-        // collections", so pagination and discovery filters cannot meaningfully combine with it.
-        if (annotate && cursor is not null)
-            return TypedResults.Problem(
-                detail: "The key filter cannot be combined with a cursor: annotate requests are not paginated.",
-                statusCode: StatusCodes.Status400BadRequest
-            );
+        if (distinctKeys is not null)
+        {
+            // The three modes are orthogonal by design: annotate answers "how are these specific
+            // collections", so pagination and discovery filters cannot meaningfully combine with it.
+            if (cursor is not null)
+                return TypedResults.Problem(
+                    detail: "The key filter cannot be combined with a cursor: annotate requests are not paginated.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
 
-        if (annotate && failures is not null)
-            return TypedResults.Problem(
-                detail: "The key filter cannot be combined with the failures filter: annotate reports the health of the requested keys as-is.",
-                statusCode: StatusCodes.Status400BadRequest
-            );
+            if (failures is not null)
+                return TypedResults.Problem(
+                    detail: "The key filter cannot be combined with the failures filter: annotate reports the health of the requested keys as-is.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
 
-        // Reject rather than truncate: silently dropping keys from a health read would let their
-        // failures pass as healthy, which is the exact failure class this endpoint exists to fix.
-        if (keyCount > pagination.MaxAnnotateKeys)
-            return TypedResults.Problem(
-                detail: $"Too many keys: {keyCount} distinct keys supplied, maximum is {pagination.MaxAnnotateKeys}. Split the request instead — keys are never silently truncated.",
-                statusCode: StatusCodes.Status400BadRequest
-            );
+            // Reject rather than truncate: silently dropping keys from a health read would let
+            // their failures pass as healthy, which is the exact failure class this endpoint
+            // exists to fix.
+            if (distinctKeys.Length > pagination.MaxAnnotateKeys)
+                return TypedResults.Problem(
+                    detail: $"Too many keys: {distinctKeys.Length} distinct keys supplied, maximum is {pagination.MaxAnnotateKeys}. Split the request instead — keys are never silently truncated.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+        }
 
         CollectionFailureFilter? failureFilter = null;
         if (failures is not null)
@@ -941,9 +947,8 @@ internal static class EngineRequestHandlers
 
         // Annotate mode is a single page by construction: the page must fit every requested key
         // (their count is already capped at MaxAnnotateKeys above), so pageSize is ignored.
-        var effectivePageSize = annotate
-            ? keyCount
-            : Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
+        var effectivePageSize =
+            distinctKeys?.Length ?? Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
         ns = NormalizeNamespace(ns);
 
@@ -958,7 +963,7 @@ internal static class EngineRequestHandlers
 
         // Annotate mode always answers 200: an empty data set still carries unmatchedKeys, which the
         // caller must be able to distinguish from "no failures".
-        if (result.TotalCount == 0 && !annotate)
+        if (result.TotalCount == 0 && distinctKeys is null)
             return TypedResults.NoContent();
 
         return TypedResults.Ok(

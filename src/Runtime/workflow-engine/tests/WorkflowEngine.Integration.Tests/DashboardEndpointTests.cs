@@ -174,16 +174,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         // Arrange — a failing workflow with a dependent: the head fails, the dependent lands in
         // DependencyFailed, and abandoning the head moves it to Abandoned. Both statuses used to be
         // silently dropped by the query status parser.
-        fixture.WireMock.Reset();
-        fixture
-            .WireMock.Given(WireMock.RequestBuilders.Request.Create().WithPath("/dash-fail").UsingAnyMethod())
-            .AtPriority(1)
-            .RespondWith(WireMock.ResponseBuilders.Response.Create().WithStatusCode(500));
-        // Catch-all at the lowest precedence (lower priority values win) so the failing path above matches first.
-        fixture
-            .WireMock.Given(WireMock.RequestBuilders.Request.Create().UsingAnyMethod())
-            .AtPriority(int.MaxValue)
-            .RespondWith(WireMock.ResponseBuilders.Response.Create().WithStatusCode(200));
+        fixture.FailPaths("/dash-fail");
 
         var request = _testHelpers.CreateEnqueueRequest([
             _testHelpers.CreateWorkflow("wf-fail", [_testHelpers.CreateWebhookStep("/dash-fail")]),

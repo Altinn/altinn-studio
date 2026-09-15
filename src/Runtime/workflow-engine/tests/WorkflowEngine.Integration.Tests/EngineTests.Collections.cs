@@ -237,19 +237,7 @@ public partial class EngineTests
         //   fail-abandon   → Failed then abandoned           (excluded from failed buckets, in total)
         //   scheduled      → Enqueued with future StartAt    (active)
         //   held-receiver  → Held on an open mailbox         (active — parked is not settled)
-        fixture.WireMock.Reset();
-        foreach (var path in new[] { "/fail-visible", "/fail-invisible", "/fail-abandon" })
-        {
-            fixture
-                .WireMock.Given(Request.Create().WithPath(path).UsingAnyMethod())
-                .AtPriority(1)
-                .RespondWith(Response.Create().WithStatusCode(500));
-        }
-        // Catch-all at the lowest precedence (lower priority values win) so the failing paths above match first.
-        fixture
-            .WireMock.Given(Request.Create().UsingAnyMethod())
-            .AtPriority(int.MaxValue)
-            .RespondWith(Response.Create().WithStatusCode(200));
+        fixture.FailPaths("/fail-visible", "/fail-invisible", "/fail-abandon");
 
         // A receiver on an open mailbox is born Held, which the rollup must read as active: the
         // status is non-terminal (PersistentItemStatusMap.Incomplete), so it consumes admission
@@ -315,16 +303,7 @@ public partial class EngineTests
     public async Task ListCollections_Discover_FiltersByFailureVisibility()
     {
         // Arrange — three collections: healthy, one visible failure, one invisible failure.
-        fixture.WireMock.Reset();
-        fixture
-            .WireMock.Given(Request.Create().WithPath("/discover-fail").UsingAnyMethod())
-            .AtPriority(1)
-            .RespondWith(Response.Create().WithStatusCode(500));
-        // Catch-all at the lowest precedence (lower priority values win) so the failing path above matches first.
-        fixture
-            .WireMock.Given(Request.Create().UsingAnyMethod())
-            .AtPriority(int.MaxValue)
-            .RespondWith(Response.Create().WithStatusCode(200));
+        fixture.FailPaths("/discover-fail");
 
         var healthy = await _client.Enqueue(
             _testHelpers.CreateEnqueueRequest(

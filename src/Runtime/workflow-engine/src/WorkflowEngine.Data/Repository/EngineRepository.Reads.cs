@@ -43,7 +43,9 @@ internal sealed partial class EngineRepository
 
             var baseQuery = context.WorkflowCollections.Where(c => c.Namespace == normalizedNs);
 
-            var requestedKeys = keys is { Count: > 0 } ? keys.Distinct(StringComparer.Ordinal).ToArray() : null;
+            // Deduplication is the caller's (documented on IEngineRepository.GetCollections): one
+            // pass, so the page size it echoes and the unmatched keys reported below agree.
+            var requestedKeys = keys is { Count: > 0 } ? keys.ToArray() : null;
             if (requestedKeys is not null)
             {
                 baseQuery = baseQuery.Where(c => requestedKeys.Contains(c.Key));
