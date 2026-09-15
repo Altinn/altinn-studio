@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -374,6 +375,7 @@ internal static class DashboardEndpoints
                     string? labels,
                     string? collectionKey,
                     string? @namespace,
+                    bool? isHead,
                     CancellationToken ct
                 ) =>
                 {
@@ -384,23 +386,17 @@ internal static class DashboardEndpoints
                     string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
                     collectionKey = string.IsNullOrWhiteSpace(collectionKey) ? null : collectionKey;
 
+                    // Derive the recognized set from the enum itself (a hand-rolled name list is
+                    // exactly how DependencyFailed and Abandoned were silently dropped before).
+                    // Unknown values are still leniently ignored — the dashboard's existing contract.
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
                         ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
                         : status
                             .Split(',')
                             .Select(s =>
-                                s.Trim().ToUpperInvariant() switch
-                                {
-                                    "COMPLETED" => PersistentItemStatus.Completed,
-                                    "FAILED" => PersistentItemStatus.Failed,
-                                    "REQUEUED" => PersistentItemStatus.Requeued,
-                                    "WAITING" => PersistentItemStatus.Waiting,
-                                    "HELD" => PersistentItemStatus.Held,
-                                    "ENQUEUED" => PersistentItemStatus.Enqueued,
-                                    "PROCESSING" => PersistentItemStatus.Processing,
-                                    "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
-                                    _ => null,
-                                }
+                                EnumNames.TryParse(s.Trim(), out PersistentItemStatus parsed)
+                                    ? (PersistentItemStatus?)parsed
+                                    : null
                             )
                             .OfType<PersistentItemStatus>()
                             .ToArray();
@@ -421,6 +417,7 @@ internal static class DashboardEndpoints
                         labelFilters: labelFilters,
                         namespaceFilter: nsFilter,
                         collectionKey: collectionKey,
+                        isHead: isHead,
                         cancellationToken: ct
                     );
 
