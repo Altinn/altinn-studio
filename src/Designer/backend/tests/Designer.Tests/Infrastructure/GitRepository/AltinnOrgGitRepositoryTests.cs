@@ -84,6 +84,50 @@ public class AltinnOrgGitRepositoryTests : IDisposable
 
     [Theory]
     [InlineData("org-content-empty", "nb")]
+    public async Task SaveText_SchemaNotSet_ShouldAddSchema(string repository, string language)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+        TextResource textResource = new()
+        {
+            Language = language,
+            Resources = [new() { Id = "someId", Value = "someValue" }],
+        };
+
+        // Act
+        await altinnOrgGitRepository.SaveText(language, textResource);
+        TextResource savedTextResource = await altinnOrgGitRepository.GetText(language);
+
+        // Assert
+        Assert.Equal(TextResource.SchemaUrl, savedTextResource.Schema);
+    }
+
+    [Theory]
+    [InlineData("org-content-empty", "nb")]
+    public async Task SaveText_SchemaAlreadySet_ShouldKeepExistingSchema(string repository, string language)
+    {
+        // Arrange
+        TargetOrg = TestDataHelper.GenerateTestOrgName();
+        AltinnOrgGitRepository altinnOrgGitRepository = await PrepareRepositoryForTest(repository);
+        string existingSchema = "https://example.com/some-other-schema.json";
+        TextResource textResource = new()
+        {
+            Schema = existingSchema,
+            Language = language,
+            Resources = [new() { Id = "someId", Value = "someValue" }],
+        };
+
+        // Act
+        await altinnOrgGitRepository.SaveText(language, textResource);
+        TextResource savedTextResource = await altinnOrgGitRepository.GetText(language);
+
+        // Assert
+        Assert.Equal(existingSchema, savedTextResource.Schema);
+    }
+
+    [Theory]
+    [InlineData("org-content-empty", "nb")]
     public async Task TextResourceFileExists_WithEmptyRepo_ShouldReturnFalse(string repository, string language)
     {
         // Arrange
