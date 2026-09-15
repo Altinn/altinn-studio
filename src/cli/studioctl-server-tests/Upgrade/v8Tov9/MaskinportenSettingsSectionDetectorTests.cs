@@ -147,6 +147,32 @@ public sealed class MaskinportenSettingsSectionDetectorTests : IDisposable
         Assert.Empty(result.Warnings);
     }
 
+    /// <summary>
+    /// A built-in-only key beside external ones says the built-in client was meant - a v8 section that grew a
+    /// <c>Scope</c> from a copied example, say. The external package never reads <c>jwkBase64</c>, so nothing
+    /// reads this object in v9, and it must be reported.
+    /// </summary>
+    [Fact]
+    public void DefaultSection_BuiltInKeyBesideExternalKeys_IsStillReported()
+    {
+        _app.Write(
+            "appsettings.json",
+            """
+            {
+              "MaskinportenSettings": {
+                "clientId": "x",
+                "Scope": "altinn:serviceowner/instances.read",
+                "jwkBase64": "eyJraWQiOiJ0ZXN0In0="
+              }
+            }
+            """
+        );
+
+        var result = Detect();
+
+        Assert.Contains(result.Warnings, w => w.Contains("appsettings.json: MaskinportenSettings"));
+    }
+
     // --- sections the code named ------------------------------------------------------------------
 
     /// <summary>
@@ -202,6 +228,29 @@ public sealed class MaskinportenSettingsSectionDetectorTests : IDisposable
         );
 
         var result = Detect("integrations:fiks:maskinporten");
+
+        Assert.Contains(result.Warnings, w => w.Contains("appsettings.json: Integrations:Fiks:Maskinporten"));
+    }
+
+    /// <summary>
+    /// The JSON provider flattens a key that contains the separator, so <c>"Integrations:Fiks": { "Maskinporten"
+    /// ... }</c> is the same configuration path as the nested spelling and has to resolve too.
+    /// </summary>
+    [Fact]
+    public void FlattenedPrefixKey_IsResolved()
+    {
+        _app.Write(
+            "appsettings.json",
+            """
+            {
+              "Integrations:Fiks": {
+                "Maskinporten": { "authority": "https://test.maskinporten.no/", "clientId": "fiks-client" }
+              }
+            }
+            """
+        );
+
+        var result = Detect("Integrations:Fiks:Maskinporten");
 
         Assert.Contains(result.Warnings, w => w.Contains("appsettings.json: Integrations:Fiks:Maskinporten"));
     }
@@ -299,6 +348,19 @@ public sealed class MaskinportenSettingsSectionDetectorTests : IDisposable
         var result = Detect();
 
         Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void UnboundObjectWithBuiltInKeyBesideExternalKeys_IsAdvisedAsLeftover()
+    {
+        _app.Write(
+            "appsettings.json",
+            """{ "reporting": { "clientId": "x", "Scope": "s", "jwkBase64": "eyJraWQiOiJ0ZXN0In0=" } }"""
+        );
+
+        var result = Detect();
+
+        Assert.Contains(result.Warnings, w => w.Contains("appsettings.json: reporting"));
     }
 
     [Fact]

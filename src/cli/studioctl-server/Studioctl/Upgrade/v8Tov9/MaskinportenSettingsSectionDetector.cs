@@ -121,9 +121,10 @@ internal sealed class MaskinportenSettingsSectionDetector
 
                 matched.Add(actualPath);
                 // The default section was bound implicitly; shaped for the external package, it is that package's
-                // to read. A section the code named explicitly is dead whatever its shape.
+                // to read. A built-in-only key (jwkBase64, say) beside external keys says the built-in client was
+                // meant, whatever else is there. A section the code named explicitly is dead whatever its shape.
                 var isDefault = string.Equals(section, DefaultSectionName, StringComparison.OrdinalIgnoreCase);
-                if (isDefault && HasAnyKey(element, _externalOnlyKeys))
+                if (isDefault && HasAnyKey(element, _externalOnlyKeys) && !HasAnyKey(element, _builtInOnlyKeys))
                 {
                     continue;
                 }
@@ -137,7 +138,7 @@ internal sealed class MaskinportenSettingsSectionDetector
                 {
                     continue;
                 }
-                if (LooksLikeBuiltInCredentials(element, path) && !HasAnyKey(element, _externalOnlyKeys))
+                if (LooksLikeBuiltInCredentials(element, path) && !IsExternalPackageObject(element))
                 {
                     leftovers.Add(Describe(relativeFile, path));
                 }
@@ -163,38 +164,41 @@ internal sealed class MaskinportenSettingsSectionDetector
 
     /// <summary>
     /// The object at a configuration path, matched the way .NET configuration matches: case-insensitively,
-    /// with <c>:</c> separating levels. A key that itself contains the separator (<c>"a:b": {...}</c>) is
-    /// tried before descending, since the JSON provider flattens both spellings to the same path.
+    /// with <c>:</c> separating levels. The JSON provider flattens <c>"a:b": { "c": ... }</c> and nested
+    /// <c>a → b → c</c> to the same path, so at each level the longest key that is a prefix of the remaining
+    /// path is taken before descending.
     /// </summary>
     private static bool TryResolve(JsonElement root, string path, out JsonElement element, out string actualPath)
     {
         element = root;
         actualPath = string.Empty;
-        var remaining = path;
+        var segments = path.Split(':');
+        var consumed = 0;
 
-        while (remaining.Length > 0)
+        while (consumed < segments.Length)
         {
             if (element.ValueKind != JsonValueKind.Object)
             {
                 return false;
             }
 
-            if (TryGetProperty(element, remaining, out var whole, out var wholeName))
+            var found = false;
+            for (var take = segments.Length - consumed; take >= 1; take--)
             {
-                element = whole;
-                actualPath = Join(actualPath, wholeName);
-                break;
+                var candidate = string.Join(':', segments, consumed, take);
+                if (TryGetProperty(element, candidate, out var next, out var nextName))
+                {
+                    element = next;
+                    actualPath = Join(actualPath, nextName);
+                    consumed += take;
+                    found = true;
+                    break;
+                }
             }
-
-            var separator = remaining.IndexOf(':', StringComparison.Ordinal);
-            if (separator < 0 || !TryGetProperty(element, remaining[..separator], out var next, out var nextName))
+            if (!found)
             {
                 return false;
             }
-
-            element = next;
-            actualPath = Join(actualPath, nextName);
-            remaining = remaining[(separator + 1)..];
         }
 
         return element.ValueKind == JsonValueKind.Object;
@@ -257,6 +261,13 @@ internal sealed class MaskinportenSettingsSectionDetector
 
         return HasKey(element, "authority") && path.Contains("maskinporten", StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>
+    /// Whether an object is the external package's, so that package still reads it. A built-in-only key
+    /// beside external ones says otherwise: the built-in client was meant, and the object is dead.
+    /// </summary>
+    private static bool IsExternalPackageObject(JsonElement element) =>
+        HasAnyKey(element, _externalOnlyKeys) && !HasAnyKey(element, _builtInOnlyKeys);
 
     private static bool HasKey(JsonElement element, string key) =>
         element
