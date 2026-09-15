@@ -30,6 +30,9 @@ spec:
     # - type: codex
     #   version: "0.149.1"
     #   auth: mediated
+  environment:
+    - name: GIT_USER_NAME
+    - name: GIT_USER_EMAIL
   secrets:
     - environment: GITHUB_TOKEN
       # gh only attaches files with a token it classifies by prefix; the inert placeholder

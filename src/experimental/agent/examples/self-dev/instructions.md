@@ -24,12 +24,13 @@ To run a nested Agent, log the nested `agentd` in with the placeholders this San
 ```sh
 printf '%s\n' "$CLAUDE_CODE_OAUTH_TOKEN" | agentctl claude login --from-stdin
 agentctl codex login --from-stdin < ~/.codex/auth.json
-printf 'GITHUB_TOKEN=%s\n' "$GITHUB_TOKEN" > ~/nested.env
+printf 'GITHUB_TOKEN=%s\nGIT_USER_NAME=%s\nGIT_USER_EMAIL=%s\n' \
+  "$GITHUB_TOKEN" "$GIT_USER_NAME" "$GIT_USER_EMAIL" > ~/nested.env
 agentctl apply -f altinn-studio/src/experimental/agent/examples/self-dev/nested/agent.yaml --env-file ~/nested.env
 ```
 
-Real secrets are host-mediated: never search for, print, copy or persist their values. The placeholders above are
-inert and are the only credential-shaped values you may copy.
+Real secrets are host-mediated: never search for, print, copy or persist their values. The credential placeholder
+above is inert. Git identity is explicitly selected non-secret data and enters both Sandboxes in plaintext.
 
 Build steps inside Podman trust the mediated CA through the system store and `/run/agent/tls/ca-bundle.pem`. Buildah
 drops default environment from build stages, so tools that ignore the system store need it per step, for example

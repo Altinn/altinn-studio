@@ -94,8 +94,8 @@ enum Command {
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
-        /// File supplying manifest secret values; defaults to `.env` beside the manifest. Use a
-        /// path outside any bind-mounted directory so real values never enter the Sandbox.
+        /// File supplying declared manifest environment and secret values; defaults to `.env`
+        /// beside the manifest. Keep files containing secrets outside bind-mounted directories.
         #[arg(long)]
         env_file: Option<PathBuf>,
         /// Stay attached after applying and show provisioning progress until the Agent is Ready.

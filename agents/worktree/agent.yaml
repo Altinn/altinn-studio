@@ -31,6 +31,9 @@ spec:
   harnesses:
     - type: claudeCode
       auth: mediated
+  environment:
+    - name: GIT_USER_NAME
+    - name: GIT_USER_EMAIL
   network:
     mode: mediated
     allow: all

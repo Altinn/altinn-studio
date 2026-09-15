@@ -134,6 +134,7 @@ impl Provider for CountingProvider {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
         _progress: agent::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
@@ -145,7 +146,7 @@ impl Provider for CountingProvider {
                 .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
             let sandbox = self
                 .service
-                .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec))
+                .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec).with_environment(environment))
                 .await
                 .map_err(Error::from)?;
             Ok(ProviderEnsureOutcome {

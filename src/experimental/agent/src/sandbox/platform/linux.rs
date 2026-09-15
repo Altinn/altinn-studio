@@ -155,6 +155,7 @@ impl Linux {
         configure_podman(sandbox).await?;
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
+        configure_git_identity(sandbox).await?;
         let instructions = read_instructions(record).await?;
         let skills = read_skills(record).await?;
         for installation in &record.agent.spec.harnesses {
@@ -162,6 +163,46 @@ impl Linux {
         }
         Ok(())
     }
+}
+
+async fn configure_git_identity(sandbox: &SandboxHandle) -> Result<(), Error> {
+    let environment = &sandbox.snapshot().environment;
+    let (Some(name), Some(email)) = (environment.get("GIT_USER_NAME"), environment.get("GIT_USER_EMAIL")) else {
+        if environment.contains_key("GIT_USER_NAME") || environment.contains_key("GIT_USER_EMAIL") {
+            return Err(Error::Invalid(
+                "GIT_USER_NAME and GIT_USER_EMAIL must both be configured".into(),
+            ));
+        }
+        return Ok(());
+    };
+    let present = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/env"),
+            ["git".into(), "--version".into()],
+        ))
+        .await?;
+    match present.status.code {
+        127 => return Ok(()),
+        0 => {}
+        code => {
+            return Err(Error::SandboxSetup(format!(
+                "Git presence check exited with code {code}"
+            )));
+        }
+    }
+    run_git_config(sandbox, "user.name", name).await?;
+    run_git_config(sandbox, "user.email", email).await
+}
+
+async fn run_git_config(sandbox: &SandboxHandle, key: &str, value: &str) -> Result<(), Error> {
+    let args = ["git", "config", "--global", key, value];
+    let output = sandbox
+        .run_execution(
+            ExecutionSpec::command(SandboxPath::new("/usr/bin/env"), args.into_iter().map(str::to_owned))
+                .with_environment([("HOME".into(), HOME.into())]),
+        )
+        .await?;
+    checked_output("/usr/bin/env", &args, &output)
 }
 
 async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
@@ -446,6 +487,14 @@ pub(crate) async fn run_checked<const N: usize>(
             args.into_iter().map(str::to_owned),
         ))
         .await?;
+    checked_output(executable, &args, &output)
+}
+
+fn checked_output(
+    executable: &str,
+    args: &[&str],
+    output: &::sandbox::execution::ExecutionOutput,
+) -> Result<(), Error> {
     if output.status.success() {
         return Ok(());
     }

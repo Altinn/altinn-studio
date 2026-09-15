@@ -36,6 +36,10 @@ pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str
     name == ACCESS_ENVIRONMENT || placeholder == Some(ACCESS_PLACEHOLDER)
 }
 
+pub(super) fn manages_environment(name: &str) -> bool {
+    matches!(name, ACCESS_ENVIRONMENT | "CLAUDE_CONFIG_DIR" | "DISABLE_AUTOUPDATER")
+}
+
 /// Long-lived Claude setup tokens carry this prefix.
 const SETUP_TOKEN_PREFIX: &str = "sk-ant-oat";
 
