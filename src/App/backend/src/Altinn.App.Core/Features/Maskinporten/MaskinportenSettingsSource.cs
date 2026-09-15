@@ -23,13 +23,17 @@ namespace Altinn.App.Core.Features.Maskinporten;
 internal sealed class MaskinportenSettingsSource : IDisposable
 {
     /// <summary>
+    /// The file the platform provisions the app's credentials in, wherever it provisions it.
+    /// </summary>
+    internal const string FileName = "maskinporten-settings.json";
+
+    /// <summary>
     /// Where the platform provisions the app's credentials. Deliberately not reachable from the app's
     /// configuration: an app able to move this could point the client at an identity of its own, which is
     /// the whole thing this type exists to prevent. It stays internal rather than becoming a constant so
     /// the library can source the file elsewhere should the need ever arise, and so tests can supply one.
     /// </summary>
-    internal static string DefaultFilePath { get; } =
-        Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, "maskinporten-settings.json");
+    internal static string DefaultFilePath { get; } = Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, FileName);
 
     /// <summary>
     /// The object the provisioned file wraps its credentials in.
