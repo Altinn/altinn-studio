@@ -92,6 +92,18 @@ describe('WorkflowActions', () => {
     );
   });
 
+  it('gives the initial focus to Cancel, never to the confirm button', async () => {
+    const user = userEvent.setup();
+    // An already written-off workflow offers a single verb, so there is one dialog to look in.
+    renderWorkflowActions(workflow('Abandoned'));
+
+    await user.click(retryButton());
+
+    // Pressing Enter as the dialog appears must not confirm it unread.
+    expect(screen.getByRole('button', { name: textMock('general.cancel') })).toHaveFocus();
+    expect(confirmButton('admin.workflows.actions.retry.confirm')).not.toHaveFocus();
+  });
+
   it('asks for confirmation before writing a failure off', async () => {
     const user = userEvent.setup();
     renderWorkflowActions(workflow('Failed'));
@@ -160,6 +172,29 @@ describe('WorkflowActions', () => {
     expect(
       screen.queryByRole('button', { name: textMock('admin.workflows.actions.retry') }),
     ).not.toBeInTheDocument();
+  });
+
+  it('drops the previous outcome once the same workflow fails again', async () => {
+    const user = userEvent.setup();
+    const { rerenderWith } = renderWorkflowActions(workflow('Failed'));
+
+    await user.click(retryButton());
+    await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
+    rerenderWith(workflow('Enqueued'));
+    expect(
+      await screen.findByText(textMock('admin.workflows.actions.retry.success')),
+    ).toBeInTheDocument();
+
+    // Resume reuses the workflow id, so the item is never remounted: a stale "queued again" next to
+    // the verbs for the new failure would read as if this failure had already been handled.
+    rerenderWith(workflow('Failed'));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(textMock('admin.workflows.actions.retry.success')),
+      ).not.toBeInTheDocument(),
+    );
+    expect(retryButton()).toBeInTheDocument();
   });
 });
 
