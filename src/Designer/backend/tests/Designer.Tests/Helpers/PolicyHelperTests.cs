@@ -54,6 +54,11 @@ public class PolicyHelperTests : IDisposable
         "resource_registry_delegatableapi_converted.xml",
         "resource_registry_delegatableapi.json"
     )]
+    [InlineData(
+        "resource_registry_systemuser_authlevel.xml",
+        "resource_registry_systemuser_authlevel_converted.xml",
+        "resource_registry_systemuser_authlevel.json"
+    )]
     public void TestXacmlToJson(string xmlPolicy, string convertedXamlPolicyName, string convertedJsonPolicyName)
     {
         _convertedJsonPolicyName = convertedJsonPolicyName;
