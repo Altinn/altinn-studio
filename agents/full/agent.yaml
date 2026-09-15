@@ -16,6 +16,12 @@ spec:
         capacity: "64Gi"
         mode: direct
     initSystem: image
+    # The Sandbox default sizes /tmp at a quarter of guest memory, capped at 512 MiB, which is
+    # too small for a large build's scratch space. A tmpfs holds only what is written to it.
+    mounts:
+      - type: tmpfs
+        target: /tmp
+        capacity: "2Gi"
   home:
     source: home
   instructions:
