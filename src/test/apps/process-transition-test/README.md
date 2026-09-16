@@ -31,8 +31,8 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
 
 - **Waiting step (#18935):** `postCommit` + `advance: park` → submit Task_1. The transition
   commits, the service task succeeds without advancing, and the frontend shows the built-in
-  waiting view (spinner + «Vi behandler forespørselen din»), polling underneath. Release it (see
-  below) and the page navigates to Task_2 on its own. Survives a refresh.
+  loading skeleton, polling underneath. Release it (see below) and the page navigates to Task_2
+  on its own. Survives a refresh.
 - **Self-releasing wait:** `postCommit` + `advance: parkThenRelease` → the same, but hands-free:
   the app's `ParkedTaskReleaser` waits ~5s and drives an authorized `process/next` itself, using a
   service-owner (org) token against the public app URL — like the Maskinporten-authenticated
@@ -46,10 +46,8 @@ path and are hidden while `path` is `none`; `advance`/`serviceView` further appl
   Compare with `advance: park` above: both leave you on the service task, and they are opposites
   underneath. A parked task has **succeeded** — its workflow is settled, and only an out-of-band
   `process/next` moves it — whereas a deferring task is **still running** and the engine resumes it
-  on its own timer. On the default view the UI follows that difference: parked shows the
-  service-task waiting view («Vi behandler forespørselen din»), deferring shows the standard form
-  loader. With `serviceView: layout` the two are
-  deliberately identical: the app's own page owns the waiting presentation for both. A lost
+  on its own timer. Both use the standard form loading skeleton on the default view.
+  With `serviceView: layout`, the app's own page owns the waiting presentation for both. A lost
   external signal strands the first and merely delays the second.
 - **Why is it waiting?** while a deferral is parked, the task's own reason (this app passes one on
   every `Defer`) travels all the way out: `lastDeferReason` on the engine step, `waitingReason` on

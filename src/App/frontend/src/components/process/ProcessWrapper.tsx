@@ -24,7 +24,6 @@ import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
-import { ServiceTaskWaiting } from 'src/features/process/service/ServiceTaskWaiting';
 import { useFollowProcess } from 'src/features/process/useFollowProcess';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
@@ -268,9 +267,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   if (taskType === ProcessTaskType.Service) {
     return (
       <PdfWrapper>
-        <PresentationComponent>
-          <ServiceTaskWaiting />
-        </PresentationComponent>
+        <Loader reason='service-task-waiting' />
       </PdfWrapper>
     );
   }

@@ -54,10 +54,9 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
   });
 
-  it('idle-parked service task without a layout renders the waiting view, not the failure screen', async () => {
+  it('idle-parked service task without a layout renders the standard loader', async () => {
     // The process is parked on a service task pending an outcome (e.g. an external callback), and
-    // nothing has failed. Before #18935 this rendered the failure-styled retry/back screen; now it
-    // is an implicit waiting step: spinner + reassurance, no recovery buttons, polling underneath.
+    // nothing has failed. Use the same skeleton as processing, with polling underneath.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask = {
       ...instance.process.currentTask!,
@@ -74,6 +73,7 @@ describe('ProcessWrapper workflow state machine', () => {
           <div data-testid='task-content'>Task content</div>
         </ProcessWrapper>
       ),
+      waitUntilLoaded: false,
       taskId: 'Task_Service',
       apis: {
         instanceApi: {
@@ -82,8 +82,11 @@ describe('ProcessWrapper workflow state machine', () => {
       },
     });
 
-    expect(await screen.findByText(/vi behandler forespørselen din/i)).toBeInTheDocument();
-    expect(screen.getByText(/du trenger ikke å gjøre noe/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'service-task-waiting'));
+    expect(screen.getByRole('heading', { name: /vent litt, vi henter det du trenger/i })).toBeInTheDocument();
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/du trenger ikke å gjøre noe/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /gå tilbake/i })).not.toBeInTheDocument();

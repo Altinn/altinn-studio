@@ -35,9 +35,9 @@ const appFrontend = new AppFrontend();
  *                WITHOUT advancing - the process stays on the service task until an out-of-band
  *                process/next releases it; the frontend renders its implicit waiting step, #18935).
  *                Park and a deferral both leave the user on the service task but are opposites
- *                underneath. On the default view the UI follows: a parked task has SUCCEEDED
- *                (workflow idle -> the service-task waiting view), a deferring one is STILL RUNNING
- *                (workflow processing -> the standard form loader). On a layouted task the two
+ *                underneath. Both default views use the standard form loader: a parked task has
+ *                SUCCEEDED (workflow idle), a deferring one is STILL RUNNING (workflow processing).
+ *                On a layouted task the two
  *                are deliberately identical: the app's page owns the waiting presentation for both.
  *                A lost signal strands the first, merely delays the second.
  *   - serviceView "default" (Task_Service, built-in waiting/failure views) or "layout"
@@ -80,6 +80,7 @@ type Levers = {
 const task1AdvanceButton = 'Gå til Task 2';
 const task2SubmitButton = 'Send inn';
 const workflowLoader = () => cy.get('[data-loading][data-reason="workflow-processing"]');
+const serviceTaskLoader = () => cy.get('[data-loading][data-reason="service-task-waiting"]', { timeout: 30000 });
 
 // The levers are Dropdowns whose option labels are the descriptive nb.json strings; dsSelect/have.value
 // match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / 1 attempt /
@@ -353,7 +354,7 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
-  it('parked (post-commit): a healthy parked service task shows the waiting view, survives refresh, and follows the release', () => {
+  it('parked (post-commit): a healthy parked service task shows the skeleton, survives refresh, and follows the release', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     // park: the transition commits and the service task succeeds WITHOUT auto-advancing - the
     // process stays on Task_Service, simulating a task waiting for an external callback.
@@ -361,11 +362,11 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    // The submitting session lands on the parked service task and renders the implicit waiting
-    // step (#18935): spinner + reassurance, with NO recovery buttons - before this feature the
-    // parked-but-healthy task showed the failure-styled retry/back screen.
-    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
-    cy.contains('Du trenger ikke å gjøre noe').should('be.visible');
+    // A parked service task uses the standard skeleton without the old spinner and reassurance.
+    serviceTaskLoader().should('be.visible');
+    cy.findByRole('heading', { name: 'Vent litt, vi henter det du trenger' }).should('be.visible');
+    cy.contains('Vi behandler forespørselen din').should('not.exist');
+    cy.contains('Du trenger ikke å gjøre noe').should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
 
@@ -373,7 +374,7 @@ describe('Live workflow status (real engine)', () => {
     // the same view.
     waitForProcessState({ workflowStatus: 'idle', currentTask: 'Task_Service' });
     cy.reload();
-    cy.contains('Vi behandler forespørselen din', { timeout: 15000 }).should('be.visible');
+    serviceTaskLoader().should('be.visible');
 
     // Release the parked task out-of-band (an authorized process/next - what an external
     // callback's handler would trigger). The polling waiting view observes the advance and
@@ -395,7 +396,7 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     // The user sees an in-flight transition, not a settled one: a deferring step is still working, so
-    // the frontend shows the standard loader, not the parked service-task view, and offers
+    // the frontend shows the standard loader while the workflow is processing and offers
     // no recovery affordances.
     workflowLoader().should('be.visible');
     cy.contains('Vi behandler forespørselen din').should('not.exist');
@@ -411,8 +412,8 @@ describe('Live workflow status (real engine)', () => {
   it('deferral vs park: a deferring task reports processing and renders the loader', () => {
     // Park and defer both leave the user on the service task and are opposites underneath: a parked
     // step has SUCCEEDED (workflow idle, moves only when something drives it), a deferring one is
-    // STILL RUNNING (workflow processing, resumes itself). The difference shows in both places, so
-    // pin both — the server status and the view that status selects.
+    // STILL RUNNING (workflow processing, resumes itself). Both use the standard skeleton,
+    // while the processing status selects the workflow loader with its delayed notice.
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', deferrals: 3, deferDelayMs: 5000 });
 
@@ -481,7 +482,7 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    cy.contains('Vi behandler forespørselen din', { timeout: 30000 }).should('be.visible');
+    serviceTaskLoader().should('be.visible');
 
     // No cy.moveProcessNext() here - the waiting view's poll observes the app's own release and
     // navigates onto Task_2 by itself.
