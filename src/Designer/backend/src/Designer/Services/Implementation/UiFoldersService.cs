@@ -61,8 +61,10 @@ public class UiFoldersService : IUiFoldersService
         );
     }
 
+    // Service tasks count here: a PDF service task's ui folder is named after the service task, so renaming
+    // the folder has to rename the service task with it, exactly as for an ordinary process task.
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
-        definitions.Process.Tasks.Any(task => task.Id == taskId);
+        definitions.Process.AllTasks().Any(task => task.Id == taskId);
 
     public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
@@ -451,7 +453,9 @@ public class UiFoldersService : IUiFoldersService
     /// <summary>
     /// Shared logic for resolving layout sets from the UI folders. Since v9 apps no longer have a
     /// layout-sets.json file, layout sets are derived from the UI folders combined with the process
-    /// definitions. Only folders that are subforms or that match a process task are included.
+    /// definitions. Only folders that are subforms or that match a task are included. A service task
+    /// counts as a match: a PDF task in layout-based mode owns a ui folder just like a process task does,
+    /// and leaving service tasks out of the match dropped those layout sets from every list built here.
     /// </summary>
     private async Task<List<LayoutSetInfo>> GetLayoutSetInfos(
         AltinnRepoEditingContext editingContext,
@@ -464,7 +468,7 @@ public class UiFoldersService : IUiFoldersService
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
         // Order layout sets by their task's position in the process flow, with subforms (no task) last.
-        List<string> orderedTaskIds = definitions.Process.OrderTaskIdsByFlow();
+        List<string> orderedTaskIds = definitions.Process.OrderAllTaskIdsByFlow();
         Dictionary<string, int> taskOrderById = orderedTaskIds
             .Select((taskId, index) => (taskId, index))
             .ToDictionary(entry => entry.taskId, entry => entry.index);
@@ -508,10 +512,13 @@ public class UiFoldersService : IUiFoldersService
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
 
+    // Resolves the Altinn task type behind a layout set. Service tasks are included so a PDF layout set
+    // reports "pdf" rather than an empty type.
     private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
     {
         return definitions
-                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
+                .Process.AllTasks()
+                .FirstOrDefault(task => task.Id == taskId)
                 ?.ExtensionElements?.TaskExtension?.TaskType
             ?? string.Empty;
     }
@@ -771,6 +778,12 @@ public class UiFoldersService : IUiFoldersService
         return globalSettingsFile?.TaskNavigation?.ToList() ?? [];
     }
 
+    /// <summary>
+    /// The tasks of the process definition, used to resolve the Altinn task type of an id. Service tasks
+    /// are included: this resolves the type of ids that are already in the saved navigation, and reporting
+    /// no type for an id that has one would only make it read as unknown. Which tasks a user may put in the
+    /// navigation is decided where the navigation is edited, not here.
+    /// </summary>
     public IEnumerable<ProcessTask> GetTasks(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
@@ -779,7 +792,7 @@ public class UiFoldersService : IUiFoldersService
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        return definitions.Process.Tasks;
+        return definitions.Process.AllTasks();
     }
 
     public async Task UpdateGlobalTaskNavigation(

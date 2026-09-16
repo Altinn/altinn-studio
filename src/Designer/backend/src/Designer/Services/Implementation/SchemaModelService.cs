@@ -597,6 +597,9 @@ public class SchemaModelService : ISchemaModelService
         string id
     )
     {
+        // Process tasks only, deliberately. This restores a data type's task binding, and nothing in
+        // Designer ever binds a data type to a service task, so widening this to service tasks would
+        // invent a binding rather than restore one.
         IEnumerable<string> processTaskIds;
         try
         {
