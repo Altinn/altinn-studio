@@ -37,7 +37,8 @@ spec:
     - type: claudeCode
       auth: mediated
       # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
-      model: fable
+      defaults:
+        model: fable
   environment:
     - name: GIT_USER_NAME
     - name: GIT_USER_EMAIL

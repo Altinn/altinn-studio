@@ -14,11 +14,11 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Added
 
-- `agentctl create` and `agentctl attach` accept `--model` and `--effort`, and the terminal UI's new-session form has matching fields, to choose the model and effort level a Session's harness launches with. Values are the harness's own, for example `fable` or `claude-opus-5` and `high` for Claude Code, or a Codex model name and reasoning effort. `spec.harnesses[].model` and `spec.harnesses[].effort` declare per-installation defaults for Sessions that do not choose. The resolved choice is fixed for the Session's lifetime, survives idle-stop, resume and daemon restarts, and is shown by `agentctl get sessions` and in the terminal UI.
+- `agentctl create` and `agentctl attach` accept `--model` and `--effort`, and the terminal UI's new-session form has the same fields, to choose the model and effort level a Session's harness launches with. Values are the harness's own, for example `fable` and `high` for Claude Code. `spec.harnesses[].defaults` declares per-installation defaults. The choice is fixed for the Session, applied on every relaunch and resume, and shown by `agentctl get sessions`.
 
 ### Changed
 
-- Claude Code Sessions launch on the `fable` alias only when the manifest says so; the `agents/` manifests and the examples now declare `model: fable`. Sessions created before this release keep launching on `fable`.
+- Claude Code Sessions launch on the `fable` alias only when the manifest declares it; the `agents/` manifests and the examples do. Sessions created earlier keep launching on `fable`.
 
 - The Sandbox runtime (microsandbox) was updated. Linux hosts with older system libraries, such as Ubuntu 22.04, can now install it, and a Sandbox that fails to start reports the runtime's own error instead of a bare timeout.
 - Agent instructions now tell Claude Code and Codex not to add `Co-Authored-By` or similar AI-attribution trailers to commits and pull requests.

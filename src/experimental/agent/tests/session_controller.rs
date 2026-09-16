@@ -1674,14 +1674,16 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
     let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     let mut record = ready_record("worker", agent_id);
     record.agent.spec.harnesses[0].default = true;
-    record.agent.spec.harnesses[0].model = Some(agent::Model::new("fable").expect("model"));
+    record.agent.spec.harnesses[0].defaults.model = Some(agent::Model::new("fable").expect("model"));
     record.agent.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
-        model: None,
-        effort: Some(agent::Effort::new("high").expect("effort")),
+        defaults: agent::ModelSelection {
+            model: None,
+            effort: Some(agent::Effort::new("high").expect("effort")),
+        },
     });
     database.put(record.clone(), 0).await.expect("Agent");
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
@@ -1776,13 +1778,10 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
     assert_eq!(explicit.session.harness, agent::Harness::Codex);
     assert_eq!(implicit.session.harness, agent::Harness::ClaudeCode);
     // Manifest defaults fill omitted selections per installation, and nothing else.
-    assert_eq!(explicit.session.model, None);
-    assert_eq!(
-        explicit.session.effort.as_ref().map(agent::Effort::as_str),
-        Some("high")
-    );
-    assert_eq!(implicit.session.model.as_ref().map(agent::Model::as_str), Some("fable"));
-    assert_eq!(implicit.session.effort, None);
+    assert_eq!(explicit.session.model_selection.model_str(), None);
+    assert_eq!(explicit.session.model_selection.effort_str(), Some("high"));
+    assert_eq!(implicit.session.model_selection.model_str(), Some("fable"));
+    assert_eq!(implicit.session.model_selection.effort_str(), None);
 
     let conflict = service
         .ensure(
@@ -1816,16 +1815,18 @@ impl SelectionFixture {
 
 fn selection(model: Option<&str>, effort: Option<&str>) -> SessionRequest {
     SessionRequest {
-        model: model.map(|model| agent::Model::new(model).expect("model")),
-        effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        model_selection: agent::ModelSelection {
+            model: model.map(|model| agent::Model::new(model).expect("model")),
+            effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        },
         ..SessionRequest::default()
     }
 }
 
 fn recorded(session: &agent::sessions::Session) -> (Option<&str>, Option<&str>) {
     (
-        session.model.as_ref().map(agent::Model::as_str),
-        session.effort.as_ref().map(agent::Effort::as_str),
+        session.model_selection.model_str(),
+        session.model_selection.effort_str(),
     )
 }
 
@@ -1874,7 +1875,7 @@ async fn session_ensure_resolves_model_and_effort_with_manifest_defaults() {
 
     // A changed manifest default never reaches an existing Session.
     let mut changed = fixture.record.clone();
-    changed.agent.spec.harnesses[0].model = Some(agent::Model::new("claude-sonnet-5").expect("model"));
+    changed.agent.spec.harnesses[0].defaults.model = Some(agent::Model::new("claude-sonnet-5").expect("model"));
     fixture
         .database
         .put(changed, 1)

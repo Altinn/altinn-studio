@@ -338,13 +338,11 @@ async fn suspended(
             agent,
             session,
             harness,
-            model,
-            effort,
+            model_selection,
         } => {
             let request = SessionRequest {
                 harness: Some(harness),
-                model,
-                effort,
+                model_selection,
                 initial_prompt: None,
             };
             attach(home, client, &agent, session, request).await

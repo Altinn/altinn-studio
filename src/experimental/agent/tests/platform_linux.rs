@@ -181,8 +181,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
-        model: None,
-        effort: None,
+        defaults: agent::ModelSelection::default(),
     });
     let record = AgentRecord {
         id: agent_id,

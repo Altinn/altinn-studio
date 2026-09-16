@@ -495,28 +495,34 @@ spec:
     - type: claudeCode
       auth: mediated
       default: true
-      model: fable
-      effort: xhigh
+      defaults:
+        model: fable
+        effort: xhigh
     - type: codex
       auth: mediated
-      model: gpt-5.4-codex
+      defaults:
+        model: gpt-5.4-codex
   network:
     mode: mediated
     allow: all
 "#;
 
     let agent = manifest::decode(bytes).expect("manifest with harness defaults should decode");
-    let claude = &agent.spec.harnesses[0];
-    assert_eq!(claude.model.as_ref().map(agent::Model::as_str), Some("fable"));
-    assert_eq!(claude.effort.as_ref().map(agent::Effort::as_str), Some("xhigh"));
-    let codex = &agent.spec.harnesses[1];
-    assert_eq!(codex.model.as_ref().map(agent::Model::as_str), Some("gpt-5.4-codex"));
-    assert_eq!(codex.effort, None);
+    let claude = &agent.spec.harnesses[0].defaults;
+    assert_eq!(claude.model_str(), Some("fable"));
+    assert_eq!(claude.effort_str(), Some("xhigh"));
+    let codex = &agent.spec.harnesses[1].defaults;
+    assert_eq!(codex.model_str(), Some("gpt-5.4-codex"));
+    assert_eq!(codex.effort_str(), None);
 
     let value = serde_json::to_value(&agent).expect("Agent JSON");
-    assert_eq!(value["spec"]["harnesses"][0]["model"], "fable");
-    assert_eq!(value["spec"]["harnesses"][0]["effort"], "xhigh");
-    assert!(value["spec"]["harnesses"][1].get("effort").is_none());
+    assert_eq!(value["spec"]["harnesses"][0]["defaults"]["model"], "fable");
+    assert_eq!(value["spec"]["harnesses"][0]["defaults"]["effort"], "xhigh");
+    assert!(value["spec"]["harnesses"][1]["defaults"].get("effort").is_none());
+    let plain = manifest::decode(include_bytes!("../examples/minimal/agent.yaml")).expect("minimal manifest");
+    let plain = serde_json::to_value(&plain).expect("Agent JSON");
+    assert_eq!(plain["spec"]["harnesses"][0]["defaults"]["model"], "fable");
+    assert!(plain["spec"]["harnesses"][0]["defaults"].get("effort").is_none());
 
     for (field, valid, invalid) in [
         ("model", "fable", "\"\""),
@@ -554,7 +560,7 @@ fn published_manifests_keep_claude_code_sessions_on_fable() {
             .spec
             .harness(Harness::ClaudeCode)
             .expect("every published manifest installs Claude Code");
-        assert_eq!(claude.model.as_ref().map(agent::Model::as_str), Some("fable"));
-        assert_eq!(claude.effort, None);
+        assert_eq!(claude.defaults.model_str(), Some("fable"));
+        assert_eq!(claude.defaults.effort_str(), None);
     }
 }

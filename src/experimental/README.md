@@ -73,13 +73,14 @@ incarnation, and a reused Agent name never inherits resources from a deleted inc
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
-immutably to one of its Agent's declared harness installations, and to the model and effort level resolved when it was
-created: the caller's explicit `--model`/`--effort`, else the installation's manifest `model`/`effort`, else the
-harness's own default. Both are provider-owned identifiers the platform validates but does not interpret; the resolved
-values are recorded with the Session, shown by `agentctl get sessions`, and reused on every relaunch and resume, so a
-later manifest change only affects new Sessions. Detaching leaves a Session running. An inactive, unattached Session
-becomes Idle and is relaunched on the next ensure or attach, resuming the harness conversation when its native state
-still exists. Repeated unexpected harness exits use bounded backoff.
+immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
+resolved at creation: the caller's explicit choice, else the installation's manifest `defaults`, else nothing, leaving
+the harness's own defaults. Both values are provider-owned identifiers the platform validates but does not interpret.
+The selection is recorded with the Session, shown by `agentctl get sessions`, and applied on every launch including
+resume, so a later manifest change affects only new Sessions and a model change made inside the harness lasts until
+the next relaunch. Detaching leaves a Session running. An inactive, unattached Session becomes Idle and is relaunched
+on the next ensure or attach, resuming the harness conversation when its native state still exists. Repeated
+unexpected harness exits use bounded backoff.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
@@ -100,9 +101,8 @@ with the consequence that those files are reapplied on every Agent pass.
 
 `spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
 A declared `version` is verified against the image at setup; omit it when the image owns the version, so image bumps need no manifest change.
-Each installation may declare a default `model` and `effort` for the Sessions it launches, in the harness's own
-vocabulary: Claude Code takes a model alias or full name and one of its effort levels, Codex a model name and a
-reasoning effort. The published manifests select `model: fable` for Claude Code because a mediated token cannot list
+Each installation may declare `defaults` with a `model` and an `effort` level for its new Sessions, in the harness's
+own vocabulary. The published manifests select `model: fable` for Claude Code because a mediated token cannot list
 Fable in the `/model` picker.
 `spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
 at its global instruction location: `~/.claude/CLAUDE.md` for Claude Code and `~/.codex/AGENTS.md` for Codex.

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{AgentId, Effort, Error, Harness, Model, sandbox};
+use crate::{AgentId, Error, Harness, ModelSelection, sandbox};
 
 pub use crate::controller::Reconcile;
 pub use activity::{Activity, ActivityEvent, Phase};
@@ -337,13 +337,11 @@ pub struct Session {
     pub name: SessionName,
     /// Immutable harness installation selected for this Session.
     pub harness: Harness,
-    /// Immutable model resolved when the Session was created: the caller's request,
-    /// else the installation's manifest default. `None` leaves the harness default.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub model: Option<Model>,
-    /// Immutable effort level resolved when the Session was created, like [`Self::model`].
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub effort: Option<Effort>,
+    /// Immutable model and effort level resolved when the Session was created:
+    /// the caller's request, then the installation's manifest defaults. Every
+    /// launch of the harness applies it; an unselected field leaves the harness default.
+    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
+    pub model_selection: ModelSelection,
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
@@ -390,12 +388,9 @@ pub struct SessionRequest {
     /// Harness installation to bind.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub harness: Option<Harness>,
-    /// Model the harness launches with; a provider-owned name.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub model: Option<Model>,
-    /// Effort level the harness launches with; a provider-owned level.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub effort: Option<Effort>,
+    /// Model and effort level the harness launches with.
+    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
+    pub model_selection: ModelSelection,
     /// First prompt, handed to the harness at its first launch without replay.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_prompt: Option<String>,
@@ -406,10 +401,8 @@ pub struct SessionRequest {
 pub struct NewSession {
     /// Harness installation the Session binds to.
     pub harness: Harness,
-    /// Model the harness launches with, when one was requested or defaulted.
-    pub model: Option<Model>,
-    /// Effort level the harness launches with, when one was requested or defaulted.
-    pub effort: Option<Effort>,
+    /// Model and effort level the harness launches with, as requested or defaulted.
+    pub model_selection: ModelSelection,
     /// First prompt, handed to the harness at its first launch without replay.
     pub initial_prompt: Option<String>,
 }
@@ -420,8 +413,10 @@ impl NewSession {
     pub const fn for_harness(harness: Harness) -> Self {
         Self {
             harness,
-            model: None,
-            effort: None,
+            model_selection: ModelSelection {
+                model: None,
+                effort: None,
+            },
             initial_prompt: None,
         }
     }

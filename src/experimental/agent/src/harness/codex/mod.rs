@@ -195,10 +195,10 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     );
     // Codex takes the model as `-m`; effort has no flag of its own and travels as the
     // `model_reasoning_effort` config override. Validated selections need no TOML escaping.
-    if let Some(model) = request.model {
+    if let Some(model) = &request.model_selection.model {
         let _infallible = write!(configuration, " -m {}", shell_single_quoted(model.as_str()));
     }
-    if let Some(effort) = request.effort {
+    if let Some(effort) = &request.model_selection.effort {
         let _infallible = write!(configuration, " -c 'model_reasoning_effort=\"{}\"'", effort.as_str());
     }
     let base = format!("codex {flags} {configuration}");
@@ -234,15 +234,19 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
 mod tests {
     use tempfile::TempDir;
 
-    use crate::harness::{Effort, LaunchRequest, Model};
+    use crate::harness::{Effort, LaunchRequest, Model, ModelSelection};
+
+    const UNSELECTED: ModelSelection = ModelSelection {
+        model: None,
+        effort: None,
+    };
 
     fn request<'a>(resume: Option<&'a str>, initial_prompt: Option<&'a str>) -> LaunchRequest<'a> {
         LaunchRequest {
             home: "/home/agent",
             resume,
             initial_prompt,
-            model: None,
-            effort: None,
+            model_selection: &UNSELECTED,
         }
     }
 
@@ -337,11 +341,12 @@ mod tests {
 
     #[test]
     fn model_and_effort_apply_to_fresh_and_resumed_conversations() {
-        let model = Model::new("gpt-5.4-codex").expect("model");
-        let effort = Effort::new("high").expect("effort");
+        let selection = ModelSelection {
+            model: Some(Model::new("gpt-5.4-codex").expect("model")),
+            effort: Some(Effort::new("high").expect("effort")),
+        };
         let launch = super::launch_linux(&LaunchRequest {
-            model: Some(&model),
-            effort: Some(&effort),
+            model_selection: &selection,
             ..request(Some("160cdb4b-5997-464c-9d22-602786eb45d4"), Some("go"))
         });
 

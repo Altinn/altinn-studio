@@ -135,6 +135,51 @@ launch_selection! {
     Effort, "effort"
 }
 
+/// A harness's model and effort level, each optional and provider-owned.
+///
+/// Declared on a harness installation as the defaults for its new Sessions,
+/// requested when a Session is created, and recorded with the Session as the
+/// selection every launch of its harness applies.
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ModelSelection {
+    /// Model name in the harness's own spelling; `None` leaves the harness default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<Model>,
+    /// Effort level in the harness's own spelling; `None` leaves the harness default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effort: Option<Effort>,
+}
+
+impl ModelSelection {
+    /// Whether neither a model nor an effort level is selected.
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        self.model.is_none() && self.effort.is_none()
+    }
+
+    /// Fills each unselected field from `defaults`, field by field.
+    #[must_use]
+    pub fn or(self, defaults: &Self) -> Self {
+        Self {
+            model: self.model.or_else(|| defaults.model.clone()),
+            effort: self.effort.or_else(|| defaults.effort.clone()),
+        }
+    }
+
+    /// Returns the model as text, when selected.
+    #[must_use]
+    pub fn model_str(&self) -> Option<&str> {
+        self.model.as_ref().map(Model::as_str)
+    }
+
+    /// Returns the effort level as text, when selected.
+    #[must_use]
+    pub fn effort_str(&self) -> Option<&str> {
+        self.effort.as_ref().map(Effort::as_str)
+    }
+}
+
 fn validate_selection(label: &str, value: &str) -> Result<(), Error> {
     if value.is_empty()
         || value.chars().count() > MAX_SELECTION_CHARACTERS
@@ -164,14 +209,10 @@ pub struct HarnessSpec {
     /// Whether new Sessions select this installation when no harness is specified.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub default: bool,
-    /// Model launched for new Sessions of this installation that do not request one.
-    /// Omitted, the harness picks its own default.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub model: Option<Model>,
-    /// Effort level launched for new Sessions of this installation that do not request one.
-    /// Omitted, the harness picks its own default.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub effort: Option<Effort>,
+    /// Model and effort level for new Sessions of this installation that do not
+    /// select their own. Omitted, the harness picks its own defaults.
+    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
+    pub defaults: ModelSelection,
 }
 
 /// Non-secret result of importing a host harness login.
@@ -351,7 +392,7 @@ pub struct ProcessLaunch {
 }
 
 /// Harness-neutral inputs of one Session launch.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct LaunchRequest<'a> {
     /// Guest home directory holding the harness configuration.
     pub home: &'a str,
@@ -360,10 +401,8 @@ pub struct LaunchRequest<'a> {
     /// First prompt of a fresh conversation, passed as the harness's positional
     /// prompt argument so it starts working immediately; ignored when resuming.
     pub initial_prompt: Option<&'a str>,
-    /// Model the Session was created with; `None` leaves the harness default.
-    pub model: Option<&'a Model>,
-    /// Effort level the Session was created with; `None` leaves the harness default.
-    pub effort: Option<&'a Effort>,
+    /// Model and effort level the Session was created with.
+    pub model_selection: &'a ModelSelection,
 }
 
 /// Resolves the selected harness's terminal launch configuration.

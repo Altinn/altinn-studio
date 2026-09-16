@@ -1,7 +1,7 @@
 use std::{collections::HashSet, path::PathBuf};
 
 use agent::{
-    Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model,
+    Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
     sessions::{LifecycleState, Session, SessionName, State},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -131,15 +131,13 @@ impl SessionForm {
     /// Manifest default that applies while the model field is empty.
     pub(crate) fn model_default(&self) -> Option<&str> {
         self.installation()
-            .and_then(|installation| installation.model.as_ref())
-            .map(Model::as_str)
+            .and_then(|installation| installation.defaults.model_str())
     }
 
     /// Manifest default that applies while the effort field is empty.
     pub(crate) fn effort_default(&self) -> Option<&str> {
         self.installation()
-            .and_then(|installation| installation.effort.as_ref())
-            .map(Effort::as_str)
+            .and_then(|installation| installation.defaults.effort_str())
     }
 
     /// Applies one key; `Some` closes the form with the returned action.
@@ -189,8 +187,7 @@ impl SessionForm {
             agent: self.agent.clone(),
             session,
             harness: installation.kind,
-            model,
-            effort,
+            model_selection: ModelSelection { model, effort },
         })
     }
 
@@ -424,8 +421,7 @@ pub(crate) enum Action {
         agent: String,
         session: SessionName,
         harness: Harness,
-        model: Option<Model>,
-        effort: Option<Effort>,
+        model_selection: ModelSelection,
     },
     OpenCreate,
     CreateAgent {
@@ -938,8 +934,8 @@ impl App {
                             format::session_state(session.status.state),
                             session.harness.as_str(),
                             session
-                                .model
-                                .as_ref()
+                                .model_selection
+                                .model_str()
                                 .map(|model| format!(" · {model}"))
                                 .unwrap_or_default(),
                             format::format_age(session.created_at)
@@ -1051,8 +1047,8 @@ fn session_detail(session: &Session) -> Detail {
         format!("Name:       {}", session.name.as_str()),
         format!("Agent:      {}", session.agent),
         format!("Harness:    {}", session.harness.as_str()),
-        format!("Model:      {}", session.model.as_ref().map_or("-", Model::as_str)),
-        format!("Effort:     {}", session.effort.as_ref().map_or("-", Effort::as_str)),
+        format!("Model:      {}", session.model_selection.model_str().unwrap_or("-")),
+        format!("Effort:     {}", session.model_selection.effort_str().unwrap_or("-")),
         format!("State:      {}", format::session_state(session.status.state)),
         format!("Turns:      {}", session.status.reported.activity.turns),
         format!("Age:        {}", format::format_age(session.created_at)),
@@ -1256,8 +1252,7 @@ mod tests {
                 agent: "builder".into(),
                 session: SessionName::new("s1").expect("valid name"),
                 harness: Harness::ClaudeCode,
-                model: None,
-                effort: None,
+                model_selection: ModelSelection::default(),
             }
         );
         assert!(app.modal.is_none());
@@ -1269,7 +1264,7 @@ mod tests {
         app.apply_snapshot(
             vec![agent_named(
                 "worker",
-                "\x20   - type: claudeCode\n\x20     auth: mediated\n\x20     model: fable\n\x20     effort: high\n",
+                "\x20   - type: claudeCode\n\x20     auth: mediated\n\x20     defaults:\n\x20       model: fable\n\x20       effort: high\n",
             )],
             Vec::new(),
         );
@@ -1305,8 +1300,10 @@ mod tests {
                 agent: "worker".into(),
                 session: SessionName::new("s").expect("valid name"),
                 harness: Harness::ClaudeCode,
-                model: Some(Model::new("gpt5.4").expect("model")),
-                effort: None,
+                model_selection: ModelSelection {
+                    model: Some(Model::new("gpt5.4").expect("model")),
+                    effort: None,
+                },
             },
             "an empty effort leaves the manifest default to the daemon"
         );
@@ -1348,8 +1345,7 @@ mod tests {
                 agent: "worker".into(),
                 session: SessionName::new("s1").expect("valid name"),
                 harness: Harness::ClaudeCode,
-                model: None,
-                effort: None,
+                model_selection: ModelSelection::default(),
             }
         );
     }

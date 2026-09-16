@@ -636,8 +636,10 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
     let request = agent::sessions::SessionRequest {
         harness: Some(agent::Harness::ClaudeCode),
-        model: Some(agent::Model::new("claude-fable-5").expect("model")),
-        effort: Some(agent::Effort::new("xhigh").expect("effort")),
+        model_selection: agent::ModelSelection {
+            model: Some(agent::Model::new("claude-fable-5").expect("model")),
+            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+        },
         initial_prompt: None,
     };
     let ensure_error = client
@@ -796,8 +798,11 @@ async fn session_ensure_rejects_invalid_selections_before_reaching_the_service()
     });
     let mut reader = BufReader::new(&mut raw_client);
     for (id, params) in [
-        (1, r#"{"agent":"worker","name":"s1","model":""}"#),
-        (2, r#"{"agent":"worker","name":"s1","effort":"very high"}"#),
+        (1, r#"{"agent":"worker","name":"s1","model_selection":{"model":""}}"#),
+        (
+            2,
+            r#"{"agent":"worker","name":"s1","model_selection":{"effort":"very high"}}"#,
+        ),
     ] {
         let request = format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"sessions.v1.ensure","params":{params}}}"#);
         reader

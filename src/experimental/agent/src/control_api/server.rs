@@ -531,8 +531,7 @@ impl Server {
         let (wait, progress) = observation(params.follow, params.progress, progress);
         let request = sessions::SessionRequest {
             harness: params.harness,
-            model: params.model,
-            effort: params.effort,
+            model_selection: params.model_selection,
             initial_prompt: params.initial_prompt,
         };
         result_response(

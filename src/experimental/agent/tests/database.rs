@@ -269,8 +269,10 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
                 &name,
                 NewSession {
                     harness: agent::Harness::ClaudeCode,
-                    model: Some(agent::Model::new("fable").expect("model")),
-                    effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                    model_selection: agent::ModelSelection {
+                        model: Some(agent::Model::new("fable").expect("model")),
+                        effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                    },
                     initial_prompt: Some("first prompt".into()),
                 },
             )
@@ -281,7 +283,10 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
                 "worker",
                 &name,
                 NewSession {
-                    model: Some(agent::Model::new("ignored-model").expect("model")),
+                    model_selection: agent::ModelSelection {
+                        model: Some(agent::Model::new("ignored-model").expect("model")),
+                        effort: None,
+                    },
                     initial_prompt: Some("ignored: not created here".into()),
                     ..NewSession::for_harness(agent::Harness::ClaudeCode)
                 },
@@ -290,8 +295,8 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
             .expect("get session");
         assert_eq!(created.agent_id, test_agent_id());
         assert_eq!(created.harness, agent::Harness::ClaudeCode);
-        assert_eq!(created.model.as_ref().map(agent::Model::as_str), Some("fable"));
-        assert_eq!(created.effort.as_ref().map(agent::Effort::as_str), Some("xhigh"));
+        assert_eq!(created.model_selection.model_str(), Some("fable"));
+        assert_eq!(created.model_selection.effort_str(), Some("xhigh"));
         assert_eq!(created, existing, "creation-time selections are recorded once");
         let unselected = first
             .ensure_session(
@@ -301,8 +306,7 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
             )
             .await
             .expect("create session without selections");
-        assert_eq!(unselected.model, None);
-        assert_eq!(unselected.effort, None);
+        assert!(unselected.model_selection.is_empty());
         first
             .update_session_lifecycle(created.id, Lifecycle::running(), 0)
             .await
@@ -316,10 +320,10 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         assert_eq!(sessions.len(), 2);
         assert_eq!(sessions[1].name.as_str(), "s1");
         assert_eq!(sessions[1].harness, agent::Harness::ClaudeCode);
-        assert_eq!(sessions[1].model.as_ref().map(agent::Model::as_str), Some("fable"));
-        assert_eq!(sessions[1].effort.as_ref().map(agent::Effort::as_str), Some("xhigh"));
+        assert_eq!(sessions[1].model_selection.model_str(), Some("fable"));
+        assert_eq!(sessions[1].model_selection.effort_str(), Some("xhigh"));
         assert_eq!(sessions[0].name.as_str(), "plain");
-        assert_eq!((sessions[0].model.as_ref(), sessions[0].effort.as_ref()), (None, None));
+        assert!(sessions[0].model_selection.is_empty());
         assert_eq!(
             sessions[1].status.lifecycle.state,
             agent::sessions::LifecycleState::Running
@@ -623,10 +627,10 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         let sessions = database.list_agent_sessions("worker").await.expect("Sessions");
         assert_eq!(sessions.len(), 2);
         assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
-        assert_eq!(sessions[0].model.as_ref().map(agent::Model::as_str), Some("fable"));
-        assert_eq!(sessions[0].effort, None);
+        assert_eq!(sessions[0].model_selection.model_str(), Some("fable"));
+        assert_eq!(sessions[0].model_selection.effort_str(), None);
         assert_eq!(sessions[1].harness, agent::Harness::Codex);
-        assert_eq!((sessions[1].model.as_ref(), sessions[1].effort.as_ref()), (None, None));
+        assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
     assert_eq!(schema_snapshot(&path).0, 3);

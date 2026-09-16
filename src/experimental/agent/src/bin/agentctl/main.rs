@@ -236,8 +236,10 @@ impl SessionSelection {
     fn request(self, initial_prompt: Option<String>) -> SessionRequest {
         SessionRequest {
             harness: self.harness,
-            model: self.model,
-            effort: self.effort,
+            model_selection: agent::ModelSelection {
+                model: self.model,
+                effort: self.effort,
+            },
             initial_prompt,
         }
     }
@@ -1005,8 +1007,8 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
             row.extend([
                 session.name.as_str().to_owned(),
                 session.harness.as_str().into(),
-                session.model.as_ref().map_or("-", agent::Model::as_str).into(),
-                session.effort.as_ref().map_or("-", agent::Effort::as_str).into(),
+                session.model_selection.model_str().unwrap_or("-").into(),
+                session.model_selection.effort_str().unwrap_or("-").into(),
                 session_state(session.status.state).into(),
                 format_age(session.created_at),
             ]);
@@ -1360,8 +1362,8 @@ mod tests {
                 panic!("expected a Session creation command");
             };
             let request = selection.request(None);
-            assert_eq!(request.model.as_ref().map(agent::Model::as_str), Some("claude-fable-5"));
-            assert_eq!(request.effort.as_ref().map(agent::Effort::as_str), Some("xhigh"));
+            assert_eq!(request.model_selection.model_str(), Some("claude-fable-5"));
+            assert_eq!(request.model_selection.effort_str(), Some("xhigh"));
             assert_eq!(request.harness, None);
 
             let omitted = Arguments::try_parse_from(["agentctl", verb, "session/s1"]).expect("omitted selections");

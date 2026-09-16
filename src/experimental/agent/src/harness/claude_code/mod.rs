@@ -150,10 +150,10 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     let mut base = format!("claude --dangerously-skip-permissions --settings {config}/agent-settings.json");
     // Claude Code takes a model alias (`fable`, `opus`) or full model name, and one of its own
     // effort levels. Both are opaque here and apply to fresh and resumed conversations alike.
-    if let Some(model) = request.model {
+    if let Some(model) = &request.model_selection.model {
         let _infallible = write!(base, " --model {}", shell_single_quoted(model.as_str()));
     }
-    if let Some(effort) = request.effort {
+    if let Some(effort) = &request.model_selection.effort {
         let _infallible = write!(base, " --effort {}", shell_single_quoted(effort.as_str()));
     }
     // A fresh conversation may start on a positional prompt; `--` keeps a prompt
@@ -188,15 +188,19 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
 
 #[cfg(test)]
 mod tests {
-    use crate::harness::{Effort, LaunchRequest, Model};
+    use crate::harness::{Effort, LaunchRequest, Model, ModelSelection};
+
+    const UNSELECTED: ModelSelection = ModelSelection {
+        model: None,
+        effort: None,
+    };
 
     fn request<'a>(resume: Option<&'a str>, initial_prompt: Option<&'a str>) -> LaunchRequest<'a> {
         LaunchRequest {
             home: "/home/agent",
             resume,
             initial_prompt,
-            model: None,
-            effort: None,
+            model_selection: &UNSELECTED,
         }
     }
 
@@ -242,11 +246,12 @@ mod tests {
 
     #[test]
     fn model_and_effort_apply_to_fresh_and_resumed_conversations() {
-        let model = Model::new("fable").expect("model");
-        let effort = Effort::new("xhigh").expect("effort");
+        let selection = ModelSelection {
+            model: Some(Model::new("fable").expect("model")),
+            effort: Some(Effort::new("xhigh").expect("effort")),
+        };
         let launch = super::launch_linux(&LaunchRequest {
-            model: Some(&model),
-            effort: Some(&effort),
+            model_selection: &selection,
             ..request(Some("160cdb4b-5997-464c-9d22-602786eb45d4"), Some("go"))
         });
 

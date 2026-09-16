@@ -68,8 +68,8 @@ pub(super) fn ensure(
                 new.harness.as_str(),
                 created_at,
                 new.initial_prompt.as_deref(),
-                new.model.as_ref().map(crate::Model::as_str),
-                new.effort.as_ref().map(crate::Effort::as_str),
+                new.model_selection.model_str(),
+                new.model_selection.effort_str(),
             ],
         )
         .map_err(database_error)?;
@@ -417,8 +417,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         agent,
         name,
         harness,
-        model,
-        effort,
+        model_selection: crate::ModelSelection { model, effort },
         created_at,
         status: Status::new(
             Lifecycle {

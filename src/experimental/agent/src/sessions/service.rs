@@ -5,7 +5,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Effort, Error, Model, control_plane, control_plane::WaitPolicy, progress::Reporter};
+use crate::{Error, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::{
     AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
@@ -306,8 +306,7 @@ impl Service {
                 }
                 let new = NewSession {
                     harness: installation.kind,
-                    model: request.model.or_else(|| installation.model.clone()),
-                    effort: request.effort.or_else(|| installation.effort.clone()),
+                    model_selection: request.model_selection.or(&installation.defaults),
                     initial_prompt: request.initial_prompt,
                 };
                 self.store.ensure_session(agent, name, new).await?
@@ -478,27 +477,26 @@ fn reject_conflicting_selections(name: &SessionName, session: &Session, request:
             harness.as_str()
         )));
     }
-    if let Some(model) = &request.model
-        && Some(model) != session.model.as_ref()
+    let (requested, recorded) = (&request.model_selection, &session.model_selection);
+    if let Some(model) = requested.model_str()
+        && Some(model) != recorded.model_str()
     {
         return Err(Error::Invalid(format!(
-            "Session \"{name}\" already uses model {}, not {:?}",
-            recorded(session.model.as_ref().map(Model::as_str)),
-            model.as_str()
+            "Session \"{name}\" already uses model {}, not {model:?}",
+            recorded_or_default(recorded.model_str())
         )));
     }
-    if let Some(effort) = &request.effort
-        && Some(effort) != session.effort.as_ref()
+    if let Some(effort) = requested.effort_str()
+        && Some(effort) != recorded.effort_str()
     {
         return Err(Error::Invalid(format!(
-            "Session \"{name}\" already uses effort {}, not {:?}",
-            recorded(session.effort.as_ref().map(Effort::as_str)),
-            effort.as_str()
+            "Session \"{name}\" already uses effort {}, not {effort:?}",
+            recorded_or_default(recorded.effort_str())
         )));
     }
     Ok(())
 }
 
-fn recorded(selection: Option<&str>) -> String {
+fn recorded_or_default(selection: Option<&str>) -> String {
     selection.map_or_else(|| "the harness default".to_owned(), |value| format!("{value:?}"))
 }

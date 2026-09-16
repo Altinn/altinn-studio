@@ -25,7 +25,8 @@ spec:
       version: "2.1.266"
       auth: mediated
       # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
-      model: fable
+      defaults:
+        model: fable
   secrets: []
   network:
     mode: mediated

@@ -33,7 +33,8 @@ spec:
       auth: mediated
       default: true
       # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
-      model: fable
+      defaults:
+        model: fable
     - type: codex
       auth: mediated
   environment:

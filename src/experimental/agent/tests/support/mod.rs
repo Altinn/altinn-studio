@@ -4,7 +4,7 @@ use std::{path::PathBuf, time::SystemTime};
 
 use agent::{
     API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
-    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, Spec, Status,
+    ModelSelection, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, Spec, Status,
 };
 use sandbox::{
     ByteQuantity, CpuQuantity, Platform, RetentionPolicy, RootFilesystem, SandboxResources, image::ImageSource,
@@ -56,8 +56,7 @@ pub(crate) fn agent(name: &str) -> Agent {
                 version: Some("2.1.266".into()),
                 auth: HarnessAuthMode::Mediated,
                 default: false,
-                model: None,
-                effort: None,
+                defaults: ModelSelection::default(),
             }],
             environment: Vec::new(),
             secrets: Vec::new(),
