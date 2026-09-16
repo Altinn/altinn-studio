@@ -6,6 +6,7 @@ import classes from './ConfigServiceTask.module.css';
 import { ConfigEFormidlingServiceTask } from './ConfigEFormidlingServiceTask';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
+import { FiksArkivProcessShapeAlert } from './FiksArkivProcessShapeAlert';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
 import { StudioDetails } from '@studio/components';
 import { EditTaskName } from '../ConfigContent/EditTaskName';
@@ -19,10 +20,14 @@ export const ConfigServiceTask = (): React.ReactElement => {
   const isPdfTask = bpmnDetails.taskType === 'pdf';
   const isSubformPdfTask = bpmnDetails.taskType === 'subformPdf';
   const isEFormidlingTask = bpmnDetails.taskType === 'eFormidling';
+  const isFiksArkivTask = bpmnDetails.taskType === 'fiksArkiv';
 
   return (
     <ConfigContentContainer>
       <div className={classes.configContent}>
+        {/* Above the fields rather than among them: it is the whole app that will not start, and
+            the repair is on the canvas rather than anywhere in this panel. */}
+        {isFiksArkivTask && <FiksArkivProcessShapeAlert />}
         <EditTaskId />
         <EditTaskName />
         {/* Every service task keeps the type field, including the ones Studio has a panel for. The
