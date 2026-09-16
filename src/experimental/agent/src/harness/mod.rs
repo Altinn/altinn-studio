@@ -178,6 +178,25 @@ impl ModelSelection {
     pub fn effort_str(&self) -> Option<&str> {
         self.effort.as_ref().map(Effort::as_str)
     }
+
+    /// Describes the first field `requested` selects differently from this
+    /// recorded selection, as a clause following the Session's name; `None`
+    /// when every requested field matches or is unselected.
+    #[must_use]
+    pub fn conflict_with(&self, requested: &Self) -> Option<String> {
+        [
+            ("model", self.model_str(), requested.model_str()),
+            ("effort", self.effort_str(), requested.effort_str()),
+        ]
+        .into_iter()
+        .find_map(|(field, recorded, requested)| {
+            let requested = requested.filter(|requested| Some(*requested) != recorded)?;
+            Some(recorded.map_or_else(
+                || format!("leaves the {field} to the harness default, not {requested:?}"),
+                |recorded| format!("already uses {field} {recorded:?}, not {requested:?}"),
+            ))
+        })
+    }
 }
 
 fn validate_selection(label: &str, value: &str) -> Result<(), Error> {
@@ -523,6 +542,32 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&Model::new("fable").expect("model")).expect("JSON"),
             "\"fable\""
+        );
+    }
+
+    #[test]
+    fn conflicts_name_only_explicitly_requested_differences() {
+        let recorded = ModelSelection {
+            model: Some(Model::new("fable").expect("model")),
+            effort: None,
+        };
+        assert_eq!(recorded.conflict_with(&ModelSelection::default()), None);
+        assert_eq!(recorded.conflict_with(&recorded), None);
+        let other_model = ModelSelection {
+            model: Some(Model::new("opus").expect("model")),
+            effort: None,
+        };
+        assert_eq!(
+            recorded.conflict_with(&other_model).as_deref(),
+            Some("already uses model \"fable\", not \"opus\"")
+        );
+        let effort_only = ModelSelection {
+            model: None,
+            effort: Some(Effort::new("max").expect("effort")),
+        };
+        assert_eq!(
+            recorded.conflict_with(&effort_only).as_deref(),
+            Some("leaves the effort to the harness default, not \"max\"")
         );
     }
 

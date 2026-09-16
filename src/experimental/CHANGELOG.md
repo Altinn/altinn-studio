@@ -18,7 +18,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- Claude Code Sessions launch on the `fable` alias only when the manifest declares it; the `agents/` manifests and the examples do. Sessions created earlier keep launching on `fable`.
+- Claude Code Sessions launch on the `fable` alias only when the manifest declares it; the `agents/` manifests and the examples do, and your own manifests need `defaults: { model: fable }` on the Claude Code installation to keep it for new Sessions. Sessions created earlier keep launching on `fable`.
 
 - The Sandbox runtime (microsandbox) was updated. Linux hosts with older system libraries, such as Ubuntu 22.04, can now install it, and a Sandbox that fails to start reports the runtime's own error instead of a bare timeout.
 - Agent instructions now tell Claude Code and Codex not to add `Co-Authored-By` or similar AI-attribution trailers to commits and pull requests.

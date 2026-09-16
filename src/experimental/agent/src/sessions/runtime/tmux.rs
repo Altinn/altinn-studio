@@ -151,20 +151,20 @@ async fn run_lifecycle_execution(
     }
 }
 
-/// Creates the named detached tmux session running the harness.
+/// Builds the tmux `new-session` arguments for one launch of `session`'s harness.
 ///
 /// Per-launch values travel as tmux session environment (`-e`) rather than
 /// becoming defaults for subsequently created sessions. Sessions share one
 /// Unix identity and tmux server, so this is not a security boundary between
-/// sibling Sessions; the token only rejects stale or accidental reports.
-async fn launch(
+/// sibling Sessions; the token only rejects stale or accidental reports. The
+/// Session's recorded model selection is part of every launch, resumed or not.
+fn launch_arguments(
     session: &Session,
-    sandbox: &SandboxHandle,
     session_hook_url: &str,
     token: &LaunchToken,
     resume: Option<&str>,
     initial_message: Option<&str>,
-) -> Result<(), Error> {
+) -> Vec<String> {
     let launch = harness::launch_linux(
         session.harness,
         &harness::LaunchRequest {
@@ -186,6 +186,19 @@ async fn launch(
         arguments.push(format!("{name}={value}"));
     }
     arguments.push(launch.command);
+    arguments
+}
+
+/// Creates the named detached tmux session running the harness.
+async fn launch(
+    session: &Session,
+    sandbox: &SandboxHandle,
+    session_hook_url: &str,
+    token: &LaunchToken,
+    resume: Option<&str>,
+    initial_message: Option<&str>,
+) -> Result<(), Error> {
+    let arguments = launch_arguments(session, session_hook_url, token, resume, initial_message);
     let created = sandbox
         .run_execution(
             ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), arguments)
@@ -649,20 +662,48 @@ mod tests {
         assert!(error.to_string().contains("exit code 2"));
     }
 
-    #[test]
-    fn attachment_uses_portable_utf8_terminal_environment() {
-        let session = Session {
+    fn test_session(model_selection: crate::ModelSelection) -> Session {
+        Session {
             id: "dd4cdbaf-9ea0-477e-96dd-bbd6b1e4f7dc".parse().expect("Session ID"),
             agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
             agent: "worker".into(),
             name: "s1".to_string().try_into().expect("Session name"),
             harness: crate::harness::test_harness(),
-            model_selection: crate::ModelSelection::default(),
+            model_selection,
             created_at: OffsetDateTime::UNIX_EPOCH,
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
+        }
+    }
+
+    #[test]
+    fn every_launch_carries_the_recorded_model_selection() {
+        let selection = crate::ModelSelection {
+            model: Some(crate::Model::new("haiku").expect("model")),
+            effort: Some(crate::Effort::new("low").expect("effort")),
         };
+        let session = test_session(selection);
+        let token = super::LaunchToken::generate();
+        for resume in [None, Some("160cdb4b-5997-464c-9d22-602786eb45d4")] {
+            let arguments = super::launch_arguments(&session, "http://hook", &token, resume, None);
+            let command = arguments.last().expect("tmux command");
+            assert!(command.contains("'haiku'") && command.contains("'low'"), "{command}");
+            assert_eq!(command.contains("--resume"), resume.is_some(), "{command}");
+        }
+        let plain = super::launch_arguments(
+            &test_session(crate::ModelSelection::default()),
+            "http://hook",
+            &token,
+            None,
+            None,
+        );
+        assert!(!plain.last().expect("tmux command").contains("haiku"));
+    }
+
+    #[test]
+    fn attachment_uses_portable_utf8_terminal_environment() {
+        let session = test_session(crate::ModelSelection::default());
 
         let spec = super::attach_spec(&session);
 

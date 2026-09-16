@@ -382,17 +382,13 @@ impl Session {
 /// that installation's manifest defaults, and the resolved values become the
 /// Session's immutable properties. For an existing Session, an explicit value
 /// that differs from the recorded one is rejected; omitted ones are ignored.
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct SessionRequest {
     /// Harness installation to bind.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub harness: Option<Harness>,
     /// Model and effort level the harness launches with.
-    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
     pub model_selection: ModelSelection,
     /// First prompt, handed to the harness at its first launch without replay.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_prompt: Option<String>,
 }
 
@@ -403,6 +399,9 @@ pub struct NewSession {
     pub harness: Harness,
     /// Model and effort level the harness launches with, as requested or defaulted.
     pub model_selection: ModelSelection,
+    /// The part of [`Self::model_selection`] the caller chose explicitly. When the
+    /// Session already exists, only these fields may conflict with what it recorded.
+    pub requested: ModelSelection,
     /// First prompt, handed to the harness at its first launch without replay.
     pub initial_prompt: Option<String>,
 }
@@ -417,6 +416,21 @@ impl NewSession {
                 model: None,
                 effort: None,
             },
+            requested: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            initial_prompt: None,
+        }
+    }
+
+    /// Resolves `requested` against an installation's manifest `defaults`.
+    #[must_use]
+    pub fn resolved(harness: Harness, requested: ModelSelection, defaults: &ModelSelection) -> Self {
+        Self {
+            harness,
+            model_selection: requested.clone().or(defaults),
+            requested,
             initial_prompt: None,
         }
     }
@@ -441,8 +455,8 @@ pub trait SessionStore: SessionReports {
     /// effort become the Session's immutable properties, and its initial prompt is
     /// handed to the harness at the first launch attempt, without automatic replay.
     /// An existing Session is returned as recorded, unless `new` names another
-    /// harness, model or effort, so concurrent creations cannot silently
-    /// drop one caller's choice.
+    /// harness or its explicitly requested model or effort differs, so concurrent
+    /// creations cannot silently drop one caller's choice.
     fn ensure_session<'a>(
         &'a self,
         agent: &'a str,

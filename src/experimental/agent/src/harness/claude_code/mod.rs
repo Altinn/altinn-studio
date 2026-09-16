@@ -19,10 +19,13 @@ const ACCESS_SECRET: &str = "claude-access-token";
 const ACCESS_ENVIRONMENT: &str = "CLAUDE_CODE_OAUTH_TOKEN";
 const ACCESS_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-placeholder-not-a-real-credential";
 const API_HOST: &str = "api.anthropic.com";
-/// Every Session launched with `--model fable` before Sessions recorded a model: the
-/// mediated setup token cannot enumerate models, so Fable never appeared in the
-/// `/model` picker and the adapter selected the alias itself. Manifests now declare
-/// that default; existing Sessions keep it through the schema migration.
+/// The model recorded for Sessions that predate recorded selections. The adapter
+/// launched every Session on this alias from preview 2 until selections arrived,
+/// because the mediated setup token cannot enumerate models and Fable never
+/// appeared in the `/model` picker. Preview 1 Sessions ran on Claude Code's own
+/// default; recording the alias for them too keeps every earlier conversation on
+/// one known model instead of whatever the harness defaults to next. Manifests
+/// now declare the default for new Sessions.
 pub(super) const MODEL_LAUNCHED_BEFORE_SELECTION: &str = "fable";
 
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {

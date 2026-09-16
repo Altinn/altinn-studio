@@ -155,9 +155,9 @@ fn add_session_management(transaction: &Transaction<'_>) -> Result<(), Error> {
 }
 
 /// Adds the model and effort a Session was created with. Sessions from earlier
-/// schemas never chose either, but an adapter that hardcoded a launch model until
-/// now reports it, so those Sessions keep launching on the model they always did
-/// once the choice is a Session property.
+/// schemas never chose either; an adapter that hardcoded a launch model until now
+/// reports it, and that model is recorded for its existing Sessions so they keep
+/// launching on one known model once the choice is a Session property.
 fn add_session_selections(transaction: &Transaction<'_>) -> Result<(), Error> {
     if schema_difference(transaction, 3)?.is_none() {
         return Ok(());

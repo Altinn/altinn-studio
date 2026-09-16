@@ -305,9 +305,8 @@ impl Service {
                     crate::harness::validate_initial_prompt(initial_prompt)?;
                 }
                 let new = NewSession {
-                    harness: installation.kind,
-                    model_selection: request.model_selection.or(&installation.defaults),
                     initial_prompt: request.initial_prompt,
+                    ..NewSession::resolved(installation.kind, request.model_selection, &installation.defaults)
                 };
                 self.store.ensure_session(agent, name, new).await?
             }
@@ -477,26 +476,8 @@ fn reject_conflicting_selections(name: &SessionName, session: &Session, request:
             harness.as_str()
         )));
     }
-    let (requested, recorded) = (&request.model_selection, &session.model_selection);
-    if let Some(model) = requested.model_str()
-        && Some(model) != recorded.model_str()
-    {
-        return Err(Error::Invalid(format!(
-            "Session \"{name}\" already uses model {}, not {model:?}",
-            recorded_or_default(recorded.model_str())
-        )));
-    }
-    if let Some(effort) = requested.effort_str()
-        && Some(effort) != recorded.effort_str()
-    {
-        return Err(Error::Invalid(format!(
-            "Session \"{name}\" already uses effort {}, not {effort:?}",
-            recorded_or_default(recorded.effort_str())
-        )));
+    if let Some(conflict) = session.model_selection.conflict_with(&request.model_selection) {
+        return Err(Error::Invalid(format!("Session \"{name}\" {conflict}")));
     }
     Ok(())
-}
-
-fn recorded_or_default(selection: Option<&str>) -> String {
-    selection.map_or_else(|| "the harness default".to_owned(), |value| format!("{value:?}"))
 }

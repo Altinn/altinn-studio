@@ -1869,7 +1869,7 @@ async fn session_ensure_resolves_model_and_effort_with_manifest_defaults() {
     assert!(
         effort_conflict
             .to_string()
-            .contains("already uses effort the harness default, not \"max\""),
+            .contains("leaves the effort to the harness default, not \"max\""),
         "{effort_conflict}"
     );
 

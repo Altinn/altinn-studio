@@ -268,12 +268,15 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
                 "worker",
                 &name,
                 NewSession {
-                    harness: agent::Harness::ClaudeCode,
-                    model_selection: agent::ModelSelection {
-                        model: Some(agent::Model::new("fable").expect("model")),
-                        effort: Some(agent::Effort::new("xhigh").expect("effort")),
-                    },
                     initial_prompt: Some("first prompt".into()),
+                    ..NewSession::resolved(
+                        agent::Harness::ClaudeCode,
+                        agent::ModelSelection {
+                            model: Some(agent::Model::new("fable").expect("model")),
+                            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                        },
+                        &agent::ModelSelection::default(),
+                    )
                 },
             )
             .await
@@ -283,12 +286,15 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
                 "worker",
                 &name,
                 NewSession {
-                    model_selection: agent::ModelSelection {
-                        model: Some(agent::Model::new("fable").expect("model")),
-                        effort: Some(agent::Effort::new("xhigh").expect("effort")),
-                    },
                     initial_prompt: Some("ignored: not created here".into()),
-                    harness: agent::Harness::ClaudeCode,
+                    ..NewSession::resolved(
+                        agent::Harness::ClaudeCode,
+                        agent::ModelSelection {
+                            model: Some(agent::Model::new("fable").expect("model")),
+                            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                        },
+                        &agent::ModelSelection::default(),
+                    )
                 },
             )
             .await
@@ -352,7 +358,7 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
 }
 
 #[test]
-fn concurrent_creation_with_other_selections_is_rejected() {
+fn concurrent_creation_only_conflicts_on_explicit_selections() {
     let directory = TempDir::new().expect("temporary directory");
     let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
     LocalRuntime::new().expect("local runtime").block_on(async {
@@ -361,48 +367,72 @@ fn concurrent_creation_with_other_selections_is_rejected() {
             .await
             .expect("ready Agent");
         let name = SessionName::new("raced").expect("session name");
+        let selection = |model: Option<&str>, effort: Option<&str>| agent::ModelSelection {
+            model: model.map(|model| agent::Model::new(model).expect("model")),
+            effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        };
+        let defaults = selection(Some("fable"), Some("xhigh"));
         let first = store
             .ensure_session(
                 "worker",
                 &name,
-                NewSession {
-                    harness: agent::Harness::ClaudeCode,
-                    model_selection: agent::ModelSelection {
-                        model: Some(agent::Model::new("fable").expect("model")),
-                        effort: Some(agent::Effort::new("xhigh").expect("effort")),
-                    },
-                    initial_prompt: None,
-                },
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("opus"), None), &defaults),
             )
             .await
             .expect("first creation");
+        assert_eq!(first.model_selection, selection(Some("opus"), Some("xhigh")));
+
+        // A loser that chose nothing resolved to other values, but it did not ask for them.
+        let omitted = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, agent::ModelSelection::default(), &defaults),
+            )
+            .await
+            .expect("omitted selections take the Session as recorded");
+        assert_eq!(omitted.id, first.id);
+        assert_eq!(omitted.model_selection, first.model_selection);
+
+        let same = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("opus"), None), &defaults),
+            )
+            .await
+            .expect("the same explicit choice finds the Session");
+        assert_eq!(same.id, first.id);
+
         let conflict = store
             .ensure_session(
                 "worker",
                 &name,
-                NewSession {
-                    model_selection: agent::ModelSelection {
-                        model: Some(agent::Model::new("other-model").expect("model")),
-                        effort: None,
-                    },
-                    ..NewSession::for_harness(agent::Harness::ClaudeCode)
-                },
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("sonnet"), None), &defaults),
             )
             .await
-            .expect_err("a concurrent creation with other selections loses");
-        assert!(
-            conflict
-                .to_string()
-                .contains("already uses model \"fable\" and effort \"xhigh\", not model \"other-model\" and effort the harness default"),
-            "{conflict}"
-        );
+            .expect_err("a loser that explicitly chose differently is told");
         assert_eq!(
-            store
-                .ensure_session("worker", &name, NewSession { model_selection: first.model_selection.clone(), ..NewSession::for_harness(agent::Harness::ClaudeCode) })
-                .await
-                .expect("the same selections find the Session")
-                .id,
-            first.id
+            conflict.to_string(),
+            "invalid Agent: Session \"raced\" already uses model \"opus\", not \"sonnet\""
+        );
+        let unselected = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(
+                    agent::Harness::ClaudeCode,
+                    selection(None, Some("low")),
+                    &agent::ModelSelection::default(),
+                ),
+            )
+            .await
+            .expect_err("an explicit effort conflicts with the recorded one");
+        assert!(
+            unselected
+                .to_string()
+                .contains("already uses effort \"xhigh\", not \"low\""),
+            "{unselected}"
         );
     });
 }

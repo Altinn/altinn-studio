@@ -95,7 +95,7 @@ the published manifests select Claude Code's `fable` alias. Choose differently f
 vocabulary; the choice is fixed for that Session:
 
 ```sh
-agentctl create session/careful --model claude-opus-5 --effort xhigh
+agentctl create session/careful --model opus --effort xhigh
 ```
 
 Delete the Agent and its Sandbox:

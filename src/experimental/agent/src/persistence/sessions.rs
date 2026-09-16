@@ -46,7 +46,8 @@ pub(super) fn ensure(
     let agent_id = owner.id;
     if let Some(session) = query_named(&transaction, agent_id, name)? {
         // Two callers may both find no Session and both resolve one; the first
-        // recorded selections bind, so the loser learns about a differing choice.
+        // recorded selections bind, so a loser that explicitly chose differently
+        // learns about it, while one that chose nothing gets the Session as is.
         if session.harness != new.harness {
             return Err(Error::Invalid(format!(
                 "Session \"{name}\" already uses harness {:?}, not {:?}",
@@ -54,14 +55,8 @@ pub(super) fn ensure(
                 new.harness.as_str()
             )));
         }
-        if session.model_selection != new.model_selection {
-            return Err(Error::Invalid(format!(
-                "Session \"{name}\" already uses model {} and effort {}, not model {} and effort {}",
-                recorded(session.model_selection.model_str()),
-                recorded(session.model_selection.effort_str()),
-                recorded(new.model_selection.model_str()),
-                recorded(new.model_selection.effort_str()),
-            )));
+        if let Some(conflict) = session.model_selection.conflict_with(&new.requested) {
+            return Err(Error::Invalid(format!("Session \"{name}\" {conflict}")));
         }
         transaction.commit().map_err(database_error)?;
         return Ok(session);
@@ -444,10 +439,6 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })
-}
-
-fn recorded(selection: Option<&str>) -> String {
-    selection.map_or_else(|| "the harness default".to_owned(), |value| format!("{value:?}"))
 }
 
 fn conversion_error(error: impl std::error::Error + Send + Sync + 'static) -> rusqlite::Error {

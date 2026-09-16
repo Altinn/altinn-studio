@@ -544,9 +544,9 @@ spec:
     }
 }
 
-/// The `agents/` manifests declare the same default; they live outside this crate
-/// and are not present in the sparse checkouts that build it, so they are checked
-/// where the Agent images are built.
+/// The `agents/` manifests declare the same default but live outside this crate,
+/// which the portable hosts build from a sparse checkout, so only the examples are
+/// guarded here.
 #[test]
 fn example_manifests_keep_claude_code_sessions_on_fable() {
     for bytes in [
