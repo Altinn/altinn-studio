@@ -169,8 +169,8 @@ type WorkflowItemProps = {
 
 /**
  * One workflow as a row of plain columns: status, name, the steps as dots, the step it is at, a
- * retry count, a spinner while the engine still has it, and when it was created. Behind the row:
- * the countdown to the next attempt, the steps with their errors — and, on the step the workflow
+ * retry count, a spinner and what the engine is doing with it while it still has it, and when it
+ * was created. Behind the row: the steps with their errors — and, on the step the workflow
  * stopped at, the verbs that apply — and the id.
  */
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
@@ -228,16 +228,16 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
               </span>
             )}
           </span>
-          <span className={classes.summarySpinner}>
+          <span className={classes.summaryLive}>
             {isActiveWorkflow(workflow) && (
               <StudioSpinner data-size='xs' aria-label={t('admin.workflows.health.active')} />
             )}
+            {liveNote && <span>{liveNote}</span>}
           </span>
           <span className={classes.summaryDate}>{formatTimestamp(workflow.createdAt)}</span>
         </span>
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.details}>
-        {liveNote && <span className={classes.progress}>{liveNote}</span>}
         <WorkflowSteps context={context} workflow={workflow} />
         <span className={classes.workflowId}>
           {t('admin.workflows.id')}: <code>{workflow.databaseId}</code>

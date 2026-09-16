@@ -14,11 +14,11 @@
 }
 
 /* The row as plain columns, so everything lines up from one row to the next: status, name, the
-   step dots, the step it is at, the retry count, a spinner while in flight, and the date at the
-   far edge. Narrow screens fall back to wrapping. */
+   step dots, the step it is at, the retry count, a spinner with the countdown while in flight,
+   and the date at the far edge. Narrow screens fall back to wrapping. */
 .summary {
   display: grid;
-  grid-template-columns: 10rem 22rem 14rem minmax(0, 1fr) 3rem 1.5rem auto;
+  grid-template-columns: 10rem 22rem 14rem minmax(0, 1fr) 3rem auto auto;
   align-items: center;
   column-gap: var(--ds-size-3);
   row-gap: var(--ds-size-1);
@@ -56,24 +56,20 @@
   font-variant-numeric: tabular-nums;
 }
 
-.summarySpinner {
+/* The spinner and, beside it, the countdown to the next attempt or the running time. */
+.summaryLive {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: var(--ds-size-2);
+  min-width: 1.5rem;
+  white-space: nowrap;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .summaryDate {
   justify-self: end;
   white-space: nowrap;
-}
-
-/* What the engine is doing with the workflow right now, above the steps. */
-.progress {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ds-size-1) var(--ds-size-4);
-  font-size: var(--ds-font-size-2);
-  color: var(--ds-color-neutral-text-subtle);
 }
 
 .attempts {
