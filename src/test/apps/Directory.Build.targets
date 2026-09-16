@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    In-repo test apps reference Altinn.App.Api via <ProjectReference>, not the published
+    NuGet package, so the package's build/Altinn.App.Api.targets is NOT imported and the
+    app frontend it bundles never reaches them. Without the bundle an app's generated index
+    page asks for /{org}/{app}/altinn-app-frontend/altinn-app-frontend.{js,css} and gets 404.
+
+    This file reproduces that wiring against the frontend this checkout builds, so a test app
+    serves the bundle itself at the same URL a deployed app does. Keep the item metadata in
+    sync with:
+      src/App/backend/src/Altinn.App.Api/packaging/Altinn.App.Api.targets
+
+    The glob is empty when src/App/frontend/dist has not been built, which is how CI builds
+    these apps: the frontend is a separate job there, and the apps are run against the
+    frontend dev server instead. `studioctl run` builds the bundle before building the app.
+  -->
+  <PropertyGroup>
+    <AppFrontendDistPath>$(MSBuildThisFileDirectory)../../App/frontend/dist</AppFrontendDistPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsAltinnApp)' == 'true'">
+    <AltinnAppFrontendAsset Include="$(AppFrontendDistPath)/**/*" />
+    <!--
+      SourceType must be Package: as Discovered the SDK treats the bundle as the app's own
+      asset and fails compression negotiation with "Endpoints not found for related asset".
+    -->
+    <StaticWebAsset Include="@(AltinnAppFrontendAsset)">
+      <SourceType>Package</SourceType>
+      <SourceId>Altinn.App.Api</SourceId>
+      <ContentRoot>$([MSBuild]::NormalizeDirectory('$(AppFrontendDistPath)'))</ContentRoot>
+      <BasePath>/</BasePath>
+      <RelativePath>altinn-app-frontend/%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>%(FullPath)</OriginalItemSpec>
+    </StaticWebAsset>
+  </ItemGroup>
+</Project>
