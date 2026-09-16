@@ -13,6 +13,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -368,10 +369,14 @@ public class AppDevelopmentService : IAppDevelopmentService
         throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
     }
 
+    // Resolves the Altinn task type behind a layout set. Service tasks are included because a pre-v9 PDF
+    // layout set records the service task in its "tasks" array, and it should report "pdf", not an empty
+    // type.
     private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
     {
         return definitions
-                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
+                .Process.AllTasks()
+                .FirstOrDefault(task => task.Id == taskId)
                 ?.ExtensionElements?.TaskExtension?.TaskType
             ?? string.Empty;
     }

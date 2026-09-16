@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -33,6 +34,11 @@ public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitReposito
         return layoutSetsFile.UiSettings?.TaskNavigation ?? [];
     }
 
+    /// <summary>
+    /// The tasks of the process definition, used to resolve the Altinn task type of an id already present
+    /// in the saved navigation. Service tasks are included so such an id resolves to its real type instead
+    /// of none.
+    /// </summary>
     public IEnumerable<ProcessTask> GetTasks(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
@@ -46,7 +52,7 @@ public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitReposito
         );
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        return definitions.Process.Tasks;
+        return definitions.Process.AllTasks();
     }
 
     public async Task UpdateTaskNavigation(

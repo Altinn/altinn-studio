@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -189,7 +190,8 @@ public class ProcessModelingService : IProcessModelingService
                 layoutSetId
             );
             string? taskId = layoutSet.Tasks?.FirstOrDefault();
-            ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
+            // Service tasks are included so a PDF layout set reports "pdf" rather than an empty type.
+            ProcessTask? task = definitions?.Process.AllTasks().FirstOrDefault(task => task.Id == taskId);
             return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
         }
     }
