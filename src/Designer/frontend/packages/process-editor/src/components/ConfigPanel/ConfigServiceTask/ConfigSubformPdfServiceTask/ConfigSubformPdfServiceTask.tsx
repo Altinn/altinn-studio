@@ -12,7 +12,6 @@ import { FilenameTextResource } from '../FilenameTextResource';
 import { useSubformPdfConfig } from './useSubformPdfConfig';
 import { useValidateSubformPdfValue } from './useValidateSubformPdfValue';
 import { SubformComponentIdField } from './SubformComponentIdField';
-import classes from './ConfigSubformPdfServiceTask.module.css';
 import sharedClasses from '../ConfigServiceTask.module.css';
 
 export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
@@ -52,7 +51,7 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
     <StudioList.Unordered className={sharedClasses.taskConfigList}>
       <StudioList.Item>
         <StudioFormGroup
-          className={classes.group}
+          className={sharedClasses.group}
           description={t('process_editor.configuration_panel_subform_pdf_description')}
           legend={t('process_editor.configuration_panel_subform_pdf_legend')}
           required

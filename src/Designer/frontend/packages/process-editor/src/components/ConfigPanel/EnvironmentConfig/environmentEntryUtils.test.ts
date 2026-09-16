@@ -1,4 +1,5 @@
 import {
+  getEffectiveEnvironmentValue,
   getEnvironmentConfigSummary,
   resolveEnvironmentEntries,
   withEnvironmentValue,
@@ -198,6 +199,35 @@ describe('withoutEnvironmentValue', () => {
     ];
 
     expect(withoutEnvironmentValue(entries, 'staging')).toEqual([{ value: 'global' }]);
+  });
+});
+
+describe('getEffectiveEnvironmentValue', () => {
+  it('reads the override of the environment, and the environment-independent entry otherwise', () => {
+    const resolved = resolveEnvironmentEntries([{ value: 'global' }, { env: 'tt02', value: 's' }]);
+
+    expect(getEffectiveEnvironmentValue(resolved, 'staging')).toBe('s');
+    expect(getEffectiveEnvironmentValue(resolved, 'production')).toBe('global');
+  });
+
+  it('answers undefined when the file has neither, which is the startup the app fails', () => {
+    const resolved = resolveEnvironmentEntries([{ env: 'tt02', value: 's' }]);
+
+    expect(getEffectiveEnvironmentValue(resolved, 'production')).toBeUndefined();
+  });
+
+  // Two entries of the same environment concatenate for `dataTypes`, so reading only the last one
+  // would call an environment unconfigured that the app does find a value for.
+  it('combines the entries of an environment for a field that says they combine', () => {
+    const entries: EnvironmentEntry<string[]>[] = [
+      { env: 'tt02', value: ['model'] },
+      { env: 'at22', value: [] },
+    ];
+
+    expect(getEffectiveEnvironmentValue(resolveEnvironmentEntries(entries), 'staging')).toEqual([]);
+    expect(
+      getEffectiveEnvironmentValue(resolveEnvironmentEntries(entries, combineLists), 'staging'),
+    ).toEqual(['model']);
   });
 });
 

@@ -169,17 +169,49 @@ describe('EnvironmentConfigField', () => {
     expect(screen.queryByLabelText(stagingLabel)).not.toBeInTheDocument();
   });
 
+  // A control that can be emptied by hand already has a way out of a value, and a second one beside
+  // every row would be noise. The button appears only for a control that has none, such as the
+  // radio group `EnvBooleanConfigField` is built on.
+  it('leaves the environment-independent row alone when the control can be emptied', async () => {
+    const user = userEvent.setup();
+    renderEnvironmentConfigField({ entries: [{ value: 'g' }] });
+
+    await user.click(getCollapsedButton());
+
+    expect(
+      screen.queryByRole('button', {
+        name: textMock('process_editor.configuration_panel.environment_config.remove_global_value'),
+      }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /delete_item/ })).toHaveLength(0);
+  });
+
+  // An override added by mistake is taken away with the same button as a real one, and taking it
+  // away has to take the row with it: a row left behind holds an environment the add menu then
+  // never offers again, so the mistake cannot be undone without closing the field.
+  it('takes the row away when an override that was never given a value is deleted', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderEnvironmentConfigField({ entries: [{ value: 'g' }], onChange });
+    await user.click(getCollapsedButton());
+    await user.click(screen.getByRole('button', { name: addOverrideLabel }));
+    await user.click(getMenuItem(stagingLabel));
+
+    await user.click(getDeleteButton(stagingLabel));
+
+    expect(screen.queryByLabelText(stagingLabel)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: addOverrideLabel }));
+    expect(getMenuItem(stagingLabel)).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('removes the override when the delete button is used', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderEnvironmentConfigField({ entries: [{ env: 'tt02', value: 's' }], onChange });
     await user.click(getCollapsedButton());
 
-    await user.click(
-      screen.getByRole('button', {
-        name: textMock('general.delete_item', { item: stagingLabel }),
-      }),
-    );
+    await user.click(getDeleteButton(stagingLabel));
 
     expect(onChange).toHaveBeenCalledWith([]);
   });
@@ -290,6 +322,12 @@ function unknownEnvironmentsAlert(environments: string, count: number): string {
 
 function getRowLabels(): string[] {
   return screen.getAllByRole('textbox').map((input) => input.getAttribute('aria-label'));
+}
+
+function getDeleteButton(environmentLabel: string): HTMLElement {
+  return screen.getByRole('button', {
+    name: textMock('general.delete_item', { item: environmentLabel }),
+  });
 }
 
 function getMenuItem(name: string): HTMLElement {
