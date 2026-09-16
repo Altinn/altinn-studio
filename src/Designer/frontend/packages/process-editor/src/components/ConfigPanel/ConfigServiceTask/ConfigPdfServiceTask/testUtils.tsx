@@ -18,6 +18,7 @@ export const createPdfBpmnDetails = (config: PdfBpmnDetailsConfig = {}): BpmnDet
         extensionElements: {
           values: [
             {
+              $type: 'altinn:TaskExtension',
               pdfConfig: {
                 filenameTextResourceKey: filenameTextResourceKey
                   ? { value: filenameTextResourceKey }
