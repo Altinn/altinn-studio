@@ -265,8 +265,9 @@ describe('InstanceWorkflows', () => {
     expect(failedRow).toHaveAttribute('open');
     expect(settledRow).not.toHaveAttribute('open');
     expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();
+    // The verbs sit beside the disclosure, over its right edge, for the one row they apply to.
     expect(
-      within(failedRow).getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
+      screen.getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
     ).toBeInTheDocument();
   });
   it("lists a step's errors newest first, each with what the engine made of it", async () => {

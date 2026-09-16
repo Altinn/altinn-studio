@@ -19,7 +19,10 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { PARKED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import {
+  PARKED_WORKFLOW_STATUSES,
+  RESUMABLE_WORKFLOW_STATUSES,
+} from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMessage/EngineErrorMessage';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
@@ -168,8 +171,12 @@ type WorkflowItemProps = {
 
 /**
  * One workflow as a row: what it is, where it is in its steps, how many attempts it has made, how
- * long it ran or has been running, and when a parked one tries again. Behind the row: the verbs
- * that apply, the steps with their errors, and the id.
+ * long it ran or has been running, and when a parked one tries again — with the verbs that apply
+ * at the row's right edge. Behind the row: the steps with their errors, and the id.
+ *
+ * The verbs sit beside the disclosure in the DOM, not inside its summary: a summary is itself a
+ * button, and buttons (and their dialogs) inside it are neither valid nor reliably reachable.
+ * They are placed over the row's right edge, and the row keeps that edge clear.
  */
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
@@ -177,6 +184,9 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
   const duration = settledDurationOf(workflow);
   const attempts = maxRetryCount(workflow);
   const liveNote = liveNoteOf(workflow, now, t);
+  const hasVerbs =
+    RESUMABLE_WORKFLOW_STATUSES.includes(workflow.overallStatus) ||
+    PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
 
   // A row that just changed blinks once. The change is counted from the previous render's
   // timestamp (the React pattern for remembering the last props), and the summary span is keyed
@@ -188,49 +198,58 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
     setChangeCount((count) => count + 1);
   }
 
+  const summaryClasses = [
+    classes.summary,
+    changeCount > 0 && classes.summaryChanged,
+    hasVerbs && classes.summaryWithVerbs,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <StudioDetails defaultOpen={defaultOpen}>
-      <StudioDetails.Summary>
-        <span
-          key={changeCount}
-          className={
-            changeCount > 0 ? `${classes.summary} ${classes.summaryChanged}` : classes.summary
-          }
-        >
-          <span className={classes.summaryStatus}>
-            <WorkflowStatusTag status={workflow.overallStatus} />
-          </span>
-          <span className={classes.summaryName}>
-            <span className={classes.summaryOperation} title={workflow.operationId}>
-              {workflowDisplayName(workflow)}
+    <div className={classes.row}>
+      <StudioDetails defaultOpen={defaultOpen}>
+        <StudioDetails.Summary>
+          <span key={changeCount} className={summaryClasses}>
+            <span className={classes.summaryStatus}>
+              <WorkflowStatusTag status={workflow.overallStatus} />
             </span>
-            {workflow.isHead === false && (
-              <StudioTag data-size='sm' data-color='neutral'>
-                {t('admin.workflows.side_effect')}
-              </StudioTag>
-            )}
-          </span>
-          <WorkflowStepStrip workflow={workflow} />
-          <span className={classes.summaryMeta}>
-            {attempts > 0 && <span>{t('admin.workflows.row.attempts', { count: attempts })}</span>}
-            {liveNote && <span>{liveNote}</span>}
-            {duration !== undefined && (
-              <span>
-                {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
+            <span className={classes.summaryName}>
+              <span className={classes.summaryOperation} title={workflow.operationId}>
+                {workflowDisplayName(workflow)}
               </span>
-            )}
-            <span>{formatDateAndTime(workflow.createdAt)}</span>
+              {workflow.isHead === false && (
+                <StudioTag data-size='sm' data-color='neutral'>
+                  {t('admin.workflows.side_effect')}
+                </StudioTag>
+              )}
+            </span>
+            <WorkflowStepStrip workflow={workflow} />
+            <span className={classes.summaryMeta}>
+              {attempts > 0 && (
+                <span>{t('admin.workflows.row.attempts', { count: attempts })}</span>
+              )}
+              {liveNote && <span>{liveNote}</span>}
+              {duration !== undefined && (
+                <span>
+                  {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
+                </span>
+              )}
+              <span>{formatDateAndTime(workflow.createdAt)}</span>
+            </span>
           </span>
-        </span>
-      </StudioDetails.Summary>
-      <StudioDetails.Content className={classes.details}>
+        </StudioDetails.Summary>
+        <StudioDetails.Content className={classes.details}>
+          <WorkflowSteps workflow={workflow} />
+          <span className={classes.workflowId}>
+            {t('admin.workflows.id')}: <code>{workflow.databaseId}</code>
+          </span>
+        </StudioDetails.Content>
+      </StudioDetails>
+      <div className={classes.rowVerbs}>
         <WorkflowActions context={context} workflow={workflow} />
-        <WorkflowSteps workflow={workflow} />
-        <span className={classes.workflowId}>
-          {t('admin.workflows.id')}: <code>{workflow.databaseId}</code>
-        </span>
-      </StudioDetails.Content>
-    </StudioDetails>
+      </div>
+    </div>
   );
 };
 
