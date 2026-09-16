@@ -104,7 +104,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const summaries = await screen.findAllByRole('group');
+    const summaries = await screen.findAllByTestId('workflow-row');
     expect(summaries).toHaveLength(2);
     expect(summaries[0]).toHaveTextContent('side-effects');
     expect(summaries[0]).toHaveTextContent(textMock('admin.workflows.side_effect'));
@@ -124,8 +124,8 @@ describe('InstanceWorkflows', () => {
     expect(screen.getByRole('cell', { name: '3' })).toBeInTheDocument();
     // The latest error is in full; the earlier one — the same failure, one attempt earlier —
     // waits behind a toggle.
-    expect(screen.getByText(problemMessage)).toBeInTheDocument();
-    expect(screen.queryByText('Boom went the pipeline')).not.toBeInTheDocument();
+    expect(screen.getByText(problemMessage)).toBeVisible();
+    expect(screen.getByText('Boom went the pipeline')).not.toBeVisible();
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
     ).toBeInTheDocument();
@@ -154,7 +154,7 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const rows = await screen.findAllByRole('group');
+    const rows = await screen.findAllByTestId('workflow-row');
     expect(rows.every((row) => !row.hasAttribute('open'))).toBe(true);
   });
   it('opens a workflow that keeps retrying, with its attempts and the countdown in the row', async () => {
@@ -170,7 +170,7 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [row] = await screen.findAllByRole('group');
+    const [row] = await screen.findAllByTestId('workflow-row');
     expect(row).toHaveAttribute('open');
     // The retry count sits on the row as a badge, spoken as the sentence it stands for.
     expect(
@@ -191,7 +191,7 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [row] = await screen.findAllByRole('group');
+    const [row] = await screen.findAllByTestId('workflow-row');
     expect(within(row).queryByText(/admin\.workflows\.row\.next_attempt/)).not.toBeInTheDocument();
     expect(
       within(row).getByLabelText(textMock('admin.workflows.health.active')),
@@ -213,7 +213,7 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [row] = await screen.findAllByRole('group');
+    const [row] = await screen.findAllByTestId('workflow-row');
     expect(within(row).getByText(/admin\.workflows\.row\.running_for/)).toBeInTheDocument();
     // In flight is not a problem: the row stays closed.
     expect(row).not.toHaveAttribute('open');
@@ -225,7 +225,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [settledRow, failedRow] = await screen.findAllByRole('group');
+    const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
     // One dot per step, in processing order, colored by the step's status.
     expect(within(failedRow).getByTitle('app-command · Failed')).toHaveAttribute(
       'data-tone',
@@ -249,7 +249,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [settledRow, failedRow] = await screen.findAllByRole('group');
+    const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
     expect(failedRow).toHaveAttribute('open');
     expect(settledRow).not.toHaveAttribute('open');
     expect(within(failedRow).getByText(problemMessage)).toBeInTheDocument();
@@ -267,9 +267,7 @@ describe('InstanceWorkflows', () => {
     const user = userEvent.setup();
     const stepTable = await screen.findByRole('table');
     await user.click(
-      within(stepTable).getByRole('button', {
-        name: textMock('admin.workflows.step.show_earlier_errors', { count: 1 }),
-      }),
+      within(stepTable).getByText(textMock('admin.workflows.step.earlier_errors', { count: 1 })),
     );
     const messages = within(stepTable).getAllByText(
       (_, element) =>
@@ -322,14 +320,14 @@ describe('InstanceWorkflows', () => {
     });
     renderInstanceWorkflows();
 
-    await screen.findAllByRole('group');
+    await screen.findAllByTestId('workflow-row');
     await user.click(screen.getByRole('button', { name: textMock('admin.workflows.fetch_more') }));
 
     // The query as a whole reports an error, but page one is still valid and still cached.
     expect(
       await screen.findByText(textMock('admin.workflows.fetch_more_error')),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole('group')).toHaveLength(2);
+    expect(screen.getAllByTestId('workflow-row')).toHaveLength(2);
     expect(screen.queryByText(textMock('general.page_error_title'))).not.toBeInTheDocument();
   });
 

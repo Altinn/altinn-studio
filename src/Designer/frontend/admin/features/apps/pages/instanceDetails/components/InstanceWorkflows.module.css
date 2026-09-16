@@ -142,11 +142,6 @@
   vertical-align: top;
 }
 
-/* The verbs, on the step the workflow stopped at. */
-.stepActions {
-  white-space: nowrap;
-}
-
 /* A step with details continues on the next row, so no rule between the two. The design system
    draws the rule from this variable, which the cells inherit. */
 .stepRowWithDetails {
@@ -157,26 +152,26 @@
   padding-top: 0;
 }
 
-.visuallyHidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 .stepDetails {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-1);
+  align-items: flex-start;
+  gap: var(--ds-size-2);
 }
 
+/* The earlier attempts, folded under their count; flush with the text above, no card chrome. */
 .earlierErrors {
+  --dsc-details-padding: var(--ds-size-2) 0;
+
+  align-self: stretch;
+  border: 0;
+}
+
+.earlierErrorsList {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: var(--ds-size-3);
+  margin-inline: 0;
 }
 
 /* Free text from the engine, shown as it came: not translated, not part of the sentence. */

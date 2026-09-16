@@ -10,6 +10,7 @@ import {
   StudioTag,
 } from '@studio/components';
 import { Fragment, useState } from 'react';
+import type { ReactNode } from 'react';
 import { ArrowsCirclepathIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
@@ -20,7 +21,10 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { PARKED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import {
+  PARKED_WORKFLOW_STATUSES,
+  RESUMABLE_WORKFLOW_STATUSES,
+} from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMessage/EngineErrorMessage';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
@@ -200,7 +204,7 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
     .join(' ');
 
   return (
-    <StudioDetails defaultOpen={defaultOpen}>
+    <StudioDetails defaultOpen={defaultOpen} data-testid='workflow-row'>
       <StudioDetails.Summary>
         <span key={changeCount} className={summaryClasses}>
           <span className={classes.summaryStatus}>
@@ -307,14 +311,12 @@ const WorkflowSteps = ({
             <StudioTable.Cell>{t('admin.workflows.status')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.step.retries')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.instances.last_changed')}</StudioTable.Cell>
-            <StudioTable.Cell>
-              <span className={classes.visuallyHidden}>{t('admin.workflows.step.actions')}</span>
-            </StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
           {steps.map((step) => {
-            const hasDetails = hasStepDetails(step);
+            const hasVerbs = step === focusStep && hasWorkflowVerbs(workflow);
+            const hasDetails = hasStepDetails(step) || hasVerbs;
             return (
               <Fragment key={step.databaseId}>
                 <StudioTable.Row className={hasDetails ? classes.stepRowWithDetails : undefined}>
@@ -326,21 +328,21 @@ const WorkflowSteps = ({
                   <StudioTable.Cell>
                     {formatTimestamp(step.updatedAt, 'milliseconds')}
                   </StudioTable.Cell>
-                  <StudioTable.Cell className={classes.stepActions}>
-                    {step === focusStep && (
-                      <WorkflowActions context={context} workflow={workflow} />
-                    )}
-                  </StudioTable.Cell>
                 </StudioTable.Row>
-                {/* What the step has to say gets the whole width, under its own row, rather than a
-                    narrow column beside four short ones. */}
+                {/* What the step has to say — and, on the step the workflow stopped at, the verbs
+                    right under its latest error — gets the whole width, on a row of its own. */}
                 {hasDetails && (
                   <StudioTable.Row>
                     <StudioTable.Cell
                       colSpan={STEP_COLUMN_COUNT}
                       className={classes.stepDetailsCell}
                     >
-                      <StepDetails step={step} />
+                      <StepDetails
+                        step={step}
+                        verbs={
+                          hasVerbs && <WorkflowActions context={context} workflow={workflow} />
+                        }
+                      />
                     </StudioTable.Cell>
                   </StudioTable.Row>
                 )}
@@ -353,8 +355,16 @@ const WorkflowSteps = ({
   );
 };
 
-/** Operation, status, retries, last changed, verbs: what a details row spans. */
-const STEP_COLUMN_COUNT = 5;
+/** Operation, status, retries, last changed: what a details row spans. */
+const STEP_COLUMN_COUNT = 4;
+
+/** Whether the ops verbs apply to the workflow at all, so a details row is worth drawing for them. */
+function hasWorkflowVerbs(workflow: WorkflowStatus): boolean {
+  return (
+    RESUMABLE_WORKFLOW_STATUSES.includes(workflow.overallStatus) ||
+    PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus)
+  );
+}
 
 /** Whether a step has anything to say beyond its status: a defer reason or an error. */
 function hasStepDetails(step: WorkflowStepStatus): boolean {
@@ -362,19 +372,15 @@ function hasStepDetails(step: WorkflowStepStatus): boolean {
 }
 
 /**
- * A step's own account of what happened: what it is waiting for, and its latest error in full.
- * Earlier errors — one per attempt, so a retried step can have many — stay behind a toggle:
- * they are the same failure over and over more often than not.
+ * A step's own account of what happened: what it is waiting for, its latest error in full, and —
+ * on the step the workflow stopped at — the verbs, right under that error. Earlier errors, one per
+ * attempt, so a retried step can have many, fold away under the count: they are the same failure
+ * over and over more often than not.
  */
-const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
+const StepDetails = ({ step, verbs }: { step: WorkflowStepStatus; verbs?: ReactNode }) => {
   const { t } = useTranslation();
-  const [isHistoryShown, setIsHistoryShown] = useState(false);
   const deferReason = step.lastDeferReason;
   const [latestError, ...earlierErrors] = newestFirst(step.errorHistory ?? []);
-
-  if (!deferReason && !latestError) {
-    return null;
-  }
 
   // The engine leaves the last defer reason on the step after it stops waiting, so only a step that
   // is actually parked may read as currently blocked. On any other step the same text is history,
@@ -399,23 +405,18 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
         <span>{t('admin.workflows.step.defer_count', { times: step.deferCount })}</span>
       )}
       {latestError && <EngineErrorMessage entry={latestError} />}
+      {verbs}
       {earlierErrors.length > 0 && (
-        <div className={classes.earlierErrors}>
-          <StudioButton
-            data-size='sm'
-            variant='tertiary'
-            aria-expanded={isHistoryShown}
-            onClick={() => setIsHistoryShown((shown) => !shown)}
-          >
-            {isHistoryShown
-              ? t('admin.workflows.step.hide_earlier_errors')
-              : t('admin.workflows.step.show_earlier_errors', { count: earlierErrors.length })}
-          </StudioButton>
-          {isHistoryShown &&
-            earlierErrors.map((entry, index) => (
+        <StudioDetails data-size='sm' className={classes.earlierErrors}>
+          <StudioDetails.Summary>
+            {t('admin.workflows.step.earlier_errors', { count: earlierErrors.length })}
+          </StudioDetails.Summary>
+          <StudioDetails.Content className={classes.earlierErrorsList}>
+            {earlierErrors.map((entry, index) => (
               <EngineErrorMessage key={`${entry.timestamp}-${index}`} entry={entry} />
             ))}
-        </div>
+          </StudioDetails.Content>
+        </StudioDetails>
       )}
     </div>
   );
