@@ -287,7 +287,10 @@ services:
       POSTGRES_USER: designer_admin
       POSTGRES_DB: designerdb
     ports:
-      - '5432:5432'
+      # Only the host side is configurable. Everything in the stack reaches this database as
+      # studio_db:5432 over the compose network, so the container side is fixed. Set STUDIO_DB_PORT
+      # when something else on the machine already publishes 5432 - a running localtest stack does.
+      - '${STUDIO_DB_PORT:-5432}:5432'
     volumes:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data
