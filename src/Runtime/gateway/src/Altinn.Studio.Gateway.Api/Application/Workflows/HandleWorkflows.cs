@@ -1,10 +1,12 @@
 using System.Globalization;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using Altinn.Studio.Gateway.Api.Clients.WorkflowEngine;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Contracts.Workflows;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Application;
@@ -18,7 +20,7 @@ namespace Altinn.Studio.Gateway.Api.Application;
 /// </summary>
 internal static class HandleWorkflows
 {
-    /// <summary>Logger category for the audit lines emitted on the two mutating verbs.</summary>
+    /// <summary>Logger category for the audit lines emitted on the mutating verbs.</summary>
     internal const string AuditLoggerCategory = "Altinn.Studio.Gateway.Api.WorkflowAudit";
 
     internal const string DiagnosticsLoggerCategory = "Altinn.Studio.Gateway.Api.Application.HandleWorkflows";
@@ -217,6 +219,78 @@ internal static class HandleWorkflows
         );
     }
 
+    internal static Task<IResult> NudgeWorkflow(
+        string app,
+        Guid workflowId,
+        HttpContext httpContext,
+        IOptionsMonitor<GatewayContext> gatewayContext,
+        WorkflowEngineClient engineClient,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken
+    )
+    {
+        return ForwardToEngine(
+            HttpMethod.Post,
+            httpContext,
+            app,
+            $"/workflows/{workflowId}/nudge",
+            _noQueryKeys,
+            query: null,
+            gatewayContext,
+            engineClient,
+            loggerFactory,
+            audit: new AuditContext(httpContext.User, "nudge", workflowId),
+            cancellationToken
+        );
+    }
+
+    internal static async Task<IResult> FailWorkflow(
+        string app,
+        Guid workflowId,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] FailWorkflowRequest? request,
+        HttpContext httpContext,
+        IOptionsMonitor<GatewayContext> gatewayContext,
+        WorkflowEngineClient engineClient,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken
+    )
+    {
+        var reason = request?.Reason;
+        if (
+            reason is not null
+            && (string.IsNullOrWhiteSpace(reason) || reason.Length > FailWorkflowRequest.MaxReasonLength)
+        )
+        {
+            return Problem(
+                GatewayProblem.InvalidFailReasonType,
+                "Invalid fail reason",
+                StatusCodes.Status400BadRequest,
+                $"The reason must not be blank and must be at most {FailWorkflowRequest.MaxReasonLength} characters."
+            );
+        }
+
+        // The body is rebuilt from the one field the route accepts, so nothing else a caller sends
+        // reaches the engine. No reason means no body: the engine then records its default text.
+        using var content = reason is null
+            ? null
+            : JsonContent.Create(new FailWorkflowRequest(reason), AppJsonSerializerContext.Default.FailWorkflowRequest);
+
+        return await ForwardToEngine(
+            HttpMethod.Post,
+            httpContext,
+            app,
+            $"/workflows/{workflowId}/fail",
+            _noQueryKeys,
+            query: null,
+            gatewayContext,
+            engineClient,
+            loggerFactory,
+            audit: new AuditContext(httpContext.User, "fail", workflowId),
+            cancellationToken,
+            content
+        );
+    }
+
     /// <summary>Caller identity and verb for the audit line emitted on mutations.</summary>
     private sealed record AuditContext(ClaimsPrincipal User, string Verb, Guid WorkflowId);
 
@@ -231,7 +305,8 @@ internal static class HandleWorkflows
         WorkflowEngineClient engineClient,
         ILoggerFactory loggerFactory,
         AuditContext? audit,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        HttpContent? content = null
     )
     {
         if (!AppName.IsValid(app))
@@ -267,7 +342,7 @@ internal static class HandleWorkflows
         HttpResponseMessage response;
         try
         {
-            response = await engineClient.Send(method, upstreamPath, cancellationToken);
+            response = await engineClient.Send(method, upstreamPath, cancellationToken, content);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {

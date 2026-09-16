@@ -359,6 +359,48 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         );
     }
 
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> NudgeWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    )
+    {
+        return SendWorkflowRequestAsync(
+            HttpMethod.Post,
+            org,
+            app,
+            environment,
+            $"/workflows/{workflowId}/nudge",
+            query: null,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
+    public Task<HttpResponseMessage> FailWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        string reason,
+        CancellationToken cancellationToken
+    )
+    {
+        return SendWorkflowRequestAsync(
+            HttpMethod.Post,
+            org,
+            app,
+            environment,
+            $"/workflows/{workflowId}/fail",
+            query: null,
+            cancellationToken,
+            JsonContent.Create(new FailWorkflowRequest(reason))
+        );
+    }
+
     private async Task<HttpResponseMessage> SendWorkflowRequestAsync(
         HttpMethod method,
         string org,
@@ -366,7 +408,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         AltinnEnvironment environment,
         string pathSuffix,
         QueryBuilder? query,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        HttpContent? content = null
     )
     {
         // Resolved before the gateway call so a registry outage is never reported as an
@@ -379,6 +422,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
             + $"{pathSuffix}{query?.ToQueryString().ToUriComponent()}";
 
         using var request = new HttpRequestMessage(method, requestUrl);
+        request.Content = content;
 
         // The response is buffered before the client is disposed, and returned unmodified —
         // status code included — so the gateway/engine wire contract passes through untouched.

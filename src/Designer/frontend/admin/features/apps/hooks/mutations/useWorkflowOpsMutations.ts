@@ -3,7 +3,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResumeWorkflowResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { abandonWorkflowPath, resumeWorkflowPath } from 'admin/features/apps/utils/apiPaths';
+import {
+  abandonWorkflowPath,
+  failWorkflowPath,
+  nudgeWorkflowPath,
+  resumeWorkflowPath,
+} from 'admin/features/apps/utils/apiPaths';
 
 /**
  * Resume always cascades. The engine's cascade drains the dependents this workflow left in
@@ -53,8 +58,43 @@ export const useAbandonWorkflowMutation = (
   });
 };
 
+/** Run a parked workflow now, instead of when its backoff elapses. */
+export const useNudgeWorkflowMutation = (
+  context: WorkflowOpsContext,
+): UseMutationResult<void, unknown, string> => {
+  const queryClient = useQueryClient();
+  const { org, env, app } = context;
+
+  return useMutation({
+    mutationFn: async (workflowId: string) => {
+      await axios.post(nudgeWorkflowPath(org, env, app, workflowId));
+    },
+    onSuccess: () => invalidateWorkflowQueries(queryClient, context),
+    meta: { hideDefaultError: true },
+  });
+};
+
 /**
- * Both verbs change the counts the traffic-light column and the discovery view are derived from, so
+ * Give up on a parked workflow: it becomes `Failed` now, instead of after the engine has spent its
+ * retries. Designer composes the reason the engine records, naming the Studio user.
+ */
+export const useFailWorkflowMutation = (
+  context: WorkflowOpsContext,
+): UseMutationResult<void, unknown, string> => {
+  const queryClient = useQueryClient();
+  const { org, env, app } = context;
+
+  return useMutation({
+    mutationFn: async (workflowId: string) => {
+      await axios.post(failWorkflowPath(org, env, app, workflowId));
+    },
+    onSuccess: () => invalidateWorkflowQueries(queryClient, context),
+    meta: { hideDefaultError: true },
+  });
+};
+
+/**
+ * Every verb changes the counts the traffic-light column and the discovery view are derived from, so
  * all three engine-backed queries for this app are invalidated — the health and problems keys by
  * prefix, since their full keys carry the page's key set and the failure filter.
  *

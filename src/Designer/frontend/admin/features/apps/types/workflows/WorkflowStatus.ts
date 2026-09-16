@@ -35,6 +35,13 @@ export const RESUMABLE_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = [
   'Abandoned',
 ];
 
+/**
+ * Parked on a timer: the engine tries again when the backoff elapses. Both can be run now
+ * (nudged) instead of waiting, or given up on (failed) instead of waiting the retries out. `Held`
+ * is parked too, but on a mailbox rather than a timer, so neither verb applies to it.
+ */
+export const PARKED_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = ['Requeued', 'Waiting'];
+
 export type WorkflowErrorEntry = {
   timestamp: string;
   message: string;

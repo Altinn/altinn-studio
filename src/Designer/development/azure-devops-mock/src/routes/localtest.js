@@ -45,6 +45,8 @@ const forwardToWorkflowEngine = (suffix) => async (req, res) => {
   const engineNamespace = encodeURIComponent(`${org.toLowerCase()}/${app}`);
   const search = new URL(req.originalUrl, 'http://mock').search;
   const url = `${localtestUrl()}/api/v1/${engineNamespace}${suffix(req.params)}${search}`;
+  // A JSON body (the fail verb's reason) travels as it came; everything else sends none.
+  const body = req.is('json') && req.body && Object.keys(req.body).length ? req.body : undefined;
 
   let upstream;
   try {
@@ -52,7 +54,12 @@ const forwardToWorkflowEngine = (suffix) => async (req, res) => {
       ...passThrough,
       method: req.method,
       url,
-      headers: { Host: workflowEngineHost(), Accept: 'application/json' },
+      headers: {
+        Host: workflowEngineHost(),
+        Accept: 'application/json',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      data: body,
       responseType: 'arraybuffer',
     });
   } catch (error) {
@@ -91,6 +98,12 @@ export const workflowResumeRoute = forwardToWorkflowEngine(
 );
 export const workflowAbandonRoute = forwardToWorkflowEngine(
   ({ workflowId }) => `/workflows/${encodeURIComponent(workflowId)}/abandon`,
+);
+export const workflowNudgeRoute = forwardToWorkflowEngine(
+  ({ workflowId }) => `/workflows/${encodeURIComponent(workflowId)}/nudge`,
+);
+export const workflowFailRoute = forwardToWorkflowEngine(
+  ({ workflowId }) => `/workflows/${encodeURIComponent(workflowId)}/fail`,
 );
 
 // ---- Storage instances, from localtest -----------------------------------------------------------

@@ -31,8 +31,8 @@ namespace Altinn.Studio.Designer.Controllers.Admin;
 public class WorkflowsController : ControllerBase
 {
     /// <summary>
-    /// Logger category for the audit lines emitted on the two mutating verbs. Each mutation writes
-    /// an attempt line before the gateway call and an outcome line after it, so a mutation that is
+    /// Logger category for the audit lines emitted on the mutating verbs. Each mutation writes an
+    /// attempt line before the gateway call and an outcome line after it, so a mutation that is
     /// canceled or never reaches the gateway is still attributed.
     /// </summary>
     public const string AuditLoggerCategory = "Altinn.Studio.Designer.Admin.WorkflowAudit";
@@ -224,6 +224,51 @@ public class WorkflowsController : ControllerBase
             app,
             (environment, ct) => _runtimeGatewayClient.AbandonWorkflowAsync(org, app, environment, workflowId, ct),
             new AuditContext("abandon", workflowId),
+            cancellationToken
+        );
+    }
+
+    [HttpPost("workflows/{workflowId:guid}/nudge")]
+    public Task<IActionResult> NudgeWorkflow(
+        string org,
+        string env,
+        string app,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    )
+    {
+        return ForwardToGatewayAsync(
+            org,
+            env,
+            app,
+            (environment, ct) => _runtimeGatewayClient.NudgeWorkflowAsync(org, app, environment, workflowId, ct),
+            new AuditContext("nudge", workflowId),
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Gives up on a parked workflow. The reason the engine records on the step is composed here and
+    /// never taken from the client: it names the Studio user, which is the one thing neither the
+    /// gateway nor the engine can know.
+    /// </summary>
+    [HttpPost("workflows/{workflowId:guid}/fail")]
+    public Task<IActionResult> FailWorkflow(
+        string org,
+        string env,
+        string app,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    )
+    {
+        string reason = $"Failed by Studio user {AuditedUser()} from Altinn Studio";
+
+        return ForwardToGatewayAsync(
+            org,
+            env,
+            app,
+            (environment, ct) => _runtimeGatewayClient.FailWorkflowAsync(org, app, environment, workflowId, reason, ct),
+            new AuditContext("fail", workflowId),
             cancellationToken
         );
     }

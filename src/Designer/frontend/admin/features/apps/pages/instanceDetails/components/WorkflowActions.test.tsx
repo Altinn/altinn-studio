@@ -59,6 +59,11 @@ const retryButton = () =>
   screen.getByRole('button', { name: textMock('admin.workflows.actions.retry') });
 const abandonButton = () =>
   screen.getByRole('button', { name: textMock('admin.workflows.actions.abandon') });
+const nudgeButton = () =>
+  screen.getByRole('button', { name: textMock('admin.workflows.actions.nudge') });
+const failButton = () =>
+  screen.getByRole('button', { name: textMock('admin.workflows.actions.fail') });
+const queryButton = (key: string) => screen.queryByRole('button', { name: textMock(key) });
 const confirmButton = (key: string) => screen.getByRole('button', { name: textMock(key) });
 
 describe('WorkflowActions', () => {
@@ -76,13 +81,85 @@ describe('WorkflowActions', () => {
     },
   );
 
-  it.each<PersistentItemStatus>(['Completed', 'Enqueued', 'Processing', 'Waiting'])(
+  it.each<PersistentItemStatus>(['Completed', 'Enqueued', 'Processing', 'Held'])(
     'offers nothing on a %s workflow',
     (status) => {
       const { container } = renderWorkflowActions(workflow(status));
       expect(container).toBeEmptyDOMElement();
     },
   );
+
+  it.each<PersistentItemStatus>(['Requeued', 'Waiting'])(
+    'offers run-now and give-up, and nothing else, on a %s workflow',
+    (status) => {
+      renderWorkflowActions(workflow(status));
+      expect(nudgeButton()).toBeInTheDocument();
+      expect(failButton()).toBeInTheDocument();
+      expect(queryButton('admin.workflows.actions.retry')).not.toBeInTheDocument();
+      expect(queryButton('admin.workflows.actions.abandon')).not.toBeInTheDocument();
+    },
+  );
+
+  it('runs a parked workflow now only once confirmed', async () => {
+    const user = userEvent.setup();
+    const { rerenderWith } = renderWorkflowActions(workflow('Requeued'));
+
+    await user.click(nudgeButton());
+    expect(
+      screen.getByText(textMock('admin.workflows.actions.nudge.description')),
+    ).toBeInTheDocument();
+    expect(axios.post).not.toHaveBeenCalled();
+
+    await user.click(confirmButton('admin.workflows.actions.nudge.confirm'));
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+    expect(jest.mocked(axios.post).mock.calls[0][0]).toBe(
+      `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/nudge`,
+    );
+    rerenderWith(workflow('Processing'));
+    expect(
+      await screen.findByText(textMock('admin.workflows.actions.nudge.success')),
+    ).toBeInTheDocument();
+  });
+
+  it('gives up on a parked workflow only once confirmed, sending no reason of its own', async () => {
+    const user = userEvent.setup();
+    renderWorkflowActions(workflow('Waiting'));
+
+    await user.click(failButton());
+    expect(
+      screen.getByText(textMock('admin.workflows.actions.fail.description')),
+    ).toBeInTheDocument();
+    expect(axios.post).not.toHaveBeenCalled();
+
+    await user.click(confirmButton('admin.workflows.actions.fail.confirm'));
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
+    expect(jest.mocked(axios.post).mock.calls[0]).toEqual([
+      `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/fail`,
+    ]);
+  });
+
+  it('drops a run-now outcome once the workflow parks again', async () => {
+    const user = userEvent.setup();
+    const { rerenderWith } = renderWorkflowActions(workflow('Requeued'));
+
+    await user.click(nudgeButton());
+    await user.click(confirmButton('admin.workflows.actions.nudge.confirm'));
+    rerenderWith(workflow('Processing'));
+    expect(
+      await screen.findByText(textMock('admin.workflows.actions.nudge.success')),
+    ).toBeInTheDocument();
+
+    rerenderWith(workflow('Requeued'));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText(textMock('admin.workflows.actions.nudge.success')),
+      ).not.toBeInTheDocument(),
+    );
+    expect(nudgeButton()).toBeInTheDocument();
+  });
 
   it('offers only retry on an already written-off workflow', () => {
     renderWorkflowActions(workflow('Abandoned'));

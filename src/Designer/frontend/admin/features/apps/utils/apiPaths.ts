@@ -108,6 +108,12 @@ export const resumeWorkflowPath = (
 export const abandonWorkflowPath = (org: string, env: string, app: string, workflowId: string) =>
   `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/abandon`; // Post
 
+export const nudgeWorkflowPath = (org: string, env: string, app: string, workflowId: string) =>
+  `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/nudge`; // Post
+
+export const failWorkflowPath = (org: string, env: string, app: string, workflowId: string) =>
+  `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/fail`; // Post
+
 /**
  * Appends a parameter unless it is unset or empty. `false` and `0` are values and are kept — a
  * builder that dropped every falsy value would silently lose `isArchived=false`.

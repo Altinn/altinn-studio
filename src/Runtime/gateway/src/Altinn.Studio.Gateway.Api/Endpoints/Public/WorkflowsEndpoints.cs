@@ -4,8 +4,8 @@ namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 /// <summary>
 /// Whitelisted pass-through to the workflow engine for Studio's admin surface. Exactly these
-/// six routes are exposed — the rest of the engine's surface (enqueue, cancel, nudge,
-/// dependency graphs, namespaces, dashboard) stays unreachable through the gateway.
+/// eight routes are exposed — the rest of the engine's surface (enqueue, cancel, dependency
+/// graphs, namespaces, throttling, mailboxes, dashboard) stays unreachable through the gateway.
 /// </summary>
 internal static class WorkflowsEndpoints
 {
@@ -65,6 +65,25 @@ internal static class WorkflowsEndpoints
             .WithDescription(
                 "Writes off an unsuccessful terminal workflow so it no longer condemns dependents. "
                     + "Audited. Engine response is passed through unmodified."
+            );
+
+        workflowsApi
+            .MapPost("/workflows/{workflowId:guid}/nudge", HandleWorkflows.NudgeWorkflow)
+            .WithName("NudgeWorkflow")
+            .WithSummary("Run a parked workflow now.")
+            .WithDescription(
+                "Clears a parked (Requeued/Waiting) workflow's pending backoff so the engine re-executes it on "
+                    + "its next fetch instead of when the timer elapses. Audited. Engine response is passed through unmodified."
+            );
+
+        workflowsApi
+            .MapPost("/workflows/{workflowId:guid}/fail", HandleWorkflows.FailWorkflow)
+            .WithName("FailWorkflow")
+            .WithSummary("Give up on a parked workflow.")
+            .WithDescription(
+                "Fails a parked (Requeued/Waiting) workflow by caller decision instead of waiting its retries out. "
+                    + "The optional body's reason (at most 500 characters) is recorded as the parked step's final "
+                    + "error entry; nothing else in the body is forwarded. Audited. Engine response is passed through unmodified."
             );
 
         return publicApiV1;

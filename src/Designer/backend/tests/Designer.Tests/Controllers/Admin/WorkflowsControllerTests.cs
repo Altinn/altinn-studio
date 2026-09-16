@@ -341,6 +341,72 @@ public class WorkflowsControllerTests
     }
 
     [Fact]
+    public async Task NudgeWorkflow_PassesResponseThrough_AndAudits()
+    {
+        var workflowId = Guid.NewGuid();
+        const string upstreamBody = /*lang=json,strict*/
+            """{"nudgedAt":"2026-08-02T10:00:00Z"}""";
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.NudgeWorkflowAsync(
+                    Org,
+                    App,
+                    It.Is<AltinnEnvironment>(environment => environment.Name == Env),
+                    workflowId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(JsonResponse(HttpStatusCode.Accepted, upstreamBody));
+
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/nudge", content: null);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.Equal(upstreamBody, await response.Content.ReadAsStringAsync());
+
+        (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("nudge", attempt);
+        Assert.Contains(workflowId.ToString(), attempt);
+        Assert.Contains("testUser", attempt);
+        Assert.Contains("outcome: 202", outcome);
+    }
+
+    [Fact]
+    public async Task FailWorkflow_RecordsTheStudioUserAsTheReason_AndAudits()
+    {
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.FailWorkflowAsync(
+                    Org,
+                    App,
+                    It.Is<AltinnEnvironment>(environment => environment.Name == Env),
+                    workflowId,
+                    It.Is<string>(reason => reason.Contains("testUser") && reason.Contains("Altinn Studio")),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.Accepted));
+
+        // Whatever the client sends as a body is ignored: the reason is Designer's to compose.
+        using var response = await HttpClient.PostAsync(
+            $"{BasePath()}/workflows/{workflowId}/fail",
+            new StringContent( /*lang=json,strict*/
+                """{"reason":"not mine to say"}""",
+                Encoding.UTF8,
+                "application/json"
+            )
+        );
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        _runtimeGatewayClientMock.VerifyAll();
+
+        (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("fail", attempt);
+        Assert.Contains(workflowId.ToString(), attempt);
+        Assert.Contains("outcome: 202", outcome);
+    }
+
+    [Fact]
     public async Task Reads_DoNotEmitAuditLines()
     {
         _runtimeGatewayClientMock

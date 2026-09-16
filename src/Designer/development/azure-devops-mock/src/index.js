@@ -28,6 +28,8 @@ import {
   workflowAbandonRoute,
   workflowCollectionRoute,
   workflowCollectionsRoute,
+  workflowFailRoute,
+  workflowNudgeRoute,
   workflowResumeRoute,
   workflowRoute,
   workflowsRoute,
@@ -80,6 +82,8 @@ app.get(`${workflowsBase}/workflows`, workflowsRoute);
 app.get(`${workflowsBase}/workflows/:workflowId`, workflowRoute);
 app.post(`${workflowsBase}/workflows/:workflowId/resume`, workflowResumeRoute);
 app.post(`${workflowsBase}/workflows/:workflowId/abandon`, workflowAbandonRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/nudge`, workflowNudgeRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/fail`, workflowFailRoute);
 app.get('/api/v1/scopes/all', accessibleForAllScopesRoute);
 app.get('/api/v1/scopes/access/all', accessScopesRoute);
 app.post('/_apis/build/builds/', buildsRoute);
