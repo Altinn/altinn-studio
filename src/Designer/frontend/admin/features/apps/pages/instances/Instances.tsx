@@ -4,6 +4,7 @@ import { ArchiveReferenceSearch } from './components/ArchiveReferenceSearch';
 import { StatusFilter } from './components/StatusFilter';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { ProcessTaskFilter } from './components/ProcessTaskFilter';
+import { RefreshInstancesButton } from './components/RefreshInstancesButton';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
 const YES_NO_ALL_OPTIONS = [
@@ -84,6 +85,9 @@ export const Instances = () => {
           setValue={setCreatedBeforeDays}
           options={CREATED_BEFORE_OPTIONS}
         />
+        <div className={classes.refresh}>
+          <RefreshInstancesButton org={org} environment={environment} app={app} />
+        </div>
       </div>
       <InstancesTable
         org={org}

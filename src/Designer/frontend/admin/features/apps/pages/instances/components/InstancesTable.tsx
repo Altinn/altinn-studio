@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { useInstancesWorkflowHealthQuery } from 'admin/features/apps/hooks/queries/useInstancesWorkflowHealthQuery';
 import type { WorkflowHealthLookup } from 'admin/features/apps/utils/workflowHealth';
 import { extractInstanceGuid, WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
+import { toTime } from 'admin/features/apps/utils/workflowTriage';
 import { WorkflowHealthCell, WorkflowHealthHeaderCell } from './WorkflowHealthColumn';
 
 type InstancesTableProps = {
@@ -154,7 +155,14 @@ const InstancesTableWithData = ({
   const rowPages = instancePages.map((page) =>
     page.map((instance) => ({ instance, collectionKey: extractInstanceGuid(instance.id) })),
   );
-  const rows = rowPages.flat();
+  // Newest first, whatever order Storage handed the pages over in: the instance an operator is
+  // looking for is almost always the one that was just created.
+  const rows = rowPages
+    .flat()
+    .toSorted(
+      (first, second) =>
+        (toTime(second.instance.createdAt) ?? 0) - (toTime(first.instance.createdAt) ?? 0),
+    );
   const health = useInstancesWorkflowHealthQuery(
     org,
     environment,

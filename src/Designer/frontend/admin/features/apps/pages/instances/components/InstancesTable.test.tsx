@@ -125,6 +125,29 @@ const expectHealth = (instanceId: string, healthTextKey: string) =>
 describe('InstancesTable workflow health column', () => {
   afterEach(jest.clearAllMocks);
 
+  it('lists the newest instance first, whatever order Storage handed them over in', async () => {
+    mockRequests({
+      instances: () => ({
+        status: 200,
+        data: {
+          instances: [
+            { id: healthyGuid, org, app, isRead: true, createdAt: '2026-08-01T10:00:00Z' },
+            { id: activeGuid, org, app, isRead: true, createdAt: '2026-08-03T10:00:00Z' },
+            { id: failedGuid, org, app, isRead: true, createdAt: '2026-08-02T10:00:00Z' },
+          ],
+        },
+      }),
+    });
+    renderInstancesTable();
+
+    await screen.findByRole('link', { name: healthyGuid });
+    expect(screen.getAllByRole('link').map((link) => link.textContent)).toEqual([
+      activeGuid,
+      failedGuid,
+      healthyGuid,
+    ]);
+  });
+
   it('renders the traffic light for each derived state', async () => {
     mockRequests();
     renderInstancesTable();

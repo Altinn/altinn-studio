@@ -47,6 +47,7 @@
   "admin.instances.missing_rights": "Du har ikke rettigheter til å se instanser i {{envTitle}}. Be eierne i {{orgName}} om å gi deg tilgang.",
   "admin.instances.no_results": "Ingen instanser funnet som samsvarer med kriteriene.",
   "admin.instances.process_task": "Prosessteg",
+  "admin.instances.refresh": "Oppdater",
   "admin.instances.status": "Status",
   "admin.instances.status.active": "Aktiv",
   "admin.instances.status.completed": "Levert av bruker",

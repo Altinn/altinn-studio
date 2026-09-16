@@ -25,6 +25,13 @@ export const INSTANCE_VIEW_REFETCH_INTERVAL_MS = 1_000;
 /** The Storage side of the same page — the process task, status and data elements — a little slower. */
 export const INSTANCE_DETAILS_REFETCH_INTERVAL_MS = 2_000;
 
+/**
+ * The instance lists — the Storage list, its health column and the problems list — read again
+ * every so often even when nothing is in flight: new instances arrive from the app, not from
+ * anything this page does, and an operator leaves the list open while they work elsewhere.
+ */
+export const INSTANCE_LIST_REFETCH_INTERVAL_MS = 30_000;
+
 /** Statuses the engine will still move on its own. Everything else is terminal until an operator acts. */
 export const ACTIVE_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = [
   'Enqueued',
@@ -36,9 +43,9 @@ export const ACTIVE_WORKFLOW_STATUSES: readonly PersistentItemStatus[] = [
 
 type Pages<TPage> = InfiniteData<TPage | null | undefined> | undefined;
 
-/** Poll while `isActive`, otherwise leave the query alone. */
-export function refetchWhileActive(isActive: boolean): number | false {
-  return isActive ? ACTIVE_WORK_REFETCH_INTERVAL_MS : false;
+/** Poll fast while `isActive`, and at the list cadence otherwise. */
+export function refetchWhileActive(isActive: boolean): number {
+  return isActive ? ACTIVE_WORK_REFETCH_INTERVAL_MS : INSTANCE_LIST_REFETCH_INTERVAL_MS;
 }
 
 export function hasActiveWorkflows(data: Pages<WorkflowListResponse>): boolean {

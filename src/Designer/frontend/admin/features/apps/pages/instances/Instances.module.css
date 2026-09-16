@@ -1,6 +1,11 @@
 .filterWrapper {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.refresh {
+  margin-left: auto;
 }

@@ -6,6 +6,7 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import {
   ACTIVE_WORK_REFETCH_INTERVAL_MS,
+  INSTANCE_LIST_REFETCH_INTERVAL_MS,
   hasActiveCollectionPages,
   hasActiveCollections,
   hasActiveWorkflows,
@@ -46,9 +47,9 @@ const collections = (...active: number[]): WorkflowCollectionListResponse => ({
 });
 
 describe('workflowRefetch', () => {
-  it('polls only while something is active', () => {
+  it('polls faster while something is active, and at the list cadence otherwise', () => {
     expect(refetchWhileActive(true)).toBe(ACTIVE_WORK_REFETCH_INTERVAL_MS);
-    expect(refetchWhileActive(false)).toBe(false);
+    expect(refetchWhileActive(false)).toBe(INSTANCE_LIST_REFETCH_INTERVAL_MS);
   });
 
   it.each<PersistentItemStatus>(['Enqueued', 'Processing', 'Requeued', 'Waiting', 'Held'])(
