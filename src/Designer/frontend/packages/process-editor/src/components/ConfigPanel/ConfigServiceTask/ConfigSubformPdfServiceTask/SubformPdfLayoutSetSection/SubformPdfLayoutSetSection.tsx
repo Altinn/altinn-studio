@@ -78,12 +78,12 @@ export const SubformPdfLayoutSetSection = (): React.ReactElement => {
     if (!selectedDataModelId) return;
 
     addLayoutSet({
-      // The pdf task type is what gives the folder the waiting page bound to the
-      // `service_task.waiting_*` texts. A subform pdf task needs it for the same reason a pdf task
-      // does: the folder replaces the frontend's built-in service task view, so without that page
-      // the end user waits in front of an empty screen. The folder's own pdf layout is unused here,
-      // since the generated pdf comes from the subform's layout set rather than from this one.
-      taskType: 'pdf',
+      // The task type gives the folder the waiting page bound to the `service_task.waiting_*` texts.
+      // A subform pdf task needs it for the same reason a pdf task does: the folder replaces the
+      // frontend's built-in service task view, so without that page the end user waits in front of
+      // an empty screen. It gets no pdf layout, unlike a pdf task's folder, since the generated pdf
+      // comes from the subform's layout set rather than from this one.
+      taskType: 'subformPdf',
       layoutSetConfig: {
         id: bpmnDetails.id,
         dataType: selectedDataModelId,
