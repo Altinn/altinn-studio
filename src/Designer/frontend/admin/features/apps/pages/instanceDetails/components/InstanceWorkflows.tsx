@@ -13,10 +13,12 @@ import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';
+import { useNow } from 'admin/features/apps/hooks/useNow';
 import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { PARKED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMessage/EngineErrorMessage';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
@@ -153,13 +155,15 @@ type WorkflowItemProps = {
 };
 
 /**
- * One workflow as a row: what it is, where it is in its steps, how long it ran, and — on a
- * failure — what went wrong, all readable without opening it. The details behind the row are the
- * full metadata, the step table and the ops verbs.
+ * One workflow as a row: what it is, where it is in its steps, how long it ran or has been running,
+ * when a parked one tries again, and — on a failure — what went wrong, all readable without opening
+ * it. The details behind the row are the full metadata, the step table and the ops verbs.
  */
 const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
   const { t } = useTranslation();
+  const now = useNow(isActiveWorkflow(workflow));
   const duration = settledDurationOf(workflow);
+  const liveNote = liveNoteOf(workflow, now, t);
   const rowError = isFailedWorkflow(workflow) ? rowErrorTextOf(workflow) : undefined;
 
   return (
@@ -176,6 +180,7 @@ const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
             </StudioTag>
           )}
           <WorkflowStepStrip workflow={workflow} />
+          {liveNote && <span className={classes.summaryTime}>{liveNote}</span>}
           {duration !== undefined && (
             <span className={classes.summaryTime}>
               {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
@@ -219,6 +224,33 @@ function settledDurationOf(workflow: WorkflowStatus): number | undefined {
     return undefined;
   }
   return Math.max(0, ended - started);
+}
+
+/**
+ * What a workflow in flight is up to right now: how long the current attempt has run, or when a
+ * parked one is due again. Ticks with the row's clock. Nothing for a settled workflow.
+ */
+function liveNoteOf(
+  workflow: WorkflowStatus,
+  now: number,
+  t: ReturnType<typeof useTranslation>['t'],
+): string | undefined {
+  if (workflow.overallStatus === 'Processing') {
+    const since = toTime(workflow.executionStartedAt);
+    return since === undefined
+      ? undefined
+      : t('admin.workflows.row.running_for', { duration: formatDuration(now - since, t) });
+  }
+  if (PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus)) {
+    const due = toTime(workflow.backoffUntil);
+    if (due === undefined) {
+      return undefined;
+    }
+    return due > now
+      ? t('admin.workflows.row.next_attempt_in', { duration: formatDuration(due - now, t) })
+      : t('admin.workflows.row.next_attempt_now');
+  }
+  return undefined;
 }
 
 /** The latest error in one line: the problem title and detail when the message carries them. */

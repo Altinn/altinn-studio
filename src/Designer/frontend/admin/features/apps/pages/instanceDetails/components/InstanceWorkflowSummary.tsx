@@ -33,8 +33,14 @@ const HEADLINE_KEYS: Partial<Record<WorkflowHealth, string>> = {
   [WorkflowHealth.Retrying]: 'admin.workflows.summary.retrying',
   [WorkflowHealth.SideEffectsFailed]: 'admin.workflows.summary.side_effects_failed',
   [WorkflowHealth.Active]: 'admin.workflows.summary.active',
-  [WorkflowHealth.Healthy]: 'admin.workflows.summary.healthy',
 };
+
+/** The verdicts that put the block on screen on their own: something an operator may have to act on. */
+const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
+  WorkflowHealth.Failed,
+  WorkflowHealth.Retrying,
+  WorkflowHealth.SideEffectsFailed,
+]);
 
 export type InstanceWorkflowSummaryProps = {
   context: WorkflowOpsContext;
@@ -43,12 +49,17 @@ export type InstanceWorkflowSummaryProps = {
 };
 
 /**
- * Where the instance stands, in one block above the workflow list: the verdict, the transition and
- * step it rests on, how many attempts have been made, when the next one is due, the latest error,
- * and the verbs that apply. Everything an operator needs before opening a single workflow.
+ * Where the instance is stuck, in one block above the workflow list: the verdict, the transition
+ * and step it rests on, how many attempts have been made, when the next one is due, the latest
+ * error, and the verbs that apply. Everything an operator needs before opening a single workflow.
  *
- * The clock ticks only while something is in flight, so a countdown to the next attempt and the
- * running time of the current one stay live without a request.
+ * The block is on screen only when something needs attention — a failure, a workflow that keeps
+ * retrying, lost side effects, or work in flight that has not changed for a long time. An instance
+ * that is in order, or simply in progress, shows nothing here: the rows already say so, and the
+ * block's presence is meant to be the signal.
+ *
+ * The clock ticks while anything is in flight, so a countdown to the next attempt and the running
+ * time of the current one stay live without a request — and so does the verdict itself.
  */
 export const InstanceWorkflowSummary = ({
   context,
@@ -56,12 +67,21 @@ export const InstanceWorkflowSummary = ({
 }: InstanceWorkflowSummaryProps): ReactElement | null => {
   const { t } = useTranslation();
   const headingId = useId();
+  // The clock also decides whether the block shows at all: a retry threshold or a stale span
+  // can be crossed while the page is open, so both are read from the ticking time.
   const now = useNow(workflows.some(isActiveWorkflow));
   const health = deriveInstanceHealth(workflows, now);
   const focus = pickFocusWorkflow(workflows, health, now);
+  const lastChanged = toTime(focus?.updatedAt);
+  const isStale =
+    focus !== undefined &&
+    isActiveWorkflow(focus) &&
+    lastChanged !== undefined &&
+    now - lastChanged > STALE_ACTIVE_THRESHOLD_MS;
+  const needsAttention = focus !== undefined && (ATTENTION_HEALTHS.has(health) || isStale);
   const headlineKey = HEADLINE_KEYS[health];
 
-  if (!focus || !headlineKey) {
+  if (!needsAttention || !focus || !headlineKey) {
     return null;
   }
 
@@ -73,11 +93,6 @@ export const InstanceWorkflowSummary = ({
   const nextAttemptAt = isParked ? toTime(focus.backoffUntil) : undefined;
   const runningSince =
     focus.overallStatus === 'Processing' ? toTime(focus.executionStartedAt) : undefined;
-  const lastChanged = toTime(focus.updatedAt);
-  const isStale =
-    isActiveWorkflow(focus) &&
-    lastChanged !== undefined &&
-    now - lastChanged > STALE_ACTIVE_THRESHOLD_MS;
 
   return (
     <section className={classes.summary} aria-labelledby={headingId}>
@@ -121,7 +136,7 @@ export const InstanceWorkflowSummary = ({
           {formatDateAndTime(focus.updatedAt)}
         </LabelValue>
       </div>
-      {isStale && (
+      {isStale && lastChanged !== undefined && (
         <StudioAlert data-color='warning' data-size='sm'>
           {t('admin.workflows.summary.stale', {
             duration: formatDuration(now - lastChanged, t),

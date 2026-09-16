@@ -128,6 +128,66 @@ describe('InstanceWorkflows', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows no summary while nothing needs attention', async () => {
+    const completedHeadWorkflow = { ...failedHeadWorkflow, overallStatus: 'Completed', steps: [] };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [completedHeadWorkflow, settledSideChainWorkflow] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    await screen.findAllByRole('group');
+    expect(
+      screen.queryByRole('region', { name: textMock('admin.workflows.summary.title') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('sums up a workflow that keeps retrying, and counts down to its next attempt in the row', async () => {
+    const retryingHeadWorkflow = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Requeued',
+      backoffUntil: new Date(Date.now() + 40_000).toISOString(),
+      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Requeued', retryCount: 5 }],
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [retryingHeadWorkflow] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const summary = await screen.findByRole('region', {
+      name: textMock('admin.workflows.summary.title'),
+    });
+    expect(
+      within(summary).getByText(textMock('admin.workflows.health.retrying')),
+    ).toBeInTheDocument();
+    const [row] = screen.getAllByRole('group');
+    expect(within(row).getByText(/admin\.workflows\.row\.next_attempt_in/)).toBeInTheDocument();
+  });
+
+  it('flags work in flight that has not changed for a long time', async () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 3_600_000).toISOString();
+    const stuckHeadWorkflow = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Processing',
+      executionStartedAt: twoHoursAgo,
+      updatedAt: twoHoursAgo,
+      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [stuckHeadWorkflow] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const summary = await screen.findByRole('region', {
+      name: textMock('admin.workflows.summary.title'),
+    });
+    expect(within(summary).getByText(/admin\.workflows\.summary\.stale/)).toBeInTheDocument();
+    const [row] = screen.getAllByRole('group');
+    expect(within(row).getByText(/admin\.workflows\.row\.running_for/)).toBeInTheDocument();
+  });
+
   it('reads each workflow as a row: its steps, where it stopped, and what went wrong', async () => {
     jest
       .mocked(axios.get)
