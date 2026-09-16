@@ -1,5 +1,7 @@
 #nullable disable
+using System.Net.Http;
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Studio.AppDist;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
@@ -29,6 +31,7 @@ using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure;
@@ -62,6 +65,22 @@ public static class ServiceRegistration
         services.AddTransient<ISourceControl, SourceControlService>();
 
         services.AddSingleton(configuration);
+
+        services.AddHttpClient(nameof(OciRegistrySource));
+        services.AddSingleton<IAppDistProvider>(serviceProvider =>
+        {
+            AppDistSettings appDistSettings = serviceProvider.GetRequiredService<IOptions<AppDistSettings>>().Value;
+            ServiceRepositorySettings repositorySettings = serviceProvider
+                .GetRequiredService<IOptions<ServiceRepositorySettings>>()
+                .Value;
+            HttpClient httpClient = serviceProvider
+                .GetRequiredService<IHttpClientFactory>()
+                .CreateClient(nameof(OciRegistrySource));
+            return new AppDistProvider(
+                new OciRegistrySource(httpClient, appDistSettings.Repository),
+                new FileSystemAppDistStore(appDistSettings.ResolveCacheDirectory(repositorySettings.RepositoryLocation))
+            );
+        });
 
         services.AddDbContext<DesignerdbContext>(options =>
         {
