@@ -1,13 +1,19 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
+import {
+  OnProcessTaskAddHandler,
+  AllowedContributor,
+  AllowedContentType,
+} from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
 import {
   getMockBpmnElementForTask,
+  mockBpmnElementForSigningTaskWithPdf,
   mockBpmnElementForUserControlledSigningTask,
   mockSigneeStatesDataTypeId,
+  mockSigningPdfDataTypeId,
 } from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
 
@@ -118,6 +124,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
       allowedContributors: [AllowedContributor.AppOwned],
+      allowedContentTypes: [AllowedContentType.Pdf],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: testElementId,
     });
@@ -148,7 +155,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it('should also add the signee states datatype when userControlledSigning task is added', () => {
+  it('should also add the signee states and signing pdf datatypes when userControlledSigning task is added', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     const taskMetadata: OnProcessTaskEvent = {
@@ -175,8 +182,46 @@ describe('OnProcessTaskAddHandler', () => {
       dataTypeId: mockSigneeStatesDataTypeId,
       taskId: testElementId,
     });
+    // The runtime writes the generated pdf to this data type at task end, and fails the task when the
+    // data type is missing or does not accept a pdf.
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributors: [AllowedContributor.AppOwned],
+      allowedContentTypes: [AllowedContentType.Pdf],
+      dataTypeId: mockSigningPdfDataTypeId,
+      taskId: testElementId,
+    });
 
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
+  // The runtime generates the pdf whenever the task declares a data type for it, not when the signing
+  // is user controlled, so the pdf must be registered for a task that carries neither signee states
+  // nor a signee provider. The literal values are deliberate: they are the strings the app runtime
+  // compares against, and asserting the enum against itself would let either value be changed freely.
+  it('should register the signing pdf datatype for a signing task that is not user controlled', () => {
+    const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+    const taskMetadata: OnProcessTaskEvent = {
+      taskType: 'signing',
+      taskEvent: createTaskEvent(
+        mockBpmnElementForSigningTaskWithPdf.businessObject as BpmnBusinessObjectEditor,
+      ),
+    };
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
+
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
+    expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
+      allowedContributors: ['app:owned'],
+      dataTypeId: 'signatureInformation-1234',
+      taskId: testElementId,
+    });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      allowedContributors: ['app:owned'],
+      allowedContentTypes: ['application/pdf'],
+      dataTypeId: mockSigningPdfDataTypeId,
+      taskId: testElementId,
+    });
   });
 
   it('should not register a signee states datatype when the signing task does not declare one', () => {

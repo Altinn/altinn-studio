@@ -50,12 +50,18 @@ public interface IProcessModelingService
     /// <param name="dataTypeId">Id for the added data type</param>
     /// <param name="taskId">Id for the task that the data type is connected to</param>
     /// <param name="allowedContributors">Allowed allowed contributors</param>
+    /// <param name="allowedContentTypes">
+    /// The content types the data type accepts. Defaults to <c>application/json</c> when not given, which is what
+    /// every data type held before callers could say otherwise. The signing and payment receipt data types hold a
+    /// pdf, and the app runtime rejects the generated pdf at task end unless the data type accepts its content type.
+    /// </param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     Task AddDataTypeToApplicationMetadataAsync(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string dataTypeId,
         string taskId,
         List<string> allowedContributors,
+        List<string> allowedContentTypes = null,
         CancellationToken cancellationToken = default
     );
 

@@ -9,8 +9,10 @@ import { app, org } from '@studio/testing/testids';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import {
   getMockBpmnElementForTask,
+  mockBpmnElementForSigningTaskWithPdf,
   mockBpmnElementForUserControlledSigningTask,
   mockSigneeStatesDataTypeId,
+  mockSigningPdfDataTypeId,
 } from '../../test/mocks/bpmnDetailsMock';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
@@ -248,12 +250,37 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledWith({
       dataTypeId: mockSigneeStatesDataTypeId,
     });
+    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledWith({
+      dataTypeId: mockSigningPdfDataTypeId,
+    });
 
     expect(deleteLayoutSetMock).toHaveBeenCalledWith({
       layoutSetIdToUpdate: 'testLayoutSetId',
     });
 
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
+  // The add handler registers the pdf data type for any signing task that declares one, whether or not
+  // the signing is user controlled, so removing such a task has to remove it again for the same set of
+  // tasks. Anything narrower leaves an orphan entry behind.
+  it('should remove the signing pdf datatype when a signing task that is not user controlled is deleted', () => {
+    const taskMetadata = createTaskMetadataMock(
+      'signing',
+      mockBpmnElementForSigningTaskWithPdf.businessObject as BpmnBusinessObjectEditor,
+    );
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({});
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(taskMetadata);
+
+    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenCalledTimes(2);
+    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenNthCalledWith(1, {
+      dataTypeId: 'signatureInformation-1234',
+    });
+    expect(deleteDataTypeFromAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      dataTypeId: mockSigningPdfDataTypeId,
+    });
   });
 
   it('should remove signature type from tasks when the signing task is deleted', () => {

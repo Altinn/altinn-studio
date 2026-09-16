@@ -18,6 +18,12 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 
 public class ProcessModelingService : IProcessModelingService
 {
+    /// <summary>
+    /// What a process task data type accepts when the caller does not say. Most of them hold a json model, so this
+    /// keeps the behavior every caller relied on before the content types could be given.
+    /// </summary>
+    private const string DefaultContentType = "application/json";
+
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
 
@@ -123,6 +129,7 @@ public class ProcessModelingService : IProcessModelingService
         string dataTypeId,
         string taskId,
         List<string>? allowedContributors,
+        List<string>? allowedContentTypes = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -141,7 +148,8 @@ public class ProcessModelingService : IProcessModelingService
             var dataTypeToAdd = new DataType
             {
                 Id = dataTypeId,
-                AllowedContentTypes = new List<string> { "application/json" },
+                AllowedContentTypes =
+                    allowedContentTypes?.Count > 0 ? allowedContentTypes : new List<string> { DefaultContentType },
                 MaxCount = 1,
                 TaskId = taskId,
             };

@@ -125,6 +125,22 @@ export class StudioModeler {
     return businessObject?.extensionElements?.values[0][configNode][receiptPdfDataTypeName];
   }
 
+  /**
+   * Signing is the only task type with a pdf data type of its own, so it takes no task type. The
+   * property is optional in the schema, and the palette seeds one only on the user controlled
+   * signing task, so the caller gets undefined for a signing task that generates no pdf. Whether a
+   * pdf is generated follows the property alone, not the kind of signing.
+   *
+   * Read through the declared property rather than through {@link bpmnTaskConfig}, so that the
+   * return type is one the compiler checks against `BpmnBusinessObjectEditor` instead of an
+   * annotation over an index that resolves to `any`.
+   */
+  public getSigningPdfDataTypeIdFromBusinessObject(
+    businessObject: BpmnBusinessObjectEditor,
+  ): string | undefined {
+    return businessObject?.extensionElements?.values[0]?.signatureConfig?.signingPdfDataType;
+  }
+
   public getDataTypeIdFromBusinessObject(
     bpmnTaskType: BpmnDataTypeCarryingTaskType,
     businessObject: BpmnBusinessObjectEditor,
