@@ -19,7 +19,8 @@
 .summary {
   display: grid;
   grid-template-columns: 10rem 22rem 14rem minmax(0, 1fr) 3rem auto auto;
-  align-items: center;
+  align-items: start;
+  justify-items: start;
   column-gap: var(--ds-size-3);
   row-gap: var(--ds-size-1);
   width: 100%;
@@ -68,7 +69,6 @@
 }
 
 .summaryDate {
-  justify-self: end;
   white-space: nowrap;
 }
 
@@ -136,11 +136,15 @@
   overflow-x: auto;
 }
 
-/* The verbs, at the right edge of the step the workflow stopped at. */
-.stepActions {
-  text-align: right;
-  white-space: nowrap;
+/* Every cell of a step row starts at its top-left corner, so a tall error cell does not float the
+   step's name and status down to its middle. */
+.steps td {
   vertical-align: top;
+}
+
+/* The verbs, on the step the workflow stopped at. */
+.stepActions {
+  white-space: nowrap;
 }
 
 .visuallyHidden {
