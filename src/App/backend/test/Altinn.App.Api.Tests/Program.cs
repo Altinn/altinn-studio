@@ -5,6 +5,7 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
+using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Cache;
@@ -71,13 +72,10 @@ builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfi
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
 
-// Provide a WorkflowEngineCallback app-code so the enqueue path can mint callback tokens and the
-// always-on WorkflowEngineCallback startup validation passes for every test host. The app codes still bind
-// from the app's own configuration here; they move to the provisioned secrets channel in the next PR.
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:Id"] = "test";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:Code"] = "test-workflow-engine-callback-secret-long-enough";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:IssuedAt"] = "2020-01-01T00:00:00Z";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:ExpiresAt"] = "2999-01-01T00:00:00Z";
+// The app's callback verification codes are provisioned as a file, never configured, so the test host is
+// given a provisioned directory the way a deployed app is given its secrets mount. It holds a
+// WorkflowEngineCallback app-code, which every test host needs to pass the always-on startup validation.
+builder.Services.AddSingleton(_ => ProvisionedTestSecrets.CreateChannel());
 
 // The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
 // the app's one Maskinporten client; the libraries require both, and refuse to start without them. Stand in
