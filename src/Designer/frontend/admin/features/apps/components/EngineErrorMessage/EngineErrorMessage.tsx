@@ -43,7 +43,7 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
           </>
         )}
       </span>
-      <code className={classes.engineText}>{entry.message}</code>
+      <code className={`${classes.engineText} ${classes.message}`}>{entry.message}</code>
     </div>
   );
 };
