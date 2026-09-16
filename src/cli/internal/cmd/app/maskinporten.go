@@ -62,6 +62,20 @@ func (s *Service) ensureAppSecretsDir(appPath string) (string, error) {
 	return dir, nil
 }
 
+// provisionAppSecrets fills the app's secrets directory with what studioctl provisions for every local run,
+// the way the operator provisions a deployed app's secrets mount before the app starts. Today that is the
+// development app codes; the Maskinporten client is the developer's to store. A directory that could not be
+// placed at all is left alone: the app is then not told where its secrets are either.
+func (s *Service) provisionAppSecrets(dir string) error {
+	if dir == "" {
+		return nil
+	}
+	if err := appsecrets.WriteDevelopmentAppCodes(dir); err != nil {
+		return fmt.Errorf("provision app secrets: %w", err)
+	}
+	return nil
+}
+
 // appKeysDirOrEmpty is the containerized run's data-protection keys directory, which is optional: a native
 // run deliberately leaves the app libraries' own default in place, and a container run mounts one only when
 // there is somewhere to put it.

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -147,9 +148,14 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
-		"AppCodes__WorkflowEngineCallback__0__Id=local-dev",
-		"AppCodes__WorkflowEngineCallback__0__Code=LOCAL-DEV-ONLY-workflow-engine-callback-secret",
 	})
+	// The app's callback verification codes are provisioned as a file, the way a deployed app gets them, and
+	// are not configuration the app run hands over.
+	for _, entry := range spec.Env {
+		if strings.HasPrefix(entry, "AppCodes__") {
+			t.Fatalf("env carries %q, want the app codes provisioned as a file instead", entry)
+		}
+	}
 	if spec.ProjectPath != projectPath {
 		t.Fatalf("ProjectPath = %q, want %q", spec.ProjectPath, projectPath)
 	}
@@ -463,6 +469,32 @@ func TestBuildDotnetRunSpec_NamesTheProvisionedSecrets(t *testing.T) {
 	assertEnvMissing(t, spec.Env, "ALTINN_KEYS_DIRECTORY")
 }
 
+func TestBuildDotnetRunSpec_ProvisionsTheDevelopmentAppCodes(t *testing.T) {
+	t.Parallel()
+
+	// The app reads its callback verification codes from the secrets directory at startup, so building the
+	// run - which is also what `studioctl app env` does for an app started with `dotnet run` - puts them there.
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	home := t.TempDir()
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	spec, err := service.BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	assertAppCodesProvisioned(t, spec.SecretsDir)
+}
+
 func TestBuildDotnetRunSpec_OverridesInheritedProvisionedSecretsVariables(t *testing.T) {
 	t.Parallel()
 
@@ -640,6 +672,9 @@ func TestPrepareDockerRun_RunsAsTheDeveloperAndAdaptsToTheRuntime(t *testing.T) 
 			t.Fatalf("%s was not created before the mount: %v", dir, statErr)
 		}
 	}
+	// The container reads its callback verification codes from the mounted directory, so they are provisioned
+	// into it before it is mounted, exactly as for a native run.
+	assertAppCodesProvisioned(t, spec.SecretsDir)
 	assertRunsAsTheDeveloper(t, spec, "keep-id")
 	for _, mount := range spec.Config.Volumes {
 		if mount.SELinuxRelabel != types.SELinuxRelabelShared {
@@ -668,5 +703,21 @@ func assertRunsAsTheDeveloper(t *testing.T, spec appsvc.DockerRunSpec, wantUsern
 	}
 	if spec.Config.UsernsMode != wantUserns {
 		t.Fatalf("UsernsMode = %q, want %q", spec.Config.UsernsMode, wantUserns)
+	}
+}
+
+// assertAppCodesProvisioned checks that the app's callback verification codes are in its secrets directory,
+// in the file the app libraries read them from.
+func assertAppCodesProvisioned(t *testing.T, secretsDir string) {
+	t.Helper()
+	if secretsDir == "" {
+		t.Fatal("no secrets directory, want one to provision the app codes into")
+	}
+	data, err := os.ReadFile(appsecrets.AppCodesPath(secretsDir))
+	if err != nil {
+		t.Fatalf("ReadFile(app codes) error = %v", err)
+	}
+	if !strings.Contains(string(data), `"WorkflowEngineCallback"`) {
+		t.Fatalf("app codes = %s, want a WorkflowEngineCallback code", data)
 	}
 }
