@@ -6,9 +6,13 @@ const SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
 
 /**
  * A duration as an operator reads it: the two largest units that are not zero, so "1 t 5 min" and
- * "3 min 4 s" rather than a clock face. Anything under a second reads as zero seconds.
+ * "3 min 4 s" rather than a clock face. A span that is real but under a second says so, rather
+ * than reading as no time at all.
  */
 export function formatDuration(milliseconds: number, t: TFunction): string {
+  if (milliseconds > 0 && milliseconds < 1000) {
+    return t('admin.workflows.duration.under_second');
+  }
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
   const parts = [
     { key: 'admin.workflows.duration.days', count: Math.floor(totalSeconds / SECONDS_PER_DAY) },

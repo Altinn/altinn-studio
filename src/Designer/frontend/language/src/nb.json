@@ -105,6 +105,7 @@
   "admin.workflows.duration.hours": "{{count}} t",
   "admin.workflows.duration.minutes": "{{count}} min",
   "admin.workflows.duration.seconds": "{{count}} s",
+  "admin.workflows.duration.under_second": "under 1 s",
   "admin.workflows.error.copied": "Kopiert",
   "admin.workflows.error.copy": "Kopier feilmeldingen",
   "admin.workflows.error.failure_code": "Feilkode",

@@ -7,8 +7,9 @@ const hours = (count: number) => textMock('admin.workflows.duration.hours', { co
 const days = (count: number) => textMock('admin.workflows.duration.days', { count });
 
 describe('formatDuration', () => {
-  it('reads anything under a second, and a negative span, as zero seconds', () => {
-    expect(formatDuration(999, textMock)).toBe(seconds(0));
+  it('says a real span under a second is under a second, and a missing one is zero', () => {
+    expect(formatDuration(999, textMock)).toBe(textMock('admin.workflows.duration.under_second'));
+    expect(formatDuration(0, textMock)).toBe(seconds(0));
     expect(formatDuration(-5_000, textMock)).toBe(seconds(0));
   });
 

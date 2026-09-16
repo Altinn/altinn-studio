@@ -27,9 +27,10 @@
   gap: var(--ds-size-1);
 }
 
-/* Names from the app's process model and the engine, shown as they came. */
+/* Names from the app's process model and the engine, shown as they came, at the size of the
+   sentence they sit in. */
 .engineText {
   font-family: 'Courier New', monospace;
-  font-size: var(--ds-font-size-1);
+  font-size: inherit;
   overflow-wrap: anywhere;
 }
