@@ -1,0 +1,32 @@
+import { useCallback, useState } from 'react';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { useModelerEventListener } from '../../../../hooks/useModelerEventListener';
+import type { FiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
+import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
+
+/**
+ * Why the selected task's process shape would stop the app from starting, kept in step with the
+ * canvas.
+ *
+ * The elements the rule reads are the live bpmn-js ones, and they are not reactive: drawing a flow
+ * from the task to a gateway mutates the arrays in place without React hearing about it. The panel
+ * stays open on the task while the developer wires that gateway up, so a warning read once at mount
+ * would go on saying the task has no gateway after the gateway is there. Every modeling operation
+ * passes through the command stack, so re-reading on `commandStack.changed` is what keeps the
+ * warning answering for the diagram in front of the developer.
+ */
+export const useFiksArkivProcessShape = (): FiksArkivProcessShapeIssue | undefined => {
+  const { bpmnDetails } = useBpmnContext();
+
+  // A counter rather than the issue itself: the value is derived from the diagram, and storing it
+  // would mean keeping a second copy of an answer the elements already hold. The identity has to be
+  // stable, or the listener would re-subscribe on every render.
+  const [, setDiagramVersion] = useState<number>(0);
+  const handleDiagramChange = useCallback(
+    (): void => setDiagramVersion((version) => version + 1),
+    [],
+  );
+  useModelerEventListener<void>('commandStack.changed', handleDiagramChange);
+
+  return getFiksArkivProcessShapeIssue(bpmnDetails.element);
+};
