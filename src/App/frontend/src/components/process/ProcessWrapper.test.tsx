@@ -224,10 +224,9 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/steg \d+ av \d+/i)).not.toBeInTheDocument();
   });
 
-  it('processing shows the safe-to-leave alert after five seconds', async () => {
+  it('processing shows the safe-to-leave alert after eight seconds', async () => {
     // Keep the initial state quiet, then explain what the user can do once a bare loader has lasted
     // long enough to need context.
-    // No startedAt here (older backend), so the wait falls back to being measured from mount.
     vi.useFakeTimers();
     try {
       await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
@@ -235,12 +234,12 @@ describe('ProcessWrapper workflow state machine', () => {
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(4_000);
+        await vi.advanceTimersByTimeAsync(7_999);
       });
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(2_000);
+        await vi.advanceTimersByTimeAsync(1);
       });
       const status = screen.getByRole('status');
       expect(status).toHaveAttribute('aria-live', 'polite');
@@ -252,53 +251,26 @@ describe('ProcessWrapper workflow state machine', () => {
     }
   });
 
-  it('processing anchors the escalation to the server-reported transition start, not the page load', async () => {
-    // A page refresh or a second session reconnecting mid-transition must not restart the clock:
-    // when startedAt says the transition has already been running past the threshold, the
-    // safe-to-leave alert shows immediately instead of after another full local wait.
+  it.each([-10 * 60_000, 10 * 60_000])('processing ignores server clock skew of %i milliseconds', async (clockSkew) => {
     vi.useFakeTimers();
     try {
       await renderProcessWrapper(
         {
           status: 'processing',
           targetTask: 'Task_2',
-          startedAt: new Date(Date.now() - 10 * 60_000).toISOString(),
+          startedAt: new Date(Date.now() + clockSkew).toISOString(),
         },
         false,
       );
       await expectWorkflowLoader();
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(0);
-      });
-      expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('processing subtracts the already-elapsed server-side wait from the escalation threshold', async () => {
-    // Reconnecting three seconds into the transition leaves two seconds of the five-second threshold: still quiet just
-    // before that remainder elapses, escalated just after.
-    vi.useFakeTimers();
-    try {
-      await renderProcessWrapper(
-        {
-          status: 'processing',
-          targetTask: 'Task_2',
-          startedAt: new Date(Date.now() - 3_000).toISOString(),
-        },
-        false,
-      );
-      await expectWorkflowLoader();
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(1_000);
+        await vi.advanceTimersByTimeAsync(7_999);
       });
       expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(2_000);
+        await vi.advanceTimersByTimeAsync(1);
       });
       expect(screen.getByText(/du kan trygt lukke siden/i)).toBeInTheDocument();
     } finally {

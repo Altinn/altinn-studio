@@ -12,39 +12,35 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IProcessWorkflowFailure } from 'src/types/shared';
 
-/**
- * Delay before explaining that processing is taking unusually long. The server-reported start
- * time keeps the threshold stable across refreshes and sessions; older backends fall back to the
- * page-mount time. A single escalation avoids a series of near-identical slow-wait messages.
- */
-const STILL_WORKING_MS = 5_000;
+/** Delay before explaining that processing is taking unusually long. */
+const STILL_WORKING_MS = 8_000;
 
 /**
- * Uses the ordinary form loader while a workflow transition is running. If the transition lasts
- * more than five seconds, the user also sees the existing safe-to-leave message. The server start
- * time keeps that delay stable across reloads and sessions.
+ * Uses the ordinary form loader while a workflow transition is running. After eight seconds
+ * in processing status on this screen, the user also sees the safe-to-leave message.
+ * Reloading or leaving processing status starts a fresh wait.
  */
 export function WorkflowProcessing() {
-  const workflow = useProcessWorkflow();
+  const isProcessing = useProcessWorkflow()?.status === 'processing';
   const [stillWorking, setStillWorking] = useState(false);
-  const startedAt = workflow?.status === 'processing' ? workflow.startedAt : undefined;
 
   useEffect(() => {
-    // Clamping elapsed at 0 guards against client-clock skew: a reconnect must never wait longer
-    // than a fresh mount would.
-    const startedMs = startedAt ? Date.parse(startedAt) : Number.NaN;
-    const elapsedMs = Number.isFinite(startedMs) ? Math.max(0, Date.now() - startedMs) : 0;
-    const stillWorkingTimer = setTimeout(() => setStillWorking(true), Math.max(0, STILL_WORKING_MS - elapsedMs));
+    setStillWorking(false);
+    if (!isProcessing) {
+      return;
+    }
+    // Measure the wait entirely in the browser, without comparing client and server clocks.
+    const stillWorkingTimer = setTimeout(() => setStillWorking(true), STILL_WORKING_MS);
     return () => {
       clearTimeout(stillWorkingTimer);
     };
-  }, [startedAt]);
+  }, [isProcessing]);
 
   return (
     <Loader
       reason='workflow-processing'
       overlay={
-        stillWorking ? (
+        isProcessing && stillWorking ? (
           <div
             role='status'
             aria-live='polite'
