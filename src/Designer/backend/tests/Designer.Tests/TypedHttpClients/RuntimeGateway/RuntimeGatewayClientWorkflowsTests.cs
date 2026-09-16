@@ -246,22 +246,6 @@ public class RuntimeGatewayClientWorkflowsTests
     }
 
     [Fact]
-    public async Task AbandonWorkflowAsync_PostsToAbandon()
-    {
-        var workflowId = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e");
-
-        using var response = await _client.AbandonWorkflowAsync(
-            Org,
-            App,
-            s_environment,
-            workflowId,
-            CancellationToken.None
-        );
-
-        AssertRequest(HttpMethod.Post, $"{WorkflowsBasePath}/workflows/{workflowId}/abandon");
-    }
-
-    [Fact]
     public async Task NudgeWorkflowAsync_PostsToNudge()
     {
         var workflowId = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e");
@@ -348,7 +332,7 @@ public class RuntimeGatewayClientWorkflowsTests
             .ThrowsAsync(registryFailure);
 
         var exception = await Assert.ThrowsAsync<EnvironmentsRegistryUnavailableException>(() =>
-            _client.AbandonWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
+            _client.NudgeWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
         );
 
         Assert.Same(registryFailure, exception.InnerException);
@@ -363,7 +347,7 @@ public class RuntimeGatewayClientWorkflowsTests
             .ThrowsAsync(new KeyNotFoundException("Environment 'at23' not found."));
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _client.AbandonWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
+            _client.NudgeWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
         );
 
         Assert.Null(_capturedRequest);

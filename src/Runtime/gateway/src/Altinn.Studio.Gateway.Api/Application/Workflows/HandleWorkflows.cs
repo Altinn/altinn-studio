@@ -194,31 +194,6 @@ internal static class HandleWorkflows
         );
     }
 
-    internal static Task<IResult> AbandonWorkflow(
-        string app,
-        Guid workflowId,
-        HttpContext httpContext,
-        IOptionsMonitor<GatewayContext> gatewayContext,
-        WorkflowEngineClient engineClient,
-        ILoggerFactory loggerFactory,
-        CancellationToken cancellationToken
-    )
-    {
-        return ForwardToEngine(
-            HttpMethod.Post,
-            httpContext,
-            app,
-            $"/workflows/{workflowId}/abandon",
-            _noQueryKeys,
-            query: null,
-            gatewayContext,
-            engineClient,
-            loggerFactory,
-            audit: new AuditContext(httpContext.User, "abandon", workflowId),
-            cancellationToken
-        );
-    }
-
     internal static Task<IResult> NudgeWorkflow(
         string app,
         Guid workflowId,

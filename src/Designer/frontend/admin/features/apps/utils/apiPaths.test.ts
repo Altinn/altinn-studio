@@ -1,9 +1,4 @@
-import {
-  abandonWorkflowPath,
-  resumeWorkflowPath,
-  workflowCollectionsPath,
-  workflowsListPath,
-} from './apiPaths';
+import { resumeWorkflowPath, workflowCollectionsPath, workflowsListPath } from './apiPaths';
 
 const org = 'ttd';
 const env = 'at23';
@@ -54,12 +49,6 @@ describe('workflow ops paths', () => {
     );
     expect(resumeWorkflowPath(org, env, app, firstKey, false)).toBe(
       `${basePath}/workflows/${firstKey}/resume?cascade=false`,
-    );
-  });
-
-  it('builds the abandon path', () => {
-    expect(abandonWorkflowPath(org, env, app, firstKey)).toBe(
-      `${basePath}/workflows/${firstKey}/abandon`,
     );
   });
 });

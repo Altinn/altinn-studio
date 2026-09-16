@@ -340,26 +340,6 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     /// <inheritdoc />
-    public Task<HttpResponseMessage> AbandonWorkflowAsync(
-        string org,
-        string app,
-        AltinnEnvironment environment,
-        Guid workflowId,
-        CancellationToken cancellationToken
-    )
-    {
-        return SendWorkflowRequestAsync(
-            HttpMethod.Post,
-            org,
-            app,
-            environment,
-            $"/workflows/{workflowId}/abandon",
-            query: null,
-            cancellationToken
-        );
-    }
-
-    /// <inheritdoc />
     public Task<HttpResponseMessage> NudgeWorkflowAsync(
         string org,
         string app,

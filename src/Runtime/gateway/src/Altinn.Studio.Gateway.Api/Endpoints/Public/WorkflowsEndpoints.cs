@@ -4,8 +4,10 @@ namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 /// <summary>
 /// Whitelisted pass-through to the workflow engine for Studio's admin surface. Exactly these
-/// eight routes are exposed — the rest of the engine's surface (enqueue, cancel, dependency
-/// graphs, namespaces, throttling, mailboxes, dashboard) stays unreachable through the gateway.
+/// seven routes are exposed — the rest of the engine's surface (enqueue, cancel, abandon,
+/// dependency graphs, namespaces, throttling, mailboxes, dashboard) stays unreachable through
+/// the gateway. Abandon (writing a failure off) is deliberately left out for now: Studio offers
+/// no write-off verb until its consequences for the instance are settled.
 /// </summary>
 internal static class WorkflowsEndpoints
 {
@@ -56,15 +58,6 @@ internal static class WorkflowsEndpoints
             .WithDescription(
                 "Resumes a terminal workflow back to Enqueued for re-processing; pass cascade=true to also "
                     + "resume workflows left in DependencyFailed by this one. Audited. Engine response is passed through unmodified."
-            );
-
-        workflowsApi
-            .MapPost("/workflows/{workflowId:guid}/abandon", HandleWorkflows.AbandonWorkflow)
-            .WithName("AbandonWorkflow")
-            .WithSummary("Abandon an unsuccessful terminal workflow.")
-            .WithDescription(
-                "Writes off an unsuccessful terminal workflow so it no longer condemns dependents. "
-                    + "Audited. Engine response is passed through unmodified."
             );
 
         workflowsApi

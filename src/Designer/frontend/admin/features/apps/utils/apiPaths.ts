@@ -105,9 +105,6 @@ export const resumeWorkflowPath = (
 ) =>
   `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/resume?cascade=${String(cascade)}`; // Post
 
-export const abandonWorkflowPath = (org: string, env: string, app: string, workflowId: string) =>
-  `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/abandon`; // Post
-
 export const nudgeWorkflowPath = (org: string, env: string, app: string, workflowId: string) =>
   `${workflowsBasePath(org, env, app)}/workflows/${workflowId}/nudge`; // Post
 

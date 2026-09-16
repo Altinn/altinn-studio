@@ -212,30 +212,6 @@ public sealed class WorkflowPassthroughTests
     }
 
     [Fact]
-    public async Task AbandonWorkflow_ForwardsAndEmitsAuditLine()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        using var client = CreateAuthorizedClient(GenerateAuditableToken());
-        var workflowId = Guid.NewGuid();
-        _factory.EngineHandler.ResponseFactory = _ =>
-            FakeWorkflowEngineHandler.JsonResponse($$"""{"workflowId":"{{workflowId}}"}""", HttpStatusCode.Accepted);
-
-        var response = await client.PostAsync(
-            new Uri($"{GatewayPrefix}/workflows/{workflowId}/abandon", UriKind.Relative),
-            content: null,
-            ct
-        );
-
-        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-        var upstream = Assert.Single(_factory.EngineHandler.Requests);
-        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}/abandon", upstream.Uri.AbsoluteUri);
-
-        var audit = Assert.Single(AuditEntries());
-        Assert.Contains("abandon", audit.Message, StringComparison.Ordinal);
-        Assert.Contains("studio-designer-client", audit.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public async Task NudgeWorkflow_ForwardsWithoutBody_AndEmitsAuditLine()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -421,7 +397,7 @@ public sealed class WorkflowPassthroughTests
         _factory.EngineHandler.ExceptionToThrow = new TaskCanceledException("request timed out");
 
         var response = await client.PostAsync(
-            new Uri($"{GatewayPrefix}/workflows/{Guid.NewGuid()}/abandon", UriKind.Relative),
+            new Uri($"{GatewayPrefix}/workflows/{Guid.NewGuid()}/nudge", UriKind.Relative),
             content: null,
             ct
         );
@@ -431,7 +407,7 @@ public sealed class WorkflowPassthroughTests
         Assert.Contains(GatewayProblem.WorkflowEngineUnavailableType, body, StringComparison.Ordinal);
 
         var audit = Assert.Single(AuditEntries());
-        Assert.Contains("abandon", audit.Message, StringComparison.Ordinal);
+        Assert.Contains("nudge", audit.Message, StringComparison.Ordinal);
         Assert.Contains("engine unavailable", audit.Message, StringComparison.Ordinal);
     }
 
@@ -514,6 +490,7 @@ public sealed class WorkflowPassthroughTests
     [Theory]
     // Engine routes deliberately NOT whitelisted must not be reachable through the gateway.
     [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/cancel", HttpStatusCode.NotFound)]
+    [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/abandon", HttpStatusCode.NotFound)]
     [InlineData("GET", "/workflows/00000000-0000-0000-0000-000000000001/dependency-graph", HttpStatusCode.NotFound)]
     [InlineData("GET", "/namespaces", HttpStatusCode.NotFound)]
     [InlineData("POST", "/workflows", HttpStatusCode.MethodNotAllowed)] // enqueue

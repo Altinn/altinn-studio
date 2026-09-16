@@ -96,9 +96,6 @@ export const workflowRoute = forwardToWorkflowEngine(
 export const workflowResumeRoute = forwardToWorkflowEngine(
   ({ workflowId }) => `/workflows/${encodeURIComponent(workflowId)}/resume`,
 );
-export const workflowAbandonRoute = forwardToWorkflowEngine(
-  ({ workflowId }) => `/workflows/${encodeURIComponent(workflowId)}/abandon`,
-);
 export const workflowNudgeRoute = forwardToWorkflowEngine(
   ({ workflowId }) => `/workflows/${encodeURIComponent(workflowId)}/nudge`,
 );

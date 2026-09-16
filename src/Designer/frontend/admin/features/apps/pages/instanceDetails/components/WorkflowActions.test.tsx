@@ -57,8 +57,6 @@ const failedAfter = (wasRetryable: boolean): WorkflowStatus =>
 
 const retryButton = () =>
   screen.getByRole('button', { name: textMock('admin.workflows.actions.retry') });
-const abandonButton = () =>
-  screen.getByRole('button', { name: textMock('admin.workflows.actions.abandon') });
 const nudgeButton = () =>
   screen.getByRole('button', { name: textMock('admin.workflows.actions.nudge') });
 const failButton = () =>
@@ -72,12 +70,13 @@ describe('WorkflowActions', () => {
   });
   afterEach(jest.clearAllMocks);
 
-  it.each<PersistentItemStatus>(['Failed', 'Canceled', 'DependencyFailed'])(
-    'offers both ops verbs on a %s workflow',
+  it.each<PersistentItemStatus>(['Failed', 'Canceled', 'DependencyFailed', 'Abandoned'])(
+    'offers retry, and nothing else, on a %s workflow',
     (status) => {
       renderWorkflowActions(workflow(status));
       expect(retryButton()).toBeInTheDocument();
-      expect(abandonButton()).toBeInTheDocument();
+      expect(queryButton('admin.workflows.actions.nudge')).not.toBeInTheDocument();
+      expect(queryButton('admin.workflows.actions.fail')).not.toBeInTheDocument();
     },
   );
 
@@ -96,7 +95,6 @@ describe('WorkflowActions', () => {
       expect(nudgeButton()).toBeInTheDocument();
       expect(failButton()).toBeInTheDocument();
       expect(queryButton('admin.workflows.actions.retry')).not.toBeInTheDocument();
-      expect(queryButton('admin.workflows.actions.abandon')).not.toBeInTheDocument();
     },
   );
 
@@ -161,14 +159,6 @@ describe('WorkflowActions', () => {
     expect(nudgeButton()).toBeInTheDocument();
   });
 
-  it('offers only retry on an already written-off workflow', () => {
-    renderWorkflowActions(workflow('Abandoned'));
-    expect(retryButton()).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: textMock('admin.workflows.actions.abandon') }),
-    ).not.toBeInTheDocument();
-  });
-
   it('asks for confirmation before retrying, and does nothing until confirmed', async () => {
     const user = userEvent.setup();
     renderWorkflowActions(workflow('Failed'));
@@ -198,25 +188,6 @@ describe('WorkflowActions', () => {
     // Pressing Enter as the dialog appears must not confirm it unread.
     expect(screen.getByRole('button', { name: textMock('general.cancel') })).toHaveFocus();
     expect(confirmButton('admin.workflows.actions.retry.confirm')).not.toHaveFocus();
-  });
-
-  it('asks for confirmation before writing a failure off', async () => {
-    const user = userEvent.setup();
-    renderWorkflowActions(workflow('Failed'));
-
-    await user.click(abandonButton());
-
-    expect(
-      screen.getByText(textMock('admin.workflows.actions.abandon.description')),
-    ).toBeInTheDocument();
-    expect(axios.post).not.toHaveBeenCalled();
-
-    await user.click(confirmButton('admin.workflows.actions.abandon.confirm'));
-
-    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1));
-    expect(jest.mocked(axios.post).mock.calls[0][0]).toBe(
-      `/designer/api/v1/admin/workflows/${org}/${env}/${app}/workflows/${workflowId}/abandon`,
-    );
   });
 
   it('invalidates the engine-backed views and the Storage-backed instance views after a verb', async () => {
@@ -306,7 +277,6 @@ describe('WorkflowActions', () => {
       textMock('admin.workflows.actions.retry.success'),
     );
     expect(queryButton('admin.workflows.actions.retry')).not.toBeInTheDocument();
-    expect(queryButton('admin.workflows.actions.abandon')).not.toBeInTheDocument();
   });
 
   it('confirms success in place once the retried workflow has left the failed state', async () => {

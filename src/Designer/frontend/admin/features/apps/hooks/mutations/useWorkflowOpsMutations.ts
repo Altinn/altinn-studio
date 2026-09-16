@@ -4,7 +4,6 @@ import axios from 'axios';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResumeWorkflowResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import {
-  abandonWorkflowPath,
   failWorkflowPath,
   nudgeWorkflowPath,
   resumeWorkflowPath,
@@ -37,21 +36,6 @@ export const useResumeWorkflowMutation = (
         resumeWorkflowPath(org, env, app, workflowId, RESUME_CASCADE),
       );
       return response.data;
-    },
-    onSuccess: () => invalidateWorkflowQueries(queryClient, context),
-    meta: { hideDefaultError: true },
-  });
-};
-
-export const useAbandonWorkflowMutation = (
-  context: WorkflowOpsContext,
-): UseMutationResult<void, unknown, string> => {
-  const queryClient = useQueryClient();
-  const { org, env, app } = context;
-
-  return useMutation({
-    mutationFn: async (workflowId: string) => {
-      await axios.post(abandonWorkflowPath(org, env, app, workflowId));
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },

@@ -209,25 +209,6 @@ public class WorkflowsController : ControllerBase
         );
     }
 
-    [HttpPost("workflows/{workflowId:guid}/abandon")]
-    public Task<IActionResult> AbandonWorkflow(
-        string org,
-        string env,
-        string app,
-        Guid workflowId,
-        CancellationToken cancellationToken
-    )
-    {
-        return ForwardToGatewayAsync(
-            org,
-            env,
-            app,
-            (environment, ct) => _runtimeGatewayClient.AbandonWorkflowAsync(org, app, environment, workflowId, ct),
-            new AuditContext("abandon", workflowId),
-            cancellationToken
-        );
-    }
-
     [HttpPost("workflows/{workflowId:guid}/nudge")]
     public Task<IActionResult> NudgeWorkflow(
         string org,

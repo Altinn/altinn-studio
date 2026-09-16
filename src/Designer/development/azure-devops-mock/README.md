@@ -37,7 +37,7 @@ The following endpoints return deterministic scope data for local development:
 ## Workflow engine and instances from the studioctl environment
 
 The admin app's workflow views (health column, drill-down, "instances with problems", retry,
-run-now, give-up and write-off) reach the runtime gateway through the app cluster address, which in compose is this
+run-now and give-up) reach the runtime gateway through the app cluster address, which in compose is this
 mock. The mock plays the gateway's part and forwards those routes to the workflow engine that
 `studioctl env up` runs on the host, through the localtest ingress
 (`host.docker.internal:8000`, `Host: workflow-engine.local.altinn.cloud`). Nothing to enable:

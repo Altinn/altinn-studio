@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { ConfirmActionDialog } from 'admin/features/apps/components/ConfirmActionDialog/ConfirmActionDialog';
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';
 import {
-  useAbandonWorkflowMutation,
   useFailWorkflowMutation,
   useNudgeWorkflowMutation,
   useResumeWorkflowMutation,
@@ -32,10 +31,10 @@ export type WorkflowActionsProps = {
 /**
  * The ops verbs on a workflow, and the outcome of the last one used.
  *
- * On a failure: retry it, or write the failure off. Retry is offered for an already written-off
- * workflow too — the engine allows resuming an `Abandoned` workflow — while writing off only makes
- * sense for a failure that still stands. On a workflow parked on a timer: run it now instead of
- * waiting the backoff out, or give up on it instead of waiting the retries out.
+ * On a failure: retry it. Retry is offered for an already written-off workflow too — the engine
+ * allows resuming an `Abandoned` workflow. Writing a failure off is deliberately not offered here
+ * for now. On a workflow parked on a timer: run it now instead of waiting the backoff out, or give
+ * up on it instead of waiting the retries out.
  *
  * A verb that succeeded takes the buttons with it and leaves a one-line confirmation in their
  * place for a few seconds: the row's own status shows the result within the next read, so the
@@ -49,13 +48,11 @@ export const WorkflowActions = ({
 }: WorkflowActionsProps): ReactElement | null => {
   const { t } = useTranslation();
   const resume = useResumeWorkflowMutation(context);
-  const abandon = useAbandonWorkflowMutation(context);
   const nudge = useNudgeWorkflowMutation(context);
   const fail = useFailWorkflowMutation(context);
-  const verbs = [resume, abandon, nudge, fail];
+  const verbs = [resume, nudge, fail];
 
   const canRetry = RESUMABLE_WORKFLOW_STATUSES.includes(workflow.overallStatus);
-  const canAbandon = FAILED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const isParked = PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const hasOutcome = verbs.some((verb) => verb.isSuccess || verb.isError);
   const cascadeCount = resume.data?.cascadeResumed?.length ?? 0;
@@ -69,7 +66,6 @@ export const WorkflowActions = ({
       : t('admin.workflows.actions.retry.description');
 
   const { reset: resetResume } = resume;
-  const { reset: resetAbandon } = abandon;
   const { reset: resetNudge } = nudge;
   const { reset: resetFail } = fail;
   useEffect(() => {
@@ -78,36 +74,28 @@ export const WorkflowActions = ({
       PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus)
     ) {
       resetResume();
-      resetAbandon();
       resetNudge();
       resetFail();
     }
-  }, [workflow.overallStatus, resetResume, resetAbandon, resetNudge, resetFail]);
+  }, [workflow.overallStatus, resetResume, resetNudge, resetFail]);
 
   const succeeded = resume.isSuccess
     ? 'resume'
-    : abandon.isSuccess
-      ? 'abandon'
-      : nudge.isSuccess
-        ? 'nudge'
-        : fail.isSuccess
-          ? 'fail'
-          : undefined;
+    : nudge.isSuccess
+      ? 'nudge'
+      : fail.isSuccess
+        ? 'fail'
+        : undefined;
   useEffect(() => {
     if (!succeeded) {
       return undefined;
     }
-    const resets = {
-      resume: resetResume,
-      abandon: resetAbandon,
-      nudge: resetNudge,
-      fail: resetFail,
-    };
+    const resets = { resume: resetResume, nudge: resetNudge, fail: resetFail };
     const timer = window.setTimeout(resets[succeeded], OUTCOME_NOTE_MS);
     return () => window.clearTimeout(timer);
-  }, [succeeded, resetResume, resetAbandon, resetNudge, resetFail]);
+  }, [succeeded, resetResume, resetNudge, resetFail]);
 
-  if (!canRetry && !canAbandon && !isParked && !hasOutcome) {
+  if (!canRetry && !isParked && !hasOutcome) {
     return null;
   }
 
@@ -116,7 +104,6 @@ export const WorkflowActions = ({
       cascadeCount > 0
         ? t('admin.workflows.actions.retry.success_with_dependents', { count: cascadeCount })
         : t('admin.workflows.actions.retry.success'),
-    abandon: t('admin.workflows.actions.abandon.success'),
     nudge: t('admin.workflows.actions.nudge.success'),
     fail: t('admin.workflows.actions.fail.success'),
   };
@@ -129,7 +116,7 @@ export const WorkflowActions = ({
 
   return (
     <div className={classes.actions}>
-      {(canRetry || canAbandon || isParked) && !succeeded && (
+      {(canRetry || isParked) && !succeeded && (
         <div className={classes.buttons}>
           {isParked && (
             <ConfirmActionDialog
@@ -160,17 +147,6 @@ export const WorkflowActions = ({
               confirmLabel={t('admin.workflows.actions.retry.confirm')}
               isPending={resume.isPending}
               onConfirm={() => run(resume)}
-            />
-          )}
-          {canAbandon && (
-            <ConfirmActionDialog
-              triggerLabel={t('admin.workflows.actions.abandon')}
-              heading={t('admin.workflows.actions.abandon.heading')}
-              description={t('admin.workflows.actions.abandon.description')}
-              confirmLabel={t('admin.workflows.actions.abandon.confirm')}
-              color='danger'
-              isPending={abandon.isPending}
-              onConfirm={() => run(abandon)}
             />
           )}
         </div>
