@@ -12,6 +12,7 @@ import { FilenameTextResource } from '../FilenameTextResource';
 import { useSubformPdfConfig } from './useSubformPdfConfig';
 import { useValidateSubformPdfValue } from './useValidateSubformPdfValue';
 import { SubformComponentIdField } from './SubformComponentIdField';
+import { SubformPdfLayoutSetSection } from './SubformPdfLayoutSetSection';
 import sharedClasses from '../ConfigServiceTask.module.css';
 
 export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
@@ -85,6 +86,13 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
             onChange={setSubformComponentId}
           />
         </StudioFormGroup>
+      </StudioList.Item>
+
+      {/* Below the two fields rather than above them: it is the field above that sends the
+          developer here, by offering no component until the task has pages of its own to hold
+          one. */}
+      <StudioList.Item>
+        <SubformPdfLayoutSetSection />
       </StudioList.Item>
 
       <StudioList.Item>
