@@ -200,10 +200,7 @@ const buildDetailsContent = (data) => {
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${skipLabel}</a>`;
     }
     if (status === 'Requeued' || status === 'Waiting') {
-        const failTitle =
-            status === 'Waiting'
-                ? 'Stop waiting and mark the step Failed'
-                : 'Stop retrying and mark the step Failed';
+        const failTitle = status === 'Waiting' ? 'Stop waiting and mark the step Failed' : 'Stop retrying and mark the step Failed';
         statusParts += `<a class="step-retry-badge fail" style="${showNudge ? '' : 'margin-left:auto'}" title="${failTitle}" onclick="failWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">&#10005; Fail</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;

@@ -52,7 +52,7 @@ How Localtest combines the sources:
   users (Ola Nordmann, Sofie Salt, …) are not. This is the usual case when you run a single app, and it
   means the file has to list every user you want to log in as, not just the ones you are adding.
 - If any reachable app has no `testData.json`, the app-provided users are merged into the built-in ones.
-  The merge only ever _adds_: an entry that already exists built-in keeps its built-in values. In
+  The merge only ever *adds*: an entry that already exists built-in keeps its built-in values. In
   particular you cannot grant an extra role to a built-in user this way — see
   [Add a missing role for a test user](#add-a-missing-role-for-a-test-user).
 - Two apps may define the same user or party as long as the definitions are identical. Definitions that

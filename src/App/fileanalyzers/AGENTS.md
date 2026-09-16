@@ -15,7 +15,7 @@ The implementation is deliberately split:
 - **Analyzers** extract metadata from the raw bytes and produce a standardized result set.
 - **Validators** run against those analysis results.
 
-This split lets an app use an analyzer to extract metadata _without_ validating, and keeps validators
+This split lets an app use an analyzer to extract metadata *without* validating, and keeps validators
 configured against a stable result set rather than embedded in analysis code. Preserve this separation
 when adding new analyzers/validators.
 

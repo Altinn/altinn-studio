@@ -11,7 +11,7 @@ The exceptions below record the observed incompatible result. Remove the marker 
 ## Tests disabled in the frontend
 
 | Test                                                                                                     | Expected                                                                                                 | Observed in the frontend                                                                                                                              |
-| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+|----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `evaluation/invalid/group-missing-child.json`                                                            | Layout construction throws an error matching `*missing-child*`.                                          | `ExprValidation.throwIfInvalid` returns normally and throws no error because it validates the expression syntax, not the referenced layout hierarchy. |
 | `evaluation/invalid/two-components-same-id.json`                                                         | Layout construction throws an error matching `*duplicate-id*`.                                           | `ExprValidation.throwIfInvalid` returns normally and throws no error.                                                                                 |
 | `evaluation/invalid/two-groups-same-child.json`                                                          | Layout construction throws an error matching `*double-referenced-child*`.                                | `ExprValidation.throwIfInvalid` returns normally and throws no error.                                                                                 |
@@ -25,7 +25,7 @@ The exceptions below record the observed incompatible result. Remove the marker 
 ## Tests disabled in the backend
 
 | Test                                                                      | Expected                                                                      | Observed in the backend                                                                                            |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
 | `evaluation/functions/component/hidden-by-child-visibility-callback.json` | Component lookup returns `null` because `showInExpandedEdit` hides the child. | Component lookup returns `"Hell og lykke AS"`; the backend does not apply this frontend child-visibility callback. |
 | `evaluation/functions/instanceContext/instanceOwnerNameOrg.json`          | Instance owner name is `"My Org AS"`.                                         | Throws `Unknown Instance context property instanceOwnerName`.                                                      |
 | `evaluation/functions/instanceContext/instanceOwnerNamePerson.json`       | Instance owner name is `"Firstname Lastname"`.                                | Throws `Unknown Instance context property instanceOwnerName`.                                                      |
@@ -37,11 +37,11 @@ The backend runner excludes these complete folders. Its coverage check fails if 
 For every file in these folders, the expected value is the file's `expects` value; the backend instead throws
 `Function "<function>" not implemented in backend` when parsing or evaluating the expression.
 
-| Folder                             | Missing backend function |
-| ---------------------------------- | ------------------------ |
-| `evaluation/functions/authContext` | `authContext`            |
-| `evaluation/functions/externalApi` | `externalApi`            |
-| `evaluation/functions/value`       | `value`                  |
+| Folder                                           | Missing backend function    |
+|--------------------------------------------------|-----------------------------|
+| `evaluation/functions/authContext`               | `authContext`               |
+| `evaluation/functions/externalApi`               | `externalApi`               |
+| `evaluation/functions/value`                     | `value`                     |
 
 ## Frontend-only function folders
 
@@ -50,7 +50,7 @@ frontend navigation links, or are explicitly experimental frontend functionality
 are the same as for the folders above.
 
 | Folder                                           | Frontend-only function      |
-| ------------------------------------------------ | --------------------------- |
+|--------------------------------------------------|-----------------------------|
 | `evaluation/functions/_experimentalSelectAndMap` | `_experimentalSelectAndMap` |
 | `evaluation/functions/displayValue`              | `displayValue`              |
 | `evaluation/functions/linkToComponent`           | `linkToComponent`           |

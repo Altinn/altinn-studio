@@ -62,19 +62,19 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 
 ## Endpoints Used
 
-| Endpoint                 | Method | Used by                                                   |
-| ------------------------ | ------ | --------------------------------------------------------- |
-| `/dashboard/stream`      | SSE    | Main loop — engine status, capacity, scheduled count      |
-| `/dashboard/stream/live` | SSE    | Active and recent workflows                               |
-| `/dashboard/labels`      | GET    | Fetch distinct values for label keys                      |
-| `/dashboard/scheduled`   | GET    | Scheduled section (on-demand)                             |
-| `/dashboard/query`       | GET    | Query tab (on-demand, paginated)                          |
-| `/dashboard/step`        | GET    | Step detail modal                                         |
-| `/dashboard/state`       | GET    | State evolution modal                                     |
-| `/dashboard/relations`   | GET    | On-demand relations for recent/query cards                |
-| `/dashboard/graph`       | GET    | Connected graph: chain modal + chains-view history        |
-| `/dashboard/mailboxes`   | GET    | Mailbox blocks under the collection groups (chains views) |
-| `/dashboard/hot-reload`  | SSE    | Dev file change watcher                                   |
+| Endpoint                  | Method | Used by                                              |
+| ------------------------- | ------ | ---------------------------------------------------- |
+| `/dashboard/stream`       | SSE    | Main loop — engine status, capacity, scheduled count |
+| `/dashboard/stream/live`  | SSE    | Active and recent workflows                          |
+| `/dashboard/labels`       | GET    | Fetch distinct values for label keys                 |
+| `/dashboard/scheduled`    | GET    | Scheduled section (on-demand)                        |
+| `/dashboard/query`        | GET    | Query tab (on-demand, paginated)                     |
+| `/dashboard/step`         | GET    | Step detail modal                                    |
+| `/dashboard/state`        | GET    | State evolution modal                                |
+| `/dashboard/relations`    | GET    | On-demand relations for recent/query cards           |
+| `/dashboard/graph`        | GET    | Connected graph: chain modal + chains-view history    |
+| `/dashboard/mailboxes`    | GET    | Mailbox blocks under the collection groups (chains views) |
+| `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
 
 The dashboard's workflow actions (Retry, Retry now / Check now, Fail) are not dashboard endpoints: `modal.js` calls the engine's public API — `POST /api/v1/{namespace}/workflows/{id}/resume`, `/nudge` and `/fail` — so the UI exercises the same contract external callers use, and a refusal's problem-details `detail` becomes the button tooltip. The throttled-namespaces panel is the same: `throttles.js` polls `GET /api/v1/throttles` every 10s (the section stays hidden while it is empty), and its two-click overrides call `POST /api/v1/{namespace}/throttle/trip` and `/clear`.
 

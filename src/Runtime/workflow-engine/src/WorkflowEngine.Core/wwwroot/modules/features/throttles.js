@@ -22,6 +22,7 @@ import { esc, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
 const POLL_INTERVAL_MS = 10000;
 const CONFIRM_REVERT_MS = 3000;
 
+
 /** Starts the poll loop. Called once from app.js init(). */
 export const initThrottles = () => {
     loadThrottles();
@@ -118,9 +119,7 @@ const throttleAction = async (action, ns, btn) => {
     btn.disabled = true;
     btn.textContent = '...';
     try {
-        const res = await fetch(`/api/v1/${encodeURIComponent(ns)}/throttle/${action}`, {
-            method: 'POST',
-        });
+        const res = await fetch(`/api/v1/${encodeURIComponent(ns)}/throttle/${action}`, { method: 'POST' });
         if (res.ok) {
             await loadThrottles();
         } else {

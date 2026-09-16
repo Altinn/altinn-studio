@@ -13,7 +13,7 @@ https://docs.altinn.studio/app/development/data/options/
 - Register all providers at once with `services.AddAltinnCodelists();`, or register individual code
   lists (to override the option ID or pass parameters), e.g.
   `services.AddSSBClassificationCodelistProvider("næring", Classification.IndustryGrouping);`.
-- Connect a component to a code list via its _Kodeliste-ID_ in Studio, or the `optionsId` property in
+- Connect a component to a code list via its *Kodeliste-ID* in Studio, or the `optionsId` property in
   `FormLayout.json`.
 
 ## Build & test

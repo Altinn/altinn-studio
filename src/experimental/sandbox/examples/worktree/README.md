@@ -5,7 +5,6 @@ bind mounted along with Codex/Claude configuration from the current user's home 
 layer alone, without `agentd`; the Agent-layer equivalent is `src/experimental/agent/examples/self-dev`.
 
 Installed tools:
-
 - .NET 10
 - Rust
 - Go

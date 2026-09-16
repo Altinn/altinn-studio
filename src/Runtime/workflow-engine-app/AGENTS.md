@@ -15,7 +15,7 @@ Core conventions (architecture, command pattern, code style, tests, dashboard) a
 ## Projects
 
 | Project                    | Purpose                                                        |
-| -------------------------- | -------------------------------------------------------------- |
+|----------------------------|----------------------------------------------------------------|
 | `WorkflowEngine.App`       | Web host: `Program.cs`, config files, Dockerfile               |
 | `WorkflowEngine.App.Tests` | Unit + integration tests for AppCommand, config, enqueue flows |
 
@@ -107,8 +107,8 @@ Run with `dotnet test`.
 
 Use `studioctl env up --dev-workflow-engine` to start localtest with the workflow-engine route bound to the host, then run `dotnet run --project src/WorkflowEngine.App`.
 
-| Service           | Port | Purpose          |
-| ----------------- | ---- | ---------------- |
-| `workflow-engine` | 9090 | Host app runtime |
+| Service           | Port       | Purpose                      |
+|-------------------|------------|------------------------------|
+| `workflow-engine` | 9090       | Host app runtime             |
 
 The app project does not own a Docker Compose harness.
