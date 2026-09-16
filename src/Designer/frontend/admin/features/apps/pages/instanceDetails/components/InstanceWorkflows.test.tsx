@@ -156,7 +156,6 @@ describe('InstanceWorkflows', () => {
 
     const rows = await screen.findAllByRole('group');
     expect(rows.every((row) => !row.hasAttribute('open'))).toBe(true);
-    expect(screen.queryByText(/admin\.workflows\.notice\.stale/)).not.toBeInTheDocument();
   });
   it('opens a workflow that keeps retrying, with its attempts and the countdown in the row', async () => {
     const retryingHeadWorkflow = {
@@ -199,26 +198,27 @@ describe('InstanceWorkflows', () => {
     ).toBeInTheDocument();
   });
 
-  it('flags work in flight that has not changed for a long time, and opens it', async () => {
-    const twoHoursAgo = new Date(Date.now() - 2 * 3_600_000).toISOString();
-    const stuckHeadWorkflow = {
+  it('says how long a workflow has been running, once it has run a while', async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+    const runningHeadWorkflow = {
       ...failedHeadWorkflow,
       overallStatus: 'Processing',
-      executionStartedAt: twoHoursAgo,
-      updatedAt: twoHoursAgo,
+      executionStartedAt: tenMinutesAgo,
+      updatedAt: tenMinutesAgo,
       steps: [{ ...failedHeadWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [stuckHeadWorkflow] },
+      data: { ...workflowsResponse, data: [runningHeadWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    expect(await screen.findByText(/admin\.workflows\.notice\.stale/)).toBeInTheDocument();
-    const [row] = screen.getAllByRole('group');
-    expect(row).toHaveAttribute('open');
+    const [row] = await screen.findAllByRole('group');
     expect(within(row).getByText(/admin\.workflows\.row\.running_for/)).toBeInTheDocument();
+    // In flight is not a problem: the row stays closed.
+    expect(row).not.toHaveAttribute('open');
   });
+
   it('reads each workflow as a row: its steps, where it stopped, and what went wrong', async () => {
     jest
       .mocked(axios.get)

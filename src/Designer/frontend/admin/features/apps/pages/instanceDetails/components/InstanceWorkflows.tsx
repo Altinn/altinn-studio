@@ -36,7 +36,6 @@ import {
   orderedSteps,
   toTime,
 } from 'admin/features/apps/utils/workflowTriage';
-import { InstanceWorkflowNotices } from './InstanceWorkflowNotices';
 import { WorkflowActions } from './WorkflowActions';
 import { WorkflowStepStrip } from './WorkflowStepStrip';
 
@@ -131,7 +130,6 @@ const InstanceWorkflowsContent = ({
 
   return (
     <div className={classes.workflows}>
-      <InstanceWorkflowNotices workflows={workflows} />
       {isFetchMoreError && (
         <StudioAlert data-color='danger' data-size='sm'>
           {t('admin.workflows.fetch_more_error')}
