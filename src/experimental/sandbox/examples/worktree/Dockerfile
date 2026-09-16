@@ -122,7 +122,11 @@ ARG YARN_VERSION=4.18.0
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
-RUN mkdir -p "${COREPACK_HOME}" \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    mkdir -p "${COREPACK_HOME}" \
     && corepack enable \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
@@ -130,7 +134,10 @@ RUN mkdir -p "${COREPACK_HOME}" \
 ARG CODEX_VERSION=0.147.0
 ARG CLAUDE_CODE_VERSION=2.1.239
 
-RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 

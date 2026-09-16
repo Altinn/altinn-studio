@@ -8,7 +8,11 @@ COPY package.json yarn.lock ./
 COPY .yarnrc.yml ./
 COPY .yarn/releases ./.yarn/releases
 
-RUN yarn --immutable
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn --immutable
 
 COPY server.js ./
 

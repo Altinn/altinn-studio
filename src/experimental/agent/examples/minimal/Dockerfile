@@ -32,7 +32,11 @@ RUN case "${TARGETARCH}" in \
 
 ARG CLAUDE_CODE_VERSION=2.1.266
 
-RUN npm install --global --allow-scripts=@anthropic-ai/claude-code \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && usermod --login agent --home /home/agent --move-home ubuntu \
     && groupmod --new-name agent ubuntu \

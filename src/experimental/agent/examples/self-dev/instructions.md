@@ -35,5 +35,6 @@ Real secrets are host-mediated: never search for, print, copy or persist their v
 above is inert. Git identity is explicitly selected non-secret data and enters both Sandboxes in plaintext.
 
 Build steps inside Podman trust the mediated CA through the system store and `/run/agent/tls/ca-bundle.pem`. Buildah
-drops default environment from build stages, so tools that ignore the system store need it per step, for example
-`RUN NODE_OPTIONS=--use-openssl-ca npm ci`. Do not persist that with Dockerfile `ENV`.
+drops default environment from build stages, so a `RUN` that downloads through Node exports
+`NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem` when that file is readable. Do not persist that with Dockerfile
+`ENV`.

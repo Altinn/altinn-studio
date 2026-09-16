@@ -68,7 +68,11 @@ ARG GH_VERSION=2.100.0
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
-RUN mkdir -p "${COREPACK_HOME}" \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    mkdir -p "${COREPACK_HOME}" \
     && corepack enable \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
@@ -125,7 +129,10 @@ RUN case "${TARGETARCH}" in \
 ARG CODEX_VERSION=0.153.4
 ARG CLAUDE_CODE_VERSION=2.1.268
 
-RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && usermod --login agent --home /home/agent --move-home ubuntu \
@@ -212,7 +219,11 @@ RUN apt-get update \
 # The bundled skill is installed user-wide where Claude Code and Codex look for skills;
 # `playwright-cli install --skills` would otherwise write it per working directory. Root-owned
 # build caches under the agent home would deny the agent user its own cache directories later.
-RUN npm install --global "@playwright/cli@${PLAYWRIGHT_CLI_VERSION}" \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global "@playwright/cli@${PLAYWRIGHT_CLI_VERSION}" \
     && PLAYWRIGHT_VERSION="$(node -p "require('${NODE_PATH}/@playwright/cli/package.json').dependencies.playwright")" \
     && test -n "${PLAYWRIGHT_VERSION}" \
     && npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
