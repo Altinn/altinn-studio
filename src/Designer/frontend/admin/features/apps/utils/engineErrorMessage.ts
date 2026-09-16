@@ -19,6 +19,12 @@ export type EngineErrorDetails = {
   failureCode?: string;
   /** Validation problem entries, flattened to `field: message` lines. */
   validationErrors?: string[];
+  /**
+   * Every other scalar field of the body, in order — a `traceId` to find the call in the app's
+   * logs, an `instance`, whatever the app added — so unpacking the message never hides anything
+   * it carried. The fields shown elsewhere and the RFC `type` link are left out.
+   */
+  extensions?: Array<[key: string, value: string]>;
 };
 
 type ProblemDetailsBody = {
@@ -28,6 +34,17 @@ type ProblemDetailsBody = {
   workflowFailureCode?: unknown;
   errors?: unknown;
 };
+
+/** Fields rendered on their own (or, for `type` and `nonRetryable`, said elsewhere), not as extensions. */
+const UNPACKED_FIELDS: ReadonlySet<string> = new Set([
+  'type',
+  'title',
+  'detail',
+  'status',
+  'workflowFailureCode',
+  'nonRetryable',
+  'errors',
+]);
 
 export function parseEngineErrorMessage(message: string): EngineErrorDetails {
   const bodyStart = message.indexOf('{');
@@ -47,7 +64,19 @@ export function parseEngineErrorMessage(message: string): EngineErrorDetails {
     status: typeof body.status === 'number' ? body.status : undefined,
     failureCode: asText(body.workflowFailureCode),
     validationErrors: flattenValidationErrors(body.errors),
+    extensions: collectExtensions(body),
   };
+}
+
+function collectExtensions(body: ProblemDetailsBody): Array<[string, string]> | undefined {
+  const extensions = Object.entries(body)
+    .filter(([key, value]) => !UNPACKED_FIELDS.has(key) && isScalar(value))
+    .map(([key, value]): [string, string] => [key, String(value)]);
+  return extensions.length ? extensions : undefined;
+}
+
+function isScalar(value: unknown): value is string | number | boolean {
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
 
 /** Parses the text as JSON and accepts it only when it has the shape of a problem-details body. */

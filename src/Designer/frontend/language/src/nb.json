@@ -111,6 +111,8 @@
   "admin.workflows.error.failure_code": "Feilkode",
   "admin.workflows.error.http_status": "HTTP {{status}}",
   "admin.workflows.error.non_retryable": "Varig feil",
+  "admin.workflows.error.raw": "Vis hele meldingen",
+  "admin.workflows.error.raw_hide": "Skjul hele meldingen",
   "admin.workflows.error.retryable": "Midlertidig feil",
   "admin.workflows.fetch_more": "Last inn flere arbeidsflyter",
   "admin.workflows.fetch_more_error": "Flere arbeidsflyter kunne ikke lastes. Prøv igjen.",

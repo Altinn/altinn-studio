@@ -28,6 +28,25 @@ describe('EngineErrorMessage', () => {
     expect(screen.queryByText(problemMessage)).not.toBeInTheDocument();
   });
 
+  it('keeps the trace id and other fields the app added, and offers the whole message on request', async () => {
+    const user = userEvent.setup();
+    const message =
+      'AppCommand failed with client error UnprocessableEntity: {"title":"Invalid State","status":422,"detail":"State could not be restored.","nonRetryable":true,"traceId":"00-e74e2d6ae60e-01"}';
+    renderEngineErrorMessage(entry({ message, httpStatusCode: 422, wasRetryable: false }));
+
+    expect(screen.getByText('traceId')).toBeInTheDocument();
+    expect(screen.getByText('00-e74e2d6ae60e-01')).toBeInTheDocument();
+    expect(screen.queryByText('nonRetryable')).not.toBeInTheDocument();
+
+    // The raw string is there for whoever wants it, behind a toggle rather than in the way.
+    expect(screen.queryByText(message)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textMock('admin.workflows.error.raw') }));
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('admin.workflows.error.raw_hide') }),
+    ).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('tags the HTTP status and whether the engine classed the error as transient', () => {
     renderEngineErrorMessage(entry({ wasRetryable: false, httpStatusCode: 422 }));
 
@@ -43,6 +62,8 @@ describe('EngineErrorMessage', () => {
 
     expect(screen.getByText('Boom went the pipeline').tagName).toBe('CODE');
     expect(screen.queryByText(/HTTP/)).not.toBeInTheDocument();
+    // Nothing was unpacked, so the message is already whole: no toggle to repeat it.
+    expect(screen.queryByText(textMock('admin.workflows.error.raw'))).not.toBeInTheDocument();
   });
 
   it('copies the raw message, not the unpacked view of it', async () => {

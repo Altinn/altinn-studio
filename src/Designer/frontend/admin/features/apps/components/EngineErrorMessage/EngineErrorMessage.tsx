@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioList, StudioTag } from '@studio/components';
+import { StudioButton, StudioList, StudioTag } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CopyTextButton } from 'admin/features/apps/components/CopyTextButton/CopyTextButton';
 import type { WorkflowErrorEntry } from 'admin/features/apps/types/workflows/WorkflowStatus';
@@ -23,10 +24,12 @@ export type EngineErrorMessageProps = {
  */
 export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactElement => {
   const { t } = useTranslation();
+  const [isRawShown, setIsRawShown] = useState(false);
   const details = parseEngineErrorMessage(entry.message);
   const status = entry.httpStatusCode ?? details.status;
   // With a title but no detail (a validation problem), the raw JSON would only repeat the title.
-  const mainText = details.detail ?? (details.title ? undefined : details.raw);
+  const isUnpacked = details.title !== undefined || details.detail !== undefined;
+  const mainText = details.detail ?? (isUnpacked ? undefined : details.raw);
 
   return (
     <div className={classes.entry}>
@@ -63,7 +66,34 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
           ))}
         </StudioList.Unordered>
       )}
+      {details.extensions && (
+        <dl className={classes.extensions}>
+          {details.extensions.map(([key, value]) => (
+            <div key={key} className={classes.extension}>
+              <dt>
+                <code className={classes.engineText}>{key}</code>
+              </dt>
+              <dd>
+                <code className={classes.engineText}>{value}</code>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {details.prefix && <span className={classes.prefix}>{details.prefix}</span>}
+      {isUnpacked && (
+        <div className={classes.raw}>
+          <StudioButton
+            data-size='sm'
+            variant='tertiary'
+            aria-expanded={isRawShown}
+            onClick={() => setIsRawShown((shown) => !shown)}
+          >
+            {isRawShown ? t('admin.workflows.error.raw_hide') : t('admin.workflows.error.raw')}
+          </StudioButton>
+          {isRawShown && <code className={classes.engineText}>{details.raw}</code>}
+        </div>
+      )}
     </div>
   );
 };

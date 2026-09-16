@@ -69,6 +69,6 @@
 /* Free text from the engine, shown as it came: not translated, not part of the sentence. */
 .engineText {
   font-family: 'Courier New', monospace;
-  font-size: var(--ds-font-size-1);
+  font-size: inherit;
   overflow-wrap: anywhere;
 }

@@ -16,6 +16,16 @@ describe('parseEngineErrorMessage', () => {
     });
   });
 
+  it('keeps every other scalar field, such as the trace id, and drops only what is said elsewhere', () => {
+    const message = `${prefix}: {"type":"https://tools.ietf.org/html/rfc9110#section-15.6.1","title":"Invalid State","status":422,"detail":"State could not be restored.","nonRetryable":true,"traceId":"00-e74e2d6ae60e-01","instance":"/instances/1","attempt":3,"nested":{"ignored":true}}`;
+
+    expect(parseEngineErrorMessage(message).extensions).toEqual([
+      ['traceId', '00-e74e2d6ae60e-01'],
+      ['instance', '/instances/1'],
+      ['attempt', '3'],
+    ]);
+  });
+
   it('flattens validation errors, naming the field unless it is the JSON root', () => {
     const message =
       'AppCommand failed with client error BadRequest: {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"$":["Missing required properties: lockToken."],"payload":["The payload field is required."]}}';
