@@ -386,9 +386,6 @@ internal static class DashboardEndpoints
                     string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
                     collectionKey = string.IsNullOrWhiteSpace(collectionKey) ? null : collectionKey;
 
-                    // Derive the recognized set from the enum itself (a hand-rolled name list is
-                    // exactly how DependencyFailed and Abandoned were silently dropped before).
-                    // Unknown values are still leniently ignored — the dashboard's existing contract.
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
                         ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
                         : status
