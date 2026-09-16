@@ -183,14 +183,18 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
   const currentStepName =
     currentStep && currentStep.status !== 'Completed' ? currentStep.operationId : undefined;
 
-  // A row that just changed blinks once. The change is counted from the previous render's
-  // timestamp (the React pattern for remembering the last props), and the summary span is keyed
-  // by the count so the blink replays on every change — the disclosure around it stays put.
-  const [previousUpdatedAt, setPreviousUpdatedAt] = useState(workflow.updatedAt);
+  // A row blinks once when the workflow lands in a settled status. Not on every read that touches
+  // it: a retrying workflow changes every attempt, and a blink per attempt is noise. The change is
+  // caught by comparing with the previous render's status (the React pattern for remembering the
+  // last props), and the summary span is keyed by the count so the blink replays each time — the
+  // disclosure around it stays put.
+  const [previousStatus, setPreviousStatus] = useState(workflow.overallStatus);
   const [changeCount, setChangeCount] = useState(0);
-  if (workflow.updatedAt !== previousUpdatedAt) {
-    setPreviousUpdatedAt(workflow.updatedAt);
-    setChangeCount((count) => count + 1);
+  if (workflow.overallStatus !== previousStatus) {
+    setPreviousStatus(workflow.overallStatus);
+    if (!isActiveWorkflow(workflow)) {
+      setChangeCount((count) => count + 1);
+    }
   }
 
   const summaryClasses = [classes.summary, changeCount > 0 && classes.summaryChanged]
@@ -248,8 +252,16 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
 };
 
 /**
- * What a workflow in flight is up to right now: how long the current attempt has run, or when a
- * parked one is due again. Ticks with the row's clock. Nothing for a settled workflow.
+ * A note only reads well when it stands still for a while. The engine's first backoffs are a
+ * second or two, and most attempts run well under a second, so a countdown or a running time
+ * under this threshold would flip on every read; below it the spinner says enough.
+ */
+const LIVE_NOTE_THRESHOLD_MS = 5_000;
+
+/**
+ * What a workflow in flight is up to right now, when that is worth a word: how long the current
+ * attempt has run, once it has run a while, or when a parked one is due again, once that is a
+ * while away. Ticks with the row's clock. Nothing for a settled workflow.
  */
 function liveNoteOf(
   workflow: WorkflowStatus,
@@ -258,18 +270,15 @@ function liveNoteOf(
 ): string | undefined {
   if (workflow.overallStatus === 'Processing') {
     const since = toTime(workflow.executionStartedAt);
-    return since === undefined
-      ? undefined
-      : t('admin.workflows.row.running_for', { duration: formatDuration(now - since, t) });
+    return since !== undefined && now - since >= LIVE_NOTE_THRESHOLD_MS
+      ? t('admin.workflows.row.running_for', { duration: formatDuration(now - since, t) })
+      : undefined;
   }
   if (PARKED_WORKFLOW_STATUSES.includes(workflow.overallStatus)) {
     const due = toTime(workflow.backoffUntil);
-    if (due === undefined) {
-      return undefined;
-    }
-    return due > now
+    return due !== undefined && due - now >= LIVE_NOTE_THRESHOLD_MS
       ? t('admin.workflows.row.next_attempt_in', { duration: formatDuration(due - now, t) })
-      : t('admin.workflows.row.next_attempt_now');
+      : undefined;
   }
   return undefined;
 }

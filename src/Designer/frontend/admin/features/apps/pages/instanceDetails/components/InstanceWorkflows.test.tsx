@@ -209,6 +209,26 @@ describe('InstanceWorkflows', () => {
     ).toHaveTextContent('5');
     expect(within(row).getByText(/admin\.workflows\.row\.next_attempt_in/)).toBeInTheDocument();
   });
+  it('says nothing about a next attempt that is only seconds away', async () => {
+    const retryingSoon = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Requeued',
+      backoffUntil: new Date(Date.now() + 2_000).toISOString(),
+      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Requeued', retryCount: 1 }],
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [retryingSoon] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const [row] = await screen.findAllByRole('group');
+    expect(within(row).queryByText(/admin\.workflows\.row\.next_attempt/)).not.toBeInTheDocument();
+    expect(
+      within(row).getByLabelText(textMock('admin.workflows.health.active')),
+    ).toBeInTheDocument();
+  });
+
   it('flags work in flight that has not changed for a long time, and opens it', async () => {
     const twoHoursAgo = new Date(Date.now() - 2 * 3_600_000).toISOString();
     const stuckHeadWorkflow = {

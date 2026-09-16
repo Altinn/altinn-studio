@@ -144,7 +144,6 @@
   "admin.workflows.problems.total": "Antall instanser med feil: {{total}}",
   "admin.workflows.row.attempts": "{{count}} forsøk",
   "admin.workflows.row.next_attempt_in": "Neste forsøk om {{duration}}",
-  "admin.workflows.row.next_attempt_now": "Neste forsøk starter nå",
   "admin.workflows.row.running_for": "Har kjørt i {{duration}}",
   "admin.workflows.row.steps": "{{completed}} av {{total}} steg fullført",
   "admin.workflows.side_effect": "Bakgrunnsarbeid",
