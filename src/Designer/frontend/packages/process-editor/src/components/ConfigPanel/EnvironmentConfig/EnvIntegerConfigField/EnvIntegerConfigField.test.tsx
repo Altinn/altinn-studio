@@ -45,6 +45,31 @@ describe('EnvIntegerConfigField', () => {
     expect(onChange).toHaveBeenCalledWith([{ value: '3' }]);
     expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
   });
+
+  // The message is below the field, and the field can be the last one in a panel that scrolls, so
+  // the sentence explaining what is wrong would otherwise be cut off where it stands.
+  it('brings the error into view when it appears', async () => {
+    const user = userEvent.setup();
+    renderEnvIntegerConfigField();
+    await user.click(getCollapsedButton());
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText(globalLabel), '3.5');
+
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  // Opening a task whose bpmn already holds an unparseable value must not scroll the panel away
+  // from its own top before the developer has done anything.
+  it('does not scroll when the field is shown with the error it arrived with', async () => {
+    const user = userEvent.setup();
+    renderEnvIntegerConfigField({ entries: [{ value: '3.5' }] });
+
+    await user.click(getCollapsedButton());
+
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
 });
 
 function getCollapsedButton(): HTMLElement {

@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrayUtils } from '@studio/pure-functions';
 import {
   StudioAlert,
   StudioButton,
   StudioDeleteButton,
+  StudioDisplayTile,
   StudioDropdown,
   StudioFormGroup,
   StudioProperty,
@@ -21,8 +21,10 @@ import {
   findOverrideEntry,
   getEnvironmentConfigSummary,
   getEnvironmentScopeTextKey,
+  getUnknownEnvironmentNames,
   resolveEnvironmentEntries,
   withEnvironmentValue,
+  withoutEntry,
   withoutEnvironmentValue,
 } from '../environmentEntryUtils';
 
@@ -177,11 +179,8 @@ export function EnvironmentConfigField<TValue>({
     (environment) => !overrideScopes.includes(environment),
   );
 
-  // Two entries can carry the same unrecognized spelling, and naming it twice reads like a bug. The
-  // count follows the names, so the sentence agrees with the list the user is shown.
-  const unknownEnvironments = ArrayUtils.removeDuplicates(
-    resolved.unknownEntries.map(({ env }) => env),
-  );
+  // The count follows the names, so the sentence agrees with the list the user is shown.
+  const unknownEnvironments = getUnknownEnvironmentNames(resolved);
 
   const summaryText = (summary: EnvironmentConfigSummary): string | undefined => {
     switch (summary.kind) {
@@ -250,6 +249,34 @@ export function EnvironmentConfigField<TValue>({
     </div>
   );
 
+  /**
+   * An entry whose `env` the runtime resolves to `Unknown`, shown rather than left out.
+   *
+   * It is the one thing in the file the rows used to pass over in silence, and silence is the one
+   * thing this control cannot afford: the panel would be claiming the field held nothing while the
+   * file held a value the developer could neither see nor reach.
+   *
+   * The value is read-only, and removing it is all the editing offered. Studio cannot say which
+   * environment the entry is for, so it has no row to move it to and no reading of it to write
+   * back - and an entry left alone is an entry kept exactly as the file spells it. A developer who
+   * meant one of the three environments removes this one and adds the override.
+   *
+   * One row per entry, not per spelling: two entries can spell the same unrecognized environment,
+   * and the file really does have two lines.
+   */
+  const renderUnknownEntryRow = (entry: EnvironmentEntry<TValue>, index: number): ReactElement => (
+    <div className={classes.row} key={`${entry.env}-${index}`}>
+      <div className={classes.control}>
+        <StudioDisplayTile label={entry.env} value={formatValue(entry.value)} />
+      </div>
+      <StudioDeleteButton
+        onDelete={() => onChange(withoutEntry(entries, entry))}
+        title={t('general.delete_item', { item: entry.env })}
+        variant='tertiary'
+      />
+    </div>
+  );
+
   return (
     <StudioFormGroup
       legend={label}
@@ -278,6 +305,7 @@ export function EnvironmentConfigField<TValue>({
       <div className={classes.rows}>
         {renderRow(globalScope)}
         {overrideScopes.map(renderRow)}
+        {resolved.unknownEntries.map(renderUnknownEntryRow)}
         {/* Hidden rather than disabled once every environment is in use: the truth is "complete",
             and its honest rendering is absence. */}
         {availableEnvironments.length > 0 && (

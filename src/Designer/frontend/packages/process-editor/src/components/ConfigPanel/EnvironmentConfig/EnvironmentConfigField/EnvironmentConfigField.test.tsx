@@ -230,6 +230,43 @@ describe('EnvironmentConfigField', () => {
     expect(onChange).toHaveBeenCalledWith([{ env: 'at21', value: 'dead' }, { value: 'g' }]);
   });
 
+  it('counts an entry the runtime cannot resolve, so the closed button never denies it', () => {
+    renderEnvironmentConfigField({ entries: [{ env: 'at21', value: 'dead' }] });
+
+    expect(getCollapsedButton()).toHaveTextContent(
+      textMock('process_editor.configuration_panel.environment_config.summary_overrides', {
+        count: 1,
+      }),
+    );
+  });
+
+  it('shows the value of an entry the runtime cannot resolve, under the name the file gives it', async () => {
+    const user = userEvent.setup();
+    renderEnvironmentConfigField({ entries: [{ env: 'at21', value: 'dead' }] });
+
+    await user.click(getCollapsedButton());
+
+    expect(screen.getByText('at21')).toBeInTheDocument();
+    expect(screen.getByText('dead')).toBeInTheDocument();
+  });
+
+  it('removes only the entry whose delete button was used when two spell the same unresolvable environment', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderEnvironmentConfigField({
+      entries: [
+        { env: 'at21', value: 'first' },
+        { env: 'at21', value: 'second' },
+      ],
+      onChange,
+    });
+    await user.click(getCollapsedButton());
+
+    await user.click(getDeleteButtons('at21')[0]);
+
+    expect(onChange).toHaveBeenCalledWith([{ env: 'at21', value: 'second' }]);
+  });
+
   it('names an unresolvable environment once, however many entries spell it that way', async () => {
     const user = userEvent.setup();
     renderEnvironmentConfigField({
@@ -326,6 +363,12 @@ function getRowLabels(): string[] {
 
 function getDeleteButton(environmentLabel: string): HTMLElement {
   return screen.getByRole('button', {
+    name: textMock('general.delete_item', { item: environmentLabel }),
+  });
+}
+
+function getDeleteButtons(environmentLabel: string): HTMLElement[] {
+  return screen.getAllByRole('button', {
     name: textMock('general.delete_item', { item: environmentLabel }),
   });
 }
