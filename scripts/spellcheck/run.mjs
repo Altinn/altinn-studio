@@ -39,7 +39,15 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -49,9 +57,11 @@ import {
   NORWEGIAN_SIGNAL_WORDS,
   REPO_ROOT,
   applyValueFix,
+  changedFiles,
   classifyFindings,
   compileKeyDeclarations,
   compileSuppressions,
+  detectVcs,
   ensureDictionaries,
   ensureOrdbank,
   excludeLiveness,
@@ -316,7 +326,13 @@ function checkCoverage({ registry, root }) {
 
   for (const path of registered) {
     if (!tracked.includes(path)) {
-      findings.push(finding(path, undefined, 'registered in registry.mjs but not tracked by git'));
+      findings.push(
+        finding(
+          path,
+          undefined,
+          `registered in registry.mjs but not tracked by ${detectVcs(root).name}`,
+        ),
+      );
     }
   }
 
@@ -674,13 +690,13 @@ async function checkNorwegian({
 
 /**
  * Fast feedback for the inner dev loop and the pre-commit hook: only the
- * given files (default: everything changed relative to HEAD, plus staged and
- * untracked), only the checks that can run instantly. The Norwegian pass
- * runs offline-only — it never fetches dictionaries here.
+ * given files (default: everything changed since the last commit, staged or
+ * not, plus new files), only the checks that can run instantly. The
+ * Norwegian pass runs offline-only — it never fetches dictionaries here.
  */
 async function checkQuick(ctx, fileArgs) {
   const root = ctx.root;
-  const files = (fileArgs.length > 0 ? fileArgs : gitChangedFiles(root))
+  const files = (fileArgs.length > 0 ? fileArgs : changedFiles(root))
     .map((f) => f.replace(/^\.\//, ''))
     .filter((f) => existsSync(join(root, f)));
   if (files.length === 0) {
@@ -749,23 +765,6 @@ async function checkQuick(ctx, fileArgs) {
       `${files.length} file(s), ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
       (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
   };
-}
-
-function gitChangedFiles(root) {
-  const out = new Set();
-  for (const args of [
-    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'],
-    ['ls-files', '-o', '--exclude-standard'],
-  ]) {
-    const res = spawnSync('git', args, {
-      cwd: root,
-      encoding: 'utf8',
-      maxBuffer: 16 * 1024 * 1024,
-    });
-    if (res.status !== 0) throw new HarnessError(`git ${args[0]} failed: ${res.stderr}`);
-    for (const f of res.stdout.split('\n').filter(Boolean)) out.add(f);
-  }
-  return [...out];
 }
 
 // -------------------------------------------------------------- self-test ---
@@ -915,6 +914,16 @@ async function checkSelfTest({ ci }) {
   }
   assertions += 5;
 
+  // The VCS detection every file-listing check sits on, on throwaway
+  // repositories. Its arm count varies with what is installed, so it reports
+  // its own — an arm that could not run says so instead of passing silently.
+  const vcs = vcsDetectionFailures();
+  for (const failure of vcs.failures) {
+    failures.push(finding('(self-test)', undefined, `vcs detection: ${failure}`));
+  }
+  for (const note of vcs.notes) console.log(`  ⚠ self-test of VCS detection: ${note}`);
+  assertions += vcs.assertions;
+
   // The fix path — the only code that writes to product files — asserted on
   // throwaway copies, byte for byte.
   for (const failure of fixPathFailures(FIX_SCENARIOS)) {
@@ -985,6 +994,87 @@ function classifierFailures({ lines, cases }) {
     }
   }
   return failures;
+}
+
+/**
+ * VCS detection, asserted on throwaway repositories rather than on whatever
+ * the harness happens to be running in. What must never drift is the
+ * preference: git wins wherever git can see a work tree, so CI and every
+ * colocated jj/git checkout stay on exactly the git code path, and the jj
+ * branch is reached only where git cannot answer. Neither tool present is a
+ * harness error naming both, not a leaked message from one of them.
+ *
+ * The two jj arms need jj installed. CI has git alone, so there they report
+ * as not run — the preference arm that protects CI is, honestly, the one arm
+ * CI itself cannot exercise.
+ */
+function vcsDetectionFailures() {
+  const failures = [];
+  const notes = [];
+  let assertions = 0;
+  const dir = mkdtempSync(join(tmpdir(), 'spellcheck-vcs-'));
+
+  const make = (name, argv) => {
+    const at = join(dir, name);
+    mkdirSync(at);
+    const res = spawnSync(argv[0], argv.slice(1), { cwd: at, stdio: 'ignore' });
+    if (res.error || res.status !== 0) {
+      notes.push(`\`${argv.join(' ')}\` failed — the ${name} arm did not run`);
+      return undefined;
+    }
+    return at;
+  };
+  const expect = (at, want, what) => {
+    if (!at) return;
+    assertions += 1;
+    let got;
+    try {
+      got = detectVcs(at).name;
+    } catch (err) {
+      if (!(err instanceof HarnessError)) throw err;
+      got = `an error (${err.message})`;
+    }
+    if (got !== want) failures.push(`${what}: expected ${want}, got ${got}`);
+  };
+
+  try {
+    expect(make('git-only', ['git', 'init', '-q']), 'git', 'a git checkout');
+    if (toolAvailable('jj')) {
+      expect(make('colocated', ['jj', 'git', 'init', '--colocate']), 'git', 'a colocated checkout');
+      expect(make('jj-only', ['jj', 'git', 'init', '--no-colocate']), 'jj', 'a jj-only workspace');
+    } else {
+      notes.push('jj is not installed — the colocated and jj-only arms did not run');
+    }
+
+    // Under no version control the harness must say so in its own words.
+    // Meaningful only while the temp directory is outside every checkout,
+    // which is an environment precondition, not a fourth backend.
+    const bare = join(dir, 'no-vcs');
+    mkdirSync(bare);
+    const inCheckout =
+      spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd: bare, stdio: 'ignore' }).status ===
+      0;
+    if (inCheckout) {
+      notes.push(
+        'the temp directory is inside a checkout — the "no version control" arm did not run',
+      );
+    } else {
+      assertions += 1;
+      try {
+        failures.push(`a directory under no version control was read as ${detectVcs(bare).name}`);
+      } catch (err) {
+        if (!(err instanceof HarnessError)) throw err;
+        for (const tool of ['git', 'jj']) {
+          if (!err.message.includes(tool)) {
+            failures.push(`the "no version control" error does not name ${tool}: ${err.message}`);
+          }
+        }
+      }
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+  return { failures, notes, assertions };
 }
 
 /**
