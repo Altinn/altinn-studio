@@ -278,7 +278,7 @@ func TestStoreMaskinportenClient_WritesTheProvisionedFormatForTheOwnerOnly(t *te
 	if err != nil {
 		t.Fatalf("LoadMaskinportenClient() error = %v", err)
 	}
-	summary := loaded.Summary(path)
+	summary := loaded.Summary()
 	if summary.ClientID != "client-5" || summary.Environment != appsecrets.EnvironmentTest ||
 		summary.KeyID != "test-key" {
 		t.Fatalf("summary = %+v, want client-5 / test / test-key", summary)

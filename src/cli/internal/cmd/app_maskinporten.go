@@ -107,7 +107,11 @@ func (c *AppCommand) runMaskinportenShow(ctx context.Context, args []string) err
 	}
 	result, err := c.service.ShowMaskinportenClient(appPath)
 	if errors.Is(err, appsecrets.ErrNoMaskinportenClient) {
-		return fmt.Errorf("%w; store one with '%s app maskinporten set --file <client.json>'", err, osutil.CurrentBin())
+		return fmt.Errorf(
+			"%w; store one with '%s app maskinporten set --file <client.json>', or paste it on standard input",
+			err,
+			osutil.CurrentBin(),
+		)
 	}
 	if err != nil {
 		return fmt.Errorf("show Maskinporten client: %w", err)
@@ -144,7 +148,7 @@ func (c *AppCommand) runMaskinportenRemove(ctx context.Context, args []string) e
 		return printJSONOutput(c.out, "app maskinporten remove", result)
 	}
 	if result.Removed {
-		c.out.Printlnf("Removed the Maskinporten client for %s (%s)", result.AppID, result.Path)
+		c.out.Printlnf("Removed the Maskinporten client for %s", result.AppID)
 	} else {
 		c.out.Printlnf("No Maskinporten client is stored for %s", result.AppID)
 	}
@@ -196,7 +200,6 @@ func printMaskinportenClient(out *ui.Output, summary appsecrets.MaskinportenClie
 	if summary.KeyID != "" {
 		out.Printlnf("  Key id:       %s", summary.KeyID)
 	}
-	out.Printlnf("  Stored at:    %s", summary.Path)
 }
 
 func parseAppMaskinportenSetFlags(args []string) (appMaskinportenSetFlags, bool, error) {
@@ -286,8 +289,8 @@ func (c *AppCommand) appMaskinportenShowUsage() string {
 	return joinLines(
 		fmt.Sprintf("Usage: %s app maskinporten show [-p PATH] [--json]", osutil.CurrentBin()),
 		"",
-		"Show the Maskinporten client stored for this app: client id, Maskinporten environment, key id and",
-		"where it is stored. The private key is never printed.",
+		"Show the Maskinporten client stored for this app: client id, Maskinporten environment and key id.",
+		"The private key is never printed.",
 		"",
 		"Options:",
 		"  -p, --path PATH       App directory path",

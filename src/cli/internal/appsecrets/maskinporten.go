@@ -63,9 +63,9 @@ type MaskinportenClient struct {
 	Jwk       json.RawMessage `json:"jwk,omitempty"`
 }
 
-// MaskinportenClientSummary describes a stored client without its key material.
+// MaskinportenClientSummary describes a stored client without its key material - and without where it is
+// stored: that is studioctl's business, and naming the file would only invite editing it by hand.
 type MaskinportenClientSummary struct {
-	Path        string `json:"path"`
 	ClientID    string `json:"clientId"`
 	Authority   string `json:"authority"`
 	Environment string `json:"environment"`
@@ -204,9 +204,8 @@ func (c MaskinportenClient) Validate() error {
 }
 
 // Summary describes the client without its key material.
-func (c MaskinportenClient) Summary(path string) MaskinportenClientSummary {
+func (c MaskinportenClient) Summary() MaskinportenClientSummary {
 	summary := MaskinportenClientSummary{
-		Path:        path,
 		ClientID:    c.ClientID,
 		Authority:   c.Authority,
 		Environment: Environment(c.Authority),
@@ -244,14 +243,17 @@ func LoadMaskinportenClient(dir string) (MaskinportenClient, error) {
 	path := MaskinportenPath(dir)
 	data, err := os.ReadFile(path) //nolint:gosec // The path is under the configured studioctl home.
 	if errors.Is(err, os.ErrNotExist) {
-		return MaskinportenClient{}, fmt.Errorf("%w: %s", ErrNoMaskinportenClient, path)
+		return MaskinportenClient{}, ErrNoMaskinportenClient
 	}
 	if err != nil {
-		return MaskinportenClient{}, fmt.Errorf("read Maskinporten client: %w", err)
+		return MaskinportenClient{}, fmt.Errorf("read the stored Maskinporten client: %w", err)
 	}
 	client, err := ParseMaskinportenClient(data)
 	if err != nil {
-		return MaskinportenClient{}, fmt.Errorf("%s: %w", path, err)
+		return MaskinportenClient{}, fmt.Errorf(
+			"the stored Maskinporten client is unreadable (%w); remove it and store it again",
+			err,
+		)
 	}
 	return client, nil
 }

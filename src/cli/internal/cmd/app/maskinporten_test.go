@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -29,8 +30,9 @@ func TestStoreMaskinportenClient_RoundTrips(t *testing.T) {
 		stored.KeyID != "k1" {
 		t.Fatalf("stored = %+v, want ttd/test-app client-1 test k1", stored)
 	}
-	if stored.Path != filepath.Join(home, "apps", "ttd", "test-app", "secrets", "maskinporten-settings.json") {
-		t.Fatalf("Path = %q, want the file in the app's secrets directory", stored.Path)
+	storedPath := filepath.Join(home, "apps", "ttd", "test-app", "secrets", "maskinporten-settings.json")
+	if _, statErr := os.Stat(storedPath); statErr != nil {
+		t.Fatalf("the client was not stored in the app's secrets directory: %v", statErr)
 	}
 
 	shown, err := service.ShowMaskinportenClient(appPath)

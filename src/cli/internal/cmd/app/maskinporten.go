@@ -28,7 +28,6 @@ type MaskinportenClientResult struct {
 // MaskinportenClientRemoval reports the outcome of removing an app's stored client.
 type MaskinportenClientRemoval struct {
 	AppID   string `json:"appId"`
-	Path    string `json:"path"`
 	Removed bool   `json:"removed"`
 }
 
@@ -86,11 +85,10 @@ func (s *Service) StoreMaskinportenClient(req MaskinportenClientRequest) (Maskin
 		return MaskinportenClientResult{}, fmt.Errorf("read Maskinporten client: %w", err)
 	}
 
-	path, err := appsecrets.StoreMaskinportenClient(dir, client)
-	if err != nil {
+	if _, err := appsecrets.StoreMaskinportenClient(dir, client); err != nil {
 		return MaskinportenClientResult{}, fmt.Errorf("store Maskinporten client for %s: %w", appID, err)
 	}
-	return MaskinportenClientResult{MaskinportenClientSummary: client.Summary(path), AppID: appID}, nil
+	return MaskinportenClientResult{MaskinportenClientSummary: client.Summary(), AppID: appID}, nil
 }
 
 // ShowMaskinportenClient describes the app's stored client, or returns appsecrets.ErrNoMaskinportenClient.
@@ -103,10 +101,7 @@ func (s *Service) ShowMaskinportenClient(appPath string) (MaskinportenClientResu
 	if err != nil {
 		return MaskinportenClientResult{}, fmt.Errorf("%s: %w", appID, err)
 	}
-	return MaskinportenClientResult{
-		MaskinportenClientSummary: client.Summary(appsecrets.MaskinportenPath(dir)),
-		AppID:                     appID,
-	}, nil
+	return MaskinportenClientResult{MaskinportenClientSummary: client.Summary(), AppID: appID}, nil
 }
 
 // RemoveMaskinportenClient deletes the app's stored client, if any.
@@ -119,7 +114,7 @@ func (s *Service) RemoveMaskinportenClient(appPath string) (MaskinportenClientRe
 	if err != nil {
 		return MaskinportenClientRemoval{}, fmt.Errorf("%s: %w", appID, err)
 	}
-	return MaskinportenClientRemoval{AppID: appID, Path: appsecrets.MaskinportenPath(dir), Removed: removed}, nil
+	return MaskinportenClientRemoval{AppID: appID, Removed: removed}, nil
 }
 
 func (s *Service) resolveAppSecrets(appPath string) (string, string, error) {
