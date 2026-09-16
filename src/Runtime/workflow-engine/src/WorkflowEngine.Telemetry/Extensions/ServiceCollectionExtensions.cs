@@ -142,9 +142,9 @@ public static class ServiceCollectionExtensions
                     var durationView = new ExplicitBucketHistogramConfiguration { Boundaries = durationBuckets };
 
                     // Bucket boundaries (in seconds) for mailbox receiver wake latency. A release is
-                    // accelerated by NOTIFY (debounced 10ms) and bounded by the processor's 500ms idle
-                    // poll, so the healthy population is entirely below where `durationBuckets` gets
-                    // interesting — it needs resolution around the poll ceiling, not around 5 minutes.
+                    // bounded by the processor's 500ms idle poll, so the healthy population is entirely
+                    // below where `durationBuckets` gets interesting — it needs resolution around the
+                    // poll ceiling, not around 5 minutes.
                     // The tail past 1s is worker starvation rather than wake latency, so it is coarse.
                     double[] wakeLatencyBuckets =
                     [
