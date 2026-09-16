@@ -264,12 +264,13 @@ const TASK_END_COMMANDS = new Set([
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
+    'CleanupGeneratedFromTask',
     'StartTask',
     'StartTaskLegacyHook',
     'OnTaskStartingHook',
     'CommonTaskInitialization',
 ]);
-const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook']);
+const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook', 'EndProcessLegacyHook']);
 
 /** @param {string} commandDetail @returns {'end'|'start'|'process-end'|null} */
 export const stepPhase = (commandDetail) => {
