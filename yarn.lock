@@ -6926,6 +6926,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@u-elements/u-combobox@npm:2.1.4":
+  version: 2.1.4
+  resolution: "@u-elements/u-combobox@npm:2.1.4"
+  checksum: 10/4f12523ab16c1d293f0e48af64c04f946212889fdbad1102c58323e2ffadefc046773ddce4632716ffefa1fa49574a0b1626e17a99d2ff3bddc7f0b95481a23c
+  languageName: node
+  linkType: hard
+
 "@u-elements/u-combobox@npm:^1.0.7":
   version: 1.0.7
   resolution: "@u-elements/u-combobox@npm:1.0.7"
@@ -6933,10 +6940,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@u-elements/u-combobox@npm:^2.1.4":
+"@u-elements/u-combobox@patch:@u-elements/u-combobox@npm%3A2.1.4#~/.yarn/patches/@u-elements-u-combobox-npm-2.1.4-3dff7d147d.patch":
   version: 2.1.4
-  resolution: "@u-elements/u-combobox@npm:2.1.4"
-  checksum: 10/4f12523ab16c1d293f0e48af64c04f946212889fdbad1102c58323e2ffadefc046773ddce4632716ffefa1fa49574a0b1626e17a99d2ff3bddc7f0b95481a23c
+  resolution: "@u-elements/u-combobox@patch:@u-elements/u-combobox@npm%3A2.1.4#~/.yarn/patches/@u-elements-u-combobox-npm-2.1.4-3dff7d147d.patch::version=2.1.4&hash=8bda98"
+  checksum: 10/45f6cb8f19d1feed770884096688eebdf75b87f35ab9812b6147097182d32e622ba4b925aca7b0efb650479cc055bd33aeebc2b68a7e1c4eec820dc98c00c452
   languageName: node
   linkType: hard
 
