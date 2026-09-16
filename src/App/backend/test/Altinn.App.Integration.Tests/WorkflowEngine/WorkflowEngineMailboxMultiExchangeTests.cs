@@ -601,11 +601,11 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         string collectionKey,
         Guid mailboxId,
         string nextReceiverOperationId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var samples = new List<HandoverSample>();
-        while (!ct.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
@@ -630,7 +630,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
                     return samples;
                 }
             }
-            catch (Exception ex) when (!ct.IsCancellationRequested)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 samples.Add(
                     new HandoverSample(

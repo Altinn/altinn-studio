@@ -1,17 +1,164 @@
-The component also supports the common properties [`id`](../common-properties/#id), [`hidden`](../common-properties/#hidden), [`grid`](../grid/), and [`pageBreak`](../page-break/).
+The component also supports the [common component properties](../common-properties/).
 
-| Property                                      | Type                             | Required | Default        | Description                                                                                                 |
-| --------------------------------------------- | -------------------------------- | -------- | -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `renderAsSummary`                             | `boolean`                        | No       | `false`        | Boolean value indicating if the component should be rendered as a summary. Defaults to false.               |
-| `forceShowInSummary`                          | `boolean \| expression<boolean>` | No       | `false`        | Will force show the component in a summary even if hideEmptyFields is set to true in the summary component. |
-| `type`                                        | `"Date"`                         | Yes      |                | Identifies which component type this configuration represents.                                              |
-| `textResourceBindings`                        | `object`                         | No       |                | Connects component texts to text resources or expressions.                                                  |
-| `textResourceBindings.summaryTitle`           | `string \| expression<string>`   | No       |                | Title used in the summary view (overrides the default title)                                                |
-| `textResourceBindings.summaryAccessibleTitle` | `string \| expression<string>`   | No       |                | Title used for aria-label on the edit button in the summary view (overrides the default and summary title)  |
-| `textResourceBindings.title`                  | `string \| expression<string>`   | No       |                | Label text/title shown above the component                                                                  |
-| `textResourceBindings.description`            | `string \| expression<string>`   | No       |                | Label description shown above the component, below the title                                                |
-| `textResourceBindings.help`                   | `string \| expression<string>`   | No       |                | Help text shown in a tooltip when clicking the help button                                                  |
-| `format`                                      | `string`                         | No       |                | The format used to display the date.                                                                        |
-| `value`                                       | `string \| expression<string>`   | Yes      |                | The date value to display.                                                                                  |
-| `direction`                                   | `"horizontal" \| "vertical"`     | No       | `"horizontal"` | Allowed values: "horizontal", "vertical".                                                                   |
-| `icon`                                        | `string`                         | No       |                | The URL of an icon displayed with the date.                                                                 |
+<details class="card adocs-expand adocs-expand-small component-property" id="type">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="type">type</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required is-required">Required</span>
+      <span class="component-property-type" title="&quot;Date&quot;">Type: <span class="component-property-value">&quot;Date&quot;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Identifies which component type this configuration represents.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="renderassummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="renderAsSummary">renderAsSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Boolean value indicating if the component should be rendered as a summary. Defaults to false.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="forceshowinsummary">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="forceShowInSummary">forceShowInSummary</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">false</span></span>
+      <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.</div></div>
+</details>
+
+<details class="component-property-group" id="textresourcebindings">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="textResourceBindings">textResourceBindings</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="component-property-group-content">
+    <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Connects component texts to text resources or expressions.</div></div>
+    <div class="component-property-list">
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summarytitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.summaryTitle">textResourceBindings.summaryTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title used in the summary view (overrides the default title)</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.summaryaccessibletitle">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.summaryAccessibleTitle">textResourceBindings.summaryAccessibleTitle</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Title used for aria-label on the edit button in the summary view (overrides the default and summary title)</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.title">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.title">textResourceBindings.title</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Label text/title shown above the component</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.description">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.description">textResourceBindings.description</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Label description shown above the component, below the title</div></div>
+      </details>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="textresourcebindings.help">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="textResourceBindings.help">textResourceBindings.help</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Help text shown in a tooltip when clicking the help button</div></div>
+      </details>
+    </div>
+
+  </div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="format">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="format">format</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">The format used to display the date.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="value">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="value">value</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required is-required">Required</span>
+      <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">The date value to display.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="direction">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="direction">direction</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-default">Default: <span class="component-property-value">&quot;horizontal&quot;</span></span>
+      <span class="component-property-type" title="&quot;horizontal&quot; | &quot;vertical&quot;">Type: <span class="component-property-value">&quot;horizontal&quot; | &quot;vertical&quot;</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Allowed values: "horizontal", "vertical".</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="icon">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="icon">icon</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Optional</span>
+      <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">The URL of an icon displayed with the date.</div></div>
+</details>

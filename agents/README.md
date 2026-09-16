@@ -19,6 +19,12 @@ curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/exper
 agentctl claude login
 ```
 
+Update Agent with:
+
+```sh
+agentctl self update
+```
+
 Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
 
 ```powershell
@@ -40,7 +46,8 @@ write` only when the Agent must change workflow files. Gists are an account perm
 repository one, so add `Gists: Read and write` when the Agent must create or push them.
 Organization approval may be required.
 
-Copy the chosen variant's `.env.sample` to `.env` and set `GITHUB_TOKEN` there. The token remains
+Copy the chosen variant's `.env.sample` to `.env`, set the sample Git identity, and set `GITHUB_TOKEN`. The selected
+Git identity enters the Sandbox in plaintext and configures the Sandbox user's global Git settings. The token remains
 on the host and is substituted only for authorized GitHub requests, including attachment uploads to
 `uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
 token prefix, which `gh` needs before it will attach files. The worktree variant does not receive a
@@ -60,8 +67,15 @@ returns immediately and `agentctl wait agent/altinn-full` follows the same progr
 
 Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
 
-To work directly on the current checkout without cloning it, apply `agents/worktree/agent.yaml` from
-the repository root. The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
+To work directly on the current checkout without cloning it, create `~/.agent/altinn-worktree.env` outside the
+checkout with entries such as `GIT_USER_NAME=Your Name` and `GIT_USER_EMAIL=you@example.com`, then apply from the
+repository root:
+
+```sh
+agentctl apply -f agents/worktree/agent.yaml --env-file ~/.agent/altinn-worktree.env
+```
+
+The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
 worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
 
 A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree

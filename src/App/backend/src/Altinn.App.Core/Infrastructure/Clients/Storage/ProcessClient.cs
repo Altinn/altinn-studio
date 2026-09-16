@@ -78,26 +78,32 @@ public class ProcessClient : IProcessClient
     public async Task<ProcessHistoryList> GetProcessHistory(
         string instanceGuid,
         string instanceOwnerPartyId,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartGetProcessHistoryActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
         );
 
-        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(
+            token,
+            apiUrl,
+            cancellationToken: cancellationToken
+        );
 
         if (response.IsSuccessStatusCode)
         {
-            string eventData = await response.Content.ReadAsStringAsync();
+            string eventData = await response.Content.ReadAsStringAsync(cancellationToken);
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             ProcessHistoryList processHistoryList = JsonConvert.DeserializeObject<ProcessHistoryList>(eventData)!;
 
             return processHistoryList;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 }

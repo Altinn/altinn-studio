@@ -83,8 +83,8 @@ internal sealed class CorrespondenceApiMigration
     };
 
     private const string AuthenticationMethodType = "CorrespondenceAuthenticationMethod";
+    private const string AuthenticationMethodFullName = "Altinn.App.Core.Features." + AuthenticationMethodType;
     private const string LegacyAuthorisationType = "CorrespondenceAuthorisation";
-    private const string AuthenticationMethodNamespace = "Altinn.App.Core.Features";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -93,8 +93,9 @@ internal sealed class CorrespondenceApiMigration
         _scanner = scanner;
     }
 
-    public MigrationResult Migrate()
+    public MigrationResult Migrate(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var rewrites = new List<string>();
         var unresolved = new List<string>();
         // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
@@ -102,20 +103,16 @@ internal sealed class CorrespondenceApiMigration
 
         foreach (var file in files)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var rewriter = new Rewriter(file, files);
             var updated = rewriter.Visit(file.Root);
             unresolved.AddRange(rewriter.Unresolved);
-            if (rewriter.Changes.Count == 0)
+            if (rewriter.Changes.Count == 0 || updated is not CompilationUnitSyntax unit)
             {
                 continue;
             }
 
-            if (rewriter.NeedsAuthenticationMethodUsing && updated is CompilationUnitSyntax unit)
-            {
-                updated = AddUsingIfMissing(unit, AuthenticationMethodNamespace);
-            }
-
-            _scanner.Update(file, (CompilationUnitSyntax)updated);
+            _scanner.Update(file, unit);
             rewrites.AddRange(rewriter.Changes);
         }
 
@@ -144,29 +141,6 @@ internal sealed class CorrespondenceApiMigration
         return new MigrationResult(messages);
     }
 
-    private static CompilationUnitSyntax AddUsingIfMissing(CompilationUnitSyntax unit, string namespaceName)
-    {
-        if (unit.Usings.Any(existing => existing.Name?.ToString() == namespaceName))
-        {
-            return unit;
-        }
-
-        // NormalizeWhitespace supplies the space after the `using` keyword; constructing the directive
-        // without it emits `usingSome.Namespace;`.
-        var directive = SyntaxFactory
-            .UsingDirective(SyntaxFactory.ParseName(namespaceName))
-            .NormalizeWhitespace()
-            .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
-
-        // Inserted in sorted position rather than appended, so the app's using order survives a
-        // `dotnet format` / CSharpier gate.
-        var insertAt = unit.Usings.IndexOf(existing =>
-            string.CompareOrdinal(existing.Name?.ToString(), namespaceName) > 0
-        );
-
-        return unit.WithUsings(insertAt < 0 ? unit.Usings.Add(directive) : unit.Usings.Insert(insertAt, directive));
-    }
-
     private sealed class Rewriter : CSharpSyntaxRewriter
     {
         private readonly ScannedCSharpFile _file;
@@ -184,8 +158,6 @@ internal sealed class CorrespondenceApiMigration
 
         /// <summary>Call sites this migration could not classify, for the developer to resolve.</summary>
         public List<string> Unresolved { get; } = [];
-
-        public bool NeedsAuthenticationMethodUsing { get; private set; }
 
         private void Record(SyntaxNode original, string description) =>
             Changes.Add($"{_file.RelativePath}:{_file.GetLine(original)}: {description}");
@@ -656,14 +628,14 @@ internal sealed class CorrespondenceApiMigration
                 // `() => GetToken()` - a delegate cannot bind to CorrespondenceAuthenticationMethod, so
                 // this is unambiguously the removed token-factory overload.
                 AnonymousFunctionExpressionSyntax => StaticCall(
-                    AuthenticationMethodType,
+                    GeneratedTypeReferenceFinalizer.Reference(AuthenticationMethodFullName),
                     "Custom",
                     argument.Expression.WithoutTrivia()
                 ),
                 // `CorrespondenceAuthorisation.Maskinporten` - the only member the enum ever had.
                 MemberAccessExpressionSyntax enumAccess
                     when TrailingName(enumAccess.Expression) == LegacyAuthorisationType => StaticCall(
-                    AuthenticationMethodType,
+                    GeneratedTypeReferenceFinalizer.Reference(AuthenticationMethodFullName),
                     "Default"
                 ),
                 _ => null,
@@ -684,8 +656,6 @@ internal sealed class CorrespondenceApiMigration
                         + "Maskinporten client needs those scopes"
                     : $"wrapped the token factory in `{AuthenticationMethodType}.Custom(..)` in the payload constructor"
             );
-            NeedsAuthenticationMethodUsing = true;
-
             return visited.WithArgumentList(
                 visited.ArgumentList.WithArguments(
                     arguments.Replace(
@@ -787,7 +757,11 @@ internal sealed class CorrespondenceApiMigration
             return SyntaxFactory.IdentifierName(ReplacementStepInterface).WithTriviaFrom(node);
         }
 
-        private static InvocationExpressionSyntax StaticCall(string type, string method, params ExpressionSyntax[] args)
+        private static InvocationExpressionSyntax StaticCall(
+            ExpressionSyntax type,
+            string method,
+            params ExpressionSyntax[] args
+        )
         {
             var arguments = SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(args.Select(SyntaxFactory.Argument))
@@ -796,7 +770,7 @@ internal sealed class CorrespondenceApiMigration
             return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(type),
+                    type,
                     SyntaxFactory.IdentifierName(method)
                 ),
                 arguments

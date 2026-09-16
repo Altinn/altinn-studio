@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -11,7 +12,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -206,8 +206,7 @@ internal sealed class MailboxRelay
 
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    AutoAdvanceProcess = success.AutoAdvanceProcess,
-                    AutoAdvanceAction = success.Action,
+                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
                     MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
                 };
 
@@ -291,8 +290,7 @@ internal sealed class MailboxRelay
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    AutoAdvanceProcess = success.AutoAdvanceProcess,
-                    AutoAdvanceAction = success.Action,
+                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
                     MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
                 };
 
@@ -443,7 +441,11 @@ internal sealed class MailboxRelay
         );
     }
 
-    public async Task Continue(MailboxContinuation continuation, MailboxRelayRequest request, CancellationToken ct)
+    public async Task Continue(
+        MailboxContinuation continuation,
+        MailboxRelayRequest request,
+        CancellationToken cancellationToken
+    )
     {
         switch (continuation)
         {
@@ -454,12 +456,12 @@ internal sealed class MailboxRelay
                     [WorkflowCommandSet.CreateItemStep(awaitNext.ServiceTaskType, awaitNext.HandlerItemIndex)],
                     operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
                     request,
-                    ct
+                    cancellationToken
                 );
                 return;
 
             case MailboxContinuation.ContinueAfterStage afterStage:
-                await HandOver(afterStage.Handover, afterStage.ServiceTaskType, request, ct);
+                await HandOver(afterStage.Handover, afterStage.ServiceTaskType, request, cancellationToken);
                 return;
 
             case MailboxContinuation.Conclude conclude:
@@ -468,12 +470,12 @@ internal sealed class MailboxRelay
                 // not race the after-workflow.
                 foreach (Guid mailboxId in conclude.MailboxIds)
                 {
-                    await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), mailboxId, ct);
+                    await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), mailboxId, cancellationToken);
                 }
 
                 if (request.AutoAdvanceProcess)
                 {
-                    await EnqueueAfterWorkflow(request, ct);
+                    await EnqueueAfterWorkflow(request, cancellationToken);
                 }
 
                 return;
@@ -482,8 +484,12 @@ internal sealed class MailboxRelay
                 // Same order as Conclude's: the reverse would let a message land in an exchange the pipeline
                 // has already moved past. Only this exchange's mailbox closes — a later one already open
                 // spends its own deadline, which is what lets a resume replay this handler.
-                await _workflowEngineClient.CloseMailbox(GetNamespace(request.AppId), continuing.MailboxId, ct);
-                await HandOver(continuing.Handover, continuing.ServiceTaskType, request, ct);
+                await _workflowEngineClient.CloseMailbox(
+                    GetNamespace(request.AppId),
+                    continuing.MailboxId,
+                    cancellationToken
+                );
+                await HandOver(continuing.Handover, continuing.ServiceTaskType, request, cancellationToken);
                 return;
 
             default:
@@ -501,7 +507,7 @@ internal sealed class MailboxRelay
         MailboxHandover handover,
         string serviceTaskType,
         MailboxRelayRequest request,
-        CancellationToken ct
+        CancellationToken cancellationToken
     ) =>
         handover.Target is { } target
             ? EnqueueReceiver(
@@ -510,9 +516,9 @@ internal sealed class MailboxRelay
                 handover.Plan.Steps,
                 operationIdSuffix: target.OpeningStageIndex.ToString(CultureInfo.InvariantCulture),
                 request,
-                ct
+                cancellationToken
             )
-            : EnqueueContinuation(serviceTaskType, handover, request, ct);
+            : EnqueueContinuation(serviceTaskType, handover, request, cancellationToken);
 
     /// <summary>
     /// One receive workflow, first receiver and successors alike: a single step naming the handler by its
@@ -527,10 +533,10 @@ internal sealed class MailboxRelay
         IReadOnlyList<StepRequest> steps,
         string operationIdSuffix,
         MailboxRelayRequest request,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
-        string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
+        string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
         List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)];
 
@@ -569,7 +575,7 @@ internal sealed class MailboxRelay
             idempotencyKey: request.Payload.StepId.ToString(),
             collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             request: enqueueRequest,
-            ct: ct
+            cancellationToken: cancellationToken
         );
     }
 
@@ -585,10 +591,10 @@ internal sealed class MailboxRelay
         string serviceTaskType,
         MailboxHandover handover,
         MailboxRelayRequest request,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
-        string? taskId = request.Instance.Process?.CurrentTask?.ElementId;
+        string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
         List<StepRequest> steps =
         [
@@ -632,7 +638,7 @@ internal sealed class MailboxRelay
             idempotencyKey: request.Payload.StepId.ToString(),
             collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             request: enqueueRequest,
-            ct: ct
+            cancellationToken: cancellationToken
         );
     }
 
@@ -667,7 +673,7 @@ internal sealed class MailboxRelay
             ),
         };
 
-        if (request.Instance.Process?.CurrentTask is { ElementId.Length: > 0 } currentTask)
+        if (request.DataAccessor.Instance.Process?.CurrentTask is { ElementId.Length: > 0 } currentTask)
         {
             labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel] = ProcessNextRequestFactory.CreateProcessNextId(
                 currentTask.ElementId,
@@ -679,18 +685,19 @@ internal sealed class MailboxRelay
         return labels;
     }
 
-    private Task EnqueueAfterWorkflow(MailboxRelayRequest request, CancellationToken ct) =>
+    private Task EnqueueAfterWorkflow(MailboxRelayRequest request, CancellationToken cancellationToken) =>
         _processEngine.EnqueueProcessNext(
-            request.Instance,
+            request.DataAccessor,
             request.Payload.Actor,
             request.Payload.WorkflowId,
             // Derived, not read from the Collection-Key header: a header the engine forgot must not decide
             // whether the process advances.
             ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
             PublishedState(request),
+            request.Payload.ExecutionReferenceTime,
             request.AutoAdvanceAction,
             request.Payload.StepId.ToString(),
-            ct
+            cancellationToken
         );
 
     private static string GetNamespace(AppIdentifier appId) => $"{appId.Org}/{appId.App}";
@@ -704,7 +711,7 @@ internal readonly record struct MailboxRelayRequest
 
     public required AppCallbackPayload Payload { get; init; }
 
-    public required Instance Instance { get; init; }
+    public required IInstanceDataAccessor DataAccessor { get; init; }
 
     /// <summary>The state blob the handler published, re-signed. <c>null</c> only on a permanent failure.</summary>
     public required string? State { get; init; }

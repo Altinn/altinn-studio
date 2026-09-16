@@ -103,7 +103,8 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
 pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str {
     match state {
         agent::sessions::State::Starting => "Starting",
-        agent::sessions::State::Running => "Running",
+        agent::sessions::State::Working => "Working",
+        agent::sessions::State::WaitingForInput => "WaitingForInput",
         agent::sessions::State::Idle => "Idle",
         agent::sessions::State::Failed => "Failed",
     }
@@ -161,7 +162,11 @@ mod tests {
     #[test]
     fn session_state_output_does_not_depend_on_debug_names() {
         assert_eq!(session_state(agent::sessions::State::Starting), "Starting");
-        assert_eq!(session_state(agent::sessions::State::Running), "Running");
+        assert_eq!(session_state(agent::sessions::State::Working), "Working");
+        assert_eq!(
+            session_state(agent::sessions::State::WaitingForInput),
+            "WaitingForInput"
+        );
         assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
         assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
     }

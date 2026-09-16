@@ -12,12 +12,13 @@ Agents for working on the agent platform itself, the crates under `src/experimen
 make -C src/experimental user-install
 agentctl claude login
 cd src/experimental/agent/examples/self-dev/checkout
-cp .env.sample .env                     # GitHub PAT
+cp .env.sample .env                     # Git identity and GitHub PAT
 agentctl apply -f agent.yaml
 agentctl attach session/s1
 ```
 
-The worktree variant mounts the whole checkout, so its secret file must live outside it:
+The worktree variant mounts the whole checkout, so its environment file must live outside it. Include
+`GIT_USER_NAME`, `GIT_USER_EMAIL`, and `GITHUB_TOKEN` using the checkout sample as a template:
 
 ```sh
 agentctl apply -f worktree/agent.yaml --env-file ~/.agent/self-dev.env

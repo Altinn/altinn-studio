@@ -319,6 +319,14 @@ public sealed class ProcessEngineTest
         capturedRequest.Should().NotBeNull();
         capturedIdempotencyKey.Should().Be($"process-next-operation-{_instanceGuid:N}-1");
 
+        WorkflowEnqueueRequest acquireRequest = capturedRequest!;
+        Assert.Equal([AcquireProcessingStatus.Key], ExtractCommandKeys(acquireRequest));
+        await ContinueAcquiredTransition(fixture, acquireRequest, workflowId);
+        Assert.NotSame(acquireRequest, capturedRequest);
+        Assert.All(acquireRequest.Labels!, label => Assert.Equal(label.Value, capturedRequest!.Labels![label.Key]));
+        Assert.False(acquireRequest.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.Equal(workflowId, Assert.Single(capturedRequest.Workflows[0].DependsOn!).Id);
+
         // Verify command sequence: EndTask commands followed by StartTask commands
         var commandKeys = capturedRequest!
             .Workflows[0]
@@ -333,7 +341,6 @@ public sealed class ProcessEngineTest
         commandKeys
             .Should()
             .ContainInOrder(
-                "AcquireProcessingStatus",
                 // EndTask commands
                 "EndTask",
                 "CommonTaskFinalization",
@@ -523,6 +530,14 @@ public sealed class ProcessEngineTest
         result.Success.Should().BeTrue();
         capturedRequest.Should().NotBeNull();
 
+        WorkflowEnqueueRequest acquireRequest = capturedRequest!;
+        Assert.Equal([AcquireProcessingStatus.Key], ExtractCommandKeys(acquireRequest));
+        await ContinueAcquiredTransition(fixture, acquireRequest, workflowId);
+        Assert.NotSame(acquireRequest, capturedRequest);
+        Assert.All(acquireRequest.Labels!, label => Assert.Equal(label.Value, capturedRequest!.Labels![label.Key]));
+        Assert.False(acquireRequest.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.Equal(workflowId, Assert.Single(capturedRequest.Workflows[0].DependsOn!).Id);
+
         // Verify command sequence: AbandonTask commands followed by StartTask commands
         var commandKeys = capturedRequest!
             .Workflows[0]
@@ -537,7 +552,6 @@ public sealed class ProcessEngineTest
         commandKeys
             .Should()
             .ContainInOrder(
-                "AcquireProcessingStatus",
                 // AbandonTask commands
                 "AbandonTask",
                 "OnTaskAbandonHook",
@@ -697,6 +711,14 @@ public sealed class ProcessEngineTest
         result.Success.Should().BeTrue();
         capturedRequest.Should().NotBeNull();
 
+        WorkflowEnqueueRequest acquireRequest = capturedRequest!;
+        Assert.Equal([AcquireProcessingStatus.Key], ExtractCommandKeys(acquireRequest));
+        await ContinueAcquiredTransition(fixture, acquireRequest, workflowId);
+        Assert.NotSame(acquireRequest, capturedRequest);
+        Assert.All(acquireRequest.Labels!, label => Assert.Equal(label.Value, capturedRequest!.Labels![label.Key]));
+        Assert.False(acquireRequest.Labels!.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.Equal(workflowId, Assert.Single(capturedRequest.Workflows[0].DependsOn!).Id);
+
         // Verify command sequence: EndTask commands followed by ProcessEnd commands
         var commandKeys = capturedRequest!
             .Workflows[0]
@@ -711,7 +733,6 @@ public sealed class ProcessEngineTest
         commandKeys
             .Should()
             .ContainInOrder(
-                "AcquireProcessingStatus",
                 // EndTask commands (see OLD CurrentTask)
                 "EndTask",
                 "CommonTaskFinalization",
@@ -1163,25 +1184,13 @@ public sealed class ProcessEngineTest
                 service.EnqueueAndWaitForProcessNext(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageVersionMetadata>(),
-                    It.IsAny<ProcessStateChange>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<InstantiationNotification?>(),
+                    It.IsAny<string>(),
+                    "sign",
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<
-                Instance,
-                StorageVersionMetadata,
-                ProcessStateChange,
-                string?,
-                bool,
-                Dictionary<string, string>?,
-                InstantiationNotification?,
-                CancellationToken
-            >(
-                (instance, versions, _, state, _, _, _, _) =>
+            .Callback<Instance, StorageVersionMetadata, string, string?, CancellationToken>(
+                (instance, versions, state, _, _) =>
                 {
                     enqueuedInstance = instance;
                     enqueuedVersions = versions;
@@ -1326,7 +1335,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task Next_moves_instance_to_next_task_and_produces_instanceevents()
+    public async Task Next_returns_committed_state_after_task_transition()
     {
         var expectedInstance = new Instance()
         {
@@ -1397,62 +1406,18 @@ public sealed class ProcessEngineTest
             Language = null,
         };
 
+        // The request no longer mutates its instance; Storage returns the committed workflow result.
+        fixture
+            .Mock<IInstanceClientWithStorageMetadata>()
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(expectedInstance, _storageVersions));
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_2"), Times.Once);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
-        fixture.Mock<IProcessNavigator>().Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", null), Times.Once);
-
-        var expectedInstanceEvents = new List<InstanceEvent>()
-        {
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.process_EndTask.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    NationalIdentityNumber = "22927774937",
-                    AuthenticationLevel = 2,
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = new()
-                    {
-                        ElementId = "Task_1",
-                        Flow = 2,
-                        AltinnTaskType = AltinnTaskTypes.Data,
-                        Validated = new() { CanCompleteTask = true },
-                    },
-                },
-            },
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.process_StartTask.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    NationalIdentityNumber = "22927774937",
-                    AuthenticationLevel = 2,
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = new()
-                    {
-                        ElementId = "Task_2",
-                        Name = "Bekreft",
-                        AltinnTaskType = AltinnTaskTypes.Confirmation,
-                        FlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext.ToString(),
-                        Flow = 3,
-                    },
-                },
-            },
-        };
 
         // Note: Removed obsolete verifications for IProcessEventHandlerDelegator and IProcessEventDispatcher
         // These interfaces no longer exist in the new process engine architecture.
@@ -1463,16 +1428,10 @@ public sealed class ProcessEngineTest
             .BeEquivalentTo(
                 new ProcessStateChange()
                 {
-                    Events = expectedInstanceEvents,
                     NewProcessState = expectedInstance.Process,
                     OldProcessState = originalProcessState,
                 },
-                options =>
-                    options
-                        .Excluding(x => x.NewProcessState!.CurrentTask!.Started)
-                        .Excluding(x => x.Events![0].Created)
-                        .Excluding(x => x.Events![1].Created)
-                        .Excluding(x => x.Events![1].ProcessInfo!.CurrentTask!.Started)
+                options => options.Excluding(x => x.NewProcessState!.CurrentTask!.Started)
             );
     }
 
@@ -1503,7 +1462,7 @@ public sealed class ProcessEngineTest
         fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_Service")).Returns(true);
         fixture
             .Mock<IProcessNavigator>()
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+            .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>()))
             .ReturnsAsync(
                 new ServiceTask
                 {
@@ -1514,6 +1473,20 @@ public sealed class ProcessEngineTest
                     ExtensionElements = new() { TaskExtension = new() { TaskType = "service" } },
                 }
             );
+
+        var committed = CreateTask2Instance();
+        committed.Process!.CurrentTask!.ElementId = "Task_Service";
+        committed.Process.CurrentTask.AltinnTaskType = "service";
+        fixture
+            .Mock<IInstanceClientWithStorageMetadata>()
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(committed, _storageVersions));
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         ProcessChangeResult result = await processEngine.Next(
@@ -1533,7 +1506,10 @@ public sealed class ProcessEngineTest
         result.MutatedInstance.Process.CurrentTask.AltinnTaskType.Should().Be("service");
         fixture
             .Mock<IProcessNavigator>()
-            .Verify(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_Service", It.IsAny<string?>()), Times.Never);
+            .Verify(
+                pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_Service", It.IsAny<string?>()),
+                Times.Never
+            );
         fixture
             .Mock<IWorkflowEngineClient>()
             .Verify(
@@ -1553,6 +1529,7 @@ public sealed class ProcessEngineTest
     public async Task Next_ReportsFinalRefetchedProcessState_WhenWorkflowAutoAdvances()
     {
         Guid workflowId = Guid.NewGuid();
+        var acquiredAt = DateTimeOffset.UtcNow;
         string collectionKey = _collectionKey;
         var workflowEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         workflowEngineClientMock
@@ -1609,9 +1586,37 @@ public sealed class ProcessEngineTest
             .ReturnsAsync([
                 CreateWorkflowStatusResponse(
                     workflowId,
+                    "Process next: acquire",
+                    PersistentItemStatus.Completed,
+                    collectionKey,
+                    createdAt: acquiredAt
+                ),
+                CreateWorkflowStatusResponse(
+                    Guid.NewGuid(),
                     "Process next: Task_1 -> Task_2",
                     PersistentItemStatus.Completed,
-                    collectionKey
+                    collectionKey,
+                    createdAt: acquiredAt.AddMilliseconds(1)
+                ) with
+                {
+                    Steps =
+                    [
+                        new StepStatusResponse
+                        {
+                            OperationId = CommitProcessState.Key,
+                            ProcessingOrder = 0,
+                            Command = new() { Type = "app" },
+                            Status = PersistentItemStatus.Completed,
+                            RetryCount = 0,
+                        },
+                    ],
+                },
+                CreateWorkflowStatusResponse(
+                    Guid.NewGuid(),
+                    "Process next: Task_2 -> EndEvent_1",
+                    PersistentItemStatus.Completed,
+                    collectionKey,
+                    createdAt: acquiredAt.AddMilliseconds(2)
                 ),
             ]);
 
@@ -1661,7 +1666,7 @@ public sealed class ProcessEngineTest
         string collectionKey = _collectionKey;
         Instance submittedInstance = CreateTask1Instance();
         string submittedInstanceId = submittedInstance.Id;
-        const string ExpectedRefetchTaskId = "Task_2";
+        const string ExpectedRefetchTaskId = "Task_1";
         bool callbackStateCaptureCompleted = false;
         var workflowEngineClientMock = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         workflowEngineClientMock
@@ -1809,7 +1814,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task Next_moves_instance_to_next_task_and_produces_abandon_instanceevent_when_action_reject()
+    public async Task Next_returns_committed_state_after_reject_transition()
     {
         var expectedInstance = new Instance()
         {
@@ -1873,64 +1878,18 @@ public sealed class ProcessEngineTest
             Action = "reject",
             Language = null,
         };
-        ProcessChangeResult result = await processEngine.Next(processNextRequest);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_1"), Times.Once);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("Task_2"), Times.Once);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
+        // The request no longer mutates its instance; Storage returns the committed workflow result.
         fixture
-            .Mock<IProcessNavigator>()
-            .Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_1", "reject"), Times.Once);
-
-        var expectedInstanceEvents = new List<InstanceEvent>()
-        {
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.process_AbandonTask.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    NationalIdentityNumber = "22927774937",
-                    AuthenticationLevel = 2,
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = new()
-                    {
-                        ElementId = "Task_1",
-                        Flow = 2,
-                        AltinnTaskType = AltinnTaskTypes.Data,
-                        Validated = new() { CanCompleteTask = true },
-                    },
-                },
-            },
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.process_StartTask.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    NationalIdentityNumber = "22927774937",
-                    AuthenticationLevel = 2,
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = new()
-                    {
-                        ElementId = "Task_2",
-                        Name = "Bekreft",
-                        AltinnTaskType = AltinnTaskTypes.Confirmation,
-                        FlowType = ProcessSequenceFlowType.AbandonCurrentMoveToNext.ToString(),
-                        Flow = 3,
-                    },
-                },
-            },
-        };
+            .Mock<IInstanceClientWithStorageMetadata>()
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(expectedInstance, _storageVersions));
+        ProcessChangeResult result = await processEngine.Next(processNextRequest);
 
         // Note: Removed obsolete verifications for IProcessEventHandlerDelegator and IProcessEventDispatcher
         // These interfaces no longer exist in the new process engine architecture.
@@ -1941,16 +1900,10 @@ public sealed class ProcessEngineTest
             .BeEquivalentTo(
                 new ProcessStateChange()
                 {
-                    Events = expectedInstanceEvents,
                     NewProcessState = expectedInstance.Process,
                     OldProcessState = originalProcessState,
                 },
-                options =>
-                    options
-                        .Excluding(x => x.NewProcessState!.CurrentTask!.Started)
-                        .Excluding(x => x.Events![0].Created)
-                        .Excluding(x => x.Events![1].Created)
-                        .Excluding(x => x.Events![1].ProcessInfo!.CurrentTask!.Started)
+                options => options.Excluding(x => x.NewProcessState!.CurrentTask!.Started)
             );
     }
 
@@ -2027,73 +1980,19 @@ public sealed class ProcessEngineTest
             InstanceVersions = _storageVersions,
         };
 
+        expectedInstance.Process.Ended = DateTime.UtcNow;
+        // The request no longer mutates its instance; Storage returns the committed workflow result.
+        fixture
+            .Mock<IInstanceClientWithStorageMetadata>()
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(expectedInstance, _storageVersions));
         ProcessChangeResult result = await processEngine.Next(processNextRequest);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsProcessTask("Task_2"), Times.Once);
-        fixture.Mock<IProcessReader>().Verify(r => r.IsEndEvent("EndEvent_1"), Times.Once);
-        fixture.Mock<IProcessNavigator>().Verify(n => n.GetNextTask(It.IsAny<Instance>(), "Task_2", null), Times.Once);
-
-        var expectedInstanceEvents = new List<InstanceEvent>()
-        {
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.process_EndTask.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    AuthenticationLevel = 2,
-                    NationalIdentityNumber = "22927774937",
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = new()
-                    {
-                        ElementId = "Task_2",
-                        Flow = 3,
-                        AltinnTaskType = AltinnTaskTypes.Confirmation,
-                        Validated = new() { CanCompleteTask = true },
-                    },
-                },
-            },
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.process_EndEvent.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    NationalIdentityNumber = "22927774937",
-                    AuthenticationLevel = 2,
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = null,
-                    EndEvent = "EndEvent_1",
-                },
-            },
-            new()
-            {
-                InstanceId = $"{_instanceOwnerPartyId}/{_instanceGuid}",
-                EventType = InstanceEventType.Submited.ToString(),
-                InstanceOwnerPartyId = "1337",
-                User = new()
-                {
-                    UserId = 1337,
-                    NationalIdentityNumber = "22927774937",
-                    AuthenticationLevel = 2,
-                },
-                ProcessInfo = new()
-                {
-                    StartEvent = "StartEvent_1",
-                    CurrentTask = null,
-                    EndEvent = "EndEvent_1",
-                },
-            },
-        };
 
         // Note: Removed obsolete verifications for IProcessEventHandlerDelegator and IProcessEventDispatcher
         // These interfaces no longer exist in the new process engine architecture.
@@ -2113,18 +2012,10 @@ public sealed class ProcessEngineTest
             .BeEquivalentTo(
                 new ProcessStateChange()
                 {
-                    Events = expectedInstanceEvents,
                     NewProcessState = expectedInstance.Process,
                     OldProcessState = originalProcessState,
                 },
-                options =>
-                    options
-                        .Excluding(x => x.NewProcessState!.Ended)
-                        .Excluding(x => x.Events![0].Created)
-                        .Excluding(x => x.Events![1].Created)
-                        .Excluding(x => x.Events![1].ProcessInfo!.Ended)
-                        .Excluding(x => x.Events![2].Created)
-                        .Excluding(x => x.Events![2].ProcessInfo!.Ended)
+                options => options.Excluding(x => x.NewProcessState!.Ended)
             );
     }
 
@@ -2638,7 +2529,7 @@ public sealed class ProcessEngineTest
         IWorkflowEngineService workflowEngineService =
             fixture.ServiceProvider.GetRequiredService<IWorkflowEngineService>();
 
-        ProcessNextWorkflowResult result = await workflowEngineService.EnqueueAndWaitForProcessNext(
+        ProcessNextWorkflowResult result = await workflowEngineService.EnqueueAndWaitForInitialProcessState(
             instance,
             versions,
             new ProcessStateChange
@@ -2727,7 +2618,7 @@ public sealed class ProcessEngineTest
         IWorkflowEngineService workflowEngineService =
             fixture.ServiceProvider.GetRequiredService<IWorkflowEngineService>();
 
-        ProcessNextWorkflowResult result = await workflowEngineService.EnqueueAndWaitForProcessNext(
+        ProcessNextWorkflowResult result = await workflowEngineService.EnqueueAndWaitForInitialProcessState(
             instance,
             versions,
             new ProcessStateChange
@@ -2759,7 +2650,7 @@ public sealed class ProcessEngineTest
         Mock<IWorkflowEngineService> workflowEngineServiceMock = new(MockBehavior.Strict);
         workflowEngineServiceMock
             .Setup(service =>
-                service.EnqueueAndWaitForProcessNext(
+                service.EnqueueAndWaitForInitialProcessState(
                     It.IsAny<Instance>(),
                     It.IsAny<StorageVersionMetadata>(),
                     It.IsAny<ProcessStateChange>(),
@@ -2969,7 +2860,7 @@ public sealed class ProcessEngineTest
         fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_SubformPdf")).Returns(true);
         fixture
             .Mock<IProcessNavigator>()
-            .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_SubformPdf", It.IsAny<string?>()))
+            .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_SubformPdf", It.IsAny<string?>()))
             .ReturnsAsync(
                 new ServiceTask
                 {
@@ -3001,11 +2892,12 @@ public sealed class ProcessEngineTest
 
         // Act
         await fixture.ProcessEngine.EnqueueProcessNext(
-            instance,
+            await fixture.Accessor(instance),
             new Actor { UserId = 1337, AuthenticationLevel = 2 },
             parentWorkflowId,
             _collectionKey,
-            "state"
+            "state",
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
         );
 
         // Assert
@@ -3075,7 +2967,14 @@ public sealed class ProcessEngineTest
         var actor = new Actor { OrgId = TestAuthentication.DefaultOrg, AuthenticationLevel = 3 };
 
         // Act
-        await processEngine.EnqueueProcessNext(CreateTask1Instance(), actor, Guid.NewGuid(), _collectionKey, "state");
+        await processEngine.EnqueueProcessNext(
+            await fixture.Accessor(CreateTask1Instance()),
+            actor,
+            Guid.NewGuid(),
+            _collectionKey,
+            "state",
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+        );
 
         // Assert
         capturedStateChange.Should().NotBeNull();
@@ -3128,7 +3027,14 @@ public sealed class ProcessEngineTest
         };
 
         // Act
-        await processEngine.EnqueueProcessNext(CreateTask1Instance(), actor, Guid.NewGuid(), _collectionKey, "state");
+        await processEngine.EnqueueProcessNext(
+            await fixture.Accessor(CreateTask1Instance()),
+            actor,
+            Guid.NewGuid(),
+            _collectionKey,
+            "state",
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+        );
 
         // Assert
         capturedStateChange.Should().NotBeNull();
@@ -3157,6 +3063,173 @@ public sealed class ProcessEngineTest
                     AuthenticationLevel = 3,
                 }
             );
+    }
+
+    private static async Task ContinueAcquiredTransition(
+        Fixture fixture,
+        WorkflowEnqueueRequest request,
+        Guid workflowId
+    )
+    {
+        var workflow = Assert.Single(request.Workflows);
+        var commandData = System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(
+            Assert.Single(workflow.Steps).Command.Data!.Value
+        )!;
+        var workflowContext = System.Text.Json.JsonSerializer.Deserialize<AppWorkflowContext>(request.Context!.Value)!;
+        var stateService = fixture.ServiceProvider.GetRequiredService<WorkflowCallbackStateService>();
+        var (unitOfWork, carry) = await stateService.RestoreState(
+            new InstanceIdentifier(_instanceId),
+            workflow.State!,
+            workflowContext.Actor.Language
+        );
+        var result = Assert.IsType<SuccessfulProcessEngineCommandResult>(
+            await new AcquireProcessingStatus().Execute(
+                new ProcessEngineCommandContext
+                {
+                    AppId = new AppIdentifier("org", "app"),
+                    InstanceId = new InstanceIdentifier(_instanceId),
+                    InstanceDataMutator = unitOfWork,
+                    CancellationToken = default,
+                    StateCarry = carry,
+                    Payload = new AppCallbackPayload
+                    {
+                        CommandKey = commandData.CommandKey,
+                        Payload = commandData.Payload,
+                        Actor = workflowContext.Actor,
+                        WorkflowId = workflowId,
+                        StepId = Guid.NewGuid(),
+                        ExecutionReferenceTime = DateTimeOffset.UtcNow,
+                        State = workflow.State,
+                    },
+                }
+            )
+        );
+        var continuation = Assert.IsType<ProcessNextContinuation>(result.ProcessNextContinuation);
+        await fixture.ProcessEngine.EnqueueProcessNext(
+            unitOfWork,
+            workflowContext.Actor,
+            workflowId,
+            _collectionKey,
+            await stateService.CaptureState(unitOfWork, carry),
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+            continuation.Action
+        );
+    }
+
+    [Theory]
+    [InlineData(AuthenticationTypes.User)]
+    [InlineData(AuthenticationTypes.Org)]
+    [InlineData(AuthenticationTypes.ServiceOwner)]
+    [InlineData(AuthenticationTypes.SystemUser)]
+    public async Task EnqueueProcessNext_ActorProducesTheSamePlatformUserAsTheRequest(AuthenticationTypes kind)
+    {
+        Authenticated authentication = kind switch
+        {
+            AuthenticationTypes.User => TestAuthentication.GetUserAuthentication(),
+            AuthenticationTypes.Org => TestAuthentication.GetOrgAuthentication(),
+            AuthenticationTypes.ServiceOwner => TestAuthentication.GetServiceOwnerAuthentication(),
+            AuthenticationTypes.SystemUser => TestAuthentication.GetSystemUserAuthentication(),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+        var services = new ServiceCollection();
+        services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == authentication));
+        await using var fixture = Fixture.Create(services);
+        var instance = CreateTask1Instance();
+        instance.Process = null;
+        var initial = await fixture.ProcessEngine.CreateInitialProcessState(
+            new ProcessStartRequest { Instance = instance }
+        );
+        Assert.True(initial.Success);
+        Assert.NotNull(initial.ProcessStateChange);
+        Assert.NotNull(initial.ProcessStateChange.Events);
+        var requestUser = initial.ProcessStateChange.Events[0].User;
+        var factory = fixture.ServiceProvider.GetRequiredService<ProcessNextRequestFactory>();
+        var acquire = await factory.CreateAcquire(instance, null, "state", "acquire-key");
+        var actor = System
+            .Text.Json.JsonSerializer.Deserialize<AppWorkflowContext>(acquire.Request.Context!.Value)!
+            .Actor;
+        WorkflowEnqueueRequest? dependent = null;
+        fixture
+            .Mock<IWorkflowEngineClient>()
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, _, _, request, _) => dependent = request
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "org/app" }],
+                }
+            );
+        await fixture.ProcessEngine.EnqueueProcessNext(
+            await fixture.Accessor(CreateTask1Instance()),
+            actor,
+            Guid.NewGuid(),
+            _collectionKey,
+            "state",
+            new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero)
+        );
+        var command = dependent!.Workflows[0].Steps.Single(s => s.OperationId == CommitProcessState.Key);
+        var data = System.Text.Json.JsonSerializer.Deserialize<AppCommandData>(command.Command.Data!.Value)!;
+        var change = CommandPayloadSerializer.Deserialize<ProcessStateChangePayload>(data.Payload)!.ProcessStateChange;
+        Assert.NotNull(change.Events);
+        Assert.All(change.Events, e => Assert.Equivalent(requestUser, e.User));
+    }
+
+    [Fact]
+    public async Task Next_DoesNotMutateTheInstanceBeforeEnqueue()
+    {
+        var instance = CreateTask1Instance();
+        instance.Process!.Status = ProcessStatus.Idle;
+        var process = instance.Process;
+        var workflowService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        workflowService
+            .Setup(s => s.GetCurrentTaskWorkflowState(instance, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CurrentTaskWorkflowState.Unblocked());
+        workflowService
+            .Setup(s =>
+                s.EnqueueAndWaitForProcessNext(
+                    instance,
+                    _storageVersions,
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, StorageVersionMetadata, string, string?, CancellationToken>(
+                (_, _, _, _, _) =>
+                {
+                    Assert.Same(process, instance.Process);
+                    Assert.Equal("Task_1", instance.Process!.CurrentTask.ElementId);
+                    Assert.Equal(ProcessStatus.Idle, instance.Process.Status);
+                }
+            )
+            .ReturnsAsync(new ProcessNextWorkflowResult(CreateTask2Instance(), _storageVersions, null, true));
+        var services = new ServiceCollection();
+        services.AddSingleton(workflowService.Object);
+        await using var fixture = Fixture.Create(services);
+        var result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+        Assert.True(result.Success);
+        Assert.Same(process, instance.Process);
+        workflowService.VerifyAll();
+        fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
     }
 
     private static WorkflowStatusResponse CreateCompletedWorkflowStatusResponse(Guid workflowId, string operationId) =>
@@ -3350,6 +3423,11 @@ public sealed class ProcessEngineTest
 
         public TelemetrySink TelemetrySink => ServiceProvider.GetRequiredService<TelemetrySink>();
 
+        public async Task<IInstanceDataAccessor> Accessor(Instance instance) =>
+            await ServiceProvider
+                .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
+                .Init(instance, StorageVersionMetadata.Empty, taskId: null, language: null);
+
         public Mock<T> Mock<T>()
             where T : class => Moq.Mock.Get(ServiceProvider.GetRequiredService<T>());
 
@@ -3431,7 +3509,7 @@ public sealed class ProcessEngineTest
                         )
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "StartEvent_1", It.IsAny<string?>()))
+                .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "StartEvent_1", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new ProcessTask()
                     {
@@ -3443,7 +3521,7 @@ public sealed class ProcessEngineTest
                     }
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_1", It.IsAny<string?>()))
+                .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new ProcessTask()
                     {
@@ -3455,7 +3533,7 @@ public sealed class ProcessEngineTest
                     }
                 );
             processNavigatorMock
-                .Setup(pn => pn.GetNextTask(It.IsAny<Instance>(), "Task_2", It.IsAny<string?>()))
+                .Setup(pn => pn.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_2", It.IsAny<string?>()))
                 .ReturnsAsync(() =>
                     new EndEvent()
                     {
@@ -3466,7 +3544,9 @@ public sealed class ProcessEngineTest
 
             var processEngineAuthorizerMock = new Mock<IProcessEngineAuthorizer>(MockBehavior.Strict);
             processEngineAuthorizerMock
-                .Setup(x => x.AuthorizeProcessNext(It.IsAny<Instance>(), It.IsAny<string>()))
+                .Setup(x =>
+                    x.AuthorizeProcessNext(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(true);
             ;
 

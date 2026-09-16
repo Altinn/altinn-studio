@@ -17,7 +17,10 @@ use agent::{
     progress::Reporter,
 };
 use sandbox::LocalFuture;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::{
+    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
+    sync::Notify,
+};
 
 use support::agent;
 
@@ -27,8 +30,44 @@ struct FakeAuthentication;
 struct FakeExecutions {
     progress_ensures: Rc<Cell<usize>>,
 }
+/// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
+type SentMessage = (String, bool, Option<std::time::Duration>);
+
+#[derive(Default)]
+struct UpgradeGates {
+    prompt: RefCell<Option<Rc<Notify>>>,
+    prompt_started: Notify,
+    readiness: RefCell<Option<Rc<Notify>>>,
+    readiness_started: Notify,
+}
+
 struct FakeSessions {
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    sent: Rc<RefCell<Vec<SentMessage>>>,
+    upgrade_blockers: Rc<RefCell<Vec<String>>>,
+    upgrade_warnings: Rc<RefCell<Vec<String>>>,
+    upgrade_gates: Rc<UpgradeGates>,
+}
+
+fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
+    agent::sessions::Turn {
+        messages: vec![
+            agent::sessions::Message {
+                role: agent::sessions::Role::User,
+                parts: vec![agent::sessions::Part::Text { text: prompt.into() }],
+            },
+            agent::sessions::Message {
+                role: agent::sessions::Role::Assistant,
+                parts: vec![
+                    agent::sessions::Part::ToolCall {
+                        name: "Bash".into(),
+                        failed: true,
+                    },
+                    agent::sessions::Part::Text { text: answer.into() },
+                ],
+            },
+        ],
+    }
 }
 
 impl Notifier for IgnoreNotifications {
@@ -57,6 +96,7 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         harness: Option<agent::Harness>,
+        _initial_prompt: Option<&'a str>,
         _wait: WaitPolicy,
         _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
@@ -74,6 +114,63 @@ impl SessionApi for FakeSessions {
 
     fn list<'a>(&'a self, _agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
         Box::pin(async { Ok(Vec::new()) })
+    }
+
+    fn prompt<'a>(
+        &'a self,
+        agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        prompt: &'a str,
+        wait: bool,
+        timeout: Option<std::time::Duration>,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.sent.borrow_mut().push((prompt.to_owned(), wait, timeout));
+        let gate = self.upgrade_gates.prompt.borrow().clone();
+        let upgrade_gates = self.upgrade_gates.clone();
+        let blockers = self.upgrade_blockers.clone();
+        Box::pin(async move {
+            if agent != "worker" {
+                return Err(Error::NotFound);
+            }
+            if let Some(gate) = gate {
+                upgrade_gates.prompt_started.notify_one();
+                gate.notified().await;
+                blockers.borrow_mut().push("session/worker/s1 (working)".into());
+            }
+            Ok(())
+        })
+    }
+
+    fn turns<'a>(
+        &'a self,
+        agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        last: Option<usize>,
+    ) -> LocalFuture<'a, Result<Vec<agent::sessions::Turn>, Error>> {
+        Box::pin(async move {
+            if agent != "worker" {
+                return Err(Error::NotFound);
+            }
+            let mut turns = vec![answered_turn("one", "1"), answered_turn("two", "2")];
+            if let Some(last) = last {
+                turns.drain(0..turns.len().saturating_sub(last));
+            }
+            Ok(turns)
+        })
+    }
+
+    fn upgrade_readiness(&self) -> LocalFuture<'_, Result<agent::sessions::UpgradeReadiness, Error>> {
+        let blockers = self.upgrade_blockers.borrow().clone();
+        let warnings = self.upgrade_warnings.borrow().clone();
+        let gate = self.upgrade_gates.readiness.borrow().clone();
+        let upgrade_gates = self.upgrade_gates.clone();
+        Box::pin(async move {
+            if let Some(gate) = gate {
+                upgrade_gates.readiness_started.notify_one();
+                gate.notified().await;
+            }
+            Ok(agent::sessions::UpgradeReadiness { blockers, warnings })
+        })
     }
 }
 
@@ -120,7 +217,11 @@ struct ApiFixture {
     server: Rc<Server>,
     client: Client,
     ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    sent: Rc<RefCell<Vec<SentMessage>>>,
     progress_ensures: Rc<Cell<usize>>,
+    upgrade_blockers: Rc<RefCell<Vec<String>>>,
+    upgrade_warnings: Rc<RefCell<Vec<String>>>,
+    upgrade_gates: Rc<UpgradeGates>,
 }
 
 impl Connector for InProcessConnector {
@@ -158,8 +259,12 @@ fn api() -> ApiFixture {
         Rc::new(IgnoreNotifications),
     ));
     let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
+    let sent = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let progress_ensures = Rc::new(Cell::new(0));
+    let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
+    let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
+    let upgrade_gates = Rc::new(UpgradeGates::default());
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
@@ -168,6 +273,10 @@ fn api() -> ApiFixture {
         }),
         Rc::new(FakeSessions {
             ensured_harnesses: ensured_harnesses.clone(),
+            sent: sent.clone(),
+            upgrade_blockers: upgrade_blockers.clone(),
+            upgrade_warnings: upgrade_warnings.clone(),
+            upgrade_gates: upgrade_gates.clone(),
         }),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
@@ -176,7 +285,104 @@ fn api() -> ApiFixture {
         server,
         client,
         ensured_harnesses,
+        sent,
         progress_ensures,
+        upgrade_blockers,
+        upgrade_warnings,
+        upgrade_gates,
+    }
+}
+
+struct DelayedConnector {
+    inner: InProcessConnector,
+}
+
+impl Connector for DelayedConnector {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            self.inner.connect().await
+        })
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn prompt_completion_timeout_is_unchanged_by_transit() {
+    let fixture = api();
+    let client = Client::new(Rc::new(DelayedConnector {
+        inner: InProcessConnector {
+            server: fixture.server.clone(),
+        },
+    }));
+    client
+        .prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("name"),
+            "go".into(),
+            true,
+            Some(Duration::from_millis(20)),
+        )
+        .await
+        .expect("delivered");
+    assert_eq!(
+        fixture.sent.borrow().as_slice(),
+        [("go".into(), true, Some(Duration::from_millis(20)))]
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_send_and_turns_round_trip_with_their_parameters() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    fixture
+        .client
+        .prompt_session(
+            "worker",
+            name.clone(),
+            "do it".into(),
+            true,
+            Some(std::time::Duration::from_secs(90)),
+        )
+        .await
+        .expect("send with wait");
+    fixture
+        .client
+        .prompt_session("worker", name.clone(), "fire and forget".into(), false, None)
+        .await
+        .expect("send without wait");
+    {
+        let sent = fixture.sent.borrow();
+        assert_eq!(sent.len(), 2);
+        assert_eq!((&sent[0].0, sent[0].1), (&"do it".to_owned(), true));
+        assert_eq!(sent[0].2, Some(Duration::from_secs(90)));
+        assert_eq!(sent[1], ("fire and forget".to_owned(), false, None));
+    }
+
+    let last = fixture
+        .client
+        .session_turns("worker", name.clone(), Some(1))
+        .await
+        .expect("turns");
+    assert_eq!(last.len(), 1);
+    assert_eq!(last[0], answered_turn("two", "2"));
+    assert_eq!(
+        fixture
+            .client
+            .session_turns("worker", name.clone(), None)
+            .await
+            .expect("turns")
+            .len(),
+        2
+    );
+    let missing = fixture
+        .client
+        .prompt_session("ghost", name, "hello".into(), false, None)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
     }
 }
 
@@ -195,8 +401,205 @@ async fn login_returns_only_non_secret_readiness() {
 #[tokio::test(flavor = "local")]
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
-    fixture.client.health().await.expect("health check");
-    assert_eq!(agent::control_api::PROTOCOL_VERSION, "v1");
+    let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
+    assert_eq!(daemon.protocol_version.as_deref(), Some("v2"));
+    assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
+}
+
+#[test]
+fn daemon_identity_rejects_preview_1_and_mixed_builds() {
+    let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
+        "protocolVersion": "v2",
+        "buildVersion": agent::build_version(),
+        "futureCapability": true
+    }))
+    .expect("extended health response");
+    extended.require_compatible().expect("compatible extended response");
+
+    for daemon in [
+        agent::control_api::DaemonInfo {
+            protocol_version: Some("v1".into()),
+            build_version: None,
+        },
+        agent::control_api::DaemonInfo {
+            protocol_version: Some("v2".into()),
+            build_version: Some("another-build".into()),
+        },
+    ] {
+        let error = daemon.require_compatible().expect_err("incompatible daemon");
+        assert!(error.to_string().contains("running agentd is incompatible"));
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn shutdown_reports_blocking_sessions_without_draining() {
+    let fixture = api();
+    fixture
+        .upgrade_blockers
+        .borrow_mut()
+        .push("session/worker/busy (working)".into());
+    let error = fixture
+        .client
+        .shutdown_for_upgrade()
+        .await
+        .expect_err("working Session blocks shutdown");
+    assert!(matches!(error, Error::Rpc(error) if error.is_invalid_params()));
+    fixture.client.health().await.expect("daemon remains available");
+}
+
+#[tokio::test(flavor = "local")]
+async fn shutdown_returns_nonblocking_session_warnings() {
+    let fixture = api();
+    fixture
+        .upgrade_warnings
+        .borrow_mut()
+        .push("session/worker/fresh will start a new conversation".into());
+
+    assert_eq!(
+        fixture.client.shutdown_for_upgrade().await.expect("shutdown"),
+        ["session/worker/fresh will start a new conversation"]
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn shutdown_waits_for_admitted_mutations_before_checking_sessions() {
+    let fixture = api();
+    let gate = Rc::new(Notify::new());
+    *fixture.upgrade_gates.prompt.borrow_mut() = Some(gate.clone());
+    let prompt_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let shutdown_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let started = fixture.upgrade_gates.prompt_started.notified();
+    let prompt = tokio::task::spawn_local(async move {
+        prompt_client
+            .prompt_session(
+                "worker",
+                agent::sessions::SessionName::new("s1").expect("name"),
+                "start work".into(),
+                false,
+                None,
+            )
+            .await
+    });
+    started.await;
+
+    let shutdown = tokio::task::spawn_local(async move { shutdown_client.shutdown_for_upgrade().await });
+    tokio::task::yield_now().await;
+    assert!(!shutdown.is_finished(), "shutdown passed the pending prompt");
+
+    gate.notify_one();
+    prompt.await.expect("prompt task").expect("prompt response");
+    let error = shutdown
+        .await
+        .expect("shutdown task")
+        .expect_err("new work blocks shutdown");
+    assert!(matches!(error, Error::Rpc(error) if error.is_invalid_params()));
+    fixture
+        .client
+        .health()
+        .await
+        .expect("rejected shutdown restores admission");
+}
+
+#[tokio::test(flavor = "local")]
+async fn shutdown_rejects_reported_work_before_waiting_for_admitted_mutations() {
+    let fixture = api();
+    let gate = Rc::new(Notify::new());
+    *fixture.upgrade_gates.prompt.borrow_mut() = Some(gate.clone());
+    let prompt_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let shutdown_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let started = fixture.upgrade_gates.prompt_started.notified();
+    let prompt = tokio::task::spawn_local(async move {
+        prompt_client
+            .prompt_session(
+                "worker",
+                agent::sessions::SessionName::new("s1").expect("name"),
+                "continue work".into(),
+                true,
+                Some(Duration::from_secs(10)),
+            )
+            .await
+    });
+    started.await;
+    fixture
+        .upgrade_blockers
+        .borrow_mut()
+        .push("session/worker/s1 (working)".into());
+
+    let error = tokio::time::timeout(Duration::from_secs(1), shutdown_client.shutdown_for_upgrade())
+        .await
+        .expect("shutdown should inspect reported work without draining the prompt")
+        .expect_err("reported work blocks shutdown");
+    assert!(matches!(error, Error::Rpc(error) if error.is_invalid_params()));
+    assert!(
+        !prompt.is_finished(),
+        "rejected shutdown must not wait for the active prompt"
+    );
+    fixture.client.health().await.expect("daemon remains available");
+
+    gate.notify_one();
+    prompt.await.expect("prompt task").expect("prompt response");
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn shutdown_preparation_has_one_deadline_and_restores_admission() {
+    let fixture = api();
+    let prompt_gate = Rc::new(Notify::new());
+    let readiness_gate = Rc::new(Notify::new());
+    *fixture.upgrade_gates.prompt.borrow_mut() = Some(prompt_gate.clone());
+    *fixture.upgrade_gates.readiness.borrow_mut() = Some(readiness_gate);
+    let prompt_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let shutdown_client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let prompt_started = fixture.upgrade_gates.prompt_started.notified();
+    let prompt = tokio::task::spawn_local(async move {
+        prompt_client
+            .prompt_session(
+                "worker",
+                agent::sessions::SessionName::new("s1").expect("name"),
+                "start work".into(),
+                false,
+                None,
+            )
+            .await
+    });
+    prompt_started.await;
+
+    let shutdown = tokio::task::spawn_local(async move { shutdown_client.shutdown_for_upgrade().await });
+    tokio::task::yield_now().await;
+    tokio::time::advance(Duration::from_secs(59)).await;
+    prompt_gate.notify_one();
+    prompt.await.expect("prompt task").expect("prompt response");
+    fixture.upgrade_gates.readiness_started.notified().await;
+    tokio::time::advance(Duration::from_secs(2)).await;
+
+    let error = shutdown
+        .await
+        .expect("shutdown task")
+        .expect_err("preparation exceeds its shared deadline");
+    assert!(error.to_string().contains("did not finish preparing"));
+    *fixture.upgrade_gates.prompt.borrow_mut() = None;
+    fixture
+        .client
+        .prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s2").expect("name"),
+            "still admitted".into(),
+            false,
+            None,
+        )
+        .await
+        .expect("timed out shutdown restores admission");
 }
 
 fn request(name: &str) -> ApplyRequest {
@@ -237,6 +640,7 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             "worker",
             agent::sessions::SessionName::new("s1").expect("Session name"),
             Some(agent::Harness::ClaudeCode),
+            None,
             WaitPolicy::FirstPass,
             None,
         )
@@ -406,5 +810,10 @@ async fn unix_socket_transport_is_private_and_usable() {
         & 0o777;
     assert_eq!(directory_mode, 0o700);
     assert_eq!(socket_mode, 0o600);
-    server_task.abort();
+    client.shutdown_for_upgrade().await.expect("graceful shutdown");
+    tokio::time::timeout(Duration::from_secs(1), &mut server_task)
+        .await
+        .expect("server should stop")
+        .expect("server task")
+        .expect("server result");
 }

@@ -82,15 +82,15 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Uri uri, CancellationToken ct)
+    public async Task<Stream> GeneratePdf(Uri uri, CancellationToken cancellationToken)
     {
-        return await GeneratePdf(uri, null, null, ct);
+        return await GeneratePdf(uri, null, null, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct)
+    public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken)
     {
-        return await GeneratePdf(uri, footerContent, null, ct);
+        return await GeneratePdf(uri, footerContent, null, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -98,7 +98,7 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
         Uri uri,
         string? footerContent,
         StorageAuthenticationMethod? authenticationMethod,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartGeneratePdfClientActivity();
@@ -143,7 +143,10 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
             );
         }
 
-        string tokenValue = await _getAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string tokenValue = await _getAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
         generatorRequest.Cookies.Add(new PdfGeneratorCookieOptions { Value = tokenValue, Domain = uri.Host });
 
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
@@ -151,7 +154,7 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
         HttpResponseMessage httpResponseMessage = await _httpClient.PostAsync(
             _platformSettings.ApiPdf2Endpoint,
             stringContent,
-            ct
+            cancellationToken
         );
 
         if (!httpResponseMessage.IsSuccessStatusCode)
@@ -160,7 +163,7 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
             // content is copied onto the exception, which outlives the response.
             using (httpResponseMessage)
             {
-                var content = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+                var content = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
                 var ex = new PdfGenerationException("Pdf generation failed");
                 ex.Data.Add("responseContent", content);
                 ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
@@ -172,6 +175,6 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 
         // Ownership of the response moves to the returned stream — a `using` here would dispose the
         // content the caller is about to read.
-        return await ResponseWrapperStream.Create(httpResponseMessage, ct);
+        return await ResponseWrapperStream.Create(httpResponseMessage, cancellationToken);
     }
 }

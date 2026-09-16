@@ -1,0 +1,47 @@
+name: Assistant-evals
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/AI/agents/**'
+      - '.github/workflows/assistant-evals.yaml'
+      - '!**/AGENTS.md'
+      - '!**/CLAUDE.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  impact:
+    name: Baseline impact
+    if: ${{ !github.event.pull_request.draft }}
+    permissions:
+      contents: read
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The impact is a diff against the base ref.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+
+      # No install: stdlib only, so a broken dependency cannot silence the gate.
+      - name: What this change means for the baseline
+        working-directory: src/AI/agents
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only "$BASE_REF"...HEAD | tee /tmp/changed.txt
+          python -m benchmarks.impact --strict < /tmp/changed.txt

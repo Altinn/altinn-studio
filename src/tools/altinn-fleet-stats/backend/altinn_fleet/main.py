@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from datetime import datetime, timezone
 from dataclasses import asdict
 from pathlib import Path
 from typing import AsyncIterator, Optional
@@ -19,9 +20,10 @@ from .config import (
     load_runtime_config,
     save_runtime_config,
 )
-from .db import init_db
+from .db import get_conn, init_db
 from .fetcher import Fetcher, FetchEvent
-from .scanner import scan_all
+from .interface_catalog import catalog_meta
+from .scanner import refresh_interface_catalog, scan_all
 from .op_state import op_state
 from . import query as _query
 from . import stats
@@ -37,12 +39,48 @@ def _bootstrap_dirs(s: Settings) -> None:
     s.apps_dir.mkdir(parents=True, exist_ok=True)
     s.cache_dir.mkdir(parents=True, exist_ok=True)
     init_db(s.db_path)
+    # The interface catalog ships with the image and does not depend on any
+    # scan, so load it now: the interface view then lists the library's whole
+    # surface — with usage counts of zero — before the first re-analysis.
+    try:
+        with get_conn(s.db_path) as conn:
+            refresh_interface_catalog(conn)
+    except Exception:
+        log.exception("could not load the interface catalog")
+
+
+def _close_interrupted_runs(s: Settings) -> None:
+    """Mark scans that were still running when the process last stopped.
+
+    A scan only ever ends by writing its own row, so a container restart mid-scan
+    leaves one marked "running" forever — and the dashboard would keep reporting a
+    scan that no longer exists. Both environments are reconciled, not just the
+    active one: switching environments does not restart the process, so the other
+    database would otherwise keep its stale row until it happened to be current
+    at some later startup.
+    """
+    for env in ("prod", "tt02"):
+        db_path = s.data_dir / f"fleet-{env}.sqlite"
+        if not db_path.exists():
+            continue
+        try:
+            with get_conn(db_path) as conn:
+                cur = conn.execute(
+                    """UPDATE scan_runs SET status = 'interrupted', finished_at = ?
+                       WHERE status = 'running'""",
+                    (datetime.now(timezone.utc).isoformat(),),
+                )
+                if cur.rowcount:
+                    log.warning("marked %d interrupted scan run(s) in %s", cur.rowcount, env)
+        except Exception:
+            log.exception("could not reconcile interrupted scan runs in %s", env)
 
 
 @app.on_event("startup")
 async def startup() -> None:
     s = Settings.current()
     _bootstrap_dirs(s)
+    _close_interrupted_runs(s)
     log.info("Started with env=%s data_dir=%s", s.env, s.data_dir)
 
 
@@ -456,6 +494,49 @@ async def apps_for_backend_version(version: str) -> list[dict]:
 @app.get("/api/stats/frontend/{version}/apps")
 async def apps_for_frontend_version(version: str) -> list[dict]:
     return stats.apps_by_frontend_version(Settings.current().db_path, version)
+
+
+# ---------- Public interfaces (Altinn.App extension surface) ----------
+
+@app.get("/api/stats/interfaces/overview")
+async def interfaces_overview() -> dict:
+    """Adoption headlines, plus which library version the catalog describes."""
+    data = stats.interfaces_overview(Settings.current().db_path)
+    data["catalog"] = catalog_meta()
+    return data
+
+
+@app.get("/api/stats/interfaces/outside-catalog")
+async def interfaces_outside_catalog(origin: str = "unknown", limit: int = 100) -> list[dict]:
+    if origin not in ("unknown", "app", "dotnet"):
+        raise HTTPException(400, "origin must be 'unknown', 'app' or 'dotnet'")
+    return stats.interfaces_outside_catalog(Settings.current().db_path, origin, limit)
+
+
+@app.get("/api/stats/interfaces/top-apps")
+async def interfaces_top_apps(limit: int = 25) -> list[dict]:
+    return stats.apps_by_interface_usage(Settings.current().db_path, limit)
+
+
+@app.get("/api/stats/interfaces")
+async def interfaces_list(
+    area: Optional[str] = None,
+    implementable: Optional[bool] = None,
+    usage: Optional[str] = None,
+    q: Optional[str] = None,
+    limit: int = 500,
+) -> list[dict]:
+    if usage is not None and usage not in ("implemented", "used", "unused"):
+        raise HTTPException(400, "usage must be 'implemented', 'used' or 'unused'")
+    return stats.interfaces_list(
+        Settings.current().db_path, area=area, implementable=implementable,
+        usage=usage, q=q, limit=limit,
+    )
+
+
+@app.get("/api/stats/interfaces/{name}")
+async def interface_detail(name: str, app_limit: int = 500) -> dict:
+    return stats.interface_detail(Settings.current().db_path, name, app_limit)
 
 
 @app.get("/api/search")

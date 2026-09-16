@@ -87,6 +87,19 @@ public interface IInstanceRepository
     );
 
     /// <summary>
+    /// Applies only the supplied data-values keys, including while processing, without advancing
+    /// either version. Null or empty values remove keys. Preconditions fence versioned changes,
+    /// not other standalone data-values patches; concurrent writes to a key use the last value.
+    /// </summary>
+    Task<(Instance Instance, InstanceVersionResult Versions)> UpdateDataValues(
+        Guid instanceGuid,
+        Dictionary<string, string> dataValues,
+        CancellationToken cancellationToken,
+        int? expectedInstanceVersion = null,
+        int? expectedProcessStateVersion = null
+    );
+
+    /// <summary>
     /// Updates only instance read status without bumping storage-owned instance versions.
     /// </summary>
     Task<Instance> UpdateReadStatus(Instance instance, CancellationToken cancellationToken);

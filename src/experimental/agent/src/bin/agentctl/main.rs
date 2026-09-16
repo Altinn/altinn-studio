@@ -14,11 +14,12 @@ use agent::{
     manifest,
     sessions::{Session, SessionName},
 };
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 mod format;
 mod forward;
 mod progress;
+mod self_update;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
@@ -28,7 +29,7 @@ use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
 
 #[derive(Parser)]
-#[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent_version())]
+#[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
     /// Agent control-plane home.
     #[arg(long, global = true)]
@@ -37,15 +38,13 @@ struct Arguments {
     command: Command,
 }
 
-const fn agent_version() -> &'static str {
-    match option_env!("AGENT_VERSION") {
-        Some(version) => version,
-        None => env!("CARGO_PKG_VERSION"),
-    }
-}
-
 #[derive(Subcommand)]
 enum Command {
+    /// Manage the Agent CLI installation.
+    Self_ {
+        #[command(subcommand)]
+        command: self_update::SelfCommand,
+    },
     /// Manage Claude Code harness authentication.
     Claude {
         #[command(subcommand)]
@@ -56,6 +55,37 @@ enum Command {
         #[command(subcommand)]
         command: CodexCommand,
     },
+    /// Create a Session and wait until its harness is ready, without attaching.
+    Create {
+        #[command(flatten)]
+        target: SessionTarget,
+        /// Harness installation to bind when creating the Session.
+        #[arg(long, value_parser = parse_harness)]
+        harness: Option<agent::Harness>,
+        /// Maximum wait, written as seconds, minutes, or hours.
+        #[arg(long, default_value = "10m", value_parser = parse_duration)]
+        timeout: Duration,
+        /// First prompt, handed to the harness at launch.
+        #[command(flatten)]
+        input: PromptInput,
+    },
+    /// Deliver a prompt to a running Session's harness.
+    Prompt {
+        #[command(flatten)]
+        target: SessionTarget,
+        #[command(flatten)]
+        input: PromptInput,
+        #[command(flatten)]
+        completion: CompletionOptions,
+    },
+    /// Read a Session's conversation as turns.
+    Turns {
+        #[command(flatten)]
+        target: SessionTarget,
+        /// Print only the last N turns.
+        #[arg(long)]
+        last: Option<usize>,
+    },
     /// Create or update an Agent from a manifest.
     Apply {
         /// Agent manifest path.
@@ -64,8 +94,8 @@ enum Command {
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
-        /// File supplying manifest secret values; defaults to `.env` beside the manifest. Use a
-        /// path outside any bind-mounted directory so real values never enter the Sandbox.
+        /// File supplying declared manifest environment and secret values; defaults to `.env`
+        /// beside the manifest. Keep files containing secrets outside bind-mounted directories.
         #[arg(long)]
         env_file: Option<PathBuf>,
         /// Stay attached after applying and show provisioning progress until the Agent is Ready.
@@ -87,6 +117,9 @@ enum Command {
         /// List Sessions across every Agent instead of resolving one owner.
         #[arg(short = 'A', long, conflicts_with = "agent")]
         all_agents: bool,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
     },
     /// Show detailed state and conditions for one resource.
     Describe {
@@ -94,6 +127,9 @@ enum Command {
         resource: String,
         /// Optional Agent name when it is not part of `resource`.
         name: Option<String>,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
     },
     /// Request deletion of a resource.
     Delete {
@@ -167,6 +203,48 @@ enum Resource {
     Session,
 }
 
+/// The Session a verb acts on: `session/NAME` or `session NAME`, plus its owning Agent.
+#[derive(clap::Args)]
+struct SessionTarget {
+    /// Session resource, optionally combined with its name (for example `session/s1`).
+    resource: String,
+    /// Optional Session name when it is not part of `resource`.
+    name: Option<String>,
+    /// Owning Agent; inferred from the current directory when omitted.
+    #[arg(long)]
+    agent: Option<String>,
+}
+
+/// Whether a prompt waits for the next turn completion.
+#[derive(clap::Args)]
+struct CompletionOptions {
+    /// Wait for a turn completion and identical waiting activity in two polls
+    /// 250 ms apart, following newly observed work. Inspect output with `turns`.
+    #[arg(long)]
+    wait: bool,
+    /// Completion wait after submission, excluding setup and delivery; seconds, minutes, or hours.
+    #[arg(long, default_value = "10m", value_parser = parse_duration, requires = "wait")]
+    timeout: Duration,
+}
+
+/// Prompt text from --prompt, --file, or piped standard input.
+#[derive(clap::Args)]
+struct PromptInput {
+    /// Prompt text. Read from a file with --file, or from standard input when
+    /// neither is given and stdin is piped.
+    #[arg(long, conflicts_with = "file", allow_hyphen_values = true)]
+    prompt: Option<String>,
+    /// Read the prompt from a file instead of --prompt.
+    #[arg(short = 'f', long, conflicts_with = "prompt")]
+    file: Option<PathBuf>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+enum OutputFormat {
+    Table,
+    Json,
+}
+
 #[derive(Debug, thiserror::Error)]
 enum CommandError {
     #[error(transparent)]
@@ -221,13 +299,26 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        ensure_daemon(&home, &client).await?;
+        if !matches!(arguments.command, Command::Self_ { .. }) {
+            self_update::resume_pending_before_command(&home)?;
+        }
+        if !matches!(
+            arguments.command,
+            Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. }
+        ) {
+            ensure_daemon(&home, &client).await?;
+        }
         execute(arguments.command, &home, &client).await
     })
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "keep command dispatch together; behavior lives in the handlers"
+)]
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
+        Command::Self_ { command } => self_update::execute(command, home).await?,
         Command::Claude {
             command: ClaudeCommand::Login { from_stdin },
         } => {
@@ -278,8 +369,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             name,
             agent,
             all_agents,
-        } => get_resources(client, &resource, name, agent, all_agents).await?,
-        Command::Describe { resource, name } => describe(client, &resource, name).await?,
+            output,
+        } => get_resources(client, &resource, name, agent, all_agents, output).await?,
+        Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
         Command::Delete { resource, name } => {
             let (resource, name) = resource_reference(&resource, name)?;
             if resource != Resource::Agent {
@@ -305,6 +397,18 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::PortForward { agent, arguments } => {
             return port_forward(home, client, agent, &arguments).await;
         }
+        Command::Create {
+            target,
+            harness,
+            input,
+            timeout,
+        } => create_session(home, client, target, harness, input, timeout).await?,
+        Command::Prompt {
+            target,
+            input,
+            completion,
+        } => prompt_session(home, client, target, input, completion).await?,
+        Command::Turns { target, last } => turns(client, target, last).await?,
         Command::Tui => return tui::run(home, client).await,
         Command::Wait {
             condition,
@@ -322,6 +426,7 @@ async fn get_resources(
     name: Option<String>,
     agent: Option<String>,
     all_agents: bool,
+    output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     match resource {
@@ -332,26 +437,45 @@ async fn get_resources(
             } else {
                 client.list_agents().await?
             };
-            print_agents(&agents);
-        }
-        Resource::Session if name.is_some() => {
-            if all_agents {
-                return Err(
-                    Error::Invalid("a named Session requires --agent or current-directory inference".into()).into(),
-                );
+            match output {
+                OutputFormat::Json => print_json(&agents)?,
+                OutputFormat::Table => print_agents(&agents),
             }
-            let agent = resolve_agent_name(client, agent).await?;
-            let session = client
-                .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
-                .await?;
-            print_sessions(&[session], false);
         }
-        Resource::Session if all_agents => print_sessions(&client.list_sessions(None).await?, true),
         Resource::Session => {
-            let agent = resolve_agent_name(client, agent).await?;
-            print_sessions(&client.list_sessions(Some(&agent)).await?, false);
+            let sessions = if name.is_some() {
+                if all_agents {
+                    return Err(Error::Invalid(
+                        "a named Session requires --agent or current-directory inference".into(),
+                    )
+                    .into());
+                }
+                let agent = resolve_agent_name(client, agent).await?;
+                vec![
+                    client
+                        .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
+                        .await?,
+                ]
+            } else if all_agents {
+                client.list_sessions(None).await?
+            } else {
+                let agent = resolve_agent_name(client, agent).await?;
+                client.list_sessions(Some(&agent)).await?
+            };
+            match output {
+                OutputFormat::Json => print_json(&sessions)?,
+                OutputFormat::Table => print_sessions(&sessions, all_agents),
+            }
         }
     }
+    Ok(())
+}
+
+fn print_json<T: serde::Serialize>(value: &T) -> CommandResult<()> {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(value).map_err(|error| Error::Invalid(error.to_string()))?
+    );
     Ok(())
 }
 
@@ -371,7 +495,14 @@ async fn attach(
     let agent = resolve_agent_name(client, agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_session(&agent, session, harness, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client.ensure_session(
+            &agent,
+            session,
+            harness,
+            None,
+            WaitPolicy::UntilReady,
+            Some(&mut wait.sink()),
+        ))
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
@@ -488,6 +619,120 @@ async fn port_forward(
     }
 }
 
+/// Resolves a [`SessionTarget`] into the owning Agent and Session name.
+async fn session_target(client: &Client, target: SessionTarget) -> CommandResult<(String, SessionName)> {
+    let (resource, name) = resource_reference(&target.resource, target.name)?;
+    if resource != Resource::Session {
+        return Err(Error::Invalid("this command requires a Session resource".into()).into());
+    }
+    let session = SessionName::new(require_name(name, "Session")?)?;
+    let agent = resolve_agent_name(client, target.agent).await?;
+    Ok((agent, session))
+}
+
+async fn create_session(
+    home: &ControlPlaneHome,
+    client: &Client,
+    target: SessionTarget,
+    harness: Option<agent::Harness>,
+    input: PromptInput,
+    timeout: Duration,
+) -> CommandResult<()> {
+    let resource = target.resource.clone();
+    let initial = read_prompt_arg(input)?;
+    let wait = progress::Wait::start();
+    let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
+        ensure_daemon(home, client).await?;
+        let (agent, session) = session_target(client, target).await?;
+        client.ensure_session(
+            &agent, session.clone(), harness, initial, WaitPolicy::UntilReady, Some(&mut wait.sink()),
+        ).await?;
+        Ok::<_, CommandError>((agent, session))
+    })).await.map_err(|_| CommandError::Message(format!(
+        "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
+    )))??;
+    println!("session/{agent}/{session} ready");
+    Ok(())
+}
+
+async fn prompt_session(
+    home: &ControlPlaneHome,
+    client: &Client,
+    target: SessionTarget,
+    input: PromptInput,
+    completion: CompletionOptions,
+) -> CommandResult<()> {
+    ensure_daemon(home, client).await?;
+    let (agent, session) = session_target(client, target).await?;
+    let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
+    client
+        .prompt_session(
+            &agent,
+            session.clone(),
+            prompt,
+            completion.wait,
+            completion.wait.then_some(completion.timeout),
+        )
+        .await?;
+    println!("session/{agent}/{session} prompted");
+    Ok(())
+}
+
+async fn turns(client: &Client, target: SessionTarget, last: Option<usize>) -> CommandResult<()> {
+    let (agent, session) = session_target(client, target).await?;
+    print_turns(&client.session_turns(&agent, session, last).await?);
+    Ok(())
+}
+
+/// Resolves the prompt from --prompt, --file, or piped standard input.
+///
+/// With neither flag and an interactive terminal there is no prompt.
+fn read_prompt_arg(input: PromptInput) -> CommandResult<Option<String>> {
+    if let Some(prompt) = input.prompt {
+        return Ok(Some(prompt));
+    }
+    if let Some(file) = input.file {
+        return Ok(Some(std::fs::read_to_string(&file).map_err(Error::from)?));
+    }
+    if !std::io::stdin().is_terminal() {
+        let mut buffer = String::new();
+        std::io::Read::read_to_string(&mut std::io::stdin(), &mut buffer).map_err(Error::from)?;
+        if !buffer.is_empty() {
+            return Ok(Some(buffer));
+        }
+    }
+    Ok(None)
+}
+
+fn print_turns(turns: &[agent::sessions::Turn]) {
+    use agent::sessions::{Part, Role};
+    if turns.is_empty() {
+        eprintln!("No turns yet.");
+        return;
+    }
+    for (index, turn) in turns.iter().enumerate() {
+        if index > 0 {
+            println!();
+        }
+        println!("=== turn {} ===", index + 1);
+        for message in &turn.messages {
+            let who = match message.role {
+                Role::User => "user",
+                Role::Assistant => "assistant",
+            };
+            for part in &message.parts {
+                match part {
+                    Part::Text { text } => println!("[{who}] {text}"),
+                    Part::ToolCall { name, failed } => {
+                        let mark = if *failed { " (failed)" } else { "" };
+                        println!("[{who}] -> {name}{mark}");
+                    }
+                }
+            }
+        }
+    }
+}
+
 async fn resolve_execution_agent(
     client: &Client,
     resource: Option<String>,
@@ -542,12 +787,16 @@ fn exit_code(code: i32) -> ExitCode {
     u8::try_from(code).map_or(ExitCode::FAILURE, ExitCode::from)
 }
 
-async fn describe(client: &Client, resource: &str, name: Option<String>) -> CommandResult<()> {
+async fn describe(client: &Client, resource: &str, name: Option<String>, output: OutputFormat) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     if resource != Resource::Agent {
         return Err(Error::Invalid("describe currently supports only Agent resources".into()).into());
     }
-    print_agent_description(&client.get(&require_name(name, "Agent")?).await?);
+    let agent = client.get(&require_name(name, "Agent")?).await?;
+    match output {
+        OutputFormat::Json => print_json(&agent)?,
+        OutputFormat::Table => print_agent_description(&agent),
+    }
     Ok(())
 }
 
@@ -746,26 +995,40 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    if client.health().await.is_ok() {
-        return Ok(());
+    if let Ok(daemon) = client.health().await {
+        return daemon.require_compatible();
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if client.health().await.is_ok() {
-            return Ok(());
+        if let Ok(daemon) = client.health().await {
+            return daemon.require_compatible();
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
-                "automatic startup exited with {status}; see {}",
-                home.daemon_log_path().display()
+                "automatic startup exited with {status}; {}",
+                daemon_startup_diagnostics(home)
             )));
         }
     }
     Err(Error::Daemon(format!(
-        "automatic startup did not become ready within 10 seconds; see {}",
-        home.daemon_log_path().display()
+        "automatic startup did not become ready within 10 seconds; {}",
+        daemon_startup_diagnostics(home)
     )))
+}
+
+fn daemon_startup_diagnostics(home: &ControlPlaneHome) -> String {
+    let log = home.daemon_log_path();
+    let marker = home.pending_session_relaunch_path();
+    if marker.exists() {
+        format!(
+            "see {}; pending post-upgrade Session relaunch: {}",
+            log.display(),
+            marker.display()
+        )
+    } else {
+        format!("see {}", log.display())
+    }
 }
 
 fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
@@ -843,9 +1106,205 @@ fn absolute(path: PathBuf) -> Result<PathBuf, Error> {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use std::time::SystemTime;
-
     use super::*;
+
+    struct StalledConnector {
+        healthy: bool,
+    }
+
+    struct PreviewOneConnector;
+
+    impl agent::control_api::Connector for PreviewOneConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async {
+                use tokio::io::{AsyncBufReadExt as _, AsyncWriteExt as _};
+                let (client, server) = tokio::io::duplex(4096);
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut request = String::new();
+                    server.read_line(&mut request).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&request).expect("RPC");
+                    let response = serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "id": request["id"],
+                        "result": {"protocolVersion": "v1"}
+                    });
+                    server
+                        .write_all(format!("{response}\n").as_bytes())
+                        .await
+                        .expect("response");
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn incompatible_daemon_is_reported_without_starting_another() {
+        let directory = tempfile::TempDir::new().expect("temporary home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        let client = Client::new(std::rc::Rc::new(PreviewOneConnector));
+        let error = ensure_daemon(&home, &client)
+            .await
+            .expect_err("preview daemon is incompatible");
+        assert!(error.to_string().contains("protocol Some(\"v1\")"));
+        assert!(!home.daemon_log_path().exists(), "no second daemon was spawned");
+    }
+
+    #[test]
+    fn startup_diagnostics_identify_a_pending_session_relaunch() {
+        let directory = tempfile::TempDir::new().expect("temporary home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        std::fs::write(home.pending_session_relaunch_path(), "pending").expect("marker");
+
+        let diagnostic = daemon_startup_diagnostics(&home);
+
+        assert!(diagnostic.contains(&home.daemon_log_path().display().to_string()));
+        assert!(diagnostic.contains(&home.pending_session_relaunch_path().display().to_string()));
+    }
+
+    impl agent::control_api::Connector for StalledConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async move {
+                use tokio::io::AsyncBufReadExt as _;
+                if !self.healthy {
+                    return std::future::pending().await;
+                }
+                let (client, server) = tokio::io::duplex(4096);
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut line = String::new();
+                    server.read_line(&mut line).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
+                    if request["method"] == "control.v1.health" {
+                        let response = serde_json::json!({
+                            "jsonrpc": "2.0",
+                            "id": request["id"],
+                            "result": {
+                                "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                                "buildVersion": agent::build_version()
+                            }
+                        });
+                        server
+                            .write_all(format!("{response}\n").as_bytes())
+                            .await
+                            .expect("health response");
+                    } else {
+                        std::future::pending::<()>().await;
+                        drop(server);
+                    }
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn create_stops_waiting_at_its_deadline() {
+        for (owner, healthy) in [(Some("worker"), false), (Some("worker"), true), (None, true)] {
+            let client = Client::new(std::rc::Rc::new(StalledConnector { healthy }));
+            let directory = tempfile::TempDir::new().expect("temporary home");
+            let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+            let result = tokio::time::timeout(
+                Duration::from_secs(2),
+                create_session(
+                    &home,
+                    &client,
+                    SessionTarget {
+                        resource: "session/s1".into(),
+                        name: None,
+                        agent: owner.map(str::to_owned),
+                    },
+                    None,
+                    PromptInput {
+                        prompt: Some("go".into()),
+                        file: None,
+                    },
+                    Duration::from_secs(1),
+                ),
+            )
+            .await
+            .expect("the command's own deadline must include Agent inference");
+            assert!(matches!(result, Err(CommandError::Message(message)) if message.contains("timed out")));
+        }
+    }
+
+    struct DelayedHealthConnector {
+        remaining: std::rc::Rc<std::cell::Cell<Option<Duration>>>,
+    }
+
+    impl agent::control_api::Connector for DelayedHealthConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async move {
+                use tokio::io::AsyncBufReadExt as _;
+                let (client, server) = tokio::io::duplex(4096);
+                let remaining = self.remaining.clone();
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut line = String::new();
+                    server.read_line(&mut line).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
+                    if request["method"] == "control.v1.health" {
+                        tokio::time::sleep(Duration::from_millis(600)).await;
+                    } else {
+                        assert_eq!(request["method"], "sessions.v1.prompt");
+                        remaining.set(Some(
+                            serde_json::from_value(request["params"]["timeout"].clone()).expect("timeout"),
+                        ));
+                    }
+                    let result = if request["method"] == "control.v1.health" {
+                        serde_json::json!({
+                            "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                            "buildVersion": agent::build_version()
+                        })
+                    } else {
+                        serde_json::json!({})
+                    };
+                    let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":result});
+                    server
+                        .write_all(format!("{response}\n").as_bytes())
+                        .await
+                        .expect("response");
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn prompt_setup_does_not_consume_the_completion_timeout() {
+        let remaining = std::rc::Rc::new(std::cell::Cell::new(None));
+        let client = Client::new(std::rc::Rc::new(DelayedHealthConnector {
+            remaining: remaining.clone(),
+        }));
+        let directory = tempfile::TempDir::new().expect("home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        prompt_session(
+            &home,
+            &client,
+            SessionTarget {
+                resource: "session/s1".into(),
+                name: None,
+                agent: Some("worker".into()),
+            },
+            PromptInput {
+                prompt: Some("go".into()),
+                file: None,
+            },
+            CompletionOptions {
+                wait: true,
+                timeout: Duration::from_secs(1),
+            },
+        )
+        .await
+        .expect("prompt");
+        assert_eq!(remaining.get(), Some(Duration::from_secs(1)));
+    }
+
+    #[test]
+    fn create_accepts_a_bounded_wait() {
+        assert!(Arguments::try_parse_from(["agentctl", "create", "session/s1", "--timeout", "1s"]).is_ok());
+    }
 
     #[test]
     fn resource_references_follow_kubectl_shapes_and_aliases() {
@@ -1032,20 +1491,15 @@ mod tests {
 
     #[test]
     fn apply_source_is_resolved_in_the_client_working_directory() {
-        let nonce = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("system time should follow the epoch")
-            .as_nanos();
-        let directory = std::env::temp_dir().join(format!("agentctl-source-{}-{nonce}", std::process::id()));
-        std::fs::create_dir_all(&directory).expect("temporary directory");
-        let manifest_path = directory.join("agent.yaml");
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let manifest_path = directory.path().join("agent.yaml");
         std::fs::copy(
             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/minimal/agent.yaml"),
             &manifest_path,
         )
         .expect("copy example manifest");
         let original_directory = std::env::current_dir().expect("current directory");
-        std::env::set_current_dir(&directory).expect("enter temporary directory");
+        std::env::set_current_dir(directory.path()).expect("enter temporary directory");
 
         let result = LocalRuntime::new()
             .expect("local runtime")
@@ -1054,8 +1508,7 @@ mod tests {
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");
         let actual_directory = std::fs::canonicalize(&request.source_directory).expect("canonical source directory");
-        let expected_directory = std::fs::canonicalize(&directory).expect("canonical temporary directory");
-        std::fs::remove_dir_all(&directory).expect("remove temporary directory");
+        let expected_directory = std::fs::canonicalize(directory.path()).expect("canonical temporary directory");
         assert_eq!(actual_directory, expected_directory);
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -42,10 +43,11 @@ public sealed class DelayingEventsClient : IEventsClient
     public async Task<string> AddEvent(
         string eventType,
         Instance instance,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
-        await Task.Delay(Delay);
+        await Task.Delay(Delay, cancellationToken);
         SideEffectsState.RecordEvent(eventType);
         return Guid.NewGuid().ToString();
     }

@@ -115,6 +115,7 @@ pub trait Provider {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
         progress: crate::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
@@ -213,7 +214,8 @@ impl Service {
         progress: crate::progress::SandboxReporter,
     ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
-        let outcome = provider.ensure(record, progress).await?;
+        let environment = crate::environment::resolve(record).await?;
+        let outcome = provider.ensure(record, environment, progress).await?;
         let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self

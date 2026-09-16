@@ -4,7 +4,7 @@ mod support;
 
 use std::path::PathBuf;
 
-use agent::{API_VERSION, Harness, KIND, SecretSpec, manifest};
+use agent::{API_VERSION, EnvironmentSpec, Harness, KIND, SecretSpec, manifest};
 use sandbox::RootFilesystemMode;
 
 #[test]
@@ -39,7 +39,7 @@ spec:
     source: home
   harnesses:
     - type: claudeCode
-      version: "2.1.239"
+      version: "2.1.266"
       auth: mediated
   network:
     mode: mediated
@@ -124,6 +124,9 @@ fn decodes_the_self_development_manifest() {
     assert_eq!(agent.spec.secrets.len(), 1);
     assert_eq!(agent.spec.secrets[0].environment, "GITHUB_TOKEN");
     assert_eq!(agent.spec.secrets[0].source(), "GITHUB_TOKEN");
+    assert_eq!(agent.spec.environment.len(), 2);
+    assert_eq!(agent.spec.environment[0].name, "GIT_USER_NAME");
+    assert_eq!(agent.spec.environment[0].source(), "GIT_USER_NAME");
     assert_eq!(
         agent.spec.secrets[0].placeholder.as_deref(),
         Some("github_pat_AGENT_MEDIATED_GITHUB_TOKEN")
@@ -149,6 +152,118 @@ fn decodes_the_self_development_manifest() {
 }
 
 #[test]
+fn published_manifests_explicitly_select_git_identity() {
+    let manifests = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../agents");
+    if !manifests.is_dir() {
+        eprintln!("skipping published manifests omitted from this sparse checkout");
+        return;
+    }
+
+    for name in ["minimal", "full", "worktree"] {
+        let bytes = std::fs::read(manifests.join(name).join("agent.yaml"))
+            .expect("published Agent manifest should be readable");
+        let agent = manifest::decode(&bytes).expect("published Agent manifest should decode");
+        let names = agent
+            .spec
+            .environment
+            .iter()
+            .map(|variable| variable.name.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(names, ["GIT_USER_NAME", "GIT_USER_EMAIL"]);
+    }
+}
+
+#[test]
+fn decodes_explicit_non_secret_environment_with_an_optional_source() {
+    let mut agent = support::agent("worker");
+    agent.spec.environment = vec![
+        EnvironmentSpec {
+            name: "GIT_USER_NAME".into(),
+            source: Some("HOST_GIT_NAME".into()),
+        },
+        EnvironmentSpec {
+            name: "GIT_USER_EMAIL".into(),
+            source: None,
+        },
+    ];
+
+    let encoded = serde_yaml_ng::to_string(&agent).expect("encoded manifest");
+    let decoded = manifest::decode(encoded.as_bytes()).expect("manifest environment");
+
+    assert_eq!(decoded.spec.environment[0].name, "GIT_USER_NAME");
+    assert_eq!(decoded.spec.environment[0].source(), "HOST_GIT_NAME");
+    assert_eq!(decoded.spec.environment[1].source(), "GIT_USER_EMAIL");
+}
+
+#[test]
+fn rejects_invalid_duplicate_and_unpaired_environment_names() {
+    let mut invalid = support::agent("worker");
+    invalid.spec.environment.push(EnvironmentSpec {
+        name: "NOT-PORTABLE".into(),
+        source: None,
+    });
+    assert!(matches!(
+        invalid.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.environment[0]")
+    ));
+
+    let mut duplicate = support::agent("worker");
+    duplicate.spec.environment = vec![
+        EnvironmentSpec {
+            name: "EDITOR".into(),
+            source: None,
+        },
+        EnvironmentSpec {
+            name: "EDITOR".into(),
+            source: Some("HOST_EDITOR".into()),
+        },
+    ];
+    assert!(matches!(
+        duplicate.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.environment[1]")
+    ));
+
+    let mut unpaired = support::agent("worker");
+    unpaired.spec.environment.push(EnvironmentSpec {
+        name: "GIT_USER_NAME".into(),
+        source: None,
+    });
+    assert!(matches!(
+        unpaired.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("GIT_USER_NAME and GIT_USER_EMAIL")
+    ));
+}
+
+#[test]
+fn rejects_environment_collisions_with_secrets_and_harness_owned_values() {
+    let mut secret_collision = support::agent("worker");
+    secret_collision.spec.environment.push(EnvironmentSpec {
+        name: "PLAIN_VALUE".into(),
+        source: Some("SHARED_VALUE".into()),
+    });
+    secret_collision.spec.secrets.push(SecretSpec {
+        environment: "API_TOKEN".into(),
+        placeholder: None,
+        allowed_hosts: vec!["example.com".into()],
+        source: Some("SHARED_VALUE".into()),
+    });
+    assert!(matches!(
+        secret_collision.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.secrets[0]")
+    ));
+
+    let mut harness_collision = support::agent("worker");
+    harness_collision.spec.environment.push(EnvironmentSpec {
+        name: "CLAUDE_CONFIG_DIR".into(),
+        source: None,
+    });
+    assert!(matches!(
+        harness_collision.validate(),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.environment[0]")
+    ));
+}
+
+#[test]
 fn self_development_mounts_the_host_checkout_instead_of_cloning() {
     let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
     let agent = manifest::decode(bytes).expect("self-development manifest should decode");
@@ -169,10 +284,12 @@ fn self_development_mounts_the_host_checkout_instead_of_cloning() {
         .expect("checkout manifest should decode");
     assert_eq!(checkout.metadata.name, "agent-dev");
     assert!(checkout.spec.sandbox.mounts.is_empty());
+    assert_eq!(checkout.spec.environment, agent.spec.environment);
     let nested = manifest::decode(include_bytes!("../examples/self-dev/nested/agent.yaml"))
         .expect("nested manifest should decode");
     assert_eq!(nested.metadata.name, "agent-dev-nested");
     assert!(nested.spec.sandbox.mounts.is_empty());
+    assert_eq!(nested.spec.environment, agent.spec.environment);
     assert!(nested.spec.sandbox.resources.memory() < agent.spec.sandbox.resources.memory());
 }
 

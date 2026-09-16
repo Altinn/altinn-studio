@@ -2,19 +2,15 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 internal abstract class ProcessEngineCommandResult { }
 
+internal sealed record ProcessNextContinuation(string? Action);
+
 internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineCommandResult
 {
     /// <summary>
-    /// When true, the controller should enqueue a process-next workflow after saving data.
-    /// Used by service tasks that want the process to automatically advance.
+    /// Enqueues a dependent process-next workflow after saving and re-capturing callback state.
+    /// Used by an acquire continuing its transition and by a service task advancing to the next task.
     /// </summary>
-    public bool AutoAdvanceProcess { get; init; }
-
-    /// <summary>
-    /// Optional action to use when auto-advancing (e.g. "reject").
-    /// Only relevant when <see cref="AutoAdvanceProcess"/> is true.
-    /// </summary>
-    public string? AutoAdvanceAction { get; init; }
+    public ProcessNextContinuation? ProcessNextContinuation { get; init; }
 
     /// <summary>
     /// What the mailbox relay must do once this callback's data changes are saved and re-captured: enqueue the

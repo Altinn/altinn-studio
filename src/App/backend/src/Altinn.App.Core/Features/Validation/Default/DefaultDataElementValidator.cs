@@ -42,8 +42,8 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
             if (
                 dataType.AllowedContentTypes != null
                 && dataType.AllowedContentTypes.Count > 0
-                && dataType.AllowedContentTypes.TrueForAll(ct =>
-                    !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)
+                && dataType.AllowedContentTypes.TrueForAll(cancellationToken =>
+                    !cancellationToken.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)
                 )
             )
             {

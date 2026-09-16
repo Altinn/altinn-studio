@@ -156,7 +156,7 @@ public class ProcessStateEnricherTests
         // The request itself was aborted - that must propagate as a cancellation, not be
         // translated into a timeout error.
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            enricher.Enrich(new Instance(), new ProcessState(), CreateUser(), ct: cts.Token)
+            enricher.Enrich(new Instance(), new ProcessState(), CreateUser(), cancellationToken: cts.Token)
         );
     }
 

@@ -1036,8 +1036,8 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     {
         if (dataType?.AllowedContentTypes is null)
             return false;
-        return !dataType.AllowedContentTypes.TrueForAll(ct =>
-            !ct.Equals("application/json", StringComparison.OrdinalIgnoreCase)
+        return !dataType.AllowedContentTypes.TrueForAll(cancellationToken =>
+            !cancellationToken.Equals("application/json", StringComparison.OrdinalIgnoreCase)
         );
     }
 }

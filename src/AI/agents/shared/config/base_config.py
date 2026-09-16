@@ -31,31 +31,39 @@ class BaseConfig:
 
 
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
-    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
-    AZURE_ANTHROPIC_ENDPOINT = os.getenv("AZURE_ANTHROPIC_ENDPOINT", "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/")
+    AZURE_ANTHROPIC_API_KEY = os.getenv("AZURE_ANTHROPIC_API_KEY") or os.getenv("AZURE_API_KEY")
+    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://altinn-studio-assistant.openai.azure.com/")
+    # Anthropic is only on the older resource; the EU data zone one has OpenAI alone.
+    AZURE_ANTHROPIC_ENDPOINT = os.getenv(
+        "AZURE_ANTHROPIC_ENDPOINT",
+        "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/",
+    )
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
-    LLM_MODEL = os.getenv("LLM_MODEL", "claude-haiku-4-5")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5.4-mini")
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
+    # Reviews the eval report; not in the agent's path.
+    LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-5.6-sol")
+    LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "low")
 
 
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "claude-opus-4-8")
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
 
-    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "claude-sonnet-5")
+    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "gpt-5.6-sol")
     LLM_TEMPERATURE_TOOL_PLANNER = os.getenv("LLM_TEMPERATURE_TOOL_PLANNER")
     LLM_TOOL_PLANNER_USE_COMPLETIONS = os.getenv("LLM_TOOL_PLANNER_USE_COMPLETIONS", "false").lower() == "true"
     LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
 
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "claude-sonnet-5")
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.6-terra")
 
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "claude-sonnet-5")
+    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
     LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.0"))
 
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "claude-sonnet-5")
+    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
     LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # None → model default
 
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
@@ -70,7 +78,7 @@ class BaseConfig:
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
     LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
-    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1.1")
+    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "assistant-agents")
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)
     LANGFUSE_TRACE_RETENTION_DAYS = int(os.getenv("LANGFUSE_TRACE_RETENTION_DAYS", "90"))
 
@@ -81,3 +89,29 @@ class BaseConfig:
 
 def get_config() -> BaseConfig:
     return BaseConfig()
+
+
+ROLE_MODEL_CONFIG_KEYS = {
+    "actor": "LLM_MODEL_ACTOR",
+    "planner": "LLM_MODEL_PLANNER",
+    "tool_planner": "LLM_MODEL_TOOL_PLANNER",
+    "reviewer": "LLM_MODEL_REVIEWER",
+    "assistant": "LLM_MODEL_ASSISTANT",
+}
+
+# The role LLMClient has no branch for, reached by get_llm_client() with no role.
+DEFAULT_ROLE = "default"
+
+
+def default_role_model() -> str:
+    """What the default role runs on: the model LLMClient picks with no role."""
+    config = get_config()
+    return config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL
+
+
+def resolved_role_models() -> dict[str, str]:
+    """The model each role resolves to, as this process is configured."""
+    config = get_config()
+    models = {role: getattr(config, key) for role, key in ROLE_MODEL_CONFIG_KEYS.items()}
+    models[DEFAULT_ROLE] = default_role_model()
+    return models

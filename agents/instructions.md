@@ -89,6 +89,7 @@ When asked to create or update a pull request:
 - Treat clear contributor requests and questions as actionable. Implement or answer them in the original GitHub thread.
 - Evaluate automated review comments before acting; escalate conflicts, scope expansion, missing authority, or genuine
   ambiguity to Martin.
+- Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
 
 When posting multiline GitHub comments from a shell, pass the body through stdin or `--body-file`; do not embed literal
 `\n` escapes in ordinary double-quoted strings.

@@ -1,0 +1,35 @@
+{
+  "name": "Sum a list of numbers from the data model",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": {
+        "numberList": [0.1, 0.2, 0.3],
+        "emptyList": [],
+        "nested": {
+          "innerList": [4, 5, 6]
+        }
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "name": "Should add the numbers in the list together",
+      "expression": ["sum", ["dataModel", "numberList"]],
+      "expects": 0.6
+    },
+    {
+      "name": "Should return 0 for an empty list",
+      "expression": ["sum", ["dataModel", "emptyList"]],
+      "expects": 0
+    },
+    {
+      "name": "Should add the numbers in a nested list together",
+      "expression": ["sum", ["dataModel", "nested.innerList"]],
+      "expects": 15
+    }
+  ]
+}

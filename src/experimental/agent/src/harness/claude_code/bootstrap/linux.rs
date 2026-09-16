@@ -18,7 +18,7 @@ pub(super) async fn configure(
     let config = format!("{home}/.claude");
     let hooks_path = format!("{config}/hooks");
     let credentials_path = format!("{config}/.credentials.json");
-    let hook_path = format!("{config}/hooks/session-start.mjs");
+    let hook_path = format!("{config}/hooks/activity-hook.mjs");
     let settings_path = format!("{config}/agent-settings.json");
     let instructions_path = format!("{config}/CLAUDE.md");
     run_checked(sandbox, "/usr/bin/mkdir", ["-p", hooks_path.as_str()]).await?;
@@ -48,7 +48,7 @@ pub(super) async fn configure(
     sandbox
         .write_file(
             &SandboxPath::new(hook_path.clone()),
-            Box::pin(Cursor::new(crate::harness::session_start::HOOK.as_bytes().to_vec())),
+            Box::pin(Cursor::new(super::super::hooks::script()?.into_bytes())),
         )
         .await?;
     // HACK: the mediated setup token is inference-only, so Claude Code cannot read the account's
@@ -62,12 +62,7 @@ pub(super) async fn configure(
             "CLAUDE_CODE_SUBSCRIPTION_TYPE": "max",
             "CLAUDE_CODE_RATE_LIMIT_TIER": "default_claude_max_5x"
         },
-        "hooks": {
-            "SessionStart": [{
-                "matcher": "startup|resume|clear|compact",
-                "hooks": [{ "type": "command", "command": format!("node {hook_path}") }]
-            }]
-        }
+        "hooks": super::super::hooks::configuration(&hook_path)
     }))?;
     sandbox
         .write_file(
