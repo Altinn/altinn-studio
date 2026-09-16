@@ -260,8 +260,9 @@ enum ClaudeCommand {
     /// Mint a long-lived Claude token on the host and store it for agents.
     Login {
         /// Read an existing credential from standard input instead of signing in. Inside an Agent
-        /// this accepts the mediated placeholder, so a nested `agentd` chains through the outer
-        /// mediation without ever holding a real credential.
+        /// this accepts the mediated placeholder the Session holds as `AGENT_CLAUDE_ACCESS_TOKEN`,
+        /// so a nested `agentd` chains through the outer mediation without ever holding a real
+        /// credential.
         #[arg(long)]
         from_stdin: bool,
     },

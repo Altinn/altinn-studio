@@ -16,6 +16,16 @@ const PROVIDER: &str = "claude";
 const ACCESS_SECRET: &str = "claude-access-token";
 const ACCESS_ENVIRONMENT: &str = "CLAUDE_CODE_OAUTH_TOKEN";
 const ACCESS_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-placeholder-not-a-real-credential";
+/// Second binding on the same credential, under a name the harness does not
+/// scrub. Claude Code removes `CLAUDE_CODE_OAUTH_TOKEN` from every process it
+/// spawns, so a Session cannot read its own placeholder to hand to a nested
+/// `agentd`; this name survives, as the Codex one already does.
+const NESTED_ENVIRONMENT: &str = "AGENT_CLAUDE_ACCESS_TOKEN";
+/// A binding needs its own placeholder, and one placeholder may not contain
+/// another, so this is not a spelling of `ACCESS_PLACEHOLDER`. A nested Agent
+/// therefore sends this value outward and the outer mediation resolves it to
+/// the same stored credential.
+const NESTED_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-nested-placeholder-not-a-real-credential";
 const API_HOST: &str = "api.anthropic.com";
 
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
@@ -24,20 +34,32 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
             "Claude Code authentication is not ready; run `agentctl claude login`".into(),
         ));
     }
-    Ok(vec![MediatedSecret {
-        environment: ACCESS_ENVIRONMENT,
-        placeholder: ACCESS_PLACEHOLDER,
-        reference: SecretReference::from_opaque(ACCESS_SECRET),
-        allowed_hosts: vec![authentication::mediated_host().into()],
-    }])
+    Ok(vec![
+        MediatedSecret {
+            environment: ACCESS_ENVIRONMENT,
+            placeholder: ACCESS_PLACEHOLDER,
+            reference: SecretReference::from_opaque(ACCESS_SECRET),
+            allowed_hosts: vec![authentication::mediated_host().into()],
+        },
+        MediatedSecret {
+            environment: NESTED_ENVIRONMENT,
+            placeholder: NESTED_PLACEHOLDER,
+            reference: SecretReference::from_opaque(ACCESS_SECRET),
+            allowed_hosts: vec![authentication::mediated_host().into()],
+        },
+    ])
 }
 
 pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str>) -> bool {
-    name == ACCESS_ENVIRONMENT || placeholder == Some(ACCESS_PLACEHOLDER)
+    matches!(name, ACCESS_ENVIRONMENT | NESTED_ENVIRONMENT)
+        || matches!(placeholder, Some(ACCESS_PLACEHOLDER | NESTED_PLACEHOLDER))
 }
 
 pub(super) fn manages_environment(name: &str) -> bool {
-    matches!(name, ACCESS_ENVIRONMENT | "CLAUDE_CONFIG_DIR" | "DISABLE_AUTOUPDATER")
+    matches!(
+        name,
+        ACCESS_ENVIRONMENT | NESTED_ENVIRONMENT | "CLAUDE_CONFIG_DIR" | "DISABLE_AUTOUPDATER"
+    )
 }
 
 /// Long-lived Claude setup tokens carry this prefix.
@@ -178,6 +200,27 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn the_nested_binding_is_a_distinct_unambiguous_setup_token() {
+        // The Network Backend rejects bindings whose placeholders repeat or contain one another.
+        assert_ne!(super::ACCESS_PLACEHOLDER, super::NESTED_PLACEHOLDER);
+        assert!(!super::ACCESS_PLACEHOLDER.contains(super::NESTED_PLACEHOLDER));
+        assert!(!super::NESTED_PLACEHOLDER.contains(super::ACCESS_PLACEHOLDER));
+        // `agentctl claude login` only accepts a setup token, so a nested Agent can chain on this.
+        assert!(super::NESTED_PLACEHOLDER.starts_with(super::SETUP_TOKEN_PREFIX));
+    }
+
+    #[test]
+    fn a_manifest_cannot_redeclare_either_claude_binding() {
+        for name in [super::ACCESS_ENVIRONMENT, super::NESTED_ENVIRONMENT] {
+            assert!(super::manages_environment(name));
+            assert!(super::conflicts_with_managed_secret(name, None));
+        }
+        for placeholder in [super::ACCESS_PLACEHOLDER, super::NESTED_PLACEHOLDER] {
+            assert!(super::conflicts_with_managed_secret("UNRELATED", Some(placeholder)));
+        }
+    }
+
     #[test]
     fn resume_launch_requires_a_native_transcript() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
