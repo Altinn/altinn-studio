@@ -14,6 +14,12 @@ on:
         required: false
         default: "at_ring1"
 
+concurrency:
+  # Deploys are serialized, never interrupted: two runs overlapping could leave the ring on one
+  # build and the tag studioctl follows on another.
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
@@ -35,7 +41,6 @@ jobs:
     outputs:
       short-sha: ${{ steps.vars.outputs.short-sha }}
       config-repo: ${{ steps.vars.outputs.config-repo }}
-      ghcr-image-proxy-repo: ${{ steps.vars.outputs.ghcr-image-proxy-repo }}
       ghcr-image-worker-repo: ${{ steps.vars.outputs.ghcr-image-worker-repo }}
     defaults:
       run:
@@ -175,18 +180,15 @@ jobs:
 
       # studioctl runs the worker from the "tt02" tag, so local environments render PDFs with
       # the same build as tt02. Moved here rather than in the build job, so it only ever points
-      # at a build handed to the ring; the proxy follows to keep one build per ring.
-      - name: Point the tt02 tags at this build
-        if: matrix.ring == 'tt_ring1'
+      # at a build handed to the ring. Only the worker is tagged: it is the one image studioctl
+      # runs, and what the ring deploys stays described by the artifact flux tagged above.
+      - name: Point the tt02 tag at this build
+        if: matrix.ring == 'tt_ring1' && github.ref == 'refs/heads/main'
         env:
-          PROXY_IMAGE: ${{ needs.push-pdf3-artifact.outputs.ghcr-image-proxy-repo }}
           WORKER_IMAGE: ${{ needs.push-pdf3-artifact.outputs.ghcr-image-worker-repo }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker buildx imagetools create \
-            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:tt02 \
-            "$PROXY_IMAGE"
           docker buildx imagetools create \
             -t ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt02 \
             "$WORKER_IMAGE"

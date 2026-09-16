@@ -43,7 +43,8 @@ Invariants:
 - A following image is re-pulled whenever the environment starts, and keeps the local copy when the
   registry is unreachable, so `env up` still works offline.
 - `env up` returns early on a converged environment, so a new build arrives on the next `env down` +
-  `env up`, and a running container keeps the build it started with.
+  `env up`, and a running container keeps the build it started with. The early return says when a
+  newer build is waiting.
 - A moving tag does not identify a build, so reporting reads the container, not the configuration:
   the build it runs, plus the reference only where that reference still resolves to that build.
   The commit is stamped on each image as `org.opencontainers.image.revision`.

@@ -35,11 +35,12 @@ type EnvCommand struct {
 }
 
 type envUpOutput struct {
-	Runtime        string `json:"runtime"`
-	Running        bool   `json:"running"`
-	Started        bool   `json:"started"`
-	AlreadyRunning bool   `json:"alreadyRunning"`
-	JSONOutput     bool   `json:"-"`
+	Runtime        string   `json:"runtime"`
+	NewerBuilds    []string `json:"newerBuilds,omitempty"`
+	Running        bool     `json:"running"`
+	Started        bool     `json:"started"`
+	AlreadyRunning bool     `json:"alreadyRunning"`
+	JSONOutput     bool     `json:"-"`
 }
 
 func (o envUpOutput) Print(out *ui.Output) error {
@@ -48,6 +49,16 @@ func (o envUpOutput) Print(out *ui.Output) error {
 	}
 	if o.AlreadyRunning {
 		out.Printlnf("%s already running.", o.Runtime)
+	}
+	for _, ref := range o.NewerBuilds {
+		out.Printlnf("A newer build of %s is available.", ref)
+	}
+	if len(o.NewerBuilds) > 0 {
+		out.Printlnf(
+			"Run '%s env down' and '%s env up' to run it.",
+			osutil.CurrentBin(),
+			osutil.CurrentBin(),
+		)
 	}
 	return nil
 }
@@ -359,6 +370,7 @@ func (c *EnvCommand) runLocaltestUp(
 	if status.Running && !flags.devWorkflowEngine {
 		return envUpOutput{
 			Runtime:        runtimeLocaltest,
+			NewerBuilds:    env.NewerBuilds(ctx, status),
 			Running:        true,
 			Started:        false,
 			AlreadyRunning: true,
@@ -371,6 +383,7 @@ func (c *EnvCommand) runLocaltestUp(
 	}
 	return envUpOutput{
 		Runtime:        runtimeLocaltest,
+		NewerBuilds:    nil,
 		Running:        true,
 		Started:        true,
 		AlreadyRunning: false,

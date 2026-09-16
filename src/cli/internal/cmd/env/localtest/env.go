@@ -265,6 +265,32 @@ func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
 	return e.logStreamer().Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
+// NewerBuilds returns the images that now resolve to a build no running container is using,
+// so a converged environment can say it is behind. Only images whose tag moves are checked,
+// and a registry that cannot be reached simply reports nothing.
+func (e *Env) NewerBuilds(ctx context.Context, status *Status) []string {
+	runningIDs := make(map[string]bool, len(status.Containers))
+	for _, ctr := range status.Containers {
+		if ctr.ImageID != "" {
+			runningIDs[ctr.ImageID] = true
+		}
+	}
+
+	var newer []string
+	for _, spec := range e.cfg.Images.Floating() {
+		if err := e.client.ImagePull(ctx, spec.Ref()); err != nil {
+			e.out.Verbosef("check for a newer build of %s: %v", spec.Ref(), err)
+			continue
+		}
+		info, err := e.client.ImageInspect(ctx, spec.Ref())
+		if err != nil || info.ID == "" || runningIDs[info.ID] {
+			continue
+		}
+		newer = append(newer, spec.Ref())
+	}
+	return newer
+}
+
 type statusOptions struct {
 	DevWorkflowEngine bool
 	IncludeMonitoring bool
@@ -294,28 +320,36 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.All(), snapshot, e.runningImages(ctx, graph.All()), opts.RequireDesired), nil
+	return localtestStatus(
+		graph.All(),
+		snapshot,
+		e.runningImages(ctx, graph.All(), snapshot),
+		opts.RequireDesired,
+	), nil
 }
 
 // runningImages resolves what each container is actually running, keyed by container name.
 // It reads the container rather than the configured reference because a moving tag no longer
 // identifies a build: a container keeps the one it started with until the environment is
-// restarted. A container that is not running has nothing to report, so lookup failures are
-// left out rather than failing status.
-func (e *Env) runningImages(ctx context.Context, resources []resource.Resource) map[string]RunningImage {
+// restarted. The image is read from the snapshot the status pass already collected.
+func (e *Env) runningImages(
+	ctx context.Context,
+	resources []resource.Resource,
+	snapshot executor.Snapshot,
+) map[string]RunningImage {
 	running := make(map[string]RunningImage)
 	for _, res := range resources {
 		containerResource, ok := res.(*resource.Container)
 		if !ok {
 			continue
 		}
-		info, err := e.client.ContainerInspect(ctx, containerResource.Name)
-		if err != nil || info.ImageID == "" {
+		observed, found := snapshot.Resources[containerResource.ID()]
+		if !found || observed.ImageID == "" {
 			continue
 		}
 		running[containerResource.Name] = e.resolveRunningImage(
 			ctx,
-			info.ImageID,
+			observed.ImageID,
 			containerImageRef(containerResource),
 		)
 	}

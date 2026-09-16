@@ -550,3 +550,50 @@ func containerStatus(status *localtest.Status, name string) (localtest.Container
 	}
 	return localtest.ContainerStatus{}, false
 }
+
+// TestNewerBuilds_ReportsImagesNoContainerIsRunning covers the hint a converged environment
+// gets: a floating image that now resolves to a build nothing is running is behind, and a
+// registry that cannot be reached reports nothing rather than failing.
+func TestNewerBuilds_ReportsImagesNoContainerIsRunning(t *testing.T) {
+	t.Parallel()
+
+	const (
+		runningID = "sha256:running"
+		newerID   = "sha256:newer"
+	)
+
+	tests := map[string]struct {
+		pullErr error
+		inspect string
+		want    int
+	}{
+		"newer build available":  {pullErr: nil, inspect: newerID, want: 1},
+		"already on that build":  {pullErr: nil, inspect: runningID, want: 0},
+		"registry not reachable": {pullErr: errStateUnavailable, inspect: newerID, want: 0},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			client := mock.New()
+			client.ImagePullFunc = func(context.Context, string) error { return tt.pullErr }
+			client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+				return types.ImageInfo{ID: tt.inspect}, nil
+			}
+
+			images := testImages()
+			images.Core.Localtest.Floating = true
+			env := newTestEnvWithConfig(client, &config.Config{Images: images})
+			status := &localtest.Status{Containers: []localtest.ContainerStatus{{
+				Name:    components.ContainerLocaltest,
+				ImageID: runningID,
+				Status:  "running",
+			}}}
+
+			if got := env.NewerBuilds(context.Background(), status); len(got) != tt.want {
+				t.Errorf("NewerBuilds() = %v, want %d entries", got, tt.want)
+			}
+		})
+	}
+}

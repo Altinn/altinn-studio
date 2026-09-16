@@ -28,6 +28,12 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  # Deploys are serialized, never interrupted: two runs overlapping could leave the ring on one
+  # build and the tag studioctl follows on another.
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
@@ -168,7 +174,7 @@ jobs:
       # Moved here rather than in the build job, so it only ever points at a build handed to
       # the ring that tt02 serves.
       - name: Point the tt02 tag at this build
-        if: matrix.ring == 'tt_ring1'
+        if: matrix.ring == 'tt_ring1' && github.ref == 'refs/heads/main'
         env:
           GHCR_IMAGE: ${{ needs.push-workflow-engine-app-artifact.outputs.ghcr-image }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
