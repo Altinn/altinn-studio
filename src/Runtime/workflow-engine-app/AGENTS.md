@@ -93,16 +93,14 @@ and `syncroot/base` does not include the service, so nothing syncs it to the oth
 
 ## Local environment compatibility
 
-`studioctl env up` runs the `tt02` tag of this image, so a developer picks up a new build as
-soon as it reaches tt02 — with whatever studioctl they have installed. In a cluster the
-deployment config ships with the image (`infra/kustomize/base/deployment.yaml`); locally
-studioctl builds the container spec
-(`src/cli/internal/cmd/env/localtest/components/workflow_engine.go`) and is not updated with it.
+`studioctl env up` runs the `tt02` tag of this image, so a developer picks up a new build as soon as
+it reaches tt02 — with whatever studioctl they have installed. In a cluster this service's
+configuration ships with the image; locally studioctl supplies it and is not updated with it.
 
-Treat that spec as a contract with an older client: renaming a setting, moving the health
-routes or requiring a new environment variable breaks `env up` for anyone who has not updated.
-Keep the previous spelling working for at least one studioctl release, and change studioctl in
-the same pull request. See [README](README.md) for pinning a build when reproducing a report.
+Treat that as a contract with an older client: renaming a setting, moving the health routes or
+requiring a new environment variable breaks `env up` for everyone who has not updated. Keep the
+previous spelling working for at least one studioctl release, and change studioctl in the same pull
+request.
 
 ## Tests
 

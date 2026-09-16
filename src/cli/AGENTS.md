@@ -33,31 +33,23 @@ part of `studioctl.slnx`, so `make test` covers them.
 
 ### Container images
 
-All images are declared in `internal/config/images.go`; `config.DefaultImages()` is the only
-source. Three follow the environment they mirror instead of a pinned build, so a platform
-change reaches local environments without a studioctl release:
+Image references live in the CLI, not in a config file. Three of them follow the environment they
+mirror instead of a pinned build — localtest follows main, and the PDF and workflow engine services
+follow what tt02 runs — so a runtime change reaches local environments without a studioctl release.
+The rest are pinned and bumped by hand.
 
-| Image | Tag | Moved by |
-| --- | --- | --- |
-| `runtime-localtest` | `latest` | `deploy-runtime-localtest.yaml`, every push to main |
-| `runtime-pdf3-worker` | `tt02` | the ring-tagging job in `deploy-runtime-pdf3.yaml` |
-| `runtime-workflow-engine-app` | `tt02` | the ring-tagging job in `deploy-runtime-workflow-engine-app.yaml` |
+Invariants:
 
-`ImageSpec.Floating` marks them, selecting `resource.PullAlwaysAllowStale`
-(`components/pullPolicyFor`): re-pull on every apply, keep the local image when the registry
-is unreachable. The rest stay `PullIfNotPresent` and are bumped by hand.
-
-- **A running environment is not re-reconciled.** `env up` returns early once converged
-  (`runLocaltestUp`), so a new build arrives on the next `env down` + `env up`.
-- **The tag no longer identifies the build.** `env status` and `doctor` print the digest the
-  container runs — that is what a bug report needs.
-- **studioctl's container spec is a contract with an older client.** A developer's studioctl
-  is older than the image it pulls, so the environment variables, ports and probe paths in
-  `components/workflow_engine.go` must keep working across builds. See
-  `src/Runtime/workflow-engine-app/AGENTS.md`.
-- `STUDIOCTL_IMAGE_*` overrides one reference for a session, for reproducing a report against
-  a specific build. It replaced a home-directory override file, which migration
-  `008-remove-image-config-file` deletes on update.
+- A following image is re-pulled whenever the environment starts, and keeps the local copy when the
+  registry is unreachable, so `env up` still works offline.
+- `env up` returns early on a converged environment, so a new build arrives on the next `env down` +
+  `env up`, and a running container keeps the build it started with.
+- A moving tag does not identify a build. Anything reporting on a local environment reports the
+  digest the container runs.
+- The container spec studioctl generates is a contract with an older client: a developer's studioctl
+  is older than the image it pulls. See the service's own `AGENTS.md`.
+- `STUDIOCTL_IMAGE_*` pins one reference for a session. It replaced a home-directory override file,
+  which an update deletes.
 
 ### Changelog & releases
 

@@ -52,53 +52,23 @@ No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and W
 
 ## The image studioctl runs
 
-`studioctl env up` runs this service from
-`ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt02`. The ring-tagging job in
-[`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml)
-moves that tag whenever a build is handed to `tt_ring1`, the ring tt02 serves, so local
-environments run the build tt02 runs. Nothing needs updating in `studioctl` when this service
-changes.
+`studioctl env up` runs this service from the `tt02` tag of its GHCR image, moved whenever a build is
+deployed to the ring tt02 serves. Local environments therefore run the build tt02 runs, and nothing
+needs updating in studioctl when this service changes. `--dev-workflow-engine` routes the binding to
+a local host process instead and pulls no image.
 
-`studioctl env status` and `studioctl doctor` print the reference and the digest of the build
-behind it — how you tell which build a local environment actually ran.
-
-> `--dev-workflow-engine` disables that container and routes the engine binding to a local
-> host process instead, pulling no image.
-
-To reproduce a report against a specific build, point studioctl at it for the session:
-
-```sh
-STUDIOCTL_IMAGE_WORKFLOW_ENGINE=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:a45a743b78 \
-  studioctl env up
-```
-
-### How the image is built
-
-The same workflow builds and pushes on every push to `main` touching the engine source,
-`Dockerfile`, packages, or infra paths. **The immutable tag is the first 10 characters of the
-triggering commit SHA** (`${GITHUB_SHA::10}`); `tt02` is a moving tag onto one of those builds.
-To find the build behind it, read the `headSha` of the newest run whose `tag-workflow-engine-app`
-job completed for `tt_ring1`:
-
-```sh
-gh run list --workflow deploy-runtime-workflow-engine-app.yaml -L 15 \
-  --json headSha,displayTitle,event,headBranch,conclusion,createdAt,databaseId
-```
-
-> Listing GHCR tags directly (`gh api /orgs/altinn/packages/...`) 403s without a
-> `read:packages` scope.
+Since that tag moves, `studioctl env status` and `studioctl doctor` print the digest of the build a
+container is running — that, not the tag, is what a report about local behavior should name. To
+reproduce one against a specific build, set `STUDIOCTL_IMAGE_WORKFLOW_ENGINE` to its immutable tag,
+the first 10 characters of the commit that built it.
 
 ### Keeping the local environment working
 
-In a cluster this service's config — environment variables, probe paths, ports — ships with
-the image in `infra/kustomize/base/deployment.yaml`. Locally studioctl builds the container
-spec (`src/cli/internal/cmd/env/localtest/components/workflow_engine.go`), and a developer's
-studioctl is older than the image it pulls.
-
-So a change that is atomic in a cluster is not atomic locally: renaming a setting, moving the
-readiness route or requiring a new variable breaks `env up` for anyone who has not updated.
-Keep the previous spelling working for at least one studioctl release, and change studioctl in
-the same pull request.
+In a cluster this service's configuration ships with the image. Locally studioctl supplies it, and
+the studioctl a developer has installed is older than the image it pulls. So a change that is atomic
+in a cluster is not atomic locally: renaming a setting, moving the readiness route or requiring a new
+variable breaks `env up` for everyone who has not updated. Keep the previous spelling working for at
+least one studioctl release, and change studioctl in the same pull request.
 
 ## Further reading
 
