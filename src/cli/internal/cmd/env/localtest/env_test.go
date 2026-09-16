@@ -471,6 +471,45 @@ func testImages() config.ImagesConfig {
 	}
 }
 
+// TestStatus_ReportsTheBuildOfAStoppedContainer pins that a container which exists but is not
+// running still reports the build it was created from: that is what a report about a container
+// that just died has to name, and its tag may have moved since.
+func TestStatus_ReportsTheBuildOfAStoppedContainer(t *testing.T) {
+	t.Parallel()
+
+	const exitedImageID = "sha256:exited-with"
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
+		info := managedContainerInfo(types.ContainerState{Status: "exited", Running: false})
+		if name == components.ContainerLocaltest {
+			info.ImageID = exitedImageID
+		}
+		return info, nil
+	}
+	client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
+		if image == testLocaltestImageRef {
+			return types.ImageInfo{ID: exitedImageID}, nil
+		}
+		return types.ImageInfo{}, types.ErrImageNotFound
+	}
+
+	env := newTestEnv(client)
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+
+	localtestStatus, ok := containerStatus(status, components.ContainerLocaltest)
+	if !ok {
+		t.Fatalf("status has no %q container", components.ContainerLocaltest)
+	}
+	if localtestStatus.ImageID != exitedImageID || localtestStatus.Image != testLocaltestImageRef {
+		t.Errorf("stopped localtest image = %q (%q), want %q (%q)",
+			localtestStatus.Image, localtestStatus.ImageID, testLocaltestImageRef, exitedImageID)
+	}
+}
+
 // TestStatus_ReportsTheBuildEachContainerRuns pins why status reads the container rather than
 // the configured reference. The localtest container runs the build it started with while its
 // tag has since moved to another one, so the reference no longer describes it and is dropped;

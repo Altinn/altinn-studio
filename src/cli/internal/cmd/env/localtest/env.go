@@ -323,21 +323,22 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 	return localtestStatus(
 		graph.All(),
 		snapshot,
-		e.runningImages(ctx, graph.All(), snapshot),
+		e.containerImages(ctx, graph.All(), snapshot),
 		opts.RequireDesired,
 	), nil
 }
 
-// runningImages resolves what each container is actually running, keyed by container name.
-// It reads the container rather than the configured reference because a moving tag no longer
-// identifies a build: a container keeps the one it started with until the environment is
-// restarted. The image is read from the snapshot the status pass already collected.
-func (e *Env) runningImages(
+// containerImages resolves the image behind each container that exists, keyed by container
+// name. It reads the container rather than the configured reference because a moving tag no
+// longer identifies a build: a container keeps the one it was created from until the
+// environment is recreated, which is as true of a stopped container as a running one. The
+// image is read from the snapshot the status pass already collected.
+func (e *Env) containerImages(
 	ctx context.Context,
 	resources []resource.Resource,
 	snapshot executor.Snapshot,
-) map[string]RunningImage {
-	running := make(map[string]RunningImage)
+) map[string]ContainerImage {
+	images := make(map[string]ContainerImage)
 	for _, res := range resources {
 		containerResource, ok := res.(*resource.Container)
 		if !ok {
@@ -347,29 +348,29 @@ func (e *Env) runningImages(
 		if !found || observed.ImageID == "" {
 			continue
 		}
-		running[containerResource.Name] = e.resolveRunningImage(
+		images[containerResource.Name] = e.resolveContainerImage(
 			ctx,
 			observed.ImageID,
 			containerImageRef(containerResource),
 		)
 	}
-	return running
+	return images
 }
 
-// resolveRunningImage pairs a running image with the reference it was started from, and keeps
-// the reference only when it still resolves to that image. A reference this command builds
-// can name something the running environment never ran - a tag that has moved since, or a
-// component the environment was started with differently - and reporting it would then
-// misdescribe what is running.
-func (e *Env) resolveRunningImage(ctx context.Context, imageID, ref string) RunningImage {
+// resolveContainerImage pairs an image with the reference it came from, and keeps the
+// reference only when it still resolves to that image. A reference this command builds can
+// name something the environment never ran - a tag that has moved since, or a component the
+// environment was started with differently - and reporting it would then misdescribe the
+// container.
+func (e *Env) resolveContainerImage(ctx context.Context, imageID, ref string) ContainerImage {
 	if ref == "" {
-		return RunningImage{Ref: "", ImageID: imageID}
+		return ContainerImage{Ref: "", ImageID: imageID}
 	}
 	info, err := e.client.ImageInspect(ctx, ref)
 	if err != nil || info.ID != imageID {
-		return RunningImage{Ref: "", ImageID: imageID}
+		return ContainerImage{Ref: "", ImageID: imageID}
 	}
-	return RunningImage{Ref: ref, ImageID: imageID}
+	return ContainerImage{Ref: ref, ImageID: imageID}
 }
 
 func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
@@ -594,7 +595,7 @@ func applyPlannedResources(plan executor.ApplyPlan) []executor.PlannedResource {
 func localtestStatus(
 	resources []resource.Resource,
 	snapshot executor.Snapshot,
-	running map[string]RunningImage,
+	images map[string]ContainerImage,
 	requireDesired bool,
 ) *Status {
 	status := Status{
@@ -619,8 +620,8 @@ func localtestStatus(
 			status.Containers,
 			ContainerStatus{
 				Name:    containerResource.Name,
-				Image:   running[containerResource.Name].Ref,
-				ImageID: running[containerResource.Name].ImageID,
+				Image:   images[containerResource.Name].Ref,
+				ImageID: images[containerResource.Name].ImageID,
 				Status:  localtestStatusString(resourceStatus),
 			},
 		)
