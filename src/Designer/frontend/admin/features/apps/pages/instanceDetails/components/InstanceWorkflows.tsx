@@ -10,6 +10,7 @@ import {
   StudioTag,
 } from '@studio/components';
 import { useState } from 'react';
+import { ArrowsCirclepathIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
 import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
@@ -167,15 +168,20 @@ type WorkflowItemProps = {
 };
 
 /**
- * One workflow as a row: what it is, where it is in its steps, how many attempts it has made, how
- * long it ran or has been running, and when a parked one tries again. Behind the row: the steps
- * with their errors — and, on the step the workflow stopped at, the verbs that apply — and the id.
+ * One workflow as a row of plain columns: status, name, the steps as dots, the step it is at, a
+ * spinner while the engine still has it, and when it was created. Behind the row: attempts and
+ * the countdown to the next one, the steps with their errors — and, on the step the workflow
+ * stopped at, the verbs that apply — and the id.
  */
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
   const now = useNow(isActiveWorkflow(workflow));
   const attempts = maxRetryCount(workflow);
   const liveNote = liveNoteOf(workflow, now, t);
+  // Named while the chain is unfinished; a finished one needs no word beside its dots.
+  const currentStep = focusStepOf(workflow);
+  const currentStepName =
+    currentStep && currentStep.status !== 'Completed' ? currentStep.operationId : undefined;
 
   // A row that just changed blinks once. The change is counted from the previous render's
   // timestamp (the React pattern for remembering the last props), and the summary span is keyed
@@ -209,14 +215,27 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
             )}
           </span>
           <WorkflowStepStrip workflow={workflow} />
-          <span className={classes.summaryMeta}>
-            {attempts > 0 && <span>{t('admin.workflows.row.attempts', { count: attempts })}</span>}
-            {liveNote && <span>{liveNote}</span>}
-            <span>{formatDateAndTime(workflow.createdAt)}</span>
+          <span className={classes.summaryStep}>{currentStepName}</span>
+          <span className={classes.summarySpinner}>
+            {isActiveWorkflow(workflow) && (
+              <StudioSpinner data-size='xs' aria-label={t('admin.workflows.health.active')} />
+            )}
           </span>
+          <span className={classes.summaryDate}>{formatDateAndTime(workflow.createdAt)}</span>
         </span>
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.details}>
+        {(attempts > 0 || liveNote) && (
+          <span className={classes.progress}>
+            {attempts > 0 && (
+              <span className={classes.attempts}>
+                <ArrowsCirclepathIcon aria-hidden='true' />
+                {t('admin.workflows.row.attempts', { count: attempts })}
+              </span>
+            )}
+            {liveNote && <span>{liveNote}</span>}
+          </span>
+        )}
         <WorkflowSteps context={context} workflow={workflow} />
         <span className={classes.workflowId}>
           {t('admin.workflows.id')}: <code>{workflow.databaseId}</code>
