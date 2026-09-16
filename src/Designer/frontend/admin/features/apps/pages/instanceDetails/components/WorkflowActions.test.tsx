@@ -295,6 +295,20 @@ describe('WorkflowActions', () => {
     ).toBeInTheDocument();
   });
 
+  it('takes the verbs away as soon as one has succeeded, before the row has caught up', async () => {
+    const user = userEvent.setup();
+    renderWorkflowActions(workflow('Failed'));
+
+    await user.click(retryButton());
+    await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      textMock('admin.workflows.actions.retry.success'),
+    );
+    expect(queryButton('admin.workflows.actions.retry')).not.toBeInTheDocument();
+    expect(queryButton('admin.workflows.actions.abandon')).not.toBeInTheDocument();
+  });
+
   it('confirms success in place once the retried workflow has left the failed state', async () => {
     const user = userEvent.setup();
     const { rerenderWith } = renderWorkflowActions(workflow('Failed'));

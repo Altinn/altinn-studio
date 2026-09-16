@@ -10,3 +10,13 @@
   flex-wrap: wrap;
   gap: var(--ds-size-2);
 }
+
+/* Where the buttons were: one line, a tick, and the row takes over from there. */
+.outcome {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  min-height: var(--ds-size-9);
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-success-text-default);
+}

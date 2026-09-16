@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { ReactElement } from 'react';
 import { StudioAlert } from '@studio/components';
+import { CheckmarkCircleFillIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { ConfirmActionDialog } from 'admin/features/apps/components/ConfirmActionDialog/ConfirmActionDialog';
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';
@@ -20,6 +21,9 @@ import { latestErrorOf } from 'admin/features/apps/utils/workflowTriage';
 
 import classes from './WorkflowActions.module.css';
 
+/** How long a verb's confirmation stays. The row itself shows the result within the next read. */
+const OUTCOME_NOTE_MS = 5_000;
+
 export type WorkflowActionsProps = {
   context: WorkflowOpsContext;
   workflow: WorkflowStatus;
@@ -33,11 +37,11 @@ export type WorkflowActionsProps = {
  * sense for a failure that still stands. On a workflow parked on a timer: run it now instead of
  * waiting the backoff out, or give up on it instead of waiting the retries out.
  *
- * The outcome is rendered whether or not the verbs are still on offer: a verb that succeeded moves
- * the workflow out of the state it was offered on, so gating the feedback on the buttons would hide
- * every success behind the refresh that proves it worked. It lives until the workflow fails or
- * parks again: the list keys items by workflow id and every verb keeps the id, so without that
- * reset a stale "queued again" would sit next to the verbs for the new failure.
+ * A verb that succeeded takes the buttons with it and leaves a one-line confirmation in their
+ * place for a few seconds: the row's own status shows the result within the next read, so the
+ * confirmation only has to bridge that second. It is dropped early if the workflow fails or parks
+ * again — the list keys items by workflow id and every verb keeps the id, so without that reset a
+ * stale "queued again" would sit next to the verbs for the new failure.
  */
 export const WorkflowActions = ({
   context,
@@ -80,9 +84,42 @@ export const WorkflowActions = ({
     }
   }, [workflow.overallStatus, resetResume, resetAbandon, resetNudge, resetFail]);
 
+  const succeeded = resume.isSuccess
+    ? 'resume'
+    : abandon.isSuccess
+      ? 'abandon'
+      : nudge.isSuccess
+        ? 'nudge'
+        : fail.isSuccess
+          ? 'fail'
+          : undefined;
+  useEffect(() => {
+    if (!succeeded) {
+      return undefined;
+    }
+    const resets = {
+      resume: resetResume,
+      abandon: resetAbandon,
+      nudge: resetNudge,
+      fail: resetFail,
+    };
+    const timer = window.setTimeout(resets[succeeded], OUTCOME_NOTE_MS);
+    return () => window.clearTimeout(timer);
+  }, [succeeded, resetResume, resetAbandon, resetNudge, resetFail]);
+
   if (!canRetry && !canAbandon && !isParked && !hasOutcome) {
     return null;
   }
+
+  const outcomeText = {
+    resume:
+      cascadeCount > 0
+        ? t('admin.workflows.actions.retry.success_with_dependents', { count: cascadeCount })
+        : t('admin.workflows.actions.retry.success'),
+    abandon: t('admin.workflows.actions.abandon.success'),
+    nudge: t('admin.workflows.actions.nudge.success'),
+    fail: t('admin.workflows.actions.fail.success'),
+  };
 
   /** One verb at a time: the outcome shown is always the last verb used. */
   const run = (verb: (typeof verbs)[number]) => {
@@ -92,7 +129,7 @@ export const WorkflowActions = ({
 
   return (
     <div className={classes.actions}>
-      {(canRetry || canAbandon || isParked) && (
+      {(canRetry || canAbandon || isParked) && !succeeded && (
         <div className={classes.buttons}>
           {isParked && (
             <ConfirmActionDialog
@@ -138,27 +175,11 @@ export const WorkflowActions = ({
           )}
         </div>
       )}
-      {resume.isSuccess && (
-        <StudioAlert data-color='success' data-size='sm'>
-          {cascadeCount > 0
-            ? t('admin.workflows.actions.retry.success_with_dependents', { count: cascadeCount })
-            : t('admin.workflows.actions.retry.success')}
-        </StudioAlert>
-      )}
-      {abandon.isSuccess && (
-        <StudioAlert data-color='success' data-size='sm'>
-          {t('admin.workflows.actions.abandon.success')}
-        </StudioAlert>
-      )}
-      {nudge.isSuccess && (
-        <StudioAlert data-color='success' data-size='sm'>
-          {t('admin.workflows.actions.nudge.success')}
-        </StudioAlert>
-      )}
-      {fail.isSuccess && (
-        <StudioAlert data-color='success' data-size='sm'>
-          {t('admin.workflows.actions.fail.success')}
-        </StudioAlert>
+      {succeeded && (
+        <span className={classes.outcome} role='status'>
+          <CheckmarkCircleFillIcon aria-hidden='true' />
+          {outcomeText[succeeded]}
+        </span>
       )}
       {verbs.some((verb) => verb.isError) && (
         <StudioAlert data-color='danger' data-size='sm'>
