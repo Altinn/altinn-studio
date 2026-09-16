@@ -24,6 +24,19 @@ export const RETRYING_BACKOFF_THRESHOLD_MS = 5 * 60_000;
  */
 export const STALE_ACTIVE_THRESHOLD_MS = 60 * 60_000;
 
+/** The verdicts that mean an operator may have to act. */
+export const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
+  WorkflowHealth.Failed,
+  WorkflowHealth.Retrying,
+  WorkflowHealth.SideEffectsFailed,
+]);
+
+/** The verdicts a recovery lands on: the work is moving again, or done. */
+export const RECOVERED_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
+  WorkflowHealth.Active,
+  WorkflowHealth.Healthy,
+]);
+
 /** A timestamp as a number, or nothing for an absent or unparsable one. */
 export function toTime(value: string | null | undefined): number | undefined {
   if (!value) {
@@ -117,6 +130,41 @@ export function pickFocusWorkflow(
     default:
       return visible[0] ?? workflows[0];
   }
+}
+
+/**
+ * How long a workflow in flight has gone without a change, when that is long enough to worry
+ * about. Nothing for a settled workflow, or one that changed recently.
+ */
+export function staleSpanOf(
+  workflow: WorkflowStatus | undefined,
+  now: number = Date.now(),
+): number | undefined {
+  if (!workflow || !isActiveWorkflow(workflow)) {
+    return undefined;
+  }
+  const lastChanged = toTime(workflow.updatedAt);
+  if (lastChanged === undefined) {
+    return undefined;
+  }
+  const span = now - lastChanged;
+  return span > STALE_ACTIVE_THRESHOLD_MS ? span : undefined;
+}
+
+/**
+ * The workflow an operator should be looking at, if any: the one the verdict rests on when the
+ * verdict needs attention, or the one in flight that has gone quiet.
+ */
+export function attentionWorkflowOf(
+  workflows: WorkflowStatus[],
+  now: number = Date.now(),
+): WorkflowStatus | undefined {
+  const health = deriveInstanceHealth(workflows, now);
+  const focus = pickFocusWorkflow(workflows, health, now);
+  if (!focus) {
+    return undefined;
+  }
+  return ATTENTION_HEALTHS.has(health) || staleSpanOf(focus, now) !== undefined ? focus : undefined;
 }
 
 export function orderedSteps(workflow: WorkflowStatus): WorkflowStepStatus[] {

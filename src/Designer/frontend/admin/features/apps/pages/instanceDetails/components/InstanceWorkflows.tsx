@@ -29,15 +29,17 @@ import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { formatDuration } from 'admin/features/apps/utils/formatDuration';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 import {
+  attentionWorkflowOf,
   isActiveWorkflow,
   isFailedWorkflow,
   latestErrorOf,
+  maxRetryCount,
   newestFirst,
   orderedSteps,
   toTime,
   workflowDisplayName,
 } from 'admin/features/apps/utils/workflowTriage';
-import { InstanceWorkflowSummary } from './InstanceWorkflowSummary';
+import { InstanceWorkflowNotices } from './InstanceWorkflowNotices';
 import { WorkflowActions } from './WorkflowActions';
 import { WorkflowStepStrip } from './WorkflowStepStrip';
 
@@ -108,6 +110,12 @@ const InstanceWorkflowsContent = ({
 }: InstanceWorkflowsContentProps) => {
   const { t } = useTranslation();
   const { isFetchingMoreResults, doFetchMoreResults } = useFetchMoreResults(fetchMoreResults);
+  // The row an operator should be looking at opens on its own when it first appears — so a
+  // failure comes up with its message and verbs in view — and stays theirs to close after that.
+  const now = useNow((workflows ?? []).some(isActiveWorkflow));
+  const attentionWorkflowId = workflows
+    ? attentionWorkflowOf(workflows, now)?.databaseId
+    : undefined;
 
   if (context.collectionKey === undefined) {
     return <StudioAlert data-color='info'>{t('admin.workflows.no_results')}</StudioAlert>;
@@ -126,9 +134,14 @@ const InstanceWorkflowsContent = ({
 
   return (
     <div className={classes.workflows}>
-      <InstanceWorkflowSummary context={context} workflows={workflows} />
+      <InstanceWorkflowNotices workflows={workflows} />
       {workflows.map((workflow) => (
-        <WorkflowItem key={workflow.databaseId} context={context} workflow={workflow} />
+        <WorkflowItem
+          key={workflow.databaseId}
+          context={context}
+          workflow={workflow}
+          defaultOpen={workflow.databaseId === attentionWorkflowId}
+        />
       ))}
       {isFetchMoreError && (
         <StudioAlert data-color='danger' data-size='sm'>
@@ -153,6 +166,8 @@ const InstanceWorkflowsContent = ({
 type WorkflowItemProps = {
   context: WorkflowOpsContext;
   workflow: WorkflowStatus;
+  /** Open when the row first appears. The operator owns the state from then on. */
+  defaultOpen: boolean;
 };
 
 /**
@@ -160,10 +175,11 @@ type WorkflowItemProps = {
  * when a parked one tries again, and — on a failure — what went wrong, all readable without opening
  * it. The details behind the row are the full metadata, the step table and the ops verbs.
  */
-const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
+const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
   const now = useNow(isActiveWorkflow(workflow));
   const duration = settledDurationOf(workflow);
+  const attempts = maxRetryCount(workflow);
   const liveNote = liveNoteOf(workflow, now, t);
   const rowError = isFailedWorkflow(workflow) ? rowErrorTextOf(workflow) : undefined;
 
@@ -178,7 +194,7 @@ const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
   }
 
   return (
-    <StudioDetails>
+    <StudioDetails defaultOpen={defaultOpen}>
       <StudioDetails.Summary>
         <span
           key={changeCount}
@@ -186,23 +202,30 @@ const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
             changeCount > 0 ? `${classes.summary} ${classes.summaryChanged}` : classes.summary
           }
         >
-          <WorkflowStatusTag status={workflow.overallStatus} />
-          <span className={classes.summaryOperation} title={workflow.operationId}>
-            {workflowDisplayName(workflow)}
+          <span className={classes.summaryStatus}>
+            <WorkflowStatusTag status={workflow.overallStatus} />
           </span>
-          {workflow.isHead === false && (
-            <StudioTag data-size='sm' data-color='neutral'>
-              {t('admin.workflows.side_effect')}
-            </StudioTag>
-          )}
-          <WorkflowStepStrip workflow={workflow} />
-          {liveNote && <span className={classes.summaryTime}>{liveNote}</span>}
-          {duration !== undefined && (
-            <span className={classes.summaryTime}>
-              {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
+          <span className={classes.summaryName}>
+            <span className={classes.summaryOperation} title={workflow.operationId}>
+              {workflowDisplayName(workflow)}
             </span>
-          )}
-          <span className={classes.summaryTime}>{formatDateAndTime(workflow.createdAt)}</span>
+            {workflow.isHead === false && (
+              <StudioTag data-size='sm' data-color='neutral'>
+                {t('admin.workflows.side_effect')}
+              </StudioTag>
+            )}
+          </span>
+          <WorkflowStepStrip workflow={workflow} />
+          <span className={classes.summaryMeta}>
+            {attempts > 0 && <span>{t('admin.workflows.row.attempts', { count: attempts })}</span>}
+            {liveNote && <span>{liveNote}</span>}
+            {duration !== undefined && (
+              <span>
+                {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
+              </span>
+            )}
+            <span>{formatDateAndTime(workflow.createdAt)}</span>
+          </span>
           {rowError && <code className={classes.rowError}>{rowError}</code>}
         </span>
       </StudioDetails.Summary>

@@ -13,11 +13,46 @@
   width: 100%;
 }
 
+/* The row as columns of fixed width, so the status, the name, the step dots and the rest line
+   up from one row to the next. Narrow screens fall back to wrapping. */
 .summary {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 10rem 18rem auto 1fr;
   align-items: center;
-  flex-wrap: wrap;
+  column-gap: var(--ds-size-3);
+  row-gap: var(--ds-size-1);
+  width: 100%;
+}
+
+.summaryStatus {
+  display: flex;
+}
+
+.summaryName {
+  display: flex;
+  align-items: center;
   gap: var(--ds-size-2);
+  min-width: 0;
+}
+
+.summaryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-1) var(--ds-size-4);
+  font-size: var(--ds-font-size-1);
+}
+
+@media (max-width: 64rem) {
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2);
+  }
+
+  .summaryOperation {
+    white-space: normal;
+  }
 }
 
 /* A change just came in: one soft blink over the row, then nothing. */
@@ -43,14 +78,14 @@
 
 .summaryOperation {
   font-weight: 500;
-}
-
-.summaryTime {
-  font-size: var(--ds-font-size-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* The failure in one line under the row; the full text is in the step details. */
 .rowError {
+  grid-column: 1 / -1;
   flex-basis: 100%;
   max-width: 100%;
   overflow: hidden;

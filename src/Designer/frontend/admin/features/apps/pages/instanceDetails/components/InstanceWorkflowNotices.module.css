@@ -1,0 +1,28 @@
+.notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+/* The moment a stuck instance gets going again: the note settles in from above. */
+.recovered {
+  animation: recovered 0.8s ease-out 1;
+}
+
+@keyframes recovered {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recovered {
+    animation: none;
+  }
+}

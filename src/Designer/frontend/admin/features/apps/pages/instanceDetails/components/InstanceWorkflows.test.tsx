@@ -148,11 +148,9 @@ describe('InstanceWorkflows', () => {
       .mocked(axios.get)
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
-    const summary = await screen.findByRole('region', {
-      name: textMock('admin.workflows.summary.title'),
-    });
+    const [failedRow] = await screen.findAllByRole('group');
     expect(
-      within(summary).getByText(textMock('admin.workflows.health.failed')),
+      within(failedRow).getAllByText(textMock('admin.workflows.status.failed'))[0],
     ).toBeInTheDocument();
 
     // The next poll finds the same workflow completed: someone fixed the app, or the error passed.
@@ -168,16 +166,11 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
 
     expect(
-      await screen.findByText(
-        textMock('admin.workflows.summary.recovered'),
-        {},
-        { timeout: 4_000 },
-      ),
+      await screen.findByText(textMock('admin.workflows.notice.recovered'), {}, { timeout: 4_000 }),
     ).toBeInTheDocument();
-    expect(screen.queryByText(textMock('admin.workflows.health.failed'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('admin.workflows.status.failed'))).not.toBeInTheDocument();
   }, 10_000);
-
-  it('shows no summary while nothing needs attention', async () => {
+  it('opens nothing and says nothing while nothing needs attention', async () => {
     const completedHeadWorkflow = { ...failedHeadWorkflow, overallStatus: 'Completed', steps: [] };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
@@ -185,13 +178,14 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    await screen.findAllByRole('group');
+    const rows = await screen.findAllByRole('group');
+    expect(rows.every((row) => !row.hasAttribute('open'))).toBe(true);
     expect(
-      screen.queryByRole('region', { name: textMock('admin.workflows.summary.title') }),
+      screen.queryByText(textMock('admin.workflows.notice.recovered')),
     ).not.toBeInTheDocument();
+    expect(screen.queryByText(/admin\.workflows\.notice\.stale/)).not.toBeInTheDocument();
   });
-
-  it('sums up a workflow that keeps retrying, and counts down to its next attempt in the row', async () => {
+  it('opens a workflow that keeps retrying, with its attempts and the countdown in the row', async () => {
     const retryingHeadWorkflow = {
       ...failedHeadWorkflow,
       overallStatus: 'Requeued',
@@ -204,17 +198,14 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const summary = await screen.findByRole('region', {
-      name: textMock('admin.workflows.summary.title'),
-    });
+    const [row] = await screen.findAllByRole('group');
+    expect(row).toHaveAttribute('open');
     expect(
-      within(summary).getByText(textMock('admin.workflows.health.retrying')),
+      within(row).getByText(textMock('admin.workflows.row.attempts', { count: 5 })),
     ).toBeInTheDocument();
-    const [row] = screen.getAllByRole('group');
     expect(within(row).getByText(/admin\.workflows\.row\.next_attempt_in/)).toBeInTheDocument();
   });
-
-  it('flags work in flight that has not changed for a long time', async () => {
+  it('flags work in flight that has not changed for a long time, and opens it', async () => {
     const twoHoursAgo = new Date(Date.now() - 2 * 3_600_000).toISOString();
     const stuckHeadWorkflow = {
       ...failedHeadWorkflow,
@@ -229,14 +220,11 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const summary = await screen.findByRole('region', {
-      name: textMock('admin.workflows.summary.title'),
-    });
-    expect(within(summary).getByText(/admin\.workflows\.summary\.stale/)).toBeInTheDocument();
+    expect(await screen.findByText(/admin\.workflows\.notice\.stale/)).toBeInTheDocument();
     const [row] = screen.getAllByRole('group');
+    expect(row).toHaveAttribute('open');
     expect(within(row).getByText(/admin\.workflows\.row\.running_for/)).toBeInTheDocument();
   });
-
   it('reads each workflow as a row: its steps, where it stopped, and what went wrong', async () => {
     jest
       .mocked(axios.get)
@@ -265,38 +253,20 @@ describe('InstanceWorkflows', () => {
     expect(settledRow).not.toHaveTextContent('PdfGenerationException');
   });
 
-  it('sums the instance up above the list: verdict, transition, step, attempts and latest error', async () => {
+  it('opens the row that needs attention from the start, with its error and verbs in view', async () => {
     jest
       .mocked(axios.get)
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const summary = await screen.findByRole('region', {
-      name: textMock('admin.workflows.summary.title'),
-    });
+    const [failedRow, settledRow] = await screen.findAllByRole('group');
+    expect(failedRow).toHaveAttribute('open');
+    expect(settledRow).not.toHaveAttribute('open');
+    expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();
     expect(
-      within(summary).getByText(textMock('admin.workflows.health.failed')),
-    ).toBeInTheDocument();
-    expect(within(summary).getByText(textMock('admin.workflows.summary.failed'))).toHaveTextContent(
-      'Pdf → Sign',
-    );
-    expect(
-      within(summary).getByText(
-        textMock('admin.workflows.summary.step_of', { step: 1, total: 2 }),
-        {
-          exact: false,
-        },
-      ),
-    ).toHaveTextContent('app-command');
-    expect(within(summary).getByText('3')).toBeInTheDocument();
-    // The latest error, unpacked: the newer of the two entries, not the first recorded one.
-    expect(within(summary).getByText('PdfGenerationException')).toBeInTheDocument();
-    expect(within(summary).queryByText('Boom went the pipeline')).not.toBeInTheDocument();
-    expect(
-      within(summary).getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
+      within(failedRow).getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
     ).toBeInTheDocument();
   });
-
   it("lists a step's errors newest first, each with what the engine made of it", async () => {
     jest
       .mocked(axios.get)
@@ -373,11 +343,8 @@ describe('InstanceWorkflows', () => {
     const message = await screen.findByText('Boom went the pipeline');
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
-    // The transition name, in the summary and in the row, is the app's process model, shown as it
-    // came too.
-    const transitions = screen.getAllByText('Pdf → Sign');
-    expect(transitions).toHaveLength(2);
-    expect(transitions.every((element) => element.tagName === 'SPAN')).toBe(true);
+    // The transition name in the row is the app's process model, shown as it came too.
+    expect(screen.getByText('Pdf → Sign').tagName).toBe('SPAN');
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {
