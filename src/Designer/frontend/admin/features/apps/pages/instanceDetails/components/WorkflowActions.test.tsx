@@ -25,7 +25,10 @@ const collectionKey = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
 const workflowId = 'aaaa1111-2222-4333-8444-555566667777';
 const context: WorkflowOpsContext = { org, env, app, collectionKey };
 
-const workflow = (overallStatus: PersistentItemStatus): WorkflowStatus => ({
+const workflow = (
+  overallStatus: PersistentItemStatus,
+  extra: Partial<WorkflowStatus> = {},
+): WorkflowStatus => ({
   databaseId: workflowId,
   collectionKey,
   operationId: 'process/next',
@@ -34,7 +37,23 @@ const workflow = (overallStatus: PersistentItemStatus): WorkflowStatus => ({
   createdAt: '2026-08-02T10:00:00Z',
   overallStatus,
   steps: [],
+  ...extra,
 });
+
+const failedAfter = (wasRetryable: boolean): WorkflowStatus =>
+  workflow('Failed', {
+    steps: [
+      {
+        databaseId: 'step-1',
+        operationId: 'app-command',
+        processingOrder: 0,
+        status: 'Failed',
+        command: { type: 'app' },
+        retryCount: 0,
+        errorHistory: [{ timestamp: '2026-08-02T10:04:00Z', message: 'Boom', wasRetryable }],
+      },
+    ],
+  });
 
 const retryButton = () =>
   screen.getByRole('button', { name: textMock('admin.workflows.actions.retry') });
@@ -152,6 +171,51 @@ describe('WorkflowActions', () => {
     await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
 
     expect(await screen.findByText(textMock('admin.workflows.actions.error'))).toBeInTheDocument();
+  });
+
+  it('warns before a retry when the engine classed the last error as permanent', async () => {
+    const user = userEvent.setup();
+    renderWorkflowActions(failedAfter(false));
+
+    await user.click(retryButton());
+
+    expect(
+      screen.getByText(textMock('admin.workflows.actions.retry.non_retryable_hint'), {
+        exact: false,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not warn when the last error was one the engine retried', async () => {
+    const user = userEvent.setup();
+    renderWorkflowActions(failedAfter(true));
+
+    await user.click(retryButton());
+
+    expect(
+      screen.queryByText(textMock('admin.workflows.actions.retry.non_retryable_hint'), {
+        exact: false,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('says how many dependents the cascade resumed along with the workflow', async () => {
+    const user = userEvent.setup();
+    jest.mocked(axios.post).mockResolvedValue({
+      status: 202,
+      data: { workflowId, resumedAt: '2026-08-02T10:10:00Z', cascadeResumed: ['dep-1', 'dep-2'] },
+    } as AxiosResponse);
+    const { rerenderWith } = renderWorkflowActions(workflow('Failed'));
+
+    await user.click(retryButton());
+    await user.click(confirmButton('admin.workflows.actions.retry.confirm'));
+    rerenderWith(workflow('Enqueued'));
+
+    expect(
+      await screen.findByText(
+        textMock('admin.workflows.actions.retry.success_with_dependents', { count: 2 }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('confirms success in place once the retried workflow has left the failed state', async () => {

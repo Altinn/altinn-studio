@@ -13,6 +13,7 @@ import {
   FAILED_WORKFLOW_STATUSES,
   RESUMABLE_WORKFLOW_STATUSES,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { latestErrorOf } from 'admin/features/apps/utils/workflowTriage';
 
 import classes from './WorkflowActions.module.css';
 
@@ -45,6 +46,15 @@ export const WorkflowActions = ({
   const canRetry = RESUMABLE_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const canAbandon = FAILED_WORKFLOW_STATUSES.includes(workflow.overallStatus);
   const hasOutcome = resume.isSuccess || abandon.isSuccess || resume.isError || abandon.isError;
+  const cascadeCount = resume.data?.cascadeResumed?.length ?? 0;
+
+  // An error the engine classed as permanent was not retried by the engine either, so a retry
+  // without a fix in the app is going to fail the same way. The dialog says so.
+  const lastError = latestErrorOf(workflow);
+  const retryDescription =
+    lastError && !lastError.wasRetryable
+      ? `${t('admin.workflows.actions.retry.description')} ${t('admin.workflows.actions.retry.non_retryable_hint')}`
+      : t('admin.workflows.actions.retry.description');
 
   const { reset: resetResume } = resume;
   const { reset: resetAbandon } = abandon;
@@ -67,7 +77,7 @@ export const WorkflowActions = ({
             <ConfirmActionDialog
               triggerLabel={t('admin.workflows.actions.retry')}
               heading={t('admin.workflows.actions.retry.heading')}
-              description={t('admin.workflows.actions.retry.description')}
+              description={retryDescription}
               confirmLabel={t('admin.workflows.actions.retry.confirm')}
               isPending={resume.isPending}
               onConfirm={() => {
@@ -94,7 +104,9 @@ export const WorkflowActions = ({
       )}
       {resume.isSuccess && (
         <StudioAlert data-color='success' data-size='sm'>
-          {t('admin.workflows.actions.retry.success')}
+          {cascadeCount > 0
+            ? t('admin.workflows.actions.retry.success_with_dependents', { count: cascadeCount })
+            : t('admin.workflows.actions.retry.success')}
         </StudioAlert>
       )}
       {abandon.isSuccess && (

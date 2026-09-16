@@ -1,0 +1,35 @@
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-4);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+}
+
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-2);
+  font-weight: 500;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2) var(--ds-size-8);
+}
+
+.lastError {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+}
+
+/* Names from the app's process model and the engine, shown as they came. */
+.engineText {
+  font-family: 'Courier New', monospace;
+  font-size: var(--ds-font-size-1);
+  overflow-wrap: anywhere;
+}

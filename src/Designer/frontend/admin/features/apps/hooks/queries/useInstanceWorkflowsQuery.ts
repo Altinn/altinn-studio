@@ -8,7 +8,10 @@ import type {
 import { workflowsListPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
 import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
-import { hasActiveWorkflows, refetchWhileActive } from 'admin/features/apps/utils/workflowRefetch';
+import {
+  PROCESSING_REFETCH_INTERVAL_MS,
+  workflowsRefetchInterval,
+} from 'admin/features/apps/utils/workflowRefetch';
 
 export const INSTANCE_WORKFLOWS_PAGE_SIZE = 25;
 
@@ -37,8 +40,13 @@ export const useInstanceWorkflowsQuery = (
       ),
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
     // A retried or newly enqueued workflow is only enqueued by the verb; the state the operator
-    // waits for arrives later, so the drill-down keeps asking while anything is in flight.
-    refetchInterval: (query) => refetchWhileActive(hasActiveWorkflows(query.state.data)),
+    // waits for arrives later, so the drill-down keeps asking while anything is in flight — and
+    // asks again right when a parked workflow's backoff elapses.
+    refetchInterval: (query) => workflowsRefetchInterval(query.state.data),
+    // The global default leaves window focus alone; this view is the one an operator comes back
+    // to after fixing the app, so it reads again when they do.
+    refetchOnWindowFocus: true,
+    staleTime: PROCESSING_REFETCH_INTERVAL_MS,
     select: (data) =>
       data.pages
         .flatMap((page) => page?.data ?? [])

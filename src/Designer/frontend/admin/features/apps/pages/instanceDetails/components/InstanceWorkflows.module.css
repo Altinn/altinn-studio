@@ -46,11 +46,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-1);
-  max-width: 32rem;
+  max-width: 48rem;
 }
 
 .errorHistory {
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
 }
 
 /* Free text from the engine, shown as it came: not translated, not part of the sentence. */

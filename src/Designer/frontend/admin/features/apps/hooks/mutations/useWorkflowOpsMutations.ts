@@ -2,6 +2,7 @@ import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import type { ResumeWorkflowResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { abandonWorkflowPath, resumeWorkflowPath } from 'admin/features/apps/utils/apiPaths';
 
 /**
@@ -21,13 +22,16 @@ export type WorkflowOpsContext = {
 
 export const useResumeWorkflowMutation = (
   context: WorkflowOpsContext,
-): UseMutationResult<void, unknown, string> => {
+): UseMutationResult<ResumeWorkflowResponse, unknown, string> => {
   const queryClient = useQueryClient();
   const { org, env, app } = context;
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      await axios.post(resumeWorkflowPath(org, env, app, workflowId, RESUME_CASCADE));
+      const response = await axios.post<ResumeWorkflowResponse>(
+        resumeWorkflowPath(org, env, app, workflowId, RESUME_CASCADE),
+      );
+      return response.data;
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },

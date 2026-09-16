@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -24,10 +24,13 @@ const instanceId = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
 const headWorkflowId = 'aaaa1111-2222-4333-8444-555566667777';
 const sideChainWorkflowId = 'bbbb1111-2222-4333-8444-555566667777';
 
+const problemMessage =
+  'AppCommand execution failed with status code InternalServerError: {"title":"PdfGenerationException","status":500,"detail":"Could not generate the PDF"}';
+
 const failedHeadWorkflow = {
   databaseId: headWorkflowId,
   collectionKey: instanceId,
-  operationId: 'process/next',
+  operationId: 'Process next: Pdf -> Sign',
   idempotencyKey: 'key-1',
   namespace: `${org}/${app}`,
   createdAt: '2026-08-02T10:00:00Z',
@@ -47,9 +50,16 @@ const failedHeadWorkflow = {
       lastDeferReason: 'venter på signering',
       errorHistory: [
         {
-          timestamp: '2026-08-02T10:04:00Z',
+          timestamp: '2026-08-02T10:02:00Z',
           message: 'Boom went the pipeline',
+          httpStatusCode: 503,
           wasRetryable: true,
+        },
+        {
+          timestamp: '2026-08-02T10:04:00Z',
+          message: problemMessage,
+          httpStatusCode: 500,
+          wasRetryable: false,
         },
       ],
     },
@@ -96,7 +106,7 @@ describe('InstanceWorkflows', () => {
 
     const summaries = await screen.findAllByRole('group');
     expect(summaries).toHaveLength(2);
-    expect(summaries[0]).toHaveTextContent('process/next');
+    expect(summaries[0]).toHaveTextContent('Process next: Pdf -> Sign');
     expect(summaries[1]).toHaveTextContent('side-effects');
     expect(summaries[1]).toHaveTextContent(textMock('admin.workflows.side_effect'));
 
@@ -112,9 +122,67 @@ describe('InstanceWorkflows', () => {
 
     expect(await screen.findByRole('cell', { name: 'app-command' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '3' })).toBeInTheDocument();
-    expect(screen.getByText('Boom went the pipeline', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('Boom went the pipeline')).toBeInTheDocument();
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
+    ).toBeInTheDocument();
+  });
+
+  it('sums the instance up above the list: verdict, transition, step, attempts and latest error', async () => {
+    jest
+      .mocked(axios.get)
+      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const summary = await screen.findByRole('region', {
+      name: textMock('admin.workflows.summary.title'),
+    });
+    expect(
+      within(summary).getByText(textMock('admin.workflows.health.failed')),
+    ).toBeInTheDocument();
+    expect(within(summary).getByText(textMock('admin.workflows.summary.failed'))).toHaveTextContent(
+      'Pdf → Sign',
+    );
+    expect(
+      within(summary).getByText(
+        textMock('admin.workflows.summary.step_of', { step: 1, total: 2 }),
+        {
+          exact: false,
+        },
+      ),
+    ).toHaveTextContent('app-command');
+    expect(within(summary).getByText('3')).toBeInTheDocument();
+    // The latest error, unpacked: the newer of the two entries, not the first recorded one.
+    expect(within(summary).getByText('PdfGenerationException')).toBeInTheDocument();
+    expect(within(summary).queryByText('Boom went the pipeline')).not.toBeInTheDocument();
+    expect(
+      within(summary).getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
+    ).toBeInTheDocument();
+  });
+
+  it("lists a step's errors newest first, each with what the engine made of it", async () => {
+    jest
+      .mocked(axios.get)
+      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const stepTable = await screen.findByRole('table');
+    const messages = within(stepTable).getAllByText(
+      (_, element) =>
+        element?.tagName === 'CODE' &&
+        ['Could not generate the PDF', 'Boom went the pipeline'].includes(
+          element.textContent ?? '',
+        ),
+    );
+    expect(messages.map((element) => element.textContent)).toEqual([
+      'Could not generate the PDF',
+      'Boom went the pipeline',
+    ]);
+    expect(
+      within(stepTable).getByText(textMock('admin.workflows.error.http_status', { status: 503 })),
+    ).toBeInTheDocument();
+    expect(
+      within(stepTable).getByText(textMock('admin.workflows.error.non_retryable')),
     ).toBeInTheDocument();
   });
 
@@ -168,6 +236,8 @@ describe('InstanceWorkflows', () => {
     const message = await screen.findByText('Boom went the pipeline');
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
+    // The transition name in the summary is the app's process model, shown as it came too.
+    expect(screen.getByText('Pdf → Sign').tagName).toBe('SPAN');
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {

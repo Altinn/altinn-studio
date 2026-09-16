@@ -4,7 +4,6 @@ import {
   StudioCard,
   StudioDetails,
   StudioHeading,
-  StudioList,
   StudioParagraph,
   StudioSpinner,
   StudioTable,
@@ -18,11 +17,14 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMessage/EngineErrorMessage';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
+import { newestFirst, orderedSteps } from 'admin/features/apps/utils/workflowTriage';
+import { InstanceWorkflowSummary } from './InstanceWorkflowSummary';
 import { WorkflowActions } from './WorkflowActions';
 
 import classes from './InstanceWorkflows.module.css';
@@ -110,6 +112,7 @@ const InstanceWorkflowsContent = ({
 
   return (
     <div className={classes.workflows}>
+      <InstanceWorkflowSummary context={context} workflows={workflows} />
       {workflows.map((workflow) => (
         <WorkflowItem key={workflow.databaseId} context={context} workflow={workflow} />
       ))}
@@ -174,23 +177,20 @@ const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
           </LabelValue>
           <LabelValue label={t('admin.workflows.id')}>{workflow.databaseId}</LabelValue>
         </div>
-        <WorkflowSteps steps={workflow.steps} />
+        <WorkflowSteps workflow={workflow} />
         <WorkflowActions context={context} workflow={workflow} />
       </StudioDetails.Content>
     </StudioDetails>
   );
 };
 
-const WorkflowSteps = ({ steps }: { steps: WorkflowStepStatus[] }) => {
+const WorkflowSteps = ({ workflow }: { workflow: WorkflowStatus }) => {
   const { t } = useTranslation();
+  const steps = orderedSteps(workflow);
 
-  if (!steps?.length) {
+  if (!steps.length) {
     return null;
   }
-
-  const orderedSteps = steps.toSorted(
-    (first, second) => first.processingOrder - second.processingOrder,
-  );
 
   return (
     <div className={classes.steps}>
@@ -204,11 +204,12 @@ const WorkflowSteps = ({ steps }: { steps: WorkflowStepStatus[] }) => {
             <StudioTable.Cell>{t('admin.workflows.operation')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.status')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.step.retries')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('admin.instances.last_changed')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.step.details')}</StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {orderedSteps.map((step) => (
+          {steps.map((step) => (
             <StudioTable.Row key={step.databaseId}>
               <StudioTable.Cell>{step.processingOrder}</StudioTable.Cell>
               <StudioTable.Cell>{step.operationId}</StudioTable.Cell>
@@ -216,6 +217,7 @@ const WorkflowSteps = ({ steps }: { steps: WorkflowStepStatus[] }) => {
                 <WorkflowStatusTag status={step.status} />
               </StudioTable.Cell>
               <StudioTable.Cell>{step.retryCount}</StudioTable.Cell>
+              <StudioTable.Cell>{formatDateAndTime(step.updatedAt)}</StudioTable.Cell>
               <StudioTable.Cell>
                 <StepDetails step={step} />
               </StudioTable.Cell>
@@ -264,14 +266,11 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
           <StudioHeading level={4} data-size='2xs'>
             {t('admin.workflows.step.errors')}
           </StudioHeading>
-          <StudioList.Unordered className={classes.errorHistory}>
-            {errorHistory.map((entry, index) => (
-              <StudioList.Item key={`${entry.timestamp}-${index}`}>
-                {formatDateAndTime(entry.timestamp)}:{' '}
-                <code className={classes.engineText}>{entry.message}</code>
-              </StudioList.Item>
+          <div className={classes.errorHistory}>
+            {newestFirst(errorHistory).map((entry, index) => (
+              <EngineErrorMessage key={`${entry.timestamp}-${index}`} entry={entry} />
             ))}
-          </StudioList.Unordered>
+          </div>
         </>
       )}
     </div>

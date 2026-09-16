@@ -20,6 +20,11 @@ export const WORKFLOW_HEALTH_PRESENTATION: Record<WorkflowHealth, HealthPresenta
     labelKey: 'admin.workflows.health.failed',
     descriptionKey: 'admin.workflows.health.failed_description',
   },
+  [WorkflowHealth.Retrying]: {
+    color: 'warning',
+    labelKey: 'admin.workflows.health.retrying',
+    descriptionKey: 'admin.workflows.health.retrying_description',
+  },
   [WorkflowHealth.SideEffectsFailed]: {
     color: 'warning',
     labelKey: 'admin.workflows.health.side_effects_failed',

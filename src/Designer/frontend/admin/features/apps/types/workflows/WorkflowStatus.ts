@@ -50,6 +50,8 @@ export type WorkflowStepStatus = {
   command: { type: string };
   /** Times the step has been requeued after a failure. */
   retryCount: number;
+  /** When a worker last started executing the step. Absent until the first attempt. */
+  executionStartedAt?: string;
   /** Times the step has parked in Waiting because the awaited outcome was not available yet. */
   deferCount?: number;
   updatedAt?: string;
@@ -68,6 +70,13 @@ export type WorkflowStatus = {
   namespace: string;
   createdAt: string;
   updatedAt?: string;
+  /** When a worker last started executing the workflow. Absent until the first attempt. */
+  executionStartedAt?: string;
+  /**
+   * When a parked (`Requeued`/`Waiting`) workflow is due again. Cleared once the engine picks it up,
+   * so a value in the past means the next attempt is imminent, not overdue.
+   */
+  backoffUntil?: string | null;
   overallStatus: PersistentItemStatus;
   /**
    * The head-visibility directive the workflow was enqueued with. `false` marks a workflow
@@ -77,6 +86,14 @@ export type WorkflowStatus = {
   isHead?: boolean;
   labels?: Record<string, string>;
   steps: WorkflowStepStatus[];
+};
+
+/** What `POST …/workflows/{id}/resume` answers with. */
+export type ResumeWorkflowResponse = {
+  workflowId: string;
+  resumedAt: string;
+  /** Dependents left in `DependencyFailed` by this workflow that the cascade resumed with it. */
+  cascadeResumed: string[];
 };
 
 export type WorkflowListResponse = {

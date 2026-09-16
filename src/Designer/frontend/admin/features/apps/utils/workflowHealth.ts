@@ -14,6 +14,12 @@ import type {
 export enum WorkflowHealth {
   /** A failure visible to the head frontier: the process is stuck and the user is blocked. */
   Failed = 'failed',
+  /**
+   * A visible workflow that keeps failing and retrying. The engine has not given up, but the user
+   * is blocked all the same, and it is unlikely to resolve without a fix in the app. Only derivable
+   * from the workflows themselves (see `deriveInstanceHealth`), never from the collection rollup.
+   */
+  Retrying = 'retrying',
   /** A failure hidden from the head frontier: side effects were lost, ops must intervene. */
   SideEffectsFailed = 'sideEffectsFailed',
   /** Work still in flight. Expected to resolve itself. */
