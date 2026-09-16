@@ -164,6 +164,7 @@
   "admin.workflows.status.processing": "Kjører",
   "admin.workflows.status.requeued": "Lagt i kø på nytt",
   "admin.workflows.status.waiting": "Venter",
+  "admin.workflows.step.actions": "Handling",
   "admin.workflows.step.defer_count": "Har ventet {{times}} ganger",
   "admin.workflows.step.details": "Detaljer",
   "admin.workflows.step.hide_earlier_errors": "Skjul tidligere feil",

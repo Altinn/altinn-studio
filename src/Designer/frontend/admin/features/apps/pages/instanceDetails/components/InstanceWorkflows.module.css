@@ -13,26 +13,6 @@
   width: 100%;
 }
 
-/* The disclosure and, over its right edge, the verbs that apply to the workflow. */
-.row {
-  position: relative;
-}
-
-/* Centred on the summary's first line: the summary is at least this tall and centres its content. */
-.rowVerbs {
-  position: absolute;
-  top: 0;
-  right: var(--ds-size-4);
-  display: flex;
-  align-items: center;
-  min-height: var(--ds-size-14);
-}
-
-/* Room for the verbs, so the row's own text never runs under them. */
-.summaryWithVerbs {
-  padding-right: 15rem;
-}
-
 /* The row as columns of fixed width, so the status, the name, the step dots and the rest line
    up from one row to the next. Narrow screens fall back to wrapping. */
 .summary {
@@ -126,6 +106,22 @@
   flex-direction: column;
   gap: var(--ds-size-2);
   overflow-x: auto;
+}
+
+/* The verbs, at the right edge of the step the workflow stopped at. */
+.stepActions {
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .stepDetails {
