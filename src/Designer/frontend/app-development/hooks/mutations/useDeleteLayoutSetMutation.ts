@@ -19,6 +19,7 @@ export const useDeleteLayoutSetMutation = (org: string, app: string) => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] });
     },
   });
 };

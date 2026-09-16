@@ -8,5 +8,6 @@ public static class DataModelingErrorCodes
     public const string JsonSchemaConvertError = "DM_03";
     public const string ModelMetadataConvertError = "DM_04";
     public const string InvalidXmlError = "DM_05";
+    public const string InvalidJsonSchemaError = "DM_06";
     public const string ModelWithTheSameTypeNameExists = nameof(ModelWithTheSameTypeNameExists);
 }

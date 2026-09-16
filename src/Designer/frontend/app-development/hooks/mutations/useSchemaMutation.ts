@@ -3,6 +3,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { removeEmptyCombinations } from '@altinn/schema-model';
 
 export const useSchemaMutation = () => {
   const queryClient = useQueryClient();
@@ -12,7 +13,7 @@ export const useSchemaMutation = () => {
     mutationFn: async (args: { modelPath: string; model: JsonSchema }) => {
       const { modelPath, model } = args;
       queryClient.setQueryData([QueryKey.JsonSchema, org, app, modelPath], () => model);
-      await saveDataModel(org, app, modelPath, model);
+      await saveDataModel(org, app, modelPath, removeEmptyCombinations(model));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsMetadata, org, app] });
