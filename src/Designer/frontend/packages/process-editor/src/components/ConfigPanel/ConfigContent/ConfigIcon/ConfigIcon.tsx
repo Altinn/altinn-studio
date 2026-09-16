@@ -4,6 +4,7 @@ import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
 import {
   ArchiveIcon,
   ArrowRightIcon,
+  BranchingIcon,
   CogIcon,
   ConfirmationTaskIcon,
   DataTaskIcon,
@@ -47,6 +48,8 @@ export const ConfigIcon = ({ taskType, type }: ConfigIconProps): React.ReactElem
       return <EndEventIcon className={classes.icon} />;
     case BpmnTypeEnum.SequenceFlow.toString():
       return <ArrowRightIcon className={classes.icon} />;
+    case BpmnTypeEnum.ExclusiveGateway.toString():
+      return <BranchingIcon className={classes.icon} />;
   }
 
   // Any other task type is a service task the app implements itself, so Studio cannot know it.

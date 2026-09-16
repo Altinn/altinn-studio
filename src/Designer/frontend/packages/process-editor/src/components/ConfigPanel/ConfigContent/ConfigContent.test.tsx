@@ -174,6 +174,61 @@ describe('ConfigContent', () => {
     expect(designDetails).toBeInTheDocument();
   });
 
+  // The switch sits in the block that covers both kinds of signing task, and the runtime reads the
+  // value on both, so where it renders is the part that can quietly break.
+  describe('Default signature validator', () => {
+    const runDefaultValidatorLabel = textMock(
+      'process_editor.configuration_panel_run_default_validator_label',
+    );
+
+    const createSigningElement = (signatureConfig: object) => ({
+      ...mockBpmnDetails.element,
+      businessObject: {
+        extensionElements: {
+          values: [{ $type: 'altinn:TaskExtension', taskType: 'signing', signatureConfig }],
+        },
+      },
+    });
+
+    it('should show the validator switch on a signing task', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'signing',
+            element: createSigningElement({ dataTypesToSign: [] }),
+          },
+        },
+      );
+
+      expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
+    });
+
+    // The palette writes `taskType: 'signing'` for user controlled signing too, and the runtime
+    // reads that exact value, so the delegated variant is a signing task carrying a signee provider.
+    it('should show the validator switch on a user controlled signing task', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'signing',
+            element: createSigningElement({ signeeProviderId: 'my-provider' }),
+          },
+        },
+      );
+
+      expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
+    });
+
+    it('should not show the validator switch on a task that is not signing', () => {
+      renderConfigContent();
+
+      expect(screen.queryByLabelText(runDefaultValidatorLabel)).not.toBeInTheDocument();
+    });
+  });
+
   describe('Unique signature', () => {
     const element = getMockBpmnElementForTask('signing');
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =

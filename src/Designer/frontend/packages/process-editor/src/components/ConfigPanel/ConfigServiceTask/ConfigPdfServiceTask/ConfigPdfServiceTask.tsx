@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { StudioList, StudioRadio, StudioRadioGroup } from '@studio/components';
 import classes from './ConfigPdfServiceTask.module.css';
-import { useCurrentLayoutSet } from './useCurrentLayoutSet';
+import sharedClasses from '../ConfigServiceTask.module.css';
+import { useCurrentLayoutSet } from '../../../../hooks/useCurrentLayoutSet';
 import { PdfLayoutBasedSection } from './PdfLayoutBasedSection';
 import { PdfAutomaticTaskSelection } from './PdfAutomaticTaskSelection';
-import { PdfFilenameTextResource } from './PdfFilenameTextResource';
+import { FilenameTextResource } from '../FilenameTextResource';
+import { usePdfConfig } from './usePdfConfig';
 
 type PdfMode = 'automatic' | 'layout-based';
 
@@ -14,6 +16,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
   const { deleteLayoutSet } = useBpmnApiContext();
   const { currentLayoutSet } = useCurrentLayoutSet();
+  const { storedFilenameTextResourceId, updateFilenameTextResourceKey } = usePdfConfig();
 
   const initialMode: PdfMode = currentLayoutSet ? 'layout-based' : 'automatic';
   const [pdfMode, setPdfMode] = useState<PdfMode>(initialMode);
@@ -33,7 +36,7 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   }
 
   return (
-    <StudioList.Unordered className={classes.pdfConfig}>
+    <StudioList.Unordered className={sharedClasses.taskConfigList}>
       <StudioList.Item>
         <div className={classes.container}>
           <StudioRadioGroup
@@ -60,7 +63,11 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
       </StudioList.Item>
 
       <StudioList.Item>
-        <PdfFilenameTextResource />
+        <FilenameTextResource
+          textResourceId={storedFilenameTextResourceId}
+          onTextResourceIdChange={updateFilenameTextResourceKey}
+          textResourceIdPrefix='pdf-filename'
+        />
       </StudioList.Item>
     </StudioList.Unordered>
   );

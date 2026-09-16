@@ -59,6 +59,25 @@ describe('taskUtils', () => {
       expect(TaskUtils.isUserControlledSigning({ businessObject: {} } as Element)).toBe(false);
     });
   });
+
+  describe('getTaskExtension', () => {
+    // A bpmn file Studio did not write can carry other extensions in the same list, so position is
+    // not a safe way to find the altinn one.
+    it('finds the altinn task extension among other extension elements', () => {
+      const taskExtension = { $type: 'altinn:TaskExtension', taskType: 'signing' };
+      const element = {
+        businessObject: {
+          extensionElements: { values: [{ $type: 'camunda:Properties' }, taskExtension] },
+        },
+      } as unknown as Element;
+
+      expect(TaskUtils.getTaskExtension(element)).toBe(taskExtension);
+    });
+
+    it('returns undefined when the element carries no task extension', () => {
+      expect(TaskUtils.getTaskExtension({ businessObject: {} } as Element)).toBeUndefined();
+    });
+  });
 });
 
 type SignatureConfig = {

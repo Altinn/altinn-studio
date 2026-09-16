@@ -11,10 +11,12 @@ import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from './EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from './EditUniqueFromSignaturesInDataTypes';
+import { EditRunDefaultValidator } from './EditRunDefaultValidator';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { getTaskIdForLayoutSet } from 'app-shared/utils/layoutSetsUtils';
+import { useCurrentLayoutSet } from '../../../hooks/useCurrentLayoutSet';
 import { EditLayoutSetName } from './EditLayoutSetName';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
@@ -25,16 +27,14 @@ import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const { layoutSets, availableDataModelIds } = useBpmnApiContext();
-  const layoutSet = layoutSets?.find((set) => getTaskIdForLayoutSet(set) === bpmnDetails.id);
+  const { availableDataModelIds } = useBpmnApiContext();
+  const { currentLayoutSet: layoutSet } = useCurrentLayoutSet();
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
   const isUserControlledSigningTask = TaskUtils.isUserControlledSigning(bpmnDetails.element);
   const shouldDisplayEditDataTypesToSign = isSigningTask || isUserControlledSigningTask;
 
-  const taskHasConnectedLayoutSet = layoutSets?.some(
-    (set) => getTaskIdForLayoutSet(set) === bpmnDetails.id,
-  );
+  const taskHasConnectedLayoutSet = Boolean(layoutSet);
   const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
 
   const studioModeler = new StudioModeler();
@@ -73,6 +73,12 @@ export const ConfigContent = (): React.ReactElement => {
             <EditDataTypesToSign key={`${bpmnDetails.id}-dataTypes`} />
             {!isFirstSigningTask && (
               <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
+            )}
+            {/* The runtime runs the default validator only when the task type is literally
+                `signing` (`SigningTaskValidator.ShouldRunForTask`), which is also what the palette
+                writes for both kinds of signing task. */}
+            {isSigningTask && (
+              <EditRunDefaultValidator key={`${bpmnDetails.id}-runDefaultValidator`} />
             )}
           </>
         )}

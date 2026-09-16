@@ -1,13 +1,10 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { useCurrentLayoutSet } from './useCurrentLayoutSet';
-import { BpmnContext } from '../../../../contexts/BpmnContext';
-import { BpmnApiContext } from '../../../../contexts/BpmnApiContext';
-import {
-  mockBpmnContextValue,
-  mockBpmnApiContextValue,
-} from '../../../../../test/mocks/bpmnContextMock';
-import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
+import { BpmnContext } from '../contexts/BpmnContext';
+import { BpmnApiContext } from '../contexts/BpmnApiContext';
+import { mockBpmnContextValue, mockBpmnApiContextValue } from '../../test/mocks/bpmnContextMock';
+import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 describe('useCurrentLayoutSet', () => {

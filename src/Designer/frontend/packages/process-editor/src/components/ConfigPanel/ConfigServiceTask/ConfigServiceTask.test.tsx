@@ -1,49 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
-import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnApiContext, type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
+import { type BpmnContextProps } from '../../../contexts/BpmnContext';
+import { type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import {
-  mockBpmnContextValue,
-  mockBpmnApiContextValue,
-} from '../../../../test/mocks/bpmnContextMock';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
-import type { BpmnDetails } from '../../../types/BpmnDetails';
-import { MemoryRouter } from 'react-router-dom';
-
-type PdfBpmnDetailsConfig = {
-  filenameTextResourceKey?: string;
-  taskIds?: string[];
-};
-
-const createPdfBpmnDetails = (config: PdfBpmnDetailsConfig = {}): BpmnDetails => {
-  const { filenameTextResourceKey = '', taskIds = [] } = config;
-  return {
-    ...mockBpmnDetails,
-    taskType: 'pdf',
-    element: {
-      ...mockBpmnDetails.element,
-      businessObject: {
-        ...mockBpmnDetails.element.businessObject,
-        extensionElements: {
-          values: [
-            {
-              pdfConfig: {
-                filenameTextResourceKey: filenameTextResourceKey
-                  ? { value: filenameTextResourceKey }
-                  : undefined,
-                autoPdfTaskIds: {
-                  taskIds: taskIds.map((id) => ({ value: id })),
-                },
-              },
-            },
-          ],
-        },
-      },
-    },
-  };
-};
+import { renderWithProviders } from '../../../../test/renderWithProviders';
+import { createPdfBpmnDetails } from './ConfigPdfServiceTask/testUtils';
 
 const tasks = [
   {
@@ -76,18 +39,6 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
     }),
   };
 });
-
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
-  useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
-}));
-
-jest.mock('app-shared/hooks/queries', () => ({
-  useTextResourcesQuery: () => ({ data: { nb: [] } }),
-}));
-
-jest.mock('app-shared/hooks/mutations', () => ({
-  useUpsertTextResourceMutation: () => ({ mutate: jest.fn() }),
-}));
 
 jest.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
   useUpdatePdfConfigTaskIds: () => jest.fn(),
@@ -127,39 +78,30 @@ describe('ConfigServiceTask', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should not offer an editable task type for pdf, which has a panel of its own', () => {
-    const pdfBpmnDetails = createPdfBpmnDetails({});
-
-    renderConfigServiceTask({
-      bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-      bpmnApiContextProps: { layoutSets: [] },
-    });
-
-    expect(queryTaskTypeField()).not.toBeInTheDocument();
-  });
-
-  // Studio has no panel for these yet, so the type field stays — otherwise typing one of these
-  // names into it would unmount the only control the task has, with no way back.
-  it.each(['', 'myServiceTask', 'eFormidling', 'subformPdf', 'fiksArkiv'])(
+  // The type field is what decides which panel is shown, so unmounting it on the value just typed
+  // would leave the developer in a panel with no way back to the type they came from.
+  it.each(['', 'myServiceTask', 'eFormidling', 'fiksArkiv', 'pdf', 'subformPdf'])(
     'should offer an editable task type for "%s"',
     (taskType) => {
       renderConfigServiceTask({
         bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+        bpmnApiContextProps: { layoutSets: [] },
       });
 
       expect(queryTaskTypeField()).toBeInTheDocument();
     },
   );
 
-  it.each([
-    ['eFormidling', 'process_editor.configuration_panel_eformidling_incomplete_config_alert'],
-    ['subformPdf', 'process_editor.configuration_panel_subform_pdf_incomplete_config_alert'],
-  ])('should warn that %s must be configured in process.bpmn', (taskType, alertKey) => {
+  it('should warn that eFormidling must be configured in process.bpmn', () => {
     renderConfigServiceTask({
-      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType: 'eFormidling' } },
     });
 
-    expect(screen.getByText(textMock(alertKey))).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('process_editor.configuration_panel_eformidling_incomplete_config_alert'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it.each(['fiksArkiv', 'myServiceTask'])(
@@ -174,13 +116,20 @@ describe('ConfigServiceTask', () => {
           textMock('process_editor.configuration_panel_eformidling_incomplete_config_alert'),
         ),
       ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText(
-          textMock('process_editor.configuration_panel_subform_pdf_incomplete_config_alert'),
-        ),
-      ).not.toBeInTheDocument();
     },
   );
+
+  it('should render subform pdf configuration for a subformPdf task', () => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType: 'subformPdf' } },
+    });
+
+    expect(
+      screen.getByLabelText(
+        textMock('process_editor.configuration_panel_subform_pdf_component_id_label'),
+      ),
+    ).toBeInTheDocument();
+  });
 
   it('should render pdf configuration for pdf service task', () => {
     const pdfBpmnDetails = createPdfBpmnDetails({});
@@ -212,18 +161,10 @@ type RenderProps = {
   bpmnApiContextProps?: Partial<BpmnApiContextProps>;
 };
 
-const renderConfigServiceTask = (props: Partial<RenderProps> = {}) => {
-  const { bpmnContextProps, bpmnApiContextProps } = props;
-
-  return render(
-    <MemoryRouter>
-      <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-        <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...bpmnContextProps }}>
-          <BpmnConfigPanelFormContextProvider>
-            <ConfigServiceTask />
-          </BpmnConfigPanelFormContextProvider>
-        </BpmnContext.Provider>
-      </BpmnApiContext.Provider>
-    </MemoryRouter>,
+const renderConfigServiceTask = (props: Partial<RenderProps> = {}) =>
+  renderWithProviders(
+    <BpmnConfigPanelFormContextProvider>
+      <ConfigServiceTask />
+    </BpmnConfigPanelFormContextProvider>,
+    props,
   );
-};

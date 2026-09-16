@@ -2,7 +2,8 @@ import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
-import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
+import { createPdfBpmnDetails } from './testUtils';
+import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
 jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
@@ -197,7 +198,7 @@ describe('ConfigPdfServiceTask', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render PdfFilenameTextResource component', () => {
+    it('should render FilenameTextResource component', () => {
       renderConfigPdfServiceTask();
 
       expect(

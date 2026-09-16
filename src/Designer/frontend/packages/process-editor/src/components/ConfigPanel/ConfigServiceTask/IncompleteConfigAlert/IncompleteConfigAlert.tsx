@@ -13,7 +13,6 @@ import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
  */
 const alertKeyByTaskType: Partial<Record<BpmnTaskType, string>> = {
   eFormidling: 'process_editor.configuration_panel_eformidling_incomplete_config_alert',
-  subformPdf: 'process_editor.configuration_panel_subform_pdf_incomplete_config_alert',
 };
 
 export const IncompleteConfigAlert = (): React.ReactElement | null => {
