@@ -148,6 +148,20 @@ export const withoutEnvironmentValue = <TValue>(
   scope: EnvironmentScope,
 ): EnvironmentEntry<TValue>[] => entries.filter((entry) => getEntryScope(entry) !== scope);
 
+/**
+ * Removes the one entry the caller points at, identified by the object
+ * {@link resolveEnvironmentEntries} handed back rather than by its `env`.
+ *
+ * This is how an entry whose `env` the runtime cannot resolve is taken away: it belongs to no
+ * scope, so `withoutEnvironmentValue` cannot name it, and two such entries can spell the same
+ * unrecognized environment without being the same line. Removing one of them must not remove the
+ * other.
+ */
+export const withoutEntry = <TValue>(
+  entries: EnvironmentEntry<TValue>[],
+  entryToRemove: EnvironmentEntry<TValue>,
+): EnvironmentEntry<TValue>[] => entries.filter((entry) => entry !== entryToRemove);
+
 /** The entry carrying the value the runtime reads for one scope. */
 const getEffectiveEntry = <TValue>(
   scopeEntries: EnvironmentEntry<TValue>[],
@@ -207,6 +221,14 @@ export const findOverrideEntry = <TValue>(
 ): EnvironmentEntry<TValue> | undefined =>
   resolved.overrides.find((override) => override.environment === environment)?.entry;
 
+/**
+ * The unrecognized `env` spellings among the entries, each named once. Two entries can carry the
+ * same one, and naming it twice reads like a bug.
+ */
+export const getUnknownEnvironmentNames = <TValue>(
+  resolved: ResolvedEnvironmentEntries<TValue>,
+): string[] => ArrayUtils.removeDuplicates(resolved.unknownEntries.map(({ env }) => env));
+
 /** What the collapsed property button shows. Kept free of i18n so the rules are unit-testable. */
 export type EnvironmentConfigSummary =
   | { kind: 'empty' }
@@ -218,7 +240,10 @@ export const getEnvironmentConfigSummary = <TValue>(
   resolved: ResolvedEnvironmentEntries<TValue>,
   formatValue: (value: TValue) => string,
 ): EnvironmentConfigSummary => {
-  const overrideCount = resolved.overrides.length;
+  // An entry for an unrecognized environment counts as one of them. It is an environment-specific
+  // value like any other - the field shows it as a row of its own - and leaving it out was the one
+  // place where a closed button said the field held nothing while the file held something.
+  const overrideCount = resolved.overrides.length + getUnknownEnvironmentNames(resolved).length;
   const value = resolved.global ? formatValue(resolved.global.value) : '';
   if (!value) {
     return overrideCount === 0 ? { kind: 'empty' } : { kind: 'overridesOnly', overrideCount };

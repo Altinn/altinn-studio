@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   StudioButton,
-  StudioFieldset,
+  StudioFormGroup,
   StudioRedirectBox,
   StudioSuggestion,
   type StudioSuggestionItem,
@@ -93,10 +93,16 @@ export const SubformPdfLayoutSetSection = (): React.ReactElement => {
   };
 
   return (
-    <StudioFieldset
+    // The tag sits on the legend, not on the field: the group asks for one answer and it is
+    // required, which is the case the pattern says to state once at group level. It is also the
+    // only place it fits on one line - a field label inside a `ds-field` is a block, so a tag after
+    // it wraps under the label, and every other group in these panels carries it beside the legend.
+    <StudioFormGroup
       className={sharedClasses.group}
       description={t('process_editor.configuration_panel_subform_pdf_pages_description')}
       legend={t('process_editor.configuration_panel_subform_pdf_pages_legend')}
+      required
+      tagText={t('general.required')}
     >
       <StudioSuggestion
         description={t(
@@ -112,7 +118,6 @@ export const SubformPdfLayoutSetSection = (): React.ReactElement => {
         onSelectedChange={handleSelectedChange}
         required
         selected={selectedDataModelId || undefined}
-        tagText={t('general.required')}
       >
         {allDataModelIds.map((dataModelId) => (
           <StudioSuggestion.Option key={dataModelId} label={dataModelId} value={dataModelId}>
@@ -124,6 +129,6 @@ export const SubformPdfLayoutSetSection = (): React.ReactElement => {
       <StudioButton onClick={handleCreateLayoutSet} variant='primary'>
         {t('process_editor.configuration_panel_subform_pdf_pages_create_button')}
       </StudioButton>
-    </StudioFieldset>
+    </StudioFormGroup>
   );
 };

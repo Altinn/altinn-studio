@@ -33,10 +33,11 @@ describe('FiksArkivProcessShapeAlert', () => {
     expect(screen.queryByText(gatewayWithoutBranchesText(['Gateway_1']))).not.toBeInTheDocument();
   });
 
-  // The panel stays open on the task while the developer draws the gateway, and the bpmn-js
-  // elements the warning reads are mutated in place. Without the subscription the warning would go
-  // on asking for a gateway that is already on the canvas until the task is selected again.
-  it('stops warning once the gateway is wired up on the canvas', () => {
+  // Undo and redo change the process while the selection stays on the task, so this happens under
+  // an open panel, and the bpmn-js elements the warning reads are mutated in place. Without the
+  // subscription the warning would go on asking for a gateway the diagram already has, until the
+  // task is selected a second time.
+  it('stops warning once the diagram has the gateway, without the task being selected again', () => {
     const task = createTask([]);
     renderFiksArkivProcessShapeAlert(task);
 
