@@ -92,30 +92,24 @@ describe('ConfigServiceTask', () => {
     },
   );
 
-  it('should warn that eFormidling must be configured in process.bpmn', () => {
+  it('should render eFormidling configuration for an eFormidling service task', () => {
     renderConfigServiceTask({
       bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType: 'eFormidling' } },
     });
 
-    expect(
-      screen.getByText(
-        textMock('process_editor.configuration_panel_eformidling_incomplete_config_alert'),
-      ),
-    ).toBeInTheDocument();
+    expect(queryEFormidlingField()).toBeInTheDocument();
   });
 
+  // fiksArkiv takes no BPMN configuration at all - `FiksArkivSettings` comes from appsettings - so
+  // there is nothing here for it to show.
   it.each(['fiksArkiv', 'myServiceTask'])(
-    'should show no incomplete configuration warning for %s',
+    'should render no eFormidling configuration for %s',
     (taskType) => {
       renderConfigServiceTask({
         bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
       });
 
-      expect(
-        screen.queryByText(
-          textMock('process_editor.configuration_panel_eformidling_incomplete_config_alert'),
-        ),
-      ).not.toBeInTheDocument();
+      expect(queryEFormidlingField()).not.toBeInTheDocument();
     },
   );
 
@@ -154,6 +148,11 @@ describe('ConfigServiceTask', () => {
 const queryTaskTypeField = (): HTMLElement | null =>
   screen.queryByRole('button', {
     name: textMock('process_editor.configuration_panel_service_task_type_label'),
+  });
+
+const queryEFormidlingField = (): HTMLElement | null =>
+  screen.queryByRole('button', {
+    name: textMock('process_editor.configuration_panel.eformidling.type_label'),
   });
 
 type RenderProps = {

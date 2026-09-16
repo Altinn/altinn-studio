@@ -79,6 +79,9 @@ export const EnvBooleanConfigField = ({
   return (
     <EnvironmentConfigField<string>
       {...props}
+      // A radio group has no gesture for unchoosing an answer, so the field has to offer one for
+      // the environment-independent row. Without it the first answer tried would stay in the file.
+      canClearValue={false}
       emptyValue=''
       isEmptyValue={(value) => parseBooleanValue(value) === undefined}
       // A value that is neither reads as nothing rather than as "Nei": the runtime fails to boot on

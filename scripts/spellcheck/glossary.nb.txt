@@ -89,6 +89,7 @@ forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
+forsendelsestype
 funksjonsflagg
 gjenopprettingsprosessen
 handlingsknapp
@@ -117,6 +118,7 @@ lagringsnavn
 låsstatus
 medieposisjon
 medlemsprofil
+meldingsformidleren
 metadataene
 migreringsverktøyene
 minimumshøyde

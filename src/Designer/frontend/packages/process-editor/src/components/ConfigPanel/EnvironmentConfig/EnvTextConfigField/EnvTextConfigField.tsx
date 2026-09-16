@@ -35,8 +35,15 @@ const TextValueControl = ({
 }: EnvironmentValueControlProps<string>): ReactElement => {
   const [localValue, setLocalValue] = usePropState<string>(value);
 
+  // What is committed is the trimmed value. `GetRequiredConfig` only asks that the value is not
+  // blank and then hands it to the shipment as it stands, so the spaces a user happened to type
+  // around `arkivmelding` would travel all the way to eFormidling. It is also the reading the field
+  // already has of its own value: `" "` empties the row, so `" arkivmelding "` cannot be stored
+  // padded without the field meaning two different things by a space.
   const handleBlur = (): void => {
-    if (localValue !== value) onChange(localValue);
+    const trimmedValue = localValue.trim();
+    setLocalValue(trimmedValue);
+    if (trimmedValue !== value) onChange(trimmedValue);
   };
 
   return (
