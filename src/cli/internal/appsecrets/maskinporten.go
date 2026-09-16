@@ -232,8 +232,15 @@ func StoreMaskinportenClient(dir string, client MaskinportenClient) (string, err
 		return "", fmt.Errorf("encode Maskinporten client: %w", err)
 	}
 	path := MaskinportenPath(dir)
-	if err := writeFileAtomic(path, append(payload, '\n')); err != nil {
-		return "", err
+	// Owner-only on every platform: the mode on Unix, and on Windows the protected DACL the credentials file
+	// gets, applied before the file appears at its final path.
+	err = osutil.WriteFileAtomic(
+		path,
+		append(payload, '\n'),
+		osutil.AtomicWriteOptions{Perm: osutil.FilePermOwnerOnly, OwnerOnly: true},
+	)
+	if err != nil {
+		return "", fmt.Errorf("store %s: %w", MaskinportenFileName, err)
 	}
 	return path, nil
 }
@@ -476,39 +483,4 @@ func decodeBase64(value string) ([]byte, error) {
 		}
 	}
 	return nil, firstErr
-}
-
-func writeFileAtomic(path string, data []byte) error {
-	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
-	if err != nil {
-		return fmt.Errorf("create temporary file: %w", err)
-	}
-	tmpPath := tmp.Name()
-	if err := writeAndClose(tmp, data); err != nil {
-		return errors.Join(fmt.Errorf("write %s: %w", filepath.Base(path), err), removeIfPresent(tmpPath))
-	}
-	// File modes mean nothing on Windows; the owner-only ACL is set explicitly, as for the credentials file.
-	if err := osutil.SecureFile(tmpPath); err != nil {
-		return errors.Join(fmt.Errorf("secure %s: %w", filepath.Base(path), err), removeIfPresent(tmpPath))
-	}
-	if err := os.Rename(tmpPath, path); err != nil {
-		return errors.Join(fmt.Errorf("replace %s: %w", filepath.Base(path), err), removeIfPresent(tmpPath))
-	}
-	return nil
-}
-
-// writeAndClose writes the whole file, keeps it owner-only and closes it, reporting every failure.
-func writeAndClose(file *os.File, data []byte) error {
-	_, writeErr := file.Write(data)
-	chmodErr := file.Chmod(osutil.FilePermOwnerOnly)
-	closeErr := file.Close()
-	return errors.Join(writeErr, chmodErr, closeErr)
-}
-
-func removeIfPresent(path string) error {
-	err := os.Remove(path)
-	if err == nil || errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-	return fmt.Errorf("remove %s: %w", filepath.Base(path), err)
 }
