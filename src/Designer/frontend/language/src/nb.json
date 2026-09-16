@@ -131,8 +131,6 @@
   "admin.workflows.health.unknown": "Ukjent",
   "admin.workflows.health.unknown_description": "Statusen kunne ikke hentes. Det kan skyldes manglende tilgang eller en midlertidig feil. Det betyr ikke at alt er i orden.",
   "admin.workflows.id": "Arbeidsflyt-ID",
-  "admin.workflows.live_description": "Siden henter ny status fra arbeidsflytmotoren hvert sekund.",
-  "admin.workflows.live_updated": "Oppdatert {{time}}",
   "admin.workflows.no_results": "Arbeidsflytmotoren har ingen arbeidsflyter for denne instansen. Appen bruker den ikke, instansen har ingen prosessaktivitet, eller dataene er slettet etter oppbevaringstiden.",
   "admin.workflows.operation": "Operasjon",
   "admin.workflows.problems.description": "Instanser der arbeidsflytmotoren har minst én arbeidsflyt som feilet. Listen kommer fra arbeidsflytmotoren, og du blar i den uavhengig av instanslisten.",

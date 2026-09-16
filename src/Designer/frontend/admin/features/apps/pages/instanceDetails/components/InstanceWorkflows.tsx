@@ -62,16 +62,8 @@ export const InstanceWorkflows = ({
 }: InstanceWorkflowsProps) => {
   const { t } = useTranslation();
   const collectionKey = extractInstanceGuid(instanceId);
-  const {
-    data,
-    status,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchNextPageError,
-    dataUpdatedAt,
-    isFetching,
-  } = useInstanceWorkflowsQuery(org, environment, app, collectionKey);
+  const { data, status, error, fetchNextPage, hasNextPage, isFetchNextPageError } =
+    useInstanceWorkflowsQuery(org, environment, app, collectionKey);
 
   return (
     <StudioCard>
@@ -79,16 +71,6 @@ export const InstanceWorkflows = ({
       <StudioParagraph data-size='sm' className={classes.description}>
         {t('admin.workflows.description')}
       </StudioParagraph>
-      {status === 'success' && (
-        <span className={classes.live} title={t('admin.workflows.live_description')}>
-          <span
-            className={classes.liveDot}
-            data-fetching={isFetching || undefined}
-            aria-hidden='true'
-          />
-          {t('admin.workflows.live_updated', { time: formatTimeOfDay(dataUpdatedAt) })}
-        </span>
-      )}
       <InstanceWorkflowsContent
         context={{ org, env: environment, app, collectionKey }}
         environment={environment}
@@ -249,16 +231,6 @@ const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
     </StudioDetails>
   );
 };
-
-/** A clock reading with seconds, for the "last read" line that ticks with every poll. */
-function formatTimeOfDay(timestamp: number): string {
-  return new Intl.DateTimeFormat('no-NB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).format(new Date(timestamp));
-}
 
 /** How long a settled workflow ran, from its first attempt to its last change. Nothing while in flight. */
 function settledDurationOf(workflow: WorkflowStatus): number | undefined {

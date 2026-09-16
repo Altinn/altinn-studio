@@ -128,7 +128,7 @@ describe('InstanceWorkflows', () => {
     ).toBeInTheDocument();
   });
 
-  it('says when it last read the engine, and marks the step being executed', async () => {
+  it('marks the step being executed', async () => {
     const runningHeadWorkflow = {
       ...failedHeadWorkflow,
       overallStatus: 'Processing',
@@ -140,8 +140,7 @@ describe('InstanceWorkflows', () => {
     } as AxiosResponse);
     renderInstanceWorkflows();
 
-    expect(await screen.findByText(/admin\.workflows\.live_updated/)).toBeInTheDocument();
-    expect(screen.getByTitle('app-command · Processing')).toHaveAttribute('data-live');
+    expect(await screen.findByTitle('app-command · Processing')).toHaveAttribute('data-live');
   });
 
   it('makes a moment of a failed instance getting going again', async () => {
