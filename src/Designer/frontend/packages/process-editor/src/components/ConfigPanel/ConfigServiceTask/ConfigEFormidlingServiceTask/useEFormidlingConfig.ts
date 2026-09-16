@@ -4,6 +4,7 @@ import type { Moddle } from 'bpmn-js/lib/model/Types';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useChecksum } from '../../../../hooks/useChecksum';
 import { BpmnGuard } from '../../../../utils/bpmnGuard/BpmnGuard';
+import { TaskUtils } from '../../../../utils/taskUtils';
 import type { EnvironmentEntry } from '../../EnvironmentConfig';
 import {
   fromEFormidlingDataTypesElements,
@@ -63,8 +64,9 @@ export const useEFormidlingConfig = (): EFormidlingConfig => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const { updateChecksum: forceReRenderComponent } = useChecksum();
 
-  const eFormidlingConfig: ModdleElement | undefined =
-    bpmnDetails.element.businessObject.extensionElements?.values?.[0]?.eFormidlingConfig;
+  const eFormidlingConfig: ModdleElement | undefined = TaskUtils.getTaskExtension(
+    bpmnDetails.element,
+  )?.eFormidlingConfig;
 
   const writeProperty = (
     property: EFormidlingProperty,
@@ -80,7 +82,7 @@ export const useEFormidlingConfig = (): EFormidlingConfig => {
         [property]: elements,
       });
     } else {
-      const taskExtension = bpmnDetails.element.businessObject.extensionElements.values[0];
+      const taskExtension = TaskUtils.getTaskExtension(bpmnDetails.element);
       modeling.updateModdleProperties(bpmnDetails.element, taskExtension, {
         eFormidlingConfig: moddle.create(eFormidlingConfigType, { [property]: elements }),
       });

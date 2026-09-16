@@ -40,9 +40,7 @@ export const ConfigContent = (): React.ReactElement => {
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const isFirstSigningTask = tasks
-    .filter((item) =>
-      TaskUtils.isSigningTask(item.businessObject.extensionElements?.values[0]?.taskType),
-    )
+    .filter((item) => TaskUtils.isSigningTask(TaskUtils.getTaskExtension(item)?.taskType))
     .some((item, index) => item.id === bpmnDetails.id && index === 0);
 
   if (shouldDisplayAction(bpmnDetails.id)) {

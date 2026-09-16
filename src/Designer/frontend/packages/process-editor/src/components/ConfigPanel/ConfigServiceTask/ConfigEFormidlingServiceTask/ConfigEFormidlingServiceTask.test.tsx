@@ -399,7 +399,11 @@ const defaultProps: RenderProps = { eFormidlingConfig: {} };
 
 function renderConfigEFormidlingServiceTask(props: RenderProps = defaultProps) {
   const { eFormidlingConfig, availableDataTypeIds = [] } = { ...defaultProps, ...props };
-  const taskExtension = { taskType: 'eFormidling', eFormidlingConfig };
+  const taskExtension = {
+    $type: 'altinn:TaskExtension',
+    taskType: 'eFormidling',
+    eFormidlingConfig,
+  };
   const element = {
     ...mockBpmnDetails.element,
     businessObject: { extensionElements: { values: [taskExtension] } },

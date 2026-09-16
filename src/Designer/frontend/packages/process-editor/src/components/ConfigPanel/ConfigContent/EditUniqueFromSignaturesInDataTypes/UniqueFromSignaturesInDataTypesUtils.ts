@@ -2,6 +2,7 @@ import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
+import { TaskUtils } from '../../../../utils/taskUtils';
 
 export const updateDataTypes = (
   bpmnFactory: BpmnFactory,
@@ -9,9 +10,9 @@ export const updateDataTypes = (
   bpmnDetails: BpmnDetails,
   updatedDataTypes: string[],
 ) => {
-  let uniqueFromSignaturesInDataTypesElement: ModdleElement =
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig
-      ?.uniqueFromSignaturesInDataTypes;
+  let uniqueFromSignaturesInDataTypesElement: ModdleElement = TaskUtils.getTaskExtension(
+    bpmnDetails.element,
+  ).signatureConfig?.uniqueFromSignaturesInDataTypes;
 
   if (!uniqueFromSignaturesInDataTypesElement) {
     uniqueFromSignaturesInDataTypesElement = bpmnFactory.create(
@@ -39,7 +40,7 @@ const updateUniqueFromSignaturesInDataTypes = (
 ) => {
   modeling.updateModdleProperties(
     bpmnDetails.element,
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,
+    TaskUtils.getTaskExtension(bpmnDetails.element).signatureConfig,
     {
       uniqueFromSignaturesInDataTypes: uniqueFromSignaturesInDataTypesElement,
     },
@@ -48,7 +49,9 @@ const updateUniqueFromSignaturesInDataTypes = (
 
 export const getSelectedDataTypes = (bpmnDetails: BpmnDetails): string[] => {
   return (
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.map(
+    TaskUtils.getTaskExtension(
+      bpmnDetails.element,
+    )?.signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.map(
       (element: ModdleElement) => element.dataType,
     ) || []
   );
