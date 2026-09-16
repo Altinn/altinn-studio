@@ -31,12 +31,6 @@ export const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
   WorkflowHealth.SideEffectsFailed,
 ]);
 
-/** The verdicts a recovery lands on: the work is moving again, or done. */
-export const RECOVERED_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
-  WorkflowHealth.Active,
-  WorkflowHealth.Healthy,
-]);
-
 /** A timestamp as a number, or nothing for an absent or unparsable one. */
 export function toTime(value: string | null | undefined): number | undefined {
   if (!value) {
