@@ -150,13 +150,20 @@
 
 .stepDetailsCell {
   padding-top: 0;
+  padding-bottom: var(--ds-size-3);
 }
 
+/* What a step has to say sits in its own box, so it reads as belonging to the step above it
+   rather than as another row of the table. */
 .stepDetails {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--ds-size-2);
+  padding: var(--ds-size-3) var(--ds-size-4);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+  background: var(--ds-color-neutral-surface-tinted);
 }
 
 /* The earlier attempts, folded under their count; flush with the text above, no card chrome. */
