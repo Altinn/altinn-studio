@@ -190,6 +190,30 @@ describe('ConfigSubformPdfServiceTask', () => {
       await waitFor(() => expect(input).toHaveValue(''));
     });
 
+    // The picker and the create affordance are two halves of one thing: the candidates are the
+    // Subform components in the task own layout set, so with no layout set there is nothing to
+    // offer and the panel has to point at the way out.
+    it('offers to create the task pages when it has none to take candidates from', async () => {
+      const user = userEvent.setup();
+      renderConfigSubformPdfServiceTask({
+        subformPdfConfig: { subformDataTypeId: subformDataType },
+        layoutSets: allLayoutSets.filter((layoutSet) => layoutSet.id !== taskLayoutSetId),
+      });
+
+      await user.click(screen.getByRole('textbox', { name: componentIdLabel }));
+
+      expect(
+        await screen.findByText(
+          textMock('process_editor.configuration_panel_subform_pdf_no_component_to_select'),
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', {
+          name: textMock('process_editor.configuration_panel_subform_pdf_pages_create_button'),
+        }),
+      ).toBeInTheDocument();
+    });
+
     describe('when the data type points at a subform in the app', () => {
       it('offers the subform components in the task own layout set that store that data type', async () => {
         const user = userEvent.setup();
@@ -265,7 +289,7 @@ describe('ConfigSubformPdfServiceTask', () => {
   });
 });
 
-const layoutSets: LayoutSets = [
+const allLayoutSets: LayoutSets = [
   { id: taskLayoutSetId, dataType: 'model' },
   { id: 'Task_1', dataType: 'model', taskId: 'Task_1' },
   { id: subformLayoutSetId, dataType: subformDataType, type: 'subform' },
@@ -308,11 +332,13 @@ const createSubformPdfDetails = (taskExtension: ModdleElement): BpmnDetails => (
 type RenderProps = {
   subformPdfConfig?: object;
   availableDataTypeIds?: string[];
+  layoutSets?: LayoutSets;
 };
 
 const renderConfigSubformPdfServiceTask = ({
   subformPdfConfig = {},
   availableDataTypeIds = [],
+  layoutSets = allLayoutSets,
 }: RenderProps = {}) => {
   const taskExtension = {
     $type: 'altinn:TaskExtension',
