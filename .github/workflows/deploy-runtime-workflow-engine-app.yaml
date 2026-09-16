@@ -28,12 +28,6 @@ on:
         default: false
         type: boolean
 
-concurrency:
-  # Deploys are serialized, never interrupted: two runs overlapping could leave the ring on one
-  # build and the tag studioctl follows on another.
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 permissions:
   id-token: write
   contents: read
