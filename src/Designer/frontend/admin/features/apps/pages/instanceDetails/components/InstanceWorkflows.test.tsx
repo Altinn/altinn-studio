@@ -146,33 +146,6 @@ describe('InstanceWorkflows', () => {
     expect(await screen.findByTitle('app-command · Processing')).toHaveAttribute('data-live');
   });
 
-  it('makes a moment of a failed instance getting going again', async () => {
-    jest
-      .mocked(axios.get)
-      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
-    renderInstanceWorkflows();
-    const [, failedRow] = await screen.findAllByRole('group');
-    expect(
-      within(failedRow).getAllByText(textMock('admin.workflows.status.failed'))[0],
-    ).toBeInTheDocument();
-
-    // The next poll finds the same workflow completed: someone fixed the app, or the error passed.
-    const completedHeadWorkflow = {
-      ...failedHeadWorkflow,
-      overallStatus: 'Completed',
-      updatedAt: '2026-08-02T10:06:00Z',
-      steps: failedHeadWorkflow.steps.map((step) => ({ ...step, status: 'Completed' })),
-    };
-    jest.mocked(axios.get).mockResolvedValue({
-      status: 200,
-      data: { ...workflowsResponse, data: [settledSideChainWorkflow, completedHeadWorkflow] },
-    } as AxiosResponse);
-
-    expect(
-      await screen.findByText(textMock('admin.workflows.notice.recovered'), {}, { timeout: 4_000 }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(textMock('admin.workflows.status.failed'))).not.toBeInTheDocument();
-  }, 10_000);
   it('opens nothing and says nothing while nothing needs attention', async () => {
     const completedHeadWorkflow = { ...failedHeadWorkflow, overallStatus: 'Completed', steps: [] };
     jest.mocked(axios.get).mockResolvedValue({
@@ -183,9 +156,6 @@ describe('InstanceWorkflows', () => {
 
     const rows = await screen.findAllByRole('group');
     expect(rows.every((row) => !row.hasAttribute('open'))).toBe(true);
-    expect(
-      screen.queryByText(textMock('admin.workflows.notice.recovered')),
-    ).not.toBeInTheDocument();
     expect(screen.queryByText(/admin\.workflows\.notice\.stale/)).not.toBeInTheDocument();
   });
   it('opens a workflow that keeps retrying, with its attempts and the countdown in the row', async () => {
