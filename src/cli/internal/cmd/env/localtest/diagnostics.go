@@ -336,7 +336,7 @@ func checkDiagnosticContainerStates(
 			if errors.Is(err, types.ErrContainerNotFound) {
 				states[def.Container] = diagnosticContainerState{
 					Check:   nil,
-					Image:   checkDiagnosticImage(ctx, client, def.Image),
+					Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
 					Running: false,
 				}
 				continue
@@ -348,7 +348,7 @@ func checkDiagnosticContainerStates(
 					DiagnosticLevelWarn,
 					"state unavailable: "+err.Error(),
 				),
-				Image:   checkDiagnosticImage(ctx, client, def.Image),
+				Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
 				Running: false,
 			}
 			continue
@@ -357,7 +357,7 @@ func checkDiagnosticContainerStates(
 		if !state.Running {
 			states[def.Container] = diagnosticContainerState{
 				Check:   nil,
-				Image:   checkDiagnosticImage(ctx, client, def.Image),
+				Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
 				Running: false,
 			}
 			continue
@@ -368,32 +368,45 @@ func checkDiagnosticContainerStates(
 		}
 		states[def.Container] = diagnosticContainerState{
 			Check:   newDiagnosticCheckPtr("container", "Container", DiagnosticLevelOK, message),
-			Image:   checkDiagnosticImage(ctx, client, def.Image),
+			Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
 			Running: state.Running,
 		}
 	}
 	return states
 }
 
-// checkDiagnosticImage reports the image a service runs and the digest of the build behind
-// it, so a report about local behavior can name the exact build. Images whose tag moves
-// cannot be identified by their reference alone.
+// checkDiagnosticImage reports the image a service is configured to run, and the digest of
+// the build the container is actually running. The two can differ: a reference whose tag
+// moves keeps serving the build a running container started with until the environment is
+// restarted, so the reference alone does not identify a build.
 func checkDiagnosticImage(
 	ctx context.Context,
 	client container.ContainerClient,
+	containerName string,
 	spec config.ImageSpec,
 ) *DiagnosticCheck {
 	if spec.Image == "" {
 		return nil
 	}
 	message := spec.Ref()
-	switch info, err := client.ImageInspect(ctx, spec.Ref()); {
-	case err != nil:
-		message += " (not pulled)"
-	case info.Digest != "":
-		message += " (" + config.ShortDigest(info.Digest) + ")"
+	if digest := runningImageDigest(ctx, client, containerName); digest != "" {
+		message += " (" + config.ShortDigest(digest) + ")"
 	}
 	return newDiagnosticCheckPtr("image", "Image:", DiagnosticLevelInfo, message)
+}
+
+// runningImageDigest returns the digest of the image a container runs, or an empty string
+// when the container is absent or its image cannot be resolved.
+func runningImageDigest(ctx context.Context, client container.ContainerClient, containerName string) string {
+	info, err := client.ContainerInspect(ctx, containerName)
+	if err != nil || info.ImageID == "" {
+		return ""
+	}
+	image, err := client.ImageInspect(ctx, info.ImageID)
+	if err != nil {
+		return ""
+	}
+	return image.Digest
 }
 
 func checkDiagnosticDNS(ctx context.Context, opts DiagnosticOptions, host string) (DiagnosticCheck, bool) {

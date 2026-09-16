@@ -6,8 +6,9 @@ type ContainerStatus struct {
 	// Image is the reference the container runs, empty for a container whose image
 	// is built locally rather than pulled.
 	Image string `json:"image,omitempty"`
-	// ImageDigest identifies the exact build behind Image. It is empty until the image
-	// has been pulled, and for locally built images.
+	// ImageDigest identifies the build the container is actually running, which a
+	// reference whose tag moves does not. It is empty when the container is not running
+	// and for locally built images.
 	ImageDigest string `json:"imageDigest,omitempty"`
 	Status      string `json:"status"`
 }

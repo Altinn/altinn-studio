@@ -23,6 +23,10 @@ import (
 
 var errStateUnavailable = errors.New("state unavailable")
 
+// testLocaltestImageRef is the localtest reference in testImages, shared by the tests that
+// assert on what studioctl reports for that image.
+const testLocaltestImageRef = "ghcr.io/altinn/test-localtest:latest"
+
 func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 	t.Parallel()
 
@@ -468,18 +472,29 @@ func testImages() config.ImagesConfig {
 	}
 }
 
-func TestStatus_ReportsImageAndDigest(t *testing.T) {
+// TestStatus_ReportsTheBuildEachContainerRuns pins the reason status reads the container
+// rather than the configured reference: the localtest container here still runs the build
+// it was started with, while the image its moving tag points at has since been replaced.
+func TestStatus_ReportsTheBuildEachContainerRuns(t *testing.T) {
 	t.Parallel()
 
 	client := mock.New()
-	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
-		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
+	client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
+		info := managedContainerInfo(types.ContainerState{Status: "running", Running: true})
+		if name == components.ContainerLocaltest {
+			info.ImageID = "sha256:started-with"
+		}
+		return info, nil
 	}
 	client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
-		if image != "ghcr.io/altinn/test-localtest:latest" {
+		switch image {
+		case "sha256:started-with":
+			return types.ImageInfo{ID: image, Digest: "sha256:0123456789abcdef"}, nil
+		case testLocaltestImageRef:
+			return types.ImageInfo{ID: "sha256:pulled-since", Digest: "sha256:fedcba9876543210"}, nil
+		default:
 			return types.ImageInfo{}, types.ErrImageNotFound
 		}
-		return types.ImageInfo{ID: "sha256:local", Digest: "sha256:0123456789abcdef"}, nil
 	}
 
 	env := newTestEnv(client)
@@ -492,11 +507,11 @@ func TestStatus_ReportsImageAndDigest(t *testing.T) {
 	if !ok {
 		t.Fatalf("status has no %q container", components.ContainerLocaltest)
 	}
-	if localtestStatus.Image != "ghcr.io/altinn/test-localtest:latest" {
+	if localtestStatus.Image != testLocaltestImageRef {
 		t.Errorf("localtest image = %q", localtestStatus.Image)
 	}
 	if localtestStatus.ImageDigest != "sha256:0123456789abcdef" {
-		t.Errorf("localtest image digest = %q", localtestStatus.ImageDigest)
+		t.Errorf("localtest image digest = %q, want the build the container runs", localtestStatus.ImageDigest)
 	}
 
 	pdfStatus, ok := containerStatus(status, components.ContainerPDF3)
@@ -507,7 +522,7 @@ func TestStatus_ReportsImageAndDigest(t *testing.T) {
 		t.Errorf("pdf image = %q", pdfStatus.Image)
 	}
 	if pdfStatus.ImageDigest != "" {
-		t.Errorf("pdf image digest = %q, want empty for an image that is not pulled", pdfStatus.ImageDigest)
+		t.Errorf("pdf image digest = %q, want empty when the build cannot be resolved", pdfStatus.ImageDigest)
 	}
 }
 

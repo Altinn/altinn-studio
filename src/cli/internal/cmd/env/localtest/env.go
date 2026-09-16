@@ -294,24 +294,31 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.All(), snapshot, e.imageDigests(ctx, graph.All()), opts.RequireDesired), nil
+	return localtestStatus(graph.All(), snapshot, e.runningImageDigests(ctx, graph.All()), opts.RequireDesired), nil
 }
 
-// imageDigests resolves the registry digest of every pulled image in the graph, so status
-// can report which build a container actually runs. Images that are not present locally
-// have no digest to report, so lookup failures are left out rather than failing status.
-func (e *Env) imageDigests(ctx context.Context, resources []resource.Resource) map[string]string {
+// runningImageDigests resolves the digest of the image each container is actually running,
+// keyed by container name. It reads the container rather than the configured reference
+// because a reference whose tag moves no longer identifies a build: a container started
+// before the tag moved keeps running the older one until the environment is restarted.
+// A container that is not running has no build to report, so lookup failures are left out
+// rather than failing status.
+func (e *Env) runningImageDigests(ctx context.Context, resources []resource.Resource) map[string]string {
 	digests := make(map[string]string)
 	for _, res := range resources {
-		pulled, ok := res.(*resource.PulledImage)
+		containerResource, ok := res.(*resource.Container)
 		if !ok {
 			continue
 		}
-		info, err := e.client.ImageInspect(ctx, pulled.Ref)
+		info, err := e.client.ContainerInspect(ctx, containerResource.Name)
+		if err != nil || info.ImageID == "" {
+			continue
+		}
+		image, err := e.client.ImageInspect(ctx, info.ImageID)
 		if err != nil {
 			continue
 		}
-		digests[pulled.Ref] = info.Digest
+		digests[containerResource.Name] = image.Digest
 	}
 	return digests
 }
@@ -542,13 +549,12 @@ func localtestStatus(
 		if !resource.IsEnabled(containerResource) && resourceStatus == executor.StatusDestroyed {
 			continue
 		}
-		image := containerImageRef(containerResource)
 		status.Containers = append(
 			status.Containers,
 			ContainerStatus{
 				Name:        containerResource.Name,
-				Image:       image,
-				ImageDigest: imageDigests[image],
+				Image:       containerImageRef(containerResource),
+				ImageDigest: imageDigests[containerResource.Name],
 				Status:      localtestStatusString(resourceStatus),
 			},
 		)

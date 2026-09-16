@@ -359,11 +359,17 @@ func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
 			client.ContainerStateFunc = func(context.Context, string) (types.ContainerState, error) {
 				return types.ContainerState{Status: "running", Running: true}, nil
 			}
+			client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
+				if name != components.ContainerWorkflowEngine {
+					return types.ContainerInfo{}, types.ErrContainerNotFound
+				}
+				return types.ContainerInfo{ImageID: "sha256:running"}, nil
+			}
 			client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
-				if image != "ghcr.io/altinn/test-workflow-engine:tt_ring1" {
+				if image != "sha256:running" {
 					return types.ImageInfo{}, types.ErrImageNotFound
 				}
-				return types.ImageInfo{ID: "sha256:local", Digest: "sha256:0123456789abcdef"}, nil
+				return types.ImageInfo{ID: image, Digest: "sha256:0123456789abcdef"}, nil
 			}
 			return client, nil
 		},
@@ -386,8 +392,9 @@ func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
 		t.Errorf("workflow-engine image check message = %q", engineImage.Message)
 	}
 	localtestImage := findDiagnosticCheck(t, report, "localtest", "image")
-	if localtestImage.Message != "ghcr.io/altinn/test-localtest:latest (not pulled)" {
-		t.Errorf("localtest image check message = %q", localtestImage.Message)
+	if localtestImage.Message != testLocaltestImageRef {
+		t.Errorf("localtest image check message = %q, want no build for a container that is absent",
+			localtestImage.Message)
 	}
 	assertDiagnosticCheckMissing(t, report, "pdf", "image")
 }
