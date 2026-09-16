@@ -197,7 +197,7 @@ public sealed class MaskinportenSettingsSourceTests
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "local.altinn.cloud",
-            (MaskinportenSettingsSource.StudioctlSecretsDirectoryKey, tempDirectory.Path)
+            (StudioctlAppEnvironment.AppSecretsDirectoryKey, tempDirectory.Path)
         );
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
@@ -222,7 +222,7 @@ public sealed class MaskinportenSettingsSourceTests
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "at22.altinn.cloud",
-            (MaskinportenSettingsSource.StudioctlSecretsDirectoryKey, tempDirectory.Path)
+            (StudioctlAppEnvironment.AppSecretsDirectoryKey, tempDirectory.Path)
         );
 
         var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
@@ -269,7 +269,7 @@ public sealed class MaskinportenSettingsSourceTests
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "local.altinn.cloud",
-            (MaskinportenSettingsSource.StudioctlSecretsDirectoryKey, tempDirectory.Path)
+            (StudioctlAppEnvironment.AppSecretsDirectoryKey, tempDirectory.Path)
         );
 
         var exception = Assert.Throws<OptionsValidationException>(() =>

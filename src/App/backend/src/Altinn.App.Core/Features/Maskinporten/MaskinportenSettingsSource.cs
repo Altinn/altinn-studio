@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Features.Maskinporten;
 /// <para>Where the file lives is the platform's to say, never the app's. In a cluster that is the fixed
 /// secrets mount. On the localtest platform studioctl provisions the file the way the operator does in a
 /// cluster, and names the directory it provisions into through
-/// <see cref="StudioctlSecretsDirectoryKey"/>; see <see cref="ForPlatform"/>.</para>
+/// <see cref="StudioctlAppEnvironment.AppSecretsDirectoryKey"/>; see <see cref="ForPlatform"/>.</para>
 /// <para>The file provider polls, because in a cluster this path is a Kubernetes projected volume: operator-driven
 /// key rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a restart. The same
 /// polling is what lets a developer store a client for a local run that is already up.</para>
@@ -46,16 +46,6 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     /// the library can source the file elsewhere should the need ever arise, and so tests can supply one.
     /// </summary>
     internal static string DefaultFilePath { get; } = Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, FileName);
-
-    /// <summary>
-    /// <para>The configuration key through which studioctl names the directory it provisions a local run's
-    /// secrets into. studioctl sets it as an environment variable for <c>studioctl app run</c> and
-    /// includes it in <c>studioctl app env</c>, which is how an app started with <c>dotnet run</c> learns it.</para>
-    /// <para>Honored on the localtest platform only, and deliberately not shaped like a configuration section
-    /// an app would think to write: the directory belongs to studioctl, the way the secrets mount belongs to the
-    /// operator.</para>
-    /// </summary>
-    internal const string StudioctlSecretsDirectoryKey = "STUDIOCTL_APP_SECRETS_DIR";
 
     /// <summary>
     /// The object the provisioned file wraps its credentials in.
@@ -110,14 +100,17 @@ internal sealed class MaskinportenSettingsSource : IDisposable
 
     /// <summary>
     /// <para>The source for the platform the app runs on. In a cluster the file is at the fixed mount. On the
-    /// localtest platform, and only there, studioctl may name the directory it provisions into
-    /// through <see cref="StudioctlSecretsDirectoryKey"/>.</para>
-    /// <para>The key is read from the app's configuration because that is the one channel that reaches an app
-    /// however it was started — an environment variable from <c>studioctl app run</c>, or the
-    /// <c>studioctl app env</c> callback for <c>dotnet run</c>. It is the only thing read from there, and it is
-    /// ignored everywhere but localtest: the same gate every other local-only behavior in the app libraries
-    /// sits behind (<c>AuthenticationTokenResolver</c>, <c>MaskinportenWellKnownRefreshService</c>), and one an
-    /// app cannot pass without breaking its own platform calls.</para>
+    /// localtest platform it is in the directory studioctl names through
+    /// <see cref="StudioctlAppEnvironment.AppSecretsDirectoryKey"/>: every local run is configured by studioctl,
+    /// whether <c>studioctl app run</c> started the app or <c>StudioctlLocalConfiguration</c> imported the
+    /// environment for a <c>dotnet run</c>, and both carry the directory. The key is read from the app's
+    /// configuration because that is where both deliver it (see <see cref="StudioctlAppEnvironment"/>), and it
+    /// is the only thing this type reads from there.</para>
+    /// <para>The key is honored on localtest only: the same gate every other local-only behavior in the app
+    /// libraries sits behind (<c>AuthenticationTokenResolver</c>, <c>MaskinportenWellKnownRefreshService</c>),
+    /// and one an app cannot pass without breaking its own platform calls. A localtest run with no directory
+    /// named was started outside studioctl altogether - not installed, or its environment not imported - and
+    /// gets the cluster path, so that the missing-credentials failure can send the developer to studioctl.</para>
     /// </summary>
     internal static MaskinportenSettingsSource ForPlatform(
         RuntimeEnvironment runtimeEnvironment,
@@ -125,7 +118,7 @@ internal sealed class MaskinportenSettingsSource : IDisposable
     )
     {
         string? studioctlSecretsDirectory = runtimeEnvironment.IsLocaltestPlatform()
-            ? configuration[StudioctlSecretsDirectoryKey]
+            ? configuration[StudioctlAppEnvironment.AppSecretsDirectoryKey]
             : null;
 
         return string.IsNullOrWhiteSpace(studioctlSecretsDirectory)

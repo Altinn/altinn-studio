@@ -1,7 +1,13 @@
 using System.IO;
+using System.Text.Json;
 using Altinn.App.Api.Extensions;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Maskinporten;
+using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Altinn.App.Core.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Xunit.Abstractions;
@@ -194,6 +200,47 @@ public sealed class WebHostBuilderExtensionsTests
             startInfo.ArgumentList
         );
         Assert.DoesNotContain("--random-host-port=false", startInfo.ArgumentList);
+    }
+
+    /// <summary>
+    /// The <c>dotnet run</c> path: what <c>studioctl app env --json</c> prints, imported the way
+    /// <see cref="StudioctlLocalConfiguration"/> imports it, is all the Maskinporten source needs to find the
+    /// directory studioctl provisions. The hostname that opens the localtest gate and the directory itself both
+    /// arrive through the import. The keys are spelled out because they are the wire contract with studioctl.
+    /// </summary>
+    [Fact]
+    public void ImportedStudioctlEnvironment_ReachesTheMaskinportenSource()
+    {
+        using var tempDirectory = new TempDirectory(_outputHelper);
+        bool parsed = StudioctlLocalConfiguration.TryParseEnvironmentJson(
+            $$"""
+            {
+              "GeneralSettings__HostName": "local.altinn.cloud",
+              "STUDIOCTL_APP_RUN": "1",
+              "STUDIOCTL_APP_SECRETS_DIR": {{JsonSerializer.Serialize(tempDirectory.Path)}}
+            }
+            """,
+            out Dictionary<string, string?> values
+        );
+        Assert.True(parsed);
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(StudioctlLocalConfiguration.NormalizeConfigurationKeys(values))
+            .Build();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(configuration);
+        services.AddRuntimeEnvironment();
+        services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
+        services.Configure<PlatformSettings>(_ => { });
+        services.AddMaskinportenSettings();
+        using ServiceProvider serviceProvider = services.BuildStrictServiceProvider();
+
+        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
+        Assert.True(source.ProvisionedByStudioctl);
+        Assert.Equal(
+            Path.GetFullPath(Path.Join(tempDirectory.Path, MaskinportenSettingsSource.FileName)),
+            source.FilePath
+        );
     }
 
     [Fact]

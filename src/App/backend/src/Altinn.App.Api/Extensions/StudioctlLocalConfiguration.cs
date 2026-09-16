@@ -1,11 +1,21 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Altinn.App.Core.Internal;
 
 namespace Altinn.App.Api.Extensions;
 
+/// <summary>
+/// <para>Imports the environment studioctl would have given the app, for an app studioctl did not start. Every
+/// local run of a v9 app is configured by studioctl; when <c>studioctl app run</c> is not the parent process -
+/// <c>dotnet run</c>, an IDE - this runs <c>studioctl app env --json</c> for the project and adds what it
+/// prints to the app's configuration, so the app is configured the same way either way.</para>
+/// <para>Development only, and skipped when <see cref="StudioctlAppEnvironment.AppRunKey"/> is already in the
+/// process environment. A studioctl that is missing or fails leaves the configuration as it was, with the
+/// failure written to the debug output and nothing else: an app is free to run on its own configuration.
+/// The keys the libraries read out of what is imported are listed on <see cref="StudioctlAppEnvironment"/>.</para>
+/// </summary>
 internal static class StudioctlLocalConfiguration
 {
-    private const string StudioctlAppRunEnvironmentVariable = "STUDIOCTL_APP_RUN";
     private static readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(3);
     private static readonly IReadOnlyDictionary<string, string?> _emptyConfiguration =
         new Dictionary<string, string?>();
@@ -54,7 +64,7 @@ internal static class StudioctlLocalConfiguration
             return false;
         }
 
-        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(StudioctlAppRunEnvironmentVariable)))
+        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(StudioctlAppEnvironment.AppRunKey)))
         {
             return false;
         }
@@ -68,8 +78,9 @@ internal static class StudioctlLocalConfiguration
         TimeSpan timeout
     )
     {
-        // Contract with studioctl: `studioctl app env --json` returns a flat JSON object
-        // where keys are environment variable names and values are environment variable values.
+        // Contract with studioctl: `studioctl app env --json` returns a flat JSON object where keys are
+        // environment variable names and values are environment variable values - the same environment
+        // `studioctl app run` starts the app with (see StudioctlAppEnvironment).
         return
             TryRunStudioctlEnvironmentCommand(projectOrRootPath, timeout, out string json)
             && TryParseEnvironmentJson(json, out Dictionary<string, string?> values)
