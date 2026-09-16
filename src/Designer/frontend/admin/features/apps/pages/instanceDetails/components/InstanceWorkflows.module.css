@@ -13,11 +13,12 @@
   width: 100%;
 }
 
-/* The row as columns of fixed width, so the status, the name, the step dots and the rest line
-   up from one row to the next. Narrow screens fall back to wrapping. */
+/* The row as plain columns, so everything lines up from one row to the next: status, name, the
+   step dots, the step it is at, a spinner while in flight, and the date at the far edge. Narrow
+   screens fall back to wrapping. */
 .summary {
   display: grid;
-  grid-template-columns: 10rem 22rem auto 1fr;
+  grid-template-columns: 10rem 22rem 14rem minmax(0, 1fr) 1.5rem auto;
   align-items: center;
   column-gap: var(--ds-size-3);
   row-gap: var(--ds-size-1);
@@ -35,13 +36,42 @@
   min-width: 0;
 }
 
-.summaryMeta {
+.summaryStep,
+.summaryDate {
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.summaryStep {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summarySpinner {
+  display: flex;
+  justify-content: center;
+}
+
+.summaryDate {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+/* Attempts made and what the engine is doing right now, above the steps. */
+.progress {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ds-size-1) var(--ds-size-4);
   font-size: var(--ds-font-size-2);
   color: var(--ds-color-neutral-text-subtle);
+}
+
+.attempts {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
 }
 
 @media (max-width: 64rem) {

@@ -1,13 +1,7 @@
-.strip {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--ds-size-2);
-}
-
 .dots {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
@@ -63,9 +57,4 @@
   .dot[data-live] {
     animation: none;
   }
-}
-
-.label {
-  font-size: var(--ds-font-size-2);
-  color: var(--ds-color-neutral-text-subtle);
 }

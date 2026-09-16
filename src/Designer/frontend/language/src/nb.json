@@ -146,7 +146,7 @@
   "admin.workflows.row.next_attempt_in": "Neste forsøk om {{duration}}",
   "admin.workflows.row.next_attempt_now": "Neste forsøk starter nå",
   "admin.workflows.row.running_for": "Har kjørt i {{duration}}",
-  "admin.workflows.row.steps_completed": "Alle steg fullført",
+  "admin.workflows.row.steps": "{{completed}} av {{total}} steg fullført",
   "admin.workflows.side_effect": "Bakgrunnsarbeid",
   "admin.workflows.status": "Status",
   "admin.workflows.status.abandoned": "Avskrevet",

@@ -4,7 +4,7 @@ import type {
   PersistentItemStatus,
   WorkflowStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { focusStepOf, orderedSteps } from 'admin/features/apps/utils/workflowTriage';
+import { orderedSteps } from 'admin/features/apps/utils/workflowTriage';
 
 import classes from './WorkflowStepStrip.module.css';
 
@@ -33,38 +33,34 @@ export type WorkflowStepStripProps = {
 };
 
 /**
- * A workflow's steps as one row of dots, in processing order, with the step it is at named next
- * to them while the chain is unfinished. The dots are decoration for a sighted reader scanning the
- * list; the name carries the fact for everyone else, so the dots are hidden from assistive
- * technology, and a finished chain says so in one word.
+ * A workflow's steps as one row of dots, in processing order. The dots are for a sighted reader
+ * scanning the list; the strip as a whole reads as one sentence to assistive technology.
  */
 export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactElement | null => {
   const { t } = useTranslation();
   const steps = orderedSteps(workflow);
-  const focus = focusStepOf(workflow);
 
-  if (!steps.length || !focus) {
+  if (!steps.length) {
     return null;
   }
 
-  const allCompleted = steps.every((step) => step.status === 'Completed');
+  const completed = steps.filter((step) => step.status === 'Completed').length;
 
   return (
-    <span className={classes.strip}>
-      <span className={classes.dots} aria-hidden='true'>
-        {steps.map((step) => (
-          <span
-            key={step.databaseId}
-            className={classes.dot}
-            data-tone={DOT_TONE[step.status] ?? 'neutral'}
-            data-live={step.status === 'Processing' || undefined}
-            title={`${step.operationId} · ${step.status}`}
-          />
-        ))}
-      </span>
-      <span className={classes.label}>
-        {allCompleted ? t('admin.workflows.row.steps_completed') : focus.operationId}
-      </span>
+    <span
+      className={classes.dots}
+      role='img'
+      aria-label={t('admin.workflows.row.steps', { completed, total: steps.length })}
+    >
+      {steps.map((step) => (
+        <span
+          key={step.databaseId}
+          className={classes.dot}
+          data-tone={DOT_TONE[step.status] ?? 'neutral'}
+          data-live={step.status === 'Processing' || undefined}
+          title={`${step.operationId} · ${step.status}`}
+        />
+      ))}
     </span>
   );
 };
