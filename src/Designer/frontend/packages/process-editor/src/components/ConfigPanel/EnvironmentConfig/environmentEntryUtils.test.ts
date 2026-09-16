@@ -3,6 +3,7 @@ import {
   getEnvironmentConfigSummary,
   resolveEnvironmentEntries,
   withEnvironmentValue,
+  withoutEntry,
   withoutEnvironmentValue,
 } from './environmentEntryUtils';
 import type { EnvironmentEntry } from './types';
@@ -232,9 +233,36 @@ describe('getEffectiveEnvironmentValue', () => {
 });
 
 describe('getEnvironmentConfigSummary', () => {
-  it('does not count entries the runtime cannot resolve', () => {
+  // The field shows such an entry as a row of its own, so a summary that passed over it would be
+  // the one place a closed property button said the field held nothing while the file held a value.
+  it('counts an entry the runtime cannot resolve as one of the environments', () => {
     const resolved = resolveEnvironmentEntries([{ env: 'at21', value: 'dead' }]);
 
-    expect(getEnvironmentConfigSummary(resolved, identity)).toEqual({ kind: 'empty' });
+    expect(getEnvironmentConfigSummary(resolved, identity)).toEqual({
+      kind: 'overridesOnly',
+      overrideCount: 1,
+    });
+  });
+
+  it('counts an unresolvable environment once, however many entries spell it that way', () => {
+    const resolved = resolveEnvironmentEntries([
+      { env: 'at21', value: 'first' },
+      { env: 'at21', value: 'second' },
+      { env: 'tt02', value: 's' },
+    ]);
+
+    expect(getEnvironmentConfigSummary(resolved, identity)).toEqual({
+      kind: 'overridesOnly',
+      overrideCount: 2,
+    });
+  });
+});
+
+describe('withoutEntry', () => {
+  it('removes the one entry it is given, leaving a sibling that spells its environment the same', () => {
+    const firstAt21: EnvironmentEntry = { env: 'at21', value: 'first' };
+    const secondAt21: EnvironmentEntry = { env: 'at21', value: 'second' };
+
+    expect(withoutEntry([firstAt21, secondAt21], firstAt21)).toEqual([secondAt21]);
   });
 });

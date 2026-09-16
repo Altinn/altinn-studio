@@ -4,6 +4,7 @@ import { usePropState } from '@studio/hooks';
 import type { EnvironmentEntry } from '../types';
 import type { EnvironmentValueControlProps } from '../EnvironmentConfigField';
 import { EnvironmentConfigField } from '../EnvironmentConfigField';
+import { useScrollMessageIntoView } from './useScrollMessageIntoView';
 import { useValidateIntegerValue } from './useValidateIntegerValue';
 
 export type EnvIntegerConfigFieldProps = {
@@ -39,6 +40,9 @@ const IntegerValueControl = ({
   const { validateIntegerValue } = useValidateIntegerValue();
   const [localValue, setLocalValue] = usePropState<string>(value);
   const errorMessage = validateIntegerValue(localValue);
+  // The row is what has to be visible, not the input: the message is below the field, and this is
+  // the last row of a group that can end past the bottom of the panel.
+  const rowRef = useScrollMessageIntoView<HTMLDivElement>(errorMessage);
 
   // A value that is not a whole number is shown with its error rather than written to the BPMN,
   // where it would only surface as a boot failure. The control stays enabled either way.
@@ -53,12 +57,14 @@ const IntegerValueControl = ({
   };
 
   return (
-    <StudioTextfield
-      error={errorMessage}
-      label={label}
-      onBlur={handleBlur}
-      onChange={(event) => setLocalValue(event.target.value)}
-      value={localValue}
-    />
+    <div ref={rowRef}>
+      <StudioTextfield
+        error={errorMessage}
+        label={label}
+        onBlur={handleBlur}
+        onChange={(event) => setLocalValue(event.target.value)}
+        value={localValue}
+      />
+    </div>
   );
 };

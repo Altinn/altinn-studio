@@ -21,6 +21,12 @@ export type SubformComponentIdFieldProps = {
  * once the task has its own layout set and a data type is chosen, and the layout set is something
  * the developer adds by hand, so an offer is the exception rather than the rule. A picker the
  * developer could not type into would lock them out of a required value.
+ *
+ * `creatable` is a commit rule rather than an affordance: Suggestion takes the typed text on Enter
+ * and draws nothing to say so. With no candidate to offer - the normal state of this field - all
+ * the developer would otherwise see is an empty list telling them there is nothing, which reads as
+ * a field that rejected the id they just typed. The empty text is therefore where the gesture is
+ * named.
  */
 export const SubformComponentIdField = ({
   subformComponentId,

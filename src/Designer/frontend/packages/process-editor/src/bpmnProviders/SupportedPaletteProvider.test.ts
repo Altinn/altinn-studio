@@ -101,6 +101,36 @@ describe('SupportedPaletteProvider', () => {
       expect(result['create.exclusive-gateway']).toBeDefined();
     });
 
+    // The three entries bpmn-js contributes itself arrive titled in English, and its gateway entry
+    // carries the generic diamond although it creates an exclusive gateway.
+    it('restates the entries bpmn-js contributes, in Norwegian and with the gateway shape it creates', () => {
+      const mockEntries = {
+        'create.start-event': {
+          title: 'Create start event',
+          className: 'bpmn-icon-start-event-none',
+        },
+        'create.end-event': { title: 'Create end event', className: 'bpmn-icon-end-event-none' },
+        'create.exclusive-gateway': {
+          title: 'Create gateway',
+          className: 'bpmn-icon-gateway-none',
+        },
+      };
+
+      const result = provider.getPaletteEntries()(mockEntries);
+
+      expect(result['create.start-event'].title).toBe(
+        textMock('process_editor.palette_create_start_event'),
+      );
+      expect(result['create.end-event'].title).toBe(
+        textMock('process_editor.palette_create_end_event'),
+      );
+      expect(result['create.exclusive-gateway'].title).toBe(
+        textMock('process_editor.palette_create_exclusive_gateway'),
+      );
+      expect(result['create.exclusive-gateway'].className).toBe('bpmn-icon-gateway-xor');
+      expect(result['create.start-event'].className).toBe('bpmn-icon-start-event-none');
+    });
+
     it('should include all custom Altinn task types', () => {
       const mockEntries = {};
 

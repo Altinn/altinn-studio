@@ -289,6 +289,7 @@ class SupportedPaletteProvider {
 
     return (entries) => {
       this._deleteUnsupportedEntries(entries);
+      this._overrideSupportedEntries(entries);
       const customEntries = {
         'create.altinn-data-task': {
           group: 'activity',
@@ -395,6 +396,30 @@ class SupportedPaletteProvider {
         ...customEntries,
       };
     };
+  }
+
+  /**
+   * Restates the three entries bpmn-js contributes itself.
+   *
+   * bpmn-js titles them in English, which would otherwise be the only English in a palette whose
+   * every other entry is Norwegian. Its gateway entry also carries the generic diamond, because
+   * upstream it stands beside the other gateway types; here it is the only one, and it creates an
+   * exclusive gateway, which the canvas then draws with an X. The icon says which shape the
+   * developer is about to place, so it has to be that one.
+   */
+  _overrideSupportedEntries(entries) {
+    const supportedEntryOverrides = {
+      'create.start-event': { title: t('process_editor.palette_create_start_event') },
+      'create.end-event': { title: t('process_editor.palette_create_end_event') },
+      'create.exclusive-gateway': {
+        title: t('process_editor.palette_create_exclusive_gateway'),
+        className: 'bpmn-icon-gateway-xor',
+      },
+    };
+
+    Object.entries(supportedEntryOverrides).forEach(([entryName, override]) => {
+      if (entries[entryName]) Object.assign(entries[entryName], override);
+    });
   }
 
   // "_" (underscore) is a convention for private methods in JavaScript

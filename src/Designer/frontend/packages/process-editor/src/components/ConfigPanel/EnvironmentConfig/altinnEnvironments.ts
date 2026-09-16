@@ -7,7 +7,8 @@
  * answers `Unknown` for an unrecognized *deployment* name too, so such an entry applies to an app
  * running under a deployment name the runtime does not know either - and there it shadows the
  * environment-independent entry. No Altinn deployment is named that way today, which is why the
- * editor treats these entries as unusable rather than as a fourth bucket.
+ * editor shows such an entry as a read-only row it can only remove, rather than as a fourth bucket
+ * with a value to edit and a name to write back.
  *
  * Keep this table in sync with the C# one; drift lets Studio offer configuration the runtime throws
  * away. `altinnEnvironments.test.ts` parses the C# file and fails when the two disagree.
