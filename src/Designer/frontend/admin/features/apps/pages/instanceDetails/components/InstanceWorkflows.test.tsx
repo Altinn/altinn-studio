@@ -203,9 +203,10 @@ describe('InstanceWorkflows', () => {
 
     const [row] = await screen.findAllByRole('group');
     expect(row).toHaveAttribute('open');
+    // The retry count sits on the row as a badge, spoken as the sentence it stands for.
     expect(
-      within(row).getByText(textMock('admin.workflows.row.attempts', { count: 5 })),
-    ).toBeInTheDocument();
+      within(row).getByLabelText(textMock('admin.workflows.row.attempts', { count: 5 })),
+    ).toHaveTextContent('5');
     expect(within(row).getByText(/admin\.workflows\.row\.next_attempt_in/)).toBeInTheDocument();
   });
   it('flags work in flight that has not changed for a long time, and opens it', async () => {
