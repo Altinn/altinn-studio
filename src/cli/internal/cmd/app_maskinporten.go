@@ -69,7 +69,7 @@ func (c *AppCommand) runMaskinportenSet(ctx context.Context, args []string) erro
 	if err != nil {
 		return err
 	}
-	input, err := readMaskinportenInput(flags)
+	input, err := c.readMaskinportenInput(ctx, flags)
 	if err != nil {
 		return err
 	}
@@ -166,9 +166,10 @@ func (c *AppCommand) resolveMaskinportenApp(ctx context.Context, appPath string)
 	return detection.AppRoot, nil
 }
 
-// readMaskinportenInput reads the client JSON from the given file or from standard input. The key never
-// travels as a command-line argument, where it would land in shell history.
-func readMaskinportenInput(flags appMaskinportenSetFlags) ([]byte, error) {
+// readMaskinportenInput reads the client JSON from the given file or from piped standard input, or, at a
+// terminal with neither, asks for the values one by one. The key never travels as a command-line argument,
+// where it would land in shell history.
+func (c *AppCommand) readMaskinportenInput(ctx context.Context, flags appMaskinportenSetFlags) ([]byte, error) {
 	switch {
 	case flags.file != "" && flags.file != stdinFileName:
 		return readMaskinportenFile(flags.file)
@@ -178,6 +179,8 @@ func readMaskinportenInput(flags appMaskinportenSetFlags) ([]byte, error) {
 			return nil, fmt.Errorf("read standard input: %w", err)
 		}
 		return data, nil
+	case ui.StdoutIsTerminal():
+		return c.promptMaskinportenClient(ctx)
 	default:
 		return nil, fmt.Errorf(
 			"%w: pass --file FILE, or pipe the client JSON on standard input",
@@ -254,7 +257,7 @@ func (c *AppCommand) appMaskinportenUsage() string {
 		"own configuration. A running app picks up a stored client without a restart.",
 		"",
 		"Subcommands:",
-		"  set       Store the client for this app (from --file or standard input)",
+		"  set       Store the client for this app (asks for the values, or reads JSON from --file or a pipe)",
 		"  show      Show the stored client - never its private key",
 		"  remove    Remove the stored client",
 		"",
@@ -269,13 +272,14 @@ func (c *AppCommand) appMaskinportenSetUsage() string {
 			osutil.CurrentBin(),
 		),
 		"",
-		"Store the Maskinporten client this app uses for local runs. The input is the client as JSON: the",
+		"Store the Maskinporten client this app uses for local runs. Run it with nothing else and it asks for",
+		"the three values one by one: the Maskinporten environment (test or prod), the client id, and the",
+		"private key as the base64-encoded JWK, typed or pasted without echo. Or give the client as JSON: the",
 		"provisioned maskinporten-settings.json format, the bare credentials (authority, clientId, and jwk or",
 		"jwkBase64), a section written for the Altinn.ApiClients.Maskinporten package (Environment, ClientId,",
-		"EncodedJwk), or a section pasted out of an appsettings file together with its name. Without --file,",
-		"the JSON is read from standard input: paste it, then end the input (Ctrl+D). Prefer that, --file, or a",
-		"redirect (< client.json) over echo, which would leave the key in your shell history. The private key",
-		"is stored readable by you only, and is never printed.",
+		"EncodedJwk), or a section pasted out of an appsettings file together with its name - from --file, or",
+		"piped on standard input. Prefer those over echo, which would leave the key in your shell history. The",
+		"private key is stored readable by you only, and is never printed.",
 		"",
 		"Options:",
 		"  -p, --path PATH       App directory path",

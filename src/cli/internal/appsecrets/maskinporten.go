@@ -345,23 +345,33 @@ func clientFromObject(object map[string]json.RawMessage) (MaskinportenClient, er
 	return client, client.Validate()
 }
 
+// AuthorityForEnvironment maps a Maskinporten environment name - test or prod, the names the external
+// package's Environment setting uses - to the authority the app libraries need.
+func AuthorityForEnvironment(name string) (string, bool) {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case EnvironmentTest:
+		return authorityTest, true
+	case EnvironmentProd:
+		return authorityProd, true
+	default:
+		return "", false
+	}
+}
+
 func authorityFromEnvironment(object map[string]json.RawMessage) (string, error) {
 	environment, err := stringField(object, "environment")
 	if err != nil || environment == "" {
 		return "", err
 	}
-	switch strings.ToLower(environment) {
-	case EnvironmentTest:
-		return authorityTest, nil
-	case EnvironmentProd:
-		return authorityProd, nil
-	default:
+	authority, ok := AuthorityForEnvironment(environment)
+	if !ok {
 		return "", fmt.Errorf(
 			"%w: Environment %q is not test or prod - supply the authority URL instead",
 			ErrInvalidMaskinportenClient,
 			environment,
 		)
 	}
+	return authority, nil
 }
 
 func parseObject(data []byte) (map[string]json.RawMessage, error) {
