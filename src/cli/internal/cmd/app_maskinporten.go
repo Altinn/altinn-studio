@@ -70,7 +70,7 @@ func (c *AppCommand) runMaskinportenSet(ctx context.Context, args []string) erro
 		return err
 	}
 	input, err := c.readMaskinportenInput(ctx, flags)
-	if errors.Is(err, errPromptCancelled) {
+	if errors.Is(err, appsvc.ErrPromptCancelled) {
 		c.out.Println("Nothing stored. Run set again when you have the values, or give the client with --file.")
 		return nil
 	}
@@ -319,4 +319,51 @@ func (c *AppCommand) appMaskinportenRemoveUsage() string {
 		"  --json                Output as JSON",
 		"  -h, --help            Show this help",
 	)
+}
+
+// promptMaskinportenClient runs the guided prompts against the terminal; the questions themselves live with the
+// app domain logic in appsvc.MaskinportenPrompter.
+func (c *AppCommand) promptMaskinportenClient(ctx context.Context) ([]byte, error) {
+	input, cleanup, err := ui.InteractiveInput()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"%w: pass --file FILE, or pipe the client JSON on standard input",
+			errMaskinportenInputRequired,
+		)
+	}
+	defer func() {
+		if cleanupErr := cleanup(); cleanupErr != nil {
+			c.out.Verbosef("failed to close terminal input: %v", cleanupErr)
+		}
+	}()
+
+	c.out.Println(
+		"No client given; enter its values instead. Press Enter with nothing to cancel. " +
+			"(--file FILE or piped JSON skips this.)",
+	)
+	prompter := appsvc.MaskinportenPrompter{
+		Line: func(prompt string) (string, error) {
+			c.out.Print(prompt)
+			answer, readErr := ui.ReadLine(ctx, input)
+			if readErr != nil {
+				return "", fmt.Errorf("read answer: %w", readErr)
+			}
+			return string(answer), nil
+		},
+		Secret: func(prompt string) (string, error) {
+			c.out.Print(prompt)
+			answer, readErr := ui.ReadPassword(ctx, c.out)
+			c.out.Println("")
+			if readErr != nil {
+				return "", fmt.Errorf("read the key: %w", readErr)
+			}
+			return string(answer), nil
+		},
+		Warn: func(message string) { c.out.Warninglnf("%s", message) },
+	}
+	data, err := prompter.Client()
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+	return data, nil
 }

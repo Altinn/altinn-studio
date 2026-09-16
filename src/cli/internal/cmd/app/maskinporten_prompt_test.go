@@ -1,4 +1,4 @@
-package cmd
+package app_test
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"altinn.studio/studioctl/internal/appsecrets"
+	appsvc "altinn.studio/studioctl/internal/cmd/app"
 )
 
 const promptTestJwk = `{"kty":"RSA","use":"sig","kid":"k","alg":"RS256","n":"n","e":"AQAB","d":"d","p":"p","q":"q","qi":"qi","dp":"dp","dq":"dq"}`
@@ -22,7 +23,7 @@ type scriptedPrompter struct {
 	warnings []string
 }
 
-func (s *scriptedPrompter) prompter(t *testing.T) maskinportenPrompter {
+func (s *scriptedPrompter) prompter(t *testing.T) appsvc.MaskinportenPrompter {
 	t.Helper()
 	pop := func(queue *[]string) string {
 		if len(*queue) == 0 {
@@ -32,10 +33,10 @@ func (s *scriptedPrompter) prompter(t *testing.T) maskinportenPrompter {
 		*queue = (*queue)[1:]
 		return answer
 	}
-	return maskinportenPrompter{
-		line:   func(string) (string, error) { return pop(&s.lines), nil },
-		secret: func(string) (string, error) { return pop(&s.secrets), nil },
-		warn:   func(message string) { s.warnings = append(s.warnings, message) },
+	return appsvc.MaskinportenPrompter{
+		Line:   func(string) (string, error) { return pop(&s.lines), nil },
+		Secret: func(string) (string, error) { return pop(&s.secrets), nil },
+		Warn:   func(message string) { s.warnings = append(s.warnings, message) },
 	}
 }
 
@@ -53,7 +54,7 @@ func TestMaskinportenPrompter_DefaultsToTestAndStoresTheKeyAsGiven(t *testing.T)
 
 	script := &scriptedPrompter{lines: []string{"", "  client-1 "}, secrets: []string{promptTestJwkBase64()}}
 
-	data, err := script.prompter(t).client()
+	data, err := script.prompter(t).Client()
 	if err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
@@ -72,7 +73,7 @@ func TestMaskinportenPrompter_AcceptsProdAndAJwkObject(t *testing.T) {
 
 	script := &scriptedPrompter{lines: []string{"PROD", "client-2"}, secrets: []string{promptTestJwk}}
 
-	data, err := script.prompter(t).client()
+	data, err := script.prompter(t).Client()
 	if err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
@@ -90,7 +91,7 @@ func TestMaskinportenPrompter_AcceptsAnAuthorityURL(t *testing.T) {
 		secrets: []string{promptTestJwkBase64()},
 	}
 
-	data, err := script.prompter(t).client()
+	data, err := script.prompter(t).Client()
 	if err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
@@ -109,7 +110,7 @@ func TestMaskinportenPrompter_AcceptsAPrettyPrintedJwk(t *testing.T) {
 	}
 	script := &scriptedPrompter{lines: []string{"test", "client-4"}, secrets: strings.Split(pretty.String(), "\n")}
 
-	data, err := script.prompter(t).client()
+	data, err := script.prompter(t).Client()
 	if err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
@@ -129,7 +130,7 @@ func TestMaskinportenPrompter_ExplainsAMissAndSaysWhatWasReceived(t *testing.T) 
 		secrets: []string{"abcd", promptTestJwkBase64()},
 	}
 
-	data, err := script.prompter(t).client()
+	data, err := script.prompter(t).Client()
 	if err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
@@ -161,7 +162,7 @@ func TestMaskinportenPrompter_OffersTheOtherWaysAfterTheSecondMiss(t *testing.T)
 		secrets: []string{"abcd", "zzzz", promptTestJwkBase64()},
 	}
 
-	if _, err := script.prompter(t).client(); err != nil {
+	if _, err := script.prompter(t).Client(); err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
 	if len(script.warnings) != 2 || !strings.Contains(script.warnings[1], "set --file <file>") {
@@ -177,7 +178,7 @@ func TestMaskinportenPrompter_AnUnfinishedJwkPasteEndsAtAnEmptyLineAndIsAskedAga
 		secrets: []string{"{", `"kty": "RSA",`, "", promptTestJwkBase64()},
 	}
 
-	if _, err := script.prompter(t).client(); err != nil {
+	if _, err := script.prompter(t).Client(); err != nil {
 		t.Fatalf("client() error = %v", err)
 	}
 	if len(script.warnings) != 1 || !strings.Contains(script.warnings[0], "received") {
@@ -190,9 +191,9 @@ func TestMaskinportenPrompter_CancelsOnAnEmptyKey(t *testing.T) {
 
 	script := &scriptedPrompter{lines: []string{"test", "client-8"}, secrets: []string{"abcd", ""}}
 
-	_, err := script.prompter(t).client()
-	if !errors.Is(err, errPromptCancelled) {
-		t.Fatalf("error = %v, want errPromptCancelled", err)
+	_, err := script.prompter(t).Client()
+	if !errors.Is(err, appsvc.ErrPromptCancelled) {
+		t.Fatalf("error = %v, want appsvc.ErrPromptCancelled", err)
 	}
 }
 
@@ -201,8 +202,8 @@ func TestMaskinportenPrompter_CancelsOnAnEmptyClientId(t *testing.T) {
 
 	script := &scriptedPrompter{lines: []string{"test", ""}}
 
-	_, err := script.prompter(t).client()
-	if !errors.Is(err, errPromptCancelled) {
-		t.Fatalf("error = %v, want errPromptCancelled", err)
+	_, err := script.prompter(t).Client()
+	if !errors.Is(err, appsvc.ErrPromptCancelled) {
+		t.Fatalf("error = %v, want appsvc.ErrPromptCancelled", err)
 	}
 }
