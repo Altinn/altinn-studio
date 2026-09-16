@@ -1,22 +1,24 @@
-import type { UiSchemaNodes } from '../../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../../types';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { CombinationKind } from '../../types/CombinationKind';
 import { SchemaModel } from '../SchemaModel';
 import { buildJsonSchema } from '../build-json-schema';
 import { buildUiSchema } from '../build-ui-schema';
-import { isEmptyCombination } from '../utils';
+import { isEmptyCombination, isNotTheRootNode } from '../utils';
 
 /**
  * Returns the given JSON schema without combinations that have no subschemas. The editor keeps such
  * combinations while the user is working on them, but they cannot be part of a valid JSON schema.
- * The schema is returned unchanged when there is nothing to remove.
+ * The schema is returned unchanged when there is nothing to remove. An empty combination at the
+ * root is left alone, because the root node cannot be removed.
  */
 export const removeEmptyCombinations = (schema: JsonSchema): JsonSchema => {
   // This runs on every autosave, and scanning the raw schema is much cheaper than converting it.
   if (!hasEmptyCombination(schema)) return schema;
-  // The raw scan only gives an upper bound, so the nodes decide whether there is anything to remove.
   const nodes = buildUiSchema(schema);
-  if (!nodes.some(isEmptyCombination)) return schema;
+  // The raw scan only gives an upper bound, so the nodes decide whether there is anything to
+  // remove.
+  if (!nodes.some(isRemovableEmptyCombination)) return schema;
   return buildJsonSchema(removeEmptyCombinationsFromSchemaNodes(nodes));
 };
 
@@ -29,7 +31,7 @@ export const removeEmptyCombinations = (schema: JsonSchema): JsonSchema => {
  * never false when the schema has an empty combination, but it can be true when a value merely
  * looks like one.
  */
-export const hasEmptyCombination = (schema: JsonSchema): boolean => {
+const hasEmptyCombination = (schema: JsonSchema): boolean => {
   if (!isNonNullObject(schema)) return false;
   // Arrays are objects, so their items are walked as well, keyed by their index.
   return Object.entries(schema).some(
@@ -45,13 +47,17 @@ export const hasEmptyCombination = (schema: JsonSchema): boolean => {
  */
 const removeEmptyCombinationsFromSchemaNodes = (nodes: UiSchemaNodes): UiSchemaNodes => {
   const model = SchemaModel.fromArray(nodes).deepClone();
-  let emptyCombination = model.asArray().find(isEmptyCombination);
+  let emptyCombination = model.asArray().find(isRemovableEmptyCombination);
   while (emptyCombination) {
     deleteNodeWithReferences(model, emptyCombination.schemaPointer);
-    emptyCombination = model.asArray().find(isEmptyCombination);
+    emptyCombination = model.asArray().find(isRemovableEmptyCombination);
   }
   return model.asArray();
 };
+
+// The root node cannot be deleted, so an empty combination at the root is not removable.
+const isRemovableEmptyCombination = (node: UiSchemaNode): boolean =>
+  isEmptyCombination(node) && isNotTheRootNode(node);
 
 const combinationKeywords: string[] = Object.values(CombinationKind);
 

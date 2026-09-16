@@ -1,4 +1,4 @@
-import { hasEmptyCombination, removeEmptyCombinations } from './remove-empty-combinations';
+import { removeEmptyCombinations } from './remove-empty-combinations';
 import { buildUiSchema } from '../build-ui-schema';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
@@ -88,14 +88,37 @@ describe('removeEmptyCombinations', () => {
     expect(removeEmptyCombinations(schema)).toBe(schema);
   });
 
+  it('Removes a combination without subschemas in a definition', () => {
+    const schema: JsonSchema = { type: 'object', $defs: { Choice: { oneOf: [] } } };
+    expect(removeAndValidate(schema)).toEqual({ type: 'object' });
+  });
+
+  it('Removes a combination without subschemas in array items', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: { list: { type: 'array', items: { anyOf: [] } } },
+    };
+    expect(removeAndValidate(schema)).toEqual({ type: 'object' });
+  });
+
+  it('Leaves a combination without subschemas at the root alone', () => {
+    // The root node cannot be deleted, so it keeps its combination keyword.
+    const schema: JsonSchema = { anyOf: [] };
+    expect(removeEmptyCombinations(schema)).toBe(schema);
+  });
+
   it('Returns the given schema itself when a value only looks like an empty combination', () => {
-    // The raw scan cannot tell this `default` value from a combination keyword, so only the node
-    // level decides that there is nothing to remove.
+    // The cheap scan of the raw schema cannot tell this `default` value from a combination
+    // keyword, so only the node level decides that there is nothing to remove.
     const schema: JsonSchema = {
       type: 'object',
       properties: { text: { type: 'string', default: { anyOf: [] } } },
     };
-    expect(hasEmptyCombination(schema)).toBe(true);
+    expect(removeEmptyCombinations(schema)).toBe(schema);
+  });
+
+  it('Does not fail on null values', () => {
+    const schema: JsonSchema = { type: 'object', properties: { text: { default: null } } };
     expect(removeEmptyCombinations(schema)).toBe(schema);
   });
 
@@ -104,57 +127,5 @@ describe('removeEmptyCombinations', () => {
     const copy = JSON.parse(JSON.stringify(schema));
     removeEmptyCombinations(schema);
     expect(schema).toEqual(copy);
-  });
-});
-
-describe('hasEmptyCombination', () => {
-  const text = { type: 'string' };
-
-  it('Returns false for a schema without combinations', () => {
-    const schema: JsonSchema = { type: 'object', properties: { text } };
-    expect(hasEmptyCombination(schema)).toBe(false);
-  });
-
-  it('Returns false when all combinations have subschemas', () => {
-    const schema: JsonSchema = {
-      type: 'object',
-      properties: { combination: { anyOf: [text, { type: 'number' }] } },
-    };
-    expect(hasEmptyCombination(schema)).toBe(false);
-  });
-
-  it('Returns true for a combination without subschemas in a property', () => {
-    const schema: JsonSchema = { type: 'object', properties: { combination: { anyOf: [] } } };
-    expect(hasEmptyCombination(schema)).toBe(true);
-  });
-
-  it('Returns true for a combination without subschemas in a definition', () => {
-    const schema: JsonSchema = { type: 'object', $defs: { Choice: { oneOf: [] } } };
-    expect(hasEmptyCombination(schema)).toBe(true);
-  });
-
-  it('Returns true for a combination without subschemas nested in another combination', () => {
-    const schema: JsonSchema = {
-      type: 'object',
-      properties: { combination: { anyOf: [text, { allOf: [] }] } },
-    };
-    expect(hasEmptyCombination(schema)).toBe(true);
-  });
-
-  it('Returns true for a combination without subschemas in array items', () => {
-    const schema: JsonSchema = {
-      type: 'object',
-      properties: { list: { type: 'array', items: { anyOf: [] } } },
-    };
-    expect(hasEmptyCombination(schema)).toBe(true);
-  });
-
-  it('Returns true when the root itself is a combination without subschemas', () => {
-    expect(hasEmptyCombination({ anyOf: [] })).toBe(true);
-  });
-
-  it('Does not fail on null values', () => {
-    const schema: JsonSchema = { type: 'object', properties: { text: { default: null } } };
-    expect(hasEmptyCombination(schema)).toBe(false);
   });
 });
