@@ -28,6 +28,9 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     private static string InitialLayoutPath(string layoutSetName) => $"App/ui/{layoutSetName}/layouts/Side1.json";
 
+    private static string LayoutPath(string layoutSetName, string layoutName) =>
+        $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
+
     private const string ApplicationMetadataPath = "App/config/applicationmetadata.json";
 
     [Theory]
@@ -156,6 +159,87 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             SettingsPath(NewLayoutSetName)
         );
         Assert.Equal("subform", (string)JsonNode.Parse(savedSettings)["type"]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task AddLayoutSet_WhenPdfTask_CreatesWaitingPageAndPdfLayout(string org, string app, string developer)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        const string NewLayoutSetName = "pdfTask";
+        var payload = new LayoutSetPayload
+        {
+            TaskType = TaskType.Pdf,
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+        };
+
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Assert.True(
+            TestDataHelper.FileExistsInRepo(
+                org,
+                targetRepository,
+                developer,
+                LayoutPath(NewLayoutSetName, "ServiceTask")
+            )
+        );
+        Assert.True(
+            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
+        );
+
+        JsonNode settings = JsonNode.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
+        );
+        Assert.Equal("PdfLayout", (string)settings["pages"]["pdfLayoutName"]);
+        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task AddLayoutSet_WhenSubformPdfTask_CreatesWaitingPageWithoutPdfLayout(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        // Posted with the task type spelled as the process editor sends it, so what is exercised here is
+        // the value that crosses the wire rather than whatever the enum happens to serialize to.
+        const string NewLayoutSetName = "subformPdfTask";
+        string body = JsonSerializer.Serialize(
+            new { taskType = "subformPdf", LayoutSetConfig = new { id = NewLayoutSetName, dataType = "model" } }
+        );
+
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, body);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // The waiting page is what the end user sees while the PDFs are generated: the ui folder makes
+        // the app frontend render the task as a form task instead of showing its built-in waiting view.
+        Assert.True(
+            TestDataHelper.FileExistsInRepo(
+                org,
+                targetRepository,
+                developer,
+                LayoutPath(NewLayoutSetName, "ServiceTask")
+            )
+        );
+
+        // The generated PDF comes from the subform's own layout set, so nothing here renders a PDF layout.
+        Assert.False(
+            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
+        );
+
+        JsonNode settings = JsonNode.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
+        );
+        Assert.Null(settings["pages"]["pdfLayoutName"]);
+        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
+        Assert.Equal("model", (string)settings["defaultDataType"]);
     }
 
     [Theory]
@@ -298,5 +382,18 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             .AsArray()
             .Single(dataType => (string)dataType["id"] == "model");
         Assert.Equal("Task_1", (string)modelDataType["taskId"]);
+    }
+
+    private Task<HttpResponseMessage> PostLayoutSet(string org, string repository, LayoutSetPayload payload) =>
+        PostLayoutSet(org, repository, JsonSerializer.Serialize(payload));
+
+    private async Task<HttpResponseMessage> PostLayoutSet(string org, string repository, string body)
+    {
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(org, repository))
+        {
+            Content = new StringContent(body, Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
+
+        return await HttpClient.SendAsync(httpRequestMessage);
     }
 }

@@ -36,7 +36,7 @@ describe('SubformPdfLayoutSetSection', () => {
 
     await waitFor(() => expect(addLayoutSet).toHaveBeenCalledTimes(1));
     expect(addLayoutSet).toHaveBeenCalledWith({
-      taskType: 'pdf',
+      taskType: 'subformPdf',
       layoutSetConfig: { id: taskId, dataType: dataModelId, taskId },
     });
   });

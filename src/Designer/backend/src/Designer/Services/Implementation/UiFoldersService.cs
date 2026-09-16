@@ -33,6 +33,8 @@ public class UiFoldersService : IUiFoldersService
     private readonly IPublisher _publisher;
     private readonly ILogger<UiFoldersService> _logger;
     private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
+    private const string PdfLayoutFilename = "PdfLayout";
+    private const string ServiceTaskLayoutFilename = "ServiceTask";
 
     public UiFoldersService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -308,7 +310,8 @@ public class UiFoldersService : IUiFoldersService
     /// <summary>
     /// Creates the initial layout and Settings.json files for a new layout set. Since v9 apps have no
     /// layout-sets.json, the set's <c>type</c> (e.g. subform) and <c>defaultDataType</c> are persisted
-    /// directly into the set's Settings.json. Payment and PDF tasks get tailored initial content.
+    /// directly into the set's Settings.json. Payment, PDF and subform PDF tasks get tailored initial
+    /// content.
     /// </summary>
     private static async Task CreateLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
@@ -319,6 +322,12 @@ public class UiFoldersService : IUiFoldersService
         if (taskType == TaskType.Pdf)
         {
             await CreatePdfLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
+            return;
+        }
+
+        if (taskType == TaskType.SubformPdf)
+        {
+            await CreateSubformPdfLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
             return;
         }
 
@@ -382,11 +391,7 @@ public class UiFoldersService : IUiFoldersService
 
     /// <summary>
     /// Creates the files of a PDF service task's layout set: the PDF layout the task renders (initially
-    /// empty) and one ordinary page. The page is not optional. The app frontend renders any task that has
-    /// a ui folder as a form task, using that folder's pages in place of its built-in service task views,
-    /// so the set must contain the page a user sees while the PDF is being generated. That is a waiting
-    /// page bound to the same <c>service_task.waiting_*</c> text keys as the built-in waiting view, so an
-    /// app's overrides apply to both. A failed generation needs no page here: the v9 frontend renders its
+    /// empty) and the waiting page. A failed generation needs no page here: the v9 frontend renders its
     /// own failure view, with retry, over any custom layout. The v8 generator in
     /// <see cref="AppDevelopmentService"/> still emits an error page with retry and back buttons, since
     /// the v8 runtime relies on the layout's own buttons for recovery.
@@ -396,26 +401,59 @@ public class UiFoldersService : IUiFoldersService
         LayoutSetConfig layoutSet
     )
     {
-        const string PdfLayoutFilename = "PdfLayout";
-        const string ServiceTaskLayoutFilename = "ServiceTask";
-        string layoutSchema = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>();
-
         await altinnAppGitRepository.SaveLayout(
             layoutSet.Id,
             PdfLayoutFilename,
             new JsonObject
             {
-                ["$schema"] = layoutSchema,
+                ["$schema"] = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>(),
                 ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
             }
         );
 
-        await altinnAppGitRepository.SaveLayout(
+        await SaveServiceTaskWaitingPage(altinnAppGitRepository, layoutSet.Id);
+        await altinnAppGitRepository.SaveLayoutSettings(
             layoutSet.Id,
+            BuildServiceTaskLayoutSettings(altinnAppGitRepository, layoutSet, PdfLayoutFilename)
+        );
+    }
+
+    /// <summary>
+    /// Creates the files of a subform PDF service task's layout set. The task needs the waiting page for
+    /// the same reason a PDF task does, but none of the PDF layout: the PDF it generates is rendered from
+    /// the subform's own layout set, resolved through the subform component the task points at, so a
+    /// <c>pdfLayoutName</c> here would name a page nothing ever reads.
+    /// </summary>
+    private static async Task CreateSubformPdfLayoutSetFiles(
+        AltinnAppGitRepository altinnAppGitRepository,
+        LayoutSetConfig layoutSet
+    )
+    {
+        await SaveServiceTaskWaitingPage(altinnAppGitRepository, layoutSet.Id);
+        await altinnAppGitRepository.SaveLayoutSettings(
+            layoutSet.Id,
+            BuildServiceTaskLayoutSettings(altinnAppGitRepository, layoutSet)
+        );
+    }
+
+    /// <summary>
+    /// Writes the one page a service task's layout set must have. The page is not optional. The app
+    /// frontend renders any task that has a ui folder as a form task, using that folder's pages in place
+    /// of its built-in service task views, so the set must contain the page a user sees while the task is
+    /// working. That is a waiting page bound to the same <c>service_task.waiting_*</c> text keys as the
+    /// built-in waiting view, so an app's overrides apply to both.
+    /// </summary>
+    private static async Task SaveServiceTaskWaitingPage(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string layoutSetId
+    )
+    {
+        await altinnAppGitRepository.SaveLayout(
+            layoutSetId,
             ServiceTaskLayoutFilename,
             new JsonObject
             {
-                ["$schema"] = layoutSchema,
+                ["$schema"] = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>(),
                 ["data"] = new JsonObject
                 {
                     ["layout"] = new JsonArray([
@@ -436,18 +474,28 @@ public class UiFoldersService : IUiFoldersService
                 },
             }
         );
+    }
+
+    private static JsonObject BuildServiceTaskLayoutSettings(
+        AltinnAppGitRepository altinnAppGitRepository,
+        LayoutSetConfig layoutSet,
+        string? pdfLayoutName = null
+    )
+    {
+        JsonObject pages = new();
+        if (pdfLayoutName is not null)
+        {
+            pages["pdfLayoutName"] = pdfLayoutName;
+        }
+        pages["order"] = new JsonArray([ServiceTaskLayoutFilename]);
 
         JsonObject settings = new()
         {
             ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"]!.GetValue<string>(),
-            ["pages"] = new JsonObject
-            {
-                ["pdfLayoutName"] = PdfLayoutFilename,
-                ["order"] = new JsonArray([ServiceTaskLayoutFilename]),
-            },
+            ["pages"] = pages,
         };
         ApplyLayoutSetMetadata(settings, layoutSet);
-        await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id, settings);
+        return settings;
     }
 
     /// <summary>
