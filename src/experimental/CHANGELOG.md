@@ -30,6 +30,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Linkerd could not start inside a kind cluster running in a Sandbox because the Sandbox kernel lacked the iptables owner match its proxy-init needs. The match is now built in.
 - Building the Agent images, or the minimal and worktree examples, failed with a certificate error where the network inspects TLS, such as inside another Agent. The npm, Yarn, Corepack and Playwright downloads now trust the Agent's certificate bundle while the image is built.
 - Test suites and dev servers inside an Agent could fail to start with `user limit (128) on inotify instances reached` before running anything, because the guest kept the kernel's desktop-sized file-watcher limits. The Agent images now raise them to the values the self-hosted CI runners already use.
+- Logging a nested Agent into Claude failed with an empty credential. Claude Code hides `CLAUDE_CODE_OAUTH_TOKEN` from the commands it runs, so the documented `agentctl claude login --from-stdin` step had nothing to read. An Agent now also carries its Claude credential as `AGENT_CLAUDE_ACCESS_TOKEN`, matching `AGENT_CODEX_ACCESS_TOKEN`, and the self-development instructions use it.
 
 ## [0.1.0-preview.2] - 2026-09-15
 
