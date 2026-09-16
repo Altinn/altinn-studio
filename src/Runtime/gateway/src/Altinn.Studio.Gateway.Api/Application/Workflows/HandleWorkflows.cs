@@ -40,7 +40,9 @@ internal static class HandleWorkflows
         "isHead",
         "cursor",
         "pageSize",
+        "includeState",
     ];
+    private static readonly string[] _workflowGetQueryKeys = ["includeState"];
     private static readonly string[] _resumeQueryKeys = ["cascade"];
     private static readonly string[] _noQueryKeys = [];
 
@@ -111,6 +113,7 @@ internal static class HandleWorkflows
         [FromQuery] bool? isHead,
         [FromQuery] string? cursor,
         [FromQuery] int? pageSize,
+        [FromQuery] bool? includeState,
         HttpContext httpContext,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
@@ -125,6 +128,7 @@ internal static class HandleWorkflows
         AddIfPresent(query, "isHead", isHead);
         AddIfPresent(query, "cursor", cursor);
         AddIfPresent(query, "pageSize", pageSize);
+        AddIfPresent(query, "includeState", includeState);
 
         return ForwardToEngine(
             HttpMethod.Get,
@@ -144,6 +148,7 @@ internal static class HandleWorkflows
     internal static Task<IResult> GetWorkflow(
         string app,
         Guid workflowId,
+        [FromQuery] bool? includeState,
         HttpContext httpContext,
         IOptionsMonitor<GatewayContext> gatewayContext,
         WorkflowEngineClient engineClient,
@@ -151,13 +156,16 @@ internal static class HandleWorkflows
         CancellationToken cancellationToken
     )
     {
+        var query = new QueryBuilder();
+        AddIfPresent(query, "includeState", includeState);
+
         return ForwardToEngine(
             HttpMethod.Get,
             httpContext,
             app,
             $"/workflows/{workflowId}",
-            _noQueryKeys,
-            query: null,
+            _workflowGetQueryKeys,
+            query,
             gatewayContext,
             engineClient,
             loggerFactory,

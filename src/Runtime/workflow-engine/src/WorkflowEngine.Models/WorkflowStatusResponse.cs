@@ -142,9 +142,12 @@ public sealed record WorkflowStatusResponse
     public required IReadOnlyList<StepStatusResponse> Steps { get; init; }
 
     /// <summary>
-    /// Projects a <see cref="Workflow"/> to its public response representation.
+    /// Projects a <see cref="Workflow"/> to its public response representation. With
+    /// <paramref name="includeState"/> false, the initial state and every step's state out are left
+    /// off: they are the app's own payload — instance data, not workflow status — and a status
+    /// reader such as Studio's admin panel has no business receiving them.
     /// </summary>
-    public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
+    public static WorkflowStatusResponse FromWorkflow(Workflow workflow, bool includeState = true) =>
         new()
         {
             DatabaseId = workflow.DatabaseId,
@@ -160,11 +163,11 @@ public sealed record WorkflowStatusResponse
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,
-            InitialState = workflow.InitialState,
+            InitialState = includeState ? workflow.InitialState : null,
             IsHead = workflow.IsHead,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
-            Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),
+            Steps = workflow.Steps.Select(step => StepStatusResponse.FromStep(step, includeState)).ToList(),
         };
 }

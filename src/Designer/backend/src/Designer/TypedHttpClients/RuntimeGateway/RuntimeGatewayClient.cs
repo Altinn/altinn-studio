@@ -292,6 +292,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         }
         AddIfPresent(query, "cursor", cursor);
         AddIfPresent(query, "pageSize", pageSize);
+        // Never the app's state payload: it is instance data, and nothing in Studio may receive it.
+        query.Add("includeState", "false");
 
         return SendWorkflowRequestAsync(HttpMethod.Get, org, app, environment, "/workflows", query, cancellationToken);
     }
@@ -311,7 +313,8 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
             app,
             environment,
             $"/workflows/{workflowId}",
-            query: null,
+            // Never the app's state payload: it is instance data, and nothing in Studio may receive it.
+            new QueryBuilder { { "includeState", "false" } },
             cancellationToken
         );
     }

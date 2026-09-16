@@ -394,6 +394,7 @@ public class EngineEndpointTests
             null,
             null,
             null,
+            null,
             repositoryMock.Object,
             _defaultSettings,
             CancellationToken.None
@@ -436,6 +437,7 @@ public class EngineEndpointTests
         // Act
         var result = await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
+            null,
             null,
             null,
             null,
@@ -499,6 +501,7 @@ public class EngineEndpointTests
             null,
             null,
             null,
+            null,
             repositoryMock.Object,
             _defaultSettings,
             CancellationToken.None
@@ -550,6 +553,7 @@ public class EngineEndpointTests
         // Act
         await EngineRequestHandlers.ListWorkflows(
             DefaultNamespace,
+            null,
             null,
             null,
             null,
@@ -661,6 +665,7 @@ public class EngineEndpointTests
         var result = await EngineRequestHandlers.GetWorkflow(
             DefaultNamespace,
             workflowGuid,
+            null,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -685,6 +690,7 @@ public class EngineEndpointTests
         var result = await EngineRequestHandlers.GetWorkflow(
             DefaultNamespace,
             Guid.NewGuid(),
+            null,
             repositoryMock.Object,
             CancellationToken.None
         );

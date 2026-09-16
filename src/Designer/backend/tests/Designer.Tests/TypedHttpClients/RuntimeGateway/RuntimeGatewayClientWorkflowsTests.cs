@@ -102,7 +102,10 @@ public class RuntimeGatewayClientWorkflowsTests
         );
 
         Assert.DoesNotContain("//runtime", _capturedRequest.RequestUri.AbsoluteUri, StringComparison.Ordinal);
-        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/0f8fad5b-d9cb-469f-a165-70867728950e");
+        AssertRequest(
+            HttpMethod.Get,
+            $"{WorkflowsBasePath}/workflows/0f8fad5b-d9cb-469f-a165-70867728950e?includeState=false"
+        );
     }
 
     [Fact]
@@ -203,7 +206,7 @@ public class RuntimeGatewayClientWorkflowsTests
             $"{WorkflowsBasePath}/workflows"
                 + "?collectionKey=0f8fad5b-d9cb-469f-a165-70867728950e"
                 + "&status=Failed&status=AwaitingRetry&label=step%3Apdf&label=kind%3Ahead"
-                + "&isHead=true&cursor=c1&pageSize=10"
+                + "&isHead=true&cursor=c1&pageSize=10&includeState=false"
         );
     }
 
@@ -220,7 +223,7 @@ public class RuntimeGatewayClientWorkflowsTests
             CancellationToken.None
         );
 
-        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/{workflowId}");
+        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/{workflowId}?includeState=false");
     }
 
     [Theory]

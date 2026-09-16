@@ -135,7 +135,7 @@ public sealed class WorkflowPassthroughTests
 
         var response = await client.GetAsync(
             new Uri(
-                $"{GatewayPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step:pdf&isHead=false&cursor={cursor}&pageSize=5",
+                $"{GatewayPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step:pdf&isHead=false&cursor={cursor}&pageSize=5&includeState=false",
                 UriKind.Relative
             ),
             ct
@@ -144,7 +144,7 @@ public sealed class WorkflowPassthroughTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
         Assert.Equal(
-            $"{UpstreamPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step%3Apdf&isHead=false&cursor={cursor}&pageSize=5",
+            $"{UpstreamPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step%3Apdf&isHead=false&cursor={cursor}&pageSize=5&includeState=false",
             upstream.Uri.AbsoluteUri
         );
     }
@@ -161,6 +161,22 @@ public sealed class WorkflowPassthroughTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
         Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}", upstream.Uri.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_ForwardsIncludeState()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+        var workflowId = Guid.NewGuid();
+
+        await client.GetAsync(
+            new Uri($"{GatewayPrefix}/workflows/{workflowId}?includeState=false", UriKind.Relative),
+            ct
+        );
+
+        var upstream = Assert.Single(_factory.EngineHandler.Requests);
+        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}?includeState=false", upstream.Uri.AbsoluteUri);
     }
 
     [Fact]

@@ -467,6 +467,7 @@ internal static class EngineRequestHandlers
         [FromQuery] bool? isHead,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
+        [FromQuery] bool? includeState,
         [FromServices] IEngineRepository repository,
         [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
@@ -503,7 +504,9 @@ internal static class EngineRequestHandlers
         return TypedResults.Ok(
             new PaginatedResponse<WorkflowStatusResponse>
             {
-                Data = result.Workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Data = result
+                    .Workflows.Select(workflow => WorkflowStatusResponse.FromWorkflow(workflow, includeState ?? true))
+                    .ToList(),
                 PageSize = effectivePageSize,
                 TotalCount = result.TotalCount ?? 0, // always populated here (includeTotalCount: true)
                 NextCursor = result.NextCursor,
@@ -514,6 +517,7 @@ internal static class EngineRequestHandlers
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
+        [FromQuery] bool? includeState,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
@@ -526,7 +530,7 @@ internal static class EngineRequestHandlers
         if (workflow is null)
             return TypedResults.NotFound();
 
-        return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+        return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow, includeState ?? true));
     }
 
     public static async Task<Results<Ok<WorkflowDependencyGraphResponse>, NotFound>> GetWorkflowDependencyGraph(
@@ -552,7 +556,7 @@ internal static class EngineRequestHandlers
             new WorkflowDependencyGraphResponse
             {
                 RootWorkflowId = workflowId,
-                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Workflows = dependencyGraph.Select(workflow => WorkflowStatusResponse.FromWorkflow(workflow)).ToList(),
                 Edges = BuildDependencyGraphEdges(dependencyGraph),
             }
         );

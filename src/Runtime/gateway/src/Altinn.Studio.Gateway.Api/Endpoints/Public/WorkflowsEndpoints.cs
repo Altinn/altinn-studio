@@ -42,14 +42,18 @@ internal static class WorkflowsEndpoints
             .WithSummary("List workflows for an app.")
             .WithDescription(
                 "Cursor-paginated workflow list. Optional filters: collectionKey, status (repeatable), "
-                    + "label (repeatable, key:value), isHead. Engine response is passed through unmodified."
+                    + "label (repeatable, key:value), isHead; includeState=false leaves the app's state payload off. "
+                    + "Engine response is passed through unmodified."
             );
 
         workflowsApi
             .MapGet("/workflows/{workflowId:guid}", HandleWorkflows.GetWorkflow)
             .WithName("GetWorkflow")
             .WithSummary("Get a workflow by id.")
-            .WithDescription("Single workflow with all steps. Engine response is passed through unmodified.");
+            .WithDescription(
+                "Single workflow with all steps; includeState=false leaves the app's state payload off. "
+                    + "Engine response is passed through unmodified."
+            );
 
         workflowsApi
             .MapPost("/workflows/{workflowId:guid}/resume", HandleWorkflows.ResumeWorkflow)
