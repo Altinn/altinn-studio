@@ -629,6 +629,7 @@ public class EngineEndpointTests
             null,
             testCursor,
             999,
+            null,
             repositoryMock.Object,
             _defaultSettings,
             CancellationToken.None
