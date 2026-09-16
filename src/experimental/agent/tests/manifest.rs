@@ -467,3 +467,94 @@ fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
     agent.validate().expect("one named skill is valid");
     assert_eq!(agent.spec.skills[0].name(), Some("evidence"));
 }
+
+#[test]
+fn harness_installations_declare_optional_model_and_effort_defaults() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: build
+      context: .
+      dockerfile: Dockerfile
+    platform:
+      os: linux
+    resources:
+      cpu: "1"
+      memory: "1Gi"
+      rootFilesystem:
+        capacity: "8Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+      model: fable
+      effort: xhigh
+    - type: codex
+      auth: mediated
+      model: gpt-5.4-codex
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest with harness defaults should decode");
+    let claude = &agent.spec.harnesses[0];
+    assert_eq!(claude.model.as_ref().map(agent::Model::as_str), Some("fable"));
+    assert_eq!(claude.effort.as_ref().map(agent::Effort::as_str), Some("xhigh"));
+    let codex = &agent.spec.harnesses[1];
+    assert_eq!(codex.model.as_ref().map(agent::Model::as_str), Some("gpt-5.4-codex"));
+    assert_eq!(codex.effort, None);
+
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert_eq!(value["spec"]["harnesses"][0]["model"], "fable");
+    assert_eq!(value["spec"]["harnesses"][0]["effort"], "xhigh");
+    assert!(value["spec"]["harnesses"][1].get("effort").is_none());
+
+    for (field, valid, invalid) in [
+        ("model", "fable", "\"\""),
+        ("effort", "xhigh", "\"\""),
+        ("model", "fable", "\"gpt 5\""),
+        ("effort", "xhigh", "\"hi'gh\""),
+    ] {
+        let yaml = String::from_utf8_lossy(bytes).replace(
+            &format!("      {field}: {valid}\n"),
+            &format!("      {field}: {invalid}\n"),
+        );
+        let error = manifest::decode(yaml.as_bytes()).expect_err("invalid selections are rejected");
+        assert!(
+            error
+                .to_string()
+                .contains(&format!("{field} must be 1-128 ASCII letters")),
+            "{field} = {invalid}: {error}"
+        );
+    }
+}
+
+#[test]
+fn published_manifests_keep_claude_code_sessions_on_fable() {
+    for bytes in [
+        &include_bytes!("../../../../agents/full/agent.yaml")[..],
+        &include_bytes!("../../../../agents/minimal/agent.yaml")[..],
+        &include_bytes!("../../../../agents/worktree/agent.yaml")[..],
+        &include_bytes!("../examples/minimal/agent.yaml")[..],
+        &include_bytes!("../examples/self-dev/checkout/agent.yaml")[..],
+        &include_bytes!("../examples/self-dev/nested/agent.yaml")[..],
+        &include_bytes!("../examples/self-dev/worktree/agent.yaml")[..],
+    ] {
+        let agent = manifest::decode(bytes).expect("manifest should decode");
+        let claude = agent
+            .spec
+            .harness(Harness::ClaudeCode)
+            .expect("every published manifest installs Claude Code");
+        assert_eq!(claude.model.as_ref().map(agent::Model::as_str), Some("fable"));
+        assert_eq!(claude.effort, None);
+    }
+}

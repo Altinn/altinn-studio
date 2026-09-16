@@ -20,7 +20,7 @@ pub mod upgrade;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
-pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
+pub use harness::{Effort, Harness, HarnessAuthMode, HarnessSpec, Model};
 pub use manifest::{
     API_VERSION, Agent, Condition, ConditionStatus, EnvironmentSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
     MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec,

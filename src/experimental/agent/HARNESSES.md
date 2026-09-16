@@ -26,6 +26,7 @@ installed harness versions; testing an existing Sandbox does not prove the rebui
 | Model error without a completion report | The wait times out; inspect the Session and recover manually. |
 | Short completion timeout | Queuing, input readiness and delivery finish before the completion timeout starts. A timeout reports that the prompt was submitted; inspect turns before retrying. The next prompt contains no leftover draft. |
 | Idle/resume, before and after the first turn | An untouched Session remains usable; an established conversation resumes with its history. |
+| Create with `--model` and `--effort`, and with manifest `model`/`effort` defaults only | `get sessions` shows the resolved values; the harness reports the same model and effort (`/model`, `/status`), also after idle-stop and resume; an unknown value fails visibly in the terminal rather than silently falling back. |
 | Transcript writes while the terminal is quiet | Recent transcript writes keep an unattached Session alive; missing or old transcripts do not prevent idle-stop. |
 | Authentication and configuration | Mediated login/inference works without unexpected onboarding or authentication dialogs; configured instructions and skills are available. |
 

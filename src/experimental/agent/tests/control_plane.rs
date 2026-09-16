@@ -799,6 +799,8 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
+        model: None,
+        effort: None,
     });
     let error = fixture
         .control_plane

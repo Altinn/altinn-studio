@@ -11,8 +11,8 @@ use std::{
 };
 
 use agent::{
-    Agent, Error, Harness, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    sessions::Session, sessions::SessionName,
+    Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
+    sessions::Session, sessions::SessionName, sessions::SessionRequest,
 };
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
@@ -333,12 +333,22 @@ async fn suspended(
 ) -> CommandResult<()> {
     tui.suspend()?;
     let result = match action {
-        Action::Attach { agent, session } => attach(home, client, &agent, session, None).await,
+        Action::Attach { agent, session } => attach(home, client, &agent, session, SessionRequest::default()).await,
         Action::CreateSession {
             agent,
             session,
             harness,
-        } => attach(home, client, &agent, session, Some(harness)).await,
+            model,
+            effort,
+        } => {
+            let request = SessionRequest {
+                harness: Some(harness),
+                model,
+                effort,
+                initial_prompt: None,
+            };
+            attach(home, client, &agent, session, request).await
+        }
         Action::Exec { agent } => exec(home, client, &agent).await,
         _ => Ok(()),
     };
@@ -354,18 +364,11 @@ async fn attach(
     client: &Client,
     agent: &str,
     session: SessionName,
-    harness: Option<Harness>,
+    request: SessionRequest,
 ) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client.ensure_session(
-            agent,
-            session,
-            harness,
-            None,
-            WaitPolicy::UntilReady,
-            Some(&mut wait.sink()),
-        ))
+        .until(client.ensure_session(agent, session, request, WaitPolicy::UntilReady, Some(&mut wait.sink())))
         .await?;
     agent::sessions::attach(home.path(), &target).await
 }

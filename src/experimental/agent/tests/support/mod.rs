@@ -56,6 +56,8 @@ pub(crate) fn agent(name: &str) -> Agent {
                 version: Some("2.1.266".into()),
                 auth: HarnessAuthMode::Mediated,
                 default: false,
+                model: None,
+                effort: None,
             }],
             environment: Vec::new(),
             secrets: Vec::new(),

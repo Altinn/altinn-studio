@@ -12,6 +12,7 @@ mod skills;
 
 const VERSION_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const MAX_INITIAL_PROMPT_ARGUMENT_BYTES: usize = 64 * 1024;
+const MAX_SELECTION_CHARACTERS: usize = 128;
 
 pub(crate) use skills::{Skill, SkillFile};
 
@@ -62,6 +63,92 @@ pub enum HarnessAuthMode {
     Mediated,
 }
 
+/// Declares a validated, provider-owned launch selection carried as an opaque string.
+///
+/// Model names and effort levels belong to the harness vendor: they differ between
+/// harnesses and gain new values without a platform release, so the platform only
+/// checks that a value can travel safely to the harness command line.
+macro_rules! launch_selection {
+    ($(#[$doc:meta])* $name:ident, $label:literal) => {
+        $(#[$doc])*
+        #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+        #[serde(try_from = "String", into = "String")]
+        pub struct $name(String);
+
+        impl $name {
+            /// Creates a validated selection.
+            ///
+            /// # Errors
+            ///
+            /// Returns an error unless the value is 1–128 ASCII letters, digits or
+            /// `-`, `_`, `.`, `:`, `/`, `@`, `+`.
+            pub fn new(value: impl Into<String>) -> Result<Self, Error> {
+                let value = value.into();
+                validate_selection($label, &value)?;
+                Ok(Self(value))
+            }
+
+            /// Returns the selection as the text handed to the harness.
+            #[must_use]
+            pub fn as_str(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl TryFrom<String> for $name {
+            type Error = Error;
+
+            fn try_from(value: String) -> Result<Self, Self::Error> {
+                Self::new(value)
+            }
+        }
+
+        impl From<$name> for String {
+            fn from(value: $name) -> Self {
+                value.0
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = Error;
+
+            fn from_str(value: &str) -> Result<Self, Self::Err> {
+                Self::new(value)
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str(&self.0)
+            }
+        }
+    };
+}
+
+launch_selection! {
+    /// Harness-owned model selection, such as a Claude Code alias or a Codex model name.
+    Model, "model"
+}
+
+launch_selection! {
+    /// Harness-owned effort or reasoning level, such as `high`.
+    Effort, "effort"
+}
+
+fn validate_selection(label: &str, value: &str) -> Result<(), Error> {
+    if value.is_empty()
+        || value.chars().count() > MAX_SELECTION_CHARACTERS
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b':' | b'/' | b'@' | b'+'))
+    {
+        return Err(Error::Invalid(format!(
+            "{label} must be 1-{MAX_SELECTION_CHARACTERS} ASCII letters, digits or '-', '_', '.', ':', '/', '@', '+'"
+        )));
+    }
+    Ok(())
+}
+
 /// One harness installation declared for an Agent.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -77,6 +164,14 @@ pub struct HarnessSpec {
     /// Whether new Sessions select this installation when no harness is specified.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub default: bool,
+    /// Model launched for new Sessions of this installation that do not request one.
+    /// Omitted, the harness picks its own default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<Model>,
+    /// Effort level launched for new Sessions of this installation that do not request one.
+    /// Omitted, the harness picks its own default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effort: Option<Effort>,
 }
 
 /// Non-secret result of importing a host harness login.
@@ -255,17 +350,41 @@ pub struct ProcessLaunch {
     pub environment: Vec<(String, String)>,
 }
 
+/// Harness-neutral inputs of one Session launch.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LaunchRequest<'a> {
+    /// Guest home directory holding the harness configuration.
+    pub home: &'a str,
+    /// Harness-native conversation to continue instead of starting a fresh one.
+    pub resume: Option<&'a str>,
+    /// First prompt of a fresh conversation, passed as the harness's positional
+    /// prompt argument so it starts working immediately; ignored when resuming.
+    pub initial_prompt: Option<&'a str>,
+    /// Model the Session was created with; `None` leaves the harness default.
+    pub model: Option<&'a Model>,
+    /// Effort level the Session was created with; `None` leaves the harness default.
+    pub effort: Option<&'a Effort>,
+}
+
 /// Resolves the selected harness's terminal launch configuration.
 ///
-/// A `resume` value continues the given harness-native conversation instead of
-/// starting a fresh one. `initial_prompt` is the first prompt of a fresh
-/// conversation, passed as the harness's positional prompt argument so the
-/// harness starts working on it immediately; it is ignored when resuming.
+/// Each adapter spells the request's model and effort in its own launch
+/// vocabulary; both apply to fresh and resumed conversations alike.
 #[must_use]
-pub fn launch_linux(harness: Harness, home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
+pub fn launch_linux(harness: Harness, request: &LaunchRequest<'_>) -> ProcessLaunch {
     match harness {
-        Harness::ClaudeCode => claude_code::launch_linux(home, resume, initial_prompt),
-        Harness::Codex => codex::launch_linux(home, resume, initial_prompt),
+        Harness::ClaudeCode => claude_code::launch_linux(request),
+        Harness::Codex => codex::launch_linux(request),
+    }
+}
+
+/// Model every Session of `harness` launched with before Sessions recorded a
+/// model, when the adapter hardcoded one. Persistence records it for existing
+/// Sessions when it adopts the Session selection columns.
+pub(crate) const fn model_launched_before_selection(harness: Harness) -> Option<&'static str> {
+    match harness {
+        Harness::ClaudeCode => Some(claude_code::MODEL_LAUNCHED_BEFORE_SELECTION),
+        Harness::Codex => None,
     }
 }
 
@@ -329,6 +448,44 @@ pub(crate) const fn test_harness() -> Harness {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn launch_selections_are_opaque_but_command_line_safe() {
+        for value in [
+            "fable",
+            "claude-fable-5",
+            "gpt-5.4-codex",
+            "us.anthropic.claude-v1:0",
+            "org/model@2",
+            "xhigh",
+        ] {
+            assert_eq!(Model::new(value).expect("valid model").as_str(), value);
+            assert_eq!(Effort::new(value).expect("valid effort").as_str(), value);
+        }
+        for value in [
+            "",
+            " ",
+            "fable ",
+            "a b",
+            "it's",
+            "quote\"d",
+            "back\\slash",
+            "tab\t",
+            "ø",
+        ] {
+            assert!(Model::new(value).is_err(), "{value:?}");
+            assert!(Effort::new(value).is_err(), "{value:?}");
+        }
+        assert!(Model::new("m".repeat(MAX_SELECTION_CHARACTERS)).is_ok());
+        assert!(Model::new("m".repeat(MAX_SELECTION_CHARACTERS + 1)).is_err());
+        let error = Effort::new("").expect_err("empty effort");
+        assert!(error.to_string().contains("effort must be 1-128"));
+        assert!(serde_json::from_str::<Model>("\"\"").is_err());
+        assert_eq!(
+            serde_json::to_string(&Model::new("fable").expect("model")).expect("JSON"),
+            "\"fable\""
+        );
+    }
 
     #[test]
     fn initial_prompt_validation_measures_the_shell_quoted_argument() {

@@ -1,12 +1,12 @@
 //! `OpenAI` Codex CLI harness adapter.
 
-use std::io::Read as _;
+use std::{fmt::Write as _, io::Read as _};
 
 use sandbox::secret_store::SecretReference;
 
 use crate::{
     Error,
-    harness::{MediatedSecret, ProcessLaunch},
+    harness::{LaunchRequest, MediatedSecret, ProcessLaunch, shell_single_quoted},
     persistence,
 };
 
@@ -183,24 +183,32 @@ pub(super) fn input_ready_without_report(cursor_line: &str, title: &str) -> bool
         })
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
-    let config = format!("{home}/.codex");
+pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
+    let config = format!("{}/.codex", request.home);
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
-    let configuration = format!(
+    let mut configuration = format!(
         "-c 'cli_auth_credentials_store=\"file\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
          -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );
+    // Codex takes the model as `-m`; effort has no flag of its own and travels as the
+    // `model_reasoning_effort` config override. Validated selections need no TOML escaping.
+    if let Some(model) = request.model {
+        let _infallible = write!(configuration, " -m {}", shell_single_quoted(model.as_str()));
+    }
+    if let Some(effort) = request.effort {
+        let _infallible = write!(configuration, " -c 'model_reasoning_effort=\"{}\"'", effort.as_str());
+    }
     let base = format!("codex {flags} {configuration}");
     // A fresh conversation may start on a positional prompt; `--` keeps a prompt
     // that begins with `-` or names a subcommand (`resume`) positional.
-    let fresh = initial_prompt.map_or_else(
+    let fresh = request.initial_prompt.map_or_else(
         || base.clone(),
-        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+        |message| format!("{base} -- {}", shell_single_quoted(message)),
     );
-    let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
+    let resume = request.resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
     let command = match resume {
         Some(native) => format!(
             "if /usr/bin/find {config}/sessions -type f \\( \
@@ -225,6 +233,18 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
+
+    use crate::harness::{Effort, LaunchRequest, Model};
+
+    fn request<'a>(resume: Option<&'a str>, initial_prompt: Option<&'a str>) -> LaunchRequest<'a> {
+        LaunchRequest {
+            home: "/home/agent",
+            resume,
+            initial_prompt,
+            model: None,
+            effort: None,
+        }
+    }
 
     #[test]
     fn input_readiness_waits_for_the_initialized_composer() {
@@ -257,7 +277,7 @@ mod tests {
     #[test]
     fn resume_launch_requires_a_native_rollout() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native), None);
+        let launch = super::launch_linux(&request(Some(native), None));
 
         assert!(launch.command.contains("/home/agent/.codex/sessions"));
         assert!(
@@ -289,14 +309,14 @@ mod tests {
 
     #[test]
     fn non_uuid_native_id_is_not_a_codex_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
+        let launch = super::launch_linux(&request(Some("opaque-harness-id"), None));
 
         assert!(!launch.command.contains("codex resume"));
     }
 
     #[test]
     fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
-        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+        let launch = super::launch_linux(&request(None, Some("fix it's\nbroken")));
 
         assert!(
             // `--` keeps a prompt that starts with `-` or names a subcommand positional.
@@ -305,5 +325,33 @@ mod tests {
             launch.command
         );
         assert!(!launch.command.contains("codex resume"));
+    }
+
+    #[test]
+    fn launches_select_no_model_or_effort_unless_the_session_carries_them() {
+        let launch = super::launch_linux(&request(None, None));
+
+        assert!(!launch.command.contains(" -m "));
+        assert!(!launch.command.contains("model_reasoning_effort"));
+    }
+
+    #[test]
+    fn model_and_effort_apply_to_fresh_and_resumed_conversations() {
+        let model = Model::new("gpt-5.4-codex").expect("model");
+        let effort = Effort::new("high").expect("effort");
+        let launch = super::launch_linux(&LaunchRequest {
+            model: Some(&model),
+            effort: Some(&effort),
+            ..request(Some("160cdb4b-5997-464c-9d22-602786eb45d4"), Some("go"))
+        });
+
+        let selection = "-m 'gpt-5.4-codex' -c 'model_reasoning_effort=\"high\"'";
+        assert_eq!(launch.command.matches(selection).count(), 2, "{}", launch.command);
+        assert!(
+            launch
+                .command
+                .contains(&format!("{selection} 160cdb4b-5997-464c-9d22-602786eb45d4;"))
+        );
+        assert!(launch.command.contains(&format!("{selection} -- 'go'")));
     }
 }

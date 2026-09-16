@@ -12,7 +12,7 @@ use agent::{
     control_plane::WaitPolicy,
     local::home::ControlPlaneHome,
     manifest,
-    sessions::{Session, SessionName},
+    sessions::{Session, SessionName, SessionRequest},
 };
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -59,9 +59,8 @@ enum Command {
     Create {
         #[command(flatten)]
         target: SessionTarget,
-        /// Harness installation to bind when creating the Session.
-        #[arg(long, value_parser = parse_harness)]
-        harness: Option<agent::Harness>,
+        #[command(flatten)]
+        selection: SessionSelection,
         /// Maximum wait, written as seconds, minutes, or hours.
         #[arg(long, default_value = "10m", value_parser = parse_duration)]
         timeout: Duration,
@@ -147,9 +146,8 @@ enum Command {
         /// Owning Agent; inferred from the current directory when omitted.
         #[arg(long)]
         agent: Option<String>,
-        /// Harness installation to bind when creating the Session.
-        #[arg(long, value_parser = parse_harness)]
-        harness: Option<agent::Harness>,
+        #[command(flatten)]
+        selection: SessionSelection,
     },
     /// Execute a command in an Agent sandbox.
     Exec {
@@ -213,6 +211,36 @@ struct SessionTarget {
     /// Owning Agent; inferred from the current directory when omitted.
     #[arg(long)]
     agent: Option<String>,
+}
+
+/// Selections fixed when a command creates a Session. An existing Session keeps
+/// its recorded values; naming different ones is an error.
+#[derive(Default, clap::Args)]
+struct SessionSelection {
+    /// Harness installation to bind when creating the Session.
+    #[arg(long, value_parser = parse_harness)]
+    harness: Option<agent::Harness>,
+    /// Model the harness launches with, in the harness's own spelling (for example
+    /// `fable` for Claude Code). Defaults to the installation's manifest `model`,
+    /// else the harness default.
+    #[arg(long, value_parser = parse_model)]
+    model: Option<agent::Model>,
+    /// Effort level the harness launches with, in the harness's own spelling (for
+    /// example `high`). Defaults to the installation's manifest `effort`, else the
+    /// harness default.
+    #[arg(long, value_parser = parse_effort)]
+    effort: Option<agent::Effort>,
+}
+
+impl SessionSelection {
+    fn request(self, initial_prompt: Option<String>) -> SessionRequest {
+        SessionRequest {
+            harness: self.harness,
+            model: self.model,
+            effort: self.effort,
+            initial_prompt,
+        }
+    }
 }
 
 /// Whether a prompt waits for the next turn completion.
@@ -385,8 +413,8 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             resource,
             name,
             agent,
-            harness,
-        } => attach(home, client, &resource, name, agent, harness).await?,
+            selection,
+        } => attach(home, client, &resource, name, agent, selection).await?,
         Command::Exec {
             stdin,
             tty,
@@ -399,10 +427,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         }
         Command::Create {
             target,
-            harness,
+            selection,
             input,
             timeout,
-        } => create_session(home, client, target, harness, input, timeout).await?,
+        } => create_session(home, client, target, selection, input, timeout).await?,
         Command::Prompt {
             target,
             input,
@@ -485,7 +513,7 @@ async fn attach(
     resource: &str,
     name: Option<String>,
     agent: Option<String>,
-    harness: Option<agent::Harness>,
+    selection: SessionSelection,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     if resource != Resource::Session {
@@ -498,8 +526,7 @@ async fn attach(
         .until(client.ensure_session(
             &agent,
             session,
-            harness,
-            None,
+            selection.request(None),
             WaitPolicy::UntilReady,
             Some(&mut wait.sink()),
         ))
@@ -634,18 +661,18 @@ async fn create_session(
     home: &ControlPlaneHome,
     client: &Client,
     target: SessionTarget,
-    harness: Option<agent::Harness>,
+    selection: SessionSelection,
     input: PromptInput,
     timeout: Duration,
 ) -> CommandResult<()> {
     let resource = target.resource.clone();
-    let initial = read_prompt_arg(input)?;
+    let request = selection.request(read_prompt_arg(input)?);
     let wait = progress::Wait::start();
     let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
         ensure_daemon(home, client).await?;
         let (agent, session) = session_target(client, target).await?;
         client.ensure_session(
-            &agent, session.clone(), harness, initial, WaitPolicy::UntilReady, Some(&mut wait.sink()),
+            &agent, session.clone(), request, WaitPolicy::UntilReady, Some(&mut wait.sink()),
         ).await?;
         Ok::<_, CommandError>((agent, session))
     })).await.map_err(|_| CommandError::Message(format!(
@@ -924,6 +951,14 @@ fn parse_harness(value: &str) -> Result<agent::Harness, String> {
     value.parse().map_err(|error: Error| error.to_string())
 }
 
+fn parse_model(value: &str) -> Result<agent::Model, String> {
+    value.parse().map_err(|error: Error| error.to_string())
+}
+
+fn parse_effort(value: &str) -> Result<agent::Effort, String> {
+    value.parse().map_err(|error: Error| error.to_string())
+}
+
 fn print_agents(agents: &[Agent]) {
     let rows = agents
         .iter()
@@ -970,6 +1005,8 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
             row.extend([
                 session.name.as_str().to_owned(),
                 session.harness.as_str().into(),
+                session.model.as_ref().map_or("-", agent::Model::as_str).into(),
+                session.effort.as_ref().map_or("-", agent::Effort::as_str).into(),
                 session_state(session.status.state).into(),
                 format_age(session.created_at),
             ]);
@@ -977,9 +1014,9 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
         })
         .collect::<Vec<_>>();
     let headers = if show_agent {
-        vec!["AGENT", "NAME", "HARNESS", "STATE", "AGE"]
+        vec!["AGENT", "NAME", "HARNESS", "MODEL", "EFFORT", "STATE", "AGE"]
     } else {
-        vec!["NAME", "HARNESS", "STATE", "AGE"]
+        vec!["NAME", "HARNESS", "MODEL", "EFFORT", "STATE", "AGE"]
     };
     print_table(&headers, &rows);
 }
@@ -1215,7 +1252,7 @@ mod tests {
                         name: None,
                         agent: owner.map(str::to_owned),
                     },
-                    None,
+                    SessionSelection::default(),
                     PromptInput {
                         prompt: Some("go".into()),
                         file: None,
@@ -1304,6 +1341,41 @@ mod tests {
     #[test]
     fn create_accepts_a_bounded_wait() {
         assert!(Arguments::try_parse_from(["agentctl", "create", "session/s1", "--timeout", "1s"]).is_ok());
+    }
+
+    #[test]
+    fn session_creation_commands_accept_optional_model_and_effort() {
+        for verb in ["create", "attach"] {
+            let arguments = Arguments::try_parse_from([
+                "agentctl",
+                verb,
+                "session/s1",
+                "--model",
+                "claude-fable-5",
+                "--effort",
+                "xhigh",
+            ])
+            .expect("model and effort parse");
+            let (Command::Create { selection, .. } | Command::Attach { selection, .. }) = arguments.command else {
+                panic!("expected a Session creation command");
+            };
+            let request = selection.request(None);
+            assert_eq!(request.model.as_ref().map(agent::Model::as_str), Some("claude-fable-5"));
+            assert_eq!(request.effort.as_ref().map(agent::Effort::as_str), Some("xhigh"));
+            assert_eq!(request.harness, None);
+
+            let omitted = Arguments::try_parse_from(["agentctl", verb, "session/s1"]).expect("omitted selections");
+            let (Command::Create { selection, .. } | Command::Attach { selection, .. }) = omitted.command else {
+                panic!("expected a Session creation command");
+            };
+            assert_eq!(selection.request(None), SessionRequest::default());
+
+            let Err(error) = Arguments::try_parse_from(["agentctl", verb, "session/s1", "--model", ""]) else {
+                panic!("an empty model is rejected before reaching the daemon");
+            };
+            assert!(error.to_string().contains("model must be 1-128"), "{error}");
+            assert!(Arguments::try_parse_from(["agentctl", verb, "session/s1", "--effort", "very high"]).is_err());
+        }
     }
 
     #[test]

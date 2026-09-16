@@ -187,19 +187,22 @@ impl Client {
 
     /// Creates or resolves one named session attach target.
     ///
-    /// `wait` decides whether the call returns after one Agent reconciliation
-    /// pass or follows background retries until Ready; a progress sink
-    /// independently opts in to streamed provisioning events.
+    /// `request` selects the harness, model, effort and first prompt of a
+    /// Session this call creates; see [`sessions::Service::ensure`] for the
+    /// precedence against manifest defaults. `wait` decides whether the call
+    /// returns after one Agent reconciliation pass or follows background
+    /// retries until Ready; a progress sink independently opts in to streamed
+    /// provisioning events.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is not ready or the registry cannot persist the session.
+    /// Returns an error when the Agent is not ready, a selection conflicts with
+    /// an existing Session, or the registry cannot persist the session.
     pub async fn ensure_session(
         &self,
         agent: &str,
         name: sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<String>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<sessions::AttachTarget, Error> {
@@ -208,8 +211,10 @@ impl Client {
             SessionEnsureParams {
                 agent: agent.into(),
                 name,
-                harness,
-                initial_prompt,
+                harness: request.harness,
+                model: request.model,
+                effort: request.effort,
+                initial_prompt: request.initial_prompt,
                 progress: progress.is_some(),
                 follow: wait == WaitPolicy::UntilReady,
             },

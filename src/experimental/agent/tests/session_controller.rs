@@ -15,7 +15,7 @@ use agent::{
     local::home::ControlPlaneHome,
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
-    sessions::{Reconcile, SessionId, SessionName, SessionReports as _, SessionStore as _},
+    sessions::{NewSession, Reconcile, SessionId, SessionName, SessionReports as _, SessionRequest, SessionStore as _},
 };
 use sandbox::{
     EnsureSandboxRequest, LocalFuture, Platform, SandboxHandle, SandboxService,
@@ -471,8 +471,7 @@ async fn running_session(
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");
@@ -1358,8 +1357,10 @@ async fn a_failed_initial_launch_recovers_without_replaying_the_prompt() {
         .ensure_session(
             "worker",
             &SessionName::new("uncertain").expect("name"),
-            agent::Harness::ClaudeCode,
-            Some("perform once"),
+            NewSession {
+                initial_prompt: Some("perform once".into()),
+                ..NewSession::for_harness(agent::Harness::ClaudeCode)
+            },
         )
         .await
         .expect("Session");
@@ -1418,8 +1419,10 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         .ensure_session(
             "worker",
             &SessionName::new("prompted").expect("name"),
-            agent::Harness::ClaudeCode,
-            Some("start here"),
+            NewSession {
+                initial_prompt: Some("start here".into()),
+                ..NewSession::for_harness(agent::Harness::ClaudeCode)
+            },
         )
         .await
         .expect("Session");
@@ -1656,20 +1659,31 @@ async fn transient_resume_readiness_failure_is_retried() {
     );
 }
 
-#[tokio::test(flavor = "local")]
-async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
-    let directory = TempDir::new().expect("temporary directory");
+/// A Session service over a two-harness Agent whose installations declare
+/// manifest defaults: Claude Code (default) selects `fable`, Codex `high` effort.
+struct SelectionFixture {
+    database: persistence::Database,
+    record: agent::control_plane::AgentRecord,
+    service: agent::sessions::Service,
+    agent_task: tokio::task::JoinHandle<()>,
+    session_task: tokio::task::JoinHandle<()>,
+}
+
+async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
     let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
     let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     let mut record = ready_record("worker", agent_id);
     record.agent.spec.harnesses[0].default = true;
+    record.agent.spec.harnesses[0].model = Some(agent::Model::new("fable").expect("model"));
     record.agent.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
+        model: None,
+        effort: Some(agent::Effort::new("high").expect("effort")),
     });
-    database.put(record, 0).await.expect("Agent");
+    database.put(record.clone(), 0).await.expect("Agent");
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
@@ -1694,14 +1708,36 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         session_wakeup,
     );
 
+    SelectionFixture {
+        database,
+        record,
+        service,
+        agent_task,
+        session_task,
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
+    let directory = TempDir::new().expect("temporary directory");
+    let SelectionFixture {
+        database,
+        service,
+        agent_task,
+        session_task,
+        ..
+    } = selection_fixture(&directory).await;
+
     let invalid_name = SessionName::new("invalid-prompt").expect("name");
     let oversized_prompt = "'".repeat(17_000);
     let error = service
         .ensure(
             "worker",
             &invalid_name,
-            None,
-            Some(&oversized_prompt),
+            SessionRequest {
+                initial_prompt: Some(oversized_prompt.clone()),
+                ..SessionRequest::default()
+            },
             WaitPolicy::FirstPass,
             None,
         )
@@ -1717,8 +1753,10 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
-            Some(agent::Harness::Codex),
-            None,
+            SessionRequest {
+                harness: Some(agent::Harness::Codex),
+                ..SessionRequest::default()
+            },
             WaitPolicy::FirstPass,
             None,
         )
@@ -1728,8 +1766,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .ensure(
             "worker",
             &SessionName::new("implicit").expect("name"),
-            None,
-            None,
+            SessionRequest::default(),
             WaitPolicy::FirstPass,
             None,
         )
@@ -1738,21 +1775,123 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
 
     assert_eq!(explicit.session.harness, agent::Harness::Codex);
     assert_eq!(implicit.session.harness, agent::Harness::ClaudeCode);
+    // Manifest defaults fill omitted selections per installation, and nothing else.
+    assert_eq!(explicit.session.model, None);
+    assert_eq!(
+        explicit.session.effort.as_ref().map(agent::Effort::as_str),
+        Some("high")
+    );
+    assert_eq!(implicit.session.model.as_ref().map(agent::Model::as_str), Some("fable"));
+    assert_eq!(implicit.session.effort, None);
 
     let conflict = service
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
-            Some(agent::Harness::ClaudeCode),
-            None,
+            SessionRequest {
+                harness: Some(agent::Harness::ClaudeCode),
+                ..SessionRequest::default()
+            },
             WaitPolicy::FirstPass,
             None,
         )
         .await
         .expect_err("an existing Session keeps its harness");
     assert!(conflict.to_string().contains("already uses harness \"codex\""));
+
     agent_task.abort();
     session_task.abort();
+}
+
+impl SelectionFixture {
+    async fn ensure(&self, name: &str, request: SessionRequest) -> Result<agent::sessions::Session, Error> {
+        let name = SessionName::new(name).expect("name");
+        let target = self
+            .service
+            .ensure("worker", &name, request, WaitPolicy::FirstPass, None)
+            .await?;
+        Ok(target.session)
+    }
+}
+
+fn selection(model: Option<&str>, effort: Option<&str>) -> SessionRequest {
+    SessionRequest {
+        model: model.map(|model| agent::Model::new(model).expect("model")),
+        effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        ..SessionRequest::default()
+    }
+}
+
+fn recorded(session: &agent::sessions::Session) -> (Option<&str>, Option<&str>) {
+    (
+        session.model.as_ref().map(agent::Model::as_str),
+        session.effort.as_ref().map(agent::Effort::as_str),
+    )
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_ensure_resolves_model_and_effort_with_manifest_defaults() {
+    let directory = TempDir::new().expect("temporary directory");
+    let fixture = selection_fixture(&directory).await;
+    let implicit = fixture
+        .ensure("implicit", SessionRequest::default())
+        .await
+        .expect("implicit default Session");
+    assert_eq!(recorded(&implicit), (Some("fable"), None));
+
+    let chosen = fixture
+        .ensure("chosen", selection(Some("claude-opus-5"), Some("low")))
+        .await
+        .expect("explicit selections Session");
+    assert_eq!(chosen.harness, agent::Harness::ClaudeCode);
+    assert_eq!(recorded(&chosen), (Some("claude-opus-5"), Some("low")));
+
+    let same = fixture
+        .ensure("chosen", selection(Some("claude-opus-5"), None))
+        .await
+        .expect("repeating the recorded selection is not a conflict");
+    assert_eq!((same.id, recorded(&same)), (chosen.id, recorded(&chosen)));
+    let model_conflict = fixture
+        .ensure("chosen", selection(Some("fable"), None))
+        .await
+        .expect_err("an existing Session keeps its model");
+    assert!(
+        model_conflict
+            .to_string()
+            .contains("already uses model \"claude-opus-5\", not \"fable\""),
+        "{model_conflict}"
+    );
+    let effort_conflict = fixture
+        .ensure("implicit", selection(None, Some("max")))
+        .await
+        .expect_err("an existing Session keeps the harness default effort");
+    assert!(
+        effort_conflict
+            .to_string()
+            .contains("already uses effort the harness default, not \"max\""),
+        "{effort_conflict}"
+    );
+
+    // A changed manifest default never reaches an existing Session.
+    let mut changed = fixture.record.clone();
+    changed.agent.spec.harnesses[0].model = Some(agent::Model::new("claude-sonnet-5").expect("model"));
+    fixture
+        .database
+        .put(changed, 1)
+        .await
+        .expect("changed manifest defaults");
+    let relaunched = fixture
+        .ensure("implicit", SessionRequest::default())
+        .await
+        .expect("existing Session under changed defaults");
+    assert_eq!(recorded(&relaunched), (Some("fable"), None));
+    let fresh = fixture
+        .ensure("fresh", SessionRequest::default())
+        .await
+        .expect("new Session under changed defaults");
+    assert_eq!(recorded(&fresh), (Some("claude-sonnet-5"), None));
+    fixture.agent_task.abort();
+    fixture.session_task.abort();
 }
 
 #[tokio::test(flavor = "local")]
@@ -1788,8 +1927,7 @@ async fn session_reconciliation_never_ensures_the_agent_sandbox() {
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");
@@ -1857,8 +1995,7 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
         .ensure_session(
             "worker",
             &SessionName::new("idle").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");
@@ -2046,8 +2183,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             .ensure(
                 "worker",
                 &SessionName::new("s1").expect("name"),
-                None,
-                None,
+                SessionRequest::default(),
                 WaitPolicy::FirstPass,
                 None,
             )
@@ -2086,8 +2222,7 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
         .ensure_session(
             "worker",
             &SessionName::new("slow").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("slow Session");
@@ -2120,8 +2255,7 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
         .ensure_session(
             "worker",
             &SessionName::new("fast").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("fast Session");
@@ -2165,7 +2299,11 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
         .expect("replacement");
     let replacement = harness
         .database
-        .ensure_session("worker", &harness.session.name, agent::Harness::ClaudeCode, None)
+        .ensure_session(
+            "worker",
+            &harness.session.name,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
         .await
         .expect("Session");
     harness

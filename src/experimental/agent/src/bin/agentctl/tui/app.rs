@@ -1,12 +1,20 @@
 use std::{collections::HashSet, path::PathBuf};
 
 use agent::{
-    Agent, ConditionStatus, Harness,
+    Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model,
     sessions::{LifecycleState, Session, SessionName, State},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::{format, forward::ForwardSpec};
+
+/// Key hints of the new Session form, shared by the modal and the footer.
+pub(crate) const NEW_SESSION_HINTS: [(&str, &str); 4] = [
+    ("enter", "create"),
+    ("tab", "field"),
+    ("←/→", "harness"),
+    ("esc", "cancel"),
+];
 
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
@@ -70,19 +78,147 @@ pub(crate) struct Detail {
 }
 
 pub(crate) enum Modal {
-    ConfirmDelete {
-        agent: String,
-        sessions: usize,
-    },
-    NewSession {
-        agent: String,
-        name: String,
-        harnesses: Vec<Harness>,
-        harness: usize,
-        error: Option<String>,
-    },
+    ConfirmDelete { agent: String, sessions: usize },
+    NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
+}
+
+/// Text field of the new Session form that typing edits.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum SessionField {
+    Name,
+    Model,
+    Effort,
+}
+
+impl SessionField {
+    const ORDER: [Self; 3] = [Self::Name, Self::Model, Self::Effort];
+
+    fn next(self) -> Self {
+        let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
+        Self::ORDER[(index + 1) % Self::ORDER.len()]
+    }
+
+    fn previous(self) -> Self {
+        let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
+        Self::ORDER[(index + Self::ORDER.len() - 1) % Self::ORDER.len()]
+    }
+}
+
+/// New Session form state: a name, optional model and effort, and a harness picker.
+///
+/// Empty model and effort fields leave the choice to the daemon, which applies
+/// the selected installation's manifest defaults and then the harness's own.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct SessionForm {
+    pub(crate) agent: String,
+    pub(crate) name: String,
+    pub(crate) model: String,
+    pub(crate) effort: String,
+    pub(crate) field: SessionField,
+    pub(crate) harnesses: Vec<HarnessSpec>,
+    pub(crate) harness: usize,
+    pub(crate) error: Option<String>,
+}
+
+impl SessionForm {
+    /// The installation the harness picker currently selects.
+    pub(crate) fn installation(&self) -> Option<&HarnessSpec> {
+        self.harnesses.get(self.harness)
+    }
+
+    /// Manifest default that applies while the model field is empty.
+    pub(crate) fn model_default(&self) -> Option<&str> {
+        self.installation()
+            .and_then(|installation| installation.model.as_ref())
+            .map(Model::as_str)
+    }
+
+    /// Manifest default that applies while the effort field is empty.
+    pub(crate) fn effort_default(&self) -> Option<&str> {
+        self.installation()
+            .and_then(|installation| installation.effort.as_ref())
+            .map(Effort::as_str)
+    }
+
+    /// Applies one key; `Some` closes the form with the returned action.
+    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter => match self.submit() {
+                Ok(action) => return Some(action),
+                Err(invalid) => self.error = Some(invalid.to_string()),
+            },
+            KeyCode::Tab | KeyCode::Down => self.field = self.field.next(),
+            KeyCode::BackTab | KeyCode::Up => self.field = self.field.previous(),
+            KeyCode::Right => self.harness = (self.harness + 1) % self.harnesses.len().max(1),
+            KeyCode::Left => {
+                self.harness = self
+                    .harness
+                    .checked_sub(1)
+                    .unwrap_or_else(|| self.harnesses.len().saturating_sub(1));
+            }
+            KeyCode::Backspace => {
+                self.value_mut().pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty() && self.accepts(character) =>
+            {
+                self.value_mut().push(character);
+                self.error = None;
+            }
+            _ => {}
+        }
+        None
+    }
+
+    fn submit(&self) -> Result<Action, agent::Error> {
+        let session = SessionName::new(self.name.clone())?;
+        let Some(installation) = self.installation() else {
+            return Ok(Action::None);
+        };
+        let model = (!self.model.is_empty())
+            .then(|| Model::new(self.model.clone()))
+            .transpose()?;
+        let effort = (!self.effort.is_empty())
+            .then(|| Effort::new(self.effort.clone()))
+            .transpose()?;
+        Ok(Action::CreateSession {
+            agent: self.agent.clone(),
+            session,
+            harness: installation.kind,
+            model,
+            effort,
+        })
+    }
+
+    const fn value_mut(&mut self) -> &mut String {
+        match self.field {
+            SessionField::Name => &mut self.name,
+            SessionField::Model => &mut self.model,
+            SessionField::Effort => &mut self.effort,
+        }
+    }
+
+    /// Whether typing `character` into the focused field keeps it valid.
+    fn accepts(&self, character: char) -> bool {
+        match self.field {
+            SessionField::Name => {
+                (character.is_ascii_alphanumeric() || matches!(character, '-' | '_')) && self.name.len() < 64
+            }
+            SessionField::Model | SessionField::Effort => {
+                let value = if self.field == SessionField::Model {
+                    &self.model
+                } else {
+                    &self.effort
+                };
+                (character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.' | ':' | '/' | '@' | '+'))
+                    && value.len() < 128
+            }
+        }
+    }
 }
 
 /// One manifest source offered by the create-agent picker.
@@ -288,6 +424,8 @@ pub(crate) enum Action {
         agent: String,
         session: SessionName,
         harness: Harness,
+        model: Option<Model>,
+        effort: Option<Effort>,
     },
     OpenCreate,
     CreateAgent {
@@ -594,55 +732,11 @@ impl App {
                     Action::None
                 }
             },
-            Some(Modal::NewSession {
-                agent,
-                mut name,
-                harnesses,
-                mut harness,
-                mut error,
-            }) => {
-                match key.code {
-                    KeyCode::Esc => return Action::None,
-                    KeyCode::Enter => match SessionName::new(name.clone()) {
-                        Ok(session) => {
-                            let Some(kind) = harnesses.get(harness).copied() else {
-                                return Action::None;
-                            };
-                            return Action::CreateSession {
-                                agent,
-                                session,
-                                harness: kind,
-                            };
-                        }
-                        Err(invalid) => error = Some(invalid.to_string()),
-                    },
-                    KeyCode::Tab | KeyCode::Right => harness = (harness + 1) % harnesses.len().max(1),
-                    KeyCode::Left => {
-                        harness = harness
-                            .checked_sub(1)
-                            .unwrap_or_else(|| harnesses.len().saturating_sub(1));
-                    }
-                    KeyCode::Backspace => {
-                        name.pop();
-                        error = None;
-                    }
-                    KeyCode::Char(character)
-                        if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
-                            && (character.is_ascii_alphanumeric() || matches!(character, '-' | '_'))
-                            && name.len() < 64 =>
-                    {
-                        name.push(character);
-                        error = None;
-                    }
-                    _ => {}
+            Some(Modal::NewSession(mut form)) => {
+                if let Some(action) = form.key(key) {
+                    return action;
                 }
-                self.modal = Some(Modal::NewSession {
-                    agent,
-                    name,
-                    harnesses,
-                    harness,
-                    error,
-                });
+                self.modal = Some(Modal::NewSession(form));
                 Action::None
             }
             Some(Modal::CreateAgent(mut form)) => {
@@ -719,20 +813,22 @@ impl App {
         let Some(agent) = self.group_agent(group) else {
             return;
         };
-        let harnesses = agent.spec.harnesses.iter().map(|spec| spec.kind).collect::<Vec<_>>();
         let harness = agent
             .spec
             .harnesses
             .iter()
             .position(|spec| spec.default)
             .unwrap_or_default();
-        self.modal = Some(Modal::NewSession {
+        self.modal = Some(Modal::NewSession(SessionForm {
             agent: agent.metadata.name.clone(),
             name: String::new(),
-            harnesses,
+            model: String::new(),
+            effort: String::new(),
+            field: SessionField::Name,
+            harnesses: agent.spec.harnesses.clone(),
             harness,
             error: None,
-        });
+        }));
     }
 
     fn toggle_fold(&mut self, name: &str) {
@@ -838,9 +934,14 @@ impl App {
                         dot: Some(dot),
                         label: session.name.as_str().to_owned(),
                         badge: format!(
-                            "{} · {} · {}",
+                            "{} · {}{} · {}",
                             format::session_state(session.status.state),
                             session.harness.as_str(),
+                            session
+                                .model
+                                .as_ref()
+                                .map(|model| format!(" · {model}"))
+                                .unwrap_or_default(),
                             format::format_age(session.created_at)
                         ),
                         tone,
@@ -855,7 +956,7 @@ impl App {
         if let Some(modal) = &self.modal {
             return match modal {
                 Modal::ConfirmDelete { .. } => vec![("y", "confirm"), ("n", "cancel")],
-                Modal::NewSession { .. } => vec![("enter", "create"), ("tab", "harness"), ("esc", "cancel")],
+                Modal::NewSession(_) => NEW_SESSION_HINTS.to_vec(),
                 Modal::CreateAgent { .. } => vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")],
                 Modal::PortForward { .. } => vec![("enter", "forward"), ("tab", "field"), ("esc", "cancel")],
             };
@@ -950,6 +1051,8 @@ fn session_detail(session: &Session) -> Detail {
         format!("Name:       {}", session.name.as_str()),
         format!("Agent:      {}", session.agent),
         format!("Harness:    {}", session.harness.as_str()),
+        format!("Model:      {}", session.model.as_ref().map_or("-", Model::as_str)),
+        format!("Effort:     {}", session.effort.as_ref().map_or("-", Effort::as_str)),
         format!("State:      {}", format::session_state(session.status.state)),
         format!("Turns:      {}", session.status.reported.activity.turns),
         format!("Age:        {}", format::format_age(session.created_at)),
@@ -1140,9 +1243,9 @@ mod tests {
     fn new_session_modal_validates_the_name_and_creates_on_enter() {
         let mut app = populated();
         app.on_key(key(KeyCode::Char('n')));
-        assert!(matches!(app.modal, Some(Modal::NewSession { .. })));
+        assert!(matches!(app.modal, Some(Modal::NewSession(_))));
         assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
-        assert!(matches!(app.modal, Some(Modal::NewSession { error: Some(_), .. })));
+        assert!(matches!(&app.modal, Some(Modal::NewSession(form)) if form.error.is_some()));
         app.on_key(key(KeyCode::Char('s')));
         app.on_key(key(KeyCode::Char('!')));
         app.on_key(key(KeyCode::Char('1')));
@@ -1153,9 +1256,60 @@ mod tests {
                 agent: "builder".into(),
                 session: SessionName::new("s1").expect("valid name"),
                 harness: Harness::ClaudeCode,
+                model: None,
+                effort: None,
             }
         );
         assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn new_session_form_types_model_and_effort_and_shows_manifest_defaults() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent_named(
+                "worker",
+                "\x20   - type: claudeCode\n\x20     auth: mediated\n\x20     model: fable\n\x20     effort: high\n",
+            )],
+            Vec::new(),
+        );
+        app.on_key(key(KeyCode::Char('n')));
+        let form = |app: &App| match &app.modal {
+            Some(Modal::NewSession(form)) => form.clone(),
+            _ => panic!("expected the NewSession modal"),
+        };
+        assert_eq!(form(&app).field, SessionField::Name);
+        assert_eq!(form(&app).model_default(), Some("fable"));
+        assert_eq!(form(&app).effort_default(), Some("high"));
+        assert_eq!(app.hints(), NEW_SESSION_HINTS.to_vec());
+
+        app.on_key(key(KeyCode::Char('s')));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(form(&app).field, SessionField::Model);
+        for character in "gpt 5.4".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+        assert_eq!(form(&app).model, "gpt5.4", "a space is not part of a model name");
+        app.on_key(key(KeyCode::Down));
+        assert_eq!(form(&app).field, SessionField::Effort);
+        app.on_key(key(KeyCode::Char('x')));
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::BackTab));
+        app.on_key(key(KeyCode::Up));
+        assert_eq!(form(&app).field, SessionField::Name);
+        assert_eq!(form(&app).name, "s");
+
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::CreateSession {
+                agent: "worker".into(),
+                session: SessionName::new("s").expect("valid name"),
+                harness: Harness::ClaudeCode,
+                model: Some(Model::new("gpt5.4").expect("model")),
+                effort: None,
+            },
+            "an empty effort leaves the manifest default to the daemon"
+        );
     }
 
     #[test]
@@ -1171,15 +1325,21 @@ mod tests {
             Vec::new(),
         );
         app.on_key(key(KeyCode::Char('n')));
-        let Some(Modal::NewSession { harness, .. }) = &app.modal else {
+        let Some(Modal::NewSession(form)) = &app.modal else {
             panic!("expected the NewSession modal");
         };
-        assert_eq!(*harness, 1);
-        app.on_key(key(KeyCode::Tab));
-        let Some(Modal::NewSession { harness, .. }) = &app.modal else {
+        assert_eq!(form.harness, 1);
+        app.on_key(key(KeyCode::Right));
+        let Some(Modal::NewSession(form)) = &app.modal else {
             panic!("expected the NewSession modal");
         };
-        assert_eq!(*harness, 0);
+        assert_eq!(form.harness, 0);
+        app.on_key(key(KeyCode::Left));
+        app.on_key(key(KeyCode::Left));
+        let Some(Modal::NewSession(form)) = &app.modal else {
+            panic!("expected the NewSession modal");
+        };
+        assert_eq!(form.harness, 0, "the picker wraps in both directions");
         app.on_key(key(KeyCode::Char('s')));
         app.on_key(key(KeyCode::Char('1')));
         assert_eq!(
@@ -1188,6 +1348,8 @@ mod tests {
                 agent: "worker".into(),
                 session: SessionName::new("s1").expect("valid name"),
                 harness: Harness::ClaudeCode,
+                model: None,
+                effort: None,
             }
         );
     }

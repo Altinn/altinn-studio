@@ -5,11 +5,11 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Error, Harness, control_plane, control_plane::WaitPolicy, progress::Reporter};
+use crate::{Effort, Error, Model, control_plane, control_plane::WaitPolicy, progress::Reporter};
 
 use super::{
-    AgentSandboxes, AttachTarget, LifecycleState, Session, SessionId, SessionName, SessionRuntime, SharedStore, State,
-    Turn, Wakeup,
+    AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
+    SessionRuntime, SharedStore, State, Turn, Wakeup,
 };
 
 /// Ceiling for completion waiting after prompt submission.
@@ -102,24 +102,27 @@ impl Service {
 
     /// Creates or gets one named Session and waits until its driver is ready.
     ///
-    /// `initial_prompt` is recorded only when this call creates the Session;
-    /// the reconciler hands it to the harness at its first launch, so the
-    /// harness starts working before this call returns.
+    /// `request` applies only when this call creates the Session. Its harness,
+    /// model and effort resolve in that order of precedence: the explicit
+    /// request, then the selected installation's manifest defaults, then the
+    /// harness's own defaults; the resolved values are recorded with the
+    /// Session. The initial prompt is handed to the harness at its first
+    /// launch, so the harness starts working before this call returns.
     ///
     /// # Errors
     ///
-    /// Returns an error when persistence fails or the Agent is invalid; with
+    /// Returns an error when persistence fails, the Agent is invalid, or an
+    /// explicit selection conflicts with an existing Session; with
     /// [`WaitPolicy::FirstPass`] also when the single Agent pass fails.
     pub async fn ensure(
         &self,
         agent: &str,
         name: &SessionName,
-        requested_harness: Option<Harness>,
-        initial_prompt: Option<&str>,
+        request: SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
-        let (owner, session) = self.prepare(agent, name, requested_harness, initial_prompt).await?;
+        let (owner, session) = self.prepare(agent, name, request).await?;
         self.convergence.converge(owner.id, wait, progress.as_ref()).await?;
         self.wakeup.reconcile(session.id).await?;
         self.store.session_attach_target(session.id).await
@@ -273,14 +276,13 @@ impl Service {
         &self,
         agent: &str,
         name: &SessionName,
-        requested_harness: Option<Harness>,
-        initial_prompt: Option<&str>,
+        request: SessionRequest,
     ) -> Result<(control_plane::AgentRecord, Session), Error> {
         let owner = self.sandboxes.agent_by_name(agent).await?;
         if owner.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
-        if let Some(harness) = requested_harness
+        if let Some(harness) = request.harness
             && owner.agent.spec.harness(harness).is_none()
         {
             return Err(Error::Invalid(format!(
@@ -290,25 +292,25 @@ impl Service {
         }
         let session = match self.store.get_agent_session(agent, name).await {
             Ok(session) => {
-                if let Some(harness) = requested_harness
-                    && harness != session.harness
-                {
-                    return Err(Error::Invalid(format!(
-                        "Session \"{name}\" already uses harness {:?}, not {:?}",
-                        session.harness.as_str(),
-                        harness.as_str()
-                    )));
-                }
+                reject_conflicting_selections(name, &session, &request)?;
                 session
             }
             Err(Error::NotFound) => {
-                let harness = requested_harness
-                    .or_else(|| owner.agent.spec.default_harness().map(|installation| installation.kind))
-                    .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?;
-                if let Some(initial_prompt) = initial_prompt {
+                let installation = match request.harness {
+                    Some(harness) => owner.agent.spec.harness(harness),
+                    None => owner.agent.spec.default_harness(),
+                }
+                .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?;
+                if let Some(initial_prompt) = &request.initial_prompt {
                     crate::harness::validate_initial_prompt(initial_prompt)?;
                 }
-                self.store.ensure_session(agent, name, harness, initial_prompt).await?
+                let new = NewSession {
+                    harness: installation.kind,
+                    model: request.model.or_else(|| installation.model.clone()),
+                    effort: request.effort.or_else(|| installation.effort.clone()),
+                    initial_prompt: request.initial_prompt,
+                };
+                self.store.ensure_session(agent, name, new).await?
             }
             Err(error) => return Err(error),
         };
@@ -461,4 +463,42 @@ impl Service {
         }
         Ok(Some(sandbox))
     }
+}
+
+/// An existing Session keeps its recorded harness, model and effort; only an
+/// explicit, differing request is an error, so a manifest default that changed
+/// after creation never conflicts with relaunching or attaching.
+fn reject_conflicting_selections(name: &SessionName, session: &Session, request: &SessionRequest) -> Result<(), Error> {
+    if let Some(harness) = request.harness
+        && harness != session.harness
+    {
+        return Err(Error::Invalid(format!(
+            "Session \"{name}\" already uses harness {:?}, not {:?}",
+            session.harness.as_str(),
+            harness.as_str()
+        )));
+    }
+    if let Some(model) = &request.model
+        && Some(model) != session.model.as_ref()
+    {
+        return Err(Error::Invalid(format!(
+            "Session \"{name}\" already uses model {}, not {:?}",
+            recorded(session.model.as_ref().map(Model::as_str)),
+            model.as_str()
+        )));
+    }
+    if let Some(effort) = &request.effort
+        && Some(effort) != session.effort.as_ref()
+    {
+        return Err(Error::Invalid(format!(
+            "Session \"{name}\" already uses effort {}, not {:?}",
+            recorded(session.effort.as_ref().map(Effort::as_str)),
+            effort.as_str()
+        )));
+    }
+    Ok(())
+}
+
+fn recorded(selection: Option<&str>) -> String {
+    selection.map_or_else(|| "the harness default".to_owned(), |value| format!("{value:?}"))
 }

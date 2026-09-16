@@ -165,7 +165,16 @@ async fn launch(
     resume: Option<&str>,
     initial_message: Option<&str>,
 ) -> Result<(), Error> {
-    let launch = harness::launch_linux(session.harness, crate::sandbox::platform::HOME, resume, initial_message);
+    let launch = harness::launch_linux(
+        session.harness,
+        &harness::LaunchRequest {
+            home: crate::sandbox::platform::HOME,
+            resume,
+            initial_prompt: initial_message,
+            model: session.model.as_ref(),
+            effort: session.effort.as_ref(),
+        },
+    );
     let mut arguments = vec!["new-session".into(), "-d".into(), "-s".into(), session_name(session)];
     let session_environment = launch.environment.iter().cloned().chain([
         ("CONTAINER_HOST".into(), crate::sandbox::platform::CONTAINER_HOST.into()),
@@ -649,6 +658,8 @@ mod tests {
             agent: "worker".into(),
             name: "s1".to_string().try_into().expect("Session name"),
             harness: crate::harness::test_harness(),
+            model: None,
+            effort: None,
             created_at: OffsetDateTime::UNIX_EPOCH,
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,

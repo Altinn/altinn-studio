@@ -4,11 +4,11 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AgentId, Error, Harness,
+    AgentId, Error,
     sandbox::Assignment,
     sessions::{
-        Activity, ActivityEvent, AttachTarget, LaunchState, LaunchToken, Lifecycle, LifecycleState, Reported, Session,
-        SessionId, SessionName, Status,
+        Activity, ActivityEvent, AttachTarget, LaunchState, LaunchToken, Lifecycle, LifecycleState, NewSession,
+        Reported, Session, SessionId, SessionName, Status,
     },
 };
 
@@ -16,7 +16,8 @@ use super::{agents, database_error};
 
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
-    sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json";
+    sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
+    sessions.model, sessions.effort";
 
 /// Reconciler-owned column: the lifecycle half of the status plus the
 /// activation revision it was observed at.
@@ -35,8 +36,7 @@ pub(super) fn ensure(
     connection: &mut Connection,
     agent: &str,
     name: &SessionName,
-    harness: Harness,
-    initial_prompt: Option<&str>,
+    new: &NewSession,
 ) -> Result<Session, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let owner = agents::get_by_name(&transaction, agent)?;
@@ -45,11 +45,11 @@ pub(super) fn ensure(
     }
     let agent_id = owner.id;
     if let Some(session) = query_named(&transaction, agent_id, name)? {
-        if session.harness != harness {
+        if session.harness != new.harness {
             return Err(Error::Invalid(format!(
                 "Session \"{name}\" already uses harness {:?}, not {:?}",
                 session.harness.as_str(),
-                harness.as_str()
+                new.harness.as_str()
             )));
         }
         transaction.commit().map_err(database_error)?;
@@ -59,15 +59,17 @@ pub(super) fn ensure(
     let created_at = time::OffsetDateTime::now_utc().unix_timestamp();
     transaction
         .execute(
-            "INSERT INTO sessions (id, agent_id, name, harness, created_at, initial_prompt) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO sessions (id, agent_id, name, harness, created_at, initial_prompt, model, effort) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
                 id.to_string(),
                 agent_id.to_string(),
                 name.as_str(),
-                harness.as_str(),
+                new.harness.as_str(),
                 created_at,
-                initial_prompt
+                new.initial_prompt.as_deref(),
+                new.model.as_ref().map(crate::Model::as_str),
+                new.effort.as_ref().map(crate::Effort::as_str),
             ],
         )
         .map_err(database_error)?;
@@ -399,12 +401,24 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
     let harness_session_id = row.get::<_, Option<String>>(8)?;
     let harness_transcript_path = row.get::<_, Option<String>>(9)?;
     let activity = serde_json::from_str::<Activity>(&row.get::<_, String>(10)?).map_err(conversion_error)?;
+    let model = row
+        .get::<_, Option<String>>(11)?
+        .map(crate::Model::new)
+        .transpose()
+        .map_err(conversion_error)?;
+    let effort = row
+        .get::<_, Option<String>>(12)?
+        .map(crate::Effort::new)
+        .transpose()
+        .map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
         agent,
         name,
         harness,
+        model,
+        effort,
         created_at,
         status: Status::new(
             Lifecycle {

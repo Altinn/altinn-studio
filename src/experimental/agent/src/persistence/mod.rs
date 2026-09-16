@@ -164,15 +164,13 @@ impl crate::sessions::SessionStore for Database {
         &'a self,
         agent: &'a str,
         name: &'a crate::sessions::SessionName,
-        harness: crate::Harness,
-        initial_prompt: Option<&'a str>,
+        new: crate::sessions::NewSession,
     ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
         Box::pin(async move {
             self.request(|response| Command::EnsureSession {
                 agent: agent.into(),
                 name: name.clone(),
-                harness,
-                initial_prompt: initial_prompt.map(str::to_owned),
+                new,
                 response,
             })
             .await
@@ -459,8 +457,7 @@ enum Command {
     EnsureSession {
         agent: String,
         name: crate::sessions::SessionName,
-        harness: crate::Harness,
-        initial_prompt: Option<String>,
+        new: crate::sessions::NewSession,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
     GetSession {
@@ -689,17 +686,10 @@ fn execute_session(connection: &mut Connection, command: Command) {
         Command::EnsureSession {
             agent,
             name,
-            harness,
-            initial_prompt,
+            new,
             response,
         } => {
-            let _ = response.send(sessions::ensure(
-                connection,
-                &agent,
-                &name,
-                harness,
-                initial_prompt.as_deref(),
-            ));
+            let _ = response.send(sessions::ensure(connection, &agent, &name, &new));
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));
@@ -855,9 +845,11 @@ mod tests {
         drop(open(&path).expect("current database"));
         for _ in 0..4 {
             let connection = Connection::open(&path).expect("database");
-            connection.pragma_update(None, "user_version", 1).expect("old version");
+            connection
+                .pragma_update(None, "user_version", super::schema::VERSION - 1)
+                .expect("old version");
             drop(connection);
-            Database::migrate(&path).expect("adopt expanded version 1 after backup");
+            Database::migrate(&path).expect("adopt the expanded previous version after backup");
         }
         let backups = std::fs::read_dir(directory.path().join("backups"))
             .expect("backups")
