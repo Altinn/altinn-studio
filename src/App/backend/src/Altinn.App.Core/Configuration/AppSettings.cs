@@ -239,7 +239,8 @@ public class AppSettings
 
     /// <summary>
     /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutable (using app apis) when the instance is in this task.
-    /// This is a temporary setting to help identify components with incorrect data bindings, and will be removed in the next major version.
+    /// Enabled by default. Set to <c>false</c> to temporarily allow such mutations while fixing components with incorrect data bindings.
+    /// This is a temporary setting and will be removed in the next major version.
     /// </summary>
-    public bool EnforceDataTypeTaskId { get; set; } = false;
+    public bool EnforceDataTypeTaskId { get; set; } = true;
 }
