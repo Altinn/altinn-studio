@@ -101,7 +101,7 @@ describe('ConfigServiceTask', () => {
   });
 
   // fiksArkiv takes no BPMN configuration at all - `FiksArkivSettings` comes from appsettings - so
-  // there is nothing here for it to show.
+  // it has no fields here, only the warning about the shape it sits in.
   it.each(['fiksArkiv', 'myServiceTask'])(
     'should render no eFormidling configuration for %s',
     (taskType) => {
@@ -110,6 +110,27 @@ describe('ConfigServiceTask', () => {
       });
 
       expect(queryEFormidlingField()).not.toBeInTheDocument();
+    },
+  );
+
+  // The runtime refuses to start a fiksArkiv task that is not followed by an exclusive gateway, and
+  // the palette creates the task without one. No other task type has that rule.
+  it('should warn about the process shape of a fiksArkiv task with nothing after it', () => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType: 'fiksArkiv' } },
+    });
+
+    expect(queryProcessShapeWarning()).toBeInTheDocument();
+  });
+
+  it.each(['eFormidling', 'myServiceTask'])(
+    'should render no process shape warning for %s',
+    (taskType) => {
+      renderConfigServiceTask({
+        bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+      });
+
+      expect(queryProcessShapeWarning()).not.toBeInTheDocument();
     },
   );
 
@@ -154,6 +175,11 @@ const queryEFormidlingField = (): HTMLElement | null =>
   screen.queryByRole('button', {
     name: textMock('process_editor.configuration_panel.eformidling.type_label'),
   });
+
+const queryProcessShapeWarning = (): HTMLElement | null =>
+  screen.queryByText(
+    textMock('process_editor.configuration_panel.fiks_arkiv.missing_gateway_alert'),
+  );
 
 type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;
