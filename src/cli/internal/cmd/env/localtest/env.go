@@ -265,32 +265,6 @@ func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
 	return e.logStreamer().Stream(ctx, opts.Component, opts.Follow, opts.JSON)
 }
 
-// NewerBuilds returns the images that now resolve to a build no running container is using,
-// so a converged environment can say it is behind. Only images whose tag moves are checked,
-// and a registry that cannot be reached simply reports nothing.
-func (e *Env) NewerBuilds(ctx context.Context, status *Status) []string {
-	runningIDs := make(map[string]bool, len(status.Containers))
-	for _, ctr := range status.Containers {
-		if ctr.ImageID != "" {
-			runningIDs[ctr.ImageID] = true
-		}
-	}
-
-	var newer []string
-	for _, spec := range e.cfg.Images.Floating() {
-		if err := e.client.ImagePull(ctx, spec.Ref()); err != nil {
-			e.out.Verbosef("check for a newer build of %s: %v", spec.Ref(), err)
-			continue
-		}
-		info, err := e.client.ImageInspect(ctx, spec.Ref())
-		if err != nil || info.ID == "" || runningIDs[info.ID] {
-			continue
-		}
-		newer = append(newer, spec.Ref())
-	}
-	return newer
-}
-
 type statusOptions struct {
 	DevWorkflowEngine bool
 	IncludeMonitoring bool

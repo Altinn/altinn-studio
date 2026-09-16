@@ -67,21 +67,6 @@ type ImagesConfig struct {
 	Monitoring MonitoringImages
 }
 
-// Floating returns the images whose tag moves as new builds are published.
-func (c *ImagesConfig) Floating() []ImageSpec {
-	all := []ImageSpec{
-		c.Core.Localtest, c.Core.PDF3, c.Core.WorkflowEngine, c.Core.WorkflowEngineDb, c.Core.PgAdmin,
-		c.Monitoring.Tempo, c.Monitoring.Mimir, c.Monitoring.Loki, c.Monitoring.OtelCollector, c.Monitoring.Grafana,
-	}
-	floating := make([]ImageSpec, 0, len(all))
-	for _, spec := range all {
-		if spec.Floating {
-			floating = append(floating, spec)
-		}
-	}
-	return floating
-}
-
 // DefaultImages returns the images the local environment runs, with any
 // STUDIOCTL_IMAGE_* override applied.
 func DefaultImages() ImagesConfig {
