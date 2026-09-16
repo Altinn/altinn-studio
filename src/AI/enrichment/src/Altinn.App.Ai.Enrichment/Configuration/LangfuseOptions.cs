@@ -103,4 +103,18 @@ public sealed class LangfuseOptions
 
     /// <summary>Spans per OTLP request.</summary>
     public int MaxExportBatchSize { get; set; } = 512;
+
+    /// <summary>
+    /// Forwards the OpenTelemetry SDK's own warnings and errors to the app log.
+    ///
+    /// The OTLP exporter reports delivery failures only to an <c>EventSource</c>, so a
+    /// rejected batch, an unreachable endpoint or a proxy rejection is otherwise
+    /// completely silent: spans are created, handed to the exporter, and vanish. Turn
+    /// this on when traces are not arriving and the start-up preflight succeeded.
+    ///
+    /// Off by default because the event sources are process-wide — the host app's own
+    /// OpenTelemetry pipeline writes to them too, so some lines will be about its
+    /// exporter rather than ours.
+    /// </summary>
+    public bool Diagnostics { get; set; }
 }

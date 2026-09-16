@@ -1,3 +1,5 @@
+using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -27,6 +29,7 @@ namespace Altinn.App.Ai.Enrichment.Telemetry;
 internal sealed class LangfuseTracing(
     IOptions<LangfuseOptions> options,
     ILangfuseKeyProvider keyProvider,
+    EnrichmentTrace trace,
     ILogger<LangfuseTracing> logger) : IHostedService, IDisposable
 {
     /// <summary>
@@ -44,6 +47,7 @@ internal sealed class LangfuseTracing(
     private const string IngestionVersion = "4";
 
     private TracerProvider? _provider;
+    private OtelSelfDiagnostics? _diagnostics;
 
     /// <summary>True once a provider exists, i.e. spans are actually being exported.</summary>
     public bool IsActive => _provider is not null;
@@ -75,7 +79,20 @@ internal sealed class LangfuseTracing(
             if (!await CredentialsAccepted(opts, credentials, cancellationToken))
                 return;
 
+            if (opts.Diagnostics)
+            {
+                // Started before the provider so that failures raised while building it
+                // are captured too.
+                _diagnostics = new OtelSelfDiagnostics();
+                _diagnostics.Start(logger);
+            }
+
             _provider = Build(opts, credentials);
+
+            // Deep links need the project id, which the preflight may only just have
+            // discovered. Runs started before this point would have had nowhere to link to.
+            trace.Activate(ProjectId);
+
             logger.LogInformation(
                 "Langfuse tracing enabled: host={Host}, project={ProjectId}, environment={Environment}, capture={Capture}",
                 opts.Host, ProjectId ?? "(unknown)", opts.Environment, opts.PayloadCapture);
@@ -239,5 +256,102 @@ internal sealed class LangfuseTracing(
             .Build();
     }
 
-    public void Dispose() => _provider?.Dispose();
+    public void Dispose()
+    {
+        _provider?.Dispose();
+        _diagnostics?.Dispose();
+    }
+
+    /// <summary>
+    /// Forwards the OpenTelemetry SDK's own diagnostics to the app log.
+    ///
+    /// The OTLP exporter never throws and never returns a failure to the caller: a
+    /// rejected batch is reported to an <c>EventSource</c> and nowhere else. Without
+    /// this, an export that fails on every single batch looks exactly like one that
+    /// works — spans are created, accepted by the processor, and silently discarded.
+    ///
+    /// The event sources are process-wide, so when the host app runs its own
+    /// OpenTelemetry pipeline some of these lines will be about its exporter. That is
+    /// why this is opt-in rather than always on.
+    /// </summary>
+    private sealed class OtelSelfDiagnostics : EventListener
+    {
+        private readonly List<EventSource> _pending = [];
+        private readonly object _gate = new();
+        private ILogger? _logger;
+
+        /// <summary>
+        /// Attaches the logger and enables everything seen so far.
+        ///
+        /// The base <see cref="EventListener"/> constructor replays already-created
+        /// sources before a derived class can finish initialising, so the logger cannot
+        /// be supplied through the constructor — those early callbacks would race it.
+        /// </summary>
+        public void Start(ILogger logger)
+        {
+            EventSource[] pending;
+            lock (_gate)
+            {
+                _logger = logger;
+                pending = [.. _pending];
+                _pending.Clear();
+            }
+
+            foreach (var source in pending)
+                EnableEvents(source, EventLevel.Warning);
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (!eventSource.Name.StartsWith("OpenTelemetry", StringComparison.Ordinal))
+                return;
+
+            lock (_gate)
+            {
+                if (_logger is null)
+                {
+                    _pending.Add(eventSource);
+                    return;
+                }
+            }
+
+            EnableEvents(eventSource, EventLevel.Warning);
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            var log = _logger;
+            if (log is null)
+                return;
+
+            try
+            {
+                var message = Format(eventData);
+                if (eventData.Level == EventLevel.Error || eventData.Level == EventLevel.Critical)
+                    log.LogError("OpenTelemetry [{Source}] {Message}", eventData.EventSource?.Name, message);
+                else
+                    log.LogWarning("OpenTelemetry [{Source}] {Message}", eventData.EventSource?.Name, message);
+            }
+            catch (Exception)
+            {
+                // A diagnostics channel must never be the thing that breaks the app.
+            }
+        }
+
+        private static string Format(EventWrittenEventArgs eventData)
+        {
+            if (string.IsNullOrEmpty(eventData.Message))
+                return eventData.EventName ?? "(unnamed event)";
+
+            try
+            {
+                var payload = eventData.Payload is null ? [] : eventData.Payload.ToArray();
+                return string.Format(CultureInfo.InvariantCulture, eventData.Message, payload);
+            }
+            catch (FormatException)
+            {
+                return eventData.Message;
+            }
+        }
+    }
 }

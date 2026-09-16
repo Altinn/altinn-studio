@@ -206,6 +206,31 @@ Notes worth knowing before you turn it on:
 - **Cost needs a model price in Langfuse.** Token counts arrive regardless, but
   `totalCost` stays zero until the model is registered in the project.
 
+### When no traces turn up
+
+Each run logs one line naming its Langfuse trace and linking to it:
+
+```
+ai task Task_AiEnrichment: Langfuse trace 0af7… (session 50012345/0195c0de,
+ambient trace 4bf9…, link https://langfuse.digdir.cloud/project/<id>/traces/0af7…)
+```
+
+That line is the fork in the road. If it is **missing**, no span was created, so the
+problem is upstream of the export — tracing is off for the environment the app is
+running in, or the `ai` task never ran. Check that the `Enabled` in the *effective*
+configuration is true: `appsettings.Development.json` overrides `appsettings.json`,
+and both apps ship with tracing off for local development.
+
+If the line **is there** and Langfuse is still empty, spans are being created and
+dropped somewhere after the process boundary. Set `Diagnostics: true` to route the
+OpenTelemetry SDK's own warnings and errors — which is the only place the OTLP
+exporter reports a failed delivery — to the app log. Those event sources are
+process-wide, so when the host app runs its own OpenTelemetry pipeline, expect some
+lines about its exporter rather than this one.
+
+The link needs `ProjectId`; without it the log line still carries the trace id, which
+is searchable in Langfuse.
+
 ### Scoring a run afterwards
 
 Tracing captures what the model did; a score records whether it was right. The two
