@@ -13,6 +13,10 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp;
 /// </summary>
 public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
 {
+    // Norwegian number formatting may use the Unicode minus sign.
+    private const string IntegerSignPattern = @"[+\-\u2212]?";
+    private const string IntegerValuePattern = "^" + IntegerSignPattern + @"[0-9]+(?:[.,]0+)?$";
+
     private readonly CSharpGenerationSettings _generationSettings;
 
     public JsonMetadataToCsharpConverter(CSharpGenerationSettings generationSettings)
@@ -445,11 +449,6 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
     )
     {
         hasRange = false;
-        if (element.Restrictions.Count == 0)
-        {
-            return;
-        }
-
         if (element.Restrictions.TryGetValue("minLength", out var minLengthRestriction))
         {
             classBuilder.AppendLine(Indent(2) + "[MinLength(" + minLengthRestriction.Value + errorMessage + ")]");
@@ -466,22 +465,46 @@ public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
             WriteRangeRestriction(classBuilder, element, errorMessage, "minimum", "maximum", out hasRange);
         }
 
+        WritePatternRestrictions(classBuilder, element, errorMessage);
+    }
+
+    private void WritePatternRestrictions(StringBuilder classBuilder, ElementMetadata element, string errorMessage)
+    {
+        var patterns = new List<string>();
+        var integerPattern = IntegerValuePattern;
         if (element.Restrictions.TryGetValue("pattern", out var patternRestriction))
-        {
-            classBuilder.AppendLine(
-                Indent(2) + "[RegularExpression(@\"" + patternRestriction.Value + "\"" + errorMessage + ")]"
-            );
-        }
+            patterns.Add(patternRestriction.Value);
+
+        var isDecimalBackedInteger =
+            element.XsdValueType
+            is BaseValueType.Integer
+                or BaseValueType.PositiveInteger
+                or BaseValueType.NegativeInteger
+                or BaseValueType.NonPositiveInteger
+                or BaseValueType.NonNegativeInteger;
 
         if (element.Restrictions.TryGetValue("totalDigits", out var totalDigitsRestriction))
         {
             uint totalDigitsValue = uint.Parse(totalDigitsRestriction.Value);
-            string regexString =
-                element.XsdValueType == BaseValueType.Decimal
-                    ? TotalDigitsDecimalRegexString(totalDigitsValue)
-                    : TotalDigitsIntegerRegexString(totalDigitsValue);
-            classBuilder.AppendLine(Indent(2) + $@"[RegularExpression(@""{regexString}""{errorMessage})]");
+            if (isDecimalBackedInteger)
+                integerPattern = $@"^{IntegerSignPattern}[0-9]{{1,{totalDigitsValue}}}(?:[.,]0+)?$";
+            else
+                patterns.Add(
+                    element.XsdValueType == BaseValueType.Decimal
+                        ? TotalDigitsDecimalRegexString(totalDigitsValue)
+                        : TotalDigitsIntegerRegexString(totalDigitsValue)
+                );
         }
+
+        if (isDecimalBackedInteger)
+        {
+            // Attribute types cannot be repeated. Lookaheads preserve each existing pattern's full-match constraint.
+            var pattern = string.Concat(patterns.Select(value => $@"(?=(?:{value})$)")) + integerPattern;
+            patterns = [pattern];
+        }
+
+        foreach (var pattern in patterns)
+            classBuilder.AppendLine(Indent(2) + $@"[RegularExpression(@""{pattern}""{errorMessage})]");
     }
 
     private void WriteRangeRestriction(

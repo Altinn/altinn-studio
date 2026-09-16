@@ -172,6 +172,7 @@ namespace Altinn.App.Models
 
   public class Maalform
   {
+    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
