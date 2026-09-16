@@ -103,7 +103,7 @@
     "js-levenshtein": "1.1.6",
     "jsdom": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch",
     "prettier": "3.9.6",
-    "puppeteer": "^24.29.0",
+    "puppeteer": "^25.11.0",
     "resize-observer-polyfill": "1.5.1",
     "tinybench": "6.1.2",
     "tsx": "4.23.11",
