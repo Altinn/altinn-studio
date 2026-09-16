@@ -1,11 +1,28 @@
 import type { BpmnTaskType, BuiltInBpmnTaskType } from '../../types/BpmnTaskType';
 import { builtInBpmnTaskTypes } from '../../types/BpmnTaskType';
-import type { Element } from 'bpmn-js/lib/model/Types';
+import type { Element, ModdleElement } from 'bpmn-js/lib/model/Types';
 import { StringUtils } from '@studio/pure-functions';
+
+const TASK_EXTENSION_TYPE = 'altinn:TaskExtension';
 
 export class TaskUtils {
   public static isSigningTask(taskType: BpmnTaskType): boolean {
     return taskType === 'signing';
+  }
+
+  /**
+   * The `<altinn:taskExtension>` node a task's configuration lives in.
+   *
+   * `bpmn:extensionElements` is an open list, so the altinn extension is found by its type rather
+   * than by its position: a hand-authored process, or another tool, can put something else in the
+   * same list without the task ceasing to be an altinn task.
+   * @param element the bpmn element to inspect.
+   * @returns the task extension, or undefined when the element carries none.
+   */
+  public static getTaskExtension(element: Element): ModdleElement | undefined {
+    return element?.businessObject?.extensionElements?.values?.find(
+      (value: ModdleElement) => value?.$type === TASK_EXTENSION_TYPE,
+    );
   }
 
   /**

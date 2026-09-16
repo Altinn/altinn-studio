@@ -13,7 +13,7 @@ import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import { useCurrentLayoutSet } from '../useCurrentLayoutSet';
+import { useCurrentLayoutSet } from '../../../../../hooks/useCurrentLayoutSet';
 import classes from './PdfLayoutBasedSection.module.css';
 
 export const PdfLayoutBasedSection = (): React.ReactElement => {

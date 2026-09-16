@@ -70,6 +70,23 @@ const bpmnXmlWithSubformPdfConfig = `<?xml version="1.0" encoding="UTF-8"?>
   </bpmn:process>
 </bpmn:definitions>`;
 
+const bpmnXmlWithRunDefaultValidatorOff = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:task id="Task_signing" name="Signering">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:signatureConfig>
+            <altinn:signatureDataType>signature</altinn:signatureDataType>
+            <altinn:runDefaultValidator>false</altinn:runDefaultValidator>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+  </bpmn:process>
+</bpmn:definitions>`;
+
 const bpmnXmlWithEnvironmentScopedCorrespondenceResource = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="SingleDataTask" isExecutable="false">
@@ -148,6 +165,15 @@ describe('altinnCustomTasks', () => {
     expect(savedXml).toContain(
       '<altinn:subformDataTypeId>subform-model</altinn:subformDataTypeId>',
     );
+  });
+
+  // The panel writes `false` rather than removing the element, so that the file records a decision
+  // rather than an omission. That only holds if a `false` body survives a round trip instead of
+  // being dropped as a falsy value.
+  it('preserves a runDefaultValidator that is switched off', async () => {
+    const savedXml = await roundTrip(bpmnXmlWithRunDefaultValidatorOff);
+
+    expect(savedXml).toContain('<altinn:runDefaultValidator>false</altinn:runDefaultValidator>');
   });
 
   it('preserves every environment-scoped correspondenceResource when the BPMN is parsed and serialized again', async () => {

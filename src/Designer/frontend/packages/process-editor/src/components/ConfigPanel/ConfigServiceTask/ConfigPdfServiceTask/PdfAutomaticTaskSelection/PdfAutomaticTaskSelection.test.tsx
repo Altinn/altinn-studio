@@ -2,7 +2,8 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfAutomaticTaskSelection } from './PdfAutomaticTaskSelection';
-import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
+import { createPdfBpmnDetails } from '../testUtils';
+import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 
 let mockTasks: any[] = [];
 
