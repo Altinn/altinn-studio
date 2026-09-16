@@ -122,7 +122,10 @@ describe('InstanceWorkflows', () => {
 
     expect(await screen.findByRole('cell', { name: 'app-command' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: '3' })).toBeInTheDocument();
-    expect(screen.getByText('Boom went the pipeline')).toBeInTheDocument();
+    // The latest error is in full; the earlier one — the same failure, one attempt earlier —
+    // waits behind a toggle.
+    expect(screen.getByText('Could not generate the PDF')).toBeInTheDocument();
+    expect(screen.queryByText('Boom went the pipeline')).not.toBeInTheDocument();
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
     ).toBeInTheDocument();
@@ -246,11 +249,10 @@ describe('InstanceWorkflows', () => {
         exact: false,
       }),
     ).toHaveTextContent('app-command');
-    // The latest error, one line, without opening the row.
-    expect(failedRow).toHaveTextContent('PdfGenerationException: Could not generate the PDF');
     // A workflow with no steps has no chain to show, and a settled one no error.
     expect(within(settledRow).queryAllByTitle(/ · /)).toHaveLength(0);
-    expect(settledRow).not.toHaveTextContent('PdfGenerationException');
+    expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();
+    expect(within(settledRow).queryByText('PdfGenerationException')).not.toBeInTheDocument();
   });
 
   it('opens the row that needs attention from the start, with its error and verbs in view', async () => {
@@ -273,7 +275,13 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
+    const user = userEvent.setup();
     const stepTable = await screen.findByRole('table');
+    await user.click(
+      within(stepTable).getByRole('button', {
+        name: textMock('admin.workflows.step.show_earlier_errors', { count: 1 }),
+      }),
+    );
     const messages = within(stepTable).getAllByText(
       (_, element) =>
         element?.tagName === 'CODE' &&
@@ -340,7 +348,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const message = await screen.findByText('Boom went the pipeline');
+    const message = await screen.findByText('Could not generate the PDF');
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
     // The transition name in the row is the app's process model, shown as it came too.

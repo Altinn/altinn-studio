@@ -47,11 +47,6 @@
   margin: 0;
 }
 
-/* The message as the engine recorded it, after the unpacked view of the same text. */
-.raw {
-  color: var(--ds-color-neutral-text-subtle);
-}
-
 .validationErrors {
   margin: 0;
 }

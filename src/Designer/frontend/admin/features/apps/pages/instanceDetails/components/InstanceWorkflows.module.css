@@ -83,23 +83,21 @@
   white-space: nowrap;
 }
 
-/* The failure in one line under the row; the full text is in the step details. */
-.rowError {
-  grid-column: 1 / -1;
-  flex-basis: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-family: 'Courier New', monospace;
-  font-size: var(--ds-font-size-1);
+.details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-size-3);
 }
 
-.metadata {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ds-size-2) var(--ds-size-8);
-  margin-bottom: var(--ds-size-4);
+.details > .steps {
+  align-self: stretch;
+}
+
+/* For support and the engine dashboard; nobody reads it, everybody copies it. */
+.workflowId {
+  font-size: var(--ds-font-size-1);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .steps {
@@ -116,9 +114,10 @@
   max-width: 48rem;
 }
 
-.errorHistory {
+.earlierErrors {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--ds-size-3);
 }
 

@@ -13,9 +13,9 @@ export type EngineErrorMessageProps = {
 
 /**
  * One recorded error: the HTTP status, whether the engine classed it as transient, and the app's
- * failure code when it gave one; then the problem title, detail, validation errors and any other
- * field unpacked from the engine's message string; and finally the whole message as the engine
- * recorded it, always, so nothing is ever a click away.
+ * failure code when it gave one; then the problem title, detail, validation errors and every other
+ * field unpacked from the engine's message string — or the message as it came, when it carried
+ * no problem body to unpack. Nothing the engine recorded is dropped, and nothing is said twice.
  *
  * Engine and app text is rendered as its own node rather than interpolated into a translation
  * (i18next HTML-escapes interpolations), and set apart as verbatim technical output: it is English
@@ -25,6 +25,7 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
   const { t } = useTranslation();
   const details = parseEngineErrorMessage(entry.message);
   const status = entry.httpStatusCode ?? details.status;
+  const isUnpacked = details.title !== undefined || details.detail !== undefined;
 
   return (
     <div className={classes.entry}>
@@ -74,7 +75,7 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
           ))}
         </dl>
       )}
-      <code className={`${classes.engineText} ${classes.raw}`}>{details.raw}</code>
+      {!isUnpacked && <code className={classes.engineText}>{details.raw}</code>}
     </div>
   );
 };

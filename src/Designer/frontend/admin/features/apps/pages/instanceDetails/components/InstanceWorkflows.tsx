@@ -23,16 +23,12 @@ import { PARKED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/Wo
 import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMessage/EngineErrorMessage';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
-import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
-import { parseEngineErrorMessage } from 'admin/features/apps/utils/engineErrorMessage';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
 import { formatDuration } from 'admin/features/apps/utils/formatDuration';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 import {
   attentionWorkflowOf,
   isActiveWorkflow,
-  isFailedWorkflow,
-  latestErrorOf,
   maxRetryCount,
   newestFirst,
   orderedSteps,
@@ -171,9 +167,9 @@ type WorkflowItemProps = {
 };
 
 /**
- * One workflow as a row: what it is, where it is in its steps, how long it ran or has been running,
- * when a parked one tries again, and — on a failure — what went wrong, all readable without opening
- * it. The details behind the row are the full metadata, the step table and the ops verbs.
+ * One workflow as a row: what it is, where it is in its steps, how many attempts it has made, how
+ * long it ran or has been running, and when a parked one tries again. Behind the row: the verbs
+ * that apply, the steps with their errors, and the id.
  */
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
@@ -181,7 +177,6 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
   const duration = settledDurationOf(workflow);
   const attempts = maxRetryCount(workflow);
   const liveNote = liveNoteOf(workflow, now, t);
-  const rowError = isFailedWorkflow(workflow) ? rowErrorTextOf(workflow) : undefined;
 
   // A row that just changed blinks once. The change is counted from the previous render's
   // timestamp (the React pattern for remembering the last props), and the summary span is keyed
@@ -226,30 +221,14 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
             )}
             <span>{formatDateAndTime(workflow.createdAt)}</span>
           </span>
-          {rowError && <code className={classes.rowError}>{rowError}</code>}
         </span>
       </StudioDetails.Summary>
-      <StudioDetails.Content>
-        <div className={classes.metadata}>
-          <LabelValue label={t('admin.workflows.status')}>
-            <WorkflowStatusTag status={workflow.overallStatus} />
-          </LabelValue>
-          <LabelValue label={t('admin.workflows.operation')}>{workflow.operationId}</LabelValue>
-          <LabelValue label={t('admin.workflows.visibility')}>
-            {workflow.isHead === false
-              ? t('admin.workflows.visibility.side_effect')
-              : t('admin.workflows.visibility.head')}
-          </LabelValue>
-          <LabelValue label={t('admin.instances.created')}>
-            {formatDateAndTime(workflow.createdAt)}
-          </LabelValue>
-          <LabelValue label={t('admin.instances.last_changed')}>
-            {formatDateAndTime(workflow.updatedAt)}
-          </LabelValue>
-          <LabelValue label={t('admin.workflows.id')}>{workflow.databaseId}</LabelValue>
-        </div>
-        <WorkflowSteps workflow={workflow} />
+      <StudioDetails.Content className={classes.details}>
         <WorkflowActions context={context} workflow={workflow} />
+        <WorkflowSteps workflow={workflow} />
+        <span className={classes.workflowId}>
+          {t('admin.workflows.id')}: <code>{workflow.databaseId}</code>
+        </span>
       </StudioDetails.Content>
     </StudioDetails>
   );
@@ -292,19 +271,6 @@ function liveNoteOf(
   return undefined;
 }
 
-/** The latest error in one line: the problem title and detail when the message carries them. */
-function rowErrorTextOf(workflow: WorkflowStatus): string | undefined {
-  const entry = latestErrorOf(workflow);
-  if (!entry) {
-    return undefined;
-  }
-  const details = parseEngineErrorMessage(entry.message);
-  if (details.title && details.detail) {
-    return `${details.title}: ${details.detail}`;
-  }
-  return details.title ?? details.detail ?? details.raw;
-}
-
 const WorkflowSteps = ({ workflow }: { workflow: WorkflowStatus }) => {
   const { t } = useTranslation();
   const steps = orderedSteps(workflow);
@@ -315,13 +281,9 @@ const WorkflowSteps = ({ workflow }: { workflow: WorkflowStatus }) => {
 
   return (
     <div className={classes.steps}>
-      <StudioHeading level={3} data-size='2xs'>
-        {t('admin.workflows.steps')}
-      </StudioHeading>
       <StudioTable data-size='sm'>
         <StudioTable.Head>
           <StudioTable.Row>
-            <StudioTable.Cell>{t('admin.workflows.step.order')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.operation')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.status')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.step.retries')}</StudioTable.Cell>
@@ -332,7 +294,6 @@ const WorkflowSteps = ({ workflow }: { workflow: WorkflowStatus }) => {
         <StudioTable.Body>
           {steps.map((step) => (
             <StudioTable.Row key={step.databaseId}>
-              <StudioTable.Cell>{step.processingOrder}</StudioTable.Cell>
               <StudioTable.Cell>{step.operationId}</StudioTable.Cell>
               <StudioTable.Cell>
                 <WorkflowStatusTag status={step.status} />
@@ -350,13 +311,18 @@ const WorkflowSteps = ({ workflow }: { workflow: WorkflowStatus }) => {
   );
 };
 
-/** A step's own account of what happened: what it is waiting for, and every error it recorded. */
+/**
+ * A step's own account of what happened: what it is waiting for, and its latest error in full.
+ * Earlier errors — one per attempt, so a retried step can have many — stay behind a toggle:
+ * they are the same failure over and over more often than not.
+ */
 const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
   const { t } = useTranslation();
+  const [isHistoryShown, setIsHistoryShown] = useState(false);
   const deferReason = step.lastDeferReason;
-  const errorHistory = step.errorHistory ?? [];
+  const [latestError, ...earlierErrors] = newestFirst(step.errorHistory ?? []);
 
-  if (!deferReason && !errorHistory.length) {
+  if (!deferReason && !latestError) {
     return <span>-</span>;
   }
 
@@ -370,10 +336,10 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
 
   return (
     <div className={classes.stepDetails}>
-      {/* Engine-provided free text (defer reasons, error messages) is rendered as its own node
-          rather than interpolated into a translation, since i18next HTML-escapes interpolations.
-          It is also set apart as verbatim technical output: the app runtime writes these in
-          English, so they must not read as part of the Norwegian sentence around them. */}
+      {/* Engine-provided free text (defer reasons) is rendered as its own node rather than
+          interpolated into a translation, since i18next HTML-escapes interpolations. It is also
+          set apart as verbatim technical output: the app runtime writes these in English, so they
+          must not read as part of the Norwegian sentence around them. */}
       {deferReason && (
         <span>
           {deferReasonLabel}: <code className={classes.engineText}>{deferReason}</code>
@@ -382,17 +348,24 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
       {(step.deferCount ?? 0) > 1 && (
         <span>{t('admin.workflows.step.defer_count', { times: step.deferCount })}</span>
       )}
-      {!!errorHistory.length && (
-        <>
-          <StudioHeading level={4} data-size='2xs'>
-            {t('admin.workflows.step.errors')}
-          </StudioHeading>
-          <div className={classes.errorHistory}>
-            {newestFirst(errorHistory).map((entry, index) => (
+      {latestError && <EngineErrorMessage entry={latestError} />}
+      {earlierErrors.length > 0 && (
+        <div className={classes.earlierErrors}>
+          <StudioButton
+            data-size='sm'
+            variant='tertiary'
+            aria-expanded={isHistoryShown}
+            onClick={() => setIsHistoryShown((shown) => !shown)}
+          >
+            {isHistoryShown
+              ? t('admin.workflows.step.hide_earlier_errors')
+              : t('admin.workflows.step.show_earlier_errors', { count: earlierErrors.length })}
+          </StudioButton>
+          {isHistoryShown &&
+            earlierErrors.map((entry, index) => (
               <EngineErrorMessage key={`${entry.timestamp}-${index}`} entry={entry} />
             ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
