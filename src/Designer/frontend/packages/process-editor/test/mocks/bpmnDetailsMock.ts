@@ -145,6 +145,7 @@ export const paymentActions = {
 };
 
 export const mockSigneeStatesDataTypeId: string = 'signees-states-1234';
+export const mockSigningPdfDataTypeId: string = 'signatures-pdf-1234';
 
 export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
   businessObject: {
@@ -157,6 +158,31 @@ export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
             dataTypesToSign: [],
             signeeStatesDataTypeId: mockSigneeStatesDataTypeId,
             signeeProviderId: '',
+            signingPdfDataType: mockSigningPdfDataTypeId,
+          },
+        },
+      ],
+    },
+  },
+};
+
+/**
+ * A signing task that generates a pdf without being user controlled: it declares a pdf data type but
+ * neither of the two properties `TaskUtils.isUserControlledSigning` looks at. The runtime generates
+ * the pdf for exactly this task too, because `SigningProcessTask` decides on the pdf data type being
+ * declared rather than on the signing being user controlled, so the handlers must treat the pdf data
+ * type independently of that branch.
+ */
+export const mockBpmnElementForSigningTaskWithPdf: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [
+        {
+          actions: signingActions,
+          signatureConfig: {
+            signatureDataType: 'signatureInformation-1234',
+            dataTypesToSign: [],
+            signingPdfDataType: mockSigningPdfDataTypeId,
           },
         },
       ],

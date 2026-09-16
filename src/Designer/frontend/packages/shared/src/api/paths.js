@@ -214,7 +214,7 @@ export const createInstancePath = (org, app, partyId, taskId) => `${instancesPat
 export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/process-definition`; // Get, Put
 export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/data-types`; // Put
 export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
-export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`; // Post, Delete
+export const processEditorDataTypePath = (org, app, dataTypeId, taskId, allowedContentTypes) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId, allowedContentTypes }, { arrayFormat: 'repeat' })}`; // Post, Delete
 
 // Env
 export const envFilePath = () => `${basePath}/config/env.json`;
