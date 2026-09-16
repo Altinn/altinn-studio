@@ -70,6 +70,10 @@ func (c *AppCommand) runMaskinportenSet(ctx context.Context, args []string) erro
 		return err
 	}
 	input, err := c.readMaskinportenInput(ctx, flags)
+	if errors.Is(err, errPromptCancelled) {
+		c.out.Println("Nothing stored. Run set again when you have the values, or give the client with --file.")
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -274,7 +278,8 @@ func (c *AppCommand) appMaskinportenSetUsage() string {
 		"",
 		"Store the Maskinporten client this app uses for local runs. Run it with nothing else and it asks for",
 		"the three values one by one: the Maskinporten environment (test or prod), the client id, and the",
-		"private key as the base64-encoded JWK, typed or pasted without echo. Or give the client as JSON: the",
+		"private key as the base64-encoded JWK or the JWK JSON, typed or pasted without echo; an empty answer",
+		"cancels. Or give the client as JSON: the",
 		"provisioned maskinporten-settings.json format, the bare credentials (authority, clientId, and jwk or",
 		"jwkBase64), a section written for the Altinn.ApiClients.Maskinporten package (Environment, ClientId,",
 		"EncodedJwk), or a section pasted out of an appsettings file together with its name - from --file, or",
