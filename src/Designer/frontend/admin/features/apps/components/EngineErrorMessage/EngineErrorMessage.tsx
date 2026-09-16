@@ -3,7 +3,7 @@ import { StudioList, StudioTag } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { WorkflowErrorEntry } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { parseEngineErrorMessage } from 'admin/features/apps/utils/engineErrorMessage';
-import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
+import { formatTimestamp } from 'admin/features/apps/utils/formatTimestamp';
 
 import classes from './EngineErrorMessage.module.css';
 
@@ -31,7 +31,7 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
   return (
     <div className={classes.entry}>
       <div className={classes.meta}>
-        <span>{formatDateAndTime(entry.timestamp)}</span>
+        <span>{formatTimestamp(entry.timestamp, 'milliseconds')}</span>
         {status !== undefined && status !== null && (
           <StudioTag data-size='sm' data-color='neutral'>
             {t('admin.workflows.error.http_status', { status })}

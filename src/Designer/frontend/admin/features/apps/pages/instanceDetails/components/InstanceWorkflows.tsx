@@ -24,7 +24,7 @@ import { PARKED_WORKFLOW_STATUSES } from 'admin/features/apps/types/workflows/Wo
 import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMessage/EngineErrorMessage';
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
-import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
+import { formatTimestamp } from 'admin/features/apps/utils/formatTimestamp';
 import { formatDuration } from 'admin/features/apps/utils/formatDuration';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 import {
@@ -221,7 +221,7 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
               <StudioSpinner data-size='xs' aria-label={t('admin.workflows.health.active')} />
             )}
           </span>
-          <span className={classes.summaryDate}>{formatDateAndTime(workflow.createdAt)}</span>
+          <span className={classes.summaryDate}>{formatTimestamp(workflow.createdAt)}</span>
         </span>
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.details}>
@@ -315,7 +315,7 @@ const WorkflowSteps = ({
                 <WorkflowStatusTag status={step.status} />
               </StudioTable.Cell>
               <StudioTable.Cell>{step.retryCount}</StudioTable.Cell>
-              <StudioTable.Cell>{formatDateAndTime(step.updatedAt)}</StudioTable.Cell>
+              <StudioTable.Cell>{formatTimestamp(step.updatedAt, 'milliseconds')}</StudioTable.Cell>
               <StudioTable.Cell>
                 <StepDetails step={step} />
               </StudioTable.Cell>
