@@ -1,8 +1,9 @@
 import type { ForwardedRef } from 'react';
 import React from 'react';
-import { render, screen, type RenderResult } from '@testing-library/react';
+import { fireEvent, render, screen, type RenderResult } from '@testing-library/react';
 import { StudioSuggestion } from '.';
 import { type StudioSuggestionOptionProps } from './StudioSuggestionOption/StudioSuggestionOption';
+import type { StudioSuggestionItem } from './StudioSuggestionItem/StudioSuggestionItem';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import type { StudioSuggestionProps } from './StudioSuggestion';
@@ -49,6 +50,62 @@ describe('StudioSuggestion', () => {
       () => getInput(),
     );
   });
+
+  // Emptying the field reaches onSelectedChange only when the field loses focus, and the underlying
+  // web component defers that to a timer — so a click that unmounts the field in the same gesture,
+  // like a click on the process editor canvas, used to take the change with it. The change is
+  // reported while the focus is moving instead. The web component does not upgrade in jsdom, which
+  // is exactly the point: emptying the input and moving the focus is all these tests need.
+  describe('when the user empties the field', () => {
+    it('reports the cleared selection when the focus leaves the field', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+      showSelectedOption();
+      emptyField();
+      fireEvent.focusOut(getInput());
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(1);
+      expect(onSelectedChange).toHaveBeenCalledWith(null);
+    });
+
+    it('does not report a cleared selection when the field still holds text', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+      showSelectedOption();
+      setFieldText('Opt');
+      fireEvent.focusOut(getInput());
+
+      expect(onSelectedChange).not.toHaveBeenCalled();
+    });
+
+    it('does not report a cleared selection when nothing is selected', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: null, onSelectedChange } });
+
+      showSelectedOption();
+      emptyField();
+      fireEvent.focusOut(getInput());
+
+      expect(onSelectedChange).not.toHaveBeenCalled();
+    });
+
+    it('does not report a cleared selection when several values can be selected', () => {
+      // A multiple select keeps its values outside the input, which is empty whenever the user is
+      // not typing in it.
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({
+        suggestionProps: { multiple: true, selected: [selectedOption], onSelectedChange },
+      });
+
+      showSelectedOption();
+      emptyField();
+      fireEvent.focusOut(getInput());
+
+      expect(onSelectedChange).not.toHaveBeenCalled();
+    });
+  });
 });
 
 const defaultOptions: (StudioSuggestionOptionProps & { label: string })[] = [
@@ -72,8 +129,24 @@ type RenderStudioSuggestionProps = {
   options?: StudioSuggestionOptionProps[];
 };
 
+const selectedOption: StudioSuggestionItem = { value: '1', label: 'Option 1' };
+
 function getInput(label: string = defaultProps.label): HTMLInputElement {
   return screen.getByLabelText(label);
+}
+
+// In a browser the web component writes the selected label into the input; jsdom leaves it empty,
+// so these tests put the text there themselves before taking it away again.
+function setFieldText(text: string): void {
+  getInput().value = text;
+}
+
+function showSelectedOption(): void {
+  setFieldText(selectedOption.label);
+}
+
+function emptyField(): void {
+  setFieldText('');
 }
 
 function renderStudioSuggestion(
