@@ -34,8 +34,9 @@ export type WorkflowStepStripProps = {
 
 /**
  * A workflow's steps as one row of dots, in processing order, with the step it is at named next
- * to them. The dots are decoration for a sighted reader scanning the list; the text carries the
- * same fact for everyone else, so the dots are hidden from assistive technology.
+ * to them while the chain is unfinished. The dots are decoration for a sighted reader scanning the
+ * list; the name carries the fact for everyone else, so the dots are hidden from assistive
+ * technology, and a finished chain says so in one word.
  */
 export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactElement | null => {
   const { t } = useTranslation();
@@ -62,17 +63,7 @@ export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactEl
         ))}
       </span>
       <span className={classes.label}>
-        {allCompleted ? (
-          t('admin.workflows.row.steps_completed', { count: steps.length })
-        ) : (
-          <>
-            {t('admin.workflows.row.at_step', {
-              step: steps.indexOf(focus) + 1,
-              total: steps.length,
-            })}{' '}
-            <code className={classes.engineText}>{focus.operationId}</code>
-          </>
-        )}
+        {allCompleted ? t('admin.workflows.row.steps_completed') : focus.operationId}
       </span>
     </span>
   );

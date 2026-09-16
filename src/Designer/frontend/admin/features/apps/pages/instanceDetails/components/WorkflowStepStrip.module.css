@@ -8,15 +8,15 @@
 .dots {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 .dot {
   box-sizing: border-box;
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  border: 2px solid var(--ds-color-neutral-border-strong);
+  border: 2px solid var(--ds-color-neutral-border-default);
   background: transparent;
 }
 
@@ -66,10 +66,6 @@
 }
 
 .label {
-  font-size: var(--ds-font-size-1);
-}
-
-/* Step names from the app runtime, shown as they came. */
-.engineText {
-  font-family: 'Courier New', monospace;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
 }

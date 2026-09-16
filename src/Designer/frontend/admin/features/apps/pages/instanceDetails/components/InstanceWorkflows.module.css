@@ -60,7 +60,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ds-size-1) var(--ds-size-4);
-  font-size: var(--ds-font-size-1);
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 @media (max-width: 64rem) {

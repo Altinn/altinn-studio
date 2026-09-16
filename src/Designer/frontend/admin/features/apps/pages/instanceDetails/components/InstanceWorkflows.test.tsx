@@ -244,11 +244,8 @@ describe('InstanceWorkflows', () => {
       'data-tone',
       'info',
     );
-    expect(
-      within(failedRow).getByText(textMock('admin.workflows.row.at_step', { step: 1, total: 2 }), {
-        exact: false,
-      }),
-    ).toHaveTextContent('app-command');
+    // Named on the row, and again in the open row's step table.
+    expect(within(failedRow).getAllByText('app-command').length).toBeGreaterThan(0);
     // A workflow with no steps has no chain to show, and a settled one no error.
     expect(within(settledRow).queryAllByTitle(/ · /)).toHaveLength(0);
     expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();

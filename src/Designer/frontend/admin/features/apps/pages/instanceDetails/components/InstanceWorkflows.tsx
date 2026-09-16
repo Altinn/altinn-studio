@@ -180,7 +180,6 @@ type WorkflowItemProps = {
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
   const now = useNow(isActiveWorkflow(workflow));
-  const duration = settledDurationOf(workflow);
   const attempts = maxRetryCount(workflow);
   const liveNote = liveNoteOf(workflow, now, t);
   const hasVerbs =
@@ -229,11 +228,6 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
                 <span>{t('admin.workflows.row.attempts', { count: attempts })}</span>
               )}
               {liveNote && <span>{liveNote}</span>}
-              {duration !== undefined && (
-                <span>
-                  {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
-                </span>
-              )}
               <span>{formatDateAndTime(workflow.createdAt)}</span>
             </span>
           </span>
@@ -251,16 +245,6 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
     </div>
   );
 };
-
-/** How long a settled workflow ran, from its first attempt to its last change. Nothing while in flight. */
-function settledDurationOf(workflow: WorkflowStatus): number | undefined {
-  const started = toTime(workflow.executionStartedAt);
-  const ended = toTime(workflow.updatedAt);
-  if (isActiveWorkflow(workflow) || started === undefined || ended === undefined) {
-    return undefined;
-  }
-  return Math.max(0, ended - started);
-}
 
 /**
  * What a workflow in flight is up to right now: how long the current attempt has run, or when a
