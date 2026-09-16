@@ -69,8 +69,8 @@ func TestDefaultImagesEnvOverride(t *testing.T) {
 		"ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:a45a743b78" {
 		t.Errorf("workflow-engine ref = %q", got)
 	}
-	if !images.Core.WorkflowEngine.Floating {
-		t.Error("an override should not stop a floating image from being re-pulled")
+	if images.Core.WorkflowEngine.Floating {
+		t.Error("an override names one build, so the image should stop following a tag")
 	}
 	if got := images.Core.PgAdmin.Ref(); got != "localhost:5000/pgadmin4:testing" {
 		t.Errorf("pgadmin ref = %q, a registry port should not be read as a tag", got)
@@ -101,28 +101,28 @@ func TestImageSpecRef(t *testing.T) {
 	}
 }
 
-func TestShortDigest(t *testing.T) {
+func TestShortImageID(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name   string
-		digest string
-		want   string
+		name    string
+		imageID string
+		want    string
 	}{
-		{name: "empty", digest: "", want: ""},
+		{name: "empty", imageID: "", want: ""},
 		{
-			name:   "algorithm prefix is dropped",
-			digest: "sha256:0123456789abcdef0123456789abcdef",
-			want:   "0123456789ab",
+			name:    "algorithm prefix is dropped",
+			imageID: "sha256:0123456789abcdef0123456789abcdef",
+			want:    "0123456789ab",
 		},
-		{name: "short digest is kept whole", digest: "sha256:0123", want: "0123"},
-		{name: "no algorithm prefix", digest: "0123456789abcdef", want: "0123456789ab"},
+		{name: "short id is kept whole", imageID: "sha256:0123", want: "0123"},
+		{name: "bare hex", imageID: "0123456789abcdef", want: "0123456789ab"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := config.ShortDigest(tt.digest); got != tt.want {
-				t.Errorf("ShortDigest(%q) = %q, want %q", tt.digest, got, tt.want)
+			if got := config.ShortImageID(tt.imageID); got != tt.want {
+				t.Errorf("ShortImageID(%q) = %q, want %q", tt.imageID, got, tt.want)
 			}
 		})
 	}

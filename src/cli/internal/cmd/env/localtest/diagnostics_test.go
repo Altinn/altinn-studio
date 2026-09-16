@@ -348,7 +348,16 @@ func knownDiagnosticContainer(name string) bool {
 	}
 }
 
-func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
+// TestDiagnoseReportsTheBuildBehindAMovingTag covers both halves of the image check: the
+// workflow engine runs what its reference resolves to, so doctor names both; the localtest
+// container runs a build its tag has moved off, so only the build is named.
+func TestDiagnoseReportsTheBuildBehindAMovingTag(t *testing.T) {
+	const (
+		engineImageID    = "sha256:1111222233334444"
+		localtestStarted = "sha256:aaaabbbbccccdddd"
+		localtestPulled  = "sha256:eeeeffff00001111"
+	)
+
 	opts := newDiagnosticTestOptions(
 		t,
 		func(context.Context, string) (localtest.DiagnosticHTTPResponse, error) {
@@ -360,16 +369,26 @@ func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
 				return types.ContainerState{Status: "running", Running: true}, nil
 			}
 			client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
-				if name != components.ContainerWorkflowEngine {
+				info := types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}
+				switch name {
+				case components.ContainerWorkflowEngine:
+					info.ImageID = engineImageID
+				case components.ContainerLocaltest:
+					info.ImageID = localtestStarted
+				default:
 					return types.ContainerInfo{}, types.ErrContainerNotFound
 				}
-				return types.ContainerInfo{ImageID: "sha256:running"}, nil
+				return info, nil
 			}
 			client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
-				if image != "sha256:running" {
+				switch image {
+				case "ghcr.io/altinn/test-workflow-engine:tt02":
+					return types.ImageInfo{ID: engineImageID}, nil
+				case testLocaltestImageRef:
+					return types.ImageInfo{ID: localtestPulled}, nil
+				default:
 					return types.ImageInfo{}, types.ErrImageNotFound
 				}
-				return types.ImageInfo{ID: image, Digest: "sha256:0123456789abcdef"}, nil
 			}
 			return client, nil
 		},
@@ -388,12 +407,12 @@ func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
 	report := localtest.Diagnose(t.Context(), opts)
 
 	engineImage := findDiagnosticCheck(t, report, "workflow-engine", "image")
-	if engineImage.Message != "ghcr.io/altinn/test-workflow-engine:tt02 (0123456789ab)" {
+	if engineImage.Message != "ghcr.io/altinn/test-workflow-engine:tt02 (111122223333)" {
 		t.Errorf("workflow-engine image check message = %q", engineImage.Message)
 	}
 	localtestImage := findDiagnosticCheck(t, report, "localtest", "image")
-	if localtestImage.Message != testLocaltestImageRef {
-		t.Errorf("localtest image check message = %q, want no build for a container that is absent",
+	if localtestImage.Message != "aaaabbbbcccc" {
+		t.Errorf("localtest image check message = %q, want only the build once its tag has moved",
 			localtestImage.Message)
 	}
 	assertDiagnosticCheckMissing(t, report, "pdf", "image")

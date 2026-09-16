@@ -57,10 +57,11 @@ deployed to the ring tt02 serves. Local environments therefore run the build tt0
 needs updating in studioctl when this service changes. `--dev-workflow-engine` routes the binding to
 a local host process instead and pulls no image.
 
-Since that tag moves, `studioctl env status` and `studioctl doctor` print the digest of the build a
-container is running — that, not the tag, is what a report about local behavior should name. To
-reproduce one against a specific build, set `STUDIOCTL_IMAGE_WORKFLOW_ENGINE` to its immutable tag,
-the first 10 characters of the commit that built it.
+Since that tag moves, `studioctl env status` and `studioctl doctor` name the build a container is
+running rather than only the tag — that is what a report about local behavior should quote, and the
+commit it was built from is stamped on the image as `org.opencontainers.image.revision`. To reproduce
+a report against a specific build, set `STUDIOCTL_IMAGE_WORKFLOW_ENGINE` to its immutable tag, the
+first 10 characters of that commit.
 
 ### Keeping the local environment working
 

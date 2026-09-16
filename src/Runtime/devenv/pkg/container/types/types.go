@@ -279,9 +279,8 @@ type ContainerConfig struct {
 
 // ImageInfo contains metadata about an image.
 type ImageInfo struct {
-	ID     string // image ID (sha256:...)
-	Digest string // registry manifest digest (sha256:...), empty when the image was built locally
-	Size   int64  // image size in bytes
+	ID   string // image ID (sha256:...)
+	Size int64  // image size in bytes
 }
 
 // ContainerState represents the state of a container.
@@ -317,16 +316,4 @@ type NetworkInfo struct {
 	ID     string
 	Name   string
 	Driver string
-}
-
-// ManifestDigest returns the digest from an image's repository digests
-// ("<repository>@<digest>"). The digest is the same in every repository the image is
-// tagged in, so the first entry is enough. Empty for an image built locally.
-func ManifestDigest(repoDigests []string) string {
-	for _, repoDigest := range repoDigests {
-		if _, digest, found := strings.Cut(repoDigest, "@"); found {
-			return digest
-		}
-	}
-	return ""
 }

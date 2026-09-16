@@ -56,6 +56,7 @@ jobs:
           docker build --platform linux/amd64,linux/arm64 \
             --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-localtest:buildcache \
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-localtest:buildcache,mode=max \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
             -t ${{ steps.vars.outputs.image }} -t ${{ steps.vars.outputs.latest-image }} \
             -f Runtime/localtest/Dockerfile .
 

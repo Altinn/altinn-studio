@@ -294,16 +294,16 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.All(), snapshot, e.runningImageDigests(ctx, graph.All()), opts.RequireDesired), nil
+	return localtestStatus(graph.All(), snapshot, e.runningImages(ctx, graph.All()), opts.RequireDesired), nil
 }
 
-// runningImageDigests resolves the digest each container is actually running, keyed by
-// container name. It reads the container rather than the configured reference because a
-// moving tag no longer identifies a build: a container keeps the one it started with until
-// the environment is restarted. A container that is not running has no build to report, so
-// lookup failures are left out rather than failing status.
-func (e *Env) runningImageDigests(ctx context.Context, resources []resource.Resource) map[string]string {
-	digests := make(map[string]string)
+// runningImages resolves what each container is actually running, keyed by container name.
+// It reads the container rather than the configured reference because a moving tag no longer
+// identifies a build: a container keeps the one it started with until the environment is
+// restarted. A container that is not running has nothing to report, so lookup failures are
+// left out rather than failing status.
+func (e *Env) runningImages(ctx context.Context, resources []resource.Resource) map[string]RunningImage {
+	running := make(map[string]RunningImage)
 	for _, res := range resources {
 		containerResource, ok := res.(*resource.Container)
 		if !ok {
@@ -313,13 +313,29 @@ func (e *Env) runningImageDigests(ctx context.Context, resources []resource.Reso
 		if err != nil || info.ImageID == "" {
 			continue
 		}
-		image, err := e.client.ImageInspect(ctx, info.ImageID)
-		if err != nil {
-			continue
-		}
-		digests[containerResource.Name] = image.Digest
+		running[containerResource.Name] = e.resolveRunningImage(
+			ctx,
+			info.ImageID,
+			containerImageRef(containerResource),
+		)
 	}
-	return digests
+	return running
+}
+
+// resolveRunningImage pairs a running image with the reference it was started from, and keeps
+// the reference only when it still resolves to that image. A reference this command builds
+// can name something the running environment never ran - a tag that has moved since, or a
+// component the environment was started with differently - and reporting it would then
+// misdescribe what is running.
+func (e *Env) resolveRunningImage(ctx context.Context, imageID, ref string) RunningImage {
+	if ref == "" {
+		return RunningImage{Ref: "", ImageID: imageID}
+	}
+	info, err := e.client.ImageInspect(ctx, ref)
+	if err != nil || info.ID != imageID {
+		return RunningImage{Ref: "", ImageID: imageID}
+	}
+	return RunningImage{Ref: ref, ImageID: imageID}
 }
 
 func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
@@ -419,7 +435,7 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 	}
 
 	var renderer resourcegraph.Renderer
-	if _, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
+	outputs, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
 		e.startRenderer(
 			exec,
 			&renderer,
@@ -429,7 +445,8 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 			spinnerMsg,
 		)
 		return nil
-	})); err != nil {
+	}))
+	if err != nil {
 		if renderer != nil {
 			renderer.FailAll(err.Error())
 			renderer.Stop()
@@ -440,8 +457,24 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 	if renderer != nil {
 		renderer.Stop()
 	}
+	e.warnAboutStaleImages(resources, outputs)
 	e.out.Success("Environment started")
 	return nil
+}
+
+// warnAboutStaleImages reports images the registry could not be reached for. The environment
+// then runs whatever copy is on the machine, which can be any age, and the progress line
+// saying so is gone by the time the run finishes.
+func (e *Env) warnAboutStaleImages(resources []resource.Resource, outputs executor.Outputs) {
+	for _, res := range resources {
+		image, ok := res.(*resource.PulledImage)
+		if !ok {
+			continue
+		}
+		if output, found := outputs.Image(image.ID()); found && output.Stale {
+			e.out.Warningf("Could not reach the registry for %s; using the copy already on this machine.", image.Ref)
+		}
+	}
 }
 
 func (e *Env) destroyResources(ctx context.Context, resources []resource.Resource, logStartMessage string) error {
@@ -527,7 +560,7 @@ func applyPlannedResources(plan executor.ApplyPlan) []executor.PlannedResource {
 func localtestStatus(
 	resources []resource.Resource,
 	snapshot executor.Snapshot,
-	imageDigests map[string]string,
+	running map[string]RunningImage,
 	requireDesired bool,
 ) *Status {
 	status := Status{
@@ -551,10 +584,10 @@ func localtestStatus(
 		status.Containers = append(
 			status.Containers,
 			ContainerStatus{
-				Name:        containerResource.Name,
-				Image:       containerImageRef(containerResource),
-				ImageDigest: imageDigests[containerResource.Name],
-				Status:      localtestStatusString(resourceStatus),
+				Name:    containerResource.Name,
+				Image:   running[containerResource.Name].Ref,
+				ImageID: running[containerResource.Name].ImageID,
+				Status:  localtestStatusString(resourceStatus),
 			},
 		)
 		containerCount++
@@ -570,11 +603,12 @@ func localtestStatus(
 	return &status
 }
 
-// containerImageRef returns the container's image reference, empty for an image built from
-// the local checkout.
+// containerImageRef returns the reference a container was started from. It is empty for an
+// image built from the local checkout, and for a component this command treats as disabled:
+// the reference would then be a placeholder rather than anything the container ran.
 func containerImageRef(containerResource *resource.Container) string {
 	pulled, ok := containerResource.Image.Resource().(*resource.PulledImage)
-	if !ok {
+	if !ok || components.IsDisabledImageRef(pulled.Ref) {
 		return ""
 	}
 	return pulled.Ref

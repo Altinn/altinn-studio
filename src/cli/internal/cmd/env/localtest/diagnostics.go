@@ -336,7 +336,7 @@ func checkDiagnosticContainerStates(
 			if errors.Is(err, types.ErrContainerNotFound) {
 				states[def.Container] = diagnosticContainerState{
 					Check:   nil,
-					Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
+					Image:   nil,
 					Running: false,
 				}
 				continue
@@ -348,7 +348,7 @@ func checkDiagnosticContainerStates(
 					DiagnosticLevelWarn,
 					"state unavailable: "+err.Error(),
 				),
-				Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
+				Image:   nil,
 				Running: false,
 			}
 			continue
@@ -357,7 +357,7 @@ func checkDiagnosticContainerStates(
 		if !state.Running {
 			states[def.Container] = diagnosticContainerState{
 				Check:   nil,
-				Image:   checkDiagnosticImage(ctx, client, def.Container, def.Image),
+				Image:   nil,
 				Running: false,
 			}
 			continue
@@ -375,37 +375,28 @@ func checkDiagnosticContainerStates(
 	return states
 }
 
-// checkDiagnosticImage reports the reference a service is configured to run and the digest
-// of the build its container is running. The two can differ: a moving tag keeps serving the
-// build the container started with until the environment is restarted.
+// checkDiagnosticImage reports the build a container is running, and the reference it was
+// started from when that reference still resolves to the same build. A moving tag, a locally
+// built image or a component the environment was started with differently all make the
+// configured reference a poor description of what is running, so it is then left out.
 func checkDiagnosticImage(
 	ctx context.Context,
 	client container.ContainerClient,
 	containerName string,
 	spec config.ImageSpec,
 ) *DiagnosticCheck {
-	if spec.Image == "" {
-		return nil
-	}
-	message := spec.Ref()
-	if digest := runningImageDigest(ctx, client, containerName); digest != "" {
-		message += " (" + config.ShortDigest(digest) + ")"
-	}
-	return newDiagnosticCheckPtr("image", "Image:", DiagnosticLevelInfo, message)
-}
-
-// runningImageDigest returns the digest of the image a container runs, empty when the
-// container is absent or its image cannot be resolved.
-func runningImageDigest(ctx context.Context, client container.ContainerClient, containerName string) string {
 	info, err := client.ContainerInspect(ctx, containerName)
 	if err != nil || info.ImageID == "" {
-		return ""
+		return nil
 	}
-	image, err := client.ImageInspect(ctx, info.ImageID)
-	if err != nil {
-		return ""
+	imageID := info.ImageID
+	message := config.ShortImageID(imageID)
+	if spec.Image != "" {
+		if info, err := client.ImageInspect(ctx, spec.Ref()); err == nil && info.ID == imageID {
+			message = spec.Ref() + " (" + message + ")"
+		}
 	}
-	return image.Digest
+	return newDiagnosticCheckPtr("image", "Image:", DiagnosticLevelInfo, message)
 }
 
 func checkDiagnosticDNS(ctx context.Context, opts DiagnosticOptions, host string) (DiagnosticCheck, bool) {

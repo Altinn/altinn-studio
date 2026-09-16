@@ -150,35 +150,3 @@ func TestContainerPlatformPushArgs(t *testing.T) {
 		})
 	}
 }
-
-func TestManifestDigest(t *testing.T) {
-	tests := []struct {
-		name        string
-		want        string
-		repoDigests []string
-	}{
-		{name: "no repo digests", want: "", repoDigests: nil},
-		{
-			name:        "single repo digest",
-			want:        "sha256:abc",
-			repoDigests: []string{"ghcr.io/altinn/altinn-studio/runtime-localtest@sha256:abc"},
-		},
-		{
-			name: "several repositories share the digest",
-			want: "sha256:abc",
-			repoDigests: []string{
-				"ghcr.io/altinn/altinn-studio/runtime-localtest@sha256:abc",
-				"altinncr.azurecr.io/studio-apps/runtime-localtest@sha256:abc",
-			},
-		},
-		{name: "malformed entry is skipped", want: "", repoDigests: []string{"ghcr.io/altinn/runtime-localtest"}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := ManifestDigest(tt.repoDigests); got != tt.want {
-				t.Errorf("ManifestDigest() = %q, want %q", got, tt.want)
-			}
-		})
-	}
-}

@@ -15,6 +15,7 @@ func (b Backend) applyPulledImage(
 	backendCtx executor.BackendContext,
 	img *resource.PulledImage,
 ) (executor.Output, error) {
+	stale := false
 	_, err := b.client.ImageInspect(ctx, img.Ref)
 	imageExists := err == nil
 	if err != nil && !errors.Is(err, types.ErrImageNotFound) {
@@ -28,9 +29,12 @@ func (b Backend) applyPulledImage(
 		}
 	case resource.PullAlwaysAllowStale:
 		if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
-			if !imageExists {
+			// A cancelled run is the caller stopping, not a registry the caller cannot
+			// reach, and carrying on with an older image would defy the interrupt.
+			if !imageExists || ctx.Err() != nil {
 				return nil, pullErr
 			}
+			stale = true
 			backendCtx.NotifyProgress(img.ID(), executor.Progress{
 				Message:       "pull failed, using the local image: " + pullErr.Error(),
 				Current:       0,
@@ -57,7 +61,7 @@ func (b Backend) applyPulledImage(
 		return nil, fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
 
-	return executor.ImageOutput{ImageID: info.ID}, nil
+	return executor.ImageOutput{ImageID: info.ID, Stale: stale}, nil
 }
 
 func (b Backend) pullImage(
@@ -94,7 +98,7 @@ func (b Backend) applyBuiltImage(
 		return nil, fmt.Errorf("inspect built image %s: %w", img.Tag, err)
 	}
 
-	return executor.ImageOutput{ImageID: info.ID}, nil
+	return executor.ImageOutput{ImageID: info.ID, Stale: false}, nil
 }
 
 func (b Backend) applyPublishedImage(
@@ -119,7 +123,7 @@ func (b Backend) applyPublishedImage(
 		return nil, fmt.Errorf("inspect published image %s: %w", img.Ref, err)
 	}
 
-	return executor.ImageOutput{ImageID: info.ID}, nil
+	return executor.ImageOutput{ImageID: info.ID, Stale: false}, nil
 }
 
 func (b Backend) imageStatus(ctx context.Context, ref string) (executor.Status, error) {

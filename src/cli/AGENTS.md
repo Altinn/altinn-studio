@@ -44,8 +44,9 @@ Invariants:
   registry is unreachable, so `env up` still works offline.
 - `env up` returns early on a converged environment, so a new build arrives on the next `env down` +
   `env up`, and a running container keeps the build it started with.
-- A moving tag does not identify a build. Anything reporting on a local environment reports the
-  digest the container runs.
+- A moving tag does not identify a build, so reporting reads the container, not the configuration:
+  the build it runs, plus the reference only where that reference still resolves to that build.
+  The commit is stamped on each image as `org.opencontainers.image.revision`.
 - The container spec studioctl generates is a contract with an older client: a developer's studioctl
   is older than the image it pulls. See the service's own `AGENTS.md`.
 - `STUDIOCTL_IMAGE_*` pins one reference for a session. It replaced a home-directory override file,

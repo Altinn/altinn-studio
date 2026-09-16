@@ -63,7 +63,7 @@ func TestPulledImage_PullAlwaysAllowStale(t *testing.T) {
 		}
 	})
 
-	t.Run("pull always allow stale pulls on every apply", func(t *testing.T) {
+	t.Run("pull always allow stale pulls on each apply", func(t *testing.T) {
 		client := containermock.New()
 		pulls := 0
 		client.ImagePullWithProgressFunc = func(context.Context, string, types.ProgressHandler) error {
@@ -75,16 +75,14 @@ func TestPulledImage_PullAlwaysAllowStale(t *testing.T) {
 		}
 
 		backend := New(client)
-		_, err := backend.applyPulledImage(
-			t.Context(),
-			executor.BackendContext{},
-			&resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale},
-		)
-		if err != nil {
-			t.Fatalf("applyPulledImage() error = %v", err)
-		}
-		if pulls != 1 {
-			t.Fatalf("ImagePullWithProgress calls = %d, want 1", pulls)
+		image := &resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale}
+		for apply := 1; apply <= 2; apply++ {
+			if _, err := backend.applyPulledImage(t.Context(), executor.BackendContext{}, image); err != nil {
+				t.Fatalf("applyPulledImage() error = %v", err)
+			}
+			if pulls != apply {
+				t.Fatalf("ImagePullWithProgress calls after apply %d = %d, want %d", apply, pulls, apply)
+			}
 		}
 	})
 }
@@ -142,6 +140,28 @@ func TestPulledImage_PullPolicies(t *testing.T) {
 		}
 		if pulls != 1 {
 			t.Fatalf("ImagePullWithProgress calls = %d, want 1", pulls)
+		}
+	})
+
+	t.Run("cancellation is not treated as an unreachable registry", func(t *testing.T) {
+		client := containermock.New()
+		client.ImagePullWithProgressFunc = func(context.Context, string, types.ProgressHandler) error {
+			return context.Canceled
+		}
+		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+			return types.ImageInfo{ID: "sha256:image"}, nil
+		}
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		backend := New(client)
+		_, err := backend.applyPulledImage(
+			ctx,
+			executor.BackendContext{},
+			&resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale},
+		)
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("applyPulledImage() error = %v, want context.Canceled", err)
 		}
 	})
 

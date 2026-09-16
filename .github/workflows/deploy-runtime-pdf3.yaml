@@ -95,11 +95,13 @@ jobs:
           docker build --platform linux/amd64,linux/arm64 \
             --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:buildcache \
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:buildcache,mode=max \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
             -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
           PROXY_PID=$!
           docker build --platform linux/amd64,linux/arm64 \
             --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:buildcache \
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:buildcache,mode=max \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
             -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
           WORKER_PID=$!
           wait $PROXY_PID

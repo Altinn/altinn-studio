@@ -35,3 +35,8 @@ not build/test targets.
   point is that an app behaves the same locally as in the cloud.
 - Common gotcha: if Localtest reports the app isn't running when it is, it's usually a firewall/port
   issue — see the "Known issues" section in `README.md`.
+- **`studioctl env up` runs the latest build of this image**, with no ring or approval between main
+  and every developer's machine. studioctl supplies the container's configuration — ports, mounts,
+  environment — and the studioctl a developer has installed is older than the image it pulls, so a
+  renamed setting or a moved port breaks `env up` for everyone within the hour. Keep the previous
+  spelling working for at least one studioctl release, and change studioctl in the same pull request.

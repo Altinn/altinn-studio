@@ -26,8 +26,16 @@ func TestRunRemovesImageConfigFile(t *testing.T) {
 		t.Fatalf("image config file stat error = %v, want not exist", err)
 	}
 
+	// A file written after the migration has run is left alone: the migration is recorded as
+	// applied, so it is not a lingering deleter of anything named config.yaml.
+	if err := os.WriteFile(path, []byte("images: {}\n"), 0o600); err != nil {
+		t.Fatalf("rewrite image config file: %v", err)
+	}
 	if err := migrations.Run(t.Context(), cfg); err != nil {
 		t.Fatalf("second Run() error = %v", err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("file written after the migration ran: stat error = %v, want exist", err)
 	}
 }
 

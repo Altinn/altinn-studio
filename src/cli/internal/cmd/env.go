@@ -620,16 +620,17 @@ func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 	out.RenderTable(table)
 }
 
-// containerImageCell renders the image a container runs, with the digest of its build so a
-// report of local behavior can name it. Locally built images have no reference to show.
+// containerImageCell renders what a container is running: its build, and the reference it was
+// started from when studioctl could confirm that reference still resolves to that build.
 func containerImageCell(ctr envlocaltest.ContainerStatus) string {
+	if ctr.ImageID == "" {
+		return "-"
+	}
+	build := config.ShortImageID(ctr.ImageID)
 	if ctr.Image == "" {
-		return "(built locally)"
+		return build
 	}
-	if ctr.ImageDigest == "" {
-		return ctr.Image
-	}
-	return ctr.Image + " (" + config.ShortDigest(ctr.ImageDigest) + ")"
+	return ctr.Image + " (" + build + ")"
 }
 
 func (c *EnvCommand) hostsUsage() string {

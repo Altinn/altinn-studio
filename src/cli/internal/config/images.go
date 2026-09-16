@@ -91,8 +91,8 @@ func DefaultImages() ImagesConfig {
 }
 
 // imageOverrides maps each image to its environment variable, which holds a complete
-// reference ("repository:tag"; an untagged one resolves to ":latest"). An override replaces
-// the reference only, so a floating image keeps being re-pulled.
+// reference ("repository:tag"; an untagged one resolves to ":latest"). An override names one
+// build to run, so it also stops that image from following a tag.
 func (c *ImagesConfig) imageOverrides() map[string]*ImageSpec {
 	return map[string]*ImageSpec{
 		"STUDIOCTL_IMAGE_LOCALTEST":          &c.Core.Localtest,
@@ -117,6 +117,7 @@ func (c *ImagesConfig) applyEnvOverrides(getenv func(string) string) {
 		image, tag := splitImageRef(ref)
 		spec.Image = image
 		spec.Tag = tag
+		spec.Floating = false
 	}
 }
 
@@ -130,17 +131,18 @@ func splitImageRef(ref string) (image, tag string) {
 	return ref[:lastColon], ref[lastColon+1:]
 }
 
-// shortDigestLength keeps a digest recognizable while staying short enough to render inline.
-const shortDigestLength = 12
+// shortImageIDLength keeps an image ID recognizable while staying short enough to render inline.
+const shortImageIDLength = 12
 
-// ShortDigest abbreviates an image digest ("sha256:<hex>") to the leading hex characters.
-func ShortDigest(digest string) string {
-	hex := digest
-	if _, rest, found := strings.Cut(digest, ":"); found {
+// ShortImageID abbreviates a container runtime image ID to its leading hex characters. Runtimes
+// report it either bare or as "sha256:<hex>".
+func ShortImageID(imageID string) string {
+	hex := imageID
+	if _, rest, found := strings.Cut(imageID, ":"); found {
 		hex = rest
 	}
-	if len(hex) > shortDigestLength {
-		return hex[:shortDigestLength]
+	if len(hex) > shortImageIDLength {
+		return hex[:shortImageIDLength]
 	}
 	return hex
 }

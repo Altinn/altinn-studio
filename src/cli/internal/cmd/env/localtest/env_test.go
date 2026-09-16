@@ -471,26 +471,37 @@ func testImages() config.ImagesConfig {
 	}
 }
 
-// TestStatus_ReportsTheBuildEachContainerRuns pins why status reads the container rather
-// than the configured reference: here the container still runs the build it started with,
-// while its moving tag has since been replaced.
+// TestStatus_ReportsTheBuildEachContainerRuns pins why status reads the container rather than
+// the configured reference. The localtest container runs the build it started with while its
+// tag has since moved to another one, so the reference no longer describes it and is dropped;
+// the pdf container still runs what its reference resolves to, so both are reported.
 func TestStatus_ReportsTheBuildEachContainerRuns(t *testing.T) {
 	t.Parallel()
+
+	const (
+		startedWith  = "sha256:started-with"
+		pulledSince  = "sha256:pulled-since"
+		pdfImageID   = "sha256:pdf"
+		testPDFImage = "ghcr.io/altinn/test-pdf3:latest"
+	)
 
 	client := mock.New()
 	client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
 		info := managedContainerInfo(types.ContainerState{Status: "running", Running: true})
-		if name == components.ContainerLocaltest {
-			info.ImageID = "sha256:started-with"
+		switch name {
+		case components.ContainerLocaltest:
+			info.ImageID = startedWith
+		case components.ContainerPDF3:
+			info.ImageID = pdfImageID
 		}
 		return info, nil
 	}
 	client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
 		switch image {
-		case "sha256:started-with":
-			return types.ImageInfo{ID: image, Digest: "sha256:0123456789abcdef"}, nil
 		case testLocaltestImageRef:
-			return types.ImageInfo{ID: "sha256:pulled-since", Digest: "sha256:fedcba9876543210"}, nil
+			return types.ImageInfo{ID: pulledSince}, nil
+		case testPDFImage:
+			return types.ImageInfo{ID: pdfImageID}, nil
 		default:
 			return types.ImageInfo{}, types.ErrImageNotFound
 		}
@@ -506,22 +517,28 @@ func TestStatus_ReportsTheBuildEachContainerRuns(t *testing.T) {
 	if !ok {
 		t.Fatalf("status has no %q container", components.ContainerLocaltest)
 	}
-	if localtestStatus.Image != testLocaltestImageRef {
-		t.Errorf("localtest image = %q", localtestStatus.Image)
+	if localtestStatus.ImageID != startedWith {
+		t.Errorf("localtest image = %q, want the build the container runs", localtestStatus.ImageID)
 	}
-	if localtestStatus.ImageDigest != "sha256:0123456789abcdef" {
-		t.Errorf("localtest image digest = %q, want the build the container runs", localtestStatus.ImageDigest)
+	if localtestStatus.Image != "" {
+		t.Errorf("localtest reference = %q, want none once the tag has moved off that build", localtestStatus.Image)
 	}
 
 	pdfStatus, ok := containerStatus(status, components.ContainerPDF3)
 	if !ok {
 		t.Fatalf("status has no %q container", components.ContainerPDF3)
 	}
-	if pdfStatus.Image != "ghcr.io/altinn/test-pdf3:latest" {
-		t.Errorf("pdf image = %q", pdfStatus.Image)
+	if pdfStatus.ImageID != pdfImageID || pdfStatus.Image != testPDFImage {
+		t.Errorf("pdf image = %q (%q), want %q (%q)", pdfStatus.Image, pdfStatus.ImageID, testPDFImage, pdfImageID)
 	}
-	if pdfStatus.ImageDigest != "" {
-		t.Errorf("pdf image digest = %q, want empty when the build cannot be resolved", pdfStatus.ImageDigest)
+
+	dbStatus, ok := containerStatus(status, components.ContainerWorkflowEngineDb)
+	if !ok {
+		t.Fatalf("status has no %q container", components.ContainerWorkflowEngineDb)
+	}
+	if dbStatus.ImageID != "" || dbStatus.Image != "" {
+		t.Errorf("workflow-engine-db image = %q (%q), want nothing reported for an unresolvable image",
+			dbStatus.Image, dbStatus.ImageID)
 	}
 }
 

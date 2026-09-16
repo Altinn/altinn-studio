@@ -82,7 +82,7 @@ newer build every time it starts the environment; a running environment keeps wh
 with until `env down` and `env up`. If the registry cannot be reached, it starts on the images
 already on your machine.
 
-`studioctl env status` shows each container's image and the build behind it — worth quoting in
+`studioctl env status` shows each container's image and the build it is running — worth quoting in
 a bug report, since the tags that follow tt02 move whenever a new build is deployed.
 
 To run a specific build instead, set the matching variable for the session:
