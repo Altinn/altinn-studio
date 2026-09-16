@@ -612,11 +612,25 @@ func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 	table := ui.NewTable(
 		ui.NewColumn("Container"),
 		ui.NewColumn("Status"),
+		ui.NewColumn("Image"),
 	)
 	for _, ctr := range status.Containers {
-		table.Row(ui.Text(ctr.Name), ui.Text(ctr.Status))
+		table.Row(ui.Text(ctr.Name), ui.Text(ctr.Status), ui.Text(containerImageCell(ctr)))
 	}
 	out.RenderTable(table)
+}
+
+// containerImageCell describes the image a container runs. Images whose tag moves are shown
+// with the digest of the build behind the tag, so a report of local behavior can name the
+// exact build. Locally built images have no reference to show.
+func containerImageCell(ctr envlocaltest.ContainerStatus) string {
+	if ctr.Image == "" {
+		return "(built locally)"
+	}
+	if ctr.ImageDigest == "" {
+		return ctr.Image
+	}
+	return ctr.Image + " (" + config.ShortDigest(ctr.ImageDigest) + ")"
 }
 
 func (c *EnvCommand) hostsUsage() string {

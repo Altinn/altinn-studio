@@ -467,3 +467,55 @@ func testImages() config.ImagesConfig {
 		},
 	}
 }
+
+func TestStatus_ReportsImageAndDigest(t *testing.T) {
+	t.Parallel()
+
+	client := mock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
+	}
+	client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
+		if image != "ghcr.io/altinn/test-localtest:latest" {
+			return types.ImageInfo{}, types.ErrImageNotFound
+		}
+		return types.ImageInfo{ID: "sha256:local", Digest: "sha256:0123456789abcdef"}, nil
+	}
+
+	env := newTestEnv(client)
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+
+	localtestStatus, ok := containerStatus(status, components.ContainerLocaltest)
+	if !ok {
+		t.Fatalf("status has no %q container", components.ContainerLocaltest)
+	}
+	if localtestStatus.Image != "ghcr.io/altinn/test-localtest:latest" {
+		t.Errorf("localtest image = %q", localtestStatus.Image)
+	}
+	if localtestStatus.ImageDigest != "sha256:0123456789abcdef" {
+		t.Errorf("localtest image digest = %q", localtestStatus.ImageDigest)
+	}
+
+	pdfStatus, ok := containerStatus(status, components.ContainerPDF3)
+	if !ok {
+		t.Fatalf("status has no %q container", components.ContainerPDF3)
+	}
+	if pdfStatus.Image != "ghcr.io/altinn/test-pdf3:latest" {
+		t.Errorf("pdf image = %q", pdfStatus.Image)
+	}
+	if pdfStatus.ImageDigest != "" {
+		t.Errorf("pdf image digest = %q, want empty for an image that is not pulled", pdfStatus.ImageDigest)
+	}
+}
+
+func containerStatus(status *localtest.Status, name string) (localtest.ContainerStatus, bool) {
+	for _, ctr := range status.Containers {
+		if ctr.Name == name {
+			return ctr, true
+		}
+	}
+	return localtest.ContainerStatus{}, false
+}

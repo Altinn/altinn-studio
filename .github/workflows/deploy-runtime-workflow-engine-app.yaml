@@ -48,6 +48,7 @@ jobs:
       REGISTRY_NAME: altinncr
     outputs:
       config-repo: ${{ steps.vars.outputs.config-repo }}
+      ghcr-image: ${{ steps.vars.outputs.ghcr-image }}
     defaults:
       run:
         working-directory: src/Runtime/workflow-engine-app
@@ -161,3 +162,17 @@ jobs:
         run: |
           flux tag artifact oci://${{ needs.push-workflow-engine-app-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
+
+      # studioctl runs the "tt_ring1" tag, so the local environment runs the same engine
+      # build as tt02 without waiting for a studioctl release. The tag moves here rather
+      # than in the build job, so it only ever points at a build handed to the ring.
+      - name: Point the tt_ring1 tag at this build
+        if: matrix.ring == 'tt_ring1'
+        env:
+          GHCR_IMAGE: ${{ needs.push-workflow-engine-app-artifact.outputs.ghcr-image }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker buildx imagetools create \
+            -t ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt_ring1 \
+            "$GHCR_IMAGE"

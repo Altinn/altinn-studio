@@ -31,10 +31,43 @@ make test      # 6. Unit tests
 Libraries shared between the .NET projects in this area live under [`common/`](common/AGENTS.md) and are
 part of `studioctl.slnx`, so `make test` covers them.
 
+### Container images
+
+All images the local environment runs are declared in `internal/config/images.go`. There is no
+image config file and no user override file — `config.DefaultImages()` is the only source.
+
+Two of them follow the environment they mirror rather than a pinned build, so a platform change
+reaches local environments without a studioctl release:
+
+| Image | Tag | Moved by |
+| --- | --- | --- |
+| `runtime-localtest` | `latest` | `.github/workflows/deploy-runtime-localtest.yaml` on every push to main |
+| `runtime-workflow-engine-app` | `tt_ring1` | the ring-tagging job in `.github/workflows/deploy-runtime-workflow-engine-app.yaml`, so it matches what tt02 serves |
+
+`ImageSpec.Floating` marks those two. It selects `resource.PullAlwaysAllowStale`
+(`components/pullPolicyFor`), which re-pulls on every apply but keeps the local image when the
+registry is unreachable, so `env up` still works offline. Everything else stays
+`PullIfNotPresent` and is bumped by hand.
+
+Consequences to keep in mind:
+
+- **A running environment is not re-reconciled.** `env up` returns early when the environment is
+  already converged (`runLocaltestUp` in `internal/cmd/env.go`), so a new build is picked up on the
+  next `env down` + `env up`, not while it runs.
+- **The tag no longer identifies the build.** `env status` and `doctor` print the digest behind the
+  reference (`ContainerStatus.ImageDigest`, and the `image` diagnostic check) — that is what a bug
+  report needs.
+- **studioctl's container spec is a contract with an older client.** A developer's studioctl is
+  older than the image it pulls, so environment variables, ports and probe paths in
+  `components/workflow_engine.go` must keep working across engine builds. See
+  `src/Runtime/workflow-engine-app/AGENTS.md`.
+- `STUDIOCTL_IMAGE_*` (for example `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`) overrides one reference for
+  a session, for reproducing a report against a specific build.
+
 ### Changelog & releases
 
 - **Every PR with a user-visible studioctl change** (new commands/flags, behavior changes,
-  fixes, runtime image bumps) **must add an entry to `CHANGELOG.md`** under `## [Unreleased]`,
+  fixes, bumps of the pinned images) **must add an entry to `CHANGELOG.md`** under `## [Unreleased]`,
   using the Keep a Changelog categories (Added/Changed/Fixed/…). CI enforces this:
   `.github/workflows/cli-changelog.yaml` fails PRs that change studioctl code without a new
   `[Unreleased]` entry. For changes with no user-visible effect (refactors, test-only or

@@ -294,7 +294,26 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.All(), snapshot, opts.RequireDesired), nil
+	return localtestStatus(graph.All(), snapshot, e.imageDigests(ctx, graph.All()), opts.RequireDesired), nil
+}
+
+// imageDigests resolves the registry digest of every pulled image in the graph, so status
+// can report which build a container actually runs. Images that are not present locally
+// have no digest to report, so lookup failures are left out rather than failing status.
+func (e *Env) imageDigests(ctx context.Context, resources []resource.Resource) map[string]string {
+	digests := make(map[string]string)
+	for _, res := range resources {
+		pulled, ok := res.(*resource.PulledImage)
+		if !ok {
+			continue
+		}
+		info, err := e.client.ImageInspect(ctx, pulled.Ref)
+		if err != nil {
+			continue
+		}
+		digests[pulled.Ref] = info.Digest
+	}
+	return digests
 }
 
 func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
@@ -502,6 +521,7 @@ func applyPlannedResources(plan executor.ApplyPlan) []executor.PlannedResource {
 func localtestStatus(
 	resources []resource.Resource,
 	snapshot executor.Snapshot,
+	imageDigests map[string]string,
 	requireDesired bool,
 ) *Status {
 	status := Status{
@@ -522,9 +542,15 @@ func localtestStatus(
 		if !resource.IsEnabled(containerResource) && resourceStatus == executor.StatusDestroyed {
 			continue
 		}
+		image := containerImageRef(containerResource)
 		status.Containers = append(
 			status.Containers,
-			ContainerStatus{Name: containerResource.Name, Status: localtestStatusString(resourceStatus)},
+			ContainerStatus{
+				Name:        containerResource.Name,
+				Image:       image,
+				ImageDigest: imageDigests[image],
+				Status:      localtestStatusString(resourceStatus),
+			},
 		)
 		containerCount++
 		if containerConverged(containerResource, resourceStatus, requireDesired) {
@@ -537,6 +563,16 @@ func localtestStatus(
 
 	status.Running = containerCount > 0 && convergedContainers == containerCount
 	return &status
+}
+
+// containerImageRef returns the image reference a container runs, or an empty string when
+// the container runs an image built from the local checkout.
+func containerImageRef(containerResource *resource.Container) string {
+	pulled, ok := containerResource.Image.Resource().(*resource.PulledImage)
+	if !ok {
+		return ""
+	}
+	return pulled.Ref
 }
 
 func managedResourceStatus(snapshot executor.Snapshot, id resource.ResourceID) executor.Status {

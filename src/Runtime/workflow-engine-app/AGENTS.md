@@ -91,6 +91,20 @@ at22, at24, yt01 and prod, but only the at23 and tt02 syncroots carry a `workflo
 and `syncroot/base` does not include the service, so nothing syncs it to the other four.
 `appsettings.prod.json` is scaffolded ahead of that deployment.
 
+## Local environment compatibility
+
+`studioctl env up` runs the `tt_ring1` tag of this image, so a developer's local environment picks
+up a new build as soon as it reaches that ring — with whatever version of studioctl they happen to
+have installed. In a cluster the deployment config ships with the image
+(`infra/kustomize/base/deployment.yaml`); locally studioctl builds the container spec
+(`src/cli/internal/cmd/env/localtest/components/workflow_engine.go`), and it is not updated at the
+same time.
+
+Treat that spec as a contract with an older client: renaming a setting, moving the health routes, or
+requiring a new environment variable breaks `env up` for everyone who has not updated studioctl.
+Keep the previous spelling working for at least one studioctl release, and change studioctl in the
+same pull request. See [README](README.md) for how to pin a specific build when reproducing a report.
+
 ## Tests
 
 xUnit v3 test project: `tests/WorkflowEngine.App.Tests/`

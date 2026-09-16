@@ -50,42 +50,61 @@ dotnet test
 
 No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and WireMock.
 
-## Updating the studioctl image tag
+## The image studioctl runs
 
-`studioctl env up` runs a prebuilt engine image from GHCR as a container. The tag is pinned in [`src/cli/internal/config/config.yaml`](../../cli/internal/config/config.yaml):
+`studioctl env up` runs this service as a container from the
+`ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt_ring1` tag. That tag is moved by the
+ring-tagging job in
+[`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml)
+whenever a build is handed to the `tt_ring1` runtime ring, so the local environment runs the same
+build tt02 serves. Nothing needs updating in `studioctl` when this service changes: `env up`
+re-pulls the tag, and a change reaching tt02 reaches every local environment on its next start.
 
-```yaml
-image: ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app
-tag: "a45a743b78"
+`studioctl env status` and `studioctl doctor` print the image reference together with the digest of
+the build behind it, which is how you tell which build a local environment actually ran.
+
+> Passing `--dev-workflow-engine` instead **disables** that container and routes the engine binding
+> to a local host process (so you can run it yourself with `dotnet run`). In that mode no image is
+> pulled.
+
+To run a specific build instead of the one tt02 has — to reproduce a report against an older build,
+say — point studioctl at it for the session:
+
+```sh
+STUDIOCTL_IMAGE_WORKFLOW_ENGINE=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:a45a743b78 \
+  studioctl env up
 ```
-
-> Passing `--dev-workflow-engine` instead **disables** that container and routes the engine binding to a local host process (so you can run it yourself with `dotnet run`). In that mode the pinned tag is not used — only the default `studioctl env up` consumes it.
 
 ### How the image is built
 
-The [`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml) workflow builds and pushes the image on every push to `main` that touches the engine source, `Dockerfile`, packages, or infra paths. **The tag is the first 10 characters of the triggering commit SHA** (`${GITHUB_SHA::10}`).
+The [`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml)
+workflow builds and pushes the image on every push to `main` that touches the engine source,
+`Dockerfile`, packages, or infra paths. **The immutable tag is the first 10 characters of the
+triggering commit SHA** (`${GITHUB_SHA::10}`); `tt_ring1` is a moving tag pointing at one of those
+builds.
 
-### Finding the right tag
-
-After your changes land on `main`, find the build and update the pin:
+To find the build behind the moving tag, list recent runs and read the `headSha` of the newest one
+whose `tag-workflow-engine-app` job completed for `tt_ring1`:
 
 ```sh
-# 1. List recent builds (most recent first). Look for event=push, headBranch=main.
 gh run list --workflow deploy-runtime-workflow-engine-app.yaml -L 15 \
   --json headSha,displayTitle,event,headBranch,conclusion,createdAt,databaseId
-
-# 2. Confirm the image was actually pushed for that run. The overall run may show
-#    "waiting" (deploy/tag jobs gate on environment approval) — that does NOT mean
-#    the image is missing. Check the build job specifically:
-gh run view <databaseId> \
-  --jq '.jobs[] | select(.name | test("Push|OCI")) | {name, status, conclusion}'
-
-# 3. The tag is the first 10 chars of that run's headSha.
 ```
 
-Pin to the **latest** successful build on `main` (matches `main` HEAD) unless you deliberately need an older artifact. Note that follow-up infra/chore commits also retrigger the workflow and produce new tags, so the newest tag is not always the PR you have in mind — verify the `headSha`.
+> The GHCR org package API requires a `read:packages` token scope, so listing tags directly via
+> `gh api /orgs/altinn/packages/...` will 403 with the default token.
 
-> The GHCR org package API requires a `read:packages` token scope, so listing tags directly via `gh api /orgs/altinn/packages/...` will 403 with the default token. Rely on the **build job conclusion** (step 2) as proof the image exists.
+### Keeping the local environment working
+
+The deployment config for this service — environment variables, probe paths, ports — ships with the
+image, in `infra/kustomize/base/deployment.yaml`. Locally it does not: studioctl builds the
+container spec itself (`src/cli/internal/cmd/env/localtest/components/workflow_engine.go`), and the
+studioctl a developer has installed is older than the image it now pulls.
+
+So a change that is atomic in a cluster is not atomic locally. Renaming a setting, moving the
+readiness route, or requiring a new environment variable will break `env up` for everyone who has
+not updated studioctl. Keep the previous spelling working for at least one studioctl release, and
+change studioctl in the same pull request as the engine change that needs it.
 
 ## Further reading
 

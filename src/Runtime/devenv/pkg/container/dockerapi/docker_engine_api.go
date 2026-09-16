@@ -669,7 +669,11 @@ func (c *Client) ImageInspect(ctx context.Context, img string) (types.ImageInfo,
 		}
 		return types.ImageInfo{}, fmt.Errorf("failed to inspect image: %w", err)
 	}
-	return types.ImageInfo{ID: info.ID, Size: info.Size}, nil
+	return types.ImageInfo{
+		ID:     info.ID,
+		Digest: types.ManifestDigest(info.RepoDigests),
+		Size:   info.Size,
+	}, nil
 }
 
 // ImagePull pulls an image from a registry.

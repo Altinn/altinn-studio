@@ -23,17 +23,25 @@ func (b Backend) applyPulledImage(
 
 	switch img.PullPolicy {
 	case resource.PullAlways:
-		if pullErr := b.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
-			backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
-		}); pullErr != nil {
-			return nil, fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
+		if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
+			return nil, pullErr
+		}
+	case resource.PullAlwaysAllowStale:
+		if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
+			if !imageExists {
+				return nil, pullErr
+			}
+			backendCtx.NotifyProgress(img.ID(), executor.Progress{
+				Message:       "pull failed, using the local image: " + pullErr.Error(),
+				Current:       0,
+				Total:         0,
+				Indeterminate: true,
+			})
 		}
 	case resource.PullIfNotPresent:
 		if !imageExists {
-			if pullErr := b.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
-				backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
-			}); pullErr != nil {
-				return nil, fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
+			if pullErr := b.pullImage(ctx, backendCtx, img); pullErr != nil {
+				return nil, pullErr
 			}
 		}
 	case resource.PullNever:
@@ -50,6 +58,19 @@ func (b Backend) applyPulledImage(
 	}
 
 	return executor.ImageOutput{ImageID: info.ID}, nil
+}
+
+func (b Backend) pullImage(
+	ctx context.Context,
+	backendCtx executor.BackendContext,
+	img *resource.PulledImage,
+) error {
+	if err := b.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
+		backendCtx.NotifyProgress(img.ID(), progressFromContainerUpdate(update))
+	}); err != nil {
+		return fmt.Errorf("pull image %s: %w", img.Ref, err)
+	}
+	return nil
 }
 
 func (b Backend) applyBuiltImage(

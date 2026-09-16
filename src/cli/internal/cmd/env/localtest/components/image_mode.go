@@ -1,6 +1,9 @@
 package components
 
-import "altinn.studio/devenv/pkg/resource"
+import (
+	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/config"
+)
 
 // ImageMode specifies whether to use pre-built images or build from source.
 type ImageMode int
@@ -38,4 +41,14 @@ func localDevImage(prebuilt bool, image *resource.BuiltImage) resource.ImageReso
 		}
 	}
 	return image
+}
+
+// pullPolicyFor returns the pull policy for a configured image. A floating reference is
+// re-pulled on every apply so the environment tracks the build its tag points at, while a
+// pinned reference is only pulled when it is missing.
+func pullPolicyFor(spec config.ImageSpec) resource.PullPolicy {
+	if spec.Floating {
+		return resource.PullAlwaysAllowStale
+	}
+	return resource.PullIfNotPresent
 }

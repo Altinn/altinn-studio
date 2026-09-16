@@ -440,8 +440,9 @@ func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInf
 	}
 
 	var info []struct {
-		ID   string `json:"Id"`
-		Size int64  `json:"Size"`
+		ID          string   `json:"Id"`
+		RepoDigests []string `json:"RepoDigests"`
+		Size        int64    `json:"Size"`
 	}
 	if err := json.Unmarshal(output, &info); err != nil {
 		return types.ImageInfo{}, fmt.Errorf("failed to parse image inspect output: %w", err)
@@ -451,7 +452,11 @@ func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInf
 		return types.ImageInfo{}, types.ErrImageNotFound
 	}
 
-	return types.ImageInfo{ID: info[0].ID, Size: info[0].Size}, nil
+	return types.ImageInfo{
+		ID:     info[0].ID,
+		Digest: types.ManifestDigest(info[0].RepoDigests),
+		Size:   info[0].Size,
+	}, nil
 }
 
 // ImagePull pulls an image from a registry.

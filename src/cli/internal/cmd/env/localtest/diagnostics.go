@@ -46,6 +46,7 @@ type DiagnosticOptions struct {
 	IPv6Enabled      func() bool
 	Debugf           func(format string, args ...any)
 	UserAgentVersion config.Version
+	Images           config.ImagesConfig
 	Topology         envtopology.Local
 }
 
@@ -100,7 +101,7 @@ type diagnosticTCPProbe struct {
 func Diagnose(ctx context.Context, opts DiagnosticOptions) *DiagnosticReport {
 	opts = normalizeDiagnosticOptions(opts)
 	ipv6Enabled := opts.IPv6Enabled()
-	serviceDefs := diagnosticServiceDefinitions(opts.Topology)
+	serviceDefs := diagnosticServiceDefinitions(opts.Topology, opts.Images)
 	services := make([]DiagnosticService, 0, len(serviceDefs))
 
 	containerStates := checkDiagnosticContainerStates(ctx, opts, serviceDefs)
@@ -116,6 +117,9 @@ func Diagnose(ctx context.Context, opts DiagnosticOptions) *DiagnosticReport {
 		}
 		if state.Check != nil {
 			service.Checks = append(service.Checks, *state.Check)
+		}
+		if state.Image != nil {
+			service.Checks = append(service.Checks, *state.Image)
 		}
 		hostHasLoopbackIPv6 := false
 		if def.Host != "" {
@@ -145,16 +149,21 @@ type diagnosticServiceDefinition struct {
 	Name       string
 	Container  string
 	Host       string
+	Image      config.ImageSpec
 	HTTPProbes []diagnosticHTTPProbe
 	TCPProbes  []diagnosticTCPProbe
 }
 
 type diagnosticContainerState struct {
 	Check   *DiagnosticCheck
+	Image   *DiagnosticCheck
 	Running bool
 }
 
-func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServiceDefinition {
+func diagnosticServiceDefinitions(
+	topology envtopology.Local,
+	images config.ImagesConfig,
+) []diagnosticServiceDefinition {
 	app := topology.MustComponent(envtopology.ComponentApp)
 	pdf := topology.MustComponent(envtopology.ComponentPDF)
 	workflowEngine := topology.MustComponent(envtopology.ComponentWorkflowEngine)
@@ -164,6 +173,7 @@ func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServic
 			Name:       "localtest",
 			Container:  components.ContainerLocaltest,
 			Host:       app.Host(),
+			Image:      images.Core.Localtest,
 			HTTPProbes: localtestHTTPProbes(topology),
 			TCPProbes:  localtestTCPProbes(topology),
 		},
@@ -171,6 +181,7 @@ func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServic
 			Name:      "pdf",
 			Container: components.ContainerPDF3,
 			Host:      pdf.Host(),
+			Image:     images.Core.PDF3,
 			HTTPProbes: []diagnosticHTTPProbe{
 				{ID: "pdf_health", Label: "HTTP: health", Path: "/health/ready", Host: "", Port: ""},
 			},
@@ -180,6 +191,7 @@ func diagnosticServiceDefinitions(topology envtopology.Local) []diagnosticServic
 			Name:      "workflow-engine",
 			Container: components.ContainerWorkflowEngine,
 			Host:      workflowEngine.Host(),
+			Image:     images.Core.WorkflowEngine,
 			HTTPProbes: []diagnosticHTTPProbe{
 				{ID: "workflow_health", Label: "HTTP: health", Path: "/api/v1/health/ready", Host: "", Port: ""},
 			},
@@ -306,6 +318,7 @@ func checkDiagnosticContainerStates(
 					DiagnosticLevelWarn,
 					"runtime unavailable: "+err.Error(),
 				),
+				Image:   nil,
 				Running: false,
 			}
 		}
@@ -323,6 +336,7 @@ func checkDiagnosticContainerStates(
 			if errors.Is(err, types.ErrContainerNotFound) {
 				states[def.Container] = diagnosticContainerState{
 					Check:   nil,
+					Image:   checkDiagnosticImage(ctx, client, def.Image),
 					Running: false,
 				}
 				continue
@@ -334,6 +348,7 @@ func checkDiagnosticContainerStates(
 					DiagnosticLevelWarn,
 					"state unavailable: "+err.Error(),
 				),
+				Image:   checkDiagnosticImage(ctx, client, def.Image),
 				Running: false,
 			}
 			continue
@@ -342,6 +357,7 @@ func checkDiagnosticContainerStates(
 		if !state.Running {
 			states[def.Container] = diagnosticContainerState{
 				Check:   nil,
+				Image:   checkDiagnosticImage(ctx, client, def.Image),
 				Running: false,
 			}
 			continue
@@ -352,10 +368,32 @@ func checkDiagnosticContainerStates(
 		}
 		states[def.Container] = diagnosticContainerState{
 			Check:   newDiagnosticCheckPtr("container", "Container", DiagnosticLevelOK, message),
+			Image:   checkDiagnosticImage(ctx, client, def.Image),
 			Running: state.Running,
 		}
 	}
 	return states
+}
+
+// checkDiagnosticImage reports the image a service runs and the digest of the build behind
+// it, so a report about local behavior can name the exact build. Images whose tag moves
+// cannot be identified by their reference alone.
+func checkDiagnosticImage(
+	ctx context.Context,
+	client container.ContainerClient,
+	spec config.ImageSpec,
+) *DiagnosticCheck {
+	if spec.Image == "" {
+		return nil
+	}
+	message := spec.Ref()
+	switch info, err := client.ImageInspect(ctx, spec.Ref()); {
+	case err != nil:
+		message += " (not pulled)"
+	case info.Digest != "":
+		message += " (" + config.ShortDigest(info.Digest) + ")"
+	}
+	return newDiagnosticCheckPtr("image", "Image:", DiagnosticLevelInfo, message)
 }
 
 func checkDiagnosticDNS(ctx context.Context, opts DiagnosticOptions, host string) (DiagnosticCheck, bool) {

@@ -12,6 +12,7 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
@@ -345,4 +346,48 @@ func knownDiagnosticContainer(name string) bool {
 	default:
 		return false
 	}
+}
+
+func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
+	opts := newDiagnosticTestOptions(
+		t,
+		func(context.Context, string) (localtest.DiagnosticHTTPResponse, error) {
+			return localtest.DiagnosticHTTPResponse{StatusCode: http.StatusOK, Status: "200 OK"}, nil
+		},
+		func(context.Context) (container.ContainerClient, error) {
+			client := containermock.New()
+			client.ContainerStateFunc = func(context.Context, string) (types.ContainerState, error) {
+				return types.ContainerState{Status: "running", Running: true}, nil
+			}
+			client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
+				if image != "ghcr.io/altinn/test-workflow-engine:tt_ring1" {
+					return types.ImageInfo{}, types.ErrImageNotFound
+				}
+				return types.ImageInfo{ID: "sha256:local", Digest: "sha256:0123456789abcdef"}, nil
+			}
+			return client, nil
+		},
+	)
+	opts.Images = config.ImagesConfig{
+		Core: config.CoreImages{
+			Localtest: config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest", Floating: true},
+			WorkflowEngine: config.ImageSpec{
+				Image:    "ghcr.io/altinn/test-workflow-engine",
+				Tag:      "tt_ring1",
+				Floating: true,
+			},
+		},
+	}
+
+	report := localtest.Diagnose(t.Context(), opts)
+
+	engineImage := findDiagnosticCheck(t, report, "workflow-engine", "image")
+	if engineImage.Message != "ghcr.io/altinn/test-workflow-engine:tt_ring1 (0123456789ab)" {
+		t.Errorf("workflow-engine image check message = %q", engineImage.Message)
+	}
+	localtestImage := findDiagnosticCheck(t, report, "localtest", "image")
+	if localtestImage.Message != "ghcr.io/altinn/test-localtest:latest (not pulled)" {
+		t.Errorf("localtest image check message = %q", localtestImage.Message)
+	}
+	assertDiagnosticCheckMissing(t, report, "pdf", "image")
 }
