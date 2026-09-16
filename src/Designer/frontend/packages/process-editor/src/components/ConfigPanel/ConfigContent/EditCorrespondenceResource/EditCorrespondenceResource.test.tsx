@@ -1,77 +1,96 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditCorrespondenceResource } from './EditCorrespondenceResource';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { EditCorrespondenceResource } from './EditCorrespondenceResource';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
 
-jest.mock('./useGetCorrespondenceResource', () => ({
-  useGetCorrespondenceResource: jest.fn(),
-}));
+jest.mock('../../../../contexts/BpmnContext');
 
-jest.mock('./useUpdateCorrespondenceResource', () => ({
-  useUpdateCorrespondenceResource: jest.fn(),
-}));
+const environmentConfigType = 'altinn:EnvironmentConfig';
+const fieldLabel = textMock('process_editor.configuration_panel.correspondence_resource');
+const globalLabel = textMock('process_editor.configuration_panel.environment_config.scope_global');
+const stagingLabel = textMock(
+  'process_editor.configuration_panel.environment_config.scope_staging',
+);
 
-const mockUseGetCorrespondenceResource = require('./useGetCorrespondenceResource')
-  .useGetCorrespondenceResource as jest.Mock;
-const mockUseUpdateCorrespondenceResource = require('./useUpdateCorrespondenceResource')
-  .useUpdateCorrespondenceResource as jest.Mock;
+describe('EditCorrespondenceResource', () => {
+  afterEach(jest.clearAllMocks);
 
-describe('EditCorrespondenceResource', (): void => {
-  afterEach(() => jest.clearAllMocks());
+  it('shows every environment-scoped resource, not just the environment-independent one', async () => {
+    const user = userEvent.setup();
+    setUpBpmnContext([
+      { $type: environmentConfigType, value: 'resource-global' },
+      { $type: environmentConfigType, env: 'tt02', value: 'resource-tt02' },
+    ]);
 
-  it('should render as button with content', (): void => {
     renderEditCorrespondenceResource();
-    expect(getToggableTextFieldButton()).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: fieldLabel }));
+
+    expect(screen.getByLabelText(globalLabel)).toHaveValue('resource-global');
+    expect(screen.getByLabelText(stagingLabel)).toHaveValue('resource-tt02');
   });
 
-  it('should render with label, description and default value', async (): Promise<void> => {
+  it('writes the whole list back, keeping the raw env attribute of the edited entry', async () => {
     const user = userEvent.setup();
-    mockUseGetCorrespondenceResource.mockReturnValue('default value');
-    mockUseUpdateCorrespondenceResource.mockReturnValue(jest.fn());
+    const { updateModdleProperties, signatureConfig, element } = setUpBpmnContext([
+      { $type: environmentConfigType, value: 'resource-global' },
+      { $type: environmentConfigType, env: 'tt02', value: 'resource-tt02' },
+    ]);
 
     renderEditCorrespondenceResource();
-    await user.click(getToggableTextFieldButton());
-
-    expect(getToggableTextFieldByLabel()).toBeInTheDocument();
-    expect(getToggableTextFieldDescription()).toBeInTheDocument();
-    expect(screen.getByDisplayValue('default value')).toBeInTheDocument();
-  });
-
-  it('should call updateCorrespondenceResource on blur with the new value', async (): Promise<void> => {
-    const user = userEvent.setup();
-    const mockUpdate = jest.fn();
-    mockUseGetCorrespondenceResource.mockReturnValue('initial value');
-    mockUseUpdateCorrespondenceResource.mockReturnValue(mockUpdate);
-
-    renderEditCorrespondenceResource();
-
-    await user.click(getToggableTextFieldButton());
-    const textField = getToggableTextFieldByLabel();
-
-    await user.clear(textField);
-    await user.type(textField, 'new correspondence');
+    await user.click(screen.getByRole('button', { name: fieldLabel }));
+    await user.clear(screen.getByLabelText(stagingLabel));
+    await user.type(screen.getByLabelText(stagingLabel), 'resource-updated');
     await user.tab();
 
-    expect(mockUpdate).toHaveBeenCalledWith('new correspondence');
+    expect(updateModdleProperties).toHaveBeenCalledWith(element, signatureConfig, {
+      correspondenceResource: [
+        { $type: environmentConfigType, env: undefined, value: 'resource-global' },
+        { $type: environmentConfigType, env: 'tt02', value: 'resource-updated' },
+      ],
+    });
+  });
+
+  it('removes the entry rather than writing an empty one when a value is cleared', async () => {
+    const user = userEvent.setup();
+    const { updateModdleProperties, signatureConfig, element } = setUpBpmnContext([
+      { $type: environmentConfigType, value: 'resource-global' },
+      { $type: environmentConfigType, env: 'tt02', value: 'resource-tt02' },
+    ]);
+
+    renderEditCorrespondenceResource();
+    await user.click(screen.getByRole('button', { name: fieldLabel }));
+    await user.clear(screen.getByLabelText(stagingLabel));
+    await user.tab();
+
+    expect(updateModdleProperties).toHaveBeenCalledWith(element, signatureConfig, {
+      correspondenceResource: [
+        { $type: environmentConfigType, env: undefined, value: 'resource-global' },
+      ],
+    });
   });
 });
 
-function getToggableTextFieldButton(): HTMLButtonElement {
-  return screen.getByRole('button', {
-    name: textMock('process_editor.configuration_panel.correspondence_resource'),
+function setUpBpmnContext(correspondenceResource: object[]) {
+  const signatureConfig = { correspondenceResource };
+  const element = {
+    businessObject: { extensionElements: { values: [{ signatureConfig }] } },
+  };
+  const updateModdleProperties = jest.fn();
+  const moddle = {
+    create: jest.fn((type: string, properties: object) => ({ $type: type, ...properties })),
+  };
+
+  (useBpmnContext as jest.Mock).mockReturnValue({
+    bpmnDetails: { element },
+    modelerRef: {
+      current: {
+        get: (name: string) => (name === 'moddle' ? moddle : { updateModdleProperties }),
+      },
+    },
   });
-}
 
-function getToggableTextFieldByLabel(): HTMLInputElement {
-  return screen.getByLabelText(
-    textMock('process_editor.configuration_panel.correspondence_resource'),
-  );
-}
-
-function getToggableTextFieldDescription(): HTMLElement {
-  return screen.getByText(
-    textMock('process_editor.configuration_panel.correspondence_resource_description'),
-  );
+  return { element, signatureConfig, updateModdleProperties };
 }
 
 function renderEditCorrespondenceResource(): void {
