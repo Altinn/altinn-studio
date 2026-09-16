@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -1325,10 +1324,6 @@ func (c *RunCommand) runDocker(
 	if err := validateDockerRunImageFlags(flags); err != nil {
 		return err
 	}
-	if err := ensureAppDirs(spec.SecretsDir, spec.KeysDir); err != nil {
-		return err
-	}
-
 	client, err := containerruntime.Detect(ctx)
 	if err != nil {
 		return fmt.Errorf("connect to container runtime: %w", err)
@@ -1338,6 +1333,9 @@ func (c *RunCommand) runDocker(
 			c.out.Verbosef("failed to close container client: %v", cerr)
 		}
 	}()
+	if prepareErr := c.service.PrepareDockerRun(&spec, client.Toolchain()); prepareErr != nil {
+		return fmt.Errorf("prepare app container: %w", prepareErr)
+	}
 
 	progress := c.startContainerRunProgress(spec, flags)
 	quietLifecycleOutput := flags.jsonOutput || progress.Enabled()
@@ -1437,8 +1435,6 @@ func (c *RunCommand) createDockerAppContainer(
 	}
 
 	progress.ApplyStart(progress.containerID)
-	spec.Config.Volumes = relabelBindMountsFor(client, spec.Config.Volumes)
-	spec.Config.UsernsMode = usernsModeFor(client, spec.Config.User)
 	containerID, err := client.CreateContainer(ctx, spec.Config)
 	if err != nil {
 		progress.ApplyFailed(progress.containerID, err)
@@ -1661,47 +1657,4 @@ func (c *RunCommand) followContainer(
 		return fmt.Errorf("%w with status %d", errAppContainerExited, exitCode)
 	}
 	return nil
-}
-
-// ensureAppDirs creates the app's host directories before they are bind-mounted: a missing host directory
-// is otherwise created by the runtime, on Linux as root, where everything else under the studioctl home is
-// the user's.
-func ensureAppDirs(dirs ...string) error {
-	for _, dir := range dirs {
-		if dir == "" {
-			continue
-		}
-		if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
-			return fmt.Errorf("create app directory %s: %w", filepath.Base(dir), err)
-		}
-	}
-	return nil
-}
-
-// usernsModeFor keeps the developer's uid inside a rootless podman container, as the localtest containers
-// do, so that running as the host user means the same uid on both sides of a bind mount.
-func usernsModeFor(client containerruntime.ContainerClient, user string) string {
-	if user == "" || client.Toolchain().Platform != containertypes.PlatformPodman {
-		return ""
-	}
-	return "keep-id"
-}
-
-// relabelBindMountsFor marks bind mounts shared for SELinux where the runtime needs it, as the localtest
-// components do for theirs.
-func relabelBindMountsFor(
-	client containerruntime.ContainerClient,
-	volumes []containertypes.VolumeMount,
-) []containertypes.VolumeMount {
-	toolchain := client.Toolchain()
-	if toolchain.Platform != containertypes.PlatformPodman || !toolchain.SELinux {
-		return volumes
-	}
-	result := slices.Clone(volumes)
-	for i := range result {
-		if result[i].Type == containertypes.VolumeMountTypeBind {
-			result[i].SELinuxRelabel = containertypes.SELinuxRelabelShared
-		}
-	}
-	return result
 }

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -232,11 +231,9 @@ func (s *Service) BuildDockerRunSpec(
 			HealthCheck: nil,
 			Name:        localtestAppContainerNamePrefix + appName,
 			Image:       imageTag,
-			// The app runs as the developer, the way the localtest containers do: the mounted secrets are
-			// owner-only on the host, and a deployed app likewise runs as the one user that can read its
-			// secret. The image's own user (uid 1000) could not read them on a Linux host with another uid.
-			// Podman's userns mode is decided where the runtime is known.
-			User:           hostUser(),
+			// User, UsernsMode and the mounts' SELinux labels depend on the runtime and are set by
+			// PrepareDockerRun once it is known.
+			User:           "",
 			UsernsMode:     "",
 			RestartPolicy:  "",
 			ExtraHosts:     nil,
@@ -270,14 +267,26 @@ func (s *Service) BuildDockerRunSpec(
 	}, nil
 }
 
-// hostUser is the uid:gid a container runs as so that it can read the developer's owner-only files - the
-// same rule the localtest containers follow. Empty on Windows, where uids do not exist and Docker Desktop's
-// file sharing makes the mount readable anyway.
-func hostUser() string {
-	if runtime.GOOS == osutil.OSWindows {
-		return ""
+// PrepareDockerRun readies a spec for the runtime it is about to run on. The host directories it mounts are
+// created first (a missing one is otherwise created by the runtime, on Linux as root, where everything else
+// under the studioctl home is the developer's), and the container runs as the developer with the userns and
+// SELinux handling the localtest containers use: the mounted secrets are owner-only on the host, and a
+// deployed app likewise runs as the one user that can read its secret. The image's own user (uid 1000) could
+// not read them on a Linux host with another uid.
+func (s *Service) PrepareDockerRun(spec *DockerRunSpec, toolchain types.ContainerToolchain) error {
+	for _, dir := range []string{spec.SecretsDir, spec.KeysDir} {
+		if dir == "" {
+			continue
+		}
+		if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
+			return fmt.Errorf("create app directory %s: %w", filepath.Base(dir), err)
+		}
 	}
-	return fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	user, usernsMode, relabel := components.RuntimeUser(toolchain)
+	spec.Config.User = user
+	spec.Config.UsernsMode = usernsMode
+	spec.Config.Volumes = components.RelabelBindMounts(spec.Config.Volumes, relabel)
+	return nil
 }
 
 // appMounts gives the container what the platform gives a deployed app: its secrets directory read-only at

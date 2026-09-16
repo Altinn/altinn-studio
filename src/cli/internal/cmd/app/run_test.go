@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/container/types"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -518,12 +519,67 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 	if got := envValue(t, spec.Config.Env, "ALTINN_KEYS_DIRECTORY"); got != "/mnt/keys" {
 		t.Fatalf("ALTINN_KEYS_DIRECTORY = %q, want /mnt/keys", got)
 	}
-	// It runs as the developer, who owns the mounted files; Windows has no uids and leaves the image user.
-	if runtime.GOOS == "windows" {
-		if spec.Config.User != "" {
-			t.Fatalf("User = %q, want the image user on Windows", spec.Config.User)
+}
+
+func TestPrepareDockerRun_RunsAsTheDeveloperAndAdaptsToTheRuntime(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	home := t.TempDir()
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+	spec, err := service.BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+
+	// Rootless podman with SELinux: keep the developer's uid inside, relabel the bind mounts.
+	if err := service.PrepareDockerRun(
+		&spec,
+		types.ContainerToolchain{Platform: types.PlatformPodman, SELinux: true},
+	); err != nil {
+		t.Fatalf("PrepareDockerRun() error = %v", err)
+	}
+	for _, dir := range []string{spec.SecretsDir, spec.KeysDir} {
+		if info, statErr := os.Stat(dir); statErr != nil || !info.IsDir() {
+			t.Fatalf("%s was not created before the mount: %v", dir, statErr)
 		}
-	} else if spec.Config.User != fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()) {
+	}
+	assertRunsAsTheDeveloper(t, spec, "keep-id")
+	for _, mount := range spec.Config.Volumes {
+		if mount.SELinuxRelabel != types.SELinuxRelabelShared {
+			t.Fatalf("mount %s relabel = %q, want shared under SELinux", mount.ContainerPath, mount.SELinuxRelabel)
+		}
+	}
+
+	// Docker: same user, no userns mode, no relabelling.
+	if err := service.PrepareDockerRun(&spec, types.ContainerToolchain{Platform: types.PlatformDocker}); err != nil {
+		t.Fatalf("PrepareDockerRun() error = %v", err)
+	}
+	assertRunsAsTheDeveloper(t, spec, "")
+}
+
+// assertRunsAsTheDeveloper checks the container user for the platform: the host uid:gid with the given userns
+// mode, or the image's own user on Windows, which has no uids.
+func assertRunsAsTheDeveloper(t *testing.T, spec appsvc.DockerRunSpec, wantUserns string) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		if spec.Config.User != "" || spec.Config.UsernsMode != "" {
+			t.Fatalf(
+				"User/UsernsMode = %q/%q, want the image user on Windows",
+				spec.Config.User,
+				spec.Config.UsernsMode,
+			)
+		}
+		return
+	}
+	if spec.Config.User != fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()) {
 		t.Fatalf("User = %q, want the host uid:gid", spec.Config.User)
+	}
+	if spec.Config.UsernsMode != wantUserns {
+		t.Fatalf("UsernsMode = %q, want %q", spec.Config.UsernsMode, wantUserns)
 	}
 }
