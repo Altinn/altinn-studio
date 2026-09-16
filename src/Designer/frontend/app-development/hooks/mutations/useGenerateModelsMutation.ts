@@ -6,6 +6,7 @@ import type { AxiosError } from 'axios';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { ApiError } from 'app-shared/types/api/ApiError';
+import { removeEmptyCombinations } from '@altinn/schema-model';
 
 export const useGenerateModelsMutation = (
   modelPath: string,
@@ -15,7 +16,8 @@ export const useGenerateModelsMutation = (
   const { org, app } = useStudioEnvironmentParams();
   const { generateModels } = useServicesContext();
   return useMutation({
-    mutationFn: (payload: JsonSchema) => generateModels(org, app, modelPath, payload),
+    mutationFn: (payload: JsonSchema) =>
+      generateModels(org, app, modelPath, removeEmptyCombinations(payload)),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
