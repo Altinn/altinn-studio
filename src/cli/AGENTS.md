@@ -68,3 +68,9 @@ see @README.md for the full contributor walkthrough.
   `env up` does not touch the hosts file.
 - The topology/host wiring for both lives in `internal/envtopology/` (`topology.yaml`,
   `ComponentFrontendDevServer`) and `internal/cmd/env/localtest/components/topology.go`.
+- **In-repo apps have no bundled frontend** — the apps under `src/test/apps` reference
+  `Altinn.App.Api` as a project, so the package's `build/Altinn.App.Api.targets` (which exposes
+  the bundled frontend as static web assets) is never imported. `src/test/apps/Directory.Build.targets`
+  reproduces that wiring against `src/App/frontend/dist`, and `run` builds the bundle when it is
+  missing (`internal/appfrontend`, gated by `shouldBuildAppFrontend`) so a bare `app run` works.
+  The bundle is built only when absent; `--dev-frontend` is the loop for editing the frontend.

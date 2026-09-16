@@ -20,6 +20,7 @@ import (
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/appcontainers"
+	"altinn.studio/studioctl/internal/appfrontend"
 	"altinn.studio/studioctl/internal/appimage"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
@@ -375,6 +376,10 @@ func (c *RunCommand) runDotnet(
 		return fmt.Errorf("build process run spec: %w", specErr)
 	}
 
+	if err := c.buildAppFrontendIfNeeded(ctx, target, flags); err != nil {
+		return err
+	}
+
 	if err := c.buildDotnetAppIfNeeded(ctx, spec, flags); err != nil {
 		return err
 	}
@@ -576,6 +581,35 @@ func (c *RunCommand) buildDotnetAppIfNeeded(ctx context.Context, spec appsvc.Dot
 		return nil
 	}
 	return c.buildDotnetApp(ctx, spec, flags.jsonOutput)
+}
+
+// buildAppFrontendIfNeeded builds the app frontend bundle for an app inside the Studio monorepo.
+// Those apps reference Altinn.App.Api as a project, so they never receive the bundle the NuGet
+// package carries and have to serve the one this checkout builds. The bundle is built only when
+// it is missing: refreshing it after a frontend change is what --dev-frontend is for.
+func (c *RunCommand) buildAppFrontendIfNeeded(ctx context.Context, target appsvc.RunTarget, flags runFlags) error {
+	if !shouldBuildAppFrontend(target, flags) {
+		return nil
+	}
+	studioRoot := target.Detection.StudioRoot
+
+	c.out.Infof("Building the app frontend into %s (once, then it is reused)", appfrontend.DistPath(studioRoot))
+	stdout, stderr := io.Writer(os.Stdout), io.Writer(os.Stderr)
+	if flags.jsonOutput {
+		stdout, stderr = io.Discard, io.Discard
+	}
+	if err := appfrontend.Build(ctx, studioRoot, stdout, stderr); err != nil {
+		return fmt.Errorf("build app frontend: %w", err)
+	}
+	return nil
+}
+
+// shouldBuildAppFrontend reports whether a run has to build the app frontend bundle first.
+func shouldBuildAppFrontend(target appsvc.RunTarget, flags runFlags) bool {
+	if flags.devFrontend || flags.skipBuild || !target.Detection.InStudioRepo {
+		return false
+	}
+	return !appfrontend.IsBuilt(target.Detection.StudioRoot)
 }
 
 func (c *RunCommand) resolveDotnetTargetPath(ctx context.Context, spec appsvc.DotnetRunSpec) (string, error) {

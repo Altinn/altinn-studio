@@ -16,6 +16,7 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/appfrontend"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -800,4 +801,73 @@ func envContainsPrefix(env []string, prefix string) bool {
 		}
 	}
 	return false
+}
+
+// studioRootWithBundle returns a Studio checkout that already holds a usable frontend bundle.
+func studioRootWithBundle(t *testing.T) string {
+	t.Helper()
+
+	studioRoot := t.TempDir()
+	dist := appfrontend.DistPath(studioRoot)
+	if err := os.MkdirAll(dist, 0o755); err != nil {
+		t.Fatalf("MkdirAll(%q) error = %v", dist, err)
+	}
+	for _, name := range []string{"altinn-app-frontend.js", "altinn-app-frontend.css"} {
+		if err := os.WriteFile(filepath.Join(dist, name), []byte("x"), 0o644); err != nil {
+			t.Fatalf("WriteFile(%q) error = %v", name, err)
+		}
+	}
+	return studioRoot
+}
+
+func TestShouldBuildAppFrontend(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		studioRoot    func(t *testing.T) string
+		name          string
+		flags         runFlags
+		outsideStudio bool
+		want          bool
+	}{
+		{
+			name:       "missing bundle in the Studio repo",
+			studioRoot: func(t *testing.T) string { t.Helper(); return t.TempDir() },
+			want:       true,
+		},
+		{name: "bundle already built", studioRoot: studioRootWithBundle, want: false},
+		{
+			name:       "dev frontend serves the bundle instead",
+			studioRoot: func(t *testing.T) string { t.Helper(); return t.TempDir() },
+			flags:      runFlags{devFrontend: true},
+			want:       false,
+		},
+		{
+			name:       "skip-build skips every build",
+			studioRoot: func(t *testing.T) string { t.Helper(); return t.TempDir() },
+			flags:      runFlags{skipBuild: true},
+			want:       false,
+		},
+		{
+			name:          "app outside the Studio repo",
+			studioRoot:    func(t *testing.T) string { t.Helper(); return t.TempDir() },
+			outsideStudio: true,
+			want:          false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			detection := repocontext.Detection{InStudioRepo: true, StudioRoot: test.studioRoot(t)}
+			if test.outsideStudio {
+				detection = repocontext.Detection{}
+			}
+			target := appsvc.RunTarget{AppID: "ttd/test-app", Detection: detection}
+
+			if got := shouldBuildAppFrontend(target, test.flags); got != test.want {
+				t.Fatalf("shouldBuildAppFrontend() = %v, want %v", got, test.want)
+			}
+		})
+	}
 }
