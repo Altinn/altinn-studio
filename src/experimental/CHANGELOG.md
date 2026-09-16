@@ -16,6 +16,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - The Sandbox runtime (microsandbox) was updated. Linux hosts with older system libraries, such as Ubuntu 22.04, can now install it, and a Sandbox that fails to start reports the runtime's own error instead of a bare timeout.
 - Agent instructions now tell Claude Code and Codex not to add `Co-Authored-By` or similar AI-attribution trailers to commits and pull requests.
+- The Altinn Agent images run on Norwegian local time (Europe/Oslo) instead of UTC, so `date`, file timestamps and log output inside an Agent match the clock where the work is reviewed. An existing Agent keeps the image it was created with; delete and re-apply it to pick this up.
 
 ### Fixed
 

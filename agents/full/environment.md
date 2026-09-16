@@ -6,6 +6,9 @@ surfaces, kind, kubectl, Helm and Flux.
 Pull request evidence: `asciinema` and `agg` for terminal recordings; `playwright-cli` with Chromium (open it with
 `--browser chromium`), `ffmpeg`, and the `video-to-gif` and `media-preview` helpers for browser captures.
 
+The clock is Norwegian local time (Europe/Oslo), not UTC. Dates and times you read from this computer, and any
+you write into commits, changelogs or files, are in that zone.
+
 Containers receive mediated CA configuration automatically. Build steps receive the full CA bundle at
 `/run/agent/tls/ca-bundle.pem` and common system trust paths; the Agent's own complete bundle is
 `/etc/ssl/certs/ca-certificates.crt`. A current Buildah bug drops default environment variables from build stages, so
