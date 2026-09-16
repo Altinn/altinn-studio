@@ -21,7 +21,14 @@ RUN apt-get update \
         sudo \
         systemd \
         tmux \
+        tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+# Altinn Agents keep Norwegian local time, so timestamps they write and read match the clock the
+# people reviewing their work use. The /etc/localtime symlink is the system-wide setting that
+# systemd, glibc, .NET, Go and Node's ICU all resolve; an `ENV TZ` would shadow it instead and
+# leave `timedatectl set-timezone` inside a running Agent without effect.
+RUN ln -sf /usr/share/zoneinfo/Europe/Oslo /etc/localtime
 
 ARG TARGETARCH
 ARG DOTNET_VERSION=10.0.302
@@ -167,7 +174,8 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && node --version \
     && yarn --version \
     && claude --version \
-    && codex --version
+    && codex --version \
+    && test "$(readlink /etc/localtime)" = /usr/share/zoneinfo/Europe/Oslo
 
 ENV DISABLE_AUTOUPDATER=1
 ENV GH_NO_UPDATE_NOTIFIER=1

@@ -32,6 +32,18 @@ test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
 test -z "$foreign" || fail "entries under /home/agent not owned by agent:"$'\n'"$foreign"
 
+echo "## timezone"
+# Norwegian local time is Europe/Oslo the year round, so assert the zone rather than an offset.
+# Node resolves it through ICU rather than glibc, so both are checked.
+zone="$(date +%Z)"
+case "$zone" in
+    CET | CEST) ;;
+    *) fail "system clock is $zone, expected Norwegian local time" ;;
+esac
+node_zone="$(node -p "Intl.DateTimeFormat().resolvedOptions().timeZone")"
+test "$node_zone" = Europe/Oslo || fail "Node resolves $node_zone, expected Europe/Oslo"
+echo "$(date) ($node_zone)"
+
 echo "## terminal recording"
 asciinema rec --headless --quiet --window-size 80x24 --title 'smoke' \
     --command 'printf "\033[1;34m$ demo\033[0m\n"; sleep 0.4; printf "\033[1;32mgrønn\033[0m \033[34mblå\033[0m æøå ÆØÅ\n"; sleep 0.4; printf "linje 1\nlinje 2\033[1A\033[5Cinnskutt\n\n"; sleep 0.4; printf "█▓▒░ ✓ ✗\n"; sleep 0.4' \
