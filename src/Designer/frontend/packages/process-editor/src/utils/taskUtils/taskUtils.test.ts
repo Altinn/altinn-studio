@@ -58,6 +58,26 @@ describe('taskUtils', () => {
     it('returns false when the element has no signature config', () => {
       expect(TaskUtils.isUserControlledSigning({ businessObject: {} } as Element)).toBe(false);
     });
+
+    // A process Studio did not write can carry another extension ahead of the altinn one, and the
+    // task is still a user controlled signing task.
+    it('looks past an extension element that is not the task extension', () => {
+      const element = {
+        businessObject: {
+          extensionElements: {
+            values: [
+              { $type: 'camunda:Properties' },
+              {
+                $type: 'altinn:TaskExtension',
+                signatureConfig: { signeeProviderId: 'myProvider' },
+              },
+            ],
+          },
+        },
+      } as unknown as Element;
+
+      expect(TaskUtils.isUserControlledSigning(element)).toBe(true);
+    });
   });
 
   describe('getTaskExtension', () => {
@@ -90,7 +110,7 @@ function buildElement(signatureConfig: SignatureConfig): Element {
   return {
     businessObject: {
       extensionElements: {
-        values: [{ signatureConfig }],
+        values: [{ $type: 'altinn:TaskExtension', signatureConfig }],
       },
     },
   } as unknown as Element;

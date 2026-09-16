@@ -21,7 +21,7 @@ const tasks = [
     id: 'task_1',
     businessObject: {
       extensionElements: {
-        values: [{ taskType: 'signing' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'signing' }],
       },
     },
   },
@@ -29,7 +29,7 @@ const tasks = [
     id: 'task_2',
     businessObject: {
       extensionElements: {
-        values: [{ taskType: 'signing' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'signing' }],
       },
     },
   },

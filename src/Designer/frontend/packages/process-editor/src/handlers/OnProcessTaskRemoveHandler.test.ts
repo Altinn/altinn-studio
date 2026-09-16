@@ -64,6 +64,7 @@ const createSigningTask = (id: string, signatureDataType: string, dataTypes: str
       extensionElements: {
         values: [
           {
+            $type: 'altinn:TaskExtension',
             signatureConfig: {
               signatureDataType,
               uniqueFromSignaturesInDataTypes: {

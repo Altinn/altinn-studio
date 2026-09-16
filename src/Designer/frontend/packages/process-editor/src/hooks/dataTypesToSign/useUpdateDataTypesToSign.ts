@@ -5,6 +5,7 @@ import type { BpmnDetails } from '../../types/BpmnDetails';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useDebounce } from '@studio/hooks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { TaskUtils } from '../../utils/taskUtils';
 
 const updateDataTypes = (
   bpmnFactory: BpmnFactory,
@@ -12,8 +13,8 @@ const updateDataTypes = (
   bpmnDetails: BpmnDetails,
   updatedDataTypes: string[],
 ) => {
-  const dataTypesToSignElement: ModdleElement =
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig?.dataTypesToSign;
+  const dataTypesToSignElement: ModdleElement = TaskUtils.getTaskExtension(bpmnDetails.element)
+    .signatureConfig?.dataTypesToSign;
 
   dataTypesToSignElement.dataTypes = updatedDataTypes.map((dataType) =>
     bpmnFactory.create('altinn:DataType', {
@@ -31,7 +32,7 @@ const updateDataTypesToSign = (
 ) => {
   modeling.updateModdleProperties(
     bpmnDetails.element,
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,
+    TaskUtils.getTaskExtension(bpmnDetails.element).signatureConfig,
     {
       dataTypesToSign: dataTypesToSignElement,
     },

@@ -9,7 +9,9 @@ describe('useCorrespondenceResource', () => {
 
   it('fails loudly when the task has no signature config, rather than writing a broken extension', () => {
     const updateModdleProperties = jest.fn();
-    const element = { businessObject: { extensionElements: { values: [{}] } } };
+    const element = {
+      businessObject: { extensionElements: { values: [{ $type: 'altinn:TaskExtension' }] } },
+    };
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { element },
       modelerRef: {

@@ -20,8 +20,21 @@ export class TaskUtils {
    * @returns the task extension, or undefined when the element carries none.
    */
   public static getTaskExtension(element: Element): ModdleElement | undefined {
-    return element?.businessObject?.extensionElements?.values?.find(
-      (value: ModdleElement) => value?.$type === TASK_EXTENSION_TYPE,
+    return TaskUtils.getTaskExtensionFromBusinessObject(element?.businessObject);
+  }
+
+  /**
+   * The same lookup for a call site that holds the business object rather than the element around
+   * it. Generic over the extension value so a caller with a declared business object type keeps the
+   * compiler checking what it reads off the extension, instead of falling back to `ModdleElement`.
+   * @param businessObject the business object to inspect.
+   * @returns the task extension, or undefined when the business object carries none.
+   */
+  public static getTaskExtensionFromBusinessObject<TExtensionValue extends { $type?: string }>(
+    businessObject: { extensionElements?: { values?: TExtensionValue[] } } | undefined,
+  ): TExtensionValue | undefined {
+    return businessObject?.extensionElements?.values?.find(
+      (value) => value?.$type === TASK_EXTENSION_TYPE,
     );
   }
 
@@ -68,8 +81,7 @@ export class TaskUtils {
    * @returns true if the element is configured for user controlled signing.
    */
   public static isUserControlledSigning(element: Element): boolean {
-    const signatureConfig =
-      element?.businessObject?.extensionElements?.values?.[0]?.signatureConfig;
+    const signatureConfig = TaskUtils.getTaskExtension(element)?.signatureConfig;
     return (
       isPropertySet(signatureConfig?.signeeStatesDataTypeId) ||
       isPropertySet(signatureConfig?.signeeProviderId)
