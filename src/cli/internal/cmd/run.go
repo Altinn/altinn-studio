@@ -606,10 +606,33 @@ func (c *RunCommand) buildAppFrontendIfNeeded(ctx context.Context, target appsvc
 
 // shouldBuildAppFrontend reports whether a run has to build the app frontend bundle first.
 func shouldBuildAppFrontend(target appsvc.RunTarget, flags runFlags) bool {
-	if flags.devFrontend || flags.skipBuild || !target.Detection.InStudioRepo {
+	if flags.devFrontend || flags.skipBuild {
 		return false
 	}
-	return !appfrontend.IsBuilt(target.Detection.StudioRoot)
+	if !isInRepoTestApp(target.Detection) {
+		return false
+	}
+	return appfrontend.NeedsBuild(target.Detection.StudioRoot)
+}
+
+// inRepoTestAppsDir holds the apps that serve the frontend this checkout builds. Any app
+// elsewhere - including one cloned into the monorepo working tree - gets the bundle from the
+// Altinn.App.Api package and needs nothing built.
+var inRepoTestAppsDir = filepath.Join("src", "test", "apps") //nolint:gochecknoglobals // path constant
+
+// isInRepoTestApp reports whether the app lives under src/test/apps of the detected Studio
+// repository. That is exactly the set src/test/apps/Directory.Build.targets wires the bundle
+// into, so the two must be changed together.
+func isInRepoTestApp(detection repocontext.Detection) bool {
+	if !detection.InStudioRepo || detection.StudioRoot == "" || detection.AppRoot == "" {
+		return false
+	}
+	testApps := filepath.Join(detection.StudioRoot, inRepoTestAppsDir)
+	relative, err := filepath.Rel(testApps, detection.AppRoot)
+	if err != nil {
+		return false
+	}
+	return relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator))
 }
 
 func (c *RunCommand) resolveDotnetTargetPath(ctx context.Context, spec appsvc.DotnetRunSpec) (string, error) {

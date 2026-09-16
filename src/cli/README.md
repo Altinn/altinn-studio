@@ -158,13 +158,16 @@ The same flag works on `studioctl app run --dev-frontend` and on
 `studioctl app env --dev-frontend --json`, the latter being useful to feed the environment
 into an IDE run configuration.
 
-Without `--dev-frontend`, an app inside the monorepo (such as the sample apps under
-`src/test/apps`) serves the frontend built into `src/App/frontend/dist`, because it references
-`Altinn.App.Api` as a project and so never receives the bundle the NuGet package carries.
-`studioctl run` builds that bundle the first time it is missing and reuses it afterwards, so
-the first run of a fresh checkout spends a few minutes on `yarn`. Rebuild it yourself with
-`cd src/App/frontend && yarn build` after changing frontend code, or use `--dev-frontend` while
-working on the frontend.
+Without `--dev-frontend`, the sample apps under `src/test/apps` serve the frontend built into
+`src/App/frontend/dist`, because they reference `Altinn.App.Api` as a project and so never
+receive the bundle the NuGet package carries. `studioctl run` builds that bundle when it is
+missing, or when anything the frontend build reads has changed since it was built, so the first
+run of a fresh checkout spends about a minute on `yarn` and later runs cost a directory scan.
+Only these in-repo apps are affected; an app cloned anywhere else gets its frontend from the
+package as before.
+
+Freshness is judged by modification time, so a branch switch can trigger a rebuild even when
+the content is unchanged. Use `--dev-frontend` while actively working on the frontend.
 
 > Related: `studioctl env up --dev-workflow-engine` routes the workflow-engine component to
 > a host process instead of a container, for the equivalent loop on that service.

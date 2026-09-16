@@ -72,5 +72,8 @@ see @README.md for the full contributor walkthrough.
   `Altinn.App.Api` as a project, so the package's `build/Altinn.App.Api.targets` (which exposes
   the bundled frontend as static web assets) is never imported. `src/test/apps/Directory.Build.targets`
   reproduces that wiring against `src/App/frontend/dist`, and `run` builds the bundle when it is
-  missing (`internal/appfrontend`, gated by `shouldBuildAppFrontend`) so a bare `app run` works.
-  The bundle is built only when absent; `--dev-frontend` is the loop for editing the frontend.
+  missing or stale (`internal/appfrontend`, gated by `shouldBuildAppFrontend`) so a bare
+  `app run` works. Staleness is an mtime comparison against the inputs listed in
+  `inputTrees`/`inputFiles`, which mirror the cache key of `.github/actions/app-build-frontend` —
+  change them together. The gate and the `.targets` file must cover the same apps: `isInRepoTestApp`
+  scopes it to `src/test/apps`, because that is exactly where the MSBuild wiring applies.

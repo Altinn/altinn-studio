@@ -803,7 +803,7 @@ func envContainsPrefix(env []string, prefix string) bool {
 	return false
 }
 
-// studioRootWithBundle returns a Studio checkout that already holds a usable frontend bundle.
+// studioRootWithBundle returns a Studio checkout that already holds a fresh frontend bundle.
 func studioRootWithBundle(t *testing.T) string {
 	t.Helper()
 
@@ -820,48 +820,78 @@ func studioRootWithBundle(t *testing.T) string {
 	return studioRoot
 }
 
+// testAppDetection places an app under src/test/apps of the given checkout.
+func testAppDetection(studioRoot string) repocontext.Detection {
+	return repocontext.Detection{
+		InStudioRepo: true,
+		StudioRoot:   studioRoot,
+		AppRoot:      filepath.Join(studioRoot, "src", "test", "apps", "stateless-app"),
+	}
+}
+
 func TestShouldBuildAppFrontend(t *testing.T) {
 	t.Parallel()
 
+	emptyCheckout := func(t *testing.T) string { t.Helper(); return t.TempDir() }
+
 	tests := []struct {
-		studioRoot    func(t *testing.T) string
-		name          string
-		flags         runFlags
-		outsideStudio bool
-		want          bool
+		studioRoot func(t *testing.T) string
+		detection  func(studioRoot string) repocontext.Detection
+		name       string
+		flags      runFlags
+		want       bool
 	}{
-		{
-			name:       "missing bundle in the Studio repo",
-			studioRoot: func(t *testing.T) string { t.Helper(); return t.TempDir() },
-			want:       true,
-		},
+		{name: "missing bundle in a test app", studioRoot: emptyCheckout, want: true},
 		{name: "bundle already built", studioRoot: studioRootWithBundle, want: false},
 		{
 			name:       "dev frontend serves the bundle instead",
-			studioRoot: func(t *testing.T) string { t.Helper(); return t.TempDir() },
+			studioRoot: emptyCheckout,
 			flags:      runFlags{devFrontend: true},
 			want:       false,
 		},
 		{
 			name:       "skip-build skips every build",
-			studioRoot: func(t *testing.T) string { t.Helper(); return t.TempDir() },
+			studioRoot: emptyCheckout,
 			flags:      runFlags{skipBuild: true},
 			want:       false,
 		},
 		{
-			name:          "app outside the Studio repo",
-			studioRoot:    func(t *testing.T) string { t.Helper(); return t.TempDir() },
-			outsideStudio: true,
-			want:          false,
+			name:       "app outside the Studio repo",
+			studioRoot: emptyCheckout,
+			detection:  func(string) repocontext.Detection { return repocontext.Detection{} },
+			want:       false,
+		},
+		{
+			// An app cloned into the monorepo working tree still gets its frontend from the
+			// Altinn.App.Api package, so nothing has to be built for it.
+			name:       "app cloned inside the Studio repo but outside src/test/apps",
+			studioRoot: emptyCheckout,
+			detection: func(studioRoot string) repocontext.Detection {
+				return repocontext.Detection{
+					InStudioRepo: true,
+					StudioRoot:   studioRoot,
+					AppRoot:      filepath.Join(studioRoot, "my-app"),
+				}
+			},
+			want: false,
+		},
+		{
+			name:       "app root not detected",
+			studioRoot: emptyCheckout,
+			detection: func(studioRoot string) repocontext.Detection {
+				return repocontext.Detection{InStudioRepo: true, StudioRoot: studioRoot}
+			},
+			want: false,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			detection := repocontext.Detection{InStudioRepo: true, StudioRoot: test.studioRoot(t)}
-			if test.outsideStudio {
-				detection = repocontext.Detection{}
+			studioRoot := test.studioRoot(t)
+			detection := testAppDetection(studioRoot)
+			if test.detection != nil {
+				detection = test.detection(studioRoot)
 			}
 			target := appsvc.RunTarget{AppID: "ttd/test-app", Detection: detection}
 

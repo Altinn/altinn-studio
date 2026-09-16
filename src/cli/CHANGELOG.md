@@ -21,7 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` preserves your C# files' indentation and line endings when simplifying generated type names.
-- The sample apps in the Altinn Studio repository now load their forms when run with a plain `studioctl app run`. They previously came up as a blank page, because the app frontend a released app gets from its dependencies is not part of the repository. `studioctl` now builds that frontend once, the first time you run one of these apps, and the app serves it like any other app does. Runs with `--dev-frontend` and apps outside the repository are unaffected.
+- The sample apps in the Altinn Studio repository now load their forms when run with a plain `studioctl app run`. They previously came up as a blank page, because the app frontend a released app gets from its dependencies is not part of the repository. `studioctl` now builds that frontend the first time you run one of these apps, and rebuilds it when you have changed the frontend since, so the app never serves a stale bundle. Runs that need no rebuild are unaffected, as are runs with `--dev-frontend` and every app outside the repository.
 
 ## [0.1.0-preview.25] - 2026-09-14
 

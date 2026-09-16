@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"altinn.studio/studioctl/internal/appfrontend"
 )
@@ -80,6 +81,102 @@ func TestIsBuiltRejectsDirectoryNamedLikeBundleFile(t *testing.T) {
 	}
 	if appfrontend.IsBuilt(studioRoot) {
 		t.Fatal("IsBuilt() = true, want false when a bundle file is a directory")
+	}
+}
+
+// touch sets a path's mtime, creating parent directories and the file when needed.
+func touch(t *testing.T, path string, modTime time.Time) {
+	t.Helper()
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("MkdirAll(%q) error = %v", filepath.Dir(path), err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+			t.Fatalf("WriteFile(%q) error = %v", path, err)
+		}
+	}
+	if err := os.Chtimes(path, modTime, modTime); err != nil {
+		t.Fatalf("Chtimes(%q) error = %v", path, err)
+	}
+}
+
+// builtAt returns a checkout whose bundle carries the given modification time.
+func builtAt(t *testing.T, modTime time.Time) string {
+	t.Helper()
+
+	studioRoot := writeBundle(t, "altinn-app-frontend.js", "altinn-app-frontend.css")
+	for _, name := range []string{"altinn-app-frontend.js", "altinn-app-frontend.css"} {
+		touch(t, filepath.Join(appfrontend.DistPath(studioRoot), name), modTime)
+	}
+	return studioRoot
+}
+
+func TestNeedsBuildWhenBundleIsMissing(t *testing.T) {
+	t.Parallel()
+
+	if !appfrontend.NeedsBuild(t.TempDir()) {
+		t.Fatal("NeedsBuild() = false, want true when the bundle is missing")
+	}
+}
+
+func TestNeedsBuildComparesInputsAgainstTheBundle(t *testing.T) {
+	t.Parallel()
+
+	bundleTime := time.Now().Add(-time.Hour)
+	older := bundleTime.Add(-time.Hour)
+	newer := bundleTime.Add(time.Hour)
+
+	tests := []struct {
+		when  time.Time
+		name  string
+		input string
+		want  bool
+	}{
+		{name: "source older than the bundle", input: "src/App/frontend/src/index.tsx", when: older, want: false},
+		{name: "source newer than the bundle", input: "src/App/frontend/src/index.tsx", when: newer, want: true},
+		{name: "public asset newer", input: "src/App/frontend/public/logo.svg", when: newer, want: true},
+		{name: "schema newer", input: "src/App/frontend/schemas/layout.json", when: newer, want: true},
+		{name: "build script newer", input: "src/App/frontend/scripts/build.ts", when: newer, want: true},
+		{name: "vite config newer", input: "src/App/frontend/vite.config.ts", when: newer, want: true},
+		{name: "root lockfile newer", input: "yarn.lock", when: newer, want: true},
+		{name: "shared library source newer", input: "src/common/ts/shared/src/index.ts", when: newer, want: true},
+		{name: "shared library manifest newer", input: "src/common/ts/shared/package.json", when: newer, want: true},
+		// Installed dependencies and build output are not sources, so they must not
+		// trigger a rebuild - node_modules alone would make every run stale.
+		{
+			name:  "installed dependency newer",
+			input: "src/App/frontend/src/node_modules/dep/index.js",
+			when:  newer,
+			want:  false,
+		},
+		{name: "nested build output newer", input: "src/common/ts/shared/src/dist/bundle.js", when: newer, want: false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			studioRoot := builtAt(t, bundleTime)
+			touch(t, filepath.Join(studioRoot, filepath.FromSlash(test.input)), test.when)
+
+			if got := appfrontend.NeedsBuild(studioRoot); got != test.want {
+				t.Fatalf("NeedsBuild() = %v, want %v after touching %s", got, test.want, test.input)
+			}
+		})
+	}
+}
+
+// The bundle is only as fresh as its stalest file.
+func TestNeedsBuildUsesTheOldestBundleFile(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+	studioRoot := builtAt(t, now)
+	touch(t, filepath.Join(appfrontend.DistPath(studioRoot), "altinn-app-frontend.css"), now.Add(-2*time.Hour))
+	touch(t, filepath.Join(studioRoot, filepath.FromSlash("src/App/frontend/src/index.tsx")), now.Add(-time.Hour))
+
+	if !appfrontend.NeedsBuild(studioRoot) {
+		t.Fatal("NeedsBuild() = false, want true when a source is newer than the oldest bundle file")
 	}
 }
 
