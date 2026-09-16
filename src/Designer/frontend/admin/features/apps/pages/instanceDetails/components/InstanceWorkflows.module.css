@@ -147,6 +147,16 @@
   white-space: nowrap;
 }
 
+/* A step with details continues on the next row, so no rule between the two. The design system
+   draws the rule from this variable, which the cells inherit. */
+.stepRowWithDetails {
+  --dsc-table-border-width: 0;
+}
+
+.stepDetailsCell {
+  padding-top: 0;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -160,7 +170,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-1);
-  max-width: 48rem;
 }
 
 .earlierErrors {

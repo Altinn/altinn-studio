@@ -9,7 +9,7 @@ import {
   StudioTable,
   StudioTag,
 } from '@studio/components';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { ArrowsCirclepathIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';
@@ -307,34 +307,59 @@ const WorkflowSteps = ({
             <StudioTable.Cell>{t('admin.workflows.status')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.workflows.step.retries')}</StudioTable.Cell>
             <StudioTable.Cell>{t('admin.instances.last_changed')}</StudioTable.Cell>
-            <StudioTable.Cell>{t('admin.workflows.step.details')}</StudioTable.Cell>
             <StudioTable.Cell>
               <span className={classes.visuallyHidden}>{t('admin.workflows.step.actions')}</span>
             </StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {steps.map((step) => (
-            <StudioTable.Row key={step.databaseId}>
-              <StudioTable.Cell>{step.operationId}</StudioTable.Cell>
-              <StudioTable.Cell>
-                <WorkflowStatusTag status={step.status} />
-              </StudioTable.Cell>
-              <StudioTable.Cell>{step.retryCount}</StudioTable.Cell>
-              <StudioTable.Cell>{formatTimestamp(step.updatedAt, 'milliseconds')}</StudioTable.Cell>
-              <StudioTable.Cell>
-                <StepDetails step={step} />
-              </StudioTable.Cell>
-              <StudioTable.Cell className={classes.stepActions}>
-                {step === focusStep && <WorkflowActions context={context} workflow={workflow} />}
-              </StudioTable.Cell>
-            </StudioTable.Row>
-          ))}
+          {steps.map((step) => {
+            const hasDetails = hasStepDetails(step);
+            return (
+              <Fragment key={step.databaseId}>
+                <StudioTable.Row className={hasDetails ? classes.stepRowWithDetails : undefined}>
+                  <StudioTable.Cell>{step.operationId}</StudioTable.Cell>
+                  <StudioTable.Cell>
+                    <WorkflowStatusTag status={step.status} />
+                  </StudioTable.Cell>
+                  <StudioTable.Cell>{step.retryCount}</StudioTable.Cell>
+                  <StudioTable.Cell>
+                    {formatTimestamp(step.updatedAt, 'milliseconds')}
+                  </StudioTable.Cell>
+                  <StudioTable.Cell className={classes.stepActions}>
+                    {step === focusStep && (
+                      <WorkflowActions context={context} workflow={workflow} />
+                    )}
+                  </StudioTable.Cell>
+                </StudioTable.Row>
+                {/* What the step has to say gets the whole width, under its own row, rather than a
+                    narrow column beside four short ones. */}
+                {hasDetails && (
+                  <StudioTable.Row>
+                    <StudioTable.Cell
+                      colSpan={STEP_COLUMN_COUNT}
+                      className={classes.stepDetailsCell}
+                    >
+                      <StepDetails step={step} />
+                    </StudioTable.Cell>
+                  </StudioTable.Row>
+                )}
+              </Fragment>
+            );
+          })}
         </StudioTable.Body>
       </StudioTable>
     </div>
   );
 };
+
+/** Operation, status, retries, last changed, verbs: what a details row spans. */
+const STEP_COLUMN_COUNT = 5;
+
+/** Whether a step has anything to say beyond its status: a defer reason or an error. */
+function hasStepDetails(step: WorkflowStepStatus): boolean {
+  return Boolean(step.lastDeferReason) || (step.errorHistory?.length ?? 0) > 0;
+}
 
 /**
  * A step's own account of what happened: what it is waiting for, and its latest error in full.
@@ -348,7 +373,7 @@ const StepDetails = ({ step }: { step: WorkflowStepStatus }) => {
   const [latestError, ...earlierErrors] = newestFirst(step.errorHistory ?? []);
 
   if (!deferReason && !latestError) {
-    return <span>-</span>;
+    return null;
   }
 
   // The engine leaves the last defer reason on the step after it stops waiting, so only a step that

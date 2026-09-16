@@ -158,7 +158,6 @@
   "admin.workflows.status.waiting": "Venter",
   "admin.workflows.step.actions": "Handling",
   "admin.workflows.step.defer_count": "Har ventet {{times}} ganger",
-  "admin.workflows.step.details": "Detaljer",
   "admin.workflows.step.hide_earlier_errors": "Skjul tidligere feil",
   "admin.workflows.step.last_waiting_reason": "Ventet sist på",
   "admin.workflows.step.retries": "Nye forsøk",
