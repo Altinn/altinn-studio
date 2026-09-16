@@ -40,8 +40,8 @@ change reaches local environments without a studioctl release:
 | Image | Tag | Moved by |
 | --- | --- | --- |
 | `runtime-localtest` | `latest` | `deploy-runtime-localtest.yaml`, every push to main |
-| `runtime-pdf3-worker` | `tt_ring1` | the ring-tagging job in `deploy-runtime-pdf3.yaml` |
-| `runtime-workflow-engine-app` | `tt_ring1` | the ring-tagging job in `deploy-runtime-workflow-engine-app.yaml` |
+| `runtime-pdf3-worker` | `tt02` | the ring-tagging job in `deploy-runtime-pdf3.yaml` |
+| `runtime-workflow-engine-app` | `tt02` | the ring-tagging job in `deploy-runtime-workflow-engine-app.yaml` |
 
 `ImageSpec.Floating` marks them, selecting `resource.PullAlwaysAllowStale`
 (`components/pullPolicyFor`): re-pull on every apply, keep the local image when the registry
@@ -56,7 +56,8 @@ is unreachable. The rest stay `PullIfNotPresent` and are bumped by hand.
   `components/workflow_engine.go` must keep working across builds. See
   `src/Runtime/workflow-engine-app/AGENTS.md`.
 - `STUDIOCTL_IMAGE_*` overrides one reference for a session, for reproducing a report against
-  a specific build.
+  a specific build. It replaced a home-directory override file, which migration
+  `008-remove-image-config-file` deletes on update.
 
 ### Changelog & releases
 

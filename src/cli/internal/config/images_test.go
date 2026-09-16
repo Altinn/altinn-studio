@@ -18,16 +18,16 @@ func TestDefaultImages(t *testing.T) {
 			t.Error("localtest image should follow its latest build")
 		}
 		if !images.Core.WorkflowEngine.Floating {
-			t.Error("workflow-engine image should follow the build deployed to tt_ring1")
+			t.Error("workflow-engine image should follow the build deployed to tt02")
 		}
 		if !images.Core.PDF3.Floating {
-			t.Error("pdf3 image should follow the build deployed to tt_ring1")
+			t.Error("pdf3 image should follow the build deployed to tt02")
 		}
-		if got := images.Core.PDF3.Ref(); got != "ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt_ring1" {
+		if got := images.Core.PDF3.Ref(); got != "ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt02" {
 			t.Errorf("pdf3 ref = %q", got)
 		}
 		if got := images.Core.WorkflowEngine.Ref(); got !=
-			"ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt_ring1" {
+			"ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt02" {
 			t.Errorf("workflow-engine ref = %q", got)
 		}
 		if got := images.Core.Localtest.Ref(); got != "ghcr.io/altinn/altinn-studio/runtime-localtest:latest" {

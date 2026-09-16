@@ -53,10 +53,11 @@ No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and W
 ## The image studioctl runs
 
 `studioctl env up` runs this service from
-`ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt_ring1`. The ring-tagging job in
+`ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt02`. The ring-tagging job in
 [`deploy-runtime-workflow-engine-app`](../../../.github/workflows/deploy-runtime-workflow-engine-app.yaml)
-moves that tag whenever a build is handed to the `tt_ring1` ring, so local environments run
-the build tt02 serves. Nothing needs updating in `studioctl` when this service changes.
+moves that tag whenever a build is handed to `tt_ring1`, the ring tt02 serves, so local
+environments run the build tt02 runs. Nothing needs updating in `studioctl` when this service
+changes.
 
 `studioctl env status` and `studioctl doctor` print the reference and the digest of the build
 behind it — how you tell which build a local environment actually ran.
@@ -75,9 +76,9 @@ STUDIOCTL_IMAGE_WORKFLOW_ENGINE=ghcr.io/altinn/altinn-studio/runtime-workflow-en
 
 The same workflow builds and pushes on every push to `main` touching the engine source,
 `Dockerfile`, packages, or infra paths. **The immutable tag is the first 10 characters of the
-triggering commit SHA** (`${GITHUB_SHA::10}`); `tt_ring1` is a moving tag onto one of those
-builds. To find the build behind it, read the `headSha` of the newest run whose
-`tag-workflow-engine-app` job completed for `tt_ring1`:
+triggering commit SHA** (`${GITHUB_SHA::10}`); `tt02` is a moving tag onto one of those builds.
+To find the build behind it, read the `headSha` of the newest run whose `tag-workflow-engine-app`
+job completed for `tt_ring1`:
 
 ```sh
 gh run list --workflow deploy-runtime-workflow-engine-app.yaml -L 15 \

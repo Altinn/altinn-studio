@@ -18,9 +18,10 @@ const (
 	// tagLocaltest follows every localtest build on main.
 	tagLocaltest = "latest"
 
-	// tagRuntimeRing follows the build deployed to tt_ring1, the ring tt02 serves. Moved by
-	// the ring-tagging jobs in .github/workflows/deploy-runtime-{pdf3,workflow-engine-app}.yaml.
-	tagRuntimeRing = "tt_ring1"
+	// tagTT02 follows the build deployed to tt02, moved by the ring-tagging jobs in
+	// .github/workflows/deploy-runtime-{pdf3,workflow-engine-app}.yaml when the tt_ring1
+	// runtime ring, which is what tt02 serves, is tagged.
+	tagTT02 = "tt02"
 )
 
 // ImageSpec defines an image reference with repository and tag.
@@ -72,8 +73,8 @@ func DefaultImages() ImagesConfig {
 	images := ImagesConfig{
 		Core: CoreImages{
 			Localtest:        ImageSpec{Image: imageLocaltest, Tag: tagLocaltest, Floating: true},
-			PDF3:             ImageSpec{Image: imagePDF3, Tag: tagRuntimeRing, Floating: true},
-			WorkflowEngine:   ImageSpec{Image: imageWorkflowEngine, Tag: tagRuntimeRing, Floating: true},
+			PDF3:             ImageSpec{Image: imagePDF3, Tag: tagTT02, Floating: true},
+			WorkflowEngine:   ImageSpec{Image: imageWorkflowEngine, Tag: tagTT02, Floating: true},
 			WorkflowEngineDb: ImageSpec{Image: "postgres", Tag: "18.3", Floating: false},
 			PgAdmin:          ImageSpec{Image: "dpage/pgadmin4", Tag: "9.14", Floating: false},
 		},

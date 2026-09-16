@@ -170,10 +170,10 @@ jobs:
           flux tag artifact oci://${{ needs.push-pdf3-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
 
-      # studioctl runs the worker from the "tt_ring1" tag, so local environments render PDFs
-      # with the same build as tt02. Moved here rather than in the build job, so it only ever
-      # points at a build handed to the ring; the proxy follows to keep one build per ring.
-      - name: Point the tt_ring1 tags at this build
+      # studioctl runs the worker from the "tt02" tag, so local environments render PDFs with
+      # the same build as tt02. Moved here rather than in the build job, so it only ever points
+      # at a build handed to the ring; the proxy follows to keep one build per ring.
+      - name: Point the tt02 tags at this build
         if: matrix.ring == 'tt_ring1'
         env:
           PROXY_IMAGE: ${{ needs.push-pdf3-artifact.outputs.ghcr-image-proxy-repo }}
@@ -182,8 +182,8 @@ jobs:
         run: |
           echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker buildx imagetools create \
-            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:tt_ring1 \
+            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:tt02 \
             "$PROXY_IMAGE"
           docker buildx imagetools create \
-            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt_ring1 \
+            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt02 \
             "$WORKER_IMAGE"

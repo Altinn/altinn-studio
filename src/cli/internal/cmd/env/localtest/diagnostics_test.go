@@ -379,7 +379,7 @@ func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
 			Localtest: config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest", Floating: true},
 			WorkflowEngine: config.ImageSpec{
 				Image:    "ghcr.io/altinn/test-workflow-engine",
-				Tag:      "tt_ring1",
+				Tag:      "tt02",
 				Floating: true,
 			},
 		},
@@ -388,7 +388,7 @@ func TestDiagnoseReportsImageBehindMovingTag(t *testing.T) {
 	report := localtest.Diagnose(t.Context(), opts)
 
 	engineImage := findDiagnosticCheck(t, report, "workflow-engine", "image")
-	if engineImage.Message != "ghcr.io/altinn/test-workflow-engine:tt_ring1 (0123456789ab)" {
+	if engineImage.Message != "ghcr.io/altinn/test-workflow-engine:tt02 (0123456789ab)" {
 		t.Errorf("workflow-engine image check message = %q", engineImage.Message)
 	}
 	localtestImage := findDiagnosticCheck(t, report, "localtest", "image")

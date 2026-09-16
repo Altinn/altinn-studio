@@ -93,8 +93,8 @@ and `syncroot/base` does not include the service, so nothing syncs it to the oth
 
 ## Local environment compatibility
 
-`studioctl env up` runs the `tt_ring1` tag of this image, so a developer picks up a new build
-as soon as it reaches that ring — with whatever studioctl they have installed. In a cluster the
+`studioctl env up` runs the `tt02` tag of this image, so a developer picks up a new build as
+soon as it reaches tt02 — with whatever studioctl they have installed. In a cluster the
 deployment config ships with the image (`infra/kustomize/base/deployment.yaml`); locally
 studioctl builds the container spec
 (`src/cli/internal/cmd/env/localtest/components/workflow_engine.go`) and is not updated with it.
