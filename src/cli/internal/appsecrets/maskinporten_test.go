@@ -121,6 +121,10 @@ func TestParseMaskinportenClient_Rejects(t *testing.T) {
 			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwk": {"kty":"RSA","d":"x"}}`,
 			want:  "missing use, kid, alg, n, e, p, q, qi, dp, dq",
 		},
+		"base64 of something that is not a JWK": {
+			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwkBase64": "YWJjZA=="}`,
+			want:  "not a JWK object",
+		},
 		"jwk as a string": {
 			input: `{"clientId": "c", "authority": "https://maskinporten.no/", "jwk": "` + testJwkBase64() + `"}`,
 			want:  "jwk must be a JSON object",
@@ -341,5 +345,27 @@ func assertOwnerOnly(t *testing.T, path string, want os.FileMode) {
 	}
 	if perm := info.Mode().Perm(); perm != want {
 		t.Fatalf("permissions of %s = %o, want %o", path, perm, want)
+	}
+}
+
+func TestCheckPrivateKey(t *testing.T) {
+	t.Parallel()
+
+	if err := appsecrets.CheckPrivateKey(testJwkBase64()); err != nil {
+		t.Fatalf("CheckPrivateKey(base64) error = %v, want nil", err)
+	}
+	if err := appsecrets.CheckPrivateKey(testJwk); err != nil {
+		t.Fatalf("CheckPrivateKey(json) error = %v, want nil", err)
+	}
+	for input, want := range map[string]string{
+		"":                      "the key is required",
+		"abcd":                  "not a JWK object",
+		"not base64 at all!!":   "not base64",
+		`{"kty":"RSA","d":"x"}`: "missing use, kid",
+	} {
+		err := appsecrets.CheckPrivateKey(input)
+		if !errors.Is(err, appsecrets.ErrInvalidMaskinportenClient) || !strings.Contains(err.Error(), want) {
+			t.Errorf("CheckPrivateKey(%q) error = %v, want it to mention %q", input, err, want)
+		}
 	}
 }

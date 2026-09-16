@@ -79,7 +79,11 @@ func TestMaskinportenPrompter_AcceptsProdAndAJwkObject(t *testing.T) {
 func TestMaskinportenPrompter_AcceptsAnAuthorityURL(t *testing.T) {
 	t.Parallel()
 
-	script := &scriptedPrompter{lines: []string{"https://ver2.maskinporten.no/", "client-3"}, secrets: []string{"a2V5"}}
+	encoded := base64.StdEncoding.EncodeToString([]byte(promptTestJwk))
+	script := &scriptedPrompter{
+		lines:   []string{"https://ver2.maskinporten.no/", "client-3"},
+		secrets: []string{encoded},
+	}
 
 	data, err := script.prompter(t).client()
 	if err != nil {
@@ -93,9 +97,11 @@ func TestMaskinportenPrompter_AcceptsAnAuthorityURL(t *testing.T) {
 func TestMaskinportenPrompter_AsksAgainAfterAnUnusableAnswer(t *testing.T) {
 	t.Parallel()
 
+	// "abcd" is what a slip of the fingers looks like: it decodes as base64 but is no JWK. It must be asked
+	// about here, not fail the whole command after the last question.
 	script := &scriptedPrompter{
 		lines:   []string{"staging", "test", "", "client-4"},
-		secrets: []string{"", "a2V5"},
+		secrets: []string{"", "abcd", base64.StdEncoding.EncodeToString([]byte(promptTestJwk))},
 	}
 
 	data, err := script.prompter(t).client()
@@ -105,11 +111,14 @@ func TestMaskinportenPrompter_AsksAgainAfterAnUnusableAnswer(t *testing.T) {
 	if !strings.Contains(string(data), `"clientId":"client-4"`) {
 		t.Fatalf("data = %s, want client-4", data)
 	}
-	if len(script.warnings) != 3 {
+	if len(script.warnings) != 4 {
 		t.Fatalf(
-			"warnings = %v, want one for the environment, one for the client id and one for the key",
+			"warnings = %v, want the environment, the client id, the empty key and the garbage key",
 			script.warnings,
 		)
+	}
+	if !strings.Contains(script.warnings[3], "not a JWK object") {
+		t.Fatalf("warning for the garbage key = %q, want it to say what a key looks like", script.warnings[3])
 	}
 }
 
@@ -124,13 +133,13 @@ func TestMaskinportenPrompter_GivesUpAfterThreeUnusableAnswers(t *testing.T) {
 	}
 }
 
-func TestMaskinportenPrompter_RejectsAKeyThatIsNotJSON(t *testing.T) {
+func TestMaskinportenPrompter_GivesUpOnAKeyThatNeverBecomesAJwk(t *testing.T) {
 	t.Parallel()
 
-	script := &scriptedPrompter{lines: []string{"test", "client-5"}, secrets: []string{"{not json"}}
+	script := &scriptedPrompter{lines: []string{"test", "client-5"}, secrets: []string{"{not json", "abcd", "zzzz"}}
 
 	_, err := script.prompter(t).client()
-	if !errors.Is(err, appsecrets.ErrInvalidMaskinportenClient) {
-		t.Fatalf("error = %v, want ErrInvalidMaskinportenClient", err)
+	if !errors.Is(err, errNoUsableAnswer) {
+		t.Fatalf("error = %v, want errNoUsableAnswer after three unusable keys", err)
 	}
 }

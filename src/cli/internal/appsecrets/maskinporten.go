@@ -270,18 +270,43 @@ func RemoveMaskinportenClient(dir string) (bool, error) {
 	return true, nil
 }
 
+// CheckPrivateKey reports whether a key, given as the JWK JSON or as its base64 encoding, is the complete
+// RSA private key the app libraries require. It is what set's guided prompt checks an answer with before
+// accepting it, so the same rule applies whichever way the key arrives.
+func CheckPrivateKey(key string) error {
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return fmt.Errorf("%w: the key is required", ErrInvalidMaskinportenClient)
+	}
+	client := MaskinportenClient{Jwk: nil, Authority: "", ClientID: "", JwkBase64: ""}
+	if strings.HasPrefix(key, "{") {
+		client.Jwk = json.RawMessage(key)
+	} else {
+		client.JwkBase64 = key
+	}
+	_, err := client.privateKey()
+	return err
+}
+
 func (c MaskinportenClient) privateKey() (privateKey, error) {
 	raw := c.Jwk
 	if c.JwkBase64 != "" {
 		decoded, err := decodeBase64(c.JwkBase64)
 		if err != nil {
-			return privateKey{}, fmt.Errorf("%w: jwkBase64 is not base64: %w", ErrInvalidMaskinportenClient, err)
+			return privateKey{}, fmt.Errorf(
+				"%w: the key is not base64 - paste the base64-encoded JWK, or the JWK JSON itself",
+				ErrInvalidMaskinportenClient,
+			)
 		}
 		raw = decoded
 	}
 	var key privateKey
 	if err := json.Unmarshal(raw, &key); err != nil {
-		return privateKey{}, fmt.Errorf("%w: the key is not a JWK object: %w", ErrInvalidMaskinportenClient, err)
+		// Short garbage often decodes as base64; the decoded bytes are not worth quoting back.
+		return privateKey{}, fmt.Errorf(
+			"%w: the key is not a JWK object - paste the base64-encoded JWK, or the JWK JSON itself",
+			ErrInvalidMaskinportenClient,
+		)
 	}
 	if missing := key.missingFields(); len(missing) > 0 {
 		return privateKey{}, fmt.Errorf(

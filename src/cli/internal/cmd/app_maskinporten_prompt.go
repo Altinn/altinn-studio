@@ -35,20 +35,13 @@ func (p maskinportenPrompter) client() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	key, err := p.ask(
-		p.secret,
-		"Private key, the base64-encoded JWK (not shown as you type): ",
-		requiredAnswer("the key"),
-	)
+	key, err := p.ask(p.secret, "Private key, the base64-encoded JWK (not shown as you type): ", keyAnswer)
 	if err != nil {
 		return nil, err
 	}
 
 	fields := map[string]any{"authority": authority, "clientId": clientID}
 	if strings.HasPrefix(key, "{") {
-		if !json.Valid([]byte(key)) {
-			return nil, fmt.Errorf("%w: the JWK is not valid JSON", appsecrets.ErrInvalidMaskinportenClient)
-		}
 		fields["jwk"] = json.RawMessage(key)
 	} else {
 		fields["jwkBase64"] = key
@@ -92,6 +85,15 @@ func authorityAnswer(answer string) (string, error) {
 		return answer, nil
 	}
 	return "", fmt.Errorf("%w: answer test, prod, or an https authority URL", errNoUsableAnswer)
+}
+
+// keyAnswer accepts only a key the app libraries would accept, so a typo is asked about here rather than
+// failing the whole command after the last question.
+func keyAnswer(answer string) (string, error) {
+	if err := appsecrets.CheckPrivateKey(answer); err != nil {
+		return "", fmt.Errorf("%w", err)
+	}
+	return answer, nil
 }
 
 func requiredAnswer(what string) func(answer string) (string, error) {
