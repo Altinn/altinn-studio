@@ -76,15 +76,14 @@ studioctl auth login --env dev --with-token < token.txt
 
 ## Which images the environment runs
 
-`studioctl env up` keeps your local environment close to the real thing: it starts the newest
-localtest build and the workflow engine build deployed to tt02, and checks both for a newer build
-every time it starts the environment. An environment that is already running keeps the build it
-started with until `studioctl env down` and `studioctl env up`. If the registry cannot be reached,
-the environment starts on the images already on your machine.
+`studioctl env up` keeps the local environment close to the real thing: the newest localtest
+build, and the PDF and workflow engine builds deployed to tt02. It checks all three for a
+newer build every time it starts the environment; a running environment keeps what it started
+with until `env down` and `env up`. If the registry cannot be reached, it starts on the images
+already on your machine.
 
-`studioctl env status` shows the image and the identifier of the build behind it for every
-container — worth quoting when reporting a problem, since the tags that follow tt02 move whenever a
-new build is deployed.
+`studioctl env status` shows each container's image and the build behind it — worth quoting in
+a bug report, since the tags that follow tt02 move whenever a new build is deployed.
 
 To run a specific build instead, set the matching variable for the session:
 

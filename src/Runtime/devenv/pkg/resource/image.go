@@ -23,10 +23,9 @@ const (
 	PullIfNotPresent
 	// PullNever never pulls, fails if image doesn't exist.
 	PullNever
-	// PullAlwaysAllowStale always pulls, but keeps using an image that is already
-	// present locally when the pull fails. Use it for images referenced by a moving
-	// tag, where being current matters but an unreachable registry must not stop the
-	// environment from starting.
+	// PullAlwaysAllowStale always pulls, but keeps a locally present image when the pull
+	// fails. For moving tags, where being current matters but an unreachable registry
+	// must not stop the environment from starting.
 	PullAlwaysAllowStale
 )
 

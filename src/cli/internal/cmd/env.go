@@ -620,9 +620,8 @@ func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 	out.RenderTable(table)
 }
 
-// containerImageCell describes the image a container runs. Images whose tag moves are shown
-// with the digest of the build behind the tag, so a report of local behavior can name the
-// exact build. Locally built images have no reference to show.
+// containerImageCell renders the image a container runs, with the digest of its build so a
+// report of local behavior can name it. Locally built images have no reference to show.
 func containerImageCell(ctr envlocaltest.ContainerStatus) string {
 	if ctr.Image == "" {
 		return "(built locally)"

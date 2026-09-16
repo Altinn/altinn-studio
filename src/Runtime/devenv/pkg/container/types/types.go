@@ -319,10 +319,9 @@ type NetworkInfo struct {
 	Driver string
 }
 
-// ManifestDigest returns the digest shared by an image's repository digests.
-// Repository digests are formatted as "<repository>@<digest>"; the digest is the
-// same for every repository the image is tagged in, so the first entry is enough.
-// It returns an empty string for an image that was built locally and never pushed.
+// ManifestDigest returns the digest from an image's repository digests
+// ("<repository>@<digest>"). The digest is the same in every repository the image is
+// tagged in, so the first entry is enough. Empty for an image built locally.
 func ManifestDigest(repoDigests []string) string {
 	for _, repoDigest := range repoDigests {
 		if _, digest, found := strings.Cut(repoDigest, "@"); found {

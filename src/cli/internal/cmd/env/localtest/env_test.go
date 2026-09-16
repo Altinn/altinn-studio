@@ -23,8 +23,7 @@ import (
 
 var errStateUnavailable = errors.New("state unavailable")
 
-// testLocaltestImageRef is the localtest reference in testImages, shared by the tests that
-// assert on what studioctl reports for that image.
+// testLocaltestImageRef is the localtest reference in testImages.
 const testLocaltestImageRef = "ghcr.io/altinn/test-localtest:latest"
 
 func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
@@ -472,9 +471,9 @@ func testImages() config.ImagesConfig {
 	}
 }
 
-// TestStatus_ReportsTheBuildEachContainerRuns pins the reason status reads the container
-// rather than the configured reference: the localtest container here still runs the build
-// it was started with, while the image its moving tag points at has since been replaced.
+// TestStatus_ReportsTheBuildEachContainerRuns pins why status reads the container rather
+// than the configured reference: here the container still runs the build it started with,
+// while its moving tag has since been replaced.
 func TestStatus_ReportsTheBuildEachContainerRuns(t *testing.T) {
 	t.Parallel()
 

@@ -35,6 +35,8 @@ jobs:
     outputs:
       short-sha: ${{ steps.vars.outputs.short-sha }}
       config-repo: ${{ steps.vars.outputs.config-repo }}
+      ghcr-image-proxy-repo: ${{ steps.vars.outputs.ghcr-image-proxy-repo }}
+      ghcr-image-worker-repo: ${{ steps.vars.outputs.ghcr-image-worker-repo }}
     defaults:
       run:
         working-directory: src/Runtime/pdf3
@@ -141,6 +143,7 @@ jobs:
     environment: ${{ matrix.environment }}
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
+      packages: write # Require write permission to move the tt_ring1 tag on GHCR.
     strategy:
       matrix:
         include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
@@ -166,3 +169,21 @@ jobs:
         run: |
           flux tag artifact oci://${{ needs.push-pdf3-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
+
+      # studioctl runs the worker from the "tt_ring1" tag, so local environments render PDFs
+      # with the same build as tt02. Moved here rather than in the build job, so it only ever
+      # points at a build handed to the ring; the proxy follows to keep one build per ring.
+      - name: Point the tt_ring1 tags at this build
+        if: matrix.ring == 'tt_ring1'
+        env:
+          PROXY_IMAGE: ${{ needs.push-pdf3-artifact.outputs.ghcr-image-proxy-repo }}
+          WORKER_IMAGE: ${{ needs.push-pdf3-artifact.outputs.ghcr-image-worker-repo }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker buildx imagetools create \
+            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:tt_ring1 \
+            "$PROXY_IMAGE"
+          docker buildx imagetools create \
+            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt_ring1 \
+            "$WORKER_IMAGE"

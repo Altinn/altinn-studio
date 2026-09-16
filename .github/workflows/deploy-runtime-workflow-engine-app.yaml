@@ -163,9 +163,9 @@ jobs:
           flux tag artifact oci://${{ needs.push-workflow-engine-app-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
 
-      # studioctl runs the "tt_ring1" tag, so the local environment runs the same engine
-      # build as tt02 without waiting for a studioctl release. The tag moves here rather
-      # than in the build job, so it only ever points at a build handed to the ring.
+      # studioctl runs the "tt_ring1" tag, so local environments run the same build as tt02.
+      # Moved here rather than in the build job, so it only ever points at a build handed to
+      # the ring.
       - name: Point the tt_ring1 tag at this build
         if: matrix.ring == 'tt_ring1'
         env:

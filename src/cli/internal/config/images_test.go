@@ -20,6 +20,12 @@ func TestDefaultImages(t *testing.T) {
 		if !images.Core.WorkflowEngine.Floating {
 			t.Error("workflow-engine image should follow the build deployed to tt_ring1")
 		}
+		if !images.Core.PDF3.Floating {
+			t.Error("pdf3 image should follow the build deployed to tt_ring1")
+		}
+		if got := images.Core.PDF3.Ref(); got != "ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt_ring1" {
+			t.Errorf("pdf3 ref = %q", got)
+		}
 		if got := images.Core.WorkflowEngine.Ref(); got !=
 			"ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:tt_ring1" {
 			t.Errorf("workflow-engine ref = %q", got)
@@ -33,7 +39,6 @@ func TestDefaultImages(t *testing.T) {
 		t.Parallel()
 
 		pinned := map[string]config.ImageSpec{
-			"pdf3":               images.Core.PDF3,
 			"workflow-engine-db": images.Core.WorkflowEngineDb,
 			"pgadmin":            images.Core.PgAdmin,
 			"tempo":              images.Monitoring.Tempo,

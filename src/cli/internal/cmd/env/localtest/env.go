@@ -297,12 +297,11 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 	return localtestStatus(graph.All(), snapshot, e.runningImageDigests(ctx, graph.All()), opts.RequireDesired), nil
 }
 
-// runningImageDigests resolves the digest of the image each container is actually running,
-// keyed by container name. It reads the container rather than the configured reference
-// because a reference whose tag moves no longer identifies a build: a container started
-// before the tag moved keeps running the older one until the environment is restarted.
-// A container that is not running has no build to report, so lookup failures are left out
-// rather than failing status.
+// runningImageDigests resolves the digest each container is actually running, keyed by
+// container name. It reads the container rather than the configured reference because a
+// moving tag no longer identifies a build: a container keeps the one it started with until
+// the environment is restarted. A container that is not running has no build to report, so
+// lookup failures are left out rather than failing status.
 func (e *Env) runningImageDigests(ctx context.Context, resources []resource.Resource) map[string]string {
 	digests := make(map[string]string)
 	for _, res := range resources {
@@ -571,8 +570,8 @@ func localtestStatus(
 	return &status
 }
 
-// containerImageRef returns the image reference a container runs, or an empty string when
-// the container runs an image built from the local checkout.
+// containerImageRef returns the container's image reference, empty for an image built from
+// the local checkout.
 func containerImageRef(containerResource *resource.Container) string {
 	pulled, ok := containerResource.Image.Resource().(*resource.PulledImage)
 	if !ok {

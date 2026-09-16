@@ -375,10 +375,9 @@ func checkDiagnosticContainerStates(
 	return states
 }
 
-// checkDiagnosticImage reports the image a service is configured to run, and the digest of
-// the build the container is actually running. The two can differ: a reference whose tag
-// moves keeps serving the build a running container started with until the environment is
-// restarted, so the reference alone does not identify a build.
+// checkDiagnosticImage reports the reference a service is configured to run and the digest
+// of the build its container is running. The two can differ: a moving tag keeps serving the
+// build the container started with until the environment is restarted.
 func checkDiagnosticImage(
 	ctx context.Context,
 	client container.ContainerClient,
@@ -395,8 +394,8 @@ func checkDiagnosticImage(
 	return newDiagnosticCheckPtr("image", "Image:", DiagnosticLevelInfo, message)
 }
 
-// runningImageDigest returns the digest of the image a container runs, or an empty string
-// when the container is absent or its image cannot be resolved.
+// runningImageDigest returns the digest of the image a container runs, empty when the
+// container is absent or its image cannot be resolved.
 func runningImageDigest(ctx context.Context, client container.ContainerClient, containerName string) string {
 	info, err := client.ContainerInspect(ctx, containerName)
 	if err != nil || info.ImageID == "" {

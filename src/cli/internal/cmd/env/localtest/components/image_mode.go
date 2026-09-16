@@ -43,9 +43,8 @@ func localDevImage(prebuilt bool, image *resource.BuiltImage) resource.ImageReso
 	return image
 }
 
-// pullPolicyFor returns the pull policy for a configured image. A floating reference is
-// re-pulled on every apply so the environment tracks the build its tag points at, while a
-// pinned reference is only pulled when it is missing.
+// pullPolicyFor re-pulls a floating reference on every apply, so the environment tracks the
+// build its tag points at, and pulls a pinned one only when it is missing.
 func pullPolicyFor(spec config.ImageSpec) resource.PullPolicy {
 	if spec.Floating {
 		return resource.PullAlwaysAllowStale

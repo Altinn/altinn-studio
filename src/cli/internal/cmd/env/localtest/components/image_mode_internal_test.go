@@ -44,8 +44,8 @@ func TestPullPolicyFor(t *testing.T) {
 	}
 }
 
-// TestManifestPullPolicies asserts that the environment re-pulls exactly the images whose
-// tag moves, so a new build reaches the local environment without re-pulling the rest.
+// TestManifestPullPolicies asserts the environment re-pulls exactly the images whose tag
+// moves.
 func TestManifestPullPolicies(t *testing.T) {
 	images := config.DefaultImages()
 	manifest := NewManifest(&Options{
@@ -72,6 +72,7 @@ func TestManifestPullPolicies(t *testing.T) {
 
 	want := map[string]bool{
 		images.Core.Localtest.Ref():      true,
+		images.Core.PDF3.Ref():           true,
 		images.Core.WorkflowEngine.Ref(): true,
 	}
 	if !reflect.DeepEqual(floating, want) {

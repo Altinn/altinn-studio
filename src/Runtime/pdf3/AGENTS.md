@@ -8,6 +8,13 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 **Architecture**: Two-tier system (proxy + worker) running in Kubernetes. Local development uses a Kind cluster.
 
+**Local environments follow tt02**: `studioctl env up` runs the worker from the `tt_ring1` tag,
+moved by the ring-tagging job in `.github/workflows/deploy-runtime-pdf3.yaml`, so a developer picks
+up a new build as soon as it reaches that ring — with whatever studioctl they have installed. In a
+cluster the deployment config ships with the image; locally studioctl builds the container spec
+(`src/cli/internal/cmd/env/localtest/components/pdf.go`) and is not updated with it, so keep a
+changed setting's previous spelling working for one studioctl release.
+
 ## Development Environment
 
 ### Prerequisites

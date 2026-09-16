@@ -62,8 +62,8 @@ jobs:
       - name: Push image
         run: docker push ${{ steps.vars.outputs.image }}
 
-      # studioctl runs the "latest" tag, so the local environment tracks localtest on main
-      # without waiting for a studioctl release. Only main may move it.
+      # studioctl runs the "latest" tag, so local environments track localtest on main.
+      # Only main may move it.
       - name: Push latest tag
         if: github.ref == 'refs/heads/main'
         run: docker push ${{ steps.vars.outputs.latest-image }}

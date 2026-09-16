@@ -7,12 +7,9 @@ import (
 
 // Container images used by the local environment.
 //
-// The localtest and workflow-engine images track the environments they mirror instead of
-// being pinned to a build: localtest follows its own latest build, and the workflow engine
-// follows the build deployed to tt_ring1, the ring tt02 serves from. Both are re-pulled on
-// every `env up`, so a change reaching tt02 reaches the local environment without a
-// studioctl release. Everything else is pinned, because it has no deployed counterpart to
-// follow.
+// Images that mirror a deployed environment track it rather than a pinned build, so a
+// change reaching tt02 reaches the local environment without a studioctl release. The
+// rest are pinned, having no deployed counterpart to follow.
 const (
 	imageLocaltest      = "ghcr.io/altinn/altinn-studio/runtime-localtest"
 	imagePDF3           = "ghcr.io/altinn/altinn-studio/runtime-pdf3-worker"
@@ -21,10 +18,9 @@ const (
 	// tagLocaltest follows every localtest build on main.
 	tagLocaltest = "latest"
 
-	// tagWorkflowEngine follows the workflow-engine build deployed to the tt_ring1 runtime
-	// ring, which is what tt02 serves. It is published by the ring-tagging job in
-	// .github/workflows/deploy-runtime-workflow-engine-app.yaml.
-	tagWorkflowEngine = "tt_ring1"
+	// tagRuntimeRing follows the build deployed to tt_ring1, the ring tt02 serves. Moved by
+	// the ring-tagging jobs in .github/workflows/deploy-runtime-{pdf3,workflow-engine-app}.yaml.
+	tagRuntimeRing = "tt_ring1"
 )
 
 // ImageSpec defines an image reference with repository and tag.
@@ -32,9 +28,9 @@ type ImageSpec struct {
 	Image string
 	Tag   string
 
-	// Floating marks a reference whose tag moves as new builds are published. A floating
-	// image is re-pulled whenever the environment starts, and an unreachable registry
-	// leaves the local copy in place rather than failing the command.
+	// Floating marks a tag that moves as new builds are published. Such an image is
+	// re-pulled whenever the environment starts, keeping the local copy when the registry
+	// is unreachable.
 	Floating bool
 }
 
@@ -76,8 +72,8 @@ func DefaultImages() ImagesConfig {
 	images := ImagesConfig{
 		Core: CoreImages{
 			Localtest:        ImageSpec{Image: imageLocaltest, Tag: tagLocaltest, Floating: true},
-			PDF3:             ImageSpec{Image: imagePDF3, Tag: "694406e93c", Floating: false},
-			WorkflowEngine:   ImageSpec{Image: imageWorkflowEngine, Tag: tagWorkflowEngine, Floating: true},
+			PDF3:             ImageSpec{Image: imagePDF3, Tag: tagRuntimeRing, Floating: true},
+			WorkflowEngine:   ImageSpec{Image: imageWorkflowEngine, Tag: tagRuntimeRing, Floating: true},
 			WorkflowEngineDb: ImageSpec{Image: "postgres", Tag: "18.3", Floating: false},
 			PgAdmin:          ImageSpec{Image: "dpage/pgadmin4", Tag: "9.14", Floating: false},
 		},
@@ -93,10 +89,9 @@ func DefaultImages() ImagesConfig {
 	return images
 }
 
-// imageOverrides maps each overridable image to its environment variable. The variable holds
-// a complete reference ("repository:tag"); a reference without a tag resolves to ":latest".
-// An override replaces the reference only - a floating image keeps being re-pulled, so an
-// override tracking a moving tag stays current.
+// imageOverrides maps each image to its environment variable, which holds a complete
+// reference ("repository:tag"; an untagged one resolves to ":latest"). An override replaces
+// the reference only, so a floating image keeps being re-pulled.
 func (c *ImagesConfig) imageOverrides() map[string]*ImageSpec {
 	return map[string]*ImageSpec{
 		"STUDIOCTL_IMAGE_LOCALTEST":          &c.Core.Localtest,
@@ -124,8 +119,8 @@ func (c *ImagesConfig) applyEnvOverrides(getenv func(string) string) {
 	}
 }
 
-// splitImageRef splits "repository:tag" into its parts. A registry host may carry a port,
-// so only a colon after the last path separator delimits the tag.
+// splitImageRef splits "repository:tag". A registry host may carry a port, so only a colon
+// after the last path separator delimits the tag.
 func splitImageRef(ref string) (image, tag string) {
 	lastColon := strings.LastIndex(ref, ":")
 	if lastColon < 0 || strings.Contains(ref[lastColon+1:], "/") {
@@ -137,8 +132,7 @@ func splitImageRef(ref string) (image, tag string) {
 // shortDigestLength keeps a digest recognizable while staying short enough to render inline.
 const shortDigestLength = 12
 
-// ShortDigest abbreviates an image digest ("sha256:<hex>") to the leading characters of its
-// hex part, the form used when reporting which build the local environment runs.
+// ShortDigest abbreviates an image digest ("sha256:<hex>") to the leading hex characters.
 func ShortDigest(digest string) string {
 	hex := digest
 	if _, rest, found := strings.Cut(digest, ":"); found {
