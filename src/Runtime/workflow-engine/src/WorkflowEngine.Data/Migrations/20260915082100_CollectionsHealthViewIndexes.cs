@@ -19,9 +19,10 @@ namespace WorkflowEngine.Data.Migrations
             // engine.workflows is the engine's hot table, and workflow_collections is written on
             // every collection enqueue. Build replacements before dropping their predecessors and
             // do all index work concurrently so a deployment never blocks those write paths for a
-            // full table scan. A failed concurrent build leaves an INVALID index behind, hence the
-            // drop-first guards; every statement is independently re-runnable because suppressing
-            // the transaction means a failed migration is retried from partially committed DDL.
+            // full table scan. Each replacement is built under a staging name and swapped in only
+            // after the build succeeds, so a retry never removes a valid index before its successor
+            // is ready. Every statement is independently committed because concurrent index work
+            // cannot run in the migration transaction.
             CreateIndexConcurrently(
                 migrationBuilder,
                 CollectionLookupIndexName,
@@ -81,8 +82,9 @@ namespace WorkflowEngine.Data.Migrations
         }
 
         /// <summary>
-        /// Drops any invalid remnant of an earlier attempt, then builds the requested index without
-        /// blocking writes. Concurrent index commands cannot run inside the migration transaction.
+        /// Builds a staging index without blocking writes, then swaps it into the requested name.
+        /// A retry may discard a failed or completed staging build, but keeps an existing valid
+        /// target index available until the new staging index has finished building.
         /// </summary>
         private static void CreateIndexConcurrently(
             MigrationBuilder migrationBuilder,
@@ -90,12 +92,25 @@ namespace WorkflowEngine.Data.Migrations
             string definition
         )
         {
-            DropIndexConcurrently(migrationBuilder, indexName);
+            var stagingIndexName = $"{indexName}_new";
+
+            // A failed concurrent build can leave an INVALID staging index behind. The final index
+            // is deliberately not touched here: on a partially completed retry it continues to
+            // serve queries while the staging replacement is rebuilt.
+            DropIndexConcurrently(migrationBuilder, stagingIndexName);
             migrationBuilder.Sql(
                 $"""
-                CREATE INDEX CONCURRENTLY IF NOT EXISTS {indexName}
+                CREATE INDEX CONCURRENTLY {stagingIndexName}
                     {definition};
                 """,
+                suppressTransaction: true
+            );
+
+            // The staging build is valid before the existing target is removed, so there is always
+            // an applicable index throughout a retry. Renaming is metadata-only.
+            DropIndexConcurrently(migrationBuilder, indexName);
+            migrationBuilder.Sql(
+                $"ALTER INDEX engine.{stagingIndexName} RENAME TO {indexName};",
                 suppressTransaction: true
             );
         }
