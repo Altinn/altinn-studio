@@ -1,0 +1,23 @@
+.rows {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-size-3);
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  align-self: stretch;
+  gap: var(--ds-size-2);
+}
+
+.control {
+  flex: 1;
+  min-width: 0;
+}
+
+.footer {
+  display: flex;
+  gap: var(--ds-size-2);
+}
