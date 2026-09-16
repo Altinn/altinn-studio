@@ -230,13 +230,6 @@ public class AppSettings
     /// </summary>
     public bool UseOpenTelemetryCollector { get; set; }
 
-    internal const string DefaultRuntimeSecretsDirectory = "/mnt/app-secrets";
-
-    /// <summary>
-    /// Directory containing runtime secrets JSON files.
-    /// </summary>
-    public string RuntimeSecretsDirectory { get; set; } = DefaultRuntimeSecretsDirectory;
-
     /// <summary>
     /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutable (using app apis) when the instance is in this task.
     /// This is a temporary setting to help identify components with incorrect data bindings, and will be removed in the next major version.
