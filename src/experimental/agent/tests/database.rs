@@ -9,7 +9,7 @@ use agent::{
     control_plane::{AgentRecord, AgentStore as _},
     persistence,
     sandbox::{Assignment, ProviderId},
-    sessions::{Lifecycle, SessionName, SessionReports as _, SessionStore as _},
+    sessions::{Lifecycle, NewSession, SessionName, SessionReports as _, SessionStore as _},
 };
 use sandbox::secret_store::SecretStore as _;
 use tempfile::TempDir;
@@ -264,21 +264,55 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
         first.put(ready, 0).await.expect("ready Agent");
         let name = SessionName::new("s1").expect("session name");
         let created = first
-            .ensure_session("worker", &name, agent::Harness::ClaudeCode, Some("first prompt"))
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession {
+                    initial_prompt: Some("first prompt".into()),
+                    ..NewSession::resolved(
+                        agent::Harness::ClaudeCode,
+                        agent::ModelSelection {
+                            model: Some(agent::Model::new("fable").expect("model")),
+                            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                        },
+                        &agent::ModelSelection::default(),
+                    )
+                },
+            )
             .await
             .expect("create session");
         let existing = first
             .ensure_session(
                 "worker",
                 &name,
-                agent::Harness::ClaudeCode,
-                Some("ignored: not created here"),
+                NewSession {
+                    initial_prompt: Some("ignored: not created here".into()),
+                    ..NewSession::resolved(
+                        agent::Harness::ClaudeCode,
+                        agent::ModelSelection {
+                            model: Some(agent::Model::new("fable").expect("model")),
+                            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                        },
+                        &agent::ModelSelection::default(),
+                    )
+                },
             )
             .await
             .expect("get session");
         assert_eq!(created.agent_id, test_agent_id());
         assert_eq!(created.harness, agent::Harness::ClaudeCode);
-        assert_eq!(created, existing);
+        assert_eq!(created.model_selection.model_str(), Some("fable"));
+        assert_eq!(created.model_selection.effort_str(), Some("xhigh"));
+        assert_eq!(created, existing, "creation-time selections are recorded once");
+        let unselected = first
+            .ensure_session(
+                "worker",
+                &SessionName::new("plain").expect("session name"),
+                NewSession::for_harness(agent::Harness::Codex),
+            )
+            .await
+            .expect("create session without selections");
+        assert!(unselected.model_selection.is_empty());
         first
             .update_session_lifecycle(created.id, Lifecycle::running(), 0)
             .await
@@ -289,11 +323,15 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
     let second = persistence::Database::open(&path).expect("reopen database owner");
     LocalRuntime::new().expect("local runtime").block_on(async {
         let sessions = second.list_agent_sessions("worker").await.expect("persistent sessions");
-        assert_eq!(sessions.len(), 1);
-        assert_eq!(sessions[0].name.as_str(), "s1");
-        assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
+        assert_eq!(sessions.len(), 2);
+        assert_eq!(sessions[1].name.as_str(), "s1");
+        assert_eq!(sessions[1].harness, agent::Harness::ClaudeCode);
+        assert_eq!(sessions[1].model_selection.model_str(), Some("fable"));
+        assert_eq!(sessions[1].model_selection.effort_str(), Some("xhigh"));
+        assert_eq!(sessions[0].name.as_str(), "plain");
+        assert!(sessions[0].model_selection.is_empty());
         assert_eq!(
-            sessions[0].status.lifecycle.state,
+            sessions[1].status.lifecycle.state,
             agent::sessions::LifecycleState::Running
         );
         assert_eq!(
@@ -301,7 +339,7 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
                 .expect("read database")
                 .query_row(
                     "SELECT initial_prompt FROM sessions WHERE id = ?1",
-                    [sessions[0].id.to_string()],
+                    [sessions[1].id.to_string()],
                     |row| row.get::<_, Option<String>>(0)
                 )
                 .expect("initial prompt")
@@ -314,7 +352,87 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
                 .get_agent_session("worker", &SessionName::new("s1").expect("Session name"))
                 .await
                 .expect("named Session"),
-            sessions[0]
+            sessions[1]
+        );
+    });
+}
+
+#[test]
+fn concurrent_creation_only_conflicts_on_explicit_selections() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("ready Agent");
+        let name = SessionName::new("raced").expect("session name");
+        let selection = |model: Option<&str>, effort: Option<&str>| agent::ModelSelection {
+            model: model.map(|model| agent::Model::new(model).expect("model")),
+            effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        };
+        let defaults = selection(Some("fable"), Some("xhigh"));
+        let first = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("opus"), None), &defaults),
+            )
+            .await
+            .expect("first creation");
+        assert_eq!(first.model_selection, selection(Some("opus"), Some("xhigh")));
+
+        // A loser that chose nothing resolved to other values, but it did not ask for them.
+        let omitted = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, agent::ModelSelection::default(), &defaults),
+            )
+            .await
+            .expect("omitted selections take the Session as recorded");
+        assert_eq!(omitted.id, first.id);
+        assert_eq!(omitted.model_selection, first.model_selection);
+
+        let same = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("opus"), None), &defaults),
+            )
+            .await
+            .expect("the same explicit choice finds the Session");
+        assert_eq!(same.id, first.id);
+
+        let conflict = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("sonnet"), None), &defaults),
+            )
+            .await
+            .expect_err("a loser that explicitly chose differently is told");
+        assert_eq!(
+            conflict.to_string(),
+            "invalid Agent: Session \"raced\" already uses model \"opus\", not \"sonnet\""
+        );
+        let unselected = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(
+                    agent::Harness::ClaudeCode,
+                    selection(None, Some("low")),
+                    &agent::ModelSelection::default(),
+                ),
+            )
+            .await
+            .expect_err("an explicit effort conflicts with the recorded one");
+        assert!(
+            unselected
+                .to_string()
+                .contains("already uses effort \"xhigh\", not \"low\""),
+            "{unselected}"
         );
     });
 }
@@ -329,12 +447,7 @@ fn attach_error_identifies_the_session_and_its_lifecycle_failure() {
             .await
             .expect("ready Agent");
         let session = store
-            .ensure_session(
-                "worker",
-                &SessionName::new("recovering").expect("Session name"),
-                agent::Harness::Codex,
-                None,
-            )
+            .ensure_session("worker", &SessionName::new("recovering").expect("Session name"), NewSession::for_harness(agent::Harness::Codex))
             .await
             .expect("Session");
         store
@@ -368,7 +481,11 @@ fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reuse
         store.put(ready_record("worker", old_id), 0).await.expect("old Agent");
         let old_session = SessionName::new("old-session").expect("session name");
         store
-            .ensure_session("worker", &old_session, agent::Harness::ClaudeCode, None)
+            .ensure_session(
+                "worker",
+                &old_session,
+                NewSession::for_harness(agent::Harness::ClaudeCode),
+            )
             .await
             .expect("old session");
         store.mark_deleting("worker").await.expect("mark deleting");
@@ -440,8 +557,9 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        2
+        3
     );
+    assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
         connection
             .query_row(
@@ -544,11 +662,67 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 2);
+    assert_eq!(schema_snapshot(&path).0, 3);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
         "array-valued instructions should not rewrite current desired state"
+    );
+}
+
+#[test]
+fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create version 2 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("version 2 tables");
+    connection.pragma_update(None, "user_version", 2).expect("version 2");
+    let desired = serde_json::to_string(&support::agent("worker")).expect("desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                PREVIEW_AGENT_ID,
+                serde_json::to_string(Path::new("/source")).expect("source"),
+                desired,
+            ],
+        )
+        .expect("Agent");
+    for (index, harness) in ["claudeCode", "codex"].into_iter().enumerate() {
+        connection
+            .execute(
+                "INSERT INTO sessions (id, agent_id, name, harness, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+                rusqlite::params![
+                    format!("00000000-0000-4000-8000-{index:012}"),
+                    PREVIEW_AGENT_ID,
+                    format!("session-{harness}"),
+                    harness,
+                    1_700_000_000_i64,
+                ],
+            )
+            .expect("version 2 Session");
+    }
+    drop(connection);
+
+    let database = persistence::Database::open(&path).expect("migrate version 2 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let sessions = database.list_agent_sessions("worker").await.expect("Sessions");
+        assert_eq!(sessions.len(), 2);
+        assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
+        assert_eq!(sessions[0].model_selection.model_str(), Some("fable"));
+        assert_eq!(sessions[0].model_selection.effort_str(), None);
+        assert_eq!(sessions[1].harness, agent::Harness::Codex);
+        assert!(sessions[1].model_selection.is_empty());
+    });
+    drop(database);
+    assert_eq!(schema_snapshot(&path).0, 3);
+    assert!(
+        directory.path().join("backups").is_dir(),
+        "a pending migration is backed up first"
     );
 }
 
@@ -586,8 +760,28 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 2);
-    assert_eq!(after.1, before);
+    assert_eq!(after.0, 3);
+    let unchanged = |snapshot: &[(String, String)]| {
+        snapshot
+            .iter()
+            .filter(|(name, _)| name != "table:sessions")
+            .cloned()
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(unchanged(&after.1), unchanged(&before));
+    let sessions_sql = |snapshot: &[(String, String)]| {
+        snapshot
+            .iter()
+            .find(|(name, _)| name == "table:sessions")
+            .map(|(_, sql)| sql.clone())
+            .expect("sessions table")
+    };
+    let (before_sessions, after_sessions) = (sessions_sql(&before), sessions_sql(&after.1));
+    assert!(!before_sessions.contains("model TEXT"));
+    assert!(
+        after_sessions.contains("model TEXT") && after_sessions.contains("effort TEXT"),
+        "only the Session selection columns are added: {after_sessions}"
+    );
 }
 
 #[test]
@@ -660,6 +854,24 @@ fn failed_preview_1_row_migration_rolls_back_schema_and_rows() {
             .expect("rolled-back version"),
         1
     );
+}
+
+/// Preview Sessions never chose a model, but every Claude Code Session launched on
+/// the `fable` alias the adapter hardcoded; the migration records that so they stay
+/// on the same model, while Codex Sessions keep their harness default.
+fn assert_migrated_session_selections(connection: &rusqlite::Connection, claude_code: u32, codex: u32) {
+    let count = |filter: &str| {
+        connection
+            .query_row(&format!("SELECT COUNT(*) FROM sessions WHERE {filter}"), [], |row| {
+                row.get::<_, u32>(0)
+            })
+            .expect("migrated Sessions")
+    };
+    assert_eq!(
+        count("harness = 'claudeCode' AND model = 'fable' AND effort IS NULL"),
+        claude_code
+    );
+    assert_eq!(count("harness = 'codex' AND model IS NULL AND effort IS NULL"), codex);
 }
 
 fn schema_snapshot(path: &Path) -> (u32, Vec<(String, String)>) {
@@ -813,8 +1025,10 @@ async fn initial_prompt_consumption_and_launch_record_commit_together() {
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            Some("once"),
+            NewSession {
+                initial_prompt: Some("once".into()),
+                ..NewSession::for_harness(agent::Harness::ClaudeCode)
+            },
         )
         .await
         .expect("Session");
@@ -873,8 +1087,7 @@ async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");

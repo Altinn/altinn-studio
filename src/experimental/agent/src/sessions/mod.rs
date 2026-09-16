@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{AgentId, Error, Harness, sandbox};
+use crate::{AgentId, Error, Harness, ModelSelection, sandbox};
 
 pub use crate::controller::Reconcile;
 pub use activity::{Activity, ActivityEvent, Phase};
@@ -337,6 +337,11 @@ pub struct Session {
     pub name: SessionName,
     /// Immutable harness installation selected for this Session.
     pub harness: Harness,
+    /// Immutable model and effort level resolved when the Session was created:
+    /// the caller's request, then the installation's manifest defaults. Every
+    /// launch of the harness applies it; an unselected field leaves the harness default.
+    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
+    pub model_selection: ModelSelection,
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
@@ -370,6 +375,67 @@ impl Session {
     }
 }
 
+/// What a caller may choose when ensuring a Session. Every field is optional.
+///
+/// The selections apply only when the call creates the Session: an omitted
+/// harness, model or effort falls back to the Agent's default installation and
+/// that installation's manifest defaults, and the resolved values become the
+/// Session's immutable properties. For an existing Session, an explicit value
+/// that differs from the recorded one is rejected; omitted ones are ignored.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct SessionRequest {
+    /// Harness installation to bind.
+    pub harness: Option<Harness>,
+    /// Model and effort level the harness launches with.
+    pub model_selection: ModelSelection,
+    /// First prompt, handed to the harness at its first launch without replay.
+    pub initial_prompt: Option<String>,
+}
+
+/// Resolved, immutable selections recorded when a Session is created.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NewSession {
+    /// Harness installation the Session binds to.
+    pub harness: Harness,
+    /// Model and effort level the harness launches with, as requested or defaulted.
+    pub model_selection: ModelSelection,
+    /// The part of [`Self::model_selection`] the caller chose explicitly. When the
+    /// Session already exists, only these fields may conflict with what it recorded.
+    pub requested: ModelSelection,
+    /// First prompt, handed to the harness at its first launch without replay.
+    pub initial_prompt: Option<String>,
+}
+
+impl NewSession {
+    /// A Session bound to `harness` with every other selection left to the harness.
+    #[must_use]
+    pub const fn for_harness(harness: Harness) -> Self {
+        Self {
+            harness,
+            model_selection: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            requested: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            initial_prompt: None,
+        }
+    }
+
+    /// Resolves `requested` against an installation's manifest `defaults`.
+    #[must_use]
+    pub fn resolved(harness: Harness, requested: ModelSelection, defaults: &ModelSelection) -> Self {
+        Self {
+            harness,
+            model_selection: requested.clone().or(defaults),
+            requested,
+            initial_prompt: None,
+        }
+    }
+}
+
 /// Non-secret information required for a terminal attachment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -385,14 +451,17 @@ pub struct AttachTarget {
 pub trait SessionStore: SessionReports {
     /// Creates or gets one named Session for the active Agent incarnation.
     ///
-    /// `initial_prompt`, recorded only when the Session is created, is handed to
-    /// the harness at its first launch attempt, without automatic replay.
+    /// `new` is recorded only when the Session is created: its harness, model and
+    /// effort become the Session's immutable properties, and its initial prompt is
+    /// handed to the harness at the first launch attempt, without automatic replay.
+    /// An existing Session is returned as recorded, unless `new` names another
+    /// harness or its explicitly requested model or effort differs, so concurrent
+    /// creations cannot silently drop one caller's choice.
     fn ensure_session<'a>(
         &'a self,
         agent: &'a str,
         name: &'a SessionName,
-        harness: Harness,
-        initial_prompt: Option<&'a str>,
+        new: NewSession,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
     /// Gets one Session by immutable identity.

@@ -87,13 +87,12 @@ impl AuthenticationApi for harness::AuthenticationManager {
 
 /// Host-tracked session operations exposed through the local control API.
 pub trait SessionApi {
-    /// Creates or resolves one named session attach target.
+    /// Creates or resolves one named session attach target; see [`sessions::Service::ensure`].
     fn ensure<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<&'a str>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
@@ -136,12 +135,11 @@ impl SessionApi for sessions::Service {
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<&'a str>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness, initial_prompt, wait, progress).await })
+        Box::pin(async move { Self::ensure(self, agent, name, request, wait, progress).await })
     }
 
     fn prompt<'a>(
@@ -518,21 +516,28 @@ impl Server {
     }
 
     async fn handle_session_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
-        let Ok(params) = serde_json::from_value::<SessionEnsureParams>(value) else {
-            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        let params = match serde_json::from_value::<SessionEnsureParams>(value) {
+            Ok(params) => params,
+            // The selections carry their own validation, so name the decoding failure
+            // instead of blaming the two required fields.
+            Err(error) => {
+                return error_response(
+                    id,
+                    CODE_INVALID_PARAMS,
+                    format!("agent and session name are required, and selections must be valid: {error}"),
+                );
+            }
         };
         let (wait, progress) = observation(params.follow, params.progress, progress);
+        let request = sessions::SessionRequest {
+            harness: params.harness,
+            model_selection: params.model_selection,
+            initial_prompt: params.initial_prompt,
+        };
         result_response(
             id,
             self.sessions
-                .ensure(
-                    &params.agent,
-                    &params.name,
-                    params.harness,
-                    params.initial_prompt.as_deref(),
-                    wait,
-                    progress,
-                )
+                .ensure(&params.agent, &params.name, request, wait, progress)
                 .await,
         )
     }

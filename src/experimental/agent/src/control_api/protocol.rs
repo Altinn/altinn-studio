@@ -123,6 +123,9 @@ pub(crate) struct SessionEnsureParams {
     pub name: crate::sessions::SessionName,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub harness: Option<crate::Harness>,
+    /// Provider-owned model and effort level; validated, otherwise opaque to the daemon.
+    #[serde(default, skip_serializing_if = "crate::ModelSelection::is_empty")]
+    pub model_selection: crate::ModelSelection,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_prompt: Option<String>,
     #[serde(default, skip_serializing_if = "is_false")]

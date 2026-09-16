@@ -1,8 +1,10 @@
 //! Claude Code harness adapter.
 
+use std::fmt::Write as _;
+
 use crate::{
     Error,
-    harness::{MediatedSecret, ProcessLaunch},
+    harness::{LaunchRequest, MediatedSecret, ProcessLaunch, shell_single_quoted},
     persistence,
 };
 use sandbox::secret_store::SecretReference;
@@ -17,6 +19,14 @@ const ACCESS_SECRET: &str = "claude-access-token";
 const ACCESS_ENVIRONMENT: &str = "CLAUDE_CODE_OAUTH_TOKEN";
 const ACCESS_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-placeholder-not-a-real-credential";
 const API_HOST: &str = "api.anthropic.com";
+/// The model recorded for Sessions that predate recorded selections. The adapter
+/// launched every Session on this alias from preview 2 until selections arrived,
+/// because the mediated setup token cannot enumerate models and Fable never
+/// appeared in the `/model` picker. Preview 1 Sessions ran on Claude Code's own
+/// default; recording the alias for them too keeps every earlier conversation on
+/// one known model instead of whatever the harness defaults to next. Manifests
+/// now declare the default for new Sessions.
+pub(super) const MODEL_LAUNCHED_BEFORE_SELECTION: &str = "fable";
 
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
     if !authentication::is_ready(database).await? {
@@ -138,23 +148,26 @@ pub(super) async fn verify_linux(
     Ok(())
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
-    let config = format!("{home}/.claude");
-    // The mediated setup token cannot enumerate models, so Fable never appears in the /model
-    // picker (same inference-only-scope limitation as the usage-credits gate handled in bootstrap).
-    // Launch on the `fable` alias directly so the sandbox tracks the latest Fable release; users
-    // can still switch to the listed models via /model. Revisit when
-    // github.com/anthropics/claude-code#79360 ships.
-    let base = format!("claude --dangerously-skip-permissions --model fable --settings {config}/agent-settings.json");
+pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
+    let config = format!("{}/.claude", request.home);
+    let mut base = format!("claude --dangerously-skip-permissions --settings {config}/agent-settings.json");
+    // Claude Code takes a model alias (`fable`, `opus`) or full model name, and one of its own
+    // effort levels. Both are opaque here and apply to fresh and resumed conversations alike.
+    if let Some(model) = &request.model_selection.model {
+        let _infallible = write!(base, " --model {}", shell_single_quoted(model.as_str()));
+    }
+    if let Some(effort) = &request.model_selection.effort {
+        let _infallible = write!(base, " --effort {}", shell_single_quoted(effort.as_str()));
+    }
     // A fresh conversation may start on a positional prompt; `--` keeps a prompt
     // that begins with `-` from being read as an option.
-    let fresh = initial_prompt.map_or_else(
+    let fresh = request.initial_prompt.map_or_else(
         || base.clone(),
-        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+        |message| format!("{base} -- {}", shell_single_quoted(message)),
     );
     // Claude Code currently reports UUID conversation IDs. Keep that
     // harness-specific constraint out of the generic Session reconciler.
-    let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
+    let resume = request.resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
     let command = match resume {
         // SessionStart can report an ID before Claude creates its JSONL. Treat
         // the harness-owned transcript as the authority for resumability so
@@ -178,10 +191,26 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
 
 #[cfg(test)]
 mod tests {
+    use crate::harness::{Effort, LaunchRequest, Model, ModelSelection};
+
+    const UNSELECTED: ModelSelection = ModelSelection {
+        model: None,
+        effort: None,
+    };
+
+    fn request<'a>(resume: Option<&'a str>, initial_prompt: Option<&'a str>) -> LaunchRequest<'a> {
+        LaunchRequest {
+            home: "/home/agent",
+            resume,
+            initial_prompt,
+            model_selection: &UNSELECTED,
+        }
+    }
+
     #[test]
     fn resume_launch_requires_a_native_transcript() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native), None);
+        let launch = super::launch_linux(&request(Some(native), None));
 
         assert!(launch.command.contains("/home/agent/.claude/projects"));
         assert!(launch.command.contains("160cdb4b-5997-464c-9d22-602786eb45d4.jsonl"));
@@ -192,14 +221,14 @@ mod tests {
 
     #[test]
     fn non_uuid_native_id_is_not_a_claude_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
+        let launch = super::launch_linux(&request(Some("opaque-harness-id"), None));
 
         assert!(!launch.command.contains("--resume"));
     }
 
     #[test]
     fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
-        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+        let launch = super::launch_linux(&request(None, Some("fix it's\nbroken")));
 
         assert!(
             // `--` keeps a prompt that starts with `-` or names a subcommand positional.
@@ -208,5 +237,34 @@ mod tests {
             launch.command
         );
         assert!(!launch.command.contains("--resume"));
+    }
+
+    #[test]
+    fn launches_select_no_model_or_effort_unless_the_session_carries_them() {
+        let launch = super::launch_linux(&request(None, None));
+
+        assert!(!launch.command.contains("--model"));
+        assert!(!launch.command.contains("--effort"));
+    }
+
+    #[test]
+    fn model_and_effort_apply_to_fresh_and_resumed_conversations() {
+        let selection = ModelSelection {
+            model: Some(Model::new("fable").expect("model")),
+            effort: Some(Effort::new("xhigh").expect("effort")),
+        };
+        let launch = super::launch_linux(&LaunchRequest {
+            model_selection: &selection,
+            ..request(Some("160cdb4b-5997-464c-9d22-602786eb45d4"), Some("go"))
+        });
+
+        assert_eq!(
+            launch.command.matches("--model 'fable' --effort 'xhigh'").count(),
+            2,
+            "{}",
+            launch.command
+        );
+        assert!(launch.command.contains("--effort 'xhigh' --resume 160cdb4b"));
+        assert!(launch.command.contains("--effort 'xhigh' -- 'go'"));
     }
 }
