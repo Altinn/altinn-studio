@@ -122,6 +122,7 @@ public class LangfuseTracingTests
         return new LangfuseTracing(
             wrapped,
             new ConfigurationLangfuseKeyProvider(wrapped),
+            new EnrichmentTrace(wrapped),
             NullLogger<LangfuseTracing>.Instance);
     }
 }

@@ -27,6 +27,29 @@ public sealed class EnrichmentTrace(IOptions<LangfuseOptions> options)
 
     private LangfuseOptions Options => options.Value;
 
+    private string? _projectId;
+
+    /// <summary>
+    /// Records the project the export is bound to, so runs can be linked to. Called once
+    /// by the tracing host service when the provider is live; the id may only be known
+    /// then, because the start-up preflight discovers it when it is not configured.
+    /// </summary>
+    internal void Activate(string? projectId) => _projectId = projectId;
+
+    /// <summary>
+    /// A link straight to this run in Langfuse, or null when tracing is off or the project
+    /// is unknown. Logged once per run: it is how an operator gets from an app log line to
+    /// the trace without searching by session id, and — when traces appear to be missing —
+    /// it is the only signal that says whether a span was created at all.
+    /// </summary>
+    public string? DeepLink(Activity? activity)
+    {
+        if (activity is null || string.IsNullOrWhiteSpace(Options.Host) || string.IsNullOrWhiteSpace(_projectId))
+            return null;
+
+        return $"{Options.Host.TrimEnd('/')}/project/{_projectId}/traces/{activity.TraceId.ToHexString()}";
+    }
+
     /// <summary>
     /// Starts the span representing one execution of the <c>ai</c> process task.
     ///

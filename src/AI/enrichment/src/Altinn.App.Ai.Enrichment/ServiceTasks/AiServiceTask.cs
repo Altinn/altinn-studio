@@ -94,7 +94,24 @@ public sealed class AiServiceTask(
         var taskId = mutator.Instance.Process?.CurrentTask?.ElementId
             ?? throw new InvalidOperationException("Instance has no current process task.");
 
-        using var run = trace.StartRun($"ai-enrichment:{taskId}", System.Diagnostics.Activity.Current);
+        var ambient = System.Diagnostics.Activity.Current;
+        using var run = trace.StartRun($"ai-enrichment:{taskId}", ambient);
+
+        // One line per run, tying the app's own logs to the Langfuse trace. It is what an
+        // operator follows from an alert to the run, and — when Langfuse looks empty — it
+        // is the only signal separating "tracing is switched off" from "a span was created
+        // and something downstream swallowed it".
+        if (run is not null)
+        {
+            logger.LogInformation(
+                "ai task {TaskId}: Langfuse trace {LangfuseTraceId} (session {SessionId}, "
+                    + "ambient trace {AmbientTraceId}, link {LangfuseUrl})",
+                taskId,
+                run.TraceId.ToHexString(),
+                SessionId(mutator.Instance),
+                ambient?.TraceId.ToHexString(),
+                trace.DeepLink(run) ?? "(set AiEnrichment:Langfuse:ProjectId for a link)");
+        }
 
         try
         {
