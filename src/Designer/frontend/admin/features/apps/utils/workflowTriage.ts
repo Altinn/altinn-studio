@@ -106,29 +106,31 @@ export function deriveInstanceHealth(
 }
 
 /**
- * The workflow the instance's verdict rests on: the first one, in the given order, that produces
- * the health. For a settled instance it is the first visible workflow, which is the latest
- * transition when the list is newest first.
+ * The workflow the instance's verdict rests on: the newest one that produces the health, whatever
+ * order the list came in. For a settled instance it is the latest visible workflow.
  */
 export function pickFocusWorkflow(
   workflows: WorkflowStatus[],
   health: WorkflowHealth,
   now: number = Date.now(),
 ): WorkflowStatus | undefined {
-  const visible = workflows.filter(isVisibleWorkflow);
+  const newestFirst = workflows.toSorted(
+    (first, second) => (toTime(second.createdAt) ?? 0) - (toTime(first.createdAt) ?? 0),
+  );
+  const visible = newestFirst.filter(isVisibleWorkflow);
   switch (health) {
     case WorkflowHealth.Failed:
       return visible.find(isFailedWorkflow);
     case WorkflowHealth.Retrying:
       return visible.find((workflow) => isWorkflowRetrying(workflow, now));
     case WorkflowHealth.SideEffectsFailed:
-      return workflows.find(
+      return newestFirst.find(
         (workflow) => !isVisibleWorkflow(workflow) && isFailedWorkflow(workflow),
       );
     case WorkflowHealth.Active:
-      return visible.find(isActiveWorkflow) ?? workflows.find(isActiveWorkflow);
+      return visible.find(isActiveWorkflow) ?? newestFirst.find(isActiveWorkflow);
     default:
-      return visible[0] ?? workflows[0];
+      return visible[0] ?? newestFirst[0];
   }
 }
 

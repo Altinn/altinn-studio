@@ -124,11 +124,17 @@ describe('deriveInstanceHealth', () => {
 });
 
 describe('pickFocusWorkflow', () => {
-  it('picks the workflow the verdict rests on, in list order', () => {
-    const olderFailed = workflow('Failed', { databaseId: 'older' });
-    const newerFailed = workflow('Failed', { databaseId: 'newer' });
+  it('picks the newest workflow the verdict rests on, whatever order the list came in', () => {
+    const olderFailed = workflow('Failed', {
+      databaseId: 'older',
+      createdAt: '2026-08-02T08:00:00Z',
+    });
+    const newerFailed = workflow('Failed', {
+      databaseId: 'newer',
+      createdAt: '2026-08-02T09:30:00Z',
+    });
     const sideChainFailed = workflow('Failed', { isHead: false });
-    const workflows = [sideChainFailed, newerFailed, olderFailed];
+    const workflows = [olderFailed, sideChainFailed, newerFailed];
 
     expect(pickFocusWorkflow(workflows, WorkflowHealth.Failed, now)).toBe(newerFailed);
     expect(pickFocusWorkflow([sideChainFailed], WorkflowHealth.SideEffectsFailed, now)).toBe(
@@ -143,9 +149,18 @@ describe('pickFocusWorkflow', () => {
   });
 
   it('falls back to the latest visible workflow for a settled instance', () => {
-    const sideChain = workflow('Completed', { isHead: false });
-    const latest = workflow('Completed', { databaseId: 'latest' });
-    expect(pickFocusWorkflow([sideChain, latest], WorkflowHealth.Healthy, now)).toBe(latest);
+    const earlier = workflow('Completed', {
+      databaseId: 'earlier',
+      createdAt: '2026-08-02T08:00:00Z',
+    });
+    const sideChain = workflow('Completed', { isHead: false, createdAt: '2026-08-02T09:45:00Z' });
+    const latest = workflow('Completed', {
+      databaseId: 'latest',
+      createdAt: '2026-08-02T09:30:00Z',
+    });
+    expect(pickFocusWorkflow([earlier, latest, sideChain], WorkflowHealth.Healthy, now)).toBe(
+      latest,
+    );
   });
 });
 

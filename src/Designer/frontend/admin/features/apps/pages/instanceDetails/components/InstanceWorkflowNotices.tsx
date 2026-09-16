@@ -20,7 +20,7 @@ import classes from './InstanceWorkflowNotices.module.css';
 const RECOVERY_NOTE_MS = 12_000;
 
 export type InstanceWorkflowNoticesProps = {
-  /** Newest first, as the drill-down query delivers them. */
+  /** In the order the process ran them, as the drill-down query delivers them. */
   workflows: WorkflowStatus[];
 };
 

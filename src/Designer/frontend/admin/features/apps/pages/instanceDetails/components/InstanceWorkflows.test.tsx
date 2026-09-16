@@ -89,7 +89,7 @@ const settledSideChainWorkflow = {
 };
 
 const workflowsResponse = {
-  data: [failedHeadWorkflow, settledSideChainWorkflow],
+  data: [settledSideChainWorkflow, failedHeadWorkflow],
   pageSize: 25,
   totalCount: 2,
   nextCursor: null,
@@ -98,7 +98,7 @@ const workflowsResponse = {
 describe('InstanceWorkflows', () => {
   afterEach(jest.clearAllMocks);
 
-  it('lists the instance workflows newest first, marking the invisible side chain', async () => {
+  it('lists the instance workflows in the order the process ran them, marking the invisible side chain', async () => {
     jest
       .mocked(axios.get)
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
@@ -106,9 +106,9 @@ describe('InstanceWorkflows', () => {
 
     const summaries = await screen.findAllByRole('group');
     expect(summaries).toHaveLength(2);
-    expect(summaries[0]).toHaveTextContent('Process next: Pdf -> Sign');
-    expect(summaries[1]).toHaveTextContent('side-effects');
-    expect(summaries[1]).toHaveTextContent(textMock('admin.workflows.side_effect'));
+    expect(summaries[0]).toHaveTextContent('side-effects');
+    expect(summaries[0]).toHaveTextContent(textMock('admin.workflows.side_effect'));
+    expect(summaries[1]).toHaveTextContent('Process next: Pdf -> Sign');
 
     const requestedUrl = jest.mocked(axios.get).mock.calls[0][0] as string;
     expect(requestedUrl).toContain(`collectionKey=${instanceId}`);
@@ -151,7 +151,7 @@ describe('InstanceWorkflows', () => {
       .mocked(axios.get)
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
-    const [failedRow] = await screen.findAllByRole('group');
+    const [, failedRow] = await screen.findAllByRole('group');
     expect(
       within(failedRow).getAllByText(textMock('admin.workflows.status.failed'))[0],
     ).toBeInTheDocument();
@@ -165,7 +165,7 @@ describe('InstanceWorkflows', () => {
     };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [completedHeadWorkflow, settledSideChainWorkflow] },
+      data: { ...workflowsResponse, data: [settledSideChainWorkflow, completedHeadWorkflow] },
     } as AxiosResponse);
 
     expect(
@@ -177,7 +177,7 @@ describe('InstanceWorkflows', () => {
     const completedHeadWorkflow = { ...failedHeadWorkflow, overallStatus: 'Completed', steps: [] };
     jest.mocked(axios.get).mockResolvedValue({
       status: 200,
-      data: { ...workflowsResponse, data: [completedHeadWorkflow, settledSideChainWorkflow] },
+      data: { ...workflowsResponse, data: [settledSideChainWorkflow, completedHeadWorkflow] },
     } as AxiosResponse);
     renderInstanceWorkflows();
 
@@ -234,7 +234,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [failedRow, settledRow] = await screen.findAllByRole('group');
+    const [settledRow, failedRow] = await screen.findAllByRole('group');
     // One dot per step, in processing order, colored by the step's status.
     expect(within(failedRow).getByTitle('app-command · Failed')).toHaveAttribute(
       'data-tone',
@@ -258,7 +258,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const [failedRow, settledRow] = await screen.findAllByRole('group');
+    const [settledRow, failedRow] = await screen.findAllByRole('group');
     expect(failedRow).toHaveAttribute('open');
     expect(settledRow).not.toHaveAttribute('open');
     expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();
