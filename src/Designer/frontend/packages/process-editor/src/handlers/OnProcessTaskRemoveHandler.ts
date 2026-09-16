@@ -94,6 +94,7 @@ export class OnProcessTaskRemoveHandler {
 
   private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskRemove(taskMetadata);
+    this.handleRemoveSigningPdf(taskMetadata);
     if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
       this.handleRemoveSigneeState(taskMetadata);
     }
@@ -157,6 +158,22 @@ export class OnProcessTaskRemoveHandler {
     }
 
     this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
+  }
+
+  private handleRemoveSigningPdf(taskMetadata: OnProcessTaskEvent): void {
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
+    const signingPdfDataTypeId = studioModeler.getSigningPdfDataTypeIdFromBusinessObject(
+      taskMetadata.taskEvent.element.businessObject,
+    );
+
+    // A signing task without a pdf data type never had one registered to remove. Truthiness here
+    // mirrors the add handler, which deliberately differs from `TaskUtils.isUserControlledSigning`'s
+    // presence test: an empty id was never registered, so there is nothing to remove either.
+    if (!signingPdfDataTypeId) return;
+
+    this.deleteDataTypeFromAppMetadata({
+      dataTypeId: signingPdfDataTypeId,
+    });
   }
 
   private handleRemoveSigneeState(taskMetadata: OnProcessTaskEvent): void {
