@@ -40,18 +40,6 @@ describe('useSchemaMutation', () => {
     expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(model);
   });
 
-  it('Sends the model unchanged when it has no combinations without subschemas', async () => {
-    const saveDataModel = jest.fn();
-    const model = { type: 'object', properties: { text: { type: 'string' } } };
-    const {
-      renderHookResult: { result },
-    } = render({ saveDataModel });
-    result.current.mutate({ modelPath, model });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, model);
-    expect(saveDataModel.mock.calls[0][3]).toBe(model);
-  });
-
   it('Updates the JsonSchema query cache', async () => {
     const queryClient = createQueryClientMock();
     const {

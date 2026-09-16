@@ -9,8 +9,8 @@ import { isEmptyCombination, isNotTheRootNode } from '../utils';
 /**
  * Returns the given JSON schema without combinations that have no subschemas. The editor keeps such
  * combinations while the user is working on them, but they cannot be part of a valid JSON schema.
- * The schema is returned unchanged when there is nothing to remove. An empty combination at the
- * root is left alone, because the root node cannot be removed.
+ * The schema is returned unchanged when there is nothing to remove, and an empty combination at
+ * the root is left alone.
  */
 export const removeEmptyCombinations = (schema: JsonSchema): JsonSchema => {
   // This runs on every autosave, and scanning the raw schema is much cheaper than converting it.
@@ -23,13 +23,9 @@ export const removeEmptyCombinations = (schema: JsonSchema): JsonSchema => {
 };
 
 /**
- * Tells whether the given JSON schema contains a combination keyword with an empty list of
- * subschemas. It walks the raw schema instead of building a UI schema from it, so that the common
- * case - a schema without empty combinations - is answered without the cost of a conversion.
- *
- * Keywords like `const` and `default` hold arbitrary JSON, so the answer is an upper bound: it is
- * never false when the schema has an empty combination, but it can be true when a value merely
- * looks like one.
+ * Keywords like `const` and `default` hold arbitrary JSON, so the answer is an upper bound: never
+ * false when the schema has an empty combination, but sometimes true when a value only looks like
+ * one.
  */
 const hasEmptyCombination = (schema: JsonSchema): boolean => {
   if (!isNonNullObject(schema)) return false;
@@ -40,10 +36,9 @@ const hasEmptyCombination = (schema: JsonSchema): boolean => {
 };
 
 /**
- * Returns a copy of the given nodes without combinations that have no subschemas, and without
- * references to them. Removal happens on nodes, which know about parents, references and required
- * lists, so whatever pointed at a removed combination is cleaned up too. A combination that becomes
- * empty because its only subschemas were removed this way is removed as well.
+ * Returns a copy of the given nodes without combinations that have no subschemas. Nodes know about
+ * parents, references and required lists, so references to a removed combination and its entry in
+ * a required list go too. A combination left empty by this is removed as well.
  */
 const removeEmptyCombinationsFromSchemaNodes = (nodes: UiSchemaNodes): UiSchemaNodes => {
   const model = SchemaModel.fromArray(nodes).deepClone();
