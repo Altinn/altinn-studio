@@ -199,21 +199,17 @@ impl SessionForm {
         }
     }
 
-    /// Whether typing `character` into the focused field keeps it valid.
+    /// Whether typing `character` into the focused field is accepted. The name
+    /// field admits only valid characters; a model or effort keeps whatever was
+    /// typed, so an invalid value is reported on submission instead of being
+    /// silently reshaped into a different valid one.
     fn accepts(&self, character: char) -> bool {
         match self.field {
             SessionField::Name => {
                 (character.is_ascii_alphanumeric() || matches!(character, '-' | '_')) && self.name.len() < 64
             }
-            SessionField::Model | SessionField::Effort => {
-                let value = if self.field == SessionField::Model {
-                    &self.model
-                } else {
-                    &self.effort
-                };
-                (character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.' | ':' | '/' | '@' | '+'))
-                    && value.len() < 128
-            }
+            SessionField::Model => !character.is_control() && self.model.chars().count() < 128,
+            SessionField::Effort => !character.is_control() && self.effort.chars().count() < 128,
         }
     }
 }
@@ -1284,7 +1280,19 @@ mod tests {
         for character in "gpt 5.4".chars() {
             app.on_key(key(KeyCode::Char(character)));
         }
-        assert_eq!(form(&app).model, "gpt5.4", "a space is not part of a model name");
+        assert_eq!(form(&app).model, "gpt 5.4", "typed input is kept as typed");
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        let error = form(&app).error.expect("an invalid model is reported, not reshaped");
+        assert!(error.contains("model must be 1-128"), "{error}");
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Backspace));
+        for character in "5.4".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+        assert_eq!(form(&app).model, "gpt5.4");
+        assert_eq!(form(&app).error, None, "editing clears the error");
         app.on_key(key(KeyCode::Down));
         assert_eq!(form(&app).field, SessionField::Effort);
         app.on_key(key(KeyCode::Char('x')));

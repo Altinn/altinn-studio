@@ -544,12 +544,12 @@ spec:
     }
 }
 
+/// The `agents/` manifests declare the same default; they live outside this crate
+/// and are not present in the sparse checkouts that build it, so they are checked
+/// where the Agent images are built.
 #[test]
-fn published_manifests_keep_claude_code_sessions_on_fable() {
+fn example_manifests_keep_claude_code_sessions_on_fable() {
     for bytes in [
-        &include_bytes!("../../../../agents/full/agent.yaml")[..],
-        &include_bytes!("../../../../agents/minimal/agent.yaml")[..],
-        &include_bytes!("../../../../agents/worktree/agent.yaml")[..],
         &include_bytes!("../examples/minimal/agent.yaml")[..],
         &include_bytes!("../examples/self-dev/checkout/agent.yaml")[..],
         &include_bytes!("../examples/self-dev/nested/agent.yaml")[..],
@@ -559,7 +559,7 @@ fn published_manifests_keep_claude_code_sessions_on_fable() {
         let claude = agent
             .spec
             .harness(Harness::ClaudeCode)
-            .expect("every published manifest installs Claude Code");
+            .expect("every example manifest installs Claude Code");
         assert_eq!(claude.defaults.model_str(), Some("fable"));
         assert_eq!(claude.defaults.effort_str(), None);
     }

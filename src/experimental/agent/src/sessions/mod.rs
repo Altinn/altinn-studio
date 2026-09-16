@@ -440,7 +440,9 @@ pub trait SessionStore: SessionReports {
     /// `new` is recorded only when the Session is created: its harness, model and
     /// effort become the Session's immutable properties, and its initial prompt is
     /// handed to the harness at the first launch attempt, without automatic replay.
-    /// An existing Session is returned as recorded, unless it binds another harness.
+    /// An existing Session is returned as recorded, unless `new` names another
+    /// harness, model or effort, so concurrent creations cannot silently
+    /// drop one caller's choice.
     fn ensure_session<'a>(
         &'a self,
         agent: &'a str,
