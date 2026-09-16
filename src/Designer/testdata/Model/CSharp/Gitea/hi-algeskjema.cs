@@ -46,7 +46,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializelatitude() => latitude.HasValue;
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("depth", Order = 7)]
     [JsonProperty("depth")]
@@ -61,7 +61,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("sampledate")]
     public string sampledate { get; set; }
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("hour", Order = 9)]
     [JsonProperty("hour")]
@@ -70,7 +70,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializehour() => hour.HasValue;
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("minute", Order = 10)]
     [JsonProperty("minute")]
@@ -120,7 +120,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializebehaviourchanges() => behaviourchanges.HasValue;
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("diatomcount", Order = 18)]
     [JsonProperty("diatomcount")]
@@ -129,7 +129,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializediatomcount() => diatomcount.HasValue;
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("dinoflagellatecount", Order = 19)]
     [JsonProperty("dinoflagellatecount")]
@@ -138,7 +138,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializedinoflagellatecount() => dinoflagellatecount.HasValue;
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("flagellatecount", Order = 20)]
     [JsonProperty("flagellatecount")]
@@ -179,7 +179,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("scientificname")]
     public string scientificname { get; set; }
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("density", Order = 2)]
     [JsonProperty("density")]

@@ -18,7 +18,7 @@ public class IntegerValidationGenerationTests : CsharpModelConversionTestsBase<I
 {
     [Theory]
     [InlineData("integer", "323.00")]
-    [InlineData("positiveInteger", "323.00")]
+    [InlineData("positiveInteger", "+323.00")]
     [InlineData("negativeInteger", "-323.00")]
     [InlineData("nonNegativeInteger", "0.00")]
     [InlineData("nonPositiveInteger", "0.00")]

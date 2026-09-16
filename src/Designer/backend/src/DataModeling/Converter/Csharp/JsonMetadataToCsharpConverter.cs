@@ -14,7 +14,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp;
 public class JsonMetadataToCsharpConverter : IModelMetadataToCsharpConverter
 {
     // Norwegian number formatting may use the Unicode minus sign.
-    private const string IntegerSignPattern = @"[+\-\u2212]?";
+    private const string IntegerSignPattern = @"[\-\u2212]?";
     private const string IntegerValuePattern = "^" + IntegerSignPattern + @"[0-9]+(?:[.,]0+)?$";
 
     private readonly CSharpGenerationSettings _generationSettings;

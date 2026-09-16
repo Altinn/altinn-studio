@@ -48,7 +48,7 @@ public class CSharpE2ERestrictionsTestData : IEnumerable<object[]>
             "Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd",
             "i2",
             "decimal?",
-            @"[RegularExpression(@""^[+\-\u2212]?[0-9]{1,10}(?:[.,]0+)?$"")]",
+            @"[RegularExpression(@""^[\-\u2212]?[0-9]{1,10}(?:[.,]0+)?$"")]",
         ];
         yield return ["Model/XmlSchema/General/SimpleTypeRestrictionsExtended.xsd", "i2", "decimal?", "[Required]"];
         yield return

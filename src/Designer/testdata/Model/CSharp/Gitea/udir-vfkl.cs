@@ -159,7 +159,7 @@ namespace Altinn.App.Models
 
   public class Paastand
   {
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("svar", Order = 1)]
     [JsonProperty("svar")]

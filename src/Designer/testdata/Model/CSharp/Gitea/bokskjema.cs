@@ -169,7 +169,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("ismn")]
     public string ismn { get; set; }
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("orgNumber", Order = 30)]
     [JsonProperty("orgNumber")]

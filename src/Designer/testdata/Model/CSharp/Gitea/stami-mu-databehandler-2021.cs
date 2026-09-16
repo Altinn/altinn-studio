@@ -12,7 +12,7 @@ namespace Altinn.App.Models
   [XmlRoot(ElementName="DataBehandler", Namespace="https://aip.stami.no/dataAgreement.xsd")]
   public class DataBehandler
   {
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("userId", Order = 1)]
     [JsonProperty("userId")]

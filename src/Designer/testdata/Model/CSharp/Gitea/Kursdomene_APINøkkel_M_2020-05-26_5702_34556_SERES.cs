@@ -126,7 +126,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("kontaktpersonTelefon")]
     public string kontaktpersonTelefon { get; set; }
 
-    [RegularExpression(@"^[+\-\u2212]?[0-9]+(?:[.,]0+)?$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("organisasjonsEllerFoedselsNr", Order = 4)]
     [JsonProperty("organisasjonsEllerFoedselsNr")]
