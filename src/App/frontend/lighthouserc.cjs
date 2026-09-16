@@ -6,8 +6,9 @@
 // Configuration
 const { BASE_URL, APP_PATH } = require('./scripts/lighthouse/lighthouse-config-constants.cjs');
 
-const chromePath =
-  process.env.CHROME_PATH || process.env.PUPPETEER_EXECUTABLE_PATH || require('puppeteer').executablePath();
+// Chrome is located through the environment: the CI runner image sets these variables, and `@lhci/cli` finds a
+// browser on its own when neither is set.
+const chromePath = process.env.CHROME_PATH || process.env.PUPPETEER_EXECUTABLE_PATH;
 
 /**
  * Lighthouse CI configuration object
