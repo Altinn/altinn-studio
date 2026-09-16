@@ -15,14 +15,13 @@ const entry = (overrides: Partial<WorkflowErrorEntry> = {}): WorkflowErrorEntry 
 });
 
 describe('EngineErrorMessage', () => {
-  it('shows the problem title, detail and failure code as their own verbatim nodes, once', () => {
+  it('shows the problem title, detail and failure code as their own verbatim nodes, and the whole message', () => {
     renderEngineErrorMessage(entry());
 
     expect(screen.getByText('PdfGenerationException').tagName).toBe('CODE');
     expect(screen.getByText('Could not generate the PDF').tagName).toBe('CODE');
     expect(screen.getByText('PDF_GENERATION_FAILED').tagName).toBe('CODE');
-    // Everything the message carried is on screen already; the JSON would only repeat it.
-    expect(screen.queryByText(problemMessage)).not.toBeInTheDocument();
+    expect(screen.getByText(problemMessage).tagName).toBe('CODE');
   });
 
   it('keeps the trace id and other fields the app added', () => {
@@ -33,6 +32,7 @@ describe('EngineErrorMessage', () => {
     expect(screen.getByText('traceId')).toBeInTheDocument();
     expect(screen.getByText('00-e74e2d6ae60e-01')).toBeInTheDocument();
     expect(screen.queryByText('nonRetryable')).not.toBeInTheDocument();
+    expect(screen.getByText(message)).toBeInTheDocument();
   });
 
   it('tags the HTTP status and whether the engine classed the error as transient', () => {
