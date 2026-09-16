@@ -1,6 +1,7 @@
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useChecksum } from '../../../../hooks/useChecksum';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '../../../../utils/taskUtils';
 
 const FILENAME_TEXT_RESOURCE_KEY_TYPE = 'altinn:FilenameTextResourceKey';
 
@@ -32,8 +33,7 @@ export const usePdfConfig = (): UsePdfConfigResult => {
   const { bpmnDetails } = useBpmnContext();
   const { updateChecksum: forceReRenderComponent } = useChecksum();
 
-  const pdfConfig: PdfConfig =
-    bpmnDetails?.element?.businessObject?.extensionElements?.values?.[0]?.pdfConfig ?? {};
+  const pdfConfig: PdfConfig = TaskUtils.getTaskExtension(bpmnDetails?.element)?.pdfConfig ?? {};
 
   const storedFilenameTextResourceId = pdfConfig.filenameTextResourceKey?.value ?? '';
 
