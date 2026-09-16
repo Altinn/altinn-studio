@@ -58,6 +58,22 @@ func (s *Service) appSecretsDirOrEmpty(appPath string) string {
 	return dir
 }
 
+// appKeysDirOrEmpty is the containerized run's data-protection keys directory, on the same terms.
+func (s *Service) appKeysDirOrEmpty(appPath string) string {
+	if s.cfg == nil || s.cfg.Home == "" {
+		return ""
+	}
+	appID, err := readAppID(appPath)
+	if err != nil {
+		return ""
+	}
+	dir, err := s.cfg.AppKeysDir(appID)
+	if err != nil {
+		return ""
+	}
+	return dir
+}
+
 // StoreMaskinportenClient validates the supplied credentials and stores them as the app's client.
 func (s *Service) StoreMaskinportenClient(req MaskinportenClientRequest) (MaskinportenClientResult, error) {
 	appID, dir, err := s.resolveAppSecrets(req.AppPath)

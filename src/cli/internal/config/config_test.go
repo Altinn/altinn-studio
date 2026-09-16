@@ -280,6 +280,14 @@ func TestAppSecretsDir(t *testing.T) {
 		t.Fatalf("AppSecretsDir() = %q, want %q", got, want)
 	}
 
+	keys, err := cfg.AppKeysDir("ttd/my-app")
+	if err != nil {
+		t.Fatalf("AppKeysDir() error = %v", err)
+	}
+	if keys != filepath.Join(filepath.Dir(want), "keys") {
+		t.Fatalf("AppKeysDir() = %q, want the keys directory beside secrets", keys)
+	}
+
 	// Two segments, so ids that a separator would flatten to the same name stay apart.
 	other, err := cfg.AppSecretsDir("ttd-my/app")
 	if err != nil {

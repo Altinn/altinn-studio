@@ -8,6 +8,10 @@ import (
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
+// EnvKeysDirectory is the environment variable the app libraries read their data-protection keys
+// directory from.
+const EnvKeysDirectory = "ALTINN_KEYS_DIRECTORY"
+
 type appEnv struct {
 	values map[string]string
 }
@@ -18,9 +22,10 @@ func newAppRunEnv(
 	topology envtopology.Local,
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
+	keysDir string,
 ) []string {
 	env := newAppEnv(current)
-	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir)
+	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir)
 	return env.entries()
 }
 
@@ -43,6 +48,7 @@ func (e appEnv) addRunDefaults(
 	topology envtopology.Local,
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
+	keysDir string,
 ) {
 	endpoints := newAppEndpointConfig(topology)
 
@@ -54,6 +60,12 @@ func (e appEnv) addRunDefaults(
 	// from the inherited environment: where the secrets live is studioctl's decision, not the shell's.
 	if secretsDir != "" {
 		e.values[appsecrets.EnvSecretsDir] = secretsDir
+	}
+	// Where the app persists its data-protection keys. A native run uses the developer's home directory, as
+	// the app libraries default to; a container run is told the directory studioctl mounts for it, as the
+	// platform tells a deployed app.
+	if keysDir != "" {
+		e.values[EnvKeysDirectory] = keysDir
 	}
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)

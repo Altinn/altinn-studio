@@ -1,8 +1,10 @@
 package app_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -426,6 +428,8 @@ func TestBuildDotnetRunSpec_NamesTheSecretsDirectory(t *testing.T) {
 	if got := envValue(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR"); got != want {
 		t.Fatalf("STUDIOCTL_APP_SECRETS_DIR = %q, want %q", got, want)
 	}
+	// A native run keeps its data-protection keys where the app libraries default to: the developer's home.
+	assertEnvMissing(t, spec.Env, "ALTINN_KEYS_DIRECTORY")
 }
 
 func TestBuildDotnetRunSpec_OverridesAnInheritedSecretsDirectory(t *testing.T) {
@@ -494,13 +498,32 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 	if spec.SecretsDir != want {
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
-	if len(spec.Config.Volumes) != 1 {
-		t.Fatalf("Volumes = %+v, want the one secrets mount", spec.Config.Volumes)
+	wantKeys := filepath.Join(home, "apps", "ttd", "test-app", "keys")
+	if spec.KeysDir != wantKeys {
+		t.Fatalf("KeysDir = %q, want %q", spec.KeysDir, wantKeys)
 	}
-	mount := spec.Config.Volumes[0]
-	if mount.HostPath != want || mount.ContainerPath != "/mnt/app-secrets" || !mount.ReadOnly {
-		t.Fatalf("mount = %+v, want %s read-only at /mnt/app-secrets", mount, want)
+	if len(spec.Config.Volumes) != 2 {
+		t.Fatalf("Volumes = %+v, want the secrets and keys mounts", spec.Config.Volumes)
 	}
-	// The container reads the deployed location, so it is not told about the directory.
+	secrets, keys := spec.Config.Volumes[0], spec.Config.Volumes[1]
+	if secrets.HostPath != want || secrets.ContainerPath != "/mnt/app-secrets" || !secrets.ReadOnly {
+		t.Fatalf("secrets mount = %+v, want %s read-only at /mnt/app-secrets", secrets, want)
+	}
+	if keys.HostPath != wantKeys || keys.ContainerPath != "/mnt/keys" || keys.ReadOnly {
+		t.Fatalf("keys mount = %+v, want %s writable at /mnt/keys", keys, wantKeys)
+	}
+	// The container reads the deployed location, so it is not told about the secrets directory - but it is
+	// told where its data-protection keys go, as a deployed app is.
 	assertEnvMissing(t, spec.Config.Env, "STUDIOCTL_APP_SECRETS_DIR")
+	if got := envValue(t, spec.Config.Env, "ALTINN_KEYS_DIRECTORY"); got != "/mnt/keys" {
+		t.Fatalf("ALTINN_KEYS_DIRECTORY = %q, want /mnt/keys", got)
+	}
+	// It runs as the developer, who owns the mounted files; Windows has no uids and leaves the image user.
+	if runtime.GOOS == "windows" {
+		if spec.Config.User != "" {
+			t.Fatalf("User = %q, want the image user on Windows", spec.Config.User)
+		}
+	} else if spec.Config.User != fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()) {
+		t.Fatalf("User = %q, want the host uid:gid", spec.Config.User)
+	}
 }

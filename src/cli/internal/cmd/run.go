@@ -1325,7 +1325,7 @@ func (c *RunCommand) runDocker(
 	if err := validateDockerRunImageFlags(flags); err != nil {
 		return err
 	}
-	if err := ensureAppSecretsDir(spec.SecretsDir); err != nil {
+	if err := ensureAppDirs(spec.SecretsDir, spec.KeysDir); err != nil {
 		return err
 	}
 
@@ -1438,6 +1438,7 @@ func (c *RunCommand) createDockerAppContainer(
 
 	progress.ApplyStart(progress.containerID)
 	spec.Config.Volumes = relabelBindMountsFor(client, spec.Config.Volumes)
+	spec.Config.UsernsMode = usernsModeFor(client, spec.Config.User)
 	containerID, err := client.CreateContainer(ctx, spec.Config)
 	if err != nil {
 		progress.ApplyFailed(progress.containerID, err)
@@ -1662,17 +1663,28 @@ func (c *RunCommand) followContainer(
 	return nil
 }
 
-// ensureAppSecretsDir creates the app's secrets directory before it is bind-mounted: a missing host
-// directory is otherwise created by the runtime, on Linux as root, where everything else under the
-// studioctl home is the user's.
-func ensureAppSecretsDir(dir string) error {
-	if dir == "" {
-		return nil
-	}
-	if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
-		return fmt.Errorf("create app secrets directory: %w", err)
+// ensureAppDirs creates the app's host directories before they are bind-mounted: a missing host directory
+// is otherwise created by the runtime, on Linux as root, where everything else under the studioctl home is
+// the user's.
+func ensureAppDirs(dirs ...string) error {
+	for _, dir := range dirs {
+		if dir == "" {
+			continue
+		}
+		if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
+			return fmt.Errorf("create app directory %s: %w", filepath.Base(dir), err)
+		}
 	}
 	return nil
+}
+
+// usernsModeFor keeps the developer's uid inside a rootless podman container, as the localtest containers
+// do, so that running as the host user means the same uid on both sides of a bind mount.
+func usernsModeFor(client containerruntime.ContainerClient, user string) string {
+	if user == "" || client.Toolchain().Platform != containertypes.PlatformPodman {
+		return ""
+	}
+	return "keep-id"
 }
 
 // relabelBindMountsFor marks bind mounts shared for SELinux where the runtime needs it, as the localtest
