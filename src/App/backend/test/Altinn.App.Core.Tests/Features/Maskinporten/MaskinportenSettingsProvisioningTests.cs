@@ -1,78 +1,29 @@
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
 
-public sealed class MaskinportenSettingsSourceTests
+/// <summary>
+/// Maskinporten as a tenant of the provisioned secrets channel: what an app's
+/// <see cref="MaskinportenSettings"/> bind to, and what they refuse to bind to.
+/// </summary>
+public sealed class MaskinportenSettingsProvisioningTests
 {
-    private const string SettingsFileName = "maskinporten-settings.json";
-
-    /// <summary>
-    /// The provisioned location is not reachable from the app's configuration - there is no key for it, and
-    /// nothing composes it from one. This pins the path the platform actually mounts.
-    /// </summary>
-    [Fact]
-    public void DefaultFilePath_IsTheProvisionedLocation()
-    {
-        Assert.Equal(
-            Path.Join(AppSettings.DefaultRuntimeSecretsDirectory, SettingsFileName),
-            MaskinportenSettingsSource.DefaultFilePath
-        );
-    }
-
-    [Fact]
-    public void GetExistingProviderRoot_ReturnsPath_WhenDirectoryExists()
-    {
-        using var tempDirectory = new TempDirectory();
-
-        Assert.Equal(tempDirectory.Path, MaskinportenSettingsSource.GetExistingProviderRoot(tempDirectory.Path));
-    }
-
-    [Fact]
-    public void GetExistingProviderRoot_ReturnsNearestExistingParent_WhenDirectoryDoesNotExist()
-    {
-        using var tempDirectory = new TempDirectory();
-        string missingDirectory = Path.Join(tempDirectory.Path, "missing", "app-secrets");
-
-        Assert.Equal(tempDirectory.Path, MaskinportenSettingsSource.GetExistingProviderRoot(missingDirectory));
-    }
-
-    [Fact]
-    public void Settings_AreEmpty_WhenTheFileDoesNotExist()
-    {
-        using var tempDirectory = new TempDirectory();
-
-        using var configuration = new MaskinportenSettingsSource(Path.Join(tempDirectory.Path, SettingsFileName));
-
-        Assert.Empty(configuration.Section.AsEnumerable(makePathsRelative: true));
-    }
-
-    [Fact]
-    public void Settings_AreEmpty_WhenTheDirectoryDoesNotExist()
-    {
-        using var tempDirectory = new TempDirectory();
-
-        using var configuration = new MaskinportenSettingsSource(
-            Path.Join(tempDirectory.Path, "missing", SettingsFileName)
-        );
-
-        Assert.Empty(configuration.Section.AsEnumerable(makePathsRelative: true));
-    }
+    private static readonly ProvisionedSecretFile _file = ProvisionedSecretFiles.Maskinporten;
 
     [Fact]
     public async Task Options_BindTheProvisionedFile()
     {
         using var tempDirectory = new TempDirectory();
-        string settingsPath = Path.Join(tempDirectory.Path, SettingsFileName);
-        await File.WriteAllTextAsync(settingsPath, CreateSettingsJson("provisioned-client"));
+        await WriteSettings(tempDirectory.Path, "provisioned-client");
 
-        await using var serviceProvider = BuildOptionsProvider(settingsPath);
+        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
         Assert.Equal("provisioned-client", settings.ClientId);
@@ -82,14 +33,14 @@ public sealed class MaskinportenSettingsSourceTests
     [Fact]
     public async Task Options_IgnoreAnyMaskinportenInputInTheAppConfiguration()
     {
-        // The whole point of the private configuration root: an app cannot supply, extend or displace the
-        // credentials the platform provisions, no matter what it puts in its own configuration.
+        // The whole point of the private channel: an app cannot supply, extend or displace the credentials the
+        // platform provisions, no matter what it puts in its own configuration. The v8 keys are spelled out
+        // because an upgrading app still has them in its appsettings.json, and they must be inert.
         using var tempDirectory = new TempDirectory();
-        string settingsPath = Path.Join(tempDirectory.Path, SettingsFileName);
-        await File.WriteAllTextAsync(settingsPath, CreateSettingsJson("provisioned-client"));
+        await WriteSettings(tempDirectory.Path, "provisioned-client");
 
         await using var serviceProvider = BuildOptionsProvider(
-            settingsPath,
+            tempDirectory.Path,
             ("MaskinportenSettings:clientId", "app-supplied-client"),
             ("MaskinportenSettings:jwkBase64", "app-supplied-key"),
             ("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
@@ -105,16 +56,15 @@ public sealed class MaskinportenSettingsSourceTests
     public async Task Options_FailValidation_WhenNothingIsProvisioned()
     {
         using var tempDirectory = new TempDirectory();
-        string settingsPath = Path.Join(tempDirectory.Path, SettingsFileName);
 
-        await using var serviceProvider = BuildOptionsProvider(settingsPath);
+        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
 
         var exception = Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
         );
         // The failure names the place the platform provisions into, not a field, and points a developer who
         // hits it on their own machine at the tool that provisions locally.
-        Assert.Contains(settingsPath, exception.Message, StringComparison.Ordinal);
+        Assert.Contains(Path.Join(tempDirectory.Path, _file.FileName), exception.Message, StringComparison.Ordinal);
         Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
     }
@@ -124,10 +74,12 @@ public sealed class MaskinportenSettingsSourceTests
     {
         // A partial file is a different problem from a missing one, and the data annotations describe it.
         using var tempDirectory = new TempDirectory();
-        string settingsPath = Path.Join(tempDirectory.Path, SettingsFileName);
-        await File.WriteAllTextAsync(settingsPath, """{ "MaskinportenSettings": { "clientId": "half-a-client" } }""");
+        await File.WriteAllTextAsync(
+            Path.Join(tempDirectory.Path, _file.FileName),
+            """{ "MaskinportenSettings": { "clientId": "half-a-client" } }"""
+        );
 
-        await using var serviceProvider = BuildOptionsProvider(settingsPath);
+        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
 
         var exception = Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
@@ -136,64 +88,35 @@ public sealed class MaskinportenSettingsSourceTests
         Assert.DoesNotContain("studioctl", exception.Message, StringComparison.Ordinal);
     }
 
-    [LinuxOnlyFact]
-    public async Task Options_LoadTheFile_WhenTheSecretsDirectoryAppearsLater()
+    /// <summary>
+    /// Operator key rotation reaches a running app: the channel polls, and the change token it publishes is
+    /// what <see cref="IOptionsMonitor{TOptions}"/> rebinds on.
+    /// </summary>
+    [Fact]
+    public async Task Options_Reload_WhenTheProvisionedFileIsRotated()
     {
-        // The secrets volume is mounted by the platform and can show up after the app has started.
         using var tempDirectory = new TempDirectory();
-        string settingsDirectory = Path.Join(tempDirectory.Path, "missing");
-        string settingsPath = Path.Join(settingsDirectory, SettingsFileName);
+        await WriteSettings(tempDirectory.Path, "client-before");
 
-        await using var serviceProvider = BuildOptionsProvider(settingsPath);
+        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
+        Assert.Equal("client-before", options.CurrentValue.ClientId);
 
-        Directory.CreateDirectory(settingsDirectory);
-        await File.WriteAllTextAsync(settingsPath, CreateSettingsJson("client-after"));
+        await WriteSettings(tempDirectory.Path, "client-after", DateTime.UtcNow.AddMinutes(1));
 
         await Wait.Until(() => TryReadClientId(options) == "client-after", TimeSpan.FromSeconds(30));
     }
 
-    [LinuxOnlyFact]
-    public async Task Options_Reload_WhenTheKubernetesDataSymlinkChanges()
-    {
-        using var tempDirectory = new TempDirectory();
-        var projectedVolume = new KubernetesProjectedVolume(tempDirectory.Path);
-        projectedVolume.WriteVersion(
-            KubernetesProjectedVolume.InitialVersionDirectoryName,
-            SettingsFileName,
-            CreateSettingsJson("client-before"),
-            KubernetesProjectedVolume.InitialVersionLastWriteTimeUtc
-        );
-        projectedVolume.CreateSymlinks(KubernetesProjectedVolume.InitialVersionDirectoryName, SettingsFileName);
-
-        await using var serviceProvider = BuildOptionsProvider(Path.Join(tempDirectory.Path, SettingsFileName));
-        var options = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.Equal("client-before", options.CurrentValue.ClientId);
-
-        projectedVolume.WriteVersion(
-            KubernetesProjectedVolume.UpdatedVersionDirectoryName,
-            SettingsFileName,
-            CreateSettingsJson("client-after"),
-            KubernetesProjectedVolume.UpdatedVersionLastWriteTimeUtc
-        );
-        projectedVolume.SwapDataSymlink(KubernetesProjectedVolume.UpdatedVersionDirectoryName);
-
-        await Wait.Until(() => options.CurrentValue.ClientId == "client-after", TimeSpan.FromSeconds(30));
-    }
-
     /// <summary>
-    /// On localtest studioctl provisions the credentials the way the operator does
-    /// in a cluster, and names the directory it provisions into. That is how a developer tests a real
-    /// Maskinporten integration from a local run without the credentials ever entering the app's configuration.
+    /// On localtest studioctl provisions the credentials the way the operator does in a cluster, and names the
+    /// directory it provisions into. That is how a developer tests a real Maskinporten integration from a local
+    /// run without the credentials ever entering the app's configuration.
     /// </summary>
     [Fact]
     public async Task Options_ReadTheStudioctlDirectory_OnLocaltest()
     {
         using var tempDirectory = new TempDirectory();
-        await File.WriteAllTextAsync(
-            Path.Join(tempDirectory.Path, SettingsFileName),
-            CreateSettingsJson("developers-own-client")
-        );
+        await WriteSettings(tempDirectory.Path, "developers-own-client");
 
         await using var serviceProvider = BuildAppProvider(
             hostName: "local.altinn.cloud",
@@ -202,37 +125,11 @@ public sealed class MaskinportenSettingsSourceTests
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
         Assert.Equal("developers-own-client", settings.ClientId);
-        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.True(source.ProvisionedByStudioctl);
-        Assert.Equal(Path.Join(tempDirectory.Path, SettingsFileName), source.FilePath);
-    }
-
-    /// <summary>
-    /// The same key in a deployed environment moves nothing. This is the invariant: an app cannot hand itself
-    /// an identity where a provisioned one is meant to be, not even by borrowing studioctl's key.
-    /// </summary>
-    [Fact]
-    public async Task Options_IgnoreTheStudioctlDirectory_WhenNotOnLocaltest()
-    {
-        using var tempDirectory = new TempDirectory();
-        await File.WriteAllTextAsync(
-            Path.Join(tempDirectory.Path, SettingsFileName),
-            CreateSettingsJson("developers-own-client")
-        );
-
-        await using var serviceProvider = BuildAppProvider(
-            hostName: "at22.altinn.cloud",
-            (StudioctlAppEnvironment.AppSecretsDirectoryKey, tempDirectory.Path)
-        );
-
-        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.False(source.ProvisionedByStudioctl);
-        Assert.Equal(Path.GetFullPath(MaskinportenSettingsSource.DefaultFilePath), source.FilePath);
     }
 
     /// <summary>
     /// A MaskinportenSettings section in the app's own configuration is not a Maskinporten surface anywhere,
-    /// localtest included: the file is the only input, so there is never a section name to get right.
+    /// localtest included: the provisioned file is the only input, so there is never a section name to get right.
     /// </summary>
     [Fact]
     public async Task Options_IgnoreAMaskinportenSection_OnLocaltest()
@@ -246,16 +143,6 @@ public sealed class MaskinportenSettingsSourceTests
         Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
         );
-    }
-
-    [Fact]
-    public async Task Options_UseTheProvisionedLocation_WhenStudioctlNamesNoDirectory()
-    {
-        await using var serviceProvider = BuildAppProvider(hostName: "local.altinn.cloud");
-
-        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.False(source.ProvisionedByStudioctl);
-        Assert.Equal(Path.GetFullPath(MaskinportenSettingsSource.DefaultFilePath), source.FilePath);
     }
 
     /// <summary>
@@ -306,18 +193,18 @@ public sealed class MaskinportenSettingsSourceTests
     }
 
     /// <summary>
-    /// The Maskinporten options exactly as an app binds them, for a settings file at
-    /// <paramref name="settingsFilePath"/> and an app configuration of <paramref name="appConfiguration"/>.
-    /// Registering the source first is the only way to move the file - an app has no such lever.
+    /// The Maskinporten options exactly as an app binds them, for secrets provisioned into
+    /// <paramref name="secretsDirectory"/> and an app configuration of <paramref name="appConfiguration"/>.
+    /// Registering the channel first is the only way to move the directory - an app has no such lever.
     /// </summary>
     private static ServiceProvider BuildOptionsProvider(
-        string settingsFilePath,
+        string secretsDirectory,
         params (string Key, string? Value)[] appConfiguration
     )
     {
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(ConfigurationWith(appConfiguration));
-        services.AddSingleton(_ => new MaskinportenSettingsSource(settingsFilePath));
+        services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory, ProvisionedSecretFiles.All));
         services.AddMaskinportenSettings();
 
         return services.BuildStrictServiceProvider();
@@ -344,15 +231,27 @@ public sealed class MaskinportenSettingsSourceTests
         }
     }
 
-    private static string CreateSettingsJson(string clientId) =>
-        $$"""
+    private static async Task WriteSettings(string secretsDirectory, string clientId, DateTime? lastWriteTimeUtc = null)
+    {
+        string path = Path.Join(secretsDirectory, _file.FileName);
+        await File.WriteAllTextAsync(
+            path,
+            $$"""
             {
               "MaskinportenSettings": {
                 "authority": "https://test.maskinporten.no/",
                 "clientId": "{{clientId}}"
               }
             }
-            """;
+            """
+        );
+
+        if (lastWriteTimeUtc is not null)
+        {
+            // The polling watcher compares write times, so a rotation needs one that is visibly newer.
+            File.SetLastWriteTimeUtc(path, lastWriteTimeUtc.Value);
+        }
+    }
 
     private sealed class TempDirectory : IDisposable
     {

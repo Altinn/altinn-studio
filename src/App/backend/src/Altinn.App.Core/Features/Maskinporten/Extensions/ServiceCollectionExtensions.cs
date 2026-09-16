@@ -1,6 +1,5 @@
 using Altinn.App.Core.Features.Maskinporten.Models;
-using Altinn.App.Core.Internal;
-using Microsoft.Extensions.Configuration;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -15,7 +14,7 @@ internal static class ServiceCollectionExtensions
     /// Maskinporten identity the app has: the client Studio provisions for it, or the one studioctl provisions
     /// for a local run.</para>
     /// <para>There is deliberately no way for the app to configure those credentials — see
-    /// <see cref="MaskinportenSettingsSource"/> for why.</para>
+    /// <see cref="ProvisionedSecrets"/> for why.</para>
     /// </summary>
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenClient(this IServiceCollection services)
@@ -30,34 +29,18 @@ internal static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Binds <see cref="MaskinportenSettings"/> to the provisioned credentials. Registered by hand rather
-    /// than through <c>OptionsBuilder.Bind</c> so that the private configuration root holding them is
-    /// created — and disposed — by the container.
+    /// Binds <see cref="MaskinportenSettings"/> to the provisioned credentials — the first tenant of the
+    /// channel the platform provisions secrets through.
     /// </summary>
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        // TryAdd so a test can put its own source in first. Where the file lives is the source's decision.
-        services.TryAddSingleton(sp =>
-            MaskinportenSettingsSource.ForPlatform(
-                sp.GetRequiredService<RuntimeEnvironment>(),
-                sp.GetRequiredService<IConfiguration>()
-            )
-        );
+        services.BindProvisionedSecret<MaskinportenSettings>(ProvisionedSecretFiles.Maskinporten);
         services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<
                 IValidateOptions<MaskinportenSettings>,
                 ValidateMaskinportenSettingsProvisioned
-            >()
-        );
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IConfigureOptions<MaskinportenSettings>, ConfigureMaskinportenSettings>()
-        );
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<
-                IOptionsChangeTokenSource<MaskinportenSettings>,
-                ConfigureMaskinportenSettings
             >()
         );
 

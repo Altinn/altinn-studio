@@ -2,9 +2,9 @@ using System.IO;
 using System.Text.Json;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -204,12 +204,13 @@ public sealed class WebHostBuilderExtensionsTests
 
     /// <summary>
     /// The <c>dotnet run</c> path: what <c>studioctl app env --json</c> prints, imported the way
-    /// <see cref="StudioctlLocalConfiguration"/> imports it, is all the Maskinporten source needs to find the
-    /// directory studioctl provisions. The hostname that opens the localtest gate and the directory itself both
-    /// arrive through the import. The keys are spelled out because they are the wire contract with studioctl.
+    /// <see cref="StudioctlLocalConfiguration"/> imports it, is all the provisioned secrets channel needs to
+    /// find the directory studioctl provisions. The hostname that opens the localtest gate and the directory
+    /// itself both arrive through the import. The keys are spelled out because they are the wire contract with
+    /// studioctl.
     /// </summary>
     [Fact]
-    public void ImportedStudioctlEnvironment_ReachesTheMaskinportenSource()
+    public void ImportedStudioctlEnvironment_ReachesTheProvisionedSecretsChannel()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
         bool parsed = StudioctlLocalConfiguration.TryParseEnvironmentJson(
@@ -235,11 +236,11 @@ public sealed class WebHostBuilderExtensionsTests
         services.AddMaskinportenSettings();
         using ServiceProvider serviceProvider = services.BuildStrictServiceProvider();
 
-        var source = serviceProvider.GetRequiredService<MaskinportenSettingsSource>();
-        Assert.True(source.ProvisionedByStudioctl);
+        var secrets = serviceProvider.GetRequiredService<ProvisionedSecrets>();
+        Assert.True(secrets.ProvisionedByStudioctl);
         Assert.Equal(
-            Path.GetFullPath(Path.Join(tempDirectory.Path, MaskinportenSettingsSource.FileName)),
-            source.FilePath
+            Path.GetFullPath(Path.Join(tempDirectory.Path, ProvisionedSecretFiles.Maskinporten.FileName)),
+            Path.GetFullPath(secrets.PathOf(ProvisionedSecretFiles.Maskinporten))
         );
     }
 
@@ -281,14 +282,18 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [Fact]
-    public void AddRuntimeConfigFiles_Production_NeverAddsAMaskinportenSettingsFile()
+    public void AddRuntimeConfigFiles_Production_NeverAddsAProvisionedSecretsFile()
     {
-        // The provisioned credentials are bound through the Maskinporten client's own configuration root. If
-        // the sweep of the secrets mount also loaded them, a MaskinportenSettings section would be back in the
-        // app's configuration - where a package binding that name by convention would pick it up. Every file
-        // named like it stays out, including a variant an older platform might still mount.
+        // The files the libraries host are bound through the provisioned secrets channel. If the sweep of the
+        // secrets mount also loaded them, their sections would be back in the app's configuration - where a
+        // package binding one of those names by convention would pick them up. Every hosted file stays out, as
+        // does a Maskinporten variant an older platform might still mount.
         using var tempDirectory = new TempDirectory(_outputHelper);
-        File.WriteAllText(Path.Join(tempDirectory.Path, "maskinporten-settings.json"), "{}");
+        foreach (ProvisionedSecretFile hostedFile in ProvisionedSecretFiles.All)
+        {
+            File.WriteAllText(Path.Join(tempDirectory.Path, hostedFile.FileName), "{}");
+        }
+
         File.WriteAllText(Path.Join(tempDirectory.Path, "maskinporten-settings-internal.json"), "{}");
         File.WriteAllText(Path.Join(tempDirectory.Path, "Maskinporten-Settings.override.json"), "{}");
         File.WriteAllText(Path.Join(tempDirectory.Path, "platform-settings.json"), "{}");
@@ -305,6 +310,10 @@ public sealed class WebHostBuilderExtensionsTests
             .Select(source => source.Path ?? string.Empty)
             .ToArray();
 
+        Assert.All(
+            ProvisionedSecretFiles.All,
+            hostedFile => Assert.DoesNotContain(hostedFile.FileName, jsonSourcePaths)
+        );
         Assert.Equal(new[] { "platform-settings.json" }, jsonSourcePaths);
     }
 

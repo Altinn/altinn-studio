@@ -25,9 +25,9 @@ internal static class StudioctlAppEnvironment
 
     /// <summary>
     /// <para>The directory studioctl provisions a local run's secrets into, the way the operator provisions the
-    /// secrets mount in a cluster. It holds the Maskinporten client stored with
-    /// <c>studioctl app maskinporten set</c>; <c>MaskinportenSettingsSource.ForPlatform</c> reads it, on the
-    /// localtest platform only.</para>
+    /// secrets mount in a cluster. It holds every file the platform provisions for the app libraries, among
+    /// them the Maskinporten client stored with <c>studioctl app maskinporten set</c>;
+    /// <c>ProvisionedSecrets.ForPlatform</c> reads it, on the localtest platform only.</para>
     /// <para>Deliberately not shaped like a configuration section an app would think to write: the directory
     /// belongs to studioctl, the way the secrets mount belongs to the operator.</para>
     /// </summary>

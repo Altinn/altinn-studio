@@ -1,6 +1,5 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Maskinporten;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 
@@ -33,13 +32,7 @@ public static class WebHostBuilderExtensions
                 configBuilder.AddInMemoryCollection(config);
                 StudioctlLocalConfiguration.AddIfAvailable(configBuilder, context.HostingEnvironment);
 
-                var runtimeSecretsDirectory = context.Configuration["AppSettings:RuntimeSecretsDirectory"];
-                if (string.IsNullOrWhiteSpace(runtimeSecretsDirectory))
-                {
-                    runtimeSecretsDirectory = AppSettings.DefaultRuntimeSecretsDirectory;
-                }
-
-                AddRuntimeConfigFiles(configBuilder, context.HostingEnvironment, runtimeSecretsDirectory);
+                AddRuntimeConfigFiles(configBuilder, context.HostingEnvironment, ProvisionedSecrets.ClusterDirectory);
                 configBuilder.LoadAppConfig(args);
             }
         );
@@ -69,17 +62,10 @@ public static class WebHostBuilderExtensions
         string[] jsonFiles = Directory.GetFiles(secretsDirectory, "*.json", SearchOption.TopDirectoryOnly);
         Array.Sort(jsonFiles, StringComparer.OrdinalIgnoreCase);
 
-        // The Maskinporten credentials are bound through a configuration root of their own (see
-        // MaskinportenSettingsSource) and must not also land in the app's: nothing built in reads them from
-        // here, and a package binding a MaskinportenSettings section by convention would otherwise pick up the
-        // provisioned client. Anything named like the file is kept out, so a variant an older platform still
-        // mounts (maskinporten-settings-internal.json once existed) stays out too.
-        jsonFiles = Array.FindAll(
-            jsonFiles,
-            file =>
-                !Path.GetFileName(file)
-                    .StartsWith(MaskinportenSettingsSource.FileNamePrefix, StringComparison.OrdinalIgnoreCase)
-        );
+        // The files the libraries host are read through the private channel (see ProvisionedSecrets) and must
+        // never land in the app's own configuration root: nothing built in reads them from here, and a package
+        // binding one of their sections by convention would otherwise pick up what the platform provisioned.
+        jsonFiles = Array.FindAll(jsonFiles, file => !IsHostedProvisionedFile(Path.GetFileName(file)));
 
         PhysicalFileProvider? secretsFileProvider = null;
         HashSet<string> existingJsonFilePaths = [];
@@ -143,6 +129,33 @@ public static class WebHostBuilderExtensions
                 reloadOnChange: true
             );
         }
+    }
+
+    /// <summary>
+    /// What every Maskinporten credentials file is named after. Kept alongside the exact names so that a
+    /// variant an older platform still mounts (maskinporten-settings-internal.json once existed) stays out of
+    /// the app's configuration root too.
+    /// </summary>
+    private static readonly string _maskinportenFileNamePrefix = Path.GetFileNameWithoutExtension(
+        ProvisionedSecretFiles.Maskinporten.FileName
+    );
+
+    /// <summary>
+    /// Whether <paramref name="fileName"/> is one of the files the libraries host on the provisioned secrets
+    /// channel, and therefore one the sweep must leave alone.
+    /// </summary>
+    private static bool IsHostedProvisionedFile(string fileName)
+    {
+        IReadOnlyList<ProvisionedSecretFile> hostedFiles = ProvisionedSecretFiles.All;
+        for (int i = 0; i < hostedFiles.Count; i++)
+        {
+            if (string.Equals(fileName, hostedFiles[i].FileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return fileName.StartsWith(_maskinportenFileNamePrefix, StringComparison.OrdinalIgnoreCase);
     }
 
     private static PhysicalFileProvider CreateRuntimeSecretsFileProvider(string secretsDirectory) =>

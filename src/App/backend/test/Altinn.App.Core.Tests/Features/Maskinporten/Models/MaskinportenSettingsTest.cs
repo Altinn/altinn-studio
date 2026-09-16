@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -265,7 +265,7 @@ public class MaskinportenSettingsTest
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-            services.AddSingleton(_ => new MaskinportenSettingsSource(filePath));
+            services.AddSingleton(_ => new ProvisionedSecrets(tempDir, ProvisionedSecretFiles.All));
             services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();
@@ -311,7 +311,7 @@ public class MaskinportenSettingsTest
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-            services.AddSingleton(_ => new MaskinportenSettingsSource(filePath));
+            services.AddSingleton(_ => new ProvisionedSecrets(tempDir, ProvisionedSecretFiles.All));
             services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();

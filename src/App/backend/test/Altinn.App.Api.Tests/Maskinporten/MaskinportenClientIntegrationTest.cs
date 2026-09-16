@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ public class MaskinportenClientIntegrationTests
 
         // Act - RegisterCustomAppServices runs before AddAltinnAppServices, so this source wins the TryAdd
         var app = AppBuilder.Build(registerCustomAppServices: services =>
-            services.AddSingleton(_ => new MaskinportenSettingsSource(settingsPath))
+            services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory.Path, ProvisionedSecretFiles.All))
         );
 
         // Assert
@@ -57,7 +58,7 @@ public class MaskinportenClientIntegrationTests
                 new("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own"),
             ],
             registerCustomAppServices: services =>
-                services.AddSingleton(_ => new MaskinportenSettingsSource(settingsPath))
+                services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory.Path, ProvisionedSecretFiles.All))
         );
 
         // Assert - the app's section is not a Maskinporten configuration surface at all
