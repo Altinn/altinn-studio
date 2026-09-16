@@ -149,8 +149,17 @@ COPY --chown=agent:agent --chmod=0600 common/claude-state.json /home/agent/.clau
 
 # Microsandbox Executions and harnesses inherit init.scope. Keep the kernel pid
 # limit as their task boundary instead of systemd's much lower default.
+#
+# The kernel's inotify defaults suit one interactive desktop, not a guest running
+# harnesses, dev servers and test hosts at once. Every .NET host that reloads
+# configuration on change takes an inotify instance of its own, so a test suite
+# exhausts the default 128 instances while its hosts boot. These values match the
+# ones the self-hosted CI runners raise in src/ci/github-runner/run.sh.
 RUN install -d /etc/systemd/system/init.scope.d \
     && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && install -d /usr/lib/sysctl.d \
+    && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
+        >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
     && systemctl enable agent-workspace-init.service \
     && dotnet --version \

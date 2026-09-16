@@ -150,6 +150,9 @@ RUN { getent group docker >/dev/null || groupadd --system docker; } \
     && chmod 0440 /etc/sudoers.d/agent \
     && install -d /etc/systemd/system/init.scope.d \
     && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && install -d /usr/lib/sysctl.d \
+    && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
+        >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
     && systemctl enable docker.service \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
