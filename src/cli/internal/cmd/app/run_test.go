@@ -562,22 +562,17 @@ func TestPrepareDockerRun_RunsAsTheDeveloperAndAdaptsToTheRuntime(t *testing.T) 
 	assertRunsAsTheDeveloper(t, spec, "")
 }
 
-// assertRunsAsTheDeveloper checks the container user for the platform: the host uid:gid with the given userns
-// mode, or the image's own user on Windows, which has no uids.
+// assertRunsAsTheDeveloper checks the container user the way localtest sets it: the host uid:gid, or the
+// image's own user on Windows, which has no uids. The userns mode follows the runtime, not the user: rootless
+// podman keeps its id on Windows too, where the podman machine is the host.
 func assertRunsAsTheDeveloper(t *testing.T, spec appsvc.DockerRunSpec, wantUserns string) {
 	t.Helper()
+	wantUser := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
 	if runtime.GOOS == "windows" {
-		if spec.Config.User != "" || spec.Config.UsernsMode != "" {
-			t.Fatalf(
-				"User/UsernsMode = %q/%q, want the image user on Windows",
-				spec.Config.User,
-				spec.Config.UsernsMode,
-			)
-		}
-		return
+		wantUser = ""
 	}
-	if spec.Config.User != fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()) {
-		t.Fatalf("User = %q, want the host uid:gid", spec.Config.User)
+	if spec.Config.User != wantUser {
+		t.Fatalf("User = %q, want %q", spec.Config.User, wantUser)
 	}
 	if spec.Config.UsernsMode != wantUserns {
 		t.Fatalf("UsernsMode = %q, want %q", spec.Config.UsernsMode, wantUserns)
