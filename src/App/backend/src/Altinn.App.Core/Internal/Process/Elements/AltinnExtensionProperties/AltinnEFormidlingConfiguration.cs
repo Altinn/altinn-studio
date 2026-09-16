@@ -67,9 +67,7 @@ public sealed class AltinnEFormidlingConfiguration
     {
         var validator = new ConfigValidator(env);
 
-        // Default 'disabled' to false if not specified (eFormidling is enabled by default).
-        string? disabledValue = GetOptionalConfig(Disabled, env);
-        bool disabled = !string.IsNullOrWhiteSpace(disabledValue) && bool.Parse(disabledValue);
+        bool disabled = GetOptionalBoolConfig(Disabled, validator, nameof(Disabled));
 
         string? receiver = GetOptionalConfig(Receiver, env);
         string process = GetRequiredConfig(Process, validator, nameof(Process));
@@ -114,6 +112,32 @@ public sealed class AltinnEFormidlingConfiguration
         }
 
         return value;
+    }
+
+    /// <summary>
+    /// Reads an optional boolean field, defaulting to false when it is absent or blank. A value that is
+    /// present but not a boolean is a configuration error like any other, reported through the validator
+    /// rather than thrown, so the developer sees it alongside everything else wrong with the task.
+    /// </summary>
+    private static bool GetOptionalBoolConfig(
+        List<AltinnEnvironmentConfig> configs,
+        ConfigValidator validator,
+        string fieldName
+    )
+    {
+        string? value = GetOptionalConfig(configs, validator.Environment);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if (!bool.TryParse(value, out bool result))
+        {
+            validator.AddError($"{fieldName} must be a valid boolean for environment {validator.Environment}");
+            return false;
+        }
+
+        return result;
     }
 
     private static int GetRequiredIntConfig(
