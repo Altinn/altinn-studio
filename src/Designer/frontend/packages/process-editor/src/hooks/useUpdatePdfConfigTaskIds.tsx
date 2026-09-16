@@ -4,6 +4,7 @@ import type { BpmnDetails } from '../types/BpmnDetails';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { useDebounce } from '@studio/hooks';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { TaskUtils } from '../utils/taskUtils';
 
 export const useUpdatePdfConfigTaskIds = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
@@ -23,7 +24,7 @@ const updatePdfConfigTaskIds = (
   bpmnDetails: BpmnDetails,
   updatedTaskIds: string[],
 ) => {
-  const pdfConfig = bpmnDetails.element.businessObject.extensionElements?.values?.[0]?.pdfConfig;
+  const pdfConfig = TaskUtils.getTaskExtension(bpmnDetails.element)?.pdfConfig;
   if (!pdfConfig) {
     return;
   }

@@ -74,7 +74,9 @@ describe('EditCorrespondenceResource', () => {
 function setUpBpmnContext(correspondenceResource: object[]) {
   const signatureConfig = { correspondenceResource };
   const element = {
-    businessObject: { extensionElements: { values: [{ signatureConfig }] } },
+    businessObject: {
+      extensionElements: { values: [{ $type: 'altinn:TaskExtension', signatureConfig }] },
+    },
   };
   const updateModdleProperties = jest.fn();
   const moddle = {

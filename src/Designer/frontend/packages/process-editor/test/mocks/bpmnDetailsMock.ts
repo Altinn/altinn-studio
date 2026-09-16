@@ -6,12 +6,20 @@ import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 export const mockBpmnId: string = 'testTaskId';
 export const mockBpmnName: string = 'testTaskName';
 
+/**
+ * Every moddle element carries its type, and the editor finds the altinn task extension by that
+ * type rather than by its position in `extensionElements`. Fixtures declare it for the same reason
+ * a parsed bpmn file has it.
+ */
+const taskExtensionType: string = 'altinn:TaskExtension';
+
 export const mockBpmnElementForDataTask: ModdleElement = {
   id: 'testElementId',
   businessObject: {
     extensionElements: {
       values: [
         {
+          $type: taskExtensionType,
           actions: {
             action: [
               {
@@ -43,6 +51,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 actions: confirmationActions,
               },
             ],
@@ -55,6 +64,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 actions: signingActions,
                 signatureConfig: {
                   signatureDataType: 'signatureInformation-1234',
@@ -71,6 +81,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 actions: paymentActions,
                 paymentConfig: {
                   paymentDataType: 'paymentInformation-1234',
@@ -87,6 +98,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 taskType: 'pdf',
                 pdfConfig: {},
               },
@@ -152,6 +164,7 @@ export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
     extensionElements: {
       values: [
         {
+          $type: taskExtensionType,
           actions: signingActions,
           signatureConfig: {
             signatureDataType: 'signatureInformation-1234',
@@ -178,6 +191,7 @@ export const mockBpmnElementForSigningTaskWithPdf: ModdleElement = {
     extensionElements: {
       values: [
         {
+          $type: taskExtensionType,
           actions: signingActions,
           signatureConfig: {
             signatureDataType: 'signatureInformation-1234',

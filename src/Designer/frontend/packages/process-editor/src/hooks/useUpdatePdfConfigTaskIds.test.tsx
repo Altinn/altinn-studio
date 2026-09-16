@@ -34,7 +34,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
     const element = {
       businessObject: {
         extensionElements: {
-          values: [{ pdfConfig }],
+          values: [{ $type: 'altinn:TaskExtension', pdfConfig }],
         },
       },
     };
@@ -94,7 +94,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
     const element = {
       businessObject: {
         extensionElements: {
-          values: [{ pdfConfig }],
+          values: [{ $type: 'altinn:TaskExtension', pdfConfig }],
         },
       },
     };
@@ -156,7 +156,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
     const element = {
       businessObject: {
         extensionElements: {
-          values: [{ pdfConfig }],
+          values: [{ $type: 'altinn:TaskExtension', pdfConfig }],
         },
       },
     };
@@ -209,7 +209,7 @@ describe('useUpdatePdfConfigTaskIds', () => {
     const element = {
       businessObject: {
         extensionElements: {
-          values: [{ pdfConfig }],
+          values: [{ $type: 'altinn:TaskExtension', pdfConfig }],
         },
       },
     };

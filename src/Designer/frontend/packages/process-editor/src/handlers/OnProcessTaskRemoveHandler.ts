@@ -104,31 +104,24 @@ export class OnProcessTaskRemoveHandler {
     deletedSigningTask: OnProcessTaskEvent,
     studioModeler: StudioModeler,
   ): void {
-    const signatureDataType =
-      deletedSigningTask.taskEvent.element.businessObject.extensionElements.values[0]
-        .signatureConfig.signatureDataType;
+    const signatureDataType = TaskUtils.getTaskExtension(
+      deletedSigningTask.taskEvent.element as Element,
+    ).signatureConfig.signatureDataType;
 
     const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
-    const signingTasksToUpdate = tasks.filter(
-      ({
-        businessObject: {
-          extensionElements: { values },
-        },
-      }) => {
-        const { taskType, signatureConfig } = values[0];
-        return (
-          taskType === 'signing' &&
-          signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.some(
-            ({ dataType }) => dataType === signatureDataType,
-          )
-        );
-      },
-    );
+    const signingTasksToUpdate = tasks.filter((task) => {
+      const { taskType, signatureConfig } = TaskUtils.getTaskExtension(task) ?? {};
+      return (
+        taskType === 'signing' &&
+        signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.some(
+          ({ dataType }) => dataType === signatureDataType,
+        )
+      );
+    });
 
     signingTasksToUpdate.forEach((element) => {
       const uniqueFromSignaturesInDataTypes =
-        element.businessObject.extensionElements.values[0].signatureConfig
-          .uniqueFromSignaturesInDataTypes;
+        TaskUtils.getTaskExtension(element).signatureConfig.uniqueFromSignaturesInDataTypes;
 
       uniqueFromSignaturesInDataTypes.dataTypes = uniqueFromSignaturesInDataTypes.dataTypes.filter(
         (dataType) => dataType.dataType !== signatureDataType,

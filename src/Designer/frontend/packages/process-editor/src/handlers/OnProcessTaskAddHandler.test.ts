@@ -231,6 +231,7 @@ describe('OnProcessTaskAddHandler', () => {
       extensionElements: {
         values: [
           {
+            $type: 'altinn:TaskExtension',
             signatureConfig: {
               signatureDataType: 'signatureInformation-1234',
               signeeProviderId: 'myProvider',

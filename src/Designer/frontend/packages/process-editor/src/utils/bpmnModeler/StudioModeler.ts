@@ -8,6 +8,7 @@ import { BpmnModelerInstance } from './BpmnModelerInstance';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
 import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
 import type { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { TaskUtils } from '../taskUtils';
 
 // Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
 // We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
@@ -122,7 +123,9 @@ export class StudioModeler {
     businessObject: BpmnBusinessObjectEditor,
   ): string {
     const { configNode, receiptPdfDataTypeName } = bpmnTaskConfig.payment;
-    return businessObject?.extensionElements?.values[0][configNode][receiptPdfDataTypeName];
+    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.[configNode][
+      receiptPdfDataTypeName
+    ];
   }
 
   /**
@@ -138,7 +141,8 @@ export class StudioModeler {
   public getSigningPdfDataTypeIdFromBusinessObject(
     businessObject: BpmnBusinessObjectEditor,
   ): string | undefined {
-    return businessObject?.extensionElements?.values[0]?.signatureConfig?.signingPdfDataType;
+    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.signatureConfig
+      ?.signingPdfDataType;
   }
 
   public getDataTypeIdFromBusinessObject(
@@ -147,7 +151,7 @@ export class StudioModeler {
   ): string {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
     const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
-    return businessObject.extensionElements?.values[0][configNode][dataTypeName];
+    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.[configNode][dataTypeName];
   }
 
   public getSigneeStatesDataTypeId(
@@ -156,6 +160,8 @@ export class StudioModeler {
   ): string {
     const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
     const signeeStateKey = 'signeeStatesDataTypeId';
-    return businessObject?.extensionElements?.values[0][configNode][signeeStateKey];
+    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.[configNode][
+      signeeStateKey
+    ];
   }
 }

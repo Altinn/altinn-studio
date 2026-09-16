@@ -11,7 +11,7 @@ describe('useUpdateUserControlledImplementation', () => {
     const faultyElement = {
       businessObject: {
         extensionElements: {
-          values: [{}], // No signatureConfig
+          values: [{ $type: 'altinn:TaskExtension' }], // No signatureConfig
         },
       },
     };
@@ -46,6 +46,7 @@ describe('useUpdateUserControlledImplementation', () => {
         extensionElements: {
           values: [
             {
+              $type: 'altinn:TaskExtension',
               signatureConfig: { signeeProviderId: 'oldValue' },
             },
           ],

@@ -10,6 +10,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '../../../../../utils/taskUtils';
 import { BpmnTypeEnum } from '../../../../../enum/BpmnTypeEnum';
 
 export interface SelectUniqueFromSignaturesInDataTypesProps {
@@ -25,30 +26,13 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const signingTasks = tasks
     .filter(
-      ({
-        businessObject: {
-          extensionElements: { values },
-        },
-        id,
-      }) => {
-        const { taskType } = values[0];
-        return taskType === 'signing' && id !== bpmnDetails.id;
-      },
+      (task) =>
+        TaskUtils.getTaskExtension(task)?.taskType === 'signing' && task.id !== bpmnDetails.id,
     )
-    .map(
-      ({
-        businessObject: {
-          name,
-          extensionElements: { values },
-        },
-      }) => {
-        const { signatureConfig } = values[0];
-        return {
-          id: signatureConfig?.signatureDataType,
-          name,
-        };
-      },
-    );
+    .map((task) => ({
+      id: TaskUtils.getTaskExtension(task)?.signatureConfig?.signatureDataType,
+      name: task.businessObject.name,
+    }));
 
   const [value, setValue] = useState<string[]>(() =>
     getSelectedDataTypes(bpmnDetails).filter((item) =>

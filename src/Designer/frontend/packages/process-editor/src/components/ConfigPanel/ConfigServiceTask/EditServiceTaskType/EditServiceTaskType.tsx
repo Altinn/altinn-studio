@@ -10,6 +10,7 @@ import type { Element } from 'bpmn-js/lib/model/Types';
 import { useResetState } from '@studio/hooks';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '../../../../utils/taskUtils';
 import { useValidateServiceTaskType } from './useValidateServiceTaskType';
 import classes from './EditServiceTaskType.module.css';
 
@@ -33,7 +34,7 @@ export const EditServiceTaskType = (): React.ReactElement => {
     if (newTaskType === taskType) return;
 
     const studioModeler = new StudioModeler(bpmnDetails.element);
-    const taskExtension = getTaskExtension(bpmnDetails.element);
+    const taskExtension = TaskUtils.getTaskExtension(bpmnDetails.element);
 
     if (taskExtension) {
       studioModeler.updateModdleProperties({ taskType: newTaskType }, taskExtension);
@@ -70,16 +71,11 @@ export const EditServiceTaskType = (): React.ReactElement => {
   );
 };
 
-const getTaskExtension = (element: Element): ModdleElement | undefined =>
-  element?.businessObject?.extensionElements?.values?.find(
-    (value: ModdleElement) => value?.$type === TASK_EXTENSION_TYPE,
-  );
-
 /**
  * A hand-authored service task can be missing its task extension. Setting the type is the one
  * repair that has to work without it, so create the extension on the way. Any other extension the
- * element already carries is kept, and the task extension goes first because the rest of the
- * editor reads it as `values[0]`.
+ * element already carries is kept, and the task extension is written first so a process Studio
+ * created reads the way one it wrote before this always did.
  */
 const addTaskExtension = (
   studioModeler: StudioModeler,

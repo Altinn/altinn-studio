@@ -6,6 +6,7 @@ import { PersonPencilIcon } from '@studio/icons';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
 import { getSelectedDataTypes } from './UniqueFromSignaturesInDataTypesUtils';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '../../../../utils/taskUtils';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 
 export const EditUniqueFromSignaturesInDataTypes = () => {
@@ -18,30 +19,15 @@ export const EditUniqueFromSignaturesInDataTypes = () => {
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const signingTasks = tasks
-    .filter(
-      ({
-        businessObject: {
-          extensionElements: { values },
-        },
-      }) => {
-        const { signatureConfig } = values[0];
-        return selectedDataTypes.includes(signatureConfig?.signatureDataType);
-      },
+    .filter((task) =>
+      selectedDataTypes.includes(
+        TaskUtils.getTaskExtension(task)?.signatureConfig?.signatureDataType,
+      ),
     )
-    .map(
-      ({
-        businessObject: {
-          name,
-          extensionElements: { values },
-        },
-      }) => {
-        const { signatureConfig } = values[0];
-        return {
-          id: signatureConfig?.signatureDataType,
-          name,
-        };
-      },
-    );
+    .map((task) => ({
+      id: TaskUtils.getTaskExtension(task)?.signatureConfig?.signatureDataType,
+      name: task.businessObject.name,
+    }));
 
   return (
     <>
