@@ -47,18 +47,11 @@
   margin: 0;
 }
 
+/* The message as the engine recorded it, after the unpacked view of the same text. */
 .raw {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .validationErrors {
   margin: 0;
-}
-
-.prefix {
-  font-size: var(--ds-font-size-1);
-  color: var(--ds-color-neutral-text-subtle);
 }

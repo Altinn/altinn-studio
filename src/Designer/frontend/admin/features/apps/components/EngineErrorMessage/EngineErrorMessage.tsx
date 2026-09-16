@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioButton, StudioList, StudioTag } from '@studio/components';
+import { StudioList, StudioTag } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { CopyTextButton } from 'admin/features/apps/components/CopyTextButton/CopyTextButton';
 import type { WorkflowErrorEntry } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { parseEngineErrorMessage } from 'admin/features/apps/utils/engineErrorMessage';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
@@ -14,22 +12,19 @@ export type EngineErrorMessageProps = {
 };
 
 /**
- * One recorded error, as the app runtime meant it: the problem title and detail unpacked from the
- * engine's message string, the HTTP status, whether the engine classed it as transient, and the
- * app's failure code when it gave one.
+ * One recorded error: the HTTP status, whether the engine classed it as transient, and the app's
+ * failure code when it gave one; then the problem title, detail, validation errors and any other
+ * field unpacked from the engine's message string; and finally the whole message as the engine
+ * recorded it, always, so nothing is ever a click away.
  *
  * Engine and app text is rendered as its own node rather than interpolated into a translation
  * (i18next HTML-escapes interpolations), and set apart as verbatim technical output: it is English
- * runtime text, not part of the Norwegian copy around it. The raw message stays one copy away.
+ * runtime text, not part of the Norwegian copy around it.
  */
 export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactElement => {
   const { t } = useTranslation();
-  const [isRawShown, setIsRawShown] = useState(false);
   const details = parseEngineErrorMessage(entry.message);
   const status = entry.httpStatusCode ?? details.status;
-  // With a title but no detail (a validation problem), the raw JSON would only repeat the title.
-  const isUnpacked = details.title !== undefined || details.detail !== undefined;
-  const mainText = details.detail ?? (isUnpacked ? undefined : details.raw);
 
   return (
     <div className={classes.entry}>
@@ -51,12 +46,11 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
             <code className={classes.engineText}>{details.failureCode}</code>
           </span>
         )}
-        <CopyTextButton text={entry.message} label={t('admin.workflows.error.copy')} />
       </div>
       {details.title && (
         <code className={`${classes.engineText} ${classes.title}`}>{details.title}</code>
       )}
-      {mainText && <code className={classes.engineText}>{mainText}</code>}
+      {details.detail && <code className={classes.engineText}>{details.detail}</code>}
       {details.validationErrors && (
         <StudioList.Unordered className={classes.validationErrors}>
           {details.validationErrors.map((line, index) => (
@@ -80,20 +74,7 @@ export const EngineErrorMessage = ({ entry }: EngineErrorMessageProps): ReactEle
           ))}
         </dl>
       )}
-      {details.prefix && <span className={classes.prefix}>{details.prefix}</span>}
-      {isUnpacked && (
-        <div className={classes.raw}>
-          <StudioButton
-            data-size='sm'
-            variant='tertiary'
-            aria-expanded={isRawShown}
-            onClick={() => setIsRawShown((shown) => !shown)}
-          >
-            {isRawShown ? t('admin.workflows.error.raw_hide') : t('admin.workflows.error.raw')}
-          </StudioButton>
-          {isRawShown && <code className={classes.engineText}>{details.raw}</code>}
-        </div>
-      )}
+      <code className={`${classes.engineText} ${classes.raw}`}>{details.raw}</code>
     </div>
   );
 };

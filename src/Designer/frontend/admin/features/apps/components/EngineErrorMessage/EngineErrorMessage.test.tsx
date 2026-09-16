@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { WorkflowErrorEntry } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { EngineErrorMessage } from './EngineErrorMessage';
@@ -16,20 +15,16 @@ const entry = (overrides: Partial<WorkflowErrorEntry> = {}): WorkflowErrorEntry 
 });
 
 describe('EngineErrorMessage', () => {
-  it('shows the problem title, detail and failure code as their own verbatim nodes', () => {
+  it('shows the problem title, detail and failure code as their own verbatim nodes, and the whole message', () => {
     renderEngineErrorMessage(entry());
 
     expect(screen.getByText('PdfGenerationException').tagName).toBe('CODE');
     expect(screen.getByText('Could not generate the PDF').tagName).toBe('CODE');
     expect(screen.getByText('PDF_GENERATION_FAILED').tagName).toBe('CODE');
-    expect(
-      screen.getByText('AppCommand execution failed with status code InternalServerError'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(problemMessage)).not.toBeInTheDocument();
+    expect(screen.getByText(problemMessage).tagName).toBe('CODE');
   });
 
-  it('keeps the trace id and other fields the app added, and offers the whole message on request', async () => {
-    const user = userEvent.setup();
+  it('keeps the trace id and other fields the app added', () => {
     const message =
       'AppCommand failed with client error UnprocessableEntity: {"title":"Invalid State","status":422,"detail":"State could not be restored.","nonRetryable":true,"traceId":"00-e74e2d6ae60e-01"}';
     renderEngineErrorMessage(entry({ message, httpStatusCode: 422, wasRetryable: false }));
@@ -37,14 +32,7 @@ describe('EngineErrorMessage', () => {
     expect(screen.getByText('traceId')).toBeInTheDocument();
     expect(screen.getByText('00-e74e2d6ae60e-01')).toBeInTheDocument();
     expect(screen.queryByText('nonRetryable')).not.toBeInTheDocument();
-
-    // The raw string is there for whoever wants it, behind a toggle rather than in the way.
-    expect(screen.queryByText(message)).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: textMock('admin.workflows.error.raw') }));
     expect(screen.getByText(message)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: textMock('admin.workflows.error.raw_hide') }),
-    ).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('tags the HTTP status and whether the engine classed the error as transient', () => {
@@ -57,25 +45,11 @@ describe('EngineErrorMessage', () => {
     expect(screen.queryByText(textMock('admin.workflows.error.retryable'))).not.toBeInTheDocument();
   });
 
-  it('shows a message without a problem body as it came', () => {
+  it('shows a message without a problem body as it came, once', () => {
     renderEngineErrorMessage(entry({ message: 'Boom went the pipeline', httpStatusCode: null }));
 
     expect(screen.getByText('Boom went the pipeline').tagName).toBe('CODE');
     expect(screen.queryByText(/HTTP/)).not.toBeInTheDocument();
-    // Nothing was unpacked, so the message is already whole: no toggle to repeat it.
-    expect(screen.queryByText(textMock('admin.workflows.error.raw'))).not.toBeInTheDocument();
-  });
-
-  it('copies the raw message, not the unpacked view of it', async () => {
-    const user = userEvent.setup();
-    renderEngineErrorMessage(entry());
-
-    await user.click(screen.getByRole('button', { name: textMock('admin.workflows.error.copy') }));
-
-    expect(await navigator.clipboard.readText()).toBe(problemMessage);
-    expect(
-      screen.getByRole('button', { name: textMock('admin.workflows.error.copied') }),
-    ).toBeInTheDocument();
   });
 });
 
