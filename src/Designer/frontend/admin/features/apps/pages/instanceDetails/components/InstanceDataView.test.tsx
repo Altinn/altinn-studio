@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import axios from 'axios';
 import type { QueryClient } from '@tanstack/react-query';
 import { InstanceDataView } from './InstanceDataView';
+import type { InstanceDataViewSection } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -45,6 +46,16 @@ describe('InstanceDataView', () => {
     renderInstanceDataView({ instance: null });
 
     expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
+  });
+
+  it('renders the data elements as their own card, without the delete button', () => {
+    renderInstanceDataView({ section: 'dataElements' });
+
+    expect(screen.getByText(textMock('admin.instances.data_elements'))).toBeInTheDocument();
+    expect(screen.queryByText(textMock('admin.instances.info.title'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('general.delete') }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders an enabled delete button when the instance is not soft-deleted', () => {
@@ -116,11 +127,13 @@ const getDeleteButton = () => screen.getByRole('button', { name: textMock('gener
 type RenderInstanceDataViewOptions = {
   instance?: SimpleInstanceDetails | null;
   queryClient?: QueryClient;
+  section?: InstanceDataViewSection;
 };
 
 function renderInstanceDataView({
   instance = instanceMock,
   queryClient = createQueryClientMock(),
+  section = 'info',
 }: RenderInstanceDataViewOptions = {}) {
   if (instance) {
     queryClient.setQueryData(
@@ -131,7 +144,13 @@ function renderInstanceDataView({
     queryClient.setQueryData([QueryKey.AppProcessMetadata, org, environment, app], []);
   }
   return renderWithProviders(
-    <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />,
+    <InstanceDataView
+      org={org}
+      environment={environment}
+      app={app}
+      id={instanceId}
+      section={section}
+    />,
     { queryClient },
   );
 }

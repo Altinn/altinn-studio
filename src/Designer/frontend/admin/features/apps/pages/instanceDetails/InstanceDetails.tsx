@@ -24,8 +24,21 @@ export const InstanceDetails = () => {
         ]}
       />
       <StudioHeading data-size='lg'>{instanceId}</StudioHeading>
-      <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />
+      <InstanceDataView
+        org={org}
+        environment={environment}
+        app={app}
+        id={instanceId}
+        section='info'
+      />
       <InstanceWorkflows org={org} environment={environment} app={app} instanceId={instanceId} />
+      <InstanceDataView
+        org={org}
+        environment={environment}
+        app={app}
+        id={instanceId}
+        section='dataElements'
+      />
     </div>
   );
 };
