@@ -193,10 +193,15 @@ internal sealed class ValidateMaskinportenSettingsProvisioned(MaskinportenSettin
         return ValidateOptionsResult.Fail(MissingCredentialsMessage(source));
     }
 
+    /// <summary>
+    /// The local-run message names the command and not the file: where studioctl keeps the client is
+    /// studioctl's business, and naming the file would only invite editing it by hand. The platform message
+    /// does name the mount, because that is what an operator debugging a deployment needs.
+    /// </summary>
     internal static string MissingCredentialsMessage(MaskinportenSettingsSource source) =>
         source.ProvisionedByStudioctl
-            ? $"No Maskinporten client is stored for this local run: nothing was read from '{source.FilePath}'. "
-                + "Store one with 'studioctl app maskinporten set'; a running app picks it up without a restart."
+            ? "No Maskinporten client is stored for this local run. Store one with "
+                + "'studioctl app maskinporten set'; a running app picks it up without a restart."
             : $"No Maskinporten credentials were read from '{source.FilePath}', where the platform provisions "
                 + "them. Studio provisions the app's client when the app is deployed. For a local run, start the "
                 + "app through studioctl and store a client with 'studioctl app maskinporten set'.";

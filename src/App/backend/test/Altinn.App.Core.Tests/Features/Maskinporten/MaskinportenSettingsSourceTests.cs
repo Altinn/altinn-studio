@@ -260,7 +260,7 @@ public sealed class MaskinportenSettingsSourceTests
 
     /// <summary>
     /// studioctl named a directory but nothing has been stored there yet - the state a developer is in the
-    /// first time their integration asks for a token. The failure says exactly what to run.
+    /// first time their integration asks for a token. The failure says exactly what to run, and not where.
     /// </summary>
     [Fact]
     public async Task Options_NameTheStudioctlCommand_WhenTheStudioctlDirectoryIsEmpty()
@@ -281,7 +281,8 @@ public sealed class MaskinportenSettingsSourceTests
             StringComparison.Ordinal
         );
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
-        Assert.Contains(Path.Join(tempDirectory.Path, SettingsFileName), exception.Message, StringComparison.Ordinal);
+        // Where studioctl keeps the file is not the developer's concern; naming it would invite hand edits.
+        Assert.DoesNotContain(tempDirectory.Path, exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
