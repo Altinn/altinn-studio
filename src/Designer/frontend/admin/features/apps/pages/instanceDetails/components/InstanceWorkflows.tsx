@@ -169,7 +169,7 @@ type WorkflowItemProps = {
  * One workflow as a row of plain columns: status, name, the steps as dots, the step it is at, a
  * retry count, a spinner and what the engine is doing with it while it still has it, and when it
  * was created. Behind the row: the steps with their errors — and, on the step the workflow
- * stopped at, the verbs that apply — and the id.
+ * stopped at, the verbs that apply.
  */
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
@@ -241,9 +241,6 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
       </StudioDetails.Summary>
       <StudioDetails.Content className={classes.details}>
         <WorkflowSteps context={context} workflow={workflow} />
-        <span className={classes.workflowId}>
-          {t('admin.workflows.id')}: <code>{workflow.databaseId}</code>
-        </span>
       </StudioDetails.Content>
     </StudioDetails>
   );
