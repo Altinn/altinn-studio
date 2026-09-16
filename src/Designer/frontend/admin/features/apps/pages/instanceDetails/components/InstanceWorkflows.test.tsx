@@ -106,7 +106,7 @@ describe('InstanceWorkflows', () => {
 
     const summaries = await screen.findAllByRole('group');
     expect(summaries).toHaveLength(2);
-    expect(summaries[0]).toHaveTextContent('Process next: Pdf -> Sign');
+    expect(summaries[0]).toHaveTextContent('Pdf → Sign');
     expect(summaries[1]).toHaveTextContent('side-effects');
     expect(summaries[1]).toHaveTextContent(textMock('admin.workflows.side_effect'));
 
@@ -126,6 +126,34 @@ describe('InstanceWorkflows', () => {
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
     ).toBeInTheDocument();
+  });
+
+  it('reads each workflow as a row: its steps, where it stopped, and what went wrong', async () => {
+    jest
+      .mocked(axios.get)
+      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const [failedRow, settledRow] = await screen.findAllByRole('group');
+    // One dot per step, in processing order, colored by the step's status.
+    expect(within(failedRow).getByTitle('app-command · Failed')).toHaveAttribute(
+      'data-tone',
+      'danger',
+    );
+    expect(within(failedRow).getByTitle('send-eformidling · Waiting')).toHaveAttribute(
+      'data-tone',
+      'info',
+    );
+    expect(
+      within(failedRow).getByText(textMock('admin.workflows.row.at_step', { step: 1, total: 2 }), {
+        exact: false,
+      }),
+    ).toHaveTextContent('app-command');
+    // The latest error, one line, without opening the row.
+    expect(failedRow).toHaveTextContent('PdfGenerationException: Could not generate the PDF');
+    // A workflow with no steps has no chain to show, and a settled one no error.
+    expect(within(settledRow).queryAllByTitle(/ · /)).toHaveLength(0);
+    expect(settledRow).not.toHaveTextContent('PdfGenerationException');
   });
 
   it('sums the instance up above the list: verdict, transition, step, attempts and latest error', async () => {
@@ -236,8 +264,11 @@ describe('InstanceWorkflows', () => {
     const message = await screen.findByText('Boom went the pipeline');
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
-    // The transition name in the summary is the app's process model, shown as it came too.
-    expect(screen.getByText('Pdf → Sign').tagName).toBe('SPAN');
+    // The transition name, in the summary and in the row, is the app's process model, shown as it
+    // came too.
+    const transitions = screen.getAllByText('Pdf → Sign');
+    expect(transitions).toHaveLength(2);
+    expect(transitions.every((element) => element.tagName === 'SPAN')).toBe(true);
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {

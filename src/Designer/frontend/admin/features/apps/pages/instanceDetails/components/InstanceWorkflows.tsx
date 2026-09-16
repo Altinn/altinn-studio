@@ -21,11 +21,22 @@ import { EngineErrorMessage } from 'admin/features/apps/components/EngineErrorMe
 import { WorkflowEngineError } from 'admin/features/apps/components/WorkflowEngineError/WorkflowEngineError';
 import { WorkflowStatusTag } from 'admin/features/apps/components/WorkflowStatusTag/WorkflowStatusTag';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
+import { parseEngineErrorMessage } from 'admin/features/apps/utils/engineErrorMessage';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
+import { formatDuration } from 'admin/features/apps/utils/formatDuration';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
-import { newestFirst, orderedSteps } from 'admin/features/apps/utils/workflowTriage';
+import {
+  isActiveWorkflow,
+  isFailedWorkflow,
+  latestErrorOf,
+  newestFirst,
+  orderedSteps,
+  toTime,
+  workflowDisplayName,
+} from 'admin/features/apps/utils/workflowTriage';
 import { InstanceWorkflowSummary } from './InstanceWorkflowSummary';
 import { WorkflowActions } from './WorkflowActions';
+import { WorkflowStepStrip } from './WorkflowStepStrip';
 
 import classes from './InstanceWorkflows.module.css';
 
@@ -141,21 +152,37 @@ type WorkflowItemProps = {
   workflow: WorkflowStatus;
 };
 
+/**
+ * One workflow as a row: what it is, where it is in its steps, how long it ran, and — on a
+ * failure — what went wrong, all readable without opening it. The details behind the row are the
+ * full metadata, the step table and the ops verbs.
+ */
 const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
   const { t } = useTranslation();
+  const duration = settledDurationOf(workflow);
+  const rowError = isFailedWorkflow(workflow) ? rowErrorTextOf(workflow) : undefined;
 
   return (
     <StudioDetails>
       <StudioDetails.Summary>
         <span className={classes.summary}>
           <WorkflowStatusTag status={workflow.overallStatus} />
-          <span className={classes.summaryOperation}>{workflow.operationId}</span>
+          <span className={classes.summaryOperation} title={workflow.operationId}>
+            {workflowDisplayName(workflow)}
+          </span>
           {workflow.isHead === false && (
             <StudioTag data-size='sm' data-color='neutral'>
               {t('admin.workflows.side_effect')}
             </StudioTag>
           )}
+          <WorkflowStepStrip workflow={workflow} />
+          {duration !== undefined && (
+            <span className={classes.summaryTime}>
+              {t('admin.workflows.row.duration')}: {formatDuration(duration, t)}
+            </span>
+          )}
           <span className={classes.summaryTime}>{formatDateAndTime(workflow.createdAt)}</span>
+          {rowError && <code className={classes.rowError}>{rowError}</code>}
         </span>
       </StudioDetails.Summary>
       <StudioDetails.Content>
@@ -183,6 +210,29 @@ const WorkflowItem = ({ context, workflow }: WorkflowItemProps) => {
     </StudioDetails>
   );
 };
+
+/** How long a settled workflow ran, from its first attempt to its last change. Nothing while in flight. */
+function settledDurationOf(workflow: WorkflowStatus): number | undefined {
+  const started = toTime(workflow.executionStartedAt);
+  const ended = toTime(workflow.updatedAt);
+  if (isActiveWorkflow(workflow) || started === undefined || ended === undefined) {
+    return undefined;
+  }
+  return Math.max(0, ended - started);
+}
+
+/** The latest error in one line: the problem title and detail when the message carries them. */
+function rowErrorTextOf(workflow: WorkflowStatus): string | undefined {
+  const entry = latestErrorOf(workflow);
+  if (!entry) {
+    return undefined;
+  }
+  const details = parseEngineErrorMessage(entry.message);
+  if (details.title && details.detail) {
+    return `${details.title}: ${details.detail}`;
+  }
+  return details.title ?? details.detail ?? details.raw;
+}
 
 const WorkflowSteps = ({ workflow }: { workflow: WorkflowStatus }) => {
   const { t } = useTranslation();

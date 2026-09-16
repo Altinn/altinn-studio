@@ -1,0 +1,55 @@
+.strip {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}
+
+.dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dot {
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--ds-color-neutral-border-strong);
+  background: transparent;
+}
+
+.dot[data-tone='success'] {
+  border-color: var(--ds-color-success-base-default);
+  background: var(--ds-color-success-base-default);
+}
+
+.dot[data-tone='danger'] {
+  border-color: var(--ds-color-danger-base-default);
+  background: var(--ds-color-danger-base-default);
+}
+
+.dot[data-tone='info'] {
+  border-color: var(--ds-color-info-base-default);
+  background: var(--ds-color-info-base-default);
+}
+
+.dot[data-tone='warning'] {
+  border-color: var(--ds-color-warning-base-default);
+  background: var(--ds-color-warning-base-default);
+}
+
+.dot[data-tone='neutral'] {
+  border-color: var(--ds-color-neutral-base-default);
+  background: var(--ds-color-neutral-base-default);
+}
+
+.label {
+  font-size: var(--ds-font-size-1);
+}
+
+/* Step names from the app runtime, shown as they came. */
+.engineText {
+  font-family: 'Courier New', monospace;
+}

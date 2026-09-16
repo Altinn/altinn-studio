@@ -28,6 +28,17 @@
   font-size: var(--ds-font-size-1);
 }
 
+/* The failure in one line under the row; the full text is in the step details. */
+.rowError {
+  flex-basis: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: 'Courier New', monospace;
+  font-size: var(--ds-font-size-1);
+}
+
 .metadata {
   display: flex;
   flex-wrap: wrap;
