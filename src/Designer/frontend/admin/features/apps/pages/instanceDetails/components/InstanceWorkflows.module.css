@@ -1,5 +1,27 @@
 .description {
+  margin-bottom: var(--ds-size-2);
+}
+
+/* When the card last read the engine. The dot glows while a read is in flight. */
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
   margin-bottom: var(--ds-size-4);
+  font-size: var(--ds-font-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ds-color-success-base-default);
+  transition: box-shadow 0.3s ease-out;
+}
+
+.liveDot[data-fetching] {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-color-success-base-default) 35%, transparent);
 }
 
 .workflows {
@@ -18,6 +40,31 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--ds-size-2);
+}
+
+/* A change just came in: one soft blink over the row, then nothing. */
+.summaryChanged {
+  animation: changed 1.6s ease-out 1;
+  border-radius: var(--ds-border-radius-sm);
+}
+
+@keyframes changed {
+  from {
+    background: color-mix(in srgb, var(--ds-color-info-base-default) 25%, transparent);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summaryChanged {
+    animation: none;
+  }
+
+  .liveDot {
+    transition: none;
+  }
 }
 
 .summaryOperation {

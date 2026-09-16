@@ -56,6 +56,7 @@ export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactEl
             key={step.databaseId}
             className={classes.dot}
             data-tone={DOT_TONE[step.status] ?? 'neutral'}
+            data-live={step.status === 'Processing' || undefined}
             title={`${step.operationId} · ${step.status}`}
           />
         ))}

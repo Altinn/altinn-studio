@@ -7,6 +7,33 @@
   border-radius: var(--ds-border-radius-md);
 }
 
+/* The moment a stuck instance gets going again: the block turns green and settles in. */
+.recovered {
+  border-color: var(--ds-color-success-border-default);
+  background: var(--ds-color-success-surface-default);
+  animation: recovered 0.8s ease-out 1;
+}
+
+@keyframes recovered {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    background: var(--ds-color-success-surface-hover);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+    background: var(--ds-color-success-surface-default);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recovered {
+    animation: none;
+  }
+}
+
 .headline {
   display: flex;
   flex-wrap: wrap;

@@ -8,10 +8,7 @@ import type {
 import { workflowsListPath } from 'admin/features/apps/utils/apiPaths';
 import { getWorkflowEngineResource } from 'admin/features/apps/utils/workflowEngineRequests';
 import { isEngineUnavailableError } from 'admin/features/apps/utils/workflowHealth';
-import {
-  PROCESSING_REFETCH_INTERVAL_MS,
-  workflowsRefetchInterval,
-} from 'admin/features/apps/utils/workflowRefetch';
+import { INSTANCE_VIEW_REFETCH_INTERVAL_MS } from 'admin/features/apps/utils/workflowRefetch';
 
 export const INSTANCE_WORKFLOWS_PAGE_SIZE = 25;
 
@@ -39,14 +36,13 @@ export const useInstanceWorkflowsQuery = (
         signal,
       ),
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
-    // A retried or newly enqueued workflow is only enqueued by the verb; the state the operator
-    // waits for arrives later, so the drill-down keeps asking while anything is in flight — and
-    // asks again right when a parked workflow's backoff elapses.
-    refetchInterval: (query) => workflowsRefetchInterval(query.state.data),
+    // The operator drives the process from elsewhere while watching this page, and the verbs
+    // only enqueue: the state they wait for arrives later. So the drill-down keeps asking.
+    refetchInterval: INSTANCE_VIEW_REFETCH_INTERVAL_MS,
     // The global default leaves window focus alone; this view is the one an operator comes back
     // to after fixing the app, so it reads again when they do.
     refetchOnWindowFocus: true,
-    staleTime: PROCESSING_REFETCH_INTERVAL_MS,
+    staleTime: INSTANCE_VIEW_REFETCH_INTERVAL_MS,
     select: (data) =>
       data.pages
         .flatMap((page) => page?.data ?? [])

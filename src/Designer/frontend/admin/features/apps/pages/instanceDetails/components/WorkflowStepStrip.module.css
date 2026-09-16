@@ -45,6 +45,26 @@
   background: var(--ds-color-neutral-base-default);
 }
 
+/* The step being executed right now breathes, so the eye finds it without reading. */
+.dot[data-live] {
+  animation: pulse 1.2s ease-out infinite;
+}
+
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-color-info-base-default) 55%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-live] {
+    animation: none;
+  }
+}
+
 .label {
   font-size: var(--ds-font-size-1);
 }

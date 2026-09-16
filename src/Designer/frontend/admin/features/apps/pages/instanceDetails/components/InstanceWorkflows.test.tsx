@@ -128,6 +128,56 @@ describe('InstanceWorkflows', () => {
     ).toBeInTheDocument();
   });
 
+  it('says when it last read the engine, and marks the step being executed', async () => {
+    const runningHeadWorkflow = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Processing',
+      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Processing', errorHistory: [] }],
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [runningHeadWorkflow] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    expect(await screen.findByText(/admin\.workflows\.live_updated/)).toBeInTheDocument();
+    expect(screen.getByTitle('app-command · Processing')).toHaveAttribute('data-live');
+  });
+
+  it('makes a moment of a failed instance getting going again', async () => {
+    jest
+      .mocked(axios.get)
+      .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
+    renderInstanceWorkflows();
+    const summary = await screen.findByRole('region', {
+      name: textMock('admin.workflows.summary.title'),
+    });
+    expect(
+      within(summary).getByText(textMock('admin.workflows.health.failed')),
+    ).toBeInTheDocument();
+
+    // The next poll finds the same workflow completed: someone fixed the app, or the error passed.
+    const completedHeadWorkflow = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Completed',
+      updatedAt: '2026-08-02T10:06:00Z',
+      steps: failedHeadWorkflow.steps.map((step) => ({ ...step, status: 'Completed' })),
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [completedHeadWorkflow, settledSideChainWorkflow] },
+    } as AxiosResponse);
+
+    expect(
+      await screen.findByText(
+        textMock('admin.workflows.summary.recovered'),
+        {},
+        { timeout: 4_000 },
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(textMock('admin.workflows.health.failed'))).not.toBeInTheDocument();
+  }, 10_000);
+
   it('shows no summary while nothing needs attention', async () => {
     const completedHeadWorkflow = { ...failedHeadWorkflow, overallStatus: 'Completed', steps: [] };
     jest.mocked(axios.get).mockResolvedValue({

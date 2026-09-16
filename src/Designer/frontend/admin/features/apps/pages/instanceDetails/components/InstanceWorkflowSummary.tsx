@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioAlert, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +42,15 @@ const ATTENTION_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
   WorkflowHealth.SideEffectsFailed,
 ]);
 
+/** The verdicts a recovery lands on: the work is moving again, or done. */
+const RECOVERED_HEALTHS: ReadonlySet<WorkflowHealth> = new Set([
+  WorkflowHealth.Active,
+  WorkflowHealth.Healthy,
+]);
+
+/** How long the recovery note stays before the block goes quiet again. */
+const RECOVERY_NOTE_MS = 12_000;
+
 export type InstanceWorkflowSummaryProps = {
   context: WorkflowOpsContext;
   /** Newest first, as the drill-down query delivers them. */
@@ -67,11 +76,29 @@ export const InstanceWorkflowSummary = ({
 }: InstanceWorkflowSummaryProps): ReactElement | null => {
   const { t } = useTranslation();
   const headingId = useId();
+  const [recoveredAt, setRecoveredAt] = useState<number | undefined>(undefined);
   // The clock also decides whether the block shows at all: a retry threshold or a stale span
-  // can be crossed while the page is open, so both are read from the ticking time.
-  const now = useNow(workflows.some(isActiveWorkflow));
+  // can be crossed while the page is open, and a recovery note times out — all read from the
+  // ticking time.
+  const now = useNow(workflows.some(isActiveWorkflow) || recoveredAt !== undefined);
   const health = deriveInstanceHealth(workflows, now);
   const focus = pickFocusWorkflow(workflows, health, now);
+
+  // An instance that was stuck and got going again — someone fixed the app, or a transient error
+  // passed — is worth a moment's notice rather than a block that silently vanishes. The change is
+  // caught by comparing with the previous render's verdict (the React pattern for remembering
+  // the last props).
+  const [previousHealth, setPreviousHealth] = useState(health);
+  if (health !== previousHealth) {
+    setPreviousHealth(health);
+    if (ATTENTION_HEALTHS.has(previousHealth) && RECOVERED_HEALTHS.has(health)) {
+      setRecoveredAt(now);
+    }
+  }
+  const isRecoveryShown =
+    recoveredAt !== undefined &&
+    RECOVERED_HEALTHS.has(health) &&
+    now - recoveredAt < RECOVERY_NOTE_MS;
   const lastChanged = toTime(focus?.updatedAt);
   const isStale =
     focus !== undefined &&
@@ -80,6 +107,25 @@ export const InstanceWorkflowSummary = ({
     now - lastChanged > STALE_ACTIVE_THRESHOLD_MS;
   const needsAttention = focus !== undefined && (ATTENTION_HEALTHS.has(health) || isStale);
   const headlineKey = HEADLINE_KEYS[health];
+
+  if (isRecoveryShown && !needsAttention) {
+    return (
+      <section
+        className={`${classes.summary} ${classes.recovered}`}
+        aria-labelledby={headingId}
+        aria-live='polite'
+      >
+        <StudioHeading level={3} id={headingId} data-size='2xs'>
+          {t('admin.workflows.summary.title')}
+        </StudioHeading>
+        <div className={classes.headline}>
+          <WorkflowHealthTag health={health} />
+          <span>{t('admin.workflows.summary.recovered')}</span>
+        </div>
+        <span>{t('admin.workflows.summary.recovered_description')}</span>
+      </section>
+    );
+  }
 
   if (!needsAttention || !focus || !headlineKey) {
     return null;
