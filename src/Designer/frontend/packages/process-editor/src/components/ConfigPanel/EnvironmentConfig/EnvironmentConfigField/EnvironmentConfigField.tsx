@@ -52,6 +52,16 @@ export type EnvironmentConfigFieldProps<TValue> = {
    */
   combineDuplicateValues?: CombineDuplicateValues<TValue>;
   /**
+   * Whether the value control can itself express the empty value, which is how a row is emptied: a
+   * textfield is cleared, a multi-select has its last option removed. Defaults to true.
+   *
+   * A radio group cannot - an answer once chosen cannot be unchosen - so a field built on one says
+   * so here and the environment-independent row gets a button that removes the entry instead.
+   * Without it the first answer a user tries would be in the file for good. Override rows are
+   * removable either way.
+   */
+  canClearValue?: boolean;
+  /**
    * Something in the file the rows cannot show, phrased by the wrapper: only it knows what a value
    * means, while the core only ever sees `TValue`. Shown in the same warning vocabulary as the
    * unknown-environment and duplicate alerts, so that "the file holds something I cannot present"
@@ -88,6 +98,7 @@ export function EnvironmentConfigField<TValue>({
   isEmptyValue,
   formatValue,
   combineDuplicateValues,
+  canClearValue = true,
   warning,
   renderValueControl,
   onChange,
@@ -153,9 +164,9 @@ export function EnvironmentConfigField<TValue>({
     );
   };
 
-  const handleDelete = (environment: AltinnEnvironment): void => {
-    removeDraft(environment);
-    if (hasEntry(environment)) onChange(withoutEnvironmentValue(entries, environment));
+  const handleRemove = (scope: EnvironmentScope): void => {
+    if (scope !== globalScope) removeDraft(scope);
+    if (hasEntry(scope)) onChange(withoutEnvironmentValue(entries, scope));
   };
 
   const overrideScopes = altinnEnvironments.filter(
@@ -200,6 +211,32 @@ export function EnvironmentConfigField<TValue>({
     );
   }
 
+  /**
+   * An override row always offers removal: it is how an override is taken away, and how one added
+   * by mistake is abandoned before it ever reaches the file. The environment-independent row offers
+   * it only when the control cannot be emptied by hand, because there the button is the only way
+   * back out of a value.
+   */
+  const renderRemoveButton = (scope: EnvironmentScope): ReactElement | null => {
+    if (scope === globalScope) {
+      if (canClearValue || !hasEntry(globalScope)) return null;
+      return (
+        <StudioDeleteButton
+          onDelete={() => handleRemove(globalScope)}
+          title={t('process_editor.configuration_panel.environment_config.remove_global_value')}
+          variant='tertiary'
+        />
+      );
+    }
+    return (
+      <StudioDeleteButton
+        onDelete={() => handleRemove(scope)}
+        title={t('general.delete_item', { item: t(getEnvironmentScopeTextKey(scope)) })}
+        variant='tertiary'
+      />
+    );
+  };
+
   const renderRow = (scope: EnvironmentScope): ReactElement => (
     <div className={classes.row} key={scope}>
       <div className={classes.control}>
@@ -209,13 +246,7 @@ export function EnvironmentConfigField<TValue>({
           onChange: (value: TValue) => handleValueChange(scope, value),
         })}
       </div>
-      {scope !== globalScope && (
-        <StudioDeleteButton
-          onDelete={() => handleDelete(scope)}
-          title={t('general.delete_item', { item: t(getEnvironmentScopeTextKey(scope)) })}
-          variant='tertiary'
-        />
-      )}
+      {renderRemoveButton(scope)}
     </div>
   );
 

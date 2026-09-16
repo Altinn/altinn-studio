@@ -81,6 +81,22 @@ describe('EnvBooleanConfigField', () => {
     ).toBeInTheDocument();
   });
 
+  // A radio group has no gesture for unchoosing an answer, so without this the first answer a user
+  // tried would be in the BPMN for good.
+  it('offers a way to take the environment-independent answer back out again', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderEnvBooleanConfigField({ onChange });
+    await user.click(getCollapsedButton());
+
+    expect(queryRemoveGlobalValueButton()).not.toBeInTheDocument();
+
+    await user.click(getRadio(globalLabel, yesLabel));
+    await user.click(queryRemoveGlobalValueButton());
+
+    expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+
   // A blank element is legal - `AltinnEFormidlingConfiguration` reads it as the default - so it is
   // an unanswered field rather than something to warn about.
   it('says nothing about a blank value, which the runtime accepts', async () => {
@@ -98,6 +114,12 @@ function getCollapsedButton(): HTMLElement {
 
 function getRadio(rowLabel: string, answer: string): HTMLElement {
   return within(screen.getByRole('group', { name: rowLabel })).getByRole('radio', { name: answer });
+}
+
+function queryRemoveGlobalValueButton(): HTMLElement | null {
+  return screen.queryByRole('button', {
+    name: textMock('process_editor.configuration_panel.environment_config.remove_global_value'),
+  });
 }
 
 type TestProps = Partial<{

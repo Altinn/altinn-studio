@@ -185,6 +185,22 @@ const findWinningEntryIndex = <TValue>(
     -1,
   );
 
+/**
+ * The value the app reads in one environment: the entry scoped to it when there is one, and the
+ * environment-independent entry otherwise - the fallback `AltinnTaskExtension` itself makes.
+ *
+ * `undefined` means the file has neither, which for a required field is the boot failure the panel
+ * exists to make visible before it happens.
+ *
+ * Takes the resolved entries rather than the raw list, like `findOverrideEntry` right below it: a
+ * caller asking about several environments resolves once instead of once per question, and the two
+ * readers of a resolution now read the same thing.
+ */
+export const getEffectiveEnvironmentValue = <TValue>(
+  resolved: ResolvedEnvironmentEntries<TValue>,
+  environment: AltinnEnvironment,
+): TValue | undefined => (findOverrideEntry(resolved, environment) ?? resolved.global)?.value;
+
 export const findOverrideEntry = <TValue>(
   resolved: ResolvedEnvironmentEntries<TValue>,
   environment: AltinnEnvironment,
