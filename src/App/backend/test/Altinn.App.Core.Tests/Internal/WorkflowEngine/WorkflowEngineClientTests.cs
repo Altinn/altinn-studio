@@ -167,9 +167,14 @@ public class WorkflowEngineClientTests
         Assert.Equal(parentId, Assert.Single(result.Dependencies!).Key);
     }
 
-    [Fact]
-    public async Task GetCollection_UsesCollectionEndpoint()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetCollection_UsesCollectionEndpoint(bool includesCurrentTime)
     {
+        DateTimeOffset? currentTime = includesCurrentTime
+            ? new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero)
+            : null;
         var requestUris = new List<Uri?>();
 
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
@@ -202,6 +207,7 @@ public class WorkflowEngineClientTests
                                 ],
                                 CreatedAt = DateTimeOffset.UtcNow,
                                 UpdatedAt = DateTimeOffset.UtcNow,
+                                CurrentTime = currentTime,
                             }
                         )
                     );
@@ -223,6 +229,7 @@ public class WorkflowEngineClientTests
 
         Assert.NotNull(collection);
         Assert.Equal("process-next:abc:Task_1:2", collection.Key);
+        Assert.Equal(currentTime, collection.CurrentTime);
         Assert.Equal(
             "http://workflow-engine/api/v1/ttd%2Fapp/collections/process-next%3Aabc%3ATask_1%3A2",
             requestUris[0]!.ToString()

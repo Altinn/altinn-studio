@@ -262,6 +262,7 @@ describe('ProcessWrapper workflow state machine', () => {
           status: 'processing',
           targetTask: 'Task_2',
           startedAt: new Date(Date.now() + clockSkew).toISOString(),
+          currentTime: new Date(Date.now() + clockSkew).toISOString(),
         },
         false,
       );

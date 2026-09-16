@@ -17,24 +17,30 @@ const STILL_WORKING_MS = 8_000;
 
 /**
  * Uses the ordinary form loader while a workflow transition is running. After eight seconds
- * in processing status on this screen, the user also sees the safe-to-leave message.
- * Reloading or leaving processing status starts a fresh wait.
+ * of processing, the user also sees the safe-to-leave message. Both timestamps come from the
+ * engine clock; a browser timer covers the remaining wait between status responses.
  */
 export function WorkflowProcessing() {
-  const isProcessing = useProcessWorkflow()?.status === 'processing';
+  const workflow = useProcessWorkflow();
+  const isProcessing = workflow?.status === 'processing';
+  const startedAt = isProcessing ? workflow.startedAt : undefined;
+  const currentTime = isProcessing ? workflow.currentTime : undefined;
+  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(startedAt ?? '');
+  // Older engines and invalid timestamps fall back to an eight-second wait on this screen.
+  const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
   const [stillWorking, setStillWorking] = useState(false);
 
   useEffect(() => {
-    setStillWorking(false);
-    if (!isProcessing) {
+    const remainingMs = Math.max(0, STILL_WORKING_MS - elapsedMs);
+    setStillWorking(isProcessing && remainingMs === 0);
+    if (!isProcessing || remainingMs === 0) {
       return;
     }
-    // Measure the wait entirely in the browser, without comparing client and server clocks.
-    const stillWorkingTimer = setTimeout(() => setStillWorking(true), STILL_WORKING_MS);
+    const stillWorkingTimer = setTimeout(() => setStillWorking(true), remainingMs);
     return () => {
       clearTimeout(stillWorkingTimer);
     };
-  }, [isProcessing]);
+  }, [isProcessing, startedAt, elapsedMs]);
 
   return (
     <Loader

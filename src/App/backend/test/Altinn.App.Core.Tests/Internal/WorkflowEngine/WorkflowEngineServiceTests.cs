@@ -1588,7 +1588,8 @@ public class WorkflowEngineServiceTests
         Guid instanceGuid = Guid.NewGuid();
         string collectionKey = instanceGuid.ToString();
         var instance = CreateInstanceOnTask("Task_1", instanceGuid);
-        DateTimeOffset headCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-42);
+        DateTimeOffset engineCurrentTime = DateTimeOffset.UtcNow.AddHours(2);
+        DateTimeOffset headCreatedAt = engineCurrentTime.AddSeconds(-42);
 
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
@@ -1614,7 +1615,8 @@ public class WorkflowEngineServiceTests
                             CreatedAt = headCreatedAt,
                         },
                     ],
-                    CreatedAt = DateTimeOffset.UtcNow,
+                    CreatedAt = headCreatedAt,
+                    CurrentTime = engineCurrentTime,
                 }
             );
 
@@ -1632,7 +1634,11 @@ public class WorkflowEngineServiceTests
         Assert.Null(result.Failure);
         Assert.False(result.Retrying); // Enqueued = first attempt pending, not a retry
         Assert.Equal(new WorkflowStepProgress(Completed: 4, Total: 12), result.Progress);
-        Assert.Equal(headCreatedAt, result.StartedAt); // the head's enqueue time is the wait anchor
+        Assert.Equal(headCreatedAt, result.StartedAt);
+        Assert.Equal(engineCurrentTime, result.CurrentTime);
+        var wireStatus = result.ToAppProcessWorkflowStatus();
+        Assert.Equal(headCreatedAt, wireStatus.StartedAt);
+        Assert.Equal(engineCurrentTime, wireStatus.CurrentTime);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
         client.VerifyNoOtherCalls(); // ListWorkflows was NOT called for the processing case
     }

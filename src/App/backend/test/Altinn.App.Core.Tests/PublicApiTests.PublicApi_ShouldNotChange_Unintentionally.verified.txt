@@ -3961,6 +3961,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
     {
         public AppProcessWorkflowStatus() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("currentTime")]
+        public System.DateTimeOffset? CurrentTime { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("failure")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure? Failure { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
