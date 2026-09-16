@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
 - `studioctl app upgrade v9` now adds the new `cancellationToken` parameter to your app's own `IPaymentProcessor` implementations (`StartPayment`, `TerminatePayment` and `GetPaymentStatus`) and `IOrderDetailsCalculator` implementations (`CalculateOrderDetails`), so they satisfy the v9 interfaces again. Each change is listed, with a reminder to forward the token to the calls the implementation makes. Existing uses of the `cancellationToken` name, shared interface signatures, partial methods, delegate uses and ambiguous matches are reported as TODOs for manual updating.
 
 ### Changed

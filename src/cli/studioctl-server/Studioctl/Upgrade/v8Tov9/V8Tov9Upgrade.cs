@@ -221,6 +221,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateNavigationButtons(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateDeprecatedLayoutProperties(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1302,6 +1305,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout properties removed in v9", ex);
+        }
+    }
+
+    static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Invalid input validation lists");
+        try
+        {
+            return await InvalidValidationMaskMigration.Migrate(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Invalid input validation lists", ex);
         }
     }
 
