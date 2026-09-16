@@ -31,12 +31,6 @@ jest.mock('app-shared/hooks/mutations', () => ({
   useUpsertTextResourceMutation: () => ({ mutate: jest.fn() }),
 }));
 
-jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
-  useValidateLayoutSetName: () => ({
-    validateLayoutSetName: () => undefined,
-  }),
-}));
-
 describe('ConfigPdfServiceTask', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -190,10 +184,10 @@ describe('ConfigPdfServiceTask', () => {
       });
       await user.click(layoutBasedRadio);
 
-      // PdfLayoutBasedSection renders layout set name input
+      // PdfLayoutBasedSection renders the data model selector
       expect(
         screen.getByLabelText(
-          textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
+          textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
         ),
       ).toBeInTheDocument();
     });

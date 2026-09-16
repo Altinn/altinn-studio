@@ -13,7 +13,7 @@ const defaultMockTasks = [
     businessObject: {
       name: 'Task 1',
       extensionElements: {
-        values: [{ taskType: 'data' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
       },
     },
   },
@@ -22,7 +22,7 @@ const defaultMockTasks = [
     businessObject: {
       name: 'Task 2',
       extensionElements: {
-        values: [{ taskType: 'data' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
       },
     },
   },
@@ -126,7 +126,7 @@ describe('PdfAutomaticTaskSelection', () => {
           businessObject: {
             name: '',
             extensionElements: {
-              values: [{ taskType: 'data' }],
+              values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
             },
           },
         },
@@ -147,7 +147,7 @@ describe('PdfAutomaticTaskSelection', () => {
           id: 'task_1',
           businessObject: {
             extensionElements: {
-              values: [{ taskType: 'data' }],
+              values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
             },
           },
         },

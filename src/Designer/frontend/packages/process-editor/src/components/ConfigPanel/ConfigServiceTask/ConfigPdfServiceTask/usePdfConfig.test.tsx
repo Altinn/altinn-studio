@@ -48,7 +48,7 @@ const createBpmnDetailsWithPdfConfig = (pdfConfig: object): BpmnDetails => ({
     businessObject: {
       ...mockBpmnDetails.element.businessObject,
       extensionElements: {
-        values: [{ pdfConfig }],
+        values: [{ $type: 'altinn:TaskExtension', pdfConfig }],
       },
     },
   },
@@ -88,7 +88,7 @@ describe('usePdfConfig', () => {
         businessObject: {
           ...mockBpmnDetails.element.businessObject,
           extensionElements: {
-            values: [{}],
+            values: [{ $type: 'altinn:TaskExtension' }],
           },
         },
       },

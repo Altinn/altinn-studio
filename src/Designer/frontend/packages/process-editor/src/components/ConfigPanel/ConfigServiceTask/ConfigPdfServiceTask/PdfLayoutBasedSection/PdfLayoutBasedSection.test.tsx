@@ -9,15 +9,6 @@ jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
-  useValidateLayoutSetName: () => ({
-    validateLayoutSetName: (name: string) => {
-      if (name === 'invalid-name') return 'Name is invalid';
-      return undefined;
-    },
-  }),
-}));
-
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -26,6 +17,11 @@ jest.mock('react-router-dom', () => ({
 
 const getDataModelSuggestion = (): HTMLElement =>
   screen.getByLabelText(textMock('process_editor.configuration_panel_pdf_select_data_model_label'));
+
+const getCreateButton = (): HTMLElement =>
+  screen.getByRole('button', {
+    name: textMock('process_editor.configuration_panel_pdf_create_button'),
+  });
 
 describe('PdfLayoutBasedSection', () => {
   beforeEach(() => {
@@ -80,24 +76,28 @@ describe('PdfLayoutBasedSection', () => {
         '/test-org/test-app/ui-editor/layoutSet/pdf-layout-set',
       );
     });
-  });
 
-  describe('when no layout set exists', () => {
-    it('should show create layout set form', () => {
+    // A layout set created under the task id is the v9 shape, with no `taskId` of its own. The
+    // panel has to recognise the set it just created, rather than offering to create it again.
+    it('should recognise a layout set named after the task', () => {
       const pdfBpmnDetails = createPdfBpmnDetails({});
 
       renderWithProviders(<PdfLayoutBasedSection />, {
         bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: { layoutSets: [] },
+        bpmnApiContextProps: {
+          layoutSets: [{ id: pdfBpmnDetails.id, dataType: 'dataModel1' }],
+        },
       });
 
       expect(
-        screen.getByLabelText(
-          textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
-        ),
+        screen.getByRole('button', {
+          name: textMock('process_editor.configuration_panel_pdf_layout_set_link'),
+        }),
       ).toBeInTheDocument();
     });
+  });
 
+  describe('when no layout set exists', () => {
     it('should show data model selector', () => {
       const pdfBpmnDetails = createPdfBpmnDetails({});
 
@@ -109,11 +109,7 @@ describe('PdfLayoutBasedSection', () => {
         },
       });
 
-      expect(
-        screen.getByLabelText(
-          textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
-        ),
-      ).toBeInTheDocument();
+      expect(getDataModelSuggestion()).toBeInTheDocument();
     });
 
     it('should display available data models as options', async () => {
@@ -155,98 +151,7 @@ describe('PdfLayoutBasedSection', () => {
       ).toBeInTheDocument();
     });
 
-    it('should have create button disabled initially', () => {
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderWithProviders(<PdfLayoutBasedSection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: {
-          layoutSets: [],
-          allDataModelIds: ['dataModel1'],
-        },
-      });
-
-      const createButton = screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-      expect(createButton).toBeDisabled();
-    });
-
-    it('should disable create button when layout set name is empty', async () => {
-      const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderWithProviders(<PdfLayoutBasedSection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: {
-          layoutSets: [],
-          allDataModelIds: ['dataModel1'],
-        },
-      });
-
-      const dataModelCombobox = getDataModelSuggestion();
-      await user.click(dataModelCombobox);
-      await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
-      await user.keyboard('{Escape}');
-
-      const createButton = screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-      expect(createButton).toBeDisabled();
-    });
-
-    it('should disable create button when data model is not selected', async () => {
-      const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderWithProviders(<PdfLayoutBasedSection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: {
-          layoutSets: [],
-          allDataModelIds: ['dataModel1'],
-        },
-      });
-
-      const layoutSetNameInput = screen.getByLabelText(
-        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
-      );
-      await user.type(layoutSetNameInput, 'my-pdf-layout');
-
-      const createButton = screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-      expect(createButton).toBeDisabled();
-    });
-
-    it('should disable create button when layout set name has validation error', async () => {
-      const user = userEvent.setup();
-      const pdfBpmnDetails = createPdfBpmnDetails({});
-
-      renderWithProviders(<PdfLayoutBasedSection />, {
-        bpmnContextProps: { bpmnDetails: pdfBpmnDetails },
-        bpmnApiContextProps: {
-          layoutSets: [],
-          allDataModelIds: ['dataModel1'],
-        },
-      });
-
-      const layoutSetNameInput = screen.getByLabelText(
-        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
-      );
-      await user.type(layoutSetNameInput, 'invalid-name');
-
-      const dataModelCombobox = getDataModelSuggestion();
-      await user.click(dataModelCombobox);
-      await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
-      await user.keyboard('{Escape}');
-
-      const createButton = screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-      expect(createButton).toBeDisabled();
-    });
-
-    it('should enable create button when both name and data model are provided', async () => {
+    it('should enable create button once a data model is selected', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
 
@@ -258,27 +163,19 @@ describe('PdfLayoutBasedSection', () => {
         },
       });
 
-      const createButton = screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-
-      expect(createButton).toBeDisabled();
-
-      const layoutSetNameInput = screen.getByLabelText(
-        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
-      );
-      await user.type(layoutSetNameInput, 'my-pdf-layout');
-
-      expect(createButton).toBeDisabled();
+      expect(getCreateButton()).toBeDisabled();
 
       const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
       await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
 
-      await waitFor(() => expect(createButton).not.toBeDisabled());
+      await waitFor(() => expect(getCreateButton()).not.toBeDisabled());
     });
 
-    it('should call addLayoutSet when clicking create button with valid inputs', async () => {
+    // The layout set id is the ui folder name, and in v9 the app frontend looks that folder up by
+    // the task id in the url. An id taken from anywhere else produces a folder neither this panel
+    // nor the runtime can find.
+    it('should create the layout set under the task own id', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
       const addLayoutSetMock = jest.fn();
@@ -292,33 +189,26 @@ describe('PdfLayoutBasedSection', () => {
         },
       });
 
-      const layoutSetNameInput = screen.getByLabelText(
-        textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
-      );
-      await user.type(layoutSetNameInput, 'my-pdf-layout');
-
       const dataModelCombobox = getDataModelSuggestion();
       await user.click(dataModelCombobox);
       await user.click(screen.getByRole('option', { name: 'dataModel1', hidden: true }));
 
-      const createButton = await screen.findByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-      await waitFor(() => expect(createButton).not.toBeDisabled());
-      await user.click(createButton);
+      await waitFor(() => expect(getCreateButton()).not.toBeDisabled());
+      await user.click(getCreateButton());
 
       await waitFor(() => expect(addLayoutSetMock).toHaveBeenCalledTimes(1));
       expect(addLayoutSetMock).toHaveBeenCalledWith({
         taskType: 'pdf',
         layoutSetConfig: {
-          id: 'my-pdf-layout',
+          id: pdfBpmnDetails.id,
           dataType: 'dataModel1',
           taskId: pdfBpmnDetails.id,
         },
       });
     });
 
-    it('should not call addLayoutSet if validation fails when clicking create button', async () => {
+    // The app frontend throws when a ui folder has no defaultDataType.
+    it('should not call addLayoutSet when no data model is selected', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
       const addLayoutSetMock = jest.fn();
@@ -332,11 +222,7 @@ describe('PdfLayoutBasedSection', () => {
         },
       });
 
-      const createButton = screen.getByRole('button', {
-        name: textMock('process_editor.configuration_panel_pdf_create_button'),
-      });
-
-      await user.click(createButton);
+      await user.click(getCreateButton());
 
       expect(addLayoutSetMock).not.toHaveBeenCalled();
     });
