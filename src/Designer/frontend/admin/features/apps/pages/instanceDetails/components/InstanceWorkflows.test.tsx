@@ -106,7 +106,7 @@ describe('InstanceWorkflows', () => {
 
     const summaries = await screen.findAllByRole('group');
     expect(summaries).toHaveLength(2);
-    expect(summaries[0]).toHaveTextContent('Pdf → Sign');
+    expect(summaries[0]).toHaveTextContent('Process next: Pdf -> Sign');
     expect(summaries[1]).toHaveTextContent('side-effects');
     expect(summaries[1]).toHaveTextContent(textMock('admin.workflows.side_effect'));
 
@@ -352,8 +352,8 @@ describe('InstanceWorkflows', () => {
     const message = await screen.findByText('Could not generate the PDF');
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
-    // The transition name in the row is the app's process model, shown as it came too.
-    expect(screen.getByText('Pdf → Sign').tagName).toBe('SPAN');
+    // The operation id in the row is the app runtime's own name for the workflow, shown as it came.
+    expect(screen.getByText('Process next: Pdf -> Sign').tagName).toBe('SPAN');
   });
 
   it('spells out all three no-data causes when the engine holds nothing', async () => {

@@ -12,9 +12,7 @@ import {
   isWorkflowRetrying,
   latestErrorOf,
   newestFirst,
-  parseTransition,
   pickFocusWorkflow,
-  workflowDisplayName,
 } from './workflowTriage';
 
 const now = new Date('2026-08-02T10:00:00Z').getTime();
@@ -181,29 +179,5 @@ describe('errors', () => {
     ]);
     expect(latestErrorOf(workflow('Failed', { steps }))).toBe(latest);
     expect(latestErrorOf(workflow('Failed'))).toBeUndefined();
-  });
-});
-
-describe('transitions', () => {
-  it('reads the BPMN transition out of a process-next operation id', () => {
-    expect(parseTransition('Process next: Pdf -> Sign')).toEqual({ from: 'Pdf', to: 'Sign' });
-    expect(parseTransition('Process next side-effects: Pdf -> Sign · SendReceipt')).toEqual({
-      from: 'Pdf',
-      to: 'Sign',
-      sideEffect: 'SendReceipt',
-    });
-    expect(parseTransition('ExecuteServiceTask: 0')).toBeUndefined();
-  });
-
-  it('names a workflow by its transition, or by its operation id verbatim', () => {
-    expect(workflowDisplayName(workflow('Completed'))).toBe('Pdf → Sign');
-    expect(
-      workflowDisplayName(
-        workflow('Completed', { operationId: 'Process next side-effects: A -> B · Notify' }),
-      ),
-    ).toBe('A → B · Notify');
-    expect(workflowDisplayName(workflow('Completed', { operationId: 'Mailbox receive' }))).toBe(
-      'Mailbox receive',
-    );
   });
 });

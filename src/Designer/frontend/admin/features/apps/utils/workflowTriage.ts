@@ -190,34 +190,3 @@ export function newestFirst(entries: WorkflowErrorEntry[]): WorkflowErrorEntry[]
 export function latestErrorOf(workflow: WorkflowStatus): WorkflowErrorEntry | undefined {
   return newestFirst((workflow.steps ?? []).flatMap((step) => step.errorHistory ?? []))[0];
 }
-
-export type WorkflowTransition = {
-  from: string;
-  to: string;
-  /** The side effect's own operation, on a side-chain workflow. */
-  sideEffect?: string;
-};
-
-/**
- * The BPMN transition a process-next workflow carries in its operation id — the app runtime names
- * them `Process next: Pdf -> Sign`, and a side chain `Process next side-effects: Pdf -> Sign ·
- * {step}`. Undefined for any other operation id.
- */
-export function parseTransition(operationId: string): WorkflowTransition | undefined {
-  const match = /^[^:]+:\s*(\S+)\s*->\s*(\S+)(?:\s*·\s*(.+))?$/.exec(operationId);
-  if (!match) {
-    return undefined;
-  }
-  const sideEffect = match[3]?.trim();
-  return { from: match[1], to: match[2], sideEffect: sideEffect || undefined };
-}
-
-/** The transition as a name, or the operation id verbatim when it does not encode one. */
-export function workflowDisplayName(workflow: WorkflowStatus): string {
-  const transition = parseTransition(workflow.operationId);
-  if (!transition) {
-    return workflow.operationId;
-  }
-  const name = `${transition.from} → ${transition.to}`;
-  return transition.sideEffect ? `${name} · ${transition.sideEffect}` : name;
-}

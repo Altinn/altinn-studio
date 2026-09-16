@@ -36,7 +36,6 @@ import {
   newestFirst,
   orderedSteps,
   toTime,
-  workflowDisplayName,
 } from 'admin/features/apps/utils/workflowTriage';
 import { InstanceWorkflowNotices } from './InstanceWorkflowNotices';
 import { WorkflowActions } from './WorkflowActions';
@@ -216,7 +215,7 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
             </span>
             <span className={classes.summaryName}>
               <span className={classes.summaryOperation} title={workflow.operationId}>
-                {workflowDisplayName(workflow)}
+                {workflow.operationId}
               </span>
               {workflow.isHead === false && (
                 <StudioTag data-size='sm' data-color='neutral'>

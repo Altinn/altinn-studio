@@ -37,7 +37,7 @@
    up from one row to the next. Narrow screens fall back to wrapping. */
 .summary {
   display: grid;
-  grid-template-columns: 10rem 18rem auto 1fr;
+  grid-template-columns: 10rem 22rem auto 1fr;
   align-items: center;
   column-gap: var(--ds-size-3);
   row-gap: var(--ds-size-1);
