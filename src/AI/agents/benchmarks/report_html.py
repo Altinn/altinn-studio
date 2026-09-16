@@ -233,18 +233,18 @@ TEMPLATE = r"""<!doctype html>
 <style>
 :root{--bg:#f7f6f3;--panel:#fff;--panel-2:#fbfaf8;--ink:#1a1d21;--ink-2:#4d545c;--muted:#767c85;
 --rule:#e3e0d9;--rule-2:#efece6;--accent:#1f4470;--accent-br:#2e6bb0;--hold:#17715b;--moved:#9a6410;
---broken:#a32a20;--unpinned:#8a8f98;--unknown:#4a5a72;--hold-bg:#e8f2ee;--moved-bg:#f8efdd;--broken-bg:#f8e8e5;--unknown-bg:#e7ebf1;
+--broken:#a32a20;--known:#6b5a2e;--unpinned:#8a8f98;--unknown:#4a5a72;--hold-bg:#e8f2ee;--moved-bg:#f8efdd;--broken-bg:#f8e8e5;--known-bg:#f3eede;--unknown-bg:#e7ebf1;
 --unpinned-bg:#f0efec;--sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
 --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14161a;--panel:#1b1e23;
 --panel-2:#20242a;--ink:#e9e7e2;--ink-2:#b6bcc4;--muted:#8d949d;--rule:#2c3037;--rule-2:#262a30;
---accent:#9dc4ea;--accent-br:#6fa8dc;--hold:#4fbf9a;--moved:#e0a94b;--broken:#e8756a;--unpinned:#7c838c;
---unknown:#8fa6c4;--hold-bg:#14302a;--moved-bg:#33290f;--broken-bg:#351c19;--unpinned-bg:#23262b;
+--accent:#9dc4ea;--accent-br:#6fa8dc;--hold:#4fbf9a;--moved:#e0a94b;--broken:#e8756a;--known:#c8b273;--unpinned:#7c838c;
+--unknown:#8fa6c4;--hold-bg:#14302a;--moved-bg:#33290f;--broken-bg:#351c19;--known-bg:#2b2617;--unpinned-bg:#23262b;
 --unknown-bg:#1c232d}}
 :root[data-theme=dark]{--bg:#14161a;--panel:#1b1e23;--panel-2:#20242a;--ink:#e9e7e2;--ink-2:#b6bcc4;
 --muted:#8d949d;--rule:#2c3037;--rule-2:#262a30;--accent:#9dc4ea;--accent-br:#6fa8dc;--hold:#4fbf9a;
---moved:#e0a94b;--broken:#e8756a;--unpinned:#7c838c;--unknown:#8fa6c4;--hold-bg:#14302a;
---moved-bg:#33290f;--broken-bg:#351c19;--unpinned-bg:#23262b;--unknown-bg:#1c232d}
+--moved:#e0a94b;--broken:#e8756a;--known:#c8b273;--unpinned:#7c838c;--unknown:#8fa6c4;--hold-bg:#14302a;
+--moved-bg:#33290f;--broken-bg:#351c19;--known-bg:#2b2617;--unpinned-bg:#23262b;--unknown-bg:#1c232d}
 *{box-sizing:border-box}html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;
 -webkit-font-smoothing:antialiased}
@@ -266,6 +266,7 @@ border-radius:4px;padding:15px 18px;margin-top:22px}
 .chip{font-family:var(--mono);font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:3px;white-space:nowrap}
 .chip.hold{color:var(--hold);background:var(--hold-bg)}.chip.moved{color:var(--moved);background:var(--moved-bg)}
 .chip.broken{color:var(--broken);background:var(--broken-bg)}
+.chip.known{color:var(--known);background:var(--known-bg)}
 .chip.unpinned{color:var(--unpinned);background:var(--unpinned-bg)}
 .chip.unknown{color:var(--unknown);background:var(--unknown-bg)}
 .panel{background:var(--panel);border:1px solid var(--rule);border-radius:4px}
@@ -304,12 +305,13 @@ gap:14px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--rule-
 .covrow .cw,.covrow .cp{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;
 text-transform:uppercase;color:var(--muted)}
 .covrow .cw.hold{color:var(--hold)}.covrow .cw.moved{color:var(--moved)}
-.covrow .cw.broken{color:var(--broken)}.covrow .cw.unknown{color:var(--unknown)}
+.covrow .cw.broken{color:var(--broken)}.covrow .cw.known{color:var(--known)}.covrow .cw.unknown{color:var(--unknown)}
 .covrow .cw.unpinned{color:var(--unpinned)}
 @media (max-width:820px){.covrow{grid-template-columns:minmax(0,1fr) 130px}.covrow .bars,.covrow .cp{display:none}}
 .bars{display:flex;gap:3px;margin-top:8px}
 .bar{height:4px;flex:1;border-radius:2px;min-width:6px}
 .bar.hold{background:var(--hold)}.bar.moved{background:var(--moved)}.bar.broken{background:var(--broken)}
+.bar.known{background:var(--known)}
 .bar.unpinned{background:transparent;box-shadow:inset 0 0 0 1px var(--unpinned)}
 .bar.unknown{background:var(--unknown-bg);box-shadow:inset 0 0 0 1px var(--unknown)}
 .beh{border-bottom:1px solid var(--rule)}.beh:last-child{border-bottom:0}
@@ -331,6 +333,7 @@ gap:14px;align-items:baseline}
 padding:3px 8px;border-radius:3px;white-space:nowrap}
 .pill.hold{color:var(--hold);background:var(--hold-bg)}.pill.moved{color:var(--moved);background:var(--moved-bg)}
 .pill.broken{color:var(--broken);background:var(--broken-bg)}
+.pill.known{color:var(--known);background:var(--known-bg)}
 .pill.unpinned{color:var(--unpinned);background:var(--unpinned-bg)}
 .pill.unknown{color:var(--unknown);background:var(--unknown-bg)}
 .beh-checks{font-size:12.5px;color:var(--ink-2);margin-top:6px;max-width:82ch;display:block}
@@ -688,6 +691,7 @@ function tally(counts) {
     ["moved", counts.moved, "moved"],
     ["moved", counts.variance, "moved by one item"],
     ["broken", counts.failing, "failing"],
+    ["known", counts.confirmed, "known defect held in place"],
     ["unknown", counts.no_score, "ran but scored nothing"],
     ["unknown", counts.not_run, "not run"],
     ["unknown", counts.recorded, "recorded, nothing to compare"],
@@ -709,7 +713,7 @@ function refCounts() {
   if (r) return r.counts;
   const pinned = D.behaviors.filter(b => b.pinned);
   const scored = pinned.filter(b => b.current != null).length;
-  return {holding: 0, moved: 0, failing: 0, variance: 0, not_run: pinned.length - scored,
+  return {holding: 0, moved: 0, failing: 0, confirmed: 0, variance: 0, not_run: pinned.length - scored,
     no_score: 0, recorded: scored, unpinned: D.behaviors.length - pinned.length};
 }
 
@@ -730,7 +734,7 @@ const STATE = {pass: "passed", fail: "failed", partial: "partial credit",
 
 const RANK = {error: 0, fail: 1, partial: 2, pass: 3, "not-applicable": 4};
 
-const SEVERITY = ["failing", "no-score", "regressed", "improved", "output-changed",
+const SEVERITY = ["failing", "no-score", "regressed", "confirmed", "improved", "output-changed",
   "variance", "not-run", "new", "holding", "unpinned"];
 
 function bySeverity(a, z) {

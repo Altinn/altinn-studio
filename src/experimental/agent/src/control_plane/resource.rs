@@ -46,18 +46,18 @@ pub struct AgentRecord {
     /// Absolute path of the manifest last applied, when the client reported it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest_path: Option<std::path::PathBuf>,
-    /// Absolute path of the secret file, when it is not [`ENV_FILE`] beside the manifest.
+    /// Absolute path of the environment file, when it is not [`ENV_FILE`] beside the manifest.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub env_file: Option<std::path::PathBuf>,
     /// Desired state and most recently observed status.
     pub agent: Agent,
 }
 
-/// Default secret file name, resolved in the source directory.
+/// Default environment file name, resolved in the source directory.
 pub const ENV_FILE: &str = ".env";
 
 impl AgentRecord {
-    /// Returns the host file that supplies manifest secret values.
+    /// Returns the host file that supplies declared manifest values.
     #[must_use]
     pub fn env_file_path(&self) -> std::path::PathBuf {
         self.env_file

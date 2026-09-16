@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 // Configuration
-const { BASE_URL, TEST_USER_ID, AUTH_LEVEL, APP_PATH } = require('./lighthouse-config-constants');
+const { BASE_URL, TEST_USER_ID, AUTH_LEVEL, APP_PATH } = require('./lighthouse-config-constants.cjs');
 
 /**
  * Puppeteer script for Lighthouse CI to handle authentication flow

@@ -17,9 +17,14 @@ public interface IProcessClient
     /// <summary>
     /// Gets the instance process events related to the instance matching the instance id.
     /// </summary>
+    /// <param name="instanceGuid">The instance guid</param>
+    /// <param name="instanceOwnerPartyId">The instance owner party id</param>
+    /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<ProcessHistoryList> GetProcessHistory(
         string instanceGuid,
         string instanceOwnerPartyId,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 }

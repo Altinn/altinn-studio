@@ -42,6 +42,55 @@ Configuration via `appsettings.json` under `AppCommandSettings`:
 
 - `CommandEndpoint` — URL template with `{Org}`, `{App}`, `{InstanceOwnerPartyId}`, `{InstanceGuid}` placeholders
 
+## Namespace circuit breaker
+
+The engine library ships the failure-storm breaker dark (`ThrottlingSettings.Enabled` defaults to
+`false`). **This host opts in**, in `appsettings.json` under `EngineSettings.Throttling`, so every
+deployment that runs this image has it on. Only `Enabled` is set: every other knob is left to
+`Defaults`, which the
+[failure-throttling ADR](../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
+documents. Restating them here would duplicate a source of truth that can drift, and — because each
+would equal its default — a typo in one of those keys would be undetectable, silently falling back
+to the value it was meant to set.
+
+The flag is not pinned by a test here. Binding itself is covered in the engine
+(`EngineSettingsConfigurationTests`), and asserting the shipped value would only pin a policy — it
+would make disabling the breaker a two-file change, and it cannot even be written correctly, since
+the value a host boots with is the layered result of `appsettings.json` plus the environment overlay,
+not the base file. The cost is that dropping the setting disables the breaker with no signal: the
+disabled path logs at `Debug`, below this host's `Information` floor for `WorkflowEngine.Data.Services`.
+
+Two consequences worth holding on to:
+
+- **It is restart-only.** The flag is read once at repository construction and once when the sweep
+  service starts, so turning it off is a rollout, not a config reload. The per-namespace override
+  endpoints are the in-flight lever; they answer `409 Conflict` when the flag is off.
+- **A per-environment override is the kill switch.** An `appsettings.<environment>.json` or an
+  `EngineSettings__Throttling__Enabled` env var in that environment's kustomize overlay turns it
+  back off for that environment alone.
+
+## Environment-specific configuration
+
+**`ASPNETCORE_ENVIRONMENT` here is the environment name, not an ASP.NET Core environment.** This
+deployment takes it from the `runtime-environment` ConfigMap, so a running pod reports `at23` or
+`tt02` — read off the live pods, not inferred. An Altinn app is the opposite: it gets `Staging` or
+`Production` from `infra/runtime/apps-config/<env>/kustomization.yaml`. In one and the same tt02
+cluster, therefore, an app pod reads `Staging` while this pod reads `tt02`.
+
+So a per-environment file here is `appsettings.at23.json`, never `appsettings.Staging.json` — which
+would be loaded by nothing. `appsettings.at23.json`, `appsettings.tt02.json` and
+`appsettings.prod.json` are **deliberately kept even while empty**: the naming is surprising enough
+that the files earn their place as scaffolding, and they are where the next person will look. Keep
+them as plain JSON — .NET's configuration provider would tolerate `//` comments, but nothing else
+does, and `jq` or any other tool reading them would fail. This section is where the explanation
+belongs. Sibling precedent: `Altinn.Studio.Gateway.Api` ships the same environment-name files, with
+real per-environment values in them.
+
+The service is deployed to **at23 and tt02 only**. Overlays exist under `infra/kustomize/` for
+at22, at24, yt01 and prod, but only the at23 and tt02 syncroots carry a `workflow-engine-app.yaml`
+and `syncroot/base` does not include the service, so nothing syncs it to the other four.
+`appsettings.prod.json` is scaffolded ahead of that deployment.
+
 ## Tests
 
 xUnit v3 test project: `tests/WorkflowEngine.App.Tests/`

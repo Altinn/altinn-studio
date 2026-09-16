@@ -18,7 +18,12 @@ ARG CARGO_MACHETE_VERSION=0.9.2
 USER root
 
 COPY run.sh /usr/local/bin/altinn-github-runner
-RUN apt-get update \
+
+# Agent Sandboxes mount their CA bundle here; the Yarn and Cypress downloads in this step trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    apt-get update \
     && apt-get install -y --no-install-recommends \
       build-essential \
       ca-certificates \

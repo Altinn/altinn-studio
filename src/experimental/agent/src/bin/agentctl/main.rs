@@ -19,6 +19,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 mod format;
 mod forward;
 mod progress;
+mod self_update;
 mod tui;
 
 use format::{condition_status, format_age, format_harnesses, session_state};
@@ -28,7 +29,7 @@ use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
 
 #[derive(Parser)]
-#[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent_version())]
+#[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
     /// Agent control-plane home.
     #[arg(long, global = true)]
@@ -37,15 +38,13 @@ struct Arguments {
     command: Command,
 }
 
-const fn agent_version() -> &'static str {
-    match option_env!("AGENT_VERSION") {
-        Some(version) => version,
-        None => env!("CARGO_PKG_VERSION"),
-    }
-}
-
 #[derive(Subcommand)]
 enum Command {
+    /// Manage the Agent CLI installation.
+    Self_ {
+        #[command(subcommand)]
+        command: self_update::SelfCommand,
+    },
     /// Manage Claude Code harness authentication.
     Claude {
         #[command(subcommand)]
@@ -95,8 +94,8 @@ enum Command {
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
-        /// File supplying manifest secret values; defaults to `.env` beside the manifest. Use a
-        /// path outside any bind-mounted directory so real values never enter the Sandbox.
+        /// File supplying declared manifest environment and secret values; defaults to `.env`
+        /// beside the manifest. Keep files containing secrets outside bind-mounted directories.
         #[arg(long)]
         env_file: Option<PathBuf>,
         /// Stay attached after applying and show provisioning progress until the Agent is Ready.
@@ -300,7 +299,13 @@ fn run() -> CommandResult<ExitCode> {
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
     let client = Client::for_path(home.socket_path());
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        if !matches!(arguments.command, Command::Create { .. } | Command::Prompt { .. }) {
+        if !matches!(arguments.command, Command::Self_ { .. }) {
+            self_update::resume_pending_before_command(&home)?;
+        }
+        if !matches!(
+            arguments.command,
+            Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. }
+        ) {
             ensure_daemon(&home, &client).await?;
         }
         execute(arguments.command, &home, &client).await
@@ -313,6 +318,7 @@ fn run() -> CommandResult<ExitCode> {
 )]
 async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     match command {
+        Command::Self_ { command } => self_update::execute(command, home).await?,
         Command::Claude {
             command: ClaudeCommand::Login { from_stdin },
         } => {
@@ -989,26 +995,40 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    if client.health().await.is_ok() {
-        return Ok(());
+    if let Ok(daemon) = client.health().await {
+        return daemon.require_compatible();
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if client.health().await.is_ok() {
-            return Ok(());
+        if let Ok(daemon) = client.health().await {
+            return daemon.require_compatible();
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
-                "automatic startup exited with {status}; see {}",
-                home.daemon_log_path().display()
+                "automatic startup exited with {status}; {}",
+                daemon_startup_diagnostics(home)
             )));
         }
     }
     Err(Error::Daemon(format!(
-        "automatic startup did not become ready within 10 seconds; see {}",
-        home.daemon_log_path().display()
+        "automatic startup did not become ready within 10 seconds; {}",
+        daemon_startup_diagnostics(home)
     )))
+}
+
+fn daemon_startup_diagnostics(home: &ControlPlaneHome) -> String {
+    let log = home.daemon_log_path();
+    let marker = home.pending_session_relaunch_path();
+    if marker.exists() {
+        format!(
+            "see {}; pending post-upgrade Session relaunch: {}",
+            log.display(),
+            marker.display()
+        )
+    } else {
+        format!("see {}", log.display())
+    }
 }
 
 fn spawn_daemon(home: &ControlPlaneHome) -> Result<Child, Error> {
@@ -1086,12 +1106,61 @@ fn absolute(path: PathBuf) -> Result<PathBuf, Error> {
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use std::time::SystemTime;
-
     use super::*;
 
     struct StalledConnector {
         healthy: bool,
+    }
+
+    struct PreviewOneConnector;
+
+    impl agent::control_api::Connector for PreviewOneConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async {
+                use tokio::io::{AsyncBufReadExt as _, AsyncWriteExt as _};
+                let (client, server) = tokio::io::duplex(4096);
+                tokio::task::spawn_local(async move {
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut request = String::new();
+                    server.read_line(&mut request).await.expect("request");
+                    let request: serde_json::Value = serde_json::from_str(&request).expect("RPC");
+                    let response = serde_json::json!({
+                        "jsonrpc": "2.0",
+                        "id": request["id"],
+                        "result": {"protocolVersion": "v1"}
+                    });
+                    server
+                        .write_all(format!("{response}\n").as_bytes())
+                        .await
+                        .expect("response");
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn incompatible_daemon_is_reported_without_starting_another() {
+        let directory = tempfile::TempDir::new().expect("temporary home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        let client = Client::new(std::rc::Rc::new(PreviewOneConnector));
+        let error = ensure_daemon(&home, &client)
+            .await
+            .expect_err("preview daemon is incompatible");
+        assert!(error.to_string().contains("protocol Some(\"v1\")"));
+        assert!(!home.daemon_log_path().exists(), "no second daemon was spawned");
+    }
+
+    #[test]
+    fn startup_diagnostics_identify_a_pending_session_relaunch() {
+        let directory = tempfile::TempDir::new().expect("temporary home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        std::fs::write(home.pending_session_relaunch_path(), "pending").expect("marker");
+
+        let diagnostic = daemon_startup_diagnostics(&home);
+
+        assert!(diagnostic.contains(&home.daemon_log_path().display().to_string()));
+        assert!(diagnostic.contains(&home.pending_session_relaunch_path().display().to_string()));
     }
 
     impl agent::control_api::Connector for StalledConnector {
@@ -1108,7 +1177,14 @@ mod tests {
                     server.read_line(&mut line).await.expect("request");
                     let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
                     if request["method"] == "control.v1.health" {
-                        let response = serde_json::json!({ "jsonrpc": "2.0", "id": request["id"], "result": {} });
+                        let response = serde_json::json!({
+                            "jsonrpc": "2.0",
+                            "id": request["id"],
+                            "result": {
+                                "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                                "buildVersion": agent::build_version()
+                            }
+                        });
                         server
                             .write_all(format!("{response}\n").as_bytes())
                             .await
@@ -1176,7 +1252,15 @@ mod tests {
                             serde_json::from_value(request["params"]["timeout"].clone()).expect("timeout"),
                         ));
                     }
-                    let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":{}});
+                    let result = if request["method"] == "control.v1.health" {
+                        serde_json::json!({
+                            "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                            "buildVersion": agent::build_version()
+                        })
+                    } else {
+                        serde_json::json!({})
+                    };
+                    let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":result});
                     server
                         .write_all(format!("{response}\n").as_bytes())
                         .await
@@ -1407,20 +1491,15 @@ mod tests {
 
     #[test]
     fn apply_source_is_resolved_in_the_client_working_directory() {
-        let nonce = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("system time should follow the epoch")
-            .as_nanos();
-        let directory = std::env::temp_dir().join(format!("agentctl-source-{}-{nonce}", std::process::id()));
-        std::fs::create_dir_all(&directory).expect("temporary directory");
-        let manifest_path = directory.join("agent.yaml");
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let manifest_path = directory.path().join("agent.yaml");
         std::fs::copy(
             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/minimal/agent.yaml"),
             &manifest_path,
         )
         .expect("copy example manifest");
         let original_directory = std::env::current_dir().expect("current directory");
-        std::env::set_current_dir(&directory).expect("enter temporary directory");
+        std::env::set_current_dir(directory.path()).expect("enter temporary directory");
 
         let result = LocalRuntime::new()
             .expect("local runtime")
@@ -1429,8 +1508,7 @@ mod tests {
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");
         let actual_directory = std::fs::canonicalize(&request.source_directory).expect("canonical source directory");
-        let expected_directory = std::fs::canonicalize(&directory).expect("canonical temporary directory");
-        std::fs::remove_dir_all(&directory).expect("remove temporary directory");
+        let expected_directory = std::fs::canonicalize(directory.path()).expect("canonical temporary directory");
         assert_eq!(actual_directory, expected_directory);
     }
 

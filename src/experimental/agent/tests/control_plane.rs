@@ -11,7 +11,7 @@ use std::{
 };
 
 use agent::{
-    AgentId, ConditionStatus, Error, FailureKind, MountSpec, SecretSpec, Status,
+    AgentId, ConditionStatus, EnvironmentSpec, Error, FailureKind, MountSpec, SecretSpec, Status,
     control_plane::{
         AgentRecord, AgentStore, ControlPlane, Controller, Convergence, Notifier, Observers, Reconciler, WaitPolicy,
         memory,
@@ -113,6 +113,7 @@ impl Provider for MemoryProvider {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
         _progress: agent::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
@@ -136,7 +137,8 @@ impl Provider for MemoryProvider {
                 .ensure(
                     &EnsureSandboxRequest::new(record.sandbox_name()?, spec)
                         .with_hostname(record.sandbox_hostname()?)
-                        .with_mounts(record.agent.spec.sandbox.resolved_mounts()),
+                        .with_mounts(record.agent.spec.sandbox.resolved_mounts())
+                        .with_environment(environment),
                 )
                 .await
                 .map_err(Error::from)?;
@@ -214,6 +216,7 @@ impl Provider for PlannedProvider {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
         progress: agent::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         match self.failures.borrow_mut().pop_front() {
@@ -238,7 +241,7 @@ impl Provider for PlannedProvider {
                 });
                 Err(Error::Sandbox(sandbox::Error::Backend(message)))
             }),
-            None => self.inner.ensure(record, progress),
+            None => self.inner.ensure(record, environment, progress),
         }
     }
 
@@ -275,6 +278,7 @@ impl Provider for UnsupportedProvider {
     fn ensure<'a>(
         &'a self,
         _record: &'a AgentRecord,
+        _environment: std::collections::BTreeMap<String, String>,
         _progress: agent::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
@@ -1040,6 +1044,105 @@ async fn unchanged_apply_still_requests_immediate_reconciliation() {
     control_plane.apply(request).await.expect("unchanged apply");
 
     assert_eq!(notifications.0.get(), 2);
+}
+
+#[tokio::test(flavor = "local")]
+async fn selected_environment_converges_from_the_env_file_without_exporting_other_values() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("Agent source");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.environment = vec![
+        EnvironmentSpec {
+            name: "GIT_USER_NAME".into(),
+            source: Some("HOST_GIT_NAME".into()),
+        },
+        EnvironmentSpec {
+            name: "GIT_USER_EMAIL".into(),
+            source: None,
+        },
+    ];
+    std::fs::write(
+        source.path().join(".env"),
+        "HOST_GIT_NAME=First User\nGIT_USER_EMAIL=first@example.com\nUNSELECTED=private\n",
+    )
+    .expect("first environment file");
+    fixture.control_plane.apply(request.clone()).await.expect("apply");
+    reconcile(&fixture, "worker").await;
+    let record = stored(&fixture, "worker").await;
+    let first = fixture
+        .backend
+        .find(&sandbox_name(&record))
+        .await
+        .expect("Sandbox after first apply");
+    assert_eq!(
+        first.environment.get("GIT_USER_NAME").map(String::as_str),
+        Some("First User")
+    );
+    assert_eq!(
+        first.environment.get("GIT_USER_EMAIL").map(String::as_str),
+        Some("first@example.com")
+    );
+    assert!(!first.environment.contains_key("UNSELECTED"));
+
+    std::fs::write(
+        source.path().join(".env"),
+        "HOST_GIT_NAME=Second User\nGIT_USER_EMAIL=second@example.com\nUNSELECTED=still-private\n",
+    )
+    .expect("updated environment file");
+    let reapplied = fixture.control_plane.apply(request).await.expect("unchanged reapply");
+    assert_eq!(reapplied.metadata.generation, 1);
+    reconcile(&fixture, "worker").await;
+    let second = fixture
+        .backend
+        .find(&sandbox_name(&record))
+        .await
+        .expect("Sandbox after environment update");
+    assert_eq!(
+        second.environment.get("GIT_USER_NAME").map(String::as_str),
+        Some("Second User")
+    );
+    assert_eq!(
+        second.environment.get("GIT_USER_EMAIL").map(String::as_str),
+        Some("second@example.com")
+    );
+    assert!(!second.environment.contains_key("UNSELECTED"));
+}
+
+#[tokio::test(flavor = "local")]
+async fn selected_environment_requires_present_non_empty_values() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("Agent source");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.environment = vec![
+        EnvironmentSpec {
+            name: "GIT_USER_NAME".into(),
+            source: None,
+        },
+        EnvironmentSpec {
+            name: "GIT_USER_EMAIL".into(),
+            source: None,
+        },
+    ];
+    std::fs::write(source.path().join(".env"), "GIT_USER_NAME=\n").expect("incomplete environment file");
+    fixture.control_plane.apply(request).await.expect("apply");
+    let id = stored(&fixture, "worker").await.id;
+
+    let error = fixture
+        .reconciler
+        .reconcile(id)
+        .await
+        .expect_err("empty selected value must fail");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("GIT_USER_NAME") && message.contains("empty")));
+
+    std::fs::write(source.path().join(".env"), "GIT_USER_NAME=Ready\n").expect("missing environment value");
+    let error = fixture
+        .reconciler
+        .reconcile(id)
+        .await
+        .expect_err("missing selected value must fail");
+    assert!(
+        matches!(error, Error::Invalid(message) if message.contains("GIT_USER_EMAIL") && message.contains("does not define"))
+    );
 }
 
 #[tokio::test(flavor = "local")]

@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -84,7 +85,7 @@ public class MailboxRelayTests
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             // The workflow's shape, not a bare "enqueue": a receiver and a continuation are two different
@@ -101,7 +102,11 @@ public class MailboxRelayTests
             );
         }
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        )
         {
             recorder.Calls.Add("close-mailbox");
             recorder.Closes.Add(mailboxId);
@@ -112,13 +117,19 @@ public class MailboxRelayTests
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
@@ -126,29 +137,29 @@ public class MailboxRelayTests
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -163,18 +174,29 @@ public class MailboxRelayTests
         processEngine
             .Setup(x =>
                 x.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, dependsOn, collectionKey, state, action, idempotencyKey, _) =>
+            .Callback<
+                IInstanceDataAccessor,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, _) =>
                 {
                     recorder.Calls.Add("enqueue-after-workflow");
                     recorder.AfterWorkflows.Add((dependsOn, collectionKey, state, action, idempotencyKey));
@@ -334,14 +356,22 @@ public class MailboxRelayTests
                 StepId = stepId,
                 State = "incoming-state",
             },
-            Instance = new Instance
-            {
-                Id = $"1337/{_instanceGuid}",
-                Org = "ttd",
-                AppId = "ttd/test-app",
-                InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            },
+            DataAccessor = new InstanceDataAccessorFake(
+                new Instance
+                {
+                    Id = $"1337/{_instanceGuid}",
+                    Org = "ttd",
+                    AppId = "ttd/test-app",
+                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+                },
+                applicationMetadata: null,
+                translationService: null,
+                layout: null,
+                frontEndSettings: null,
+                gatewayAction: null,
+                language: null
+            ),
             State = state,
             AutoAdvanceProcess = autoAdvance,
             AutoAdvanceAction = action,
@@ -897,8 +927,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("confirm", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("confirm", success.ProcessNextContinuation?.Action);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
     }
@@ -920,7 +950,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
     }
 
@@ -941,7 +971,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             success.MailboxContinuation
         );
@@ -1081,8 +1111,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-        Assert.Null(success.AutoAdvanceAction);
+        Assert.Null(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
             success.MailboxContinuation
@@ -1753,7 +1783,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -1895,7 +1925,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -1958,8 +1988,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation
@@ -1986,7 +2016,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation
         );

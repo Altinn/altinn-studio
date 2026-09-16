@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <remarks>
 /// <see cref="Conclude"/> does not say which kind of step produced it. What keeps an after-workflow out of
 /// a mid-pipeline handler's reach is two facts outside this type: the stage vocabulary has no
-/// <c>Success(action)</c>, so <see cref="MailboxRelay.DecideSegment"/> never sets <c>AutoAdvanceProcess</c>;
+/// <c>Success(action)</c>, so <see cref="MailboxRelay.DecideSegment"/> never sets <c>ProcessNextContinuation</c>;
 /// and <see cref="Conclude"/> is gated on that flag in <see cref="MailboxRelay.Continue"/>, which the callback
 /// controller pins to <c>false</c> on its failure branch.
 /// </remarks>

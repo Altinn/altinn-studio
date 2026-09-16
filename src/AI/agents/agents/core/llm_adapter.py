@@ -318,13 +318,12 @@ class AnthropicAdapter(LLMAdapter):
             try:
                 span.update(
                     output=_trace_output_summary(assistant),
-                    usage_details={
-                        "input": usage["input_tokens"],
-                        "output": usage["output_tokens"],
-                        "cache_creation_input": usage["cache_creation_input_tokens"],
-                        "cache_read_input": usage["cache_read_input_tokens"],
-                        "total": usage["input_tokens"] + usage["output_tokens"],
-                    },
+                    usage_details=_usage_details(
+                        fresh=usage["input_tokens"],
+                        output=usage["output_tokens"],
+                        cache_read=usage["cache_read_input_tokens"],
+                        cache_creation=usage["cache_creation_input_tokens"],
+                    ),
                 )
             except Exception:  # noqa: BLE001 — never let tracing break the call
                 pass
@@ -390,6 +389,23 @@ def _block_to_anthropic(block: ContentBlock) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # OpenAI / Azure OpenAI (chat-completions tool calling)
 # ---------------------------------------------------------------------------
+
+
+def _usage_details(
+    *, fresh: int, output: int, cache_read: int = 0, cache_creation: int = 0
+) -> dict[str, int]:
+    """Token kinds as the provider reports them, and a total counting all of them.
+
+    Anthropic excludes cache reads from `input_tokens` and Azure includes them, so
+    a total built from each provider's own input figure is not comparable.
+    """
+    return {
+        "input": fresh,
+        "output": output,
+        "cache_read_input": cache_read,
+        "cache_creation_input": cache_creation,
+        "total": fresh + output + cache_read + cache_creation,
+    }
 
 
 def build_openai_request(
@@ -518,9 +534,14 @@ class OpenAIAdapter(LLMAdapter):
                 )
 
             usage_obj = getattr(response, "usage", None)
+            prompt_details = getattr(usage_obj, "prompt_tokens_details", None)
             usage = {
                 "input_tokens": getattr(usage_obj, "prompt_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
+                # prompt_tokens includes both; Anthropic reports them apart.
+                "cache_read_input_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
+                "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0)
+                or 0,
             }
 
             assistant = AssistantMessage(
@@ -532,11 +553,14 @@ class OpenAIAdapter(LLMAdapter):
             try:
                 span.update(
                     output=_trace_output_summary(assistant),
-                    usage_details={
-                        "input": usage["input_tokens"],
-                        "output": usage["output_tokens"],
-                        "total": usage["input_tokens"] + usage["output_tokens"],
-                    },
+                    usage_details=_usage_details(
+                        fresh=usage["input_tokens"]
+                        - usage["cache_read_input_tokens"]
+                        - usage["cache_creation_input_tokens"],
+                        output=usage["output_tokens"],
+                        cache_read=usage["cache_read_input_tokens"],
+                        cache_creation=usage["cache_creation_input_tokens"],
+                    ),
                 )
             except Exception:  # noqa: BLE001
                 pass

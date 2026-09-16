@@ -12,9 +12,11 @@ public interface ISignClient
     /// </summary>
     /// <param name="signatureContext">The context for the signature <see cref="SignatureContext"/></param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns></returns>
     public Task SignDataElements(
         SignatureContext signatureContext,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 }

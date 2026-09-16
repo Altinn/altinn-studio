@@ -350,7 +350,8 @@ public class ApiTestBase
                 x.AddEvent(
                     It.IsAny<string>(),
                     It.IsAny<Altinn.Platform.Storage.Interface.Models.Instance>(),
-                    It.IsAny<Altinn.App.Core.Features.StorageAuthenticationMethod>()
+                    It.IsAny<Altinn.App.Core.Features.StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync("mock-event-id");

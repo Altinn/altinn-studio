@@ -461,6 +461,8 @@
   "app_validation.errors_tag": "Feil",
   "app_validation.heading": "Valideringsfeil og advarsler",
   "app_validation.no_issues": "Appen har ingen feil eller advarsler.",
+  "app_validation.task_settings.default_data_type.missing": "Oppgaven {{taskId}} mangler datamodell. Koble til en datamodell i Arbeidsflyt.",
+  "app_validation.task_settings.default_data_type.not_found": "Oppgaven {{taskId}} er fortsatt koblet til datamodellen «{{dataTypeId}}», men den finnes ikke lenger. Opprett datamodellen på nytt, eller velg en annen datamodell i Arbeidsflyt.",
   "app_validation.warning_count_one": "{{count}} advarsel",
   "app_validation.warning_count_other": "{{count}} advarsler",
   "app_validation.warnings_lead": "Se over disse advarslene:",

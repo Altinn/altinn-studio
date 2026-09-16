@@ -49,7 +49,12 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     public string PaymentProcessorId => "Nets Easy";
 
     /// <inheritdoc />
-    public async Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language)
+    public async Task<PaymentDetails> StartPayment(
+        Instance instance,
+        OrderDetails orderDetails,
+        string? language,
+        CancellationToken cancellationToken = default
+    )
     {
         var instanceIdentifier = new InstanceIdentifier(instance);
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
@@ -136,7 +141,10 @@ internal class NetsPaymentProcessor : IPaymentProcessor
             };
         }
 
-        HttpApiResult<NetsCreatePaymentSuccess> httpApiResult = await _netsClient.CreatePayment(payment);
+        HttpApiResult<NetsCreatePaymentSuccess> httpApiResult = await _netsClient.CreatePayment(
+            payment,
+            cancellationToken
+        );
         if (!httpApiResult.IsSuccess || httpApiResult.Result?.HostedPaymentPageUrl is null)
         {
             throw new PaymentException(
@@ -155,14 +163,21 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     }
 
     /// <inheritdoc />
-    public async Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation)
+    public async Task<bool> TerminatePayment(
+        Instance instance,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken = default
+    )
     {
         if (paymentInformation.PaymentDetails?.PaymentId is null)
         {
             throw new PaymentException("PaymentId is missing in paymentInformation. Can't terminate.");
         }
 
-        bool result = await _netsClient.TerminatePayment(paymentInformation.PaymentDetails.PaymentId);
+        bool result = await _netsClient.TerminatePayment(
+            paymentInformation.PaymentDetails.PaymentId,
+            cancellationToken
+        );
         return result;
     }
 
@@ -171,10 +186,11 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         Instance instance,
         string paymentId,
         decimal expectedTotalIncVat,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     )
     {
-        HttpApiResult<NetsPaymentFull> httpApiResult = await _netsClient.RetrievePayment(paymentId);
+        HttpApiResult<NetsPaymentFull> httpApiResult = await _netsClient.RetrievePayment(paymentId, cancellationToken);
 
         if (!httpApiResult.IsSuccess || httpApiResult.Result is null)
         {

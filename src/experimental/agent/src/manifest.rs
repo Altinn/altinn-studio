@@ -95,6 +95,9 @@ pub struct Spec {
     pub skills: Vec<SkillSpec>,
     /// Harness installations available to Sessions in this Agent.
     pub harnesses: Vec<HarnessSpec>,
+    /// Deliberately selected non-secret values exposed in plaintext inside the Sandbox.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub environment: Vec<EnvironmentSpec>,
     /// Host-owned values made available only through mediated requests.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub secrets: Vec<SecretSpec>,
@@ -348,10 +351,37 @@ impl Spec {
                 harness.as_str()
             )));
         }
-        let mut environments = std::collections::BTreeSet::new();
+        self.validate_environment()?;
+        self.validate_secrets()?;
+        if self.network.deny.iter().any(|host| !valid_host_pattern(host)) {
+            return Err(Error::Invalid(
+                "spec.network.deny contains an invalid host pattern".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+impl Spec {
+    fn validate_secrets(&self) -> Result<(), Error> {
+        let mut environments = self
+            .environment
+            .iter()
+            .map(|variable| variable.name.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        let environment_sources = self
+            .environment
+            .iter()
+            .map(EnvironmentSpec::source)
+            .collect::<std::collections::BTreeSet<_>>();
         let mut placeholders = std::collections::BTreeSet::new();
         for (index, secret) in self.secrets.iter().enumerate() {
             let placeholder = secret.inert_value();
+            if environments.contains(secret.environment.as_str()) || environment_sources.contains(secret.source()) {
+                return Err(Error::Invalid(format!(
+                    "spec.environment collides with spec.secrets[{index}]"
+                )));
+            }
             if !valid_environment_variable(&secret.environment)
                 || secret
                     .source
@@ -375,16 +405,38 @@ impl Spec {
                 )));
             }
         }
-        if self.network.deny.iter().any(|host| !valid_host_pattern(host)) {
+        Ok(())
+    }
+
+    fn validate_environment(&self) -> Result<(), Error> {
+        let mut names = std::collections::BTreeSet::new();
+        for (index, variable) in self.environment.iter().enumerate() {
+            if !valid_environment_variable(&variable.name)
+                || variable
+                    .source
+                    .as_deref()
+                    .is_some_and(|source| !valid_environment_variable(source))
+                || self
+                    .harnesses
+                    .iter()
+                    .any(|installation| harness::manages_environment(installation.kind, &variable.name))
+                || !names.insert(variable.name.as_str())
+            {
+                return Err(Error::Invalid(format!(
+                    "spec.environment[{index}] is invalid, duplicated, or managed by a declared harness"
+                )));
+            }
+        }
+        let has_git_name = names.contains("GIT_USER_NAME");
+        let has_git_email = names.contains("GIT_USER_EMAIL");
+        if has_git_name != has_git_email {
             return Err(Error::Invalid(
-                "spec.network.deny contains an invalid host pattern".into(),
+                "spec.environment must declare GIT_USER_NAME and GIT_USER_EMAIL together".into(),
             ));
         }
         Ok(())
     }
-}
 
-impl Spec {
     fn validate_skills(&self) -> Result<(), Error> {
         let mut skill_names = std::collections::BTreeSet::new();
         for (index, skill) in self.skills.iter().enumerate() {
@@ -400,6 +452,25 @@ impl Spec {
             }
         }
         Ok(())
+    }
+}
+
+/// One explicitly selected non-secret value copied from the Agent environment file.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct EnvironmentSpec {
+    /// Environment variable exposed inside the Sandbox.
+    pub name: String,
+    /// Optional variable name in the Agent environment file; defaults to `name`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+}
+
+impl EnvironmentSpec {
+    /// Returns the environment-file variable that supplies the plaintext value.
+    #[must_use]
+    pub fn source(&self) -> &str {
+        self.source.as_deref().unwrap_or(&self.name)
     }
 }
 

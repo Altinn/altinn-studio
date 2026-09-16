@@ -18,6 +18,7 @@ RUN apt-get update \
         ca-certificates \
         clang \
         curl \
+        fonts-liberation \
         git \
         iproute2 \
         jq \
@@ -125,8 +126,16 @@ COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
 # for concurrent harnesses. The kernel pid limit remains the Sandbox boundary.
 # The guest also has no udev to activate hvc0's device unit, so its generated
 # serial login would otherwise wait 90 seconds at boot.
+#
+# The kernel's inotify defaults suit one interactive desktop, not a guest running
+# concurrent harnesses, nested Agents and build tooling, each with its own file
+# watchers. These values match the ones the self-hosted CI runners raise in
+# src/ci/github-runner/run.sh.
 RUN install -d /etc/systemd/system/init.scope.d \
     && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && install -d /usr/lib/sysctl.d \
+    && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
+        >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
     && systemctl enable agent-workspace-init.service
 

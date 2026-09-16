@@ -90,6 +90,10 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
             w => !IsSideEffectsWorkflow(w) && w.OperationId.EndsWith("-> Task_Service", StringComparison.Ordinal)
         );
         Assert.Equal("Completed", serviceTaskMain.OverallStatus);
+        EngineWorkflow acquireWorkflow = Assert.Single(workflows, w => w.OperationId == "Process next: acquire");
+        Assert.Equal("Completed", acquireWorkflow.OverallStatus);
+        Assert.Equal("AcquireProcessingStatus", Assert.Single(acquireWorkflow.Steps).OperationId);
+        Assert.DoesNotContain(serviceTaskMain.Steps, s => s.OperationId == "AcquireProcessingStatus");
         // A simple IServiceTask's pipeline is its conclusion and nothing else, so its one step names item 0.
         EngineStep executeServiceTaskStep = Assert.Single(
             serviceTaskMain.Steps,

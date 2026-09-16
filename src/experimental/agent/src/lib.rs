@@ -7,6 +7,7 @@ pub mod authorization;
 pub mod control_api;
 pub mod control_plane;
 mod controller;
+mod environment;
 pub mod harness;
 pub mod local;
 pub mod manifest;
@@ -15,15 +16,31 @@ pub mod platform_api;
 pub mod progress;
 pub mod sandbox;
 pub mod sessions;
+pub mod upgrade;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
 pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
 pub use manifest::{
-    API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec,
-    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec, SecretSpec,
-    SkillSpec, Spec, Status,
+    API_VERSION, Agent, Condition, ConditionStatus, EnvironmentSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
+    MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec,
+    SecretSpec, SkillSpec, Spec, Status,
 };
+
+/// Version embedded in a matched `agentctl`/`agentd` build.
+#[must_use]
+pub const fn build_version() -> &'static str {
+    match release_version() {
+        Some(version) => version,
+        None => env!("CARGO_PKG_VERSION"),
+    }
+}
+
+/// Release version embedded by packaging, absent from ordinary development builds.
+#[must_use]
+pub const fn release_version() -> Option<&'static str> {
+    option_env!("AGENT_VERSION")
+}
 
 use thiserror::Error;
 

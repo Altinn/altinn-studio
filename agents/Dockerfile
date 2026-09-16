@@ -21,7 +21,14 @@ RUN apt-get update \
         sudo \
         systemd \
         tmux \
+        tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+# Altinn Agents keep Norwegian local time, so timestamps they write and read match the clock the
+# people reviewing their work use. The /etc/localtime symlink is the system-wide setting that
+# systemd, glibc, .NET, Go and Node's ICU all resolve; an `ENV TZ` would shadow it instead and
+# leave `timedatectl set-timezone` inside a running Agent without effect.
+RUN ln -sf /usr/share/zoneinfo/Europe/Oslo /etc/localtime
 
 ARG TARGETARCH
 ARG DOTNET_VERSION=10.0.302
@@ -68,7 +75,11 @@ ARG GH_VERSION=2.100.0
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
-RUN mkdir -p "${COREPACK_HOME}" \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    mkdir -p "${COREPACK_HOME}" \
     && corepack enable \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
@@ -123,9 +134,12 @@ RUN case "${TARGETARCH}" in \
     && agg --version
 
 ARG CODEX_VERSION=0.153.4
-ARG CLAUDE_CODE_VERSION=2.1.266
+ARG CLAUDE_CODE_VERSION=2.1.268
 
-RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && usermod --login agent --home /home/agent --move-home ubuntu \
@@ -142,8 +156,17 @@ COPY --chown=agent:agent --chmod=0600 common/claude-state.json /home/agent/.clau
 
 # Microsandbox Executions and harnesses inherit init.scope. Keep the kernel pid
 # limit as their task boundary instead of systemd's much lower default.
+#
+# The kernel's inotify defaults suit one interactive desktop, not a guest running
+# harnesses, dev servers and test hosts at once. Every .NET host that reloads
+# configuration on change takes an inotify instance of its own, so a test suite
+# exhausts the default 128 instances while its hosts boot. These values match the
+# ones the self-hosted CI runners raise in src/ci/github-runner/run.sh.
 RUN install -d /etc/systemd/system/init.scope.d \
     && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && install -d /usr/lib/sysctl.d \
+    && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
+        >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
     && systemctl enable agent-workspace-init.service \
     && dotnet --version \
@@ -151,7 +174,8 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && node --version \
     && yarn --version \
     && claude --version \
-    && codex --version
+    && codex --version \
+    && test "$(readlink /etc/localtime)" = /usr/share/zoneinfo/Europe/Oslo
 
 ENV DISABLE_AUTOUPDATER=1
 ENV GH_NO_UPDATE_NOTIFIER=1
@@ -172,21 +196,26 @@ FROM base AS full
 ARG PLAYWRIGHT_CLI_VERSION=0.1.19
 ARG RUST_VERSION=1.97.1
 
-ENV CARGO_HOME=/usr/local/cargo
+# Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and
+# ~/.cargo lives in the Agent's home volume, so the registry cache and anything `cargo install`
+# places there survive the Agent being recreated.
+ENV CARGO_HOME=/home/agent/.cargo
 # Standalone scripts resolve the globally installed `playwright` package from any directory.
 ENV NODE_PATH=/usr/local/lib/node_modules
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ENV RUSTUP_HOME=/usr/local/rustup
-ENV PATH=/usr/local/cargo/bin:${PATH}
+ENV PATH=/home/agent/.cargo/bin:${PATH}
 
 # Podman's netavark backend invokes nft for rootful bridge networking and aardvark-dns for
-# container-name resolution between compose services.
+# container-name resolution between compose services. libcap-ng-dev links the Microsandbox runtime,
+# as in the self-dev example.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
         clang \
         ffmpeg \
         iproute2 \
+        libcap-ng-dev \
         lldb \
         linux-perf \
         nftables \
@@ -197,9 +226,9 @@ RUN apt-get update \
         rustup \
         strace \
     && rm -rf /var/lib/apt/lists/* \
-    && rustup set profile minimal \
-    && rustup default "${RUST_VERSION}" \
-    && rustup component add clippy rustfmt
+    && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
+    && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
+    && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt
 
 # Playwright ties every package version to one Chromium build. The browser CLI owns the version:
 # the `playwright` package is installed at exactly the version the CLI depends on, so the CLI,
@@ -207,7 +236,11 @@ RUN apt-get update \
 # The bundled skill is installed user-wide where Claude Code and Codex look for skills;
 # `playwright-cli install --skills` would otherwise write it per working directory. Root-owned
 # build caches under the agent home would deny the agent user its own cache directories later.
-RUN npm install --global "@playwright/cli@${PLAYWRIGHT_CLI_VERSION}" \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global "@playwright/cli@${PLAYWRIGHT_CLI_VERSION}" \
     && PLAYWRIGHT_VERSION="$(node -p "require('${NODE_PATH}/@playwright/cli/package.json').dependencies.playwright")" \
     && test -n "${PLAYWRIGHT_VERSION}" \
     && npm install --global "playwright@${PLAYWRIGHT_VERSION}" \
@@ -281,6 +314,16 @@ RUN case "${TARGETARCH}" in \
     && ffmpeg -version
 
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
+
+# Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
+# source path is missing where Docker would create it, and the Sandbox kernel is built without
+# loadable modules, so nothing else creates the directory the mount needs.
+RUN install -d /lib/modules
+
+# devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in
+# each node's trust store and mounts it into the Flux controllers. Without it the mediated CA is
+# unknown inside the cluster and every Helm repository fetch fails certificate verification.
+ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 COPY common/full-tmpfiles.conf /usr/lib/tmpfiles.d/agent-full.conf
 COPY common/full-hosts-init.service /etc/systemd/system/agent-full-hosts-init.service

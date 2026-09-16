@@ -20,7 +20,7 @@ pub use controller::{AgentNotifier, Controller, ErrorHandler, Wakeup};
 pub use reconciler::Reconciler;
 pub use runtime::{Observation, SessionRuntime, Tmux};
 pub use sandboxes::AgentSandboxes;
-pub use service::Service;
+pub use service::{Service, UpgradeReadiness};
 pub use transcript::{Message, Part, Role, Turn};
 
 /// Immutable identity of one Session incarnation.
@@ -109,6 +109,8 @@ pub enum LifecycleState {
     /// The Session has not yet reached a running harness.
     #[default]
     Starting,
+    /// A resumed harness is running but has not reached its input prompt.
+    Resuming,
     /// The harness process is running in its Sandbox.
     Running,
     /// The harness was deliberately stopped after inactivity.
@@ -164,7 +166,7 @@ impl Status {
         let state = match lifecycle.state {
             LifecycleState::Failed => State::Failed,
             LifecycleState::Idle => State::Idle,
-            LifecycleState::Starting => State::Starting,
+            LifecycleState::Starting | LifecycleState::Resuming => State::Starting,
             // A start report always folds to `Working`, so an `Unknown` phase means
             // the current launch has not reported yet, even when an earlier launch
             // left a native ID behind for resumption.
@@ -214,6 +216,23 @@ impl Lifecycle {
         }
     }
 
+    /// A resumed harness waiting to reach its input prompt.
+    #[must_use]
+    pub const fn resuming() -> Self {
+        Self {
+            state: LifecycleState::Resuming,
+            failure: None,
+        }
+    }
+
+    /// A resumed harness whose latest readiness attempt was interrupted.
+    pub fn resuming_with(failure: impl Into<String>) -> Self {
+        Self {
+            state: LifecycleState::Resuming,
+            failure: Some(failure.into()),
+        }
+    }
+
     /// Not yet running, with the reason.
     pub fn starting(failure: impl Into<String>) -> Self {
         Self {
@@ -253,6 +272,8 @@ pub struct Reported {
 /// Durable bookkeeping for the most recent harness launch of one Session.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LaunchState {
+    /// Bearer token authenticating reports from this launch.
+    pub(crate) token: LaunchToken,
     /// Sandbox ID the harness was launched in.
     pub sandbox: String,
     /// Launch time as Unix seconds.
@@ -340,6 +361,7 @@ impl Session {
             .as_deref()
             .unwrap_or(match self.status.lifecycle.state {
                 LifecycleState::Starting => "its lifecycle is starting",
+                LifecycleState::Resuming => "its harness is resuming",
                 LifecycleState::Idle => "its lifecycle is idle",
                 LifecycleState::Failed => "its lifecycle failed without a recorded reason",
                 LifecycleState::Running => "its harness has not reported readiness",
@@ -360,7 +382,7 @@ pub struct AttachTarget {
 }
 
 /// Persistent Session operations required by reconciliation.
-pub trait SessionStore {
+pub trait SessionStore: SessionReports {
     /// Creates or gets one named Session for the active Agent incarnation.
     ///
     /// `initial_prompt`, recorded only when the Session is created, is handed to
@@ -490,6 +512,7 @@ mod tests {
         };
         let cases = [
             (Lifecycle::default(), Reported::default(), State::Starting),
+            (Lifecycle::resuming(), Reported::default(), State::Starting),
             (Lifecycle::running(), Reported::default(), State::Starting),
             (Lifecycle::running(), reported(Phase::Working), State::Working),
             (Lifecycle::running(), reported(Phase::Unknown), State::Starting),

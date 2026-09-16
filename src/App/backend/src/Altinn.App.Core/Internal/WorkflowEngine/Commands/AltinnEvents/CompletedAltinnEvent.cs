@@ -35,7 +35,8 @@ internal sealed class CompletedAltinnEvent : IWorkflowEngineCommand
                 await _eventsClient.AddEvent(
                     "app.instance.process.completed",
                     instance,
-                    StorageAuthenticationMethod.ServiceOwner()
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    parameters.CancellationToken
                 );
             }
 

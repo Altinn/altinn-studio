@@ -164,6 +164,18 @@ func TestParseAppUpgradeFlagsDefaultsToV9(t *testing.T) {
 	}
 }
 
+func TestParseAppUpgradeFlagsReadsJSONOutput(t *testing.T) {
+	t.Parallel()
+
+	flags, _, err := (&AppCommand{}).parseAppUpgradeFlags([]string{"v9", "--json"})
+	if err != nil {
+		t.Fatalf("parseAppUpgradeFlags() error = %v", err)
+	}
+	if !flags.jsonOutput {
+		t.Fatal("jsonOutput = false, want true")
+	}
+}
+
 func TestParseAppUpgradeFlagsRejectsUnsupportedKind(t *testing.T) {
 	t.Parallel()
 

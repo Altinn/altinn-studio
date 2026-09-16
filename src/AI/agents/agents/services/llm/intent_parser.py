@@ -11,6 +11,9 @@ log = get_logger(__name__)
 
 MINIMUM_INTENT_CONFIDENCE = 0.30
 
+# `action` when the classifier never ran, as opposed to answering "unsafe".
+GATE_FAILED_ACTION = "error"
+
 class ParsedIntent(BaseModel):
     """Structured representation of user intent"""
     action: str  # add, remove, update, move
@@ -66,7 +69,7 @@ async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachme
     except Exception as e:
         log.error(f"LLM intent parsing failed: {e}")
         return ParsedIntent(
-            action="error",
+            action=GATE_FAILED_ACTION,
             component="unknown",
             target=goal,
             safe=False,

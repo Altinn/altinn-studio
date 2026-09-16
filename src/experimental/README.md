@@ -18,6 +18,12 @@ The main goals are:
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
 installs `agentctl` and `agentd` for the current user.
 
+Maintainers updating the Microsandbox or libkrunfw forks should follow the
+[downstream maintenance runbook](MICROSANDBOX.md).
+
+User-visible changes are recorded in [CHANGELOG.md](CHANGELOG.md), which covers the whole stack and provides the
+release notes for each `experimental-agent/v*` release.
+
 The Agent database and local protocol are intentionally clean-slate while this code is experimental. Breaking schema
 changes require stopping `agentd` and removing the configured Agent home rather than migrating old state.
 
@@ -102,6 +108,11 @@ image or the user and is not used as a trusted bootstrap marker.
 
 A secret is any protected host-owned value. Credentials are the subset used for authentication. Generic storage and
 mediation therefore use the `SecretStore` concept, while harness login remains an authentication concern.
+
+`spec.environment` explicitly selects non-secret values from the same `.env` file, with `name` as both the Sandbox
+variable and default source name. An optional `source` selects a differently named entry. Only declared values are
+copied, and they enter the Sandbox in plaintext, where image init and Sandbox Executions inherit them. Reapplying
+after changing the file updates the Sandbox environment. Do not declare secrets here.
 
 Manifest secret bindings name a guest environment variable and the hosts where its value may be substituted. The
 matching real value is loaded from the manifest directory's `.env` file, or the file named by

@@ -211,7 +211,7 @@ public class HttpClientExtensionTest
                 ItExpr.IsAny<CancellationToken>()
             )
             .Callback<HttpRequestMessage, CancellationToken>(
-                (request, ct) =>
+                (request, cancellationToken) =>
                 {
                     sendCallback?.Invoke(request);
                 }
