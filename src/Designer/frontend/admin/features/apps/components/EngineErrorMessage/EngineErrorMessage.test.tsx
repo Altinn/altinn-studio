@@ -15,41 +15,33 @@ const entry = (overrides: Partial<WorkflowErrorEntry> = {}): WorkflowErrorEntry 
 });
 
 describe('EngineErrorMessage', () => {
-  it('shows the problem title, detail and failure code as their own verbatim nodes, and the whole message', () => {
+  it('shows the whole message as it came, as verbatim technical text', () => {
     renderEngineErrorMessage(entry());
 
-    expect(screen.getByText('PdfGenerationException').tagName).toBe('CODE');
-    expect(screen.getByText('Could not generate the PDF').tagName).toBe('CODE');
-    expect(screen.getByText('PDF_GENERATION_FAILED').tagName).toBe('CODE');
     expect(screen.getByText(problemMessage).tagName).toBe('CODE');
+    // Nothing is lifted out of the message and said again beside it.
+    expect(screen.queryByText('Could not generate the PDF')).not.toBeInTheDocument();
   });
 
-  it('keeps the trace id and other fields the app added', () => {
-    const message =
-      'AppCommand failed with client error UnprocessableEntity: {"title":"Invalid State","status":422,"detail":"State could not be restored.","nonRetryable":true,"traceId":"00-e74e2d6ae60e-01"}';
-    renderEngineErrorMessage(entry({ message, httpStatusCode: 422, wasRetryable: false }));
-
-    expect(screen.getByText('traceId')).toBeInTheDocument();
-    expect(screen.getByText('00-e74e2d6ae60e-01')).toBeInTheDocument();
-    expect(screen.queryByText('nonRetryable')).not.toBeInTheDocument();
-    expect(screen.getByText(message)).toBeInTheDocument();
-  });
-
-  it('tags the HTTP status and whether the engine classed the error as transient', () => {
+  it('says when, the HTTP status, how the engine classed the error, and the failure code', () => {
     renderEngineErrorMessage(entry({ wasRetryable: false, httpStatusCode: 422 }));
 
-    expect(
-      screen.getByText(textMock('admin.workflows.error.http_status', { status: 422 })),
-    ).toBeInTheDocument();
-    expect(screen.getByText(textMock('admin.workflows.error.non_retryable'))).toBeInTheDocument();
-    expect(screen.queryByText(textMock('admin.workflows.error.retryable'))).not.toBeInTheDocument();
+    const meta = screen.getByText(textMock('admin.workflows.error.http_status', { status: 422 }), {
+      exact: false,
+    });
+    expect(meta).toHaveTextContent(textMock('admin.workflows.error.non_retryable'));
+    expect(meta).not.toHaveTextContent(textMock('admin.workflows.error.retryable'));
+    expect(screen.getByText('PDF_GENERATION_FAILED').tagName).toBe('CODE');
   });
 
-  it('shows a message without a problem body as it came, once', () => {
+  it('leaves the status out when the engine recorded none', () => {
     renderEngineErrorMessage(entry({ message: 'Boom went the pipeline', httpStatusCode: null }));
 
     expect(screen.getByText('Boom went the pipeline').tagName).toBe('CODE');
-    expect(screen.queryByText(/HTTP/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/http_status/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('admin.workflows.error.retryable'), { exact: false }),
+    ).toBeInTheDocument();
   });
 });
 

@@ -102,7 +102,6 @@
   "admin.workflows.duration.minutes": "{{count}} min",
   "admin.workflows.duration.seconds": "{{count}} s",
   "admin.workflows.duration.under_second": "under 1 s",
-  "admin.workflows.error.failure_code": "Feilkode",
   "admin.workflows.error.http_status": "HTTP {{status}}",
   "admin.workflows.error.non_retryable": "Varig feil",
   "admin.workflows.error.retryable": "Midlertidig feil",

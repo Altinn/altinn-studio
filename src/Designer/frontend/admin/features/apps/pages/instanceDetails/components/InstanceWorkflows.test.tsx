@@ -124,7 +124,7 @@ describe('InstanceWorkflows', () => {
     expect(screen.getByRole('cell', { name: '3' })).toBeInTheDocument();
     // The latest error is in full; the earlier one — the same failure, one attempt earlier —
     // waits behind a toggle.
-    expect(screen.getByText('Could not generate the PDF')).toBeInTheDocument();
+    expect(screen.getByText(problemMessage)).toBeInTheDocument();
     expect(screen.queryByText('Boom went the pipeline')).not.toBeInTheDocument();
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
@@ -239,8 +239,8 @@ describe('InstanceWorkflows', () => {
     expect(within(failedRow).getAllByText('app-command').length).toBeGreaterThan(0);
     // A workflow with no steps has no chain to show, and a settled one no error.
     expect(within(settledRow).queryAllByTitle(/ · /)).toHaveLength(0);
-    expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();
-    expect(within(settledRow).queryByText('PdfGenerationException')).not.toBeInTheDocument();
+    expect(within(failedRow).getByText(problemMessage)).toBeInTheDocument();
+    expect(within(settledRow).queryByText(problemMessage)).not.toBeInTheDocument();
   });
 
   it('opens the row that needs attention from the start, with its error and verbs in view', async () => {
@@ -252,7 +252,7 @@ describe('InstanceWorkflows', () => {
     const [settledRow, failedRow] = await screen.findAllByRole('group');
     expect(failedRow).toHaveAttribute('open');
     expect(settledRow).not.toHaveAttribute('open');
-    expect(within(failedRow).getByText('PdfGenerationException')).toBeInTheDocument();
+    expect(within(failedRow).getByText(problemMessage)).toBeInTheDocument();
     // The verbs sit beside the disclosure, over its right edge, for the one row they apply to.
     expect(
       screen.getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
@@ -274,19 +274,21 @@ describe('InstanceWorkflows', () => {
     const messages = within(stepTable).getAllByText(
       (_, element) =>
         element?.tagName === 'CODE' &&
-        ['Could not generate the PDF', 'Boom went the pipeline'].includes(
-          element.textContent ?? '',
-        ),
+        [problemMessage, 'Boom went the pipeline'].includes(element.textContent ?? ''),
     );
     expect(messages.map((element) => element.textContent)).toEqual([
-      'Could not generate the PDF',
+      problemMessage,
       'Boom went the pipeline',
     ]);
     expect(
-      within(stepTable).getByText(textMock('admin.workflows.error.http_status', { status: 503 })),
+      within(stepTable).getByText(textMock('admin.workflows.error.http_status', { status: 503 }), {
+        exact: false,
+      }),
     ).toBeInTheDocument();
     expect(
-      within(stepTable).getByText(textMock('admin.workflows.error.non_retryable')),
+      within(stepTable).getByText(textMock('admin.workflows.error.non_retryable'), {
+        exact: false,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -337,7 +339,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const message = await screen.findByText('Could not generate the PDF');
+    const message = await screen.findByText(problemMessage);
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
     // The operation id in the row is the app runtime's own name for the workflow, shown as it came.

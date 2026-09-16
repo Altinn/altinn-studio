@@ -1,122 +1,26 @@
 /**
- * A step's error message, unpacked into the parts an operator reads.
+ * The app's own failure code, when the engine's message carries one.
  *
- * The app runtime answers a failed callback with RFC 9457 problem details: `title` carries the
- * exception type, `detail` the message, `status` the HTTP status, and the extensions
- * `workflowFailureCode` and `nonRetryable` the app's own verdict. The engine records the whole body
- * as one string behind its own prefix, for example
- * `AppCommand failed with client error BadRequest: {"title":...}`. Reading the fields back out is
- * what makes the message legible at a glance. The raw string is always kept: it is what goes into a
- * bug report.
+ * The app runtime answers a failed callback with RFC 9457 problem details, and its
+ * `workflowFailureCode` extension is the one field worth lifting out: it is the identifier an
+ * operator searches the documentation and the app's log for. The engine records the whole body as
+ * one string behind its own prefix, so the code is read back out of the JSON at the end of it.
+ * Everything else in the message is read as it came.
  */
-export type EngineErrorDetails = {
-  raw: string;
-  /** The engine's own words before the problem body, present only when a body was recognized. */
-  prefix?: string;
-  title?: string;
-  detail?: string;
-  status?: number;
-  failureCode?: string;
-  /** Validation problem entries, flattened to `field: message` lines. */
-  validationErrors?: string[];
-  /**
-   * Every other scalar field of the body, in order — a `traceId` to find the call in the app's
-   * logs, an `instance`, whatever the app added — so unpacking the message never hides anything
-   * it carried. The fields shown elsewhere and the RFC `type` link are left out.
-   */
-  extensions?: Array<[key: string, value: string]>;
-};
-
-type ProblemDetailsBody = {
-  title?: unknown;
-  detail?: unknown;
-  status?: unknown;
-  workflowFailureCode?: unknown;
-  errors?: unknown;
-};
-
-/** Fields rendered on their own (or, for `type` and `nonRetryable`, said elsewhere), not as extensions. */
-const UNPACKED_FIELDS: ReadonlySet<string> = new Set([
-  'type',
-  'title',
-  'detail',
-  'status',
-  'workflowFailureCode',
-  'nonRetryable',
-  'errors',
-]);
-
-export function parseEngineErrorMessage(message: string): EngineErrorDetails {
+export function failureCodeOf(message: string): string | undefined {
   const bodyStart = message.indexOf('{');
   if (bodyStart < 0) {
-    return { raw: message };
+    return undefined;
   }
-  const body = parseProblemDetails(message.slice(bodyStart));
-  if (!body) {
-    return { raw: message };
-  }
-  const prefix = message.slice(0, bodyStart).replace(/:\s*$/, '').trim();
-  return {
-    raw: message,
-    prefix: prefix || undefined,
-    title: asText(body.title),
-    detail: asText(body.detail),
-    status: typeof body.status === 'number' ? body.status : undefined,
-    failureCode: asText(body.workflowFailureCode),
-    validationErrors: flattenValidationErrors(body.errors),
-    extensions: collectExtensions(body),
-  };
-}
-
-function collectExtensions(body: ProblemDetailsBody): Array<[string, string]> | undefined {
-  const extensions = Object.entries(body)
-    .filter(([key, value]) => !UNPACKED_FIELDS.has(key) && isScalar(value))
-    .map(([key, value]): [string, string] => [key, String(value)]);
-  return extensions.length ? extensions : undefined;
-}
-
-function isScalar(value: unknown): value is string | number | boolean {
-  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
-}
-
-/** Parses the text as JSON and accepts it only when it has the shape of a problem-details body. */
-function parseProblemDetails(text: string): ProblemDetailsBody | undefined {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(message.slice(bodyStart));
   } catch {
     return undefined;
   }
-  if (!isRecord(parsed)) {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     return undefined;
   }
-  const body: ProblemDetailsBody = parsed;
-  const hasProblemField =
-    typeof body.title === 'string' || typeof body.detail === 'string' || isRecord(body.errors);
-  return hasProblemField ? body : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function asText(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-/**
- * `errors` on a validation problem maps a field to its messages. The field is part of the line
- * when it names something; the JSON root (`$`) does not.
- */
-function flattenValidationErrors(errors: unknown): string[] | undefined {
-  if (!isRecord(errors)) {
-    return undefined;
-  }
-  const lines = Object.entries(errors).flatMap(([field, messages]) => {
-    const list = Array.isArray(messages) ? messages : [messages];
-    return list
-      .filter((entry): entry is string => typeof entry === 'string')
-      .map((entry) => (field && field !== '$' ? `${field}: ${entry}` : entry));
-  });
-  return lines.length ? lines : undefined;
+  const code = (parsed as { workflowFailureCode?: unknown }).workflowFailureCode;
+  return typeof code === 'string' && code.length > 0 ? code : undefined;
 }

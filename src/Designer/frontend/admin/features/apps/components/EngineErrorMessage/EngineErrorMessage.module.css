@@ -5,15 +5,8 @@
 }
 
 .meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ds-size-2);
-  font-size: var(--ds-font-size-1);
-}
-
-.title {
-  font-weight: 600;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 /* Free text from the engine and the app, shown as it came: not translated, not part of the
@@ -23,34 +16,4 @@
   font-size: inherit;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-}
-
-.extensions {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-1);
-}
-
-.extension {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ds-size-2);
-}
-
-.extension dt::after {
-  content: ':';
-}
-
-.extension dd {
-  margin: 0;
-}
-
-.validationErrors {
-  margin: 0;
-}
-
-/* The message as the engine recorded it, after the unpacked view of the same text. */
-.raw {
-  color: var(--ds-color-neutral-text-subtle);
 }
