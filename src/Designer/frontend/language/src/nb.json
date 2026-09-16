@@ -110,7 +110,7 @@
   "admin.workflows.error.http_status": "HTTP {{status}}",
   "admin.workflows.error.non_retryable": "Varig feil",
   "admin.workflows.error.retryable": "Midlertidig feil",
-  "admin.workflows.fetch_more": "Last inn flere arbeidsflyter",
+  "admin.workflows.fetch_more": "Last inn eldre arbeidsflyter",
   "admin.workflows.fetch_more_error": "Flere arbeidsflyter kunne ikke lastes. Prøv igjen.",
   "admin.workflows.health": "Arbeidsflyt",
   "admin.workflows.health.active": "Underveis",

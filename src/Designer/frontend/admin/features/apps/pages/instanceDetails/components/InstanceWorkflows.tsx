@@ -133,14 +133,6 @@ const InstanceWorkflowsContent = ({
   return (
     <div className={classes.workflows}>
       <InstanceWorkflowNotices workflows={workflows} />
-      {workflows.map((workflow) => (
-        <WorkflowItem
-          key={workflow.databaseId}
-          context={context}
-          workflow={workflow}
-          defaultOpen={workflow.databaseId === attentionWorkflowId}
-        />
-      ))}
       {isFetchMoreError && (
         <StudioAlert data-color='danger' data-size='sm'>
           {t('admin.workflows.fetch_more_error')}
@@ -157,6 +149,14 @@ const InstanceWorkflowsContent = ({
           {t('admin.workflows.fetch_more')}
         </StudioButton>
       )}
+      {workflows.map((workflow) => (
+        <WorkflowItem
+          key={workflow.databaseId}
+          context={context}
+          workflow={workflow}
+          defaultOpen={workflow.databaseId === attentionWorkflowId}
+        />
+      ))}
     </div>
   );
 };

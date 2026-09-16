@@ -14,8 +14,9 @@ export const INSTANCE_WORKFLOWS_PAGE_SIZE = 25;
 
 /**
  * Every workflow the engine holds for one instance — head workflows and the deliberately invisible
- * side chains alike — in the order the process ran them: the engine lists by id, and its ids are
- * time-ordered, so oldest first and "load more" continues forward in time.
+ * side chains alike — in the order the process ran them. The engine lists newest first and pages
+ * backwards in time, so the view sorts what it has by creation time, and a further page adds older
+ * workflows at the top.
  */
 export const useInstanceWorkflowsQuery = (
   org: string,
@@ -44,7 +45,13 @@ export const useInstanceWorkflowsQuery = (
     // to after fixing the app, so it reads again when they do.
     refetchOnWindowFocus: true,
     staleTime: INSTANCE_VIEW_REFETCH_INTERVAL_MS,
-    select: (data) => data.pages.flatMap((page) => page?.data ?? []),
+    select: (data) =>
+      data.pages
+        .flatMap((page) => page?.data ?? [])
+        .toSorted(
+          (first, second) =>
+            new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
+        ),
     meta: { hideDefaultError: isEngineUnavailableError },
   });
 };
