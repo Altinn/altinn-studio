@@ -45,7 +45,10 @@ export const ProcessEditor = (): JSX.Element => {
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
     useUpdateLayoutSetIdMutation(org, app);
-  const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(org, app);
+  const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
+    org,
+    app,
+  );
   const { mutate: deleteLayoutSet, isPending: deleteLayoutSetPending } = useDeleteLayoutSetMutation(
     org,
     app,
@@ -122,12 +125,12 @@ export const ProcessEditor = (): JSX.Element => {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
-  if (bpmnXml === undefined) {
-    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
-  }
-
   if (hasBpmnQueryError || bpmnXml === null) {
     return <NoBpmnFoundAlert />;
+  }
+
+  if (bpmnXml === undefined) {
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
   return (
