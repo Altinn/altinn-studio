@@ -273,8 +273,8 @@ fn rejects_environment_collisions_with_secrets_and_harness_owned_values() {
 
 #[test]
 fn self_development_mounts_the_host_checkout_instead_of_cloning() {
-    let family = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev");
-    let agent = manifest::resolve(&family.join("agent.worktree.yaml"))
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev");
+    let agent = manifest::resolve(&directory.join("agent.worktree.yaml"))
         .expect("self-development worktree variant should resolve")
         .agent;
     let dockerfile = include_str!("../examples/self-dev/Dockerfile");
@@ -290,13 +290,13 @@ fn self_development_mounts_the_host_checkout_instead_of_cloning() {
     ));
     assert!(!dockerfile.contains("gh repo clone"));
 
-    let default = manifest::resolve(&family.join("agent.yaml"))
+    let default = manifest::resolve(&directory.join("agent.yaml"))
         .expect("default manifest should resolve")
         .agent;
     assert_eq!(default.metadata.name, "agent-dev");
     assert_eq!(default.spec.sandbox.mounts.len(), 1);
     assert_eq!(default.spec.environment, agent.spec.environment);
-    let nested = manifest::resolve(&family.join("agent.nested.yaml"))
+    let nested = manifest::resolve(&directory.join("agent.nested.yaml"))
         .expect("nested manifest should resolve")
         .agent;
     assert_eq!(nested.metadata.name, "agent-dev-nested");

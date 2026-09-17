@@ -99,28 +99,6 @@ RUN case "${TARGETARCH}" in \
     && rm -rf /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" \
     && gh --version
 
-# Install a released Agent platform instead of coupling Altinn images to the experimental source tree.
-# The version and architecture-specific archive digests move together when a release is promoted.
-ARG AGENT_VERSION=0.1.0-preview.3
-
-RUN case "${TARGETARCH}" in \
-        amd64) AGENT_ARCH=x86_64; \
-            AGENT_SHA256=b9cfabb69b2c6c80a81182107f044dc89376ee8ef2ddb3b0d6c06624ccbff4fe ;; \
-        arm64) AGENT_ARCH=aarch64; \
-            AGENT_SHA256=b662f8f96e32a91e4c80adaaa12ee15e176003d8eb9a21a7af5250c8b39e0b69 ;; \
-        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
-    esac \
-    && AGENT_ARCHIVE="agent-linux-${AGENT_ARCH}.tar.gz" \
-    && curl -fsSL \
-        "https://github.com/Altinn/altinn-studio/releases/download/experimental-agent/v${AGENT_VERSION}/${AGENT_ARCHIVE}" \
-        -o /tmp/agent.tar.gz \
-    && echo "${AGENT_SHA256}  /tmp/agent.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/agent.tar.gz -C /usr/local/bin \
-    && chmod 0755 /usr/local/bin/agentctl /usr/local/bin/agentd \
-    && rm -f /tmp/agent.tar.gz \
-    && agentctl --version \
-    && agentd --version
-
 # Route GitHub credentials through the gh CLI so plain git commands authenticate with the
 # host-mediated token. Written system-wide, below any user configuration, because the home
 # directory is resynchronized from the host on every sandbox setup.
@@ -173,6 +151,21 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && install -d -m 0755 -o agent -g agent /home/agent/.claude /home/agent/code \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
+
+# Install the latest released platform as the same unprivileged user that will run it. Standalone
+# mode verifies the architecture-specific release checksum without creating host self-update state.
+USER agent
+RUN curl -fsSL \
+        https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh \
+        -o /tmp/agent-install.sh \
+    && AGENT_INSTALL_MODE=standalone \
+        AGENT_INSTALL_DIR=/home/agent/.local/bin \
+        HOME=/home/agent \
+        sh /tmp/agent-install.sh \
+    && rm -f /tmp/agent-install.sh \
+    && /home/agent/.local/bin/agentctl --version \
+    && /home/agent/.local/bin/agentd --version
+USER root
 
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init

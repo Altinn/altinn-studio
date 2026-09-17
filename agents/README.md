@@ -1,19 +1,22 @@
 # Altinn Agents
 
-Choose an Agent family and variant:
+Choose an Agent and, optionally, a variant:
 
-| Family / variant | Image and checkout |
+| Agent / variant | Image and checkout |
 | --- | --- |
 | `minimal` default | Minimal published image and a fresh checkout |
+| `minimal` `nested` | Minimal published image, reduced to fit inside another Agent |
+| `minimal` `nested-build` | Reduced resources and a minimal image built from this checkout |
+| `minimal` `worktree` | Minimal published image with the current checkout mounted read-write |
 | `full` default | Full published image and a fresh checkout |
 | `full` `nested` | Full published image, reduced to fit inside another Agent |
 | `full` `nested-build` | Reduced resources and a full image built from this checkout |
 | `full` `worktree` | Full published image with the current checkout mounted read-write |
 
-Every variant installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
+Every Agent installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
 recordings through asciinema, uploaded with `gh pr create --attach`.
 
-The Altinn images install the pinned released `agentctl` and `agentd` binaries with architecture-specific checksum
+The Altinn images install the latest released `agentctl` and `agentd` binaries with architecture-specific checksum
 verification; they do not build the platform from `src/experimental`.
 
 The host needs hardware virtualization. Docker is required only for the `nested-build` variant; the other
@@ -51,7 +54,7 @@ write` only when the Agent must change workflow files. Gists are an account perm
 repository one, so add `Gists: Read and write` when the Agent must create or push them.
 Organization approval may be required.
 
-Copy the chosen family's `.env.sample` to `.env`, set the sample Git identity, and set `GITHUB_TOKEN`. The selected
+Copy the chosen Agent's `.env.sample` to `.env`, set the sample Git identity, and set `GITHUB_TOKEN`. The selected
 Git identity enters the Sandbox in plaintext and configures the Sandbox user's global Git settings. The token remains
 on the host and is substituted only for authorized GitHub requests, including attachment uploads to
 `uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
@@ -69,7 +72,7 @@ agentctl apply --wait
 `--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
 returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
-Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal family. From `agents/full`, select a
+Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal Agent. From either Agent directory, select a
 repository-owned variant with `agentctl apply --variant nested`, `--variant nested-build`, or `--variant worktree`.
 
 To work directly on the current checkout without cloning it, create `~/.agent/altinn-worktree.env` outside the
@@ -85,8 +88,9 @@ The entire checkout, including ignored files, is then visible inside the Agent. 
 worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
 
 A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree
-variant while any `.env` of another Agent, for example `agents/full/.env`, lies inside the checkout. Keep such
-secret files outside the checkout and pass their location with `agentctl apply --env-file <path>`.
+variant while an existing default `.env` beside its manifest or the selected `.env` of another Agent, for example
+`agents/full/.env`, lies inside the checkout. Keep such secret files outside the checkout and pass their location
+with `agentctl apply --env-file <path>`.
 
 Create or reattach to a Session:
 

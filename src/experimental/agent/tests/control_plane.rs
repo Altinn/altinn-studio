@@ -418,7 +418,7 @@ async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_mani
     assert_eq!(
         fixture
             .control_plane
-            .resolve_directory_variant(&root, Some("nested"))
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("nested").expect("variant")))
             .await
             .expect("variant selection")
             .metadata
@@ -432,7 +432,7 @@ async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_mani
     assert_eq!(
         fixture
             .control_plane
-            .resolve_directory_variant(&root, Some("mine"))
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("mine").expect("variant")))
             .await
             .expect("multi-level local variant selection")
             .metadata
@@ -442,7 +442,7 @@ async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_mani
     assert!(matches!(
         fixture
             .control_plane
-            .resolve_directory_variant(&root, Some("missing"))
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("missing").expect("variant")))
             .await,
         Err(Error::Invalid(message)) if message.contains("agent.missing.yaml")
     ));
@@ -742,6 +742,7 @@ async fn reconcile_resolves_sources_and_reports_sandbox_ready() {
         sandbox::image::ImageSource::Build {
             context: std::env::temp_dir().join("agent-platform-source").join("image"),
             dockerfile: PathBuf::from("Dockerfile"),
+            target: None,
         }
     );
 }
@@ -1017,6 +1018,16 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         outside.path().join("worker.env")
     );
 
+    std::fs::write(source_directory.join(".env"), "GITHUB_TOKEN=checkout-token\n")
+        .expect("leftover default environment file");
+    let error = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect_err("an existing default .env remains exposed despite the external override");
+    assert!(matches!(error, Error::Invalid(_)), "{error}");
+    std::fs::remove_file(source_directory.join(".env")).expect("remove default environment file");
+
     let mut unchanged = request.clone();
     unchanged.env_file = None;
     let reapplied = fixture
@@ -1034,6 +1045,35 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         .await
         .expect_err("an explicit secret file inside the mount is still rejected");
     assert!(matches!(error, Error::Invalid(_)));
+}
+
+#[tokio::test(flavor = "local")]
+async fn existing_default_env_outside_bind_mount_is_allowed() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("manifest directory");
+    let checkout = tempfile::tempdir().expect("mounted checkout");
+    let external = tempfile::tempdir().expect("external environment directory");
+    std::fs::write(source.path().join(".env"), "GITHUB_TOKEN=unmounted-token\n")
+        .expect("unmounted default environment file");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.env_file = Some(external.path().join("worker.env"));
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect("an unmounted default .env is not exposed");
 }
 
 #[cfg(unix)]

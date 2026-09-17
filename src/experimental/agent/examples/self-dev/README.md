@@ -1,6 +1,6 @@
 # Agent platform self-development Agent
 
-This manifest family develops the Agent platform itself, under `src/experimental`.
+This Agent develops the Agent platform itself, under `src/experimental`.
 
 | Variant | Checkout | Resources |
 | --- | --- | --- |
@@ -14,15 +14,16 @@ Every variant builds the directory's `Dockerfile` locally. Self-development imag
 make -C src/experimental user-install
 agentctl claude login
 cd src/experimental/agent/examples/self-dev
-cp .env.sample .env
-agentctl apply --wait
+mkdir -p ~/.agent
+cp .env.sample ~/.agent/self-dev.env
+agentctl apply --env-file ~/.agent/self-dev.env --wait
 agentctl attach session/s1
 ```
 
 Select the reduced nested variant from the same directory:
 
 ```sh
-agentctl apply --variant nested --wait
+agentctl apply --variant nested --env-file ~/.agent/self-dev.env --wait
 agentctl create session/s1 --variant nested --harness codex
 ```
 

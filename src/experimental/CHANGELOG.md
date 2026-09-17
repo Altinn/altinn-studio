@@ -23,7 +23,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- `agentctl apply` now defaults to `./agent.yaml`. The self-development and Altinn configurations are organized as manifest families with nested and worktree variants; self-development always builds its local Dockerfile, while Altinn images install a checksum-verified released Agent platform instead of building it from `src/experimental`.
+- `agentctl apply` now defaults to `./agent.yaml`. The self-development and Altinn Agents provide nested and worktree variants; both Altinn Agents also provide nested-build variants. Self-development always builds its local Dockerfile, while Altinn images install a checksum-verified released Agent platform instead of building it from `src/experimental`.
 
 ### Fixed
 

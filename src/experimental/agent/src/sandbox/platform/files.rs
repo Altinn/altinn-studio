@@ -62,6 +62,7 @@ mod tests {
             image: ImageSource::Build {
                 context: std::path::PathBuf::from("."),
                 dockerfile: std::path::PathBuf::from("Dockerfile"),
+                target: None,
             },
             platform: Platform::native("linux"),
             resources: SandboxResources::new(

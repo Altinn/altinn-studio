@@ -4,9 +4,9 @@ mod support;
 
 use std::path::Path;
 
-use agent::manifest;
+use agent::{AgentVariantName, manifest};
 
-fn family() -> support::TempDirectory {
+fn agent_directory() -> support::TempDirectory {
     let directory = support::TempDirectory::new("variants");
     let yaml = serde_yaml_ng::to_string(&support::agent("base")).expect("base YAML");
     std::fs::write(directory.path().join("agent.yaml"), yaml).expect("base manifest");
@@ -25,7 +25,7 @@ fn variant(extends: &str, name: &str, spec: &str) -> String {
 
 #[test]
 fn resolves_one_level_and_multilevel_variants_from_the_base_outward() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.nested.yaml",
@@ -62,7 +62,7 @@ fn resolves_one_level_and_multilevel_variants_from_the_base_outward() {
 
 #[test]
 fn mappings_merge_while_arrays_replace_and_empty_arrays_clear() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.arrays.yaml",
@@ -85,7 +85,7 @@ fn mappings_merge_while_arrays_replace_and_empty_arrays_clear() {
 
 #[test]
 fn changing_a_tagged_mapping_type_replaces_the_previous_variant() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.reference.yaml",
@@ -107,7 +107,7 @@ fn changing_a_tagged_mapping_type_replaces_the_previous_variant() {
 
 #[test]
 fn null_removes_optional_fields_and_required_removal_fails_final_validation() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.optional.yaml",
@@ -132,7 +132,7 @@ fn null_removes_optional_fields_and_required_removal_fails_final_validation() {
 
 #[test]
 fn rejects_unknown_variant_fields_even_when_null() {
-    let directory = family();
+    let directory = agent_directory();
     for (name, spec) in [
         ("unknown", "spec:\n  mystery: null\n"),
         (
@@ -149,7 +149,7 @@ fn rejects_unknown_variant_fields_even_when_null() {
 
 #[test]
 fn rejects_missing_bases_cross_directory_paths_and_absolute_paths() {
-    let directory = family();
+    let directory = agent_directory();
     for (name, extends, expected) in [
         ("missing", "agent.absent.yaml", "could not read"),
         ("parent", "../agent.yaml", "extends must name"),
@@ -164,7 +164,7 @@ fn rejects_missing_bases_cross_directory_paths_and_absolute_paths() {
 
 #[test]
 fn reports_the_complete_cycle() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.one.yaml",
@@ -186,7 +186,7 @@ fn reports_the_complete_cycle() {
 
 #[test]
 fn base_errors_include_the_complete_inheritance_chain() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.parent.yaml",
@@ -206,7 +206,7 @@ fn base_errors_include_the_complete_inheritance_chain() {
 
 #[test]
 fn limits_inheritance_to_sixteen_manifests() {
-    let directory = family();
+    let directory = agent_directory();
     for index in 1..=16 {
         let extends = if index == 16 {
             "agent.yaml".to_owned()
@@ -225,7 +225,7 @@ fn limits_inheritance_to_sixteen_manifests() {
 
 #[test]
 fn requires_names_and_matching_api_versions_in_every_variant() {
-    let directory = family();
+    let directory = agent_directory();
     write(
         directory.path(),
         "agent.nameless.yaml",
@@ -245,6 +245,18 @@ fn requires_names_and_matching_api_versions_in_every_variant() {
 
 #[test]
 fn validates_filename_grammar() {
+    let nested_build: AgentVariantName = "nested-build".parse().expect("variant name");
+    assert_eq!(nested_build.as_str(), "nested-build");
+    assert_eq!(nested_build.filename(), "agent.nested-build.yaml");
+    assert_eq!(
+        serde_json::to_string(&nested_build).expect("serialized name"),
+        r#""nested-build""#
+    );
+    assert_eq!(
+        serde_json::from_str::<AgentVariantName>(r#""nested-build""#).expect("deserialized name"),
+        nested_build
+    );
+
     for accepted in [
         "agent.nested.yaml",
         "agent.nested-build.yaml",
@@ -264,5 +276,8 @@ fn validates_filename_grammar() {
         "agent.trailing-.yaml",
     ] {
         assert!(!manifest::is_manifest_filename(Path::new(rejected)), "{rejected}");
+    }
+    for rejected in ["", "Nested", "nested_build", "nested-", "../nested"] {
+        assert!(rejected.parse::<AgentVariantName>().is_err(), "{rejected}");
     }
 }

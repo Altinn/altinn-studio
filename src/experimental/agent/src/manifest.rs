@@ -59,6 +59,79 @@ pub struct AgentVariant {
     pub spec: Option<serde_yaml_ng::Value>,
 }
 
+/// Validated selector identifying an `agent.<variant>.yaml` leaf.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(try_from = "String", into = "String")]
+pub struct AgentVariantName(String);
+
+impl AgentVariantName {
+    /// Creates a validated Agent variant name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error unless the name matches `[a-z0-9]+(?:-[a-z0-9]+)*`.
+    pub fn new(value: impl Into<String>) -> Result<Self, Error> {
+        let value = value.into();
+        if value.is_empty()
+            || !value.split('-').all(|part| {
+                !part.is_empty()
+                    && part
+                        .bytes()
+                        .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+            })
+        {
+            return Err(Error::Invalid("variant must match [a-z0-9]+(?:-[a-z0-9]+)*".into()));
+        }
+        Ok(Self(value))
+    }
+
+    /// Returns the selector text.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// Returns the conventional leaf filename for this variant.
+    #[must_use]
+    pub fn filename(&self) -> String {
+        format!("agent.{self}.yaml")
+    }
+}
+
+impl TryFrom<String> for AgentVariantName {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl From<AgentVariantName> for String {
+    fn from(value: AgentVariantName) -> Self {
+        value.0
+    }
+}
+
+impl std::str::FromStr for AgentVariantName {
+    type Err = Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::new(value)
+    }
+}
+
+impl std::fmt::Display for AgentVariantName {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+
+impl AsRef<str> for AgentVariantName {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
 /// A leaf manifest expanded to the complete Agent sent to the control plane.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ResolvedManifest {
@@ -858,27 +931,15 @@ pub fn resolve(path: &Path) -> Result<ResolvedManifest, Error> {
     Ok(ResolvedManifest { agent, chain })
 }
 
-/// Returns whether `value` is a valid variant selector.
-#[must_use]
-pub fn valid_variant_name(value: &str) -> bool {
-    !value.is_empty()
-        && value.split('-').all(|part| {
-            !part.is_empty()
-                && part
-                    .bytes()
-                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
-        })
-}
-
 /// Extracts a variant selector from a conventional leaf filename.
 #[must_use]
-pub fn variant_from_filename(path: &Path) -> Option<&str> {
+pub fn variant_from_filename(path: &Path) -> Option<AgentVariantName> {
     let name = path.file_name()?.to_str()?;
     let variant = name.strip_prefix("agent.")?.strip_suffix(".yaml")?;
-    valid_variant_name(variant).then_some(variant)
+    variant.parse().ok()
 }
 
-/// Returns whether a filename belongs to an Agent manifest family.
+/// Returns whether a filename is a conventional Agent or Agent variant manifest.
 #[must_use]
 pub fn is_manifest_filename(path: &Path) -> bool {
     path.file_name().is_some_and(|name| name == MANIFEST_FILE) || variant_from_filename(path).is_some()

@@ -159,9 +159,9 @@ impl ControlPlane {
     /// Rejects desired state that would expose a real secret file inside a Sandbox.
     ///
     /// Secret files hold the real values that mediation exists to keep out of Sandboxes. A bind
-    /// mount whose source contains this Agent's secret file, or another active Agent's, would hand
-    /// those values to the guest, so the combination is refused at apply time. Bind mount sources
-    /// are canonical by this point.
+    /// mount whose source contains this Agent's selected secret file, an existing default `.env`,
+    /// or another active Agent's secret file would hand those values to the guest, so the
+    /// combination is refused at apply time. Bind mount sources are canonical by this point.
     async fn reject_exposed_secret_files(
         &self,
         id: AgentId,
@@ -173,6 +173,13 @@ impl ControlPlane {
         if !desired.spec.secrets.is_empty() {
             let path = env_file.map_or_else(|| source_directory.join(super::resource::ENV_FILE), PathBuf::from);
             secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
+            let default_env_file = source_directory.join(super::resource::ENV_FILE);
+            if env_file.is_some() && tokio::fs::try_exists(&default_env_file).await? {
+                secret_files.push((
+                    desired.metadata.name.clone(),
+                    canonical_secret_file(&default_env_file).await,
+                ));
+            }
         }
         let mut mounts = bind_mount_sources(desired);
         for other in self.store.list().await? {
@@ -244,7 +251,7 @@ impl ControlPlane {
     /// the variant encoded in its recorded leaf manifest filename.
     ///
     /// When several closest Agents tie without an explicit variant, exactly one
-    /// Agent originating from `agent.yaml` is preferred as the family default.
+    /// Agent originating from the default `agent.yaml` manifest is preferred.
     ///
     /// # Errors
     ///
@@ -253,13 +260,10 @@ impl ControlPlane {
     pub async fn resolve_directory_variant(
         &self,
         directory: &std::path::Path,
-        variant: Option<&str>,
+        variant: Option<&crate::AgentVariantName>,
     ) -> Result<Agent, Error> {
         if !directory.is_absolute() {
             return Err(Error::Invalid("directory must be absolute".into()));
-        }
-        if variant.is_some_and(|variant| !crate::manifest::valid_variant_name(variant)) {
-            return Err(Error::Invalid("variant must match [a-z0-9]+(?:-[a-z0-9]+)*".into()));
         }
         let directory = canonical_or_original(directory).await;
         let mut matches = Vec::new();
@@ -280,7 +284,7 @@ impl ControlPlane {
         };
         matches.retain(|(_, candidate_depth)| *candidate_depth == depth);
         if let Some(variant) = variant {
-            let filename = format!("agent.{variant}.yaml");
+            let filename = variant.filename();
             matches.retain(|(record, _)| {
                 record
                     .manifest_path

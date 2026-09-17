@@ -224,18 +224,40 @@ pub(crate) struct ManifestCandidate {
     pub(crate) path: PathBuf,
     /// Decoded `metadata.name`, or why the manifest cannot be used.
     pub(crate) name: Result<String, String>,
+    /// Other path spellings discovered for the same canonical file.
+    equivalent_paths: Vec<PathBuf>,
 }
 
-/// One Agent manifest family and its default and variant leaves.
+impl ManifestCandidate {
+    pub(crate) const fn new(path: PathBuf, name: Result<String, String>) -> Self {
+        Self {
+            path,
+            name,
+            equivalent_paths: Vec::new(),
+        }
+    }
+
+    pub(crate) fn add_equivalent_path(&mut self, path: PathBuf) {
+        if self.path != path && !self.equivalent_paths.contains(&path) {
+            self.equivalent_paths.push(path);
+        }
+    }
+
+    fn matches_path(&self, path: &Path) -> bool {
+        self.path == path || self.equivalent_paths.iter().any(|candidate| candidate == path)
+    }
+}
+
+/// One Agent's default manifest and variant leaves.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct ManifestFamily {
-    /// Directory containing the family's `agent.yaml`.
+pub(crate) struct AgentDefinition {
+    /// Directory containing the Agent's `agent.yaml`.
     pub(crate) directory: PathBuf,
     /// Manifest leaves in picker order, with `agent.yaml` first.
     pub(crate) variants: Vec<ManifestCandidate>,
 }
 
-impl ManifestFamily {
+impl AgentDefinition {
     /// User-facing Agent label, taken from the expanded default when possible.
     pub(crate) fn label(&self) -> String {
         self.variants
@@ -283,7 +305,7 @@ impl CreateField {
 /// Create-agent form state: independent Agent and variant pickers plus a name override.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CreateForm {
-    pub(crate) families: Vec<ManifestFamily>,
+    pub(crate) agents: Vec<AgentDefinition>,
     pub(crate) agent: usize,
     pub(crate) variant: usize,
     pub(crate) field: CreateField,
@@ -294,20 +316,20 @@ pub(crate) struct CreateForm {
 impl CreateForm {
     /// Groups discovered leaves by sibling directory and preselects exact provenance.
     pub(crate) fn new(candidates: Vec<ManifestCandidate>, selected_path: Option<&Path>) -> Self {
-        let mut families = Vec::<ManifestFamily>::new();
+        let mut agents = Vec::<AgentDefinition>::new();
         for candidate in candidates {
             let directory = candidate.path.parent().unwrap_or_else(|| Path::new("")).to_path_buf();
-            if let Some(family) = families.iter_mut().find(|family| family.directory == directory) {
-                family.variants.push(candidate);
+            if let Some(agent) = agents.iter_mut().find(|agent| agent.directory == directory) {
+                agent.variants.push(candidate);
             } else {
-                families.push(ManifestFamily {
+                agents.push(AgentDefinition {
                     directory,
                     variants: vec![candidate],
                 });
             }
         }
-        for family in &mut families {
-            family.variants.sort_by_key(|candidate| {
+        for agent in &mut agents {
+            agent.variants.sort_by_key(|candidate| {
                 (
                     candidate
                         .path
@@ -318,17 +340,17 @@ impl CreateForm {
             });
         }
         let selected = selected_path.and_then(|selected| {
-            families.iter().enumerate().find_map(|(agent, family)| {
-                family
+            agents.iter().enumerate().find_map(|(agent_index, agent)| {
+                agent
                     .variants
                     .iter()
-                    .position(|candidate| candidate.path == selected)
-                    .map(|variant| (agent, variant))
+                    .position(|candidate| candidate.matches_path(selected))
+                    .map(|variant| (agent_index, variant))
             })
         });
         let (agent, variant) = selected.unwrap_or_default();
         Self {
-            families,
+            agents,
             agent,
             variant,
             field: CreateField::Agent,
@@ -337,23 +359,25 @@ impl CreateForm {
         }
     }
 
-    pub(crate) fn family(&self) -> Option<&ManifestFamily> {
-        self.families.get(self.agent)
+    pub(crate) fn agent(&self) -> Option<&AgentDefinition> {
+        self.agents.get(self.agent)
     }
 
     pub(crate) fn candidate(&self) -> Option<&ManifestCandidate> {
-        self.family()?.variants.get(self.variant)
+        self.agent()?.variants.get(self.variant)
     }
 
-    pub(crate) fn variant_label(&self) -> Option<&str> {
+    pub(crate) fn variant_label(&self) -> Option<String> {
         let path = &self.candidate()?.path;
         if path
             .file_name()
             .is_some_and(|name| name == agent::manifest::MANIFEST_FILE)
         {
-            Some("default")
+            Some("default".into())
         } else {
-            agent::manifest::variant_from_filename(path).or_else(|| path.file_name().and_then(|name| name.to_str()))
+            agent::manifest::variant_from_filename(path)
+                .map(String::from)
+                .or_else(|| path.file_name().map(|name| name.to_string_lossy().into_owned()))
         }
     }
 
@@ -401,11 +425,11 @@ impl CreateForm {
     fn select(&mut self, delta: isize) {
         match self.field {
             CreateField::Agent => {
-                self.agent = wrapped_index(self.agent, self.families.len(), delta);
+                self.agent = wrapped_index(self.agent, self.agents.len(), delta);
                 self.variant = 0;
             }
             CreateField::Variant => {
-                let length = self.family().map_or(0, |family| family.variants.len());
+                let length = self.agent().map_or(0, |agent| agent.variants.len());
                 self.variant = wrapped_index(self.variant, length, delta);
             }
             CreateField::Name => return,
@@ -1504,9 +1528,8 @@ mod tests {
     fn candidates(entries: &[(&str, &str)]) -> Vec<ManifestCandidate> {
         entries
             .iter()
-            .map(|(directory, name)| ManifestCandidate {
-                path: PathBuf::from(directory).join("agent.yaml"),
-                name: Ok((*name).to_owned()),
+            .map(|(directory, name)| {
+                ManifestCandidate::new(PathBuf::from(directory).join("agent.yaml"), Ok((*name).to_owned()))
             })
             .collect()
     }
@@ -1569,15 +1592,15 @@ mod tests {
         }
         app.selected = 3;
         let mut discovered = candidates(&[("/sources/builder", "builder"), ("/sources/worker", "worker")]);
-        discovered.push(ManifestCandidate {
-            path: PathBuf::from("/sources/worker/agent.nested.yaml"),
-            name: Ok("worker-nested".into()),
-        });
+        discovered.push(ManifestCandidate::new(
+            PathBuf::from("/sources/worker/agent.nested.yaml"),
+            Ok("worker-nested".into()),
+        ));
         app.open_create(discovered);
         let form = create_form(&app);
         assert_eq!(form.agent, 1);
         assert_eq!(form.variant, 1);
-        assert_eq!(form.variant_label(), Some("nested"));
+        assert_eq!(form.variant_label(), Some("nested".into()));
         assert_eq!(form.placeholder(), Some("worker-nested"));
         assert_eq!(
             app.hints(),
@@ -1649,10 +1672,10 @@ mod tests {
     #[test]
     fn create_form_blocks_unreadable_manifests_and_empty_pickers() {
         let mut app = populated();
-        app.open_create(vec![ManifestCandidate {
-            path: PathBuf::from("/gone/agent.yaml"),
-            name: Err("manifest cannot be decoded".into()),
-        }]);
+        app.open_create(vec![ManifestCandidate::new(
+            PathBuf::from("/gone/agent.yaml"),
+            Err("manifest cannot be decoded".into()),
+        )]);
         assert_eq!(create_form(&app).placeholder(), None);
         app.on_key(key(KeyCode::Enter));
         assert_eq!(create_form(&app).error.as_deref(), Some("manifest cannot be decoded"));
@@ -1667,19 +1690,16 @@ mod tests {
     fn create_form_keeps_invalid_variants_visible_but_blocks_submission() {
         let mut app = populated();
         app.open_create(vec![
-            ManifestCandidate {
-                path: PathBuf::from("/sources/full/agent.yaml"),
-                name: Ok("full".into()),
-            },
-            ManifestCandidate {
-                path: PathBuf::from("/sources/full/agent.broken.yaml"),
-                name: Err("agent.broken.yaml: missing base".into()),
-            },
+            ManifestCandidate::new(PathBuf::from("/sources/full/agent.yaml"), Ok("full".into())),
+            ManifestCandidate::new(
+                PathBuf::from("/sources/full/agent.broken.yaml"),
+                Err("agent.broken.yaml: missing base".into()),
+            ),
         ]);
         app.on_key(key(KeyCode::Tab));
         app.on_key(key(KeyCode::Right));
         let form = create_form(&app);
-        assert_eq!(form.variant_label(), Some("broken"));
+        assert_eq!(form.variant_label(), Some("broken".into()));
         assert_eq!(form.placeholder(), None);
 
         assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
@@ -1693,10 +1713,10 @@ mod tests {
     fn create_form_selection_wraps_and_clears_errors() {
         let mut app = populated();
         let mut discovered = candidates(&[("/a", "builder"), ("/b", "beta")]);
-        discovered.push(ManifestCandidate {
-            path: PathBuf::from("/a/agent.nested.yaml"),
-            name: Ok("builder-nested".into()),
-        });
+        discovered.push(ManifestCandidate::new(
+            PathBuf::from("/a/agent.nested.yaml"),
+            Ok("builder-nested".into()),
+        ));
         app.open_create(discovered);
         app.on_key(key(KeyCode::Enter));
         assert!(create_form(&app).error.is_some());
@@ -1715,7 +1735,7 @@ mod tests {
         app.on_key(key(KeyCode::Tab));
         app.on_key(key(KeyCode::Right));
         assert_eq!(create_form(&app).variant, 1);
-        assert_eq!(create_form(&app).variant_label(), Some("nested"));
+        assert_eq!(create_form(&app).variant_label(), Some("nested".into()));
         assert_eq!(create_form(&app).placeholder(), Some("builder-nested"));
     }
 

@@ -131,7 +131,7 @@ impl Client {
     pub async fn resolve_agent_variant(
         &self,
         directory: std::path::PathBuf,
-        variant: Option<String>,
+        variant: Option<crate::AgentVariantName>,
     ) -> Result<Agent, Error> {
         self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory, variant }, None)
             .await

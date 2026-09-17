@@ -538,7 +538,7 @@ fn sshd_directives(text: &str) -> BTreeMap<String, Vec<String>> {
 }
 
 #[test]
-fn image_sshd_policy_is_hardened_and_owned_by_each_image_family() {
+fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
     let root = repository_root();
     let published = root.join("agents/common");
     let self_dev = root.join("src/experimental/agent/examples/self-dev");

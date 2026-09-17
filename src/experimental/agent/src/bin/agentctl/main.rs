@@ -6,7 +6,7 @@ use std::{
 };
 
 use agent::{
-    Agent, Error,
+    Agent, AgentVariantName, Error,
     control_api::Client,
     control_plane::ApplyRequest,
     control_plane::WaitPolicy,
@@ -90,9 +90,9 @@ enum Command {
         /// Agent manifest path; defaults to ./agent.yaml.
         #[arg(short = 'f', long = "filename", conflicts_with = "variant")]
         filename: Option<PathBuf>,
-        /// Variant in the current manifest family.
+        /// Variant of the Agent in the current directory.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "filename")]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
@@ -118,7 +118,7 @@ enum Command {
         agent: Option<String>,
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         /// List Sessions across every Agent instead of resolving one owner.
         #[arg(short = 'A', long, conflicts_with_all = ["agent", "variant"])]
         all_agents: bool,
@@ -154,7 +154,7 @@ enum Command {
         agent: Option<String>,
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         #[command(flatten)]
         selection: SessionSelection,
     },
@@ -173,7 +173,7 @@ enum Command {
         agent: Option<String>,
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         /// Command and arguments to execute after `--`.
         #[arg(last = true, required = true, num_args = 1..)]
         command: Vec<String>,
@@ -185,7 +185,7 @@ enum Command {
         agent: Option<String>,
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         /// Optional leading Agent resource or name, followed by port mappings
         /// written as GUEST, LOCAL:GUEST, or ADDRESS:LOCAL:GUEST. An empty
         /// local port (`:GUEST`) selects an ephemeral local port. The Agent is
@@ -200,7 +200,7 @@ enum Command {
         agent: Option<String>,
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         /// Agent resource or name; inferred from the current directory when omitted.
         resource: Option<String>,
         /// Remote command and arguments after `--`; an interactive shell when omitted.
@@ -228,7 +228,7 @@ enum Command {
         agent: Option<String>,
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
-        variant: Option<String>,
+        variant: Option<AgentVariantName>,
         /// Output format.
         #[arg(short = 'o', long, default_value = "table", value_enum)]
         output: OutputFormat,
@@ -268,7 +268,7 @@ struct SessionTarget {
     agent: Option<String>,
     /// Select the closest Agent by its applied leaf variant.
     #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
 }
 
 /// Selections fixed when a command creates a Session. An existing Session keeps
@@ -545,14 +545,14 @@ async fn get_resources(
     resource: &str,
     name: Option<String>,
     agent: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
     all_agents: bool,
     output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     match resource {
         Resource::Agent => {
-            reject_session_scope(agent.as_deref(), variant.as_deref(), all_agents)?;
+            reject_session_scope(agent.as_deref(), variant.as_ref(), all_agents)?;
             let agents = if let Some(name) = name {
                 vec![client.get(&name).await?]
             } else {
@@ -606,7 +606,7 @@ async fn attach(
     resource: &str,
     name: Option<String>,
     agent: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
     selection: SessionSelection,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
@@ -638,7 +638,7 @@ async fn exec_command(
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
     command: &[String],
     stdin: bool,
     tty: bool,
@@ -689,7 +689,7 @@ async fn port_forward(
     home: &ControlPlaneHome,
     client: &Client,
     agent: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
     arguments: &[String],
 ) -> CommandResult<ExitCode> {
     let (resource, ports) = split_forward_arguments(arguments);
@@ -757,7 +757,7 @@ async fn ssh(
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
     command: &[String],
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
@@ -841,7 +841,7 @@ async fn ssh_info(
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
     output: OutputFormat,
 ) -> CommandResult<()> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
@@ -975,7 +975,7 @@ async fn resolve_execution_agent(
     client: &Client,
     resource: Option<String>,
     explicit: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
 ) -> CommandResult<String> {
     if let Some(explicit) = explicit {
         return Ok(explicit);
@@ -1081,7 +1081,11 @@ fn require_name(name: Option<String>, resource: &str) -> Result<String, Error> {
     name.ok_or_else(|| Error::Invalid(format!("{resource} name is required")))
 }
 
-fn reject_session_scope(agent: Option<&str>, variant: Option<&str>, all_agents: bool) -> Result<(), Error> {
+fn reject_session_scope(
+    agent: Option<&str>,
+    variant: Option<&AgentVariantName>,
+    all_agents: bool,
+) -> Result<(), Error> {
     if agent.is_some() || variant.is_some() || all_agents {
         Err(Error::Invalid(
             "--agent, --variant, and --all-agents apply only to Session resources".into(),
@@ -1094,7 +1098,7 @@ fn reject_session_scope(agent: Option<&str>, variant: Option<&str>, all_agents: 
 async fn resolve_agent_name(
     client: &Client,
     explicit: Option<String>,
-    variant: Option<String>,
+    variant: Option<AgentVariantName>,
 ) -> CommandResult<String> {
     if let Some(agent) = explicit {
         return Ok(agent);
@@ -1175,12 +1179,8 @@ fn parse_effort(value: &str) -> Result<agent::Effort, String> {
     value.parse().map_err(|error: Error| error.to_string())
 }
 
-fn parse_variant_name(value: &str) -> Result<String, String> {
-    if manifest::valid_variant_name(value) {
-        Ok(value.to_owned())
-    } else {
-        Err("variant must match [a-z0-9]+(?:-[a-z0-9]+)*".into())
-    }
+fn parse_variant_name(value: &str) -> Result<AgentVariantName, String> {
+    value.parse().map_err(|error: Error| error.to_string())
 }
 
 fn print_agents(agents: &[Agent]) {
@@ -1312,10 +1312,10 @@ fn daemon_executable(agentctl: &Path) -> PathBuf {
     agentctl.with_file_name(format!("agentd{}", std::env::consts::EXE_SUFFIX))
 }
 
-fn apply_manifest_path(filename: Option<PathBuf>, variant: Option<String>) -> Result<PathBuf, Error> {
+fn apply_manifest_path(filename: Option<PathBuf>, variant: Option<AgentVariantName>) -> Result<PathBuf, Error> {
     match (filename, variant) {
         (Some(filename), None) => Ok(filename),
-        (None, Some(variant)) => Ok(PathBuf::from(format!("agent.{variant}.yaml"))),
+        (None, Some(variant)) => Ok(PathBuf::from(variant.filename())),
         (None, None) => Ok(PathBuf::from(manifest::MANIFEST_FILE)),
         (Some(_), Some(_)) => Err(Error::Invalid("--filename and --variant are mutually exclusive".into())),
     }

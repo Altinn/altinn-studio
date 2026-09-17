@@ -3,7 +3,7 @@ kind: AgentVariant
 extends: agent.nested.yaml
 
 metadata:
-  name: altinn-full-nested-build
+  name: altinn-minimal-nested-build
 
 spec:
   sandbox:
@@ -11,4 +11,4 @@ spec:
       type: build
       context: ..
       dockerfile: Dockerfile
-      target: full
+      target: minimal

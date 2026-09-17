@@ -34,7 +34,7 @@ pub trait AgentApi {
     fn resolve_directory<'a>(
         &'a self,
         directory: &'a std::path::Path,
-        variant: Option<&'a str>,
+        variant: Option<&'a crate::AgentVariantName>,
     ) -> LocalFuture<'a, Result<Agent, Error>>;
 
     /// Requests asynchronous deletion.
@@ -57,7 +57,7 @@ impl AgentApi for control_plane::ControlPlane {
     fn resolve_directory<'a>(
         &'a self,
         directory: &'a std::path::Path,
-        variant: Option<&'a str>,
+        variant: Option<&'a crate::AgentVariantName>,
     ) -> LocalFuture<'a, Result<Agent, Error>> {
         Box::pin(async move { self.resolve_directory_variant(directory, variant).await })
     }
@@ -505,7 +505,7 @@ impl Server {
         result_response(
             id,
             self.agents
-                .resolve_directory(&params.directory, params.variant.as_deref())
+                .resolve_directory(&params.directory, params.variant.as_ref())
                 .await,
         )
     }

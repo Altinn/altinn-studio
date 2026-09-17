@@ -3,7 +3,7 @@ mod terminal;
 mod view;
 
 use std::{
-    collections::HashSet,
+    collections::HashMap,
     io::IsTerminal as _,
     path::{Path, PathBuf},
     process::ExitCode,
@@ -197,6 +197,13 @@ fn spawn_discovery(outcomes: tokio::sync::mpsc::UnboundedSender<Vec<ManifestCand
 /// ignored directories; a recorded manifest that is unreadable stays listed so its
 /// error is visible.
 async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent]) -> Vec<ManifestCandidate> {
+    let agents = agents.to_vec();
+    tokio::task::spawn_blocking(move || manifest_candidates_blocking(current_directory.as_deref(), &agents))
+        .await
+        .unwrap_or_default()
+}
+
+fn manifest_candidates_blocking(current_directory: Option<&Path>, agents: &[Agent]) -> Vec<ManifestCandidate> {
     let mut recorded: Vec<PathBuf> = agents
         .iter()
         .filter_map(|agent| agent.status.provenance.as_ref())
@@ -204,31 +211,26 @@ async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent
         .collect();
     recorded.sort();
     recorded.dedup();
-    let found = match current_directory {
-        Some(directory) => tokio::task::spawn_blocking(move || working_tree_manifests(&directory))
-            .await
-            .unwrap_or_default(),
-        None => Vec::new(),
-    };
+    let found = current_directory.map_or_else(Vec::new, working_tree_manifests);
     let paths = found
         .into_iter()
         .map(|path| (path, false))
         .chain(recorded.into_iter().map(|path| (path, true)));
-    let mut seen = HashSet::new();
-    let mut candidates = Vec::new();
+    let mut seen = HashMap::<PathBuf, usize>::new();
+    let mut candidates = Vec::<ManifestCandidate>::new();
     for (path, recorded) in paths {
-        let resolved_path = path.clone();
-        let name = match tokio::task::spawn_blocking(move || manifest::resolve(&resolved_path)).await {
-            Ok(Ok(resolved)) => Ok(resolved.agent.metadata.name),
-            Ok(Err(error)) if recorded || path.exists() => Err(error.to_string()),
-            Ok(Err(_)) => continue,
-            Err(error) => Err(error.to_string()),
-        };
-        let canonical = tokio::fs::canonicalize(&path).await.unwrap_or_else(|_| path.clone());
-        if !seen.insert(canonical) {
+        let canonical = std::fs::canonicalize(&path).unwrap_or_else(|_| path.clone());
+        if let Some(index) = seen.get(&canonical).copied() {
+            candidates[index].add_equivalent_path(path);
             continue;
         }
-        candidates.push(ManifestCandidate { path, name });
+        let name = match manifest::resolve(&path) {
+            Ok(resolved) => Ok(resolved.agent.metadata.name),
+            Err(error) if recorded || path.exists() => Err(error.to_string()),
+            Err(_) => continue,
+        };
+        seen.insert(canonical, candidates.len());
+        candidates.push(ManifestCandidate::new(path, name));
     }
     candidates
 }
@@ -240,10 +242,10 @@ fn repository_root(directory: &Path) -> Option<&Path> {
     directory.ancestors().find(|ancestor| ancestor.join(".git").exists())
 }
 
-/// Lists manifest families below `directory`, or below its git repository root.
+/// Lists Agents and their variant manifests below `directory`, or below its git repository root.
 ///
 /// The walk honors ignore files for directories and finds complete `agent.yaml`
-/// manifests. Each family directory is then enumerated directly so checkout-local,
+/// manifests. Each Agent directory is then enumerated directly so checkout-local,
 /// ignored `agent.<variant>.yaml` siblings remain discoverable.
 fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
     let root = repository_root(directory).unwrap_or(directory);
@@ -259,15 +261,15 @@ fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
             let Some(parent) = base.parent() else {
                 return vec![base];
             };
-            let mut family = std::fs::read_dir(parent)
+            let mut manifests = std::fs::read_dir(parent)
                 .into_iter()
                 .flatten()
                 .filter_map(Result::ok)
                 .map(|entry| entry.path())
                 .filter(|path| manifest::is_manifest_filename(path))
                 .collect::<Vec<_>>();
-            family.sort_by_key(|path| (path.file_name().is_none_or(|name| name != MANIFEST_FILE), path.clone()));
-            family
+            manifests.sort_by_key(|path| (path.file_name().is_none_or(|name| name != MANIFEST_FILE), path.clone()));
+            manifests
         })
         .collect();
     found.sort_by_key(|path| {
@@ -505,6 +507,32 @@ mod tests {
         assert_eq!(candidates[3].name.as_deref(), Ok("recorded"));
     }
 
+    #[cfg(unix)]
+    #[tokio::test(flavor = "local")]
+    async fn discovery_retains_equivalent_recorded_paths_for_picker_preselection() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let source = manifest_directory(root.path(), "source", &manifest_yaml("worker"));
+        let alias = root.path().join("alias");
+        std::os::unix::fs::symlink(&source, &alias).expect("manifest directory symlink");
+        let recorded_manifest = alias.join(MANIFEST_FILE);
+        let mut agent = recorded_agent("worker", Some(&alias));
+        agent
+            .status
+            .provenance
+            .as_mut()
+            .expect("recorded provenance")
+            .manifest_path = Some(recorded_manifest.clone());
+
+        let candidates = manifest_candidates(Some(source.clone()), &[agent]).await;
+        let form = CreateForm::new(candidates, Some(&recorded_manifest));
+
+        assert_eq!(form.agents.len(), 1);
+        assert_eq!(
+            form.candidate().map(|candidate| candidate.path.as_path()),
+            Some(source.join(MANIFEST_FILE).as_path())
+        );
+    }
+
     #[tokio::test(flavor = "local")]
     async fn discovery_walks_the_working_directory_tree_but_not_hidden_or_ignored_directories() {
         let root = tempfile::tempdir().expect("temporary directory");
@@ -533,32 +561,32 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn discovery_includes_ignored_sibling_variants_and_their_resolution_errors() {
         let root = tempfile::tempdir().expect("temporary directory");
-        let family = manifest_directory(root.path(), "family", &manifest_yaml("default"));
-        std::fs::write(family.join(".gitignore"), "agent.*.yaml\n").expect("family ignore file");
+        let agent = manifest_directory(root.path(), "configured-agent", &manifest_yaml("default"));
+        std::fs::write(agent.join(".gitignore"), "agent.*.yaml\n").expect("Agent ignore file");
         std::fs::write(
-            family.join("agent.mine.yaml"),
+            agent.join("agent.mine.yaml"),
             "apiVersion: agents.platform/v1alpha1\nkind: AgentVariant\nextends: agent.yaml\nmetadata:\n  name: mine\n",
         )
         .expect("local variant");
         std::fs::write(
-            family.join("agent.broken.yaml"),
+            agent.join("agent.broken.yaml"),
             "apiVersion: agents.platform/v1alpha1\nkind: AgentVariant\nextends: missing.yaml\nmetadata:\n  name: broken\n",
         )
         .expect("broken local variant");
 
-        let candidates = manifest_candidates(Some(family.clone()), &[]).await;
+        let candidates = manifest_candidates(Some(agent.clone()), &[]).await;
 
         assert_eq!(candidates.len(), 3);
-        assert_eq!(candidates[0].path, family.join(MANIFEST_FILE));
+        assert_eq!(candidates[0].path, agent.join(MANIFEST_FILE));
         assert_eq!(candidates[0].name.as_deref(), Ok("default"));
-        assert_eq!(candidates[1].path, family.join("agent.broken.yaml"));
+        assert_eq!(candidates[1].path, agent.join("agent.broken.yaml"));
         assert!(
             candidates[1]
                 .name
                 .as_ref()
                 .is_err_and(|error| error.contains("extends must name"))
         );
-        assert_eq!(candidates[2].path, family.join("agent.mine.yaml"));
+        assert_eq!(candidates[2].path, agent.join("agent.mine.yaml"));
         assert_eq!(candidates[2].name.as_deref(), Ok("mine"));
     }
 

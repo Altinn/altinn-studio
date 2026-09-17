@@ -23,6 +23,7 @@ pub(crate) fn agent(name: &str) -> Agent {
                 image: ImageSource::Build {
                     context: PathBuf::from("image"),
                     dockerfile: PathBuf::from("Dockerfile"),
+                    target: None,
                 },
                 platform: PlatformManifestSpec {
                     os: "linux".into(),

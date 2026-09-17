@@ -271,7 +271,7 @@ fn field_line(label: &str, value: &str, focused: bool, empty_hint: Option<String
 }
 
 fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm) {
-    let mut lines = form.family().zip(form.candidate()).map_or_else(
+    let mut lines = form.agent().zip(form.candidate()).map_or_else(
         || {
             vec![
                 Line::from("No agent manifests found."),
@@ -285,7 +285,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 )),
             ]
         },
-        |(family, candidate)| picker_lines(form, family, candidate),
+        |(agent, candidate)| picker_lines(form, agent, candidate),
     );
     if let Some(error) = &form.error {
         lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
@@ -302,10 +302,10 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
 
 fn picker_lines(
     form: &super::app::CreateForm,
-    family: &super::app::ManifestFamily,
+    agent: &super::app::AgentDefinition,
     candidate: &super::app::ManifestCandidate,
 ) -> Vec<Line<'static>> {
-    let family_path = abbreviate_home(&family.directory.display().to_string());
+    let agent_path = abbreviate_home(&agent.directory.display().to_string());
     let manifest_file = candidate.path.file_name().map_or_else(
         || candidate.path.display().to_string(),
         |name| name.to_string_lossy().into_owned(),
@@ -313,19 +313,19 @@ fn picker_lines(
     let mut lines = vec![
         picker_line(
             "Agent:   ",
-            family.label(),
-            family_path,
+            agent.label(),
+            agent_path,
             form.field == super::app::CreateField::Agent,
             form.agent,
-            form.families.len(),
+            form.agents.len(),
         ),
         picker_line(
             "Variant: ",
-            form.variant_label().unwrap_or_default().to_owned(),
+            form.variant_label().unwrap_or_default(),
             manifest_file,
             form.field == super::app::CreateField::Variant,
             form.variant,
-            family.variants.len(),
+            agent.variants.len(),
         ),
     ];
     if let Err(invalid) = &candidate.name {
@@ -522,18 +522,15 @@ mod tests {
         let mut app = App::new();
         app.modal = Some(Modal::CreateAgent(CreateForm::new(
             vec![
-                ManifestCandidate {
-                    path: std::path::PathBuf::from("/sources/full/agent.yaml"),
-                    name: Ok("full".into()),
-                },
-                ManifestCandidate {
-                    path: std::path::PathBuf::from("/sources/full/agent.nested.yaml"),
-                    name: Ok("full-nested".into()),
-                },
-                ManifestCandidate {
-                    path: std::path::PathBuf::from("/sources/broken/agent.yaml"),
-                    name: Err("manifest cannot be decoded".into()),
-                },
+                ManifestCandidate::new(std::path::PathBuf::from("/sources/full/agent.yaml"), Ok("full".into())),
+                ManifestCandidate::new(
+                    std::path::PathBuf::from("/sources/full/agent.nested.yaml"),
+                    Ok("full-nested".into()),
+                ),
+                ManifestCandidate::new(
+                    std::path::PathBuf::from("/sources/broken/agent.yaml"),
+                    Err("manifest cannot be decoded".into()),
+                ),
             ],
             None,
         )));
@@ -568,10 +565,10 @@ mod tests {
         use super::super::app::{CreateField, CreateForm, ManifestCandidate};
 
         let mut form = CreateForm::new(
-            vec![ManifestCandidate {
-                path: std::path::PathBuf::from("/sources/full/agent.yaml"),
-                name: Ok("full".into()),
-            }],
+            vec![ManifestCandidate::new(
+                std::path::PathBuf::from("/sources/full/agent.yaml"),
+                Ok("full".into()),
+            )],
             None,
         );
         form.field = CreateField::Name;

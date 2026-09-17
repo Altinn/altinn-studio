@@ -161,7 +161,7 @@ pub(crate) struct SessionTurnsParams {
 pub(crate) struct DirectoryParams {
     pub directory: std::path::PathBuf,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub variant: Option<String>,
+    pub variant: Option<crate::AgentVariantName>,
 }
 
 #[derive(Deserialize, Serialize)]
