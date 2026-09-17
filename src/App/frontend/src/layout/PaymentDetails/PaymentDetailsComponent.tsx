@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import deepEqual from 'fast-deep-equal';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/OrderDetailsProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
@@ -12,20 +13,20 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericComponent<'PaymentDetails'>) {
   const orderDetails = useOrderDetails();
   const refetchOrderDetails = useRefetchOrderDetails();
-  const { mapping, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
+  const { queryParameters, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
   const { title, description, help } = textResourceBindings || {};
   const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
 
-  const mappedValues = FormStore.data.useMapping(mapping, FormStore.bootstrap.useDefaultDataType());
-  const prevMappedValues = useRef<Record<string, unknown> | undefined>(undefined);
+  const resolvedParameters = useResolvedQueryParameters(queryParameters);
+  const prevParameters = useRef<Record<string, unknown> | undefined>(undefined);
 
-  // refetch data if we have configured mapping and the mapped values have changed
+  // refetch data if we have configured query parameters and their values have changed
   useEffect(() => {
-    if (!hasUnsavedChanges && mapping && !deepEqual(prevMappedValues.current, mappedValues)) {
+    if (!hasUnsavedChanges && resolvedParameters && !deepEqual(prevParameters.current, resolvedParameters)) {
       refetchOrderDetails();
-      prevMappedValues.current = mappedValues;
+      prevParameters.current = resolvedParameters;
     }
-  }, [hasUnsavedChanges, mappedValues, mapping, refetchOrderDetails]);
+  }, [hasUnsavedChanges, resolvedParameters, refetchOrderDetails]);
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>

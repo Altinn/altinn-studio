@@ -463,10 +463,6 @@ export interface ILikertColumnProperties {
   columns?: { value: string | number; divider?: 'before' | 'after' | 'both' }[];
 }
 
-export interface IMapping {
-  [key: string]: string;
-}
-
 export interface INavigationBasePageGroup {
   id: string;
   type?: 'default' | 'info';
@@ -640,4 +636,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: aa97438caa1a24d90e781cab15a32b10483a7767b1343fb9025a55f3988ae0ed
+// Source hash: 71c6510643a851a366dbed504787dba8fbe38db891055012517439b835d2bd68

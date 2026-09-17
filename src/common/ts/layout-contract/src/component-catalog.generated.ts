@@ -589,25 +589,6 @@ const IButtonProps = {
   additionalProperties: false,
 } as const;
 
-const ButtonMode = {
-  type: 'string',
-  allowedValues: ['submit', 'save', 'instantiate'],
-  title: { en: 'Mode', nb: 'Modus' },
-  description: { en: 'The mode of the button', nb: 'Knappens modus.' },
-  default: 'submit',
-} as const;
-
-const IMapping = {
-  type: 'object',
-  properties: {},
-  additionalProperties: { type: 'string' },
-  title: { en: 'Mapping', nb: 'Kobling' },
-  description: {
-    en: 'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
-    nb: 'En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.',
-  },
-} as const;
-
 const TRBLabel = {
   type: 'object',
   properties: {
@@ -5304,22 +5285,6 @@ const generatedContract = {
           },
           required: false,
         },
-        mode: {
-          type: 'string',
-          allowedValues: ButtonMode['allowedValues'],
-          title: ButtonMode['title'],
-          description: ButtonMode['description'],
-          default: 'submit',
-          required: false,
-        },
-        mapping: {
-          type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
-          required: false,
-        },
       },
     },
     ButtonGroup: {
@@ -7221,12 +7186,15 @@ const generatedContract = {
           },
           required: false,
         },
-        mapping: {
+        queryParameters: {
           type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
+          properties: IQueryParameters['properties'],
+          additionalProperties: IQueryParameters['additionalProperties'],
+          title: IQueryParameters['title'],
+          description: {
+            en: 'Values used to prefill the new instance.',
+            nb: 'Verdier som brukes til å forhåndsutfylle det nye eksemplaret.',
+          },
           required: false,
         },
       },
@@ -8663,12 +8631,15 @@ const generatedContract = {
           },
           required: false,
         },
-        mapping: {
+        queryParameters: {
           type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
+          properties: IQueryParameters['properties'],
+          additionalProperties: IQueryParameters['additionalProperties'],
+          title: IQueryParameters['title'],
+          description: {
+            en: 'Values to watch for changes. Payment details are fetched again after changed form data is saved.',
+            nb: 'Verdier som overvåkes for endringer. Betalingsdetaljene hentes på nytt etter at endrede skjemadata er lagret.',
+          },
           required: false,
         },
       },

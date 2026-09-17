@@ -1,5 +1,5 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase, IMapping } from '@app/layout-contract/generated/common.generated';
+import { ComponentBase, IQueryParameters } from '@app/layout-contract/generated/common.generated';
 
 export interface CompPaymentDetailsExternal extends ComponentBase {
   type: 'PaymentDetails';
@@ -8,7 +8,7 @@ export interface CompPaymentDetailsExternal extends ComponentBase {
     description?: ExprValToActualOrExpr<ExprVal.String>;
     help?: ExprValToActualOrExpr<ExprVal.String>;
   };
-  mapping?: IMapping;
+  queryParameters?: IQueryParameters;
   dataModelBindings?: undefined;
 }
 
@@ -40,4 +40,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 17d55f9d19ebe17f89a6ea1b82ac79b352b638874ca89be11f9fcc56aa47ffe8
+// Source hash: 423b7f0f11429f19ab8e0c21af214073a5035ccbc7916e6e92b48eff9bc5dbf2

@@ -50,4 +50,14 @@ export const Config = new CG.component({
       },
     }),
   )
-  .addProperty(new CG.prop('mapping', CG.common('IMapping').optional()));
+  .addProperty(
+    new CG.prop(
+      'queryParameters',
+      CG.common('IQueryParameters')
+        .optional()
+        .setDescription(
+          'Values to watch for changes. Payment details are fetched again after changed form data is saved.',
+          'Verdier som overvåkes for endringer. Betalingsdetaljene hentes på nytt etter at endrede skjemadata er lagret.',
+        ),
+    ),
+  );
