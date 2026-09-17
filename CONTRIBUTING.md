@@ -63,8 +63,8 @@ the file must be specified in the Git configuration. This can be done by running
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
-`yarn setup` does this for you, and `yarn git:ignore-revs` runs just this step. In a jj workspace
-there is no Git configuration to write, so both skip it and say so.
+`yarn setup` does this for you, and `yarn git:ignore-revs` runs just this step.
+In a jj workspace there is no Git configuration to write, so both skip it and say so.
 
 ## License
 

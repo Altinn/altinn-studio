@@ -11,6 +11,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { detectVcs } from '../vcs.mjs';
 import { DICTIONARY_FILES, ORDBANK_FILES, ordbankUrl, rawUrl } from './dictionaries.mjs';
 
 export const REPO_ROOT = resolve(import.meta.dirname, '../..');
@@ -447,93 +448,41 @@ export function excludeLiveness(globs, declarations, tracked) {
 
 // ------------------------------------------------------- version control ---
 
-/**
- * Two checks need to ask the repository a question — coverage and the
- * self-test ask which files it holds, quick asks which of them changed — and
- * the answer comes from whichever VCS is actually present. git is the
- * default and CI's only option; jj is supported because a jj workspace has
- * no `.git` at all, so every git call in one fails and took the self-test,
- * the coverage check and `spell:quick` offline entirely.
- *
- * Detection prefers git wherever git can see a work tree, which keeps CI and
- * every colocated jj/git checkout on exactly the git code path — the jj
- * branch is reached only where git cannot answer at all.
- */
-const VCS_BACKENDS = [
-  {
-    name: 'git',
-    // Fails outside a work tree, which is precisely the question.
-    probe: ['rev-parse', '--show-toplevel'],
-    trackedFiles: (root) => vcsList('git', ['ls-files', '-z'], root),
-    // Unchanged from the pre-jj harness, deliberately: this is the path CI
-    // runs on. It splits on newline, so a path containing one arrives
-    // quoted (core.quotePath) and is dropped by the caller's existence
-    // filter — a pre-existing limitation, not one jj support introduced.
-    changedFiles: (root) => [
-      ...vcsList('git', ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'], root, '\n'),
-      ...vcsList('git', ['ls-files', '-o', '--exclude-standard'], root, '\n'),
+// Both backends list tracked files plus new, non-ignored ones — jj snapshots
+// the working copy into `@`, so `jj file list` has them already, and its
+// `diff -r @` is git's `diff HEAD` plus untracked in one. NUL-terminated
+// output throughout, because `--name-only` does not escape newlines;
+// `status != "removed"` is jj's `--diff-filter=ACMR`, `path` the rename target.
+const VCS_COMMANDS = {
+  git: {
+    trackedFiles: [['ls-files', '-z', '-co', '--exclude-standard']],
+    changedFiles: [
+      ['diff', '--name-only', '-z', '--diff-filter=ACMR', 'HEAD'],
+      ['ls-files', '-z', '-o', '--exclude-standard'],
     ],
   },
-  {
-    name: 'jj',
-    probe: ['root'],
-    // `path` is repo-relative whatever the cwd, and NUL is a legal template
-    // literal, so this is as unambiguous as `git ls-files -z`. Note what it
-    // lists: the files in commit `@`, not an index. Because jj snapshots the
-    // working copy into `@` on every command, that includes files git would
-    // call untracked (ignored ones stay out — jj honors .gitignore when it
-    // snapshots). For both callers that is the better list, not merely a
-    // tolerable difference: the coverage check catches a new language file
-    // when it is written rather than one commit later, and the exclude
-    // liveness check gets a closer proxy for what typos actually walks,
-    // which is the working tree and not the index.
-    trackedFiles: (root) => vcsList('jj', ['file', 'list', '-T', 'path ++ "\\0"'], root),
-    // `-r @` is the faithful analogue of git's two commands at once: in jj
-    // the working copy *is* commit `@`, so its diff against its parent
-    // carries both the tracked edits and the newly written files. The status
-    // filter mirrors --diff-filter=ACMR (`path` is the target path for a
-    // rename, as git reports for R). `jj diff --name-only` would be the
-    // obvious spelling and is not used: it separates with a newline and
-    // neither quotes nor escapes, so a path containing a newline is silently
-    // split into two paths that do not exist. The template form has no such
-    // hole.
-    changedFiles: (root) =>
-      vcsList('jj', ['diff', '-r', '@', '-T', 'if(status != "removed", path ++ "\\0")'], root),
+  jj: {
+    trackedFiles: [['file', 'list', '-T', 'path ++ "\\0"']],
+    changedFiles: [['diff', '-r', '@', '-T', 'if(status != "removed", path ++ "\\0")']],
   },
-];
+};
 
-const detectedVcs = new Map();
-
-/**
- * The backend serving `root`, probed once and remembered — every check that
- * asks the repository anything would otherwise re-probe per call.
- */
-export function detectVcs(root = REPO_ROOT) {
-  const cached = detectedVcs.get(root);
-  if (cached) return cached;
-  for (const vcs of VCS_BACKENDS) {
-    const res = spawnSync(vcs.name, vcs.probe, { cwd: root, stdio: 'ignore' });
-    if (!res.error && res.status === 0) {
-      detectedVcs.set(root, vcs);
-      return vcs;
-    }
+/** The union of the NUL-separated path lists the checkout's VCS prints for `what`. */
+function vcsList(root, what) {
+  let vcs;
+  try {
+    vcs = detectVcs(root);
+  } catch (err) {
+    throw new HarnessError(err.message);
   }
-  throw new HarnessError(
-    `no version control at ${root}: neither \`git rev-parse --show-toplevel\` nor \`jj root\` ` +
-      `succeeded. Install git or jj, or run the harness inside a checkout.`,
-  );
-}
-
-/** Runs a VCS command that prints a separated list of paths. */
-function vcsList(vcs, args, root, separator = '\0') {
-  const res = spawnSync(vcs, args, {
-    cwd: root,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  if (res.error) throw new HarnessError(`could not run ${vcs}: ${res.error.message}`);
-  if (res.status !== 0) throw new HarnessError(`${vcs} ${args[0]} failed: ${res.stderr}`);
-  return res.stdout.split(separator).filter(Boolean);
+  const files = new Set();
+  for (const args of VCS_COMMANDS[vcs][what]) {
+    const res = spawnSync(vcs, args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    if (res.error) throw new HarnessError(`could not run ${vcs}: ${res.error.message}`);
+    if (res.status !== 0) throw new HarnessError(`${vcs} ${args.join(' ')} failed: ${res.stderr}`);
+    for (const f of res.stdout.split('\0').filter(Boolean)) files.add(f);
+  }
+  return [...files];
 }
 
 /**
@@ -542,15 +491,14 @@ function vcsList(vcs, args, root, separator = '\0') {
  * never read "nothing to do" as "nothing wrong".
  */
 export function trackedFiles(root = REPO_ROOT) {
-  const vcs = detectVcs(root);
-  const files = vcs.trackedFiles(root);
-  if (files.length === 0) throw new HarnessError(`${vcs.name} listed no tracked files`);
+  const files = vcsList(root, 'trackedFiles');
+  if (files.length === 0) throw new HarnessError('the repository listed no tracked files');
   return files;
 }
 
 /** What changed since the last commit: files added, modified or renamed. */
 export function changedFiles(root = REPO_ROOT) {
-  return [...new Set(detectVcs(root).changedFiles(root))];
+  return vcsList(root, 'changedFiles');
 }
 
 // ------------------------------------------------------------ tool runs ---
