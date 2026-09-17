@@ -18,6 +18,19 @@ The main goals are:
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
 installs `agentctl` and `agentd` for the current user.
 
+The release installers normally create a managed installation that supports `agentctl self update`, state migration
+and daemon lifecycle management. Immutable images and CI jobs can instead copy only the verified release binaries to
+the calling user's `AGENT_INSTALL_DIR` (by default, `~/.local/bin`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh \
+  | AGENT_INSTALL_MODE=standalone sh
+```
+
+Standalone mode does not create an update journal or release tree, migrate Agent state, start `agentd`, or modify
+`PATH`. The image or job owns those lifecycle decisions. Set `AGENT_VERSION` to pin a release rather than selecting
+the latest one.
+
 Maintainers updating the Microsandbox or libkrunfw forks should follow the
 [downstream maintenance runbook](MICROSANDBOX.md).
 
