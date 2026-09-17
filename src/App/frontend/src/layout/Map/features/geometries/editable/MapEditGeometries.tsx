@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { FeatureGroup } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { geojsonToWKT } from '@terraformer/wkt';
 // Import GeoJSON type
 import L, { icon } from 'leaflet';
@@ -15,8 +16,8 @@ import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export const markerIcon = icon({
   iconUrl: Icon,
@@ -38,7 +39,7 @@ interface MapEditGeometriesProps {
 }
 
 export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
-  const { geometryType } = useItemWhenType(baseComponentId, 'Map');
+  const componentConfig = useComponentConfig(baseComponentId, 'Map');
 
   const editRef = useRef<L.FeatureGroup>(null);
 
@@ -55,7 +56,12 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
   const setLeafValue = FormStore.data.useSetLeafValue();
   const removeFromList = FormStore.data.useRemoveFromListCallback();
 
-  const { toolbar } = useItemWhenType(baseComponentId, 'Map');
+  const config = useComponentConfig(baseComponentId, 'Map');
+  const toolbarPolyline = useEvalExpression(config.toolbar?.polyline, Expressions.Map.toolbar.polyline);
+  const toolbarPolygon = useEvalExpression(config.toolbar?.polygon, Expressions.Map.toolbar.polygon);
+  const toolbarRectangle = useEvalExpression(config.toolbar?.rectangle, Expressions.Map.toolbar.rectangle);
+  const toolbarCircle = useEvalExpression(config.toolbar?.circle, Expressions.Map.toolbar.circle);
+  const toolbarMarker = useEvalExpression(config.toolbar?.marker, Expressions.Map.toolbar.marker);
 
   // Load initial data into the FeatureGroup on component mount
   useEffect(() => {
@@ -132,7 +138,7 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
     };
 
     let geoString = JSON.stringify(geo);
-    if (geometryType === 'WKT') {
+    if (componentConfig.geometryType === 'WKT') {
       geoString = geojsonToWKT(geo.geometry);
     }
 
@@ -158,7 +164,7 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
 
       let geoString = JSON.stringify(editedGeo);
 
-      if (geometryType === 'WKT') {
+      if (componentConfig.geometryType === 'WKT') {
         geoString = geojsonToWKT(editedGeo.geometry);
       }
 
@@ -197,11 +203,11 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
         onEdited={onEditedHandler}
         onDeleted={onDeletedHandler}
         draw={{
-          polyline: !!toolbar?.polyline,
-          polygon: !!toolbar?.polygon,
-          rectangle: !!toolbar?.rectangle,
-          circle: !!toolbar?.circle,
-          marker: toolbar?.marker ? { icon: markerIcon } : false,
+          polyline: !!(config.toolbar ? toolbarPolyline : undefined),
+          polygon: !!(config.toolbar ? toolbarPolygon : undefined),
+          rectangle: !!(config.toolbar ? toolbarRectangle : undefined),
+          circle: !!(config.toolbar ? toolbarCircle : undefined),
+          marker: (config.toolbar ? toolbarMarker : undefined) ? { icon: markerIcon } : false,
           circlemarker: false,
         }}
       />

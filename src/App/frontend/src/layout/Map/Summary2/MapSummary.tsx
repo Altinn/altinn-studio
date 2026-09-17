@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -14,20 +15,36 @@ import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButt
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useFormDataFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const { dataModelBindings, readOnly, textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'Map');
+  const config = useComponentConfig(targetBaseComponentId, 'Map');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Map');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Map.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Map.required);
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Map.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.Map.textResourceBindings.title,
+  );
+
   const markerBinding = dataModelBindings.simpleBinding;
   const formData = useFormDataFor<'Map'>(targetBaseComponentId);
   const markerLocation = parseLocation(formData.simpleBinding);
   const markerLocationIsValid = isLocationValid(markerLocation);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
+    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
 
   if (markerBinding && !markerLocationIsValid) {
     return (

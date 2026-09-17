@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { SearchParams } from 'src/core/routing/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -10,7 +12,8 @@ import {
   useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 
 interface Props {
@@ -18,8 +21,10 @@ interface Props {
 }
 
 export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithChildren<Props>) {
-  const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const openByDefault = item.edit?.openByDefault;
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+  const editAddButton = useEvalExpression(config.edit?.addButton, Expressions.RepeatingGroup.edit.addButton);
+
+  const openByDefault = config.edit ? config.edit.openByDefault : undefined;
   const isFirstRender = useRef(true);
   const addRow = RepGroupContext.useAddRow();
   const openForEditing = RepGroupContext.useOpenForEditing();
@@ -36,7 +41,7 @@ export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithCh
     lastRow: hasNoRows ? undefined : visibleRows[visibleRows.length - 1],
     addRow,
     openForEditing,
-    canAddRows: item.edit?.addButton ?? true,
+    canAddRows: (config.edit ? editAddButton : undefined) ?? true,
   });
 
   // When this is true, the group won't try to add more rows using openByDefault. This will reset again

@@ -2,6 +2,7 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Flex, getLabelId } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IGridStyling, TRBLabel } from '@app/layout-contract/generated/common.generated';
@@ -11,10 +12,11 @@ import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { CompInternal } from 'src/layout/layout';
+import type { CompExternal, ITextResourceBindingsExternal } from 'src/layout/layout';
 
 type LabelType = 'span' | 'plainLabel';
 
@@ -27,13 +29,13 @@ export type LabelProps = PropsWithChildren<{
 }> &
   DesignsystemetLabelProps;
 
-type LabelInnerProps = LabelProps & { item: CompInternal };
+type LabelInnerProps = LabelProps & { config: CompExternal };
 
 export function Label(props: LabelProps) {
-  const item = useItemFor(props.baseComponentId);
+  const config = useComponentConfig(props.baseComponentId);
   return (
     <LabelInner
-      item={item}
+      config={config}
       {...props}
     />
   );
@@ -42,7 +44,7 @@ export function Label(props: LabelProps) {
 export function LabelInner(props: LabelInnerProps) {
   const { children } = props;
   const {
-    item: _item,
+    config,
     overrideId,
     renderLabelAs,
     className,
@@ -51,25 +53,49 @@ export function LabelInner(props: LabelInnerProps) {
   } = props;
 
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const item = { ..._item, ...overrideItemProps };
-  const { grid, textResourceBindings: _trb } = item;
-  const required = 'required' in item && item.required;
-  const readOnly = 'readOnly' in item && item.readOnly;
-  const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
+  const required = useEvalExpression(
+    overrideItemProps && 'required' in overrideItemProps
+      ? overrideItemProps.required
+      : 'required' in config
+        ? config.required
+        : undefined,
+    CommonExpressions.FormComponentProps.required,
+  );
+  const readOnly = useEvalExpression(
+    overrideItemProps && 'readOnly' in overrideItemProps
+      ? overrideItemProps.readOnly
+      : 'readOnly' in config
+        ? config.readOnly
+        : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const labelSettings =
+    overrideItemProps && 'labelSettings' in overrideItemProps
+      ? overrideItemProps.labelSettings
+      : 'labelSettings' in config
+        ? config.labelSettings
+        : undefined;
 
   const id = useIndexedId(overrideId ?? props.baseComponentId);
-  const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
+  const trb = (overriddenTrb ?? overrideItemProps?.textResourceBindings ?? config.textResourceBindings) as
+    ITextResourceBindingsExternal | ExprResolved<TRBLabel>;
+  const title = useEvalExpression(trb && 'title' in trb ? trb.title : undefined, CommonExpressions.TRBLabel.title);
+  const help = useEvalExpression(trb && 'help' in trb ? trb.help : undefined, CommonExpressions.TRBLabel.help);
+  const description = useEvalExpression(
+    trb && 'description' in trb ? trb.description : undefined,
+    CommonExpressions.TRBLabel.description,
+  );
 
-  if (!textResourceBindings?.title) {
+  if (!title) {
     return children;
   }
 
   const labelId = getLabelId(id);
   const labelContentProps: LabelContentProps = {
     id,
-    label: textResourceBindings.title,
-    description: textResourceBindings.description,
-    help: textResourceBindings.help,
+    label: title,
+    description,
+    help,
     required,
     readOnly,
     labelSettings,
@@ -100,7 +126,7 @@ export function LabelInner(props: LabelInnerProps) {
         >
           {/* we want this "label" not to be rendered as a <label>,
            because it does not belong to an input element */}
-          <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
+          <LabelGridItemWrapper labelGrid={(overrideItemProps?.grid ?? config.grid)?.labelGrid}>
             <DesignsystemetLabel
               asChild
               {...designsystemetLabelProps}

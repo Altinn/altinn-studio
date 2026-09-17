@@ -1,9 +1,12 @@
 import React from 'react';
 
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export interface ICompactSummaryItem {
   targetBaseComponentId: string;
@@ -11,11 +14,32 @@ export interface ICompactSummaryItem {
 }
 
 export function SummaryItemCompact({ targetBaseComponentId, displayData }: ICompactSummaryItem) {
-  const targetItem = useItemFor(targetBaseComponentId);
-  const textBindings = 'textResourceBindings' in targetItem ? targetItem.textResourceBindings : undefined;
+  const config = useComponentConfig(targetBaseComponentId);
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
+      ? config.textResourceBindings.summaryTitle
+      : undefined,
+    CommonExpressions.TRBSummarizable.summaryTitle,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+
   const summaryTitleTrb =
-    textBindings && 'summaryTitle' in textBindings ? (textBindings.summaryTitle as string) : undefined;
-  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+    config.textResourceBindings &&
+    'summaryTitle' in config.textResourceBindings &&
+    config.textResourceBindings.summaryTitle !== undefined
+      ? summaryTitle
+      : undefined;
+  const titleTrb =
+    config.textResourceBindings &&
+    'title' in config.textResourceBindings &&
+    config.textResourceBindings.title !== undefined
+      ? title
+      : undefined;
 
   return (
     <div data-testid='summary-item-compact'>

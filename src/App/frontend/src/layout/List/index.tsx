@@ -6,15 +6,14 @@ import type { IDataModelReference } from '@app/layout-contract/generated/common.
 
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { evalQueryParameters } from 'src/features/options/evalQueryParameters';
 import { ObjectToGroupLayoutValidator } from 'src/features/saveToGroup/ObjectToGroupLayoutValidator';
 import { validateGroupIsEmpty } from 'src/features/saveToGroup/useValidateGroupIsEmpty';
 import { ListDef } from 'src/layout/List/config.def.generated';
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { ListSummary } from 'src/layout/List/ListSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { indexDataModelReferenceForValidation, validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
@@ -23,7 +22,7 @@ import type {
   PropsFromGenericComponent,
 } from 'src/layout';
 import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class List extends ListDef {
@@ -34,7 +33,7 @@ export class List extends ListDef {
   );
 
   useDisplayData(baseComponentId: string): string {
-    const component = useExternalItem(baseComponentId, 'List');
+    const component = useComponentConfig(baseComponentId, 'List');
     const dmBindings = useDataModelBindingsFor(baseComponentId, 'List');
     const groupBinding = dmBindings?.group;
     const checkedBinding = dmBindings?.checked;
@@ -151,13 +150,6 @@ export class List extends ListDef {
     }
 
     return errors;
-  }
-
-  evalExpressions(props: ExprResolver<'List'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      queryParameters: evalQueryParameters(props),
-    };
   }
 }
 

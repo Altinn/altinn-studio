@@ -18,10 +18,7 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-    displayData: false,
-  },
+  displayData: false,
 })
   .addProperty(new CG.prop('title', new CG.str()))
   .addDataModelBinding(

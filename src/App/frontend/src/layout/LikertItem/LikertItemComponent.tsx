@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 
 import { getLabelId, RequiredIndicator } from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -13,15 +14,15 @@ import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
   (props, ref) => {
-    const item = useItemWhenType(props.baseComponentId, 'LikertItem');
+    const config = useComponentConfig(props.baseComponentId, 'LikertItem');
     const overriddenLayout = props.overrideItemProps?.layout;
-    const layout = overriddenLayout ?? item.layout;
+    const layout = overriddenLayout ?? config.layout;
 
     if (layout === LayoutStyle.Table) {
       return (
@@ -42,14 +43,19 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
   const { selectedValues, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
+  const config = useComponentConfig(baseComponentId, 'LikertItem');
+  const componentId = useIndexedId(baseComponentId);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.LikertItem.readOnly);
+  const required = useEvalExpression(config.required, Expressions.LikertItem.required);
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.LikertItem.textResourceBindings.title,
+  );
 
-  const { id, readOnly, textResourceBindings, required } = useItemWhenType(baseComponentId, 'LikertItem');
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   const likert = parent && parent.type === 'node' ? layoutLookups.getComponent(parent.id, 'Likert') : undefined;
-
-  const columns = useExternalItem(baseComponentId, 'LikertItem').columns;
-
+  const columns = useComponentConfig(baseComponentId, 'LikertItem').columns;
   return (
     <Table.Row
       data-componentid={indexedId}
@@ -67,7 +73,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
           weight='regular'
         >
           <span>
-            <Lang id={textResourceBindings?.title} />
+            <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
             <RequiredIndicator required={required} />
           </span>
         </Label>
@@ -78,10 +84,9 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
       </Table.Cell>
       {calculatedOptions?.map((option, index) => {
         const isChecked = selectedValues[0] === option.value;
-        const rowLabelId = getLabelId(id);
+        const rowLabelId = getLabelId(componentId);
         const labelledby = `${rowLabelId} ${likert?.id}-likert-columnheader-${index}`;
         const divider = columns?.find((column) => column.value == option.value)?.divider;
-
         return (
           <Table.Cell
             key={option.value}

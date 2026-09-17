@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { Button } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Alert } from '@digdir/designsystemet-react';
 
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
@@ -19,7 +20,8 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 import { TaskKeys } from 'src/routesBuilder';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
@@ -29,18 +31,31 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   const isAnyProcessing = useIsAnyProcessing();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
-  const { title, description, help } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
+  const config = useComponentConfig(baseComponentId, 'Payment');
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.Payment.textResourceBindings.title,
+  );
+  const resolvedDescription = useEvalExpression(
+    config.textResourceBindings?.description,
+    Expressions.Payment.textResourceBindings.description,
+  );
+  const resolvedHelp = useEvalExpression(
+    config.textResourceBindings?.help,
+    Expressions.Payment.textResourceBindings.help,
+  );
+  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
+  const description = config.textResourceBindings?.description === undefined ? undefined : resolvedDescription;
+  const help = config.textResourceBindings?.help === undefined ? undefined : resolvedHelp;
+
   const { data: process, refetch: reFetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
-
   if (useIsSubformPage()) {
     throw new Error('Cannot use PaymentComponent in a subform');
   }
-
   const disabled = isAnyProcessing || isConfirming || isRejecting;
-
   const navigateBasedOnProcess = useCallback(
     async (shouldConfirmIfNoNavigate: boolean) => {
       if (!(paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped)) {
@@ -50,7 +65,6 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
       if (!result.data) {
         return;
       }
-
       let navigateTo: undefined | string;
       if (result.data.ended) {
         navigateTo = TaskKeys.ProcessEnd;
@@ -60,7 +74,6 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
       ) {
         navigateTo = result.data.currentTask.elementId;
       }
-
       if (navigateTo) {
         optimisticallyUpdateProcess(result.data);
         await reFetchInstanceData();
@@ -79,17 +92,13 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
       processConfirm,
     ],
   );
-
   const handleNextClick = async () => {
     await navigateBasedOnProcess(true);
   };
-
   const goToCurrentTask = useCallback(async () => {
     await navigateBasedOnProcess(false);
   }, [navigateBasedOnProcess]);
-
   useBackoff(goToCurrentTask);
-
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div className={classes.paymentContainer}>

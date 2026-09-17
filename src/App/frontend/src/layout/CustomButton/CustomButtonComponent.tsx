@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
 import { CustomButton } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
@@ -22,7 +23,9 @@ import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
@@ -174,18 +177,19 @@ function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
 }
 
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
-  const { textResourceBindings, actions, id, buttonColor, buttonSize, buttonStyle } = useItemWhenType(
-    baseComponentId,
-    'CustomButton',
+  const config = useComponentConfig(baseComponentId, 'CustomButton');
+  const componentId = useIndexedId(baseComponentId);
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.CustomButton.textResourceBindings.title,
   );
 
-  const acquireLock = FormStore.data.useLocking(id);
+  const acquireLock = FormStore.data.useLocking(componentId);
   const isAuthorized = useIsAuthorized();
   const { handleClientActions } = useHandleClientActions();
   const { mutateAsync: handleServerAction, error } = useMutation({
     mutationFn: useHandleServerActionMutationFn(acquireLock),
   });
-
   const onPageNavigationValidation = useOnPageNavigationValidation();
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');
@@ -193,33 +197,27 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { getPageValidation } = usePageValidation(baseComponentId);
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
-
   const getScrollPosition = React.useCallback(
-    () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
-    [id],
+    () => document.querySelector(`[data-componentid="${componentId}"]`)?.getClientRects().item(0)?.y,
+    [componentId],
   );
   const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
-
-  const isPermittedToPerformActions = actions
+  const isPermittedToPerformActions = config.actions
     .filter((action) => action.type === 'ServerAction')
     .reduce((acc, action) => acc && isAuthorized(action.id), true);
-  const isPreventedByIntermediatePage = actions.some(
+  const isPreventedByIntermediatePage = config.actions.some(
     (action) => isSpecificClientAction('navigateToPage', action) && getNavigationIsPrevented(action.metadata.page),
   );
   const disabled = !isPermittedToPerformActions || isAnyProcessing || isPreventedByIntermediatePage;
-
-  const isSubformCloseButton = actions.filter((action) => action.id === 'closeSubform').length > 0;
-  let interceptedButtonStyle = buttonStyle ?? 'secondary';
-
-  if (isSubformCloseButton && !buttonStyle) {
+  const isSubformCloseButton = config.actions.filter((action) => action.id === 'closeSubform').length > 0;
+  let interceptedButtonStyle = config.buttonStyle ?? 'secondary';
+  if (isSubformCloseButton && !config.buttonStyle) {
     interceptedButtonStyle = 'primary';
   }
-
-  let buttonText = textResourceBindings?.title;
+  let buttonText = config.textResourceBindings?.title === undefined ? undefined : title;
   if (isSubformCloseButton && !buttonText) {
     buttonText = 'general.done';
   }
-
   useEffect(() => {
     if (error) {
       if (isAxiosError(error) && error.response?.data?.error?.message !== undefined) {
@@ -229,13 +227,11 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
       }
     }
   }, [error]);
-
   const onClick = () =>
     performProcess(async () => {
-      for (const action of actions) {
+      for (const action of config.actions) {
         const isBackwardNavigation = isClientAction(action) && action.id === 'previousPage';
         const shouldSkipValidation = isBackwardNavigation && getPageValidation();
-
         let validation: PageValidation | undefined;
         if (!shouldSkipValidation && (action.validation || getPageValidation())) {
           const prevScrollPosition = getScrollPosition();
@@ -253,26 +249,24 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
             return;
           }
         }
-
         if (isClientAction(action)) {
           await handleClientActions([action]);
         } else if (isServerAction(action)) {
           try {
-            await handleServerAction({ action, buttonId: id });
+            await handleServerAction({ action, buttonId: componentId });
           } catch {
             // Error is handled elsewhere
           }
         }
       }
     });
-
   return (
     <CustomButton
-      componentId={id}
+      componentId={componentId}
       title={buttonText}
       buttonStyle={interceptedButtonStyle}
-      buttonColor={buttonColor}
-      buttonSize={buttonSize}
+      buttonColor={config.buttonColor}
+      buttonSize={config.buttonSize}
       disabled={disabled}
       isLoading={isThisProcessing}
       onClick={onClick}

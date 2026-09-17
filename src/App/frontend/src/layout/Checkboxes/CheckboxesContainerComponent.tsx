@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { ConditionalWrapper } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -17,7 +18,8 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -25,18 +27,22 @@ export const CheckboxContainerComponent = ({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'Checkboxes'>) => {
-  const item = useItemWhenType(baseComponentId, 'Checkboxes');
-  const {
-    id,
-    layout,
-    readOnly,
-    textResourceBindings,
-    required,
-    labelSettings,
-    alertOnChange,
-    showLabelsInTable,
-    dataModelBindings,
-  } = item;
+  const config = useComponentConfig(baseComponentId, 'Checkboxes');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Checkboxes');
+  const componentId = useIndexedId(baseComponentId);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Checkboxes.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Checkboxes.required);
+  const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Checkboxes.alertOnChange);
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.Checkboxes.textResourceBindings.title,
+  );
+  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Checkboxes.textResourceBindings.help);
+  const description = useEvalExpression(
+    config.textResourceBindings?.description,
+    Expressions.Checkboxes.textResourceBindings.description,
+  );
+
   const { langAsString } = useLanguage();
   const {
     options: calculatedOptions,
@@ -46,16 +52,16 @@ export const CheckboxContainerComponent = ({
   } = useGetOptions(baseComponentId, 'multi');
   const groupBinding = useSaveValueToGroup(dataModelBindings);
   const selectedValues = groupBinding.enabled ? groupBinding.selectedValues : selectedFromSimpleBinding;
-
   const isValid = useIsValid(baseComponentId);
   const horizontal = shouldUseRowLayout({
-    layout,
+    layout: config.layout,
     optionsCount: calculatedOptions.length,
   });
-
-  const hideLabel = overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !showLabelsInTable;
-  const ariaLabel = overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined;
-
+  const hideLabel =
+    overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !config.showLabelsInTable;
+  const ariaLabel = overrideDisplay?.renderedInTable
+    ? langAsString(config.textResourceBindings?.title === undefined ? undefined : title)
+    : undefined;
   const setChecked = useCallback(
     (isChecked: boolean, option: IOptionInternal) => {
       if (groupBinding.enabled) {
@@ -69,43 +75,40 @@ export const CheckboxContainerComponent = ({
     },
     [groupBinding, selectedValues, setData],
   );
-
   const { getCheckboxProps } = useCheckboxGroup({
-    name: id,
+    name: componentId,
     readOnly,
     value: selectedValues,
     error: !isValid,
   });
-
   const labelTextGroup = (
     <LabelContent
       id={useIndexedId(baseComponentId)}
-      label={textResourceBindings?.title}
+      label={config.textResourceBindings?.title === undefined ? undefined : title}
       readOnly={readOnly}
       required={required}
-      help={textResourceBindings?.help}
-      labelSettings={labelSettings}
+      help={config.textResourceBindings?.help === undefined ? undefined : help}
+      labelSettings={config.labelSettings}
     />
   );
-
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       {isFetching ? (
         <AltinnSpinner />
       ) : (
         <div
-          id={id}
-          key={`checkboxes_group_${id}`}
+          id={componentId}
+          key={`checkboxes_group_${componentId}`}
         >
           <Fieldset aria-label={ariaLabel}>
             {overrideDisplay?.renderLegend !== false && (
               <Fieldset.Legend className={classes.legend}>{labelTextGroup}</Fieldset.Legend>
             )}
-            {textResourceBindings?.description && (
+            {(config.textResourceBindings?.description === undefined ? undefined : description) && (
               <Fieldset.Description
                 className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
               >
-                <Lang id={textResourceBindings?.description} />
+                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
               </Fieldset.Description>
             )}
             <ConditionalWrapper
@@ -122,7 +125,7 @@ export const CheckboxContainerComponent = ({
               {calculatedOptions.map((option) => (
                 <WrappedCheckbox
                   key={`checkbox-${option.value}`}
-                  id={id}
+                  id={componentId}
                   option={option}
                   hideLabel={hideLabel}
                   alertOnChange={alertOnChange}

@@ -8,7 +8,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import type { ParentRef } from 'src/features/form/layout/makeLayoutLookups';
 
@@ -29,7 +29,7 @@ const { Provider, useCtx } = createContext<RepeatingGroupEditRowContext>({
 function useRepeatingGroupEditRowState(
   baseComponentId: string,
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
-  const edit = useExternalItem(baseComponentId, 'RepeatingGroup').edit;
+  const edit = useComponentConfig(baseComponentId, 'RepeatingGroup').edit;
   const multiPageEnabled = edit?.multiPage ?? false;
   const childrenNotMemoized = RepGroupHooks.useChildIdsWithMultiPageAndHidden(baseComponentId);
   const children = useMemoDeepEqual(() => childrenNotMemoized, [childrenNotMemoized]);

@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { Lang } from 'src/features/language/Lang';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -9,7 +11,8 @@ import { FileTableRowProvider } from 'src/layout/FileUpload/FileUploadTable/File
 import { EditWindowComponent } from 'src/layout/FileUpload/Tag/EditWindowComponent';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { atLeastOneTagExists } from 'src/utils/formComponentUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { FileTableRowContext } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
@@ -31,16 +34,20 @@ export function FileTable({
   isSummary,
   isFetching,
 }: FileTableProps): React.JSX.Element | null {
-  const item = useItemWhenType(baseComponentId, 'FileUpload');
-  const { textResourceBindings, readOnly } = item;
-  const hasTag = fileUploadHasTag(item);
+  const config = useComponentConfig(baseComponentId, 'FileUpload');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
+  const resolvedTagTitle = useEvalExpression(
+    config.textResourceBindings?.tagTitle,
+    Expressions.FileUpload.textResourceBindings.tagTitle,
+  );
+
+  const hasTag = fileUploadHasTag(config);
   const pdfModeActive = usePdfModeActive();
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   if (!attachments || attachments.length === 0) {
     return null;
   }
-  const tagTitle =
-    (textResourceBindings && 'tagTitle' in textResourceBindings && textResourceBindings?.tagTitle) || undefined;
+  const tagTitle = resolvedTagTitle || undefined;
   const actionColumnLabelKey = isSummary
     ? 'general.edit'
     : hasTag && !readOnly

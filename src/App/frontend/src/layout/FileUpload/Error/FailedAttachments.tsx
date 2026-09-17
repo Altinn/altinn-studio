@@ -100,7 +100,7 @@ function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAtta
       const howManyMore = issues.length - MAX_ITEMS_BEFORE_COLLAPSE;
       const buttonId = `attachment-error-button-${data.temporaryId}`;
 
-      const params = (showFull ? issues : issues.slice(0, MAX_ITEMS_BEFORE_COLLAPSE)).map((issue) =>
+      const params = (showFull ? issues.map : issues.slice(0, MAX_ITEMS_BEFORE_COLLAPSE).map)((issue) =>
         getValidationIssueMessage(issue),
       );
       const message = params.map((_, i) => `- {${i}}`).join('\n');

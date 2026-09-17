@@ -1,27 +1,31 @@
 import React from 'react';
 
 import { Accordion as AccordionLayout } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accordion'>) => {
-  const { textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
+  const config = useComponentConfig(baseComponentId, 'Accordion');
+  const openByDefault = useEvalExpression(config.openByDefault, Expressions.Accordion.openByDefault);
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Accordion.textResourceBindings.title);
+
   const canRender = useHasCapability('renderInAccordion');
   // Inside an AccordionGroup the group already provides the Card wrapper, so the
   // Accordion renders as a bare item instead.
   const renderAsAccordionItem = useIsInAccordionGroup();
   const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
-
   return (
     <AccordionLayout
-      title={textResourceBindings?.title}
+      title={config.textResourceBindings?.title === undefined ? undefined : title}
       openByDefault={Boolean(openByDefault)}
       renderAsItem={renderAsAccordionItem}
       className={classes.container}
@@ -32,7 +36,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
         showValidationMessages ? <AllComponentValidations baseComponentId={baseComponentId} /> : undefined
       }
     >
-      {children.filter(canRender).map((childId) => (
+      {config.children.filter(canRender).map((childId) => (
         <GenericComponent
           key={childId}
           baseComponentId={childId}
