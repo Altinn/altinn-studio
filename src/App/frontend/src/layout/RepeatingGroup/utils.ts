@@ -4,9 +4,8 @@ import { CompCategory, type ExpressionDescriptor } from '@app/layout-contract';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import { evalExpr } from 'src/features/expressions';
+import { evaluateDescriptor } from 'src/features/expressions/evaluateDescriptor';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -49,19 +48,14 @@ function evalRowExpression<T extends ExprVal>({
   rowIndex,
   componentId,
 }: EvalExprProps<T>) {
-  const options = { ...descriptor, errorIntroText: `${descriptor.errorIntroText} (component '${componentId}')` };
-  if (
-    !groupBinding ||
-    expr === undefined ||
-    !ExprValidation.isValidOrScalar(expr, descriptor.returnType, options.errorIntroText)
-  ) {
+  if (!groupBinding) {
     return descriptor.defaultValue;
   }
   const currentDataModelPath = {
     dataType: groupBinding.dataType,
     field: `${groupBinding.field}[${rowIndex}]`,
   };
-  return evalExpr(expr, { ...dataSources, currentDataModelPath }, options);
+  return evaluateDescriptor(expr, descriptor, { ...dataSources, currentDataModelPath }, componentId);
 }
 
 function getReadOnlyExpression(component: CompExternal): ExprValToActualOrExpr<ExprVal.Boolean> | undefined {
