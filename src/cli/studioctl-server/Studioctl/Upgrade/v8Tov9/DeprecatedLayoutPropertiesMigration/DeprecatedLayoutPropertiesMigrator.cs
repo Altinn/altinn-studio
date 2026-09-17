@@ -110,8 +110,8 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             {
                 _warnings.Add(
                     $"{fileName}: left untouched because it has comments, which a rewrite would delete. "
-                        + "Convert `mapping` to `queryParameters` (and `bindingToShowInSummary` to "
-                        + "`summaryBinding`) in this file by hand."
+                        + "Convert `mapping` to `queryParameters` (`refetchDependencies` for `PaymentDetails`), "
+                        + "and `bindingToShowInSummary` to `summaryBinding` in this file by hand."
                 );
                 manualActionRequired = true;
                 continue;
