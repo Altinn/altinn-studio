@@ -192,9 +192,9 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRo
   const visibleIds = ids.filter((id) => columnSettings[id]?.hidden !== true);
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const editButton = useEvalExpression(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
-  const editableChildren = RepGroupHooks.useEditableChildren(
+  const editableChildren = RepGroupHooks.useEditableChildCandidates(
     baseComponentId,
-    row ? { ...row, editButton } : undefined,
+    editButton,
     Object.entries(columnSettings)
       .filter(([, column]) => column.hidden === true)
       .map(([id]) => id),
