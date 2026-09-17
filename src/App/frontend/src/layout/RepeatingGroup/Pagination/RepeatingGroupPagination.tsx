@@ -195,7 +195,7 @@ function PaginationComponent({
  * Returns a list of pagination pages containing errors
  */
 function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: string): number[] {
-  const rows = RepGroupHooks.useAllRowsWithHidden(baseComponentId);
+  const rows = RepGroupHooks.useVisibleRows(baseComponentId);
   const indexedId = useIndexedId(baseComponentId);
   const deepValidations = useVisibleValidationsDeep(baseComponentId, indexedId, 'visible', false, undefined, 'error');
 
@@ -211,8 +211,7 @@ function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: st
 
     const pagesWithErrors = new Set<number>();
     for (const i of rowsWithErrors) {
-      const isHidden = rows[i]?.hidden;
-      if (isHidden) {
+      if (!rows.some((row) => row.index === i)) {
         continue;
       }
 
