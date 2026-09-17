@@ -33,7 +33,7 @@ describe('PaymentDetailsComponent', () => {
     };
     const { formDataMethods } = await render({
       component: {
-        queryParameters: { amount: ['if', ['greaterThan', ['dataModel', 'amount'], 100], 'high', 'else', 'low'] },
+        refetchDependencies: { amount: ['if', ['greaterThan', ['dataModel', 'amount'], 100], 'high', 'else', 'low'] },
       },
       queries: {
         fetchFormBootstrapForInstance: async () =>
