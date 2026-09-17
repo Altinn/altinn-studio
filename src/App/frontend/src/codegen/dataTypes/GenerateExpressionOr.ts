@@ -1,4 +1,4 @@
-import type { PropertyValueDefinition } from '@app/layout-contract';
+import type { ExprValToActual, PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -25,22 +25,36 @@ const toSchemaMap: { [key in ExprVal]: JSONSchema7 } = {
   [ExprVal.Object]: { $ref: 'expression.schema.v1.json#/definitions/object' },
 };
 
-type TypeMap<Val extends ExprVal> = Val extends ExprVal.Boolean
-  ? boolean
-  : Val extends ExprVal.Number
-    ? number
-    : Val extends ExprVal.String
-      ? string
-      : never;
-
 /**
  * Generates a type that can be either a pure boolean, number, or string, or an expression that evaluates to
  * one of those types. Be sure you implement support for evaluating the expression as well, because adding
  * this type will not automatically add support for evaluating the expression as well.
  */
-export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGenerator<TypeMap<Val>> {
+export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGenerator<ExprValToActual<Val>> {
   constructor(public readonly valueType: Val) {
     super();
+  }
+
+  private expressionFallback?: ExprValToActual<Val>;
+
+  /** Overrides the runtime fallback without changing the schema default or optionality. */
+  setFallback(value: ExprValToActual<Val>): this {
+    this.ensureMutable();
+    this.expressionFallback = value;
+    return this;
+  }
+
+  getExpressionFallback(): ExprValToActual<Val> {
+    const fallback =
+      this.expressionFallback !== undefined
+        ? this.expressionFallback
+        : this.internal.optional
+          ? this.internal.optional.default
+          : undefined;
+    if (fallback === undefined) {
+      throw new Error(`Expression ${this.getName() ?? this.valueType} needs an explicit fallback in its declaration`);
+    }
+    return fallback;
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
