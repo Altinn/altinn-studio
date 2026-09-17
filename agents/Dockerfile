@@ -133,7 +133,7 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
-ARG CODEX_VERSION=0.153.4
+ARG CODEX_VERSION=0.154.0
 ARG CLAUDE_CODE_VERSION=2.1.268
 
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
