@@ -1,7 +1,7 @@
 //! Linux tmux Session runtime and terminal capability.
 //!
 //! Tmux is the M0 Unix Sandbox implementation detail behind Sessions: it owns
-//! the harness PTY, retained terminal state, scrollback and client
+//! the harness PTY, retained terminal state, normal-screen scrollback and client
 //! attachment. Nothing tmux-native is persisted; the tmux session name is
 //! derived from the platform `SessionId`. The conversation record is the
 //! harness's own transcript file, located by the path the harness reported.
@@ -27,6 +27,42 @@ use crate::sessions::{Activity, AttachTarget, LaunchToken, LifecycleState, Phase
 const INPUT_READY_GRACE: std::time::Duration = std::time::Duration::from_secs(2);
 const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
+
+/// Apply in the same command queue as creation: history-limit is captured when
+/// a pane is created. Reapply on attach so existing servers pick up mouse mode.
+/// Index 99 is reserved by the runtime; appending would grow the array on attach.
+fn terminal_options() -> Vec<String> {
+    [
+        "set-option",
+        "-g",
+        "history-limit",
+        "50000",
+        ";",
+        "set-option",
+        "-g",
+        "mouse",
+        "on",
+        ";",
+        "set-option",
+        "-s",
+        "focus-events",
+        "on",
+        ";",
+        "set-option",
+        "-s",
+        "extended-keys",
+        "on",
+        ";",
+        "set-option",
+        "-s",
+        "terminal-features[99]",
+        "xterm*:extkeys",
+        ";",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect()
+}
 
 fn session_name(session: &Session) -> String {
     format!("agent-session-{}", session.id)
@@ -174,7 +210,8 @@ fn launch_arguments(
             model_selection: &session.model_selection,
         },
     );
-    let mut arguments = vec!["new-session".into(), "-d".into(), "-s".into(), session_name(session)];
+    let mut arguments = terminal_options();
+    arguments.extend(["new-session".into(), "-d".into(), "-s".into(), session_name(session)]);
     let session_environment = launch.environment.iter().cloned().chain([
         ("CONTAINER_HOST".into(), crate::sandbox::platform::CONTAINER_HOST.into()),
         ("AGENT_SESSION_ID".into(), session.id.to_string()),
@@ -250,17 +287,31 @@ async fn attach_terminal(home: &std::path::Path, target: &AttachTarget) -> Resul
     }
 }
 
+fn attach_arguments(session: &Session) -> Vec<String> {
+    let mut arguments = terminal_options();
+    // A session-local override can shadow the global default on older sessions.
+    arguments.extend([
+        "set-option".into(),
+        "-t".into(),
+        pane_target(session),
+        "mouse".into(),
+        "on".into(),
+        ";".into(),
+        "attach-session".into(),
+        "-t".into(),
+        exact_target(session),
+    ]);
+    arguments
+}
+
 fn attach_spec(session: &Session) -> ExecutionSpec {
-    ExecutionSpec::command(
-        SandboxPath::new("/usr/bin/tmux"),
-        ["attach-session".into(), "-t".into(), exact_target(session)],
-    )
-    // Host-specific TERM names are not necessarily installed in the guest.
-    // Use the broadly available baseline while tmux mediates the terminal.
-    .with_environment([
-        ("LANG".into(), UTF8_LOCALE.into()),
-        ("TERM".into(), PORTABLE_TERMINAL.into()),
-    ])
+    ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), attach_arguments(session))
+        // Host-specific TERM names are not necessarily installed in the guest.
+        // Use the broadly available baseline while tmux mediates the terminal.
+        .with_environment([
+            ("LANG".into(), UTF8_LOCALE.into()),
+            ("TERM".into(), PORTABLE_TERMINAL.into()),
+        ])
 }
 
 /// The M0 Unix Session runtime backed by tmux.
@@ -699,6 +750,42 @@ mod tests {
             None,
         );
         assert!(!plain.last().expect("tmux command").contains("haiku"));
+    }
+
+    #[test]
+    fn terminal_options_precede_creation_and_attachment() {
+        let session = test_session(crate::ModelSelection::default());
+        let options = super::terminal_options();
+        let launch = super::launch_arguments(&session, "http://hook", &super::LaunchToken::generate(), None, None);
+        assert!(launch.starts_with(&options));
+        assert_eq!(launch[options.len()], "new-session");
+        let attach = super::attach_arguments(&session);
+        assert!(attach.starts_with(&options));
+        assert_eq!(
+            &attach[options.len()..options.len() + 6],
+            ["set-option", "-t", &super::pane_target(&session), "mouse", "on", ";"]
+        );
+        assert_eq!(attach[options.len() + 6], "attach-session");
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    #[ignore = "requires Node.js, tmux and script; exercises scrollback in an isolated terminal server"]
+    fn scrollback_in_a_real_terminal() {
+        let session = test_session(crate::ModelSelection::default());
+        let output = std::process::Command::new("node")
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_scrollback.mjs"))
+            .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
+            .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
+            .arg(super::session_name(&session))
+            .output()
+            .expect("Node.js");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
 
     #[test]

@@ -188,8 +188,9 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
+    // Inline rendering lets tmux retain conversation output in pane history.
     let mut configuration = format!(
-        "-c 'cli_auth_credentials_store=\"file\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+        "-c 'cli_auth_credentials_store=\"file\"' -c 'tui.alternate_screen=\"never\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
          -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );
@@ -276,6 +277,20 @@ mod tests {
 
         assert!(!stale.exists());
         assert!(unrelated.exists());
+    }
+
+    #[test]
+    fn every_executed_launch_uses_inline_scrollback_once() {
+        for resume in [None, Some("160cdb4b-5997-464c-9d22-602786eb45d4")] {
+            let launch = super::launch_linux(&request(resume, None));
+            // Resume has two mutually exclusive commands: resume and fresh fallback.
+            let commands = launch.command.split("codex ").skip(1).collect::<Vec<_>>();
+            assert_eq!(commands.len(), if resume.is_some() { 2 } else { 1 });
+            for command in commands {
+                assert_eq!(command.matches("tui.alternate_screen=\"never\"").count(), 1);
+                assert!(!command.contains("raw_output_mode"));
+            }
+        }
     }
 
     #[test]

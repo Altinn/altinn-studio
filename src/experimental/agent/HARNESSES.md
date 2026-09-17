@@ -37,5 +37,5 @@ Inspect `get sessions` (including `-o json`) and `turns` alongside the terminal.
 tool results and turn boundaries, including after compaction. A successful model response alone is insufficient.
 
 Run the normal formatting, lint and test checks, plus `cargo test -p agent --lib -- --ignored` on a host with Node.js
-and tmux for the terminal integration check. Record tested versions, commands and observed results in the PR;
+and tmux for the terminal integration checks. The scrollback check also requires Linux and util-linux `script`. Record tested versions, commands and observed results in the PR;
 update adapter fixtures when native output changes. Never publish credentials or authentication-bearing process arguments.
