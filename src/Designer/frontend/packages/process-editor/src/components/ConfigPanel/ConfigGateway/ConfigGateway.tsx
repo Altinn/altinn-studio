@@ -17,14 +17,12 @@ export const ConfigGateway = (): React.ReactElement => {
   const { allDataModelIds } = useBpmnApiContext();
   const { connectedDataTypeId, setConnectedDataTypeId } = useConnectedDataType();
 
-  // A data model the gateway already points at is offered even when it is no longer in the app, so
-  // that opening the panel cannot quietly drop a value the developer never touched.
+  // A data model the gateway already points at stays selectable even when the app no longer has it.
   const dataModelOptions: string[] = ArrayUtils.removeDuplicates(
     ArrayUtils.removeEmptyStrings([...(allDataModelIds ?? []), connectedDataTypeId]),
   );
 
-  // `null` rather than `undefined`: Suggestion treats `undefined` as uncontrolled and falls back to
-  // the selection it kept itself, so a cleared gateway would keep showing the model it had.
+  // `null` rather than `undefined`, which Suggestion treats as uncontrolled.
   const selected: StudioSuggestionItem | null = connectedDataTypeId
     ? { value: connectedDataTypeId, label: connectedDataTypeId }
     : null;
@@ -51,7 +49,7 @@ export const ConfigGateway = (): React.ReactElement => {
           description={t(
             'process_editor.configuration_panel_gateway_connected_data_type_description',
           )}
-          emptyText={t('process_editor.configuration_panel_gateway_no_data_model_to_select')}
+          emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
           filter={() => true}
           label={t('process_editor.configuration_panel_gateway_connected_data_type_label')}
           multiple={false}

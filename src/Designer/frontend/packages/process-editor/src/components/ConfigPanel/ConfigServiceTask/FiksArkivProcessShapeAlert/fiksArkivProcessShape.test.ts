@@ -19,8 +19,6 @@ describe('getFiksArkivProcessShapeIssue', () => {
     expect(getFiksArkivProcessShapeIssue(task)).toEqual({ kind: 'missingGateway' });
   });
 
-  // `gateways.Count != next.Count` in the runtime: one gateway among the successors is not enough,
-  // because the process can still leave the task down the flow that skips it.
   it('reports a missing gateway when only some of the successors are gateways', () => {
     const task = createTask([createGateway('Gateway_1', 2), { id: 'Task_2', type: 'bpmn:Task' }]);
 
@@ -36,9 +34,6 @@ describe('getFiksArkivProcessShapeIssue', () => {
     });
   });
 
-  // A text annotation is attached with a `bpmn:Association`, which sits in the same `outgoing` list
-  // as the sequence flows. The runtime counts sequence flows only, so an annotation neither stands
-  // in for a branch nor looks like an element following the task.
   describe('with a text annotation attached', () => {
     const annotation: ProcessShapeFlow = {
       type: 'bpmn:Association',

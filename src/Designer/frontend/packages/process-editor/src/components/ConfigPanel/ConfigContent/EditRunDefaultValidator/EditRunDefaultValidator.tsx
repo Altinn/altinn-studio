@@ -3,11 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioSwitch } from '@studio/components';
 import { useRunDefaultValidator } from './useRunDefaultValidator';
 
-/**
- * A switch rather than a radio group: the runtime reads the value as a plain `bool` whose default
- * is `false`, so an absent element is not an unanswered question but a definite "off". There is no
- * third state for the control to show.
- */
+/** A switch: the runtime reads an absent element as `false`, so there is no third state to show. */
 export const EditRunDefaultValidator = (): React.ReactElement => {
   const { t } = useTranslation();
   const { runDefaultValidator, setRunDefaultValidator } = useRunDefaultValidator();

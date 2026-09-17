@@ -25,8 +25,6 @@ describe('getEFormidlingCoverageGaps', () => {
     ).toEqual([]);
   });
 
-  // The runtime looks up the value for the environment it runs in and falls back to the entry
-  // without an `env`, so an override only answers for its own environment.
   it('reports the environments an override does not reach', () => {
     expect(
       getEFormidlingCoverageGaps(
@@ -59,8 +57,6 @@ describe('getEFormidlingCoverageGaps', () => {
     expect(gaps[0].missingProperties).toEqual(['process']);
   });
 
-  // `GetRequiredIntConfig` fails the startup on a value it cannot parse just as it does on a
-  // missing one, so a security level that is not a whole number is the same gap.
   it('reports a security level that is not a whole number', () => {
     const gaps = getEFormidlingCoverageGaps(
       createEntries({
@@ -76,8 +72,6 @@ describe('getEFormidlingCoverageGaps', () => {
     expect(gaps[0].missingProperties).toEqual(['securityLevel']);
   });
 
-  // The runtime resolves `tt02` and `at22` to the same environment and reads the last of them, so
-  // the panel has to answer for that environment with the same entry.
   it('follows the runtime when two entries resolve to the same environment', () => {
     expect(
       getEFormidlingCoverageGaps(

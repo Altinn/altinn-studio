@@ -8,8 +8,6 @@ export const EditTaskName = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, setBpmnDetails } = useBpmnContext();
 
-  // A bpmn name is free text and optional, matching what the canvas allows when the shape label is
-  // edited directly, so there is nothing to validate here.
   const handleOnTaskNameBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
     const newName = event.target.value;
 

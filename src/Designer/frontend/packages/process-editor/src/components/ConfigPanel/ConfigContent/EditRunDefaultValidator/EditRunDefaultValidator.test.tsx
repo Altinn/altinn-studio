@@ -35,8 +35,6 @@ describe('EditRunDefaultValidator', () => {
     expect(getSwitch()).toBeChecked();
   });
 
-  // The runtime reads a missing element as `false`, so an untouched signing task genuinely does
-  // not run the validator. Showing the switch as on would be a lie about what the app will do.
   it('shows the switch as off when the element is absent', () => {
     renderEditRunDefaultValidator({ signatureConfig: {} });
 

@@ -149,13 +149,11 @@ describe('ConfigPdfServiceTask', () => {
 
       renderConfigPdfServiceTask();
 
-      // First switch to layout-based
       const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       await user.click(layoutBasedRadio);
 
-      // Then switch back to automatic (no layout set was created)
       const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
       });
@@ -170,7 +168,6 @@ describe('ConfigPdfServiceTask', () => {
     it('should render PdfAutomaticTaskSelection when in automatic mode', () => {
       renderConfigPdfServiceTask();
 
-      // PdfAutomaticTaskSelection renders a combobox
       expect(screen.getByRole('textbox')).toBeInTheDocument();
     });
 
@@ -184,7 +181,6 @@ describe('ConfigPdfServiceTask', () => {
       });
       await user.click(layoutBasedRadio);
 
-      // PdfLayoutBasedSection renders the data model selector
       expect(
         screen.getByLabelText(
           textMock('process_editor.configuration_panel_pdf_select_data_model_label'),

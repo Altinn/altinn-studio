@@ -101,7 +101,6 @@ class SupportedPaletteProvider {
                 signeeStatesDataTypeId: `signees-states-${generateRandomId(4)}`,
                 signeeProviderId: '', // No default interface exists in the apps
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
-                correspondenceResource: [], // No default; environment-scoped entries are added in the panel
                 runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
                   value: true,
                 }),
@@ -186,17 +185,15 @@ class SupportedPaletteProvider {
       };
     }
 
-    function createCustomPdfServiceTask() {
-      const taskType = 'pdf';
-
+    function createAltinnServiceTask(taskType, name, buildTaskExtension = () => ({})) {
       return function (event) {
-        const task = buildAltinnServiceTask(taskType);
+        const task = buildAltinnServiceTask(taskType, name);
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
             bpmnFactory.create('altinn:TaskExtension', {
-              taskType: taskType,
-              pdfConfig: bpmnFactory.create('altinn:PdfConfig'),
+              taskType,
+              ...buildTaskExtension(),
             }),
           ],
         });
@@ -209,55 +206,31 @@ class SupportedPaletteProvider {
       };
     }
 
-    /**
-     * Creates a `bpmn:ServiceTask` carrying nothing but the given `altinn:taskType`, plus whatever
-     * `buildTaskExtension` adds. The callback runs per invocation so every created task gets its
-     * own moddle elements rather than sharing one instance.
-     */
-    function createAltinnServiceTask(taskType, taskName, buildTaskExtension) {
-      return function (event) {
-        const task = buildAltinnServiceTask(taskType, taskName);
-
-        const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
-          values: [
-            bpmnFactory.create('altinn:TaskExtension', {
-              taskType: taskType,
-              ...(buildTaskExtension ? buildTaskExtension() : {}),
-            }),
-          ],
-        });
-
-        modeling.updateProperties(task, {
-          extensionElements,
-        });
-
-        create.start(event, task);
-      };
+    function createCustomPdfServiceTask() {
+      return createAltinnServiceTask('pdf', undefined, () => ({
+        pdfConfig: bpmnFactory.create('altinn:PdfConfig'),
+      }));
     }
 
     function createEFormidlingServiceTask() {
-      // An empty config block, like the pdf task's, gives the developer something to fill in.
-      // Its five required values are app and environment specific, so Studio has none to seed.
       return createAltinnServiceTask('eFormidling', undefined, () => ({
         eFormidlingConfig: bpmnFactory.create('altinn:EFormidlingConfig'),
       }));
     }
 
     function createSubformPdfServiceTask() {
-      // The subform component and data type are app specific, so the block starts out empty.
       return createAltinnServiceTask('subformPdf', undefined, () => ({
         subformPdfConfig: bpmnFactory.create('altinn:SubformPdfConfig'),
       }));
     }
 
+    // Fiks Arkiv is configured in appsettings, so the task type is all the bpmn carries.
     function createFiksArkivServiceTask() {
-      // Fiks Arkiv is configured outside process.bpmn, so the task type is the whole of it here.
       return createAltinnServiceTask('fiksArkiv');
     }
 
+    // A service task the app implements itself; the developer fills in the registered type.
     function createCustomServiceTask() {
-      // A service task the app implements itself. The task type is left empty for the developer
-      // to fill in with the type their implementation registers.
       return createAltinnServiceTask('', 'Altinn service task');
     }
 
@@ -398,15 +371,8 @@ class SupportedPaletteProvider {
     };
   }
 
-  /**
-   * Restates the three entries bpmn-js contributes itself.
-   *
-   * bpmn-js titles them in English, which would otherwise be the only English in a palette whose
-   * every other entry is Norwegian. Its gateway entry also carries the generic diamond, because
-   * upstream it stands beside the other gateway types; here it is the only one, and it creates an
-   * exclusive gateway, which the canvas then draws with an X. The icon says which shape the
-   * developer is about to place, so it has to be that one.
-   */
+  // bpmn-js titles its own entries in English, and its gateway entry carries the generic diamond
+  // although it creates an exclusive gateway.
   _overrideSupportedEntries(entries) {
     const supportedEntryOverrides = {
       'create.start-event': { title: t('process_editor.palette_create_start_event') },

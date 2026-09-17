@@ -262,9 +262,6 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  // The add handler registers the pdf data type for any signing task that declares one, whether or not
-  // the signing is user controlled, so removing such a task has to remove it again for the same set of
-  // tasks. Anything narrower leaves an orphan entry behind.
   it('should remove the signing pdf datatype when a signing task that is not user controlled is deleted', () => {
     const taskMetadata = createTaskMetadataMock(
       'signing',
@@ -339,8 +336,6 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
   });
 
-  // These service task types own no layout set, data type or policy rule, so no branch in the
-  // handler matches them and there is nothing to clean up when they are deleted.
   it.each(['subformPdf', ''])(
     'should clean up nothing when a task of type "%s" is deleted',
     (taskType) => {

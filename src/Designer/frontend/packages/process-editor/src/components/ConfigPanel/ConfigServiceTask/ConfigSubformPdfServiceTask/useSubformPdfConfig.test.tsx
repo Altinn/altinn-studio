@@ -88,8 +88,6 @@ describe('useSubformPdfConfig', () => {
     );
   });
 
-  // An empty element is worse than no element: the runtime rejects both, but a blank one reads as
-  // a value someone meant to set.
   it('removes an emptied value rather than writing a blank one', () => {
     const { result, subformPdfConfig } = renderUseSubformPdfConfig({
       subformComponentId: 'my-subform',

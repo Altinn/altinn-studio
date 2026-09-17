@@ -11,8 +11,6 @@ const layoutSets: LayoutSets = [
 ];
 
 describe('getSubformLayoutSetIdsForDataType', () => {
-  // A data task's layout set can name the same data type, and it is not a subform, so the type
-  // marker is what separates the two.
   it('returns the subform layout sets that store the data type, and no other layout set', () => {
     expect(getSubformLayoutSetIdsForDataType(layoutSets, 'subform-data')).toEqual([
       'my-subform',

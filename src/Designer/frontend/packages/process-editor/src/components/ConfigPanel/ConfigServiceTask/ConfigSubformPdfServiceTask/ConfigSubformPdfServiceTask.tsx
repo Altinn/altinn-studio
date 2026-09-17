@@ -10,7 +10,6 @@ import { ArrayUtils } from '@studio/pure-functions';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { FilenameTextResource } from '../FilenameTextResource';
 import { useSubformPdfConfig } from './useSubformPdfConfig';
-import { useValidateSubformPdfValue } from './useValidateSubformPdfValue';
 import { SubformComponentIdField } from './SubformComponentIdField';
 import { SubformPdfLayoutSetSection } from './SubformPdfLayoutSetSection';
 import sharedClasses from '../ConfigServiceTask.module.css';
@@ -18,7 +17,6 @@ import sharedClasses from '../ConfigServiceTask.module.css';
 export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
   const { availableDataTypeIds } = useBpmnApiContext();
-  const { validateRequiredSubformPdfValue } = useValidateSubformPdfValue();
   const {
     subformComponentId,
     subformDataTypeId,
@@ -27,21 +25,12 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
     setSubformDataTypeId,
     setFilenameTextResourceId,
   } = useSubformPdfConfig();
-
-  // Both values are unanswered when the panel opens on a task the palette just created. The
-  // required tag on the group is what says they must be answered; an error before the field has
-  // been touched would only shout at a form nobody has filled in yet.
   const [isDataTypeIdTouched, setIsDataTypeIdTouched] = useState(false);
 
-  // A data type the task already points at is offered even when it is no longer in the app, so
-  // that opening the panel cannot quietly drop a value the developer never touched.
+  // A data type the task already points at stays selectable even when the app no longer has it.
   const dataTypeOptions: string[] = ArrayUtils.removeDuplicates(
     ArrayUtils.removeEmptyStrings([...(availableDataTypeIds ?? []), subformDataTypeId]),
   );
-
-  const selectedDataType: StudioSuggestionItem | null = subformDataTypeId
-    ? { value: subformDataTypeId, label: subformDataTypeId }
-    : null;
 
   const handleDataTypeChange = (item: StudioSuggestionItem | null): void => {
     setIsDataTypeIdTouched(true);
@@ -58,21 +47,19 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
           required
           tagText={t('general.required')}
         >
-          {/* The data type comes first: it is what Studio derives the component candidates from,
-              so answering it is what fills the list below. */}
           <StudioSuggestion
             description={t('process_editor.configuration_panel_subform_pdf_data_type_description')}
             emptyText={t('process_editor.configuration_panel_subform_pdf_no_data_type_to_select')}
-            error={isDataTypeIdTouched && validateRequiredSubformPdfValue(subformDataTypeId)}
+            error={isDataTypeIdTouched && !subformDataTypeId && t('validation_errors.required')}
             filter={() => true}
             label={t('process_editor.configuration_panel_subform_pdf_data_type_label')}
             multiple={false}
             onBlur={() => setIsDataTypeIdTouched(true)}
             onSelectedChange={handleDataTypeChange}
-            // `null` rather than `undefined`: Suggestion treats `undefined` as uncontrolled and
-            // falls back to the selection it kept itself, so a cleared value would keep showing
-            // the old one.
-            selected={selectedDataType}
+            // `null` rather than `undefined`, which Suggestion treats as uncontrolled.
+            selected={
+              subformDataTypeId ? { value: subformDataTypeId, label: subformDataTypeId } : null
+            }
           >
             {dataTypeOptions.map((dataTypeId) => (
               <StudioSuggestion.Option key={dataTypeId} label={dataTypeId} value={dataTypeId}>
@@ -88,9 +75,6 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
         </StudioFormGroup>
       </StudioList.Item>
 
-      {/* Below the two fields rather than above them: it is the field above that sends the
-          developer here, by offering no component until the task has pages of its own to hold
-          one. */}
       <StudioList.Item>
         <SubformPdfLayoutSetSection />
       </StudioList.Item>

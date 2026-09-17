@@ -23,7 +23,6 @@ import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
 
-// Test data:
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
   bpmnXml: undefined,
 };
@@ -70,7 +69,6 @@ const element: TaskEvent['element'] = {
 };
 const xml = '<testxml></testxml>';
 
-// Mocks:
 jest.mock('bpmn-js/lib/Modeler', () => jest.fn().mockImplementation(bpmnModelerImplementation));
 
 function bpmnModelerImplementation(): BpmnModeler {

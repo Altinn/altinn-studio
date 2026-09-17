@@ -103,8 +103,6 @@ describe('FilenameTextResource', () => {
     });
   });
 
-  // The prefix is what tells the two panels' filenames apart in the text editor, where every text
-  // resource in the app sits in one list.
   it('generates new text resource ids under the prefix its panel gave it', async () => {
     const user = userEvent.setup();
     renderFilenameTextResource({ textResourceIdPrefix: 'subform-pdf-filename' });
