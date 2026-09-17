@@ -389,8 +389,12 @@ fn create_field_label(label: &str) -> String {
     format!("{label:<CREATE_FIELD_LABEL_WIDTH$}")
 }
 
+fn create_text_field_label(label: &str) -> String {
+    format!("{}  ", create_field_label(label))
+}
+
 fn create_text_field_line(label: &str, value: &str, focused: bool, empty_hint: &str) -> Line<'static> {
-    let mut spans = vec![Span::raw(create_field_label(label))];
+    let mut spans = vec![Span::raw(create_text_field_label(label))];
     if value.is_empty() {
         let mut hint = empty_hint.chars();
         if let Some(first) = hint.next() {
@@ -431,7 +435,7 @@ fn fixed_width(value: &str, width: usize) -> String {
 /// the grayed text instead of leaving a cell-wide gap before it.
 fn name_field_spans(form: &super::app::CreateForm) -> Vec<Span<'static>> {
     let focused = form.field == super::app::CreateField::Name;
-    let mut spans = vec![Span::raw(create_field_label("Name:"))];
+    let mut spans = vec![Span::raw(create_text_field_label("Name:"))];
     if !form.name.is_empty() {
         spans.push(Span::raw(form.name.clone()));
         if focused {
@@ -590,6 +594,10 @@ mod tests {
         (border, top, bottom)
     }
 
+    fn text_column(line: &str, text: &str) -> usize {
+        line.split_once(text).expect("text in rendered row").0.chars().count()
+    }
+
     #[test]
     fn frame_shows_header_counts_tree_and_hints() {
         let app = App::new();
@@ -627,8 +635,8 @@ mod tests {
         assert!(text.contains("create agent"));
         assert!(text.contains("Agent:    ◂ full"));
         assert!(text.contains("Variant:  ◂ default"));
-        assert!(text.contains("Name:     full"));
-        assert!(text.contains("Env file: default: .env beside manifest"));
+        assert!(text.contains("Name:       full"));
+        assert!(text.contains("Env file:   default: .env beside manifest"));
         assert!(text.contains("enter create · tab field · ←/→ select · esc cancel"));
         let initial_geometry = create_modal_geometry(&text);
         let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
@@ -641,9 +649,15 @@ mod tests {
             .lines()
             .find(|line| line.contains("Env file:"))
             .expect("environment row");
-        assert_eq!(agent_line.find('◂'), variant_line.find('◂'));
-        assert_eq!(agent_line.find("/sources/full"), variant_line.find("agent.yaml"));
-        assert_eq!(name_line.find("full"), env_line.find("default"));
+        assert_eq!(text_column(agent_line, "◂"), text_column(variant_line, "◂"));
+        assert_eq!(
+            text_column(agent_line, "/sources/full"),
+            text_column(variant_line, "agent.yaml")
+        );
+        let value_column = text_column(agent_line, "full");
+        assert_eq!(value_column, text_column(variant_line, "default"));
+        assert_eq!(value_column, text_column(name_line, "full"));
+        assert_eq!(value_column, text_column(env_line, "default"));
 
         let Some(Modal::CreateAgent(form)) = &mut app.modal else {
             panic!("expected the CreateAgent modal");
@@ -657,8 +671,8 @@ mod tests {
         assert!(text.contains("Agent:    ◂ broken"));
         assert!(text.contains("Variant:  ◂ default"));
         assert!(text.contains("manifest cannot be decoded"));
-        assert!(text.contains("Name:     copy▏"));
-        assert!(text.contains("Env file: default: .env beside manifest"));
+        assert!(text.contains("Name:       copy▏"));
+        assert!(text.contains("Env file:   default: .env beside manifest"));
         assert_eq!(create_modal_geometry(&text), initial_geometry);
     }
 

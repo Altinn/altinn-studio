@@ -1050,10 +1050,13 @@ async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
 async fn git_ignored_nested_dot_env_is_rejected_case_insensitively_without_declared_secrets() {
     let fixture = fixture();
     let checkout = tempfile::tempdir().expect("checkout");
-    let ignored = checkout.path().join("ignored/nested");
+    let relative_env = PathBuf::from("ignored").join("nested").join(".EnV");
+    let ignored = checkout
+        .path()
+        .join(relative_env.parent().expect("environment file parent"));
     std::fs::create_dir_all(&ignored).expect("ignored directory");
     std::fs::write(checkout.path().join(".gitignore"), "ignored/\n").expect("ignore file");
-    std::fs::write(ignored.join(".EnV"), "PRIVATE=value\n").expect("nested environment file");
+    std::fs::write(checkout.path().join(&relative_env), "PRIVATE=value\n").expect("nested environment file");
     let source = tempfile::tempdir().expect("manifest directory");
     let mut request = apply_request_in("worker", source.path().to_path_buf());
     request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
@@ -1067,9 +1070,10 @@ async fn git_ignored_nested_dot_env_is_rejected_case_insensitively_without_decla
         .apply(request)
         .await
         .expect_err("ignored directories are still inspected case-insensitively for .env files");
+    let expected_path = relative_env.display().to_string();
     assert!(
         matches!(&error, Error::Invalid(message)
-            if message.contains("spec.sandbox.mounts[0]") && message.contains("ignored/nested/.EnV")),
+            if message.contains("spec.sandbox.mounts[0]") && message.contains(&expected_path)),
         "{error}"
     );
 }
