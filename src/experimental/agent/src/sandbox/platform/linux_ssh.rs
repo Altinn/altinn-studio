@@ -28,19 +28,44 @@ pub(crate) const AUTHORIZED_KEYS: &str = "/var/lib/agent/ssh/authorized_keys";
 pub(crate) const SERVER: &str = "/usr/sbin/sshd";
 /// The image-owned unit running the server on the guest loopback.
 pub(crate) const UNIT: &str = "agent-ssh.service";
+/// The image-owned server policy the unit runs with.
+pub(crate) const SERVER_CONFIG: &str = "/etc/agent/sshd_config";
+/// Where the image installs the unit.
+pub(crate) const UNIT_FILE: &str = "/etc/systemd/system/agent-ssh.service";
+/// `systemctl`, the only supported guest service manager today.
+const SYSTEMCTL: &str = "/usr/bin/systemctl";
+/// Present exactly when systemd is the running init; the marker systemd documents for this purpose.
+const SYSTEMD_RUNNING: &str = "/run/systemd/system";
 
-/// Confirms the image provides an OpenSSH server.
+/// Confirms the image satisfies the whole SSH access contract: the server, the
+/// platform's policy and unit, and systemd as the running init to start it.
+///
+/// systemd is one init system among several a Sandbox could boot; nothing here
+/// assumes it beyond checking for it, and an image without it cannot run the
+/// unit it would otherwise have to ship.
 ///
 /// # Errors
 ///
-/// Returns `Error::Invalid` when the server is missing: the image is immutable
-/// for the incarnation, so retrying cannot change that.
+/// Returns `Error::Invalid` naming the missing piece: the image is immutable for
+/// the incarnation, so retrying cannot change that.
 pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> {
-    if path_exists(sandbox, "-x", SERVER).await? {
-        Ok(())
-    } else {
-        Err(Error::Invalid(crate::ssh::SERVER_MISSING.into()))
+    let contract = [
+        ("-x", SERVER, "/usr/sbin/sshd is missing"),
+        ("-f", SERVER_CONFIG, "/etc/agent/sshd_config is missing"),
+        ("-f", UNIT_FILE, "the agent-ssh.service unit is missing"),
+        ("-x", SYSTEMCTL, "systemctl is missing"),
+        (
+            "-d",
+            SYSTEMD_RUNNING,
+            "systemd is not the running init, and the unit needs it",
+        ),
+    ];
+    for (test, path, what) in contract {
+        if !path_exists(sandbox, test, path).await? {
+            return Err(Error::Invalid(crate::ssh::image_contract_missing(what)));
+        }
     }
+    Ok(())
 }
 
 /// Writes the host key and `authorized_keys`, then enables and starts the server.
@@ -111,23 +136,46 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
 
 /// Stops and disables the server and removes its state, when any exists.
 ///
+/// The state is removed only after the server is confirmed stopped, so a
+/// failed stop is retried on the next pass instead of leaving a running server
+/// behind an empty directory. Without systemd as the running init nothing
+/// could have started the unit, so only the files are removed.
+///
 /// # Errors
 ///
-/// Returns an error when the state cannot be inspected or removed.
+/// Returns an error when the state cannot be inspected, the server cannot be
+/// stopped, or the state cannot be removed.
 pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), Error> {
     if !path_exists(sandbox, "-e", STATE_DIRECTORY).await? {
         return Ok(());
     }
-    wait_for_systemd(sandbox).await?;
-    // An image without the unit has nothing to disable; the key removal below
-    // is what keeps any other server from starting.
-    let _ignored = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/sudo"),
-            ["-n", "/usr/bin/systemctl", "disable", "--now", UNIT].map(str::to_owned),
-        ))
-        .await?;
+    if path_exists(sandbox, "-x", SYSTEMCTL).await? && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await? {
+        wait_for_systemd(sandbox).await?;
+        let args = ["-n", SYSTEMCTL, "disable", "--now", UNIT];
+        let output = sandbox
+            .run_execution(ExecutionSpec::command(
+                SandboxPath::new("/usr/bin/sudo"),
+                args.map(str::to_owned),
+            ))
+            .await?;
+        // An image that never shipped the unit has nothing to stop; every other
+        // failure means the server may still be running.
+        if !output.status.success() && !unit_is_missing(&output) {
+            return Err(Error::SandboxSetup(format!(
+                "command `/usr/bin/sudo {}` exited with code {}: {}",
+                args.join(" "),
+                output.status.code,
+                String::from_utf8_lossy(&output.stderr).trim()
+            )));
+        }
+    }
     run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-rf", STATE_DIRECTORY]).await
+}
+
+/// Recognizes systemd's report that a unit file does not exist.
+fn unit_is_missing(output: &::sandbox::execution::ExecutionOutput) -> bool {
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    stderr.contains("does not exist") || stderr.contains("not found") || stderr.contains("No such file")
 }
 
 async fn path_exists(sandbox: &SandboxHandle, test: &str, path: &str) -> Result<bool, Error> {

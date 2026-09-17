@@ -157,9 +157,17 @@ pub struct GuestMaterial {
     pub authorized_keys: String,
 }
 
-/// Message given when the Agent's image lacks an OpenSSH server.
-pub const SERVER_MISSING: &str = "the Agent's image lacks OpenSSH (/usr/sbin/sshd is missing); re-apply the Agent \
-                                  with a newer image that installs openssh-server, or remove `ssh` from spec.access";
+/// Builds the message given when the Agent's image cannot serve SSH access.
+///
+/// The image is immutable for the incarnation, so the message names what is
+/// missing and the only fixes: an image that provides it, or withdrawing access.
+#[must_use]
+pub fn image_contract_missing(what: &str) -> String {
+    format!(
+        "the Agent's image cannot provide SSH access: {what}; re-apply the Agent with a newer image that installs \
+         openssh-server with the platform's agent-ssh unit, or remove `ssh` from spec.access"
+    )
+}
 
 /// Reconciles SSH access for Agents: host key material, client configuration
 /// and the in-guest server state.
@@ -220,14 +228,17 @@ impl Access {
                 "Agent {name:?} does not declare SSH access; add `access: [{{type: ssh}}]` to its spec and re-apply"
             )));
         }
-        Ok(self.info(&record))
+        self.info(&record)
     }
 
     /// Builds the descriptor for a record without consulting the store.
-    #[must_use]
-    pub fn info(&self, record: &AgentRecord) -> AccessInfo {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the `agentctl` path cannot be rendered into a `ProxyCommand`.
+    pub fn info(&self, record: &AgentRecord) -> Result<AccessInfo, Error> {
         let name = &record.agent.metadata.name;
-        AccessInfo {
+        Ok(AccessInfo {
             kind: ACCESS_TYPE.into(),
             agent: name.clone(),
             agent_id: record.id,
@@ -236,8 +247,8 @@ impl Access {
             identity_file: self.home.identity_path(record.id),
             known_hosts_file: self.home.known_hosts_path(),
             config_file: self.home.config_path(),
-            proxy_command: render_proxy_command(&self.agentctl, name),
-        }
+            proxy_command: render_proxy_command(&self.agentctl, name)?,
+        })
     }
 
     /// Converges SSH access for one Agent against its running Sandbox.
@@ -274,7 +285,7 @@ impl Access {
 
     async fn ensure_host_material(&self, record: &AgentRecord) -> Result<GuestMaterial, Error> {
         let id = record.id;
-        let name = record.agent.metadata.name.clone();
+        let name = record.agent.metadata.name.as_str();
         let host_key = if let Some(stored) = self.keys.load_host_key(id).await? {
             KeyPair::from_openssh(&stored)?
         } else {
@@ -286,7 +297,7 @@ impl Access {
         };
         let home = self.home.clone();
         let client_key = tokio::task::spawn_blocking({
-            let name = name.clone();
+            let name = name.to_owned();
             move || ensure_client_key(&home, id, &name)
         })
         .await
@@ -296,7 +307,7 @@ impl Access {
         // such as JetBrains IDEs, and is replaced when a re-applied name gets a new host key.
         let known_hosts = self.home.known_hosts_path();
         upsert_known_host(&known_hosts, &host_key_alias(id), &host_key.public)?;
-        upsert_known_host(&known_hosts, &alias(&name), &host_key.public)?;
+        upsert_known_host(&known_hosts, &alias(name), &host_key.public)?;
         self.rewrite_config().await?;
         Ok(GuestMaterial {
             host_private_key: Zeroizing::new(host_key.private.as_bytes().to_vec()),
@@ -315,12 +326,10 @@ impl Access {
         let known_hosts = self.home.known_hosts_path();
         remove_known_host(&known_hosts, &host_key_alias(id))?;
         // The name alias belongs to whichever incarnation currently owns the name.
-        let owned_by_another = self
-            .agents
-            .get_by_name(&record.agent.metadata.name)
-            .await
-            .ok()
-            .is_some_and(|current| current.id != id && current.agent.spec.ssh_access());
+        let owned_by_another = matches!(
+            self.agents.get_by_name(&record.agent.metadata.name).await,
+            Ok(current) if current.id != id && current.agent.spec.ssh_access()
+        );
         if !owned_by_another {
             remove_known_host(&known_hosts, &alias(&record.agent.metadata.name))?;
         }
@@ -335,15 +344,17 @@ impl Access {
             .await?
             .into_iter()
             .filter(|record| record.agent.metadata.deletion_timestamp.is_none() && record.agent.spec.ssh_access())
-            .map(|record| HostEntry {
-                alias: alias(&record.agent.metadata.name),
-                user: GUEST_USER.into(),
-                proxy_command: render_proxy_command(&self.agentctl, &record.agent.metadata.name),
-                host_key_alias: host_key_alias(record.id),
-                identity_file: self.home.identity_path(record.id),
-                known_hosts_file: self.home.known_hosts_path(),
+            .map(|record| {
+                Ok(HostEntry {
+                    alias: alias(&record.agent.metadata.name),
+                    user: GUEST_USER.into(),
+                    proxy_command: render_proxy_command(&self.agentctl, &record.agent.metadata.name)?,
+                    host_key_alias: host_key_alias(record.id),
+                    identity_file: self.home.identity_path(record.id),
+                    known_hosts_file: self.home.known_hosts_path(),
+                })
             })
-            .collect::<Vec<_>>();
+            .collect::<Result<Vec<_>, Error>>()?;
         entries.sort_by(|left, right| left.alias.cmp(&right.alias));
         prepare_directory(self.home.root())?;
         let text = render_config(&entries, self.user_home.as_deref());

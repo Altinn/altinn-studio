@@ -35,6 +35,22 @@ fn is_server_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-x", "/usr/sbin/sshd"])
 }
 
+fn is_unit_check(spec: &ExecutionSpec) -> bool {
+    is_command(spec, "/usr/bin/test", &["-f", "/etc/systemd/system/agent-ssh.service"])
+}
+
+fn is_systemd_running_check(spec: &ExecutionSpec) -> bool {
+    is_command(spec, "/usr/bin/test", &["-d", "/run/systemd/system"])
+}
+
+fn is_disable(spec: &ExecutionSpec) -> bool {
+    is_command(
+        spec,
+        "/usr/bin/sudo",
+        &["-n", "/usr/bin/systemctl", "disable", "--now", "agent-ssh.service"],
+    )
+}
+
 fn is_state_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-e", "/var/lib/agent/ssh"])
 }
@@ -256,7 +272,7 @@ async fn an_image_without_a_server_fails_permanently_before_any_key_exists() {
         .await
         .expect_err("missing server");
     assert!(
-        matches!(&error, Error::Invalid(message) if message.contains("lacks OpenSSH") && message.contains("re-apply"))
+        matches!(&error, Error::Invalid(message) if message.contains("cannot provide SSH access") && message.contains("/usr/sbin/sshd is missing") && message.contains("re-apply"))
     );
     assert_eq!(ReconcileFailure::classify(&error).kind, FailureKind::Invalid);
     assert!(!fixture.keys.contains(record.id));
@@ -266,6 +282,109 @@ async fn an_image_without_a_server_fails_permanently_before_any_key_exists() {
         read_guest_file(&sandbox, "/var/lib/agent/ssh/authorized_keys")
             .await
             .is_none()
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_image_without_the_unit_or_systemd_fails_permanently() {
+    for (predicate, expected) in [
+        (
+            is_unit_check as fn(&ExecutionSpec) -> bool,
+            "agent-ssh.service unit is missing",
+        ),
+        (is_systemd_running_check, "systemd is not the running init"),
+    ] {
+        let fixture = Fixture::new();
+        let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+        fixture.store(&record, 0).await;
+        let sandbox = fixture.sandbox(&record).await;
+        fixture.backend.queue_execution_events_matching(predicate, exited(1));
+
+        let error = fixture
+            .access
+            .reconcile(&record, &sandbox)
+            .await
+            .expect_err("incomplete image contract");
+        assert!(
+            matches!(&error, Error::Invalid(message) if message.contains(expected)),
+            "{error}"
+        );
+        assert!(!fixture.keys.contains(record.id));
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_failed_server_stop_keeps_the_state_for_the_next_pass() {
+    let fixture = Fixture::new();
+    let mut record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+    fixture.store(&record, 0).await;
+    let sandbox = fixture.sandbox(&record).await;
+    assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
+
+    record.agent.spec.access.clear();
+    record.agent.metadata.generation = 2;
+    fixture.store(&record, 1).await;
+    fixture.backend.queue_execution_events_matching(
+        is_disable,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stderr("Failed to stop agent-ssh.service: Connection timed out\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
+    let error = fixture
+        .access
+        .reconcile(&record, &sandbox)
+        .await
+        .expect_err("a running server is not forgotten");
+    assert!(
+        matches!(&error, Error::SandboxSetup(message) if message.contains("Connection timed out")),
+        "{error}"
+    );
+    assert_eq!(
+        count_sudo(&fixture.backend, &["-n", "/bin/rm", "-rf", "/var/lib/agent/ssh"]),
+        0
+    );
+    assert!(
+        read_guest_file(&sandbox, "/var/lib/agent/ssh/authorized_keys")
+            .await
+            .is_some(),
+        "guest state stays until the server is confirmed stopped"
+    );
+
+    // A unit the image never shipped is the one failure that is not a running server.
+    fixture.backend.queue_execution_events_matching(
+        is_disable,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stderr("Failed to disable unit: Unit file agent-ssh.service does not exist.\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 1 }),
+        ],
+    );
+    assert!(!fixture.access.reconcile(&record, &sandbox).await.expect("withdraw"));
+    assert_eq!(
+        count_sudo(&fixture.backend, &["-n", "/bin/rm", "-rf", "/var/lib/agent/ssh"]),
+        1
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn withdrawing_access_without_systemd_removes_only_the_files() {
+    let fixture = Fixture::new();
+    let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", false);
+    fixture.store(&record, 0).await;
+    let sandbox = fixture.sandbox(&record).await;
+    fixture
+        .backend
+        .queue_execution_events_matching(is_state_check, exited(0));
+    fixture
+        .backend
+        .queue_execution_events_matching(is_systemd_running_check, exited(1));
+    assert!(!fixture.access.reconcile(&record, &sandbox).await.expect("withdraw"));
+    assert!(!fixture.backend.execution_specs().iter().any(is_disable));
+    assert_eq!(
+        count_sudo(&fixture.backend, &["-n", "/bin/rm", "-rf", "/var/lib/agent/ssh"]),
+        1
     );
 }
 

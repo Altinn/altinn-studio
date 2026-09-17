@@ -1754,7 +1754,7 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
     let ready = status.ready_condition().expect("Ready condition");
     assert_eq!(ready.status, ConditionStatus::False);
     assert_eq!(ready.reason, "SshAccessFailed");
-    assert!(ready.message.contains("lacks OpenSSH"));
+    assert!(ready.message.contains("cannot provide SSH access"));
     let ssh_ready = status
         .conditions
         .iter()

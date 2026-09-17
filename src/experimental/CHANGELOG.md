@@ -12,6 +12,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- SSH access to Agents. Declare `spec.access: [{type: ssh}]`, then `agentctl ssh <agent> [-- command]` opens a shell or runs a command in the Sandbox as `agent`. `agentctl ssh-config install` lets plain `ssh`, `sftp`, `rsync` and editors reach the Agent as `altinn-agent-<name>`, and `agentctl ssh-info <agent> -o json` prints the connection details. The Altinn Agent images and the examples declare it; an Agent created from an older image must be deleted and re-applied.
+
 ### Fixed
 
 - Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex keeps its conversation in that history; Claude Code keeps its selected renderer and handles scrolling itself in fullscreen mode. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
@@ -21,7 +25,6 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Added
 
-- SSH access to Agents. A manifest declaring `spec.access: [{type: ssh}]` gets an OpenSSH server inside its Sandbox, listening only on the guest loopback as the user `agent`, with a host key and client key pair generated per Agent. `agentctl ssh <agent> [-- command]` opens a shell or runs a command; `agentctl ssh-config install` adds one `Include ~/.agent/ssh/config` line to your `~/.ssh/config` so plain `ssh`, `sftp`, `rsync` and editors that read OpenSSH configuration reach the Agent as `altinn-agent-<name>` through `agentctl ssh-proxy`, with the host key already trusted; `agentctl ssh-info <agent> -o json` prints the connection details for other tools. Removing the declaration stops the server; deleting the Agent removes its keys and configuration. The Altinn Agent images and the self-development examples declare it. An Agent created from an older image reports that the image lacks OpenSSH; delete and re-apply it to pick up the current image.
 - `agentctl create` and `agentctl attach` accept `--model` and `--effort`, and the terminal UI's new-session form has the same fields, to choose the model and effort level a Session's harness launches with. Values are the harness's own, for example `fable` and `high` for Claude Code. `spec.harnesses[].defaults` declares per-installation defaults. The choice is fixed for the Session, applied on every relaunch and resume, and shown by `agentctl get sessions`.
 
 ### Changed

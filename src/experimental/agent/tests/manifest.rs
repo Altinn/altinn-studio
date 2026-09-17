@@ -632,8 +632,17 @@ fn rejects_unknown_duplicate_and_configured_access_capabilities() {
         ),
         "SSH access exposes no tunables"
     );
+    // `access` belongs to the Agent, not the Sandbox: nest it in the existing sandbox block.
+    let nested = format!("{ACCESS_MANIFEST_HEAD}{ACCESS_MANIFEST_TAIL}").replace(
+        "        mode: layered\n",
+        "        mode: layered\n    access:\n      - type: ssh\n",
+    );
+    assert!(
+        nested.contains("    access:"),
+        "fixture places access under spec.sandbox"
+    );
     assert!(matches!(
-        manifest::decode(&manifest_with_access("  sandbox:\n    access:\n      - type: ssh\n")),
+        manifest::decode(nested.as_bytes()),
         Err(agent::Error::Yaml(_))
     ));
 }

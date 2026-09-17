@@ -55,8 +55,8 @@ pub fn render_config(entries: &[HostEntry], user_home: Option<&Path>) -> String 
 ///
 /// A path below the user's home is written `~/...` with forward slashes, which
 /// every OpenSSH port expands; anything else is written as the host spells it.
-/// Values containing whitespace are double-quoted, as OpenSSH's tokenizer
-/// requires.
+/// Anything outside a conservative character set is double-quoted with `"` and
+/// `\` escaped, which is what OpenSSH's tokenizer understands.
 #[must_use]
 pub fn render_path(path: &Path, user_home: Option<&Path>) -> String {
     let text = user_home
@@ -73,28 +73,54 @@ pub fn render_path(path: &Path, user_home: Option<&Path>) -> String {
                 text
             },
         );
-    quote_if_needed(&text)
+    quote_config_value(&text)
 }
 
 /// Renders the `ProxyCommand` value dialing one Agent through `agentctl`.
 ///
 /// The executable is always absolute: the shell running the command on Unix
 /// would expand `~`, Win32-OpenSSH would not, and neither has `agentctl` on a
-/// predictable `PATH`.
-#[must_use]
-pub fn render_proxy_command(agentctl: &Path, agent: &str) -> String {
-    format!(
-        "{} ssh-proxy agent/{agent}",
-        quote_if_needed(&agentctl.display().to_string())
-    )
+/// predictable `PATH`. OpenSSH hands the value to a shell, so the executable
+/// is quoted with `"` and `\` escaped: that is the one quoting form OpenSSH's
+/// own tokenizer, `/bin/sh` and Win32-OpenSSH all leave intact. `$`, backticks
+/// and `;` inside double quotes would still be shell syntax on Unix, so a path
+/// containing them is refused rather than rendered.
+///
+/// # Errors
+///
+/// Returns an error when the executable path contains characters that cannot be
+/// passed through the shell safely.
+pub fn render_proxy_command(agentctl: &Path, agent: &str) -> Result<String, Error> {
+    let executable = agentctl.display().to_string();
+    if executable.contains(['$', '`', ';', '\n', '\r', '\0']) || agentctl.as_os_str().to_str().is_none() {
+        return Err(Error::Invalid(format!(
+            "agentctl path {executable:?} contains characters that cannot be passed to the SSH ProxyCommand shell; \
+             install agentctl at a plain path"
+        )));
+    }
+    Ok(format!("{} ssh-proxy agent/{agent}", quote_config_value(&executable)))
 }
 
-fn quote_if_needed(text: &str) -> String {
-    if text.chars().any(char::is_whitespace) {
-        format!("\"{text}\"")
-    } else {
-        text.to_owned()
+/// Quotes an OpenSSH configuration token unless it consists only of characters
+/// that need no quoting. Inside quotes `\` and `"` are backslash-escaped.
+fn quote_config_value(text: &str) -> String {
+    let plain = !text.is_empty()
+        && text
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || "/~._-:+@".contains(character));
+    if plain {
+        return text.to_owned();
     }
+    let mut quoted = String::with_capacity(text.len() + 2);
+    quoted.push('"');
+    for character in text.chars() {
+        if character == '"' || character == '\\' {
+            quoted.push('\\');
+        }
+        quoted.push(character);
+    }
+    quoted.push('"');
+    quoted
 }
 
 /// Replaces every `known_hosts` line for `alias` with `public_key`.
@@ -184,22 +210,26 @@ pub fn render_include(config: &Path, user_home: Option<&Path>) -> String {
 /// Idempotently inserts `include` as the first line of `user_config`.
 ///
 /// OpenSSH applies an `Include` inside a `Host` or `Match` block only to that
-/// block, so the line must precede the first block. Every existing line is kept
-/// verbatim; a missing file or directory is created with user-only access.
+/// block, so only a copy that precedes the first block counts as installed; a
+/// copy nested in a block is left alone and a global one is added above it.
+/// Every existing line is kept verbatim. A symbolic link, as dotfile managers
+/// create, is followed so the linked file is updated and the link survives. A
+/// missing file or directory is created with user-only access.
 ///
 /// # Errors
 ///
 /// Returns an error when the file cannot be read or written.
 pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutcome, Error> {
-    let existing = match std::fs::read_to_string(user_config) {
+    let target = std::fs::canonicalize(user_config).unwrap_or_else(|_| user_config.to_path_buf());
+    let existing = match std::fs::read_to_string(&target) {
         Ok(text) => text,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
         Err(error) => return Err(error.into()),
     };
-    if existing.lines().any(|line| line.trim() == include) {
+    if global_lines(&existing).any(|line| line == include) {
         return Ok(IncludeOutcome::AlreadyInstalled);
     }
-    if let Some(directory) = user_config.parent()
+    if let Some(directory) = target.parent()
         && !directory.exists()
     {
         std::fs::create_dir_all(directory)?;
@@ -210,8 +240,20 @@ pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutco
         text.push('\n');
         text.push_str(&existing);
     }
-    write_private_file(user_config, text.as_bytes())?;
+    write_private_file(&target, text.as_bytes())?;
     Ok(IncludeOutcome::Installed)
+}
+
+/// Yields the trimmed lines of an OpenSSH client configuration that apply
+/// unconditionally: everything before the first `Host` or `Match` keyword.
+fn global_lines(text: &str) -> impl Iterator<Item = &str> {
+    text.lines().map(str::trim).take_while(|line| {
+        let keyword = line
+            .split(|character: char| character.is_whitespace() || character == '=')
+            .next()
+            .unwrap_or_default();
+        !keyword.eq_ignore_ascii_case("host") && !keyword.eq_ignore_ascii_case("match")
+    })
 }
 
 #[cfg(test)]
@@ -229,7 +271,7 @@ mod tests {
         HostEntry {
             alias: format!("altinn-agent-{name}"),
             user: "agent".into(),
-            proxy_command: render_proxy_command(Path::new("/usr/local/bin/agentctl"), name),
+            proxy_command: render_proxy_command(Path::new("/usr/local/bin/agentctl"), name).expect("proxy command"),
             host_key_alias: format!("agent-{id}"),
             identity_file: root.join(id).join("id_ed25519"),
             known_hosts_file: root.join("known_hosts"),
@@ -271,9 +313,23 @@ Host altinn-agent-worker
             "/home/me"
         );
         assert_eq!(
-            render_proxy_command(Path::new("/opt/agent tools/agentctl"), "worker"),
+            render_proxy_command(Path::new("/opt/agent tools/agentctl"), "worker").expect("quoted"),
             "\"/opt/agent tools/agentctl\" ssh-proxy agent/worker"
         );
+        assert_eq!(
+            render_proxy_command(Path::new(r"C:\Program Files\agent\agentctl.exe"), "worker").expect("Windows"),
+            r#""C:\\Program Files\\agent\\agentctl.exe" ssh-proxy agent/worker"#
+        );
+        assert_eq!(
+            render_path(Path::new("/srv/say \"hi\"/known_hosts"), None),
+            r#""/srv/say \"hi\"/known_hosts""#
+        );
+        for hostile in ["/opt/a;rm -rf /", "/opt/$HOME/agentctl", "/opt/`id`/agentctl"] {
+            assert!(
+                render_proxy_command(Path::new(hostile), "worker").is_err(),
+                "{hostile} must be refused"
+            );
+        }
         assert_eq!(
             render_include(Path::new("/home/me/.agent/ssh/config"), Some(Path::new("/home/me"))),
             "Include ~/.agent/ssh/config"
@@ -335,10 +391,50 @@ Host altinn-agent-worker
             IncludeOutcome::AlreadyInstalled
         );
 
-        std::fs::write(&config, "Host x\n  Include ~/.agent/ssh/config\n").expect("indented include");
+        // A copy scoped to a Host block does not apply to the Agent aliases, so the
+        // global line is still added; the scoped copy is kept verbatim.
+        let scoped = "Host x\n  Include ~/.agent/ssh/config\n";
+        std::fs::write(&config, scoped).expect("scoped include");
         assert_eq!(
-            install_include(&config, include).expect("indented line counts"),
+            install_include(&config, include).expect("scoped copy"),
+            IncludeOutcome::Installed
+        );
+        assert_eq!(
+            std::fs::read_to_string(&config).expect("read"),
+            format!("Include ~/.agent/ssh/config\n\n{scoped}")
+        );
+        std::fs::write(&config, "  include ~/.agent/ssh/config\nMatch all\n").expect("indented global");
+        assert_eq!(
+            install_include(&config, "include ~/.agent/ssh/config").expect("indented global line counts"),
             IncludeOutcome::AlreadyInstalled
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn include_install_follows_a_symlinked_user_config() {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let dotfiles = directory.path().join("dotfiles").join("ssh_config");
+        std::fs::create_dir_all(dotfiles.parent().expect("parent")).expect("dotfiles");
+        std::fs::write(&dotfiles, "Host github.com\n    User git\n").expect("managed config");
+        let ssh = directory.path().join(".ssh");
+        std::fs::create_dir_all(&ssh).expect(".ssh");
+        let config = ssh.join("config");
+        std::os::unix::fs::symlink(&dotfiles, &config).expect("symlink");
+
+        assert_eq!(
+            install_include(&config, "Include ~/.agent/ssh/config").expect("install"),
+            IncludeOutcome::Installed
+        );
+        assert!(
+            std::fs::symlink_metadata(&config)
+                .expect("metadata")
+                .file_type()
+                .is_symlink()
+        );
+        assert_eq!(
+            std::fs::read_to_string(&dotfiles).expect("managed config"),
+            "Include ~/.agent/ssh/config\n\nHost github.com\n    User git\n"
         );
     }
 }

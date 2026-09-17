@@ -100,7 +100,7 @@ agentctl create session/careful --model opus --effort xhigh
 
 ## SSH access
 
-Both variants declare `access: [{type: ssh}]`, so an editor, `sftp` or `rsync` can reach the Agent's Sandbox as the
+All published variants declare `access: [{type: ssh}]`, so an editor, `sftp` or `rsync` can reach the Agent's Sandbox as the
 user `agent`. Open a shell or run one command:
 
 ```sh
@@ -122,8 +122,9 @@ rsync -av ./fixtures/ altinn-agent-altinn-full:code/fixtures/
 
 `agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths and proxy command for tools that want
 them directly. The `agent` user has passwordless `sudo`, so an SSH login is as powerful as a Session; the server's
-hardening is hygiene, and the Sandbox remains the boundary. An Agent created from an image older than this feature
-reports that its image lacks OpenSSH; delete it and re-apply to pick up the current image.
+hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an image whose init is systemd, as the
+published images are. An Agent created from an image older than this feature reports that its image cannot provide
+SSH access; delete it and re-apply to pick up the current image.
 
 Delete the Agent and its Sandbox:
 
