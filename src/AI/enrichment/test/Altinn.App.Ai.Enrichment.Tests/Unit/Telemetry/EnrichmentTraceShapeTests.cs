@@ -194,6 +194,39 @@ public class EnrichmentTraceShapeTests
 
     // --- helpers ------------------------------------------------------------------
 
+    /// <summary>
+    /// Langfuse resolves the environment per observation, not per trace. When only the
+    /// root carried it, a run's own children were stored under "default" while the trace
+    /// sat in the configured environment — so filtering an environment showed the run
+    /// with none of its contents, and per-environment cost counted nothing.
+    /// </summary>
+    [Fact]
+    public async Task RunAsync_WithEnvironmentConfigured_StampsEveryObservationNotJustTheRoot()
+    {
+        using var spans = new RecordedSpans();
+        var chat = new StubChatService([
+            ToolCall("current_date", "call-1"),
+            Final("vurdert_ok", "OK"),
+        ]);
+
+        await Orchestrator(chat, environment: "local_test")
+            .RunAsync(App(), [Rule("frist.klagefrist")], new OrchestratorOptions());
+
+        spans.Stopped.Should().NotBeEmpty();
+        spans.Stopped.Should().OnlyContain(
+            span => RecordedSpans.Tag(span, "langfuse.environment") == "local_test",
+            "every observation is filtered and costed by environment on its own");
+    }
+
+    private static EvaluationOrchestrator Orchestrator(IChatService chat, string? environment) =>
+        new(
+            chat,
+            ToolRegistry.ForTesting(),
+            new StubSystemPromptProvider(),
+            Options.Create(new AgentOptions { Model = Model }),
+            new EnrichmentTrace(Options.Create(new LangfuseOptions { Environment = environment })),
+            NullLogger<EvaluationOrchestrator>.Instance);
+
     private static EvaluationOrchestrator Orchestrator(IChatService chat) =>
         new(
             chat,
