@@ -64,6 +64,20 @@ fn acquire_home_lock(home: &ControlPlaneHome) -> Result<agent::local::home::Lock
 
 type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
 
+/// Wires SSH access over the database-held host keys and the `agentctl`
+/// installed beside this daemon, which the generated client configuration
+/// dials Agents through.
+fn ssh_access(
+    home: &ControlPlaneHome,
+    database: &persistence::Database,
+    store: Rc<dyn agent::control_plane::AgentStore>,
+) -> Result<Rc<agent::ssh::Access>, Error> {
+    let agentd = std::env::current_exe()?;
+    let agentctl = agentd.with_file_name(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
+    let host_keys: Rc<dyn agent::ssh::HostKeyStore> = Rc::new(database.clone());
+    Ok(Rc::new(agent::ssh::Access::new(home, agentctl, host_keys, store)))
+}
+
 /// Logs recoverable reconciliation errors for one durable resource kind.
 fn reconciliation_errors<Key: std::fmt::Display + 'static>(resource: &'static str) -> ErrorHandler<Key> {
     Rc::new(move |id, error| {
@@ -137,8 +151,11 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_wakeup.clone(),
         Rc::new(|error| tracing::error!(%error, "Session notification scan failed")),
     ));
+    let ssh = ssh_access(&home, &database, store.clone())?;
     let reconciler = Rc::new(
-        Reconciler::new(store.clone(), sandboxes.clone(), observers.clone()).with_session_notifier(session_notifier),
+        Reconciler::new(store.clone(), sandboxes.clone(), observers.clone())
+            .with_session_notifier(session_notifier)
+            .with_ssh_access(ssh.clone()),
     );
     let (controller, wakeup) = Controller::new(
         store.clone(),
@@ -162,6 +179,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         credentials.clone(),
         executions,
         sessions,
+        ssh,
         Rc::new(|error| tracing::error!(%error, "Control API connection failed")),
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());

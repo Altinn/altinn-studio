@@ -10,7 +10,7 @@ use std::{
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
+    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi},
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
@@ -27,6 +27,28 @@ use support::agent;
 struct IgnoreNotifications;
 
 struct FakeAuthentication;
+struct FakeSshAccess;
+
+impl SshAccessApi for FakeSshAccess {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::ssh::AccessInfo, Error>> {
+        Box::pin(async move {
+            if name != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(agent::ssh::AccessInfo {
+                kind: "ssh".into(),
+                agent: name.into(),
+                agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+                alias: "altinn-agent-worker".into(),
+                user: "agent".into(),
+                identity_file: "/home/me/.agent/ssh/38f41de4-6ff7-4679-ae46-678bc61e4dcb/id_ed25519".into(),
+                known_hosts_file: "/home/me/.agent/ssh/known_hosts".into(),
+                config_file: "/home/me/.agent/ssh/config".into(),
+                proxy_command: "/usr/local/bin/agentctl ssh-proxy agent/worker".into(),
+            })
+        })
+    }
+}
 struct FakeExecutions {
     progress_ensures: Rc<Cell<usize>>,
 }
@@ -277,6 +299,7 @@ fn api() -> ApiFixture {
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
         }),
+        Rc::new(FakeSshAccess),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));

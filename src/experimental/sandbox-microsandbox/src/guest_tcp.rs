@@ -15,7 +15,7 @@ use microsandbox::{
     },
 };
 use sandbox::{Error, SandboxId};
-use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
+use tokio::io::{AsyncRead, AsyncReadExt as _, AsyncWrite, AsyncWriteExt as _};
 
 use crate::{MicrosandboxProvider, error};
 
@@ -132,8 +132,25 @@ impl GuestTcpStream {
     ///
     /// Returns an error when a host socket read or write fails, or a relay
     /// message cannot be sent or decoded.
-    pub async fn relay(mut self, stream: tokio::net::TcpStream) -> Result<(), Error> {
-        let (mut host_reader, mut host_writer) = stream.into_split();
+    pub async fn relay(self, stream: tokio::net::TcpStream) -> Result<(), Error> {
+        let (host_reader, host_writer) = stream.into_split();
+        self.relay_io(host_reader, host_writer).await
+    }
+
+    /// Pipes bytes between an arbitrary host byte stream pair, such as a
+    /// process's standard input and output, and the guest connection until
+    /// both directions have closed; dropping the stream releases the guest
+    /// session.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when a host read or write fails, or a relay message
+    /// cannot be sent or decoded.
+    pub async fn relay_io<R, W>(mut self, mut host_reader: R, mut host_writer: W) -> Result<(), Error>
+    where
+        R: AsyncRead + Unpin,
+        W: AsyncWrite + Unpin,
+    {
         let client = Arc::clone(&self.client);
         let id = self.id;
         let host_closed = Cell::new(false);

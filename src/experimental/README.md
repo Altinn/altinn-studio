@@ -112,6 +112,47 @@ Harness Adapters own authentication, version verification, managed configuration
 launch arguments. The current adapters support Claude Code and Codex CLI. Harness-owned mutable state is seeded by the
 image or the user and is not used as a trusted bootstrap marker.
 
+## SSH access
+
+`spec.access` declares how the Agent's user reaches into the Sandbox besides Sessions and `agentctl exec`. It is an
+Agent-level capability like `harnesses` and `secrets`, and today has one variant:
+
+```yaml
+spec:
+  access:
+    - type: ssh
+```
+
+The image owns the installed OpenSSH server, its hardened configuration and the `agent-ssh` unit, which only starts
+once a host key exists; `agentd` owns the per-Agent state. On every pass over an Agent that declares `ssh`, it verifies
+that the image provides `/usr/sbin/sshd` (a missing server is a permanent failure that names the fix: re-apply with a
+newer image), generates an ed25519 host key for the Agent incarnation and keeps it in the owner-protected database,
+generates an ed25519 client key pair on the host under `~/.agent/ssh/<agent-id>/`, writes the host key and
+`authorized_keys` into the guest under `/var/lib/agent/ssh/` and enables the unit. The client private key never enters
+the guest. Removing `ssh` from `access` stops and disables the server and removes the guest files; deleting the Agent
+also removes the host-side keys, the `known_hosts` entry and its generated client configuration. Key material belongs
+to the incarnation and the alias to the Agent name, so a re-applied name gets a new host key and inherits nothing.
+
+The server listens on the guest loopback only, on port 2222, as the platform-owned user `agent`. There is no
+listener on the host: `agentd` generates an OpenSSH client configuration at `~/.agent/ssh/config` whose
+`ProxyCommand` is `agentctl ssh-proxy agent/<name>`, which converges the Agent, starting `agentd` on demand, dials the
+guest port through the Sandbox Provider and relays the connection over its own standard input and output. Every
+connection dials fresh, so reconnecting after a Sandbox runtime restart needs nothing extra. `HostKeyAlias` keys
+`~/.agent/ssh/known_hosts` by the stable incarnation id and that file is pre-seeded with the generated host key, so
+there is never a host-key prompt.
+
+- `agentctl ssh <agent> [-- command...]` converges the Agent and runs the local OpenSSH client with the generated
+  configuration against the alias `altinn-agent-<name>`.
+- `agentctl ssh-config install` inserts one `Include ~/.agent/ssh/config` line at the top of `~/.ssh/config`, once,
+  without touching any other line, so plain `ssh`, `sftp`, `rsync` and IDE remote-development clients that read OpenSSH
+  configuration can use the alias directly.
+- `agentctl ssh-info <agent> -o json` prints a stable descriptor (`type`, `agent`, `agentId`, `alias`, `user`,
+  `identityFile`, `knownHostsFile`, `configFile`, `proxyCommand`) for integrations to consume.
+
+The guest user `agent` has passwordless `sudo`, so `PermitRootLogin no` and the disabled agent, X11 and tunnel
+forwarding are hygiene, not a security boundary: SSH logins share the Sandbox's one trust boundary with Sessions, and
+mediated networking remains the enforcement point for what leaves the Sandbox.
+
 ## Secrets and network policy
 
 A secret is any protected host-owned value. Credentials are the subset used for authentication. Generic storage and

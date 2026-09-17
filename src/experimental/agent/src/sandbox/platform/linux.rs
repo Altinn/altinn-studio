@@ -274,7 +274,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
 /// because the guest has no D-Bus system bus and only root reaches systemd's
 /// private socket. A `degraded` system counts as ready: a failed optional unit,
 /// such as a best-effort workspace clone, must not block the Podman configuration.
-async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
+pub(super) async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
     let deadline = tokio::time::Instant::now() + SYSTEMD_READY_TIMEOUT;
     loop {
         // `--wait` blocks for as long as boot takes, so the deadline bounds the wait itself

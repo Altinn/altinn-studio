@@ -52,6 +52,12 @@ impl ControlPlaneHome {
         self.0.join("agentd.log")
     }
 
+    /// Returns the directory holding SSH client configuration and key material.
+    #[must_use]
+    pub fn ssh_directory(&self) -> PathBuf {
+        self.0.join("ssh")
+    }
+
     /// Returns the durable marker requesting one post-upgrade Session relaunch pass.
     #[must_use]
     pub fn pending_session_relaunch_path(&self) -> PathBuf {
@@ -108,6 +114,18 @@ impl ControlPlaneHome {
         }
         Ok(Lock { _file: file })
     }
+}
+
+/// Returns the current user's home directory as the host reports it.
+///
+/// This is the directory OpenSSH expands `~` to and where `~/.ssh/config`
+/// lives; it is unrelated to the control-plane home, which may be relocated.
+#[must_use]
+pub fn user_home_directory() -> Option<PathBuf> {
+    let variable = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+    env::var_os(variable)
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
 }
 
 /// Held exclusive process lock for one local control-plane home.

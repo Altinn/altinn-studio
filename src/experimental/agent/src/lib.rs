@@ -16,14 +16,15 @@ pub mod platform_api;
 pub mod progress;
 pub mod sandbox;
 pub mod sessions;
+pub mod ssh;
 pub mod upgrade;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
 pub use harness::{Effort, Harness, HarnessAuthMode, HarnessSpec, Model, ModelSelection};
 pub use manifest::{
-    API_VERSION, Agent, Condition, ConditionStatus, EnvironmentSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
-    MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec,
+    API_VERSION, AccessSpec, Agent, Condition, ConditionStatus, EnvironmentSpec, HomeSpec, InstructionsSpec, KIND,
+    Metadata, MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec,
     SecretSpec, SkillSpec, Spec, Status,
 };
 

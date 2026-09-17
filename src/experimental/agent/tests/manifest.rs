@@ -564,3 +564,76 @@ fn example_manifests_keep_claude_code_sessions_on_fable() {
         assert_eq!(claude.defaults.effort_str(), None);
     }
 }
+
+const ACCESS_MANIFEST_HEAD: &str = r#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: example.invalid/agent:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "1Gi"
+      rootFilesystem:
+        capacity: "4Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+"#;
+
+const ACCESS_MANIFEST_TAIL: &str = r"
+  network:
+    mode: mediated
+    allow: all
+";
+
+fn manifest_with_access(access: &str) -> Vec<u8> {
+    format!("{ACCESS_MANIFEST_HEAD}{access}{ACCESS_MANIFEST_TAIL}").into_bytes()
+}
+
+#[test]
+fn decodes_ssh_access_as_a_tagged_agent_capability() {
+    let agent = manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n")).expect("SSH access decodes");
+    assert_eq!(agent.spec.access, vec![agent::AccessSpec::Ssh {}]);
+    assert!(agent.spec.ssh_access());
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert_eq!(value["spec"]["access"], serde_json::json!([{"type": "ssh"}]));
+
+    let without = manifest::decode(&manifest_with_access("")).expect("omitted access decodes");
+    assert!(without.spec.access.is_empty());
+    assert!(!without.spec.ssh_access());
+    let value = serde_json::to_value(&without).expect("Agent JSON");
+    assert!(value["spec"].get("access").is_none(), "an empty list is not serialized");
+}
+
+#[test]
+fn rejects_unknown_duplicate_and_configured_access_capabilities() {
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n    - type: ssh\n")),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.access[1]")
+    ));
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n")),
+        Err(agent::Error::Yaml(_))
+    ));
+    assert!(
+        matches!(
+            manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n      port: 22\n")),
+            Err(agent::Error::Yaml(_))
+        ),
+        "SSH access exposes no tunables"
+    );
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  sandbox:\n    access:\n      - type: ssh\n")),
+        Err(agent::Error::Yaml(_))
+    ));
+}

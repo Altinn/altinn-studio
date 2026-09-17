@@ -2,6 +2,7 @@
 
 pub(crate) mod files;
 mod linux;
+pub(crate) mod linux_ssh;
 
 use ::sandbox::execution::ExecutionSpec;
 

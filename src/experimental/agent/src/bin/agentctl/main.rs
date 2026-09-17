@@ -12,12 +12,12 @@ use agent::{
     control_plane::WaitPolicy,
     local::home::ControlPlaneHome,
     manifest,
+    sandbox::forward,
     sessions::{Session, SessionName, SessionRequest},
 };
 use clap::{Parser, Subcommand, ValueEnum};
 
 mod format;
-mod forward;
 mod progress;
 mod self_update;
 mod tui;
@@ -178,6 +178,40 @@ enum Command {
         #[arg(required = true, num_args = 1..)]
         arguments: Vec<String>,
     },
+    /// Open an OpenSSH session to an Agent through `agentctl ssh-proxy`.
+    Ssh {
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with = "resource")]
+        agent: Option<String>,
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Remote command and arguments after `--`; an interactive shell when omitted.
+        #[arg(last = true)]
+        command: Vec<String>,
+    },
+    /// Relay one connection to an Agent's SSH server over standard input and output.
+    ///
+    /// The generated OpenSSH client configuration runs this as its `ProxyCommand`.
+    SshProxy {
+        /// Agent resource or name.
+        resource: String,
+    },
+    /// Manage the OpenSSH client configuration for Agents.
+    SshConfig {
+        #[command(subcommand)]
+        command: SshConfigCommand,
+    },
+    /// Describe how to reach an Agent over SSH.
+    SshInfo {
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with = "resource")]
+        agent: Option<String>,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
+    },
     /// Open the interactive terminal UI.
     Tui,
     /// Wait for a resource condition.
@@ -299,6 +333,12 @@ enum ClaudeCommand {
 }
 
 #[derive(Subcommand)]
+enum SshConfigCommand {
+    /// Include the generated Agent configuration from `~/.ssh/config`, once, at the top.
+    Install,
+}
+
+#[derive(Subcommand)]
 enum CodexCommand {
     /// Sign in with `ChatGPT` and store an Agent-only grant.
     Login {
@@ -335,7 +375,7 @@ fn run() -> CommandResult<ExitCode> {
         }
         if !matches!(
             arguments.command,
-            Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. }
+            Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. } | Command::SshConfig { .. }
         ) {
             ensure_daemon(&home, &client).await?;
         }
@@ -428,6 +468,20 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::PortForward { agent, arguments } => {
             return port_forward(home, client, agent, &arguments).await;
         }
+        Command::Ssh {
+            agent,
+            resource,
+            command,
+        } => return ssh(client, resource, agent, &command).await,
+        Command::SshProxy { resource } => return ssh_proxy(home, client, resource).await,
+        Command::SshConfig {
+            command: SshConfigCommand::Install,
+        } => install_ssh_config(home)?,
+        Command::SshInfo {
+            resource,
+            agent,
+            output,
+        } => ssh_info(client, resource, agent, output).await?,
         Command::Create {
             target,
             selection,
@@ -647,6 +701,112 @@ async fn port_forward(
             }
         }
     }
+}
+
+/// Opens the local OpenSSH client against the Agent's generated alias.
+///
+/// The Agent is converged first, so the server and the key material exist by
+/// the time `ssh` runs the `ProxyCommand`.
+async fn ssh(
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    command: &[String],
+) -> CommandResult<ExitCode> {
+    let agent = resolve_execution_agent(client, resource, agent).await?;
+    let wait = progress::Wait::start();
+    wait.until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
+    let access = client.ssh_access(&agent).await?;
+    let mut ssh = ProcessCommand::new(ssh_client_executable());
+    ssh.arg("-F").arg(&access.config_file).arg(&access.alias).args(command);
+    run_ssh_client(ssh)
+}
+
+fn ssh_client_executable() -> String {
+    format!("ssh{}", std::env::consts::EXE_SUFFIX)
+}
+
+#[cfg(unix)]
+fn run_ssh_client(mut ssh: ProcessCommand) -> CommandResult<ExitCode> {
+    use std::os::unix::process::CommandExt as _;
+
+    Err(ssh_client_error(&ssh.exec()))
+}
+
+#[cfg(not(unix))]
+fn run_ssh_client(mut ssh: ProcessCommand) -> CommandResult<ExitCode> {
+    let status = ssh.status().map_err(|error| ssh_client_error(&error))?;
+    Ok(status.code().map_or(ExitCode::FAILURE, exit_code))
+}
+
+fn ssh_client_error(error: &std::io::Error) -> CommandError {
+    if error.kind() == std::io::ErrorKind::NotFound {
+        CommandError::Message(
+            "the OpenSSH client `ssh` was not found on PATH; install OpenSSH to use `agentctl ssh`".into(),
+        )
+    } else {
+        CommandError::Message(format!("could not run the OpenSSH client: {error}"))
+    }
+}
+
+/// Relays one SSH connection over standard input and output; the `ProxyCommand` entry point.
+///
+/// Progress and errors go to standard error, which `ssh` shows to the user;
+/// standard output carries only the SSH byte stream.
+async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -> CommandResult<ExitCode> {
+    let agent = resolve_execution_agent(client, Some(resource), None).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .await?;
+    forward::relay_guest_port(
+        home.path(),
+        &target.sandbox,
+        agent::ssh::GUEST_PORT,
+        tokio::io::stdin(),
+        tokio::io::stdout(),
+    )
+    .await?;
+    // A blocked standard-input read would keep the runtime from shutting down;
+    // the relay is finished, so leave immediately.
+    std::process::exit(0)
+}
+
+fn install_ssh_config(home: &ControlPlaneHome) -> CommandResult<()> {
+    let user_home = agent::local::home::user_home_directory()
+        .ok_or_else(|| Error::Invalid("the user home directory is not set (HOME or USERPROFILE)".into()))?;
+    let user_config = user_home.join(".ssh").join("config");
+    let generated = agent::ssh::SshHome::new(home).config_path();
+    let include = agent::ssh::render_include(&generated, Some(&user_home));
+    match agent::ssh::install_include(&user_config, &include)? {
+        agent::ssh::IncludeOutcome::Installed => {
+            println!("added `{include}` at the top of {}", user_config.display());
+        }
+        agent::ssh::IncludeOutcome::AlreadyInstalled => {
+            println!("{} already contains `{include}`", user_config.display());
+        }
+    }
+    Ok(())
+}
+
+async fn ssh_info(
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    output: OutputFormat,
+) -> CommandResult<()> {
+    let agent = resolve_execution_agent(client, resource, agent).await?;
+    let access = client.ssh_access(&agent).await?;
+    match output {
+        OutputFormat::Json => print_json(&access)?,
+        OutputFormat::Table => {
+            for line in format::ssh_access_lines(&access) {
+                println!("{line}");
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Resolves a [`SessionTarget`] into the owning Agent and Session name.
@@ -1454,6 +1614,56 @@ mod tests {
         };
         assert_eq!(agent.as_deref(), Some("worker"));
         assert_eq!(split_forward_arguments(&arguments), (None, arguments.as_slice()));
+    }
+
+    #[test]
+    fn ssh_commands_accept_kubectl_shapes_and_remote_commands() {
+        let explicit = Arguments::try_parse_from(["agentctl", "ssh", "agent/worker", "--", "uptime", "-p"])
+            .expect("ssh with a remote command");
+        let Command::Ssh {
+            agent,
+            resource,
+            command,
+        } = explicit.command
+        else {
+            panic!("expected ssh command");
+        };
+        assert!(agent.is_none());
+        assert_eq!(resource.as_deref(), Some("agent/worker"));
+        assert_eq!(command, ["uptime", "-p"]);
+
+        let inferred = Arguments::try_parse_from(["agentctl", "ssh"]).expect("inferred ssh");
+        assert!(matches!(
+            inferred.command,
+            Command::Ssh {
+                agent: None,
+                resource: None,
+                command
+            } if command.is_empty()
+        ));
+        assert!(Arguments::try_parse_from(["agentctl", "ssh", "--agent", "worker", "agent/other"]).is_err());
+
+        let proxy = Arguments::try_parse_from(["agentctl", "ssh-proxy", "agent/worker"]).expect("ssh-proxy");
+        assert!(matches!(proxy.command, Command::SshProxy { resource } if resource == "agent/worker"));
+        assert!(Arguments::try_parse_from(["agentctl", "ssh-proxy"]).is_err());
+
+        let install = Arguments::try_parse_from(["agentctl", "ssh-config", "install"]).expect("ssh-config install");
+        assert!(matches!(
+            install.command,
+            Command::SshConfig {
+                command: SshConfigCommand::Install
+            }
+        ));
+
+        let info = Arguments::try_parse_from(["agentctl", "ssh-info", "worker", "-o", "json"]).expect("ssh-info");
+        assert!(matches!(
+            info.command,
+            Command::SshInfo {
+                resource: Some(resource),
+                agent: None,
+                output: OutputFormat::Json
+            } if resource == "worker"
+        ));
     }
 
     #[test]
