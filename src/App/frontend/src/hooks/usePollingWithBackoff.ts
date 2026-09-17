@@ -23,6 +23,7 @@ export function getPollingInterval(attempt: number) {
  */
 export function usePollingWithBackoff(callback: () => Promise<unknown>, enabled = true) {
   const callbackRef = useRef(callback);
+  const activeCallbackRef = useRef<Promise<unknown> | undefined>(undefined);
   const attemptsRef = useRef(0);
   const wasPausedRef = useRef(false);
   const isFocused = useSyncExternalStore(
@@ -52,7 +53,21 @@ export function usePollingWithBackoff(callback: () => Promise<unknown>, enabled 
 
     const scheduleNext = (delay: number) => {
       timeoutId = setTimeout(async () => {
-        await callbackRef.current();
+        // An earlier effect may still have a request in flight after losing focus or being disabled.
+        await activeCallbackRef.current;
+        if (cancelled) {
+          return;
+        }
+
+        const activeCallback = callbackRef.current();
+        activeCallbackRef.current = activeCallback;
+        try {
+          await activeCallback;
+        } finally {
+          if (activeCallbackRef.current === activeCallback) {
+            activeCallbackRef.current = undefined;
+          }
+        }
         if (cancelled) {
           return;
         }

@@ -127,6 +127,32 @@ describe('usePollingWithBackoff()', () => {
     expect(getPollingInterval(100)).toBe(30_000);
   });
 
+  it('waits for the active callback when focus returns during a slow poll', async () => {
+    let resolve: (() => void) | undefined;
+    const callback = vi.fn(() => new Promise<void>((done) => (resolve = done)));
+    const { unmount } = renderHook(() => usePollingWithBackoff(callback));
+
+    await advance(1000);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    act(() => queryFocusManager.setFocused(false));
+    act(() => queryFocusManager.setFocused(true));
+    await advance(60_000);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    // Another blur/focus cycle must cancel the previous resume attempt too.
+    act(() => queryFocusManager.setFocused(false));
+    act(() => queryFocusManager.setFocused(true));
+    await advance(0);
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    await act(async () => resolve?.());
+    expect(callback).toHaveBeenCalledTimes(2);
+    await advance(60_000);
+    expect(callback).toHaveBeenCalledTimes(2);
+    unmount();
+  });
+
   it('pauses in the background and polls immediately when focus returns', async () => {
     const callback = vi.fn().mockResolvedValue(undefined);
     const { unmount } = renderHook(() => usePollingWithBackoff(callback));
