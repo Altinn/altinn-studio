@@ -15,6 +15,7 @@ use sandbox::{
     volume::{EnsureVolumeRequest, VolumeName},
 };
 use sandbox_microsandbox::MicrosandboxProvider;
+use sha2::{Digest as _, Sha256};
 use tokio::io::AsyncReadExt as _;
 
 #[tokio::test(flavor = "local")]
@@ -78,6 +79,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
         )
         .await
         .expect("file should stream into the Sandbox");
+    assert_atomic_replacement(backend.as_ref(), &sandbox).await;
     backend.stop(&sandbox.id).await.expect("Sandbox should stop");
 
     drop(service);
@@ -102,6 +104,80 @@ async fn retained_lifecycle_execution_files_and_volumes() {
     assert_immediate_restart_and_delete(&backend, &request, &sandbox).await;
     assert_build_cache_reused(backend, &request, &home.id).await;
     assert_reference_image_resolves(reference_backend_home).await;
+}
+
+/// A replacement must never expose a partial file: a reader polling the path throughout the
+/// write sees the old or the new contents only, the replaced file keeps its mode, and no
+/// staging file is left behind.
+async fn assert_atomic_replacement(backend: &MicrosandboxProvider, sandbox: &Sandbox) {
+    let path = "/workspace/replaced.txt";
+    let old = vec![b'a'; 4 * 1024 * 1024];
+    let new = vec![b'b'; 4 * 1024 * 1024];
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new(path),
+            Box::pin(Cursor::new(old.clone())),
+        )
+        .await
+        .expect("initial file should stream into the Sandbox");
+    let mode = run(
+        backend,
+        &sandbox.id,
+        shell(&format!("chmod 4750 {path} && stat -c %a {path}")),
+    )
+    .await;
+    assert_eq!(mode.stdout.as_ref(), b"4750\n");
+    // One digest per observation, each from a single open of the path, so an observation can
+    // only be the complete old file, the complete new file, or a torn one.
+    let old_digest = hex(&Sha256::digest(&old));
+    let new_digest = hex(&Sha256::digest(&new));
+    let reader = backend
+        .start_execution(
+            &sandbox.id,
+            StartExecutionRequest::new(shell(&format!(
+                "end=$(($(date +%s) + 20)); while [ $(date +%s) -lt $end ]; do \
+                 digest=$(sha256sum < {path} | cut -d ' ' -f 1); echo \"$digest\"; \
+                 [ \"$digest\" = {new_digest} ] && break; done"
+            ))),
+        )
+        .await
+        .expect("reader should start");
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new(path),
+            Box::pin(Cursor::new(new.clone())),
+        )
+        .await
+        .expect("replacement should stream into the Sandbox");
+    let observed = reader.collect().await.expect("reader should exit");
+    let lines = String::from_utf8(observed.stdout.to_vec()).expect("reader output should be UTF-8");
+    assert!(!lines.is_empty(), "reader observed nothing");
+    for line in lines.lines() {
+        assert!(
+            line == old_digest || line == new_digest,
+            "reader observed a partial or mixed file: {line:?}"
+        );
+    }
+    assert!(lines.contains(&new_digest), "reader never observed the replacement");
+    assert_eq!(read(backend, &sandbox.id, path).await, new);
+    let after = run(
+        backend,
+        &sandbox.id,
+        shell(&format!("stat -c %a {path}; ls -A /workspace | grep -c agent- || true")),
+    )
+    .await;
+    assert_eq!(after.stdout.as_ref(), b"4750\n0\n");
+}
+
+fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+
+    bytes.iter().fold(String::new(), |mut hex, byte| {
+        let _ = write!(hex, "{byte:02x}");
+        hex
+    })
 }
 
 async fn assert_hostname(backend: &MicrosandboxProvider, sandbox: &Sandbox, expected: &str) {

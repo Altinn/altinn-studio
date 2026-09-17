@@ -15,6 +15,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Fixed
 
 - Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex keeps its conversation in that history; Claude Code keeps its selected renderer and handles scrolling itself in fullscreen mode. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
+- Agent setup now writes Sandbox files only when their contents changed, and replaces them atomically. Codex no longer reports missing skill frontmatter after each reconciliation pass.
 
 ## [0.1.0-preview.3] - 2026-09-17
 

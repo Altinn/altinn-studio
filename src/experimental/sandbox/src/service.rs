@@ -1257,6 +1257,10 @@ impl SandboxHandle {
 
     /// Creates or replaces a regular Sandbox file from a byte stream.
     ///
+    /// The replacement is atomic: a process in the Sandbox reading the path concurrently sees
+    /// either the previous file or the complete new one. A replaced regular file keeps its mode
+    /// and ownership.
+    ///
     /// # Errors
     ///
     /// Returns an error when the provider cannot write the file.

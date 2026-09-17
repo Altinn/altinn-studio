@@ -1,5 +1,6 @@
 //! Sandbox operating-system-specific adapters.
 
+pub(crate) mod files;
 mod linux;
 
 use ::sandbox::execution::ExecutionSpec;
