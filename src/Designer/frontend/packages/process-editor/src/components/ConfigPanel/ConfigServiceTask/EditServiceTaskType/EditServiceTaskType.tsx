@@ -36,6 +36,7 @@ export const EditServiceTaskType = (): React.ReactElement => {
 
   return (
     <StudioToggleableTextfield
+      key={taskType}
       customValidation={validateTaskType}
       description={t('process_editor.configuration_panel_service_task_type_description')}
       icon={null}

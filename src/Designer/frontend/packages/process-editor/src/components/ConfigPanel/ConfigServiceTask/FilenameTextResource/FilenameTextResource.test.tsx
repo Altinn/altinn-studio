@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -118,14 +119,22 @@ type RenderProps = {
   textResourceIdPrefix?: string;
 };
 
-const renderFilenameTextResource = ({
-  textResourceId = '',
+function FilenameTestHost({
+  textResourceId: initialId = '',
   textResourceIdPrefix = 'pdf-filename',
-}: RenderProps = {}) =>
-  render(
+}: RenderProps) {
+  const [textResourceId, setTextResourceId] = useState(initialId);
+  return (
     <FilenameTextResource
       textResourceId={textResourceId}
-      onTextResourceIdChange={onTextResourceIdChange}
+      onTextResourceIdChange={(id) => {
+        onTextResourceIdChange(id);
+        setTextResourceId(id);
+      }}
       textResourceIdPrefix={textResourceIdPrefix}
-    />,
+    />
   );
+}
+
+const renderFilenameTextResource = (props: RenderProps = {}) =>
+  render(<FilenameTestHost {...props} />);
