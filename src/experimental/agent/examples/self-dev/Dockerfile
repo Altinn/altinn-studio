@@ -18,6 +18,7 @@ RUN apt-get update \
         ca-certificates \
         clang \
         curl \
+        fonts-jetbrains-mono \
         fonts-liberation \
         git \
         iproute2 \
