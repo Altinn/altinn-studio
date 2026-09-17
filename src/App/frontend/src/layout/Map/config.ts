@@ -213,8 +213,8 @@ export const Config = new CG.component({
     new CG.prop(
       'centerLocation',
       new CG.obj(
-        new CG.prop('latitude', new CG.expr(ExprVal.Number)),
-        new CG.prop('longitude', new CG.expr(ExprVal.Number)),
+        new CG.prop('latitude', new CG.expr(ExprVal.Number).setFallback(0)),
+        new CG.prop('longitude', new CG.expr(ExprVal.Number).setFallback(0)),
       )
         .optional()
         .exportAs('Location')
