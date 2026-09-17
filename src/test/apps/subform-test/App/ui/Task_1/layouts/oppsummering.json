@@ -102,10 +102,10 @@
       {
         "id": "hovedskjema-submitButton",
         "type": "Button",
-        "mode": "submit",
         "hidden": false,
         "textResourceBindings": {
           "title": "general.submit"
+
         }
       }
     ]

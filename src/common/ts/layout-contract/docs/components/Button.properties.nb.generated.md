@@ -85,28 +85,3 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   </summary>
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Teksten på knappen.</div></div>
 </details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="mode">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="mode">mode</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">&quot;submit&quot;</span></span>
-      <span class="component-property-type" title="&quot;submit&quot; | &quot;save&quot; | &quot;instantiate&quot;">Type: <span class="component-property-value">&quot;submit&quot; | &quot;save&quot; | &quot;instantiate&quot;</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Knappens modus. Tillatte verdier: "submit", "save", "instantiate".</div></div>
-</details>
-
-<details class="card adocs-expand adocs-expand-small component-property" id="mapping">
-  <summary class="component-property-summary">
-    <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="mapping">mapping</span>
-    <span class="component-property-summary-meta">
-      <span class="component-property-required">Valgfri</span>
-      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
-    </span>
-  </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.</div></div>
-</details>

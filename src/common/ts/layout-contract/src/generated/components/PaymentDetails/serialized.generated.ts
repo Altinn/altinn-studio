@@ -1,5 +1,5 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase, IMapping } from '@app/layout-contract/generated/common.generated';
+import { ComponentBase, IQueryParameters } from '@app/layout-contract/generated/common.generated';
 
 export type CompPaymentDetailsSerialized = {
   type: 'PaymentDetails';
@@ -8,8 +8,8 @@ export type CompPaymentDetailsSerialized = {
     description?: ExprValToActualOrExpr<ExprVal.String>;
     help?: ExprValToActualOrExpr<ExprVal.String>;
   };
-  mapping?: IMapping;
+  refetchDependencies?: IQueryParameters;
   dataModelBindings?: undefined;
 } & ComponentBase;
 
-// Source hash: f5d2a8ec42e44eebc45ffcd58811f2bf4cf6d6d323a3f7ddf495b3556d3f36aa
+// Source hash: de42d0f72b920fb55184626650f876dd95f9b46d12bcd4d864e5c2828747fc72
