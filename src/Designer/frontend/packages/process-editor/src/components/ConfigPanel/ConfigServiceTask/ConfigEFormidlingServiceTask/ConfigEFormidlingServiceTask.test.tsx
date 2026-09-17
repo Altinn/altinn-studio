@@ -32,8 +32,6 @@ const fieldLabel = (property: string): string =>
 describe('ConfigEFormidlingServiceTask', () => {
   afterEach(jest.clearAllMocks);
 
-  // Nine properties sharing one config node is nine chances to write to the wrong one, and a
-  // mistake here is silent: the app starts and sends the wrong thing, or refuses to start at all.
   it.each([
     ['process', 'process', 'urn:no:difi:profile:arkivmelding:ver1.0'],
     ['standard', 'standard', 'urn:no:difi:arkivmelding:xsd::arkivmelding'],
@@ -114,8 +112,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     });
   });
 
-  // A hand-authored task can be missing the config node the palette seeds, and the panel has to be
-  // able to fill in a task it was given rather than only one it created.
   it('creates the config node when the task has none', async () => {
     const user = userEvent.setup();
     const { updateModdleProperties, element, taskExtension } = renderConfigEFormidlingServiceTask({
@@ -135,56 +131,28 @@ describe('ConfigEFormidlingServiceTask', () => {
 
   it('keeps the per-environment entries of an existing configuration when one row is edited', async () => {
     const user = userEvent.setup();
-    const stagingElement = { $type: environmentConfigType, env: 'tt02', value: 'staging-type' };
-    const unknownElement = { $type: environmentConfigType, env: 'at21', value: 'dead-type' };
-    const { updateModdleProperties } = renderConfigEFormidlingServiceTask({
-      eFormidlingConfig: {
-        type: [
-          { $type: environmentConfigType, value: 'global-type' },
-          stagingElement,
-          unknownElement,
-        ],
-      },
-    });
+    const { updateModdleProperties, element, eFormidlingConfig } =
+      renderConfigEFormidlingServiceTask({
+        eFormidlingConfig: {
+          type: [
+            { $type: environmentConfigType, value: 'global-type' },
+            { $type: environmentConfigType, env: 'tt02', value: 'staging-type' },
+            { $type: environmentConfigType, env: 'at21', value: 'dead-type' },
+          ],
+        },
+      });
 
     await expandField(user, fieldLabel('type'));
     await user.clear(screen.getByLabelText(globalLabel));
     await typeGlobalValue(user, 'new-global-type');
 
-    const writtenElements = updateModdleProperties.mock.calls.at(-1)[2].type;
-    expect(writtenElements[0]).toEqual({
-      $type: environmentConfigType,
-      env: undefined,
-      value: 'new-global-type',
+    expect(updateModdleProperties).toHaveBeenCalledWith(element, eFormidlingConfig, {
+      type: [
+        { $type: environmentConfigType, env: undefined, value: 'new-global-type' },
+        { $type: environmentConfigType, env: 'tt02', value: 'staging-type' },
+        { $type: environmentConfigType, env: 'at21', value: 'dead-type' },
+      ],
     });
-    // The untouched entries are handed back as the very elements the file was parsed into, so
-    // nothing the moddle schema does not declare is dropped on the way out - not the environment
-    // spelling the file chose, and not the entry the runtime cannot resolve either.
-    expect(writtenElements[1]).toBe(stagingElement);
-    expect(writtenElements[2]).toBe(unknownElement);
-  });
-
-  // The same promise for the one field whose elements have children of their own: a data type list
-  // is rebuilt from the entries on every save, so an untouched one has to come back as itself
-  // rather than as a copy of what the panel understood of it.
-  it('keeps the data type elements it did not touch as the elements the file was parsed into', async () => {
-    const user = userEvent.setup();
-    const unknownElement = {
-      $type: eFormidlingDataTypesType,
-      env: 'at21',
-      values: [{ $type: dataTypeType, dataType: 'model' }],
-    };
-    const { updateModdleProperties } = renderConfigEFormidlingServiceTask({
-      availableDataTypeIds: ['model', 'attachment'],
-      eFormidlingConfig: { dataTypes: [unknownElement] },
-    });
-
-    await expandOptionalField(user, fieldLabel('data_types'));
-    await user.type(screen.getByLabelText(globalLabel, { exact: false }), 'attachment');
-    await user.click(screen.getByRole('option', { name: 'attachment' }));
-
-    const writtenElements = updateModdleProperties.mock.calls.at(-1)[2].dataTypes;
-    expect(writtenElements[0]).toBe(unknownElement);
   });
 
   it('shows the values of every environment, not just the environment-independent one', async () => {
@@ -206,10 +174,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     expect(screen.getByLabelText(productionLabel)).toHaveValue('production-type');
   });
 
-  // The layout is the panel's one promise to the developer: the fields the runtime refuses to start
-  // without are on screen the moment the panel opens, and only the ones it can do without fold
-  // away. A required field behind a disclosure triangle is an app that fails to boot with nothing
-  // on the panel having mentioned the field.
   it.each(['process', 'standard', 'type', 'type_version', 'security_level'])(
     'keeps the required field %s out of the disclosure',
     (labelKey) => {
@@ -228,8 +192,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     },
   );
 
-  // A collapsed field is a property button and says nothing about itself, so the tag on the group
-  // is the whole of what tells the developer which fields the app cannot start without.
   it('tags each group with whether the developer has to answer it', () => {
     renderConfigEFormidlingServiceTask();
 
@@ -241,8 +203,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     ).toBeInTheDocument();
   });
 
-  // Every property button shows its own value while closed. The disclosure would otherwise be the
-  // one place on the panel where configuration sits without the panel saying so.
   it('says how many of the folded-away fields the file has a value for', () => {
     renderConfigEFormidlingServiceTask({
       eFormidlingConfig: {
@@ -260,8 +220,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     ).toBeInTheDocument();
   });
 
-  // A security level the runtime cannot parse is a boot failure, so the panel refuses to write one
-  // rather than letting it surface in a deployment.
   it('does not write a security level that is not a whole number', async () => {
     const user = userEvent.setup();
     const { updateModdleProperties } = renderConfigEFormidlingServiceTask();
@@ -299,9 +257,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     ).not.toBeInTheDocument();
   });
 
-  // A task the palette has just created is short of the same five fields in all three
-  // environments, and naming them three times over would be the loudest thing on an untouched
-  // panel without saying more than one line does.
   it('names the fields once when every environment is short of the same ones', () => {
     renderConfigEFormidlingServiceTask();
 
@@ -351,35 +306,22 @@ function getFieldButton(label: string): HTMLElement {
   return screen.getByRole('button', { name: label });
 }
 
-/**
- * Where a field sits is the panel's layout guarantee, and where it sits is a DOM relationship: a
- * closed `<details>` in jsdom hides nothing from the accessibility tree, so `toBeVisible` and every
- * query built on roles answers the same for a field inside one as for a field outside it.
- */
+/** A closed `<details>` hides nothing from jsdom's accessibility tree, so the DOM is asked instead. */
 function getDisclosureAround(fieldButtonLabel: string): HTMLElement | null {
   return getFieldButton(fieldButtonLabel).closest('details');
 }
 
 function getGroupOf(fieldButtonLabel: string): HTMLElement {
-  // eslint-disable-next-line testing-library/no-node-access -- the group a field is tagged by is likewise a DOM relationship
+  // eslint-disable-next-line testing-library/no-node-access
   const group = getFieldButton(fieldButtonLabel).closest('fieldset');
   if (!group) throw new Error(`The field ${fieldButtonLabel} is in no group.`);
   return group;
 }
 
-/**
- * Opens a field that stands open on the panel, which is every field outside the optional section.
- *
- * Deliberately not one helper that opens the disclosure first and then works for all nine: which
- * fields live behind that disclosure is the panel's layout guarantee, and a helper that opens it
- * before every lookup makes the guarantee untestable - a required field moved in there would keep
- * every test passing.
- */
 async function expandField(user: UserEvent, label: string): Promise<void> {
   await user.click(getFieldButton(label));
 }
 
-/** Opens a field that is folded away, which needs the disclosure opened first. */
 async function expandOptionalField(user: UserEvent, label: string): Promise<void> {
   await user.click(screen.getByText(optionalSectionLabel));
   await expandField(user, label);

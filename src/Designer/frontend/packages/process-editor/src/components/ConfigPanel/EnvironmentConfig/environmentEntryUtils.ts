@@ -10,36 +10,22 @@ export type EnvironmentOverride<TValue> = {
 };
 
 /**
- * How the runtime folds several entries resolving to the same environment into the one value it
- * reads. A field that omits it is a last-one-wins field, which is what
- * `AltinnTaskExtension.GetConfigForEnvironment` does for every `altinn:` config list but one: it
- * assigns `lookup[key] = candidate`. eFormidling `dataTypes` is the exception -
- * `AltinnEFormidlingConfiguration.GetDataTypesForEnvironment` calls `existingList.AddRange`, so its
- * entries concatenate. The semantics belong to the field, so each one states its own rather than
- * having the core guess from the value type.
+ * How the runtime folds several entries resolving to the same environment. Left out for a
+ * last-one-wins field, which is every `altinn:` config list except eFormidling `dataTypes`, where
+ * `AltinnEFormidlingConfiguration.GetDataTypesForEnvironment` concatenates them.
  */
 export type CombineDuplicateValues<TValue> = (values: TValue[]) => TValue;
 
 export type ResolvedEnvironmentEntries<TValue> = {
-  /** The entry without an `env`, if any. */
   global?: EnvironmentEntry<TValue>;
-  /** At most one entry per bucket, in `altinnEnvironments` order. */
+  /** At most one entry per environment, in `altinnEnvironments` order. */
   overrides: EnvironmentOverride<TValue>[];
-  /** Entries whose `env` the runtime resolves to `Unknown`. Warned about, carried through as they are. */
+  /** Entries whose `env` the runtime does not recognize. */
   unknownEntries: EnvironmentEntry<TValue>[];
-  /**
-   * The entries of a bucket that are not the one carrying its effective value: in a last-one-wins
-   * field every entry a later one shadows, and in a combining field every entry whose value was
-   * folded into the effective one. Warned about either way, and carried through as they are - the
-   * file may legitimately contain what this UI cannot show, and an edit elsewhere is not permission
-   * to delete it.
-   */
+  /** Entries the runtime shadows with, or folds into, a later entry of the same environment. */
   duplicateEntries: EnvironmentEntry<TValue>[];
 };
 
-/**
- * Which row an entry belongs to, or `undefined` when the runtime resolves its `env` to `Unknown`.
- */
 export const getEntryScope = <TValue>(
   entry: EnvironmentEntry<TValue>,
 ): EnvironmentScope | undefined => {
@@ -47,11 +33,7 @@ export const getEntryScope = <TValue>(
   return isGlobalEnv(env) ? globalScope : normalizeAltinnEnvironment(env);
 };
 
-/**
- * Folds a raw entry list into the shape the editor shows, the same way the runtime does: entries
- * are keyed by bucket, and the value of a bucket is the last entry's unless the field combines them
- * (see `CombineDuplicateValues`). Showing anything else would make the panel disagree with the app.
- */
+/** Folds a raw entry list into what the runtime reads per environment. */
 export const resolveEnvironmentEntries = <TValue>(
   entries: EnvironmentEntry<TValue>[],
   combineDuplicateValues?: CombineDuplicateValues<TValue>,
@@ -85,84 +67,41 @@ export const resolveEnvironmentEntries = <TValue>(
   };
 };
 
-export type EnvironmentWriteOptions = {
-  /**
-   * The `env` spelling to reuse for a new entry, from the entry a clear just removed. Without it,
-   * clearing a row and typing a new value rewrites `tt02` to `staging` - a diff the user did not
-   * ask for, in a file that lives in git.
-   */
-  clearedEnv?: string;
-  /**
-   * Whether the field combines duplicates rather than letting the last entry win. When it does, the
-   * written entry carries the combined value the user just edited, so the other entries of that
-   * bucket have to go: leaving them would add their values to it a second time.
-   *
-   * This is consolidation rather than deletion. The runtime reads exactly what it read before, the
-   * value is still there in full, and it happens only to the one field the user is editing - which
-   * is why it does not break the rule that an edit never drops a line, the way removing a genuinely
-   * inert shadowed entry would.
-   */
-  consolidateDuplicates?: boolean;
-};
-
 /**
- * Sets the value for one scope.
- *
- * The entry is edited where it stands and every other entry is carried through unchanged, in its
- * original position - including one the runtime shadows and one whose `env` the runtime cannot
- * resolve. Editing one row must never remove or move a line the user did not touch: this editor
- * has a history of deleting configuration it did not understand, and the diff of a save should
- * show only what the user actually changed. A new entry is appended, which is a pure addition.
- *
- * "Unchanged" here is about `env` and `value`, which is all an `EnvironmentEntry` holds. The moddle
- * conversions hand back a matching existing element for such an entry - the one it came from, or an
- * indistinguishable sibling where the file repeats a pair - so anything else that element carries
- * survives the round trip too.
+ * Sets the value for one scope. The entry the runtime reads is edited in place and every other
+ * entry is left where it stands, so a save changes nothing the user did not touch. A new entry is
+ * appended. When the field combines duplicates, the other entries of the scope are folded into the
+ * edited one, since the edited value already contains them.
  */
 export const withEnvironmentValue = <TValue>(
   entries: EnvironmentEntry<TValue>[],
   scope: EnvironmentScope,
   value: TValue,
-  { clearedEnv, consolidateDuplicates }: EnvironmentWriteOptions = {},
+  combineDuplicates: boolean = false,
 ): EnvironmentEntry<TValue>[] => {
   const index = findWinningEntryIndex(entries, scope);
-  if (index === -1) return [...entries, createEntry(scope, value, clearedEnv)];
+  if (index === -1) return [...entries, createEntry(scope, value)];
   const updatedEntries = entries.map((entry, entryIndex) =>
     entryIndex === index ? { ...entry, value } : entry,
   );
-  if (!consolidateDuplicates) return updatedEntries;
+  if (!combineDuplicates) return updatedEntries;
   return updatedEntries.filter(
     (entry, entryIndex) => entryIndex === index || getEntryScope(entry) !== scope,
   );
 };
 
-/**
- * Removes the configuration for one scope.
- *
- * Every entry resolving to that scope goes, not only the one the runtime reads. Removing just the
- * winner would promote a shadowed duplicate the user cannot see, leaving the override silently in
- * place. This is the one place an entry is deleted, and it is the user asking for exactly that.
- */
+/** Removes every entry resolving to the scope, so that a shadowed duplicate cannot take over. */
 export const withoutEnvironmentValue = <TValue>(
   entries: EnvironmentEntry<TValue>[],
   scope: EnvironmentScope,
 ): EnvironmentEntry<TValue>[] => entries.filter((entry) => getEntryScope(entry) !== scope);
 
-/**
- * Removes the one entry the caller points at, identified by the object
- * {@link resolveEnvironmentEntries} handed back rather than by its `env`.
- *
- * This is how an entry whose `env` the runtime cannot resolve is taken away: it belongs to no
- * scope, so `withoutEnvironmentValue` cannot name it, and two such entries can spell the same
- * unrecognized environment without being the same line. Removing one of them must not remove the
- * other.
- */
+/** Removes one entry by identity, which is how an entry with an unknown `env` is removed. */
 export const withoutEntry = <TValue>(
   entries: EnvironmentEntry<TValue>[],
   entryToRemove: EnvironmentEntry<TValue>,
 ): EnvironmentEntry<TValue>[] => entries.filter((entry) => entry !== entryToRemove);
 
-/** The entry carrying the value the runtime reads for one scope. */
 const getEffectiveEntry = <TValue>(
   scopeEntries: EnvironmentEntry<TValue>[],
   combineDuplicateValues?: CombineDuplicateValues<TValue>,
@@ -175,19 +114,8 @@ const getEffectiveEntry = <TValue>(
   };
 };
 
-/**
- * A newly written entry is spelled with the canonical environment name, unless a clear just removed
- * one that spelled the same environment differently - that spelling is the user's, not ours.
- */
-const createEntry = <TValue>(
-  scope: EnvironmentScope,
-  value: TValue,
-  clearedEnv?: string,
-): EnvironmentEntry<TValue> => {
-  if (scope === globalScope) return { value };
-  const isReusable = !!clearedEnv && normalizeAltinnEnvironment(clearedEnv) === scope;
-  return { env: isReusable ? clearedEnv : scope, value };
-};
+const createEntry = <TValue>(scope: EnvironmentScope, value: TValue): EnvironmentEntry<TValue> =>
+  scope === globalScope ? { value } : { env: scope, value };
 
 /** The runtime reads the last entry resolving to a scope, so that is the one an edit changes. */
 const findWinningEntryIndex = <TValue>(
@@ -199,17 +127,7 @@ const findWinningEntryIndex = <TValue>(
     -1,
   );
 
-/**
- * The value the app reads in one environment: the entry scoped to it when there is one, and the
- * environment-independent entry otherwise - the fallback `AltinnTaskExtension` itself makes.
- *
- * `undefined` means the file has neither, which for a required field is the boot failure the panel
- * exists to make visible before it happens.
- *
- * Takes the resolved entries rather than the raw list, like `findOverrideEntry` right below it: a
- * caller asking about several environments resolves once instead of once per question, and the two
- * readers of a resolution now read the same thing.
- */
+/** The value the app reads in one environment: its override, else the environment-independent entry. */
 export const getEffectiveEnvironmentValue = <TValue>(
   resolved: ResolvedEnvironmentEntries<TValue>,
   environment: AltinnEnvironment,
@@ -221,37 +139,9 @@ export const findOverrideEntry = <TValue>(
 ): EnvironmentEntry<TValue> | undefined =>
   resolved.overrides.find((override) => override.environment === environment)?.entry;
 
-/**
- * The unrecognized `env` spellings among the entries, each named once. Two entries can carry the
- * same one, and naming it twice reads like a bug.
- */
 export const getUnknownEnvironmentNames = <TValue>(
   resolved: ResolvedEnvironmentEntries<TValue>,
 ): string[] => ArrayUtils.removeDuplicates(resolved.unknownEntries.map(({ env }) => env));
-
-/** What the collapsed property button shows. Kept free of i18n so the rules are unit-testable. */
-export type EnvironmentConfigSummary =
-  | { kind: 'empty' }
-  | { kind: 'globalOnly'; value: string }
-  | { kind: 'overridesOnly'; overrideCount: number }
-  | { kind: 'globalWithOverrides'; value: string; overrideCount: number };
-
-export const getEnvironmentConfigSummary = <TValue>(
-  resolved: ResolvedEnvironmentEntries<TValue>,
-  formatValue: (value: TValue) => string,
-): EnvironmentConfigSummary => {
-  // An entry for an unrecognized environment counts as one of them. It is an environment-specific
-  // value like any other - the field shows it as a row of its own - and leaving it out was the one
-  // place where a closed button said the field held nothing while the file held something.
-  const overrideCount = resolved.overrides.length + getUnknownEnvironmentNames(resolved).length;
-  const value = resolved.global ? formatValue(resolved.global.value) : '';
-  if (!value) {
-    return overrideCount === 0 ? { kind: 'empty' } : { kind: 'overridesOnly', overrideCount };
-  }
-  return overrideCount === 0
-    ? { kind: 'globalOnly', value }
-    : { kind: 'globalWithOverrides', value, overrideCount };
-};
 
 const environmentScopeTextKeys: Readonly<Record<EnvironmentScope, string>> = {
   global: 'process_editor.configuration_panel.environment_config.scope_global',

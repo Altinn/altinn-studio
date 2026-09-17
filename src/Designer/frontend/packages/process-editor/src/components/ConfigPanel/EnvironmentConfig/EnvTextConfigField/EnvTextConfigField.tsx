@@ -24,10 +24,6 @@ export const EnvTextConfigField = (props: EnvTextConfigFieldProps): ReactElement
   />
 );
 
-/**
- * `StudioToggleableTextfield` is deliberately not used here: it suppresses blur while an error is
- * set, which traps focus in the row.
- */
 const TextValueControl = ({
   label,
   value,
@@ -35,11 +31,7 @@ const TextValueControl = ({
 }: EnvironmentValueControlProps<string>): ReactElement => {
   const [localValue, setLocalValue] = usePropState<string>(value);
 
-  // What is committed is the trimmed value. `GetRequiredConfig` only asks that the value is not
-  // blank and then hands it to the shipment as it stands, so the spaces a user happened to type
-  // around `arkivmelding` would travel all the way to eFormidling. It is also the reading the field
-  // already has of its own value: `" "` empties the row, so `" arkivmelding "` cannot be stored
-  // padded without the field meaning two different things by a space.
+  // The runtime hands the value on as it stands, so it is trimmed before it is written.
   const handleBlur = (): void => {
     const trimmedValue = localValue.trim();
     setLocalValue(trimmedValue);

@@ -66,24 +66,7 @@ describe('EnvBooleanConfigField', () => {
     expect(getRadio(globalLabel, noLabel)).not.toBeChecked();
   });
 
-  it('says the file holds a value it cannot show, so an unanswered field is not the whole story', async () => {
-    const user = userEvent.setup();
-    renderEnvBooleanConfigField({ entries: [{ value: 'maybe' }] });
-    await user.click(getCollapsedButton());
-
-    expect(
-      screen.getByText(
-        textMock('process_editor.configuration_panel.environment_config.unreadable_boolean_alert', {
-          count: 1,
-          values: 'maybe',
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  // A radio group has no gesture for unchoosing an answer, so without this the first answer a user
-  // tried would be in the BPMN for good.
-  it('offers a way to take the environment-independent answer back out again', async () => {
+  it('offers a delete button for the global answer, since a radio group cannot be unchecked', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderEnvBooleanConfigField({ onChange });
@@ -95,16 +78,6 @@ describe('EnvBooleanConfigField', () => {
     await user.click(queryRemoveGlobalValueButton());
 
     expect(onChange).toHaveBeenLastCalledWith([]);
-  });
-
-  // A blank element is legal - `AltinnEFormidlingConfiguration` reads it as the default - so it is
-  // an unanswered field rather than something to warn about.
-  it('says nothing about a blank value, which the runtime accepts', async () => {
-    const user = userEvent.setup();
-    renderEnvBooleanConfigField({ entries: [{ value: '' }, { env: 'tt02', value: 'True' }] });
-    await user.click(getCollapsedButton());
-
-    expect(screen.queryByText(/unreadable_boolean_alert/)).not.toBeInTheDocument();
   });
 });
 

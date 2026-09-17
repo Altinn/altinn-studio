@@ -15,10 +15,7 @@ import {
 
 const eFormidlingConfigType = 'altinn:EFormidlingConfig';
 
-/**
- * The `<altinn:eFormidlingConfig>` children holding a single text value per environment, mirroring
- * `AltinnEFormidlingConfiguration`. `dataTypes` is the ninth and holds a list instead.
- */
+/** The `<altinn:eFormidlingConfig>` children holding one text value per environment. */
 export type EFormidlingTextProperty =
   | 'disabled'
   | 'receiver'
@@ -31,34 +28,21 @@ export type EFormidlingTextProperty =
 
 export type EFormidlingProperty = EFormidlingTextProperty | 'dataTypes';
 
-/** What one environment-scoped field reads from and writes to, in the shape its props take. */
 export type EnvironmentConfigBinding<TValue> = {
   entries: EnvironmentEntry<TValue>[];
   onChange: (entries: EnvironmentEntry<TValue>[]) => void;
 };
 
-export type EFormidlingConfig = {
-  disabled: EnvironmentConfigBinding<string>;
-  receiver: EnvironmentConfigBinding<string>;
-  process: EnvironmentConfigBinding<string>;
-  standard: EnvironmentConfigBinding<string>;
-  typeVersion: EnvironmentConfigBinding<string>;
-  type: EnvironmentConfigBinding<string>;
-  securityLevel: EnvironmentConfigBinding<string>;
-  dpfShipmentType: EnvironmentConfigBinding<string>;
+export type EFormidlingConfig = Record<
+  EFormidlingTextProperty,
+  EnvironmentConfigBinding<string>
+> & {
   dataTypes: EnvironmentConfigBinding<string[]>;
 };
 
 /**
  * Reads and writes the nine environment-scoped properties of `<altinn:eFormidlingConfig>` on the
- * selected task.
- *
- * Each property is written on its own, so a save touches the one list the user edited and leaves
- * the other eight elements exactly where they were. The palette seeds the config node, but a
- * hand-authored task can be missing it, so the first write creates it.
- *
- * The moddle objects behind the lists are not reactive, so a write is followed by a checksum bump
- * that re-renders the component reading from them.
+ * selected task, creating the config node when a hand-authored task lacks it.
  */
 export const useEFormidlingConfig = (): EFormidlingConfig => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
@@ -92,18 +76,11 @@ export const useEFormidlingConfig = (): EFormidlingConfig => {
 
   const createTextBinding = (
     property: EFormidlingTextProperty,
-  ): EnvironmentConfigBinding<string> => {
-    const existingElements: ModdleElement[] | undefined = eFormidlingConfig?.[property];
-    return {
-      entries: fromEnvironmentConfigElements(existingElements),
-      onChange: (entries) =>
-        writeProperty(property, (moddle) =>
-          toEnvironmentConfigElements(entries, moddle, existingElements),
-        ),
-    };
-  };
-
-  const existingDataTypeElements: ModdleElement[] | undefined = eFormidlingConfig?.dataTypes;
+  ): EnvironmentConfigBinding<string> => ({
+    entries: fromEnvironmentConfigElements(eFormidlingConfig?.[property]),
+    onChange: (entries) =>
+      writeProperty(property, (moddle) => toEnvironmentConfigElements(entries, moddle)),
+  });
 
   return {
     disabled: createTextBinding('disabled'),
@@ -115,11 +92,9 @@ export const useEFormidlingConfig = (): EFormidlingConfig => {
     securityLevel: createTextBinding('securityLevel'),
     dpfShipmentType: createTextBinding('dpfShipmentType'),
     dataTypes: {
-      entries: fromEFormidlingDataTypesElements(existingDataTypeElements),
+      entries: fromEFormidlingDataTypesElements(eFormidlingConfig?.dataTypes),
       onChange: (entries) =>
-        writeProperty('dataTypes', (moddle) =>
-          toEFormidlingDataTypesElements(entries, moddle, existingDataTypeElements),
-        ),
+        writeProperty('dataTypes', (moddle) => toEFormidlingDataTypesElements(entries, moddle)),
     },
   };
 };

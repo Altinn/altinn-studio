@@ -10,8 +10,6 @@ const globalLabel = textMock('process_editor.configuration_panel.environment_con
 describe('EnvTextConfigField', () => {
   afterEach(jest.clearAllMocks);
 
-  // The runtime only asks that a required value is not blank and then sends it as it stands, so a
-  // padded value reaches eFormidling padded.
   it('writes the value without the spaces typed around it', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
@@ -24,7 +22,7 @@ describe('EnvTextConfigField', () => {
     expect(onChange).toHaveBeenCalledWith([{ value: 'arkivmelding' }]);
   });
 
-  it('writes nothing when only the spaces around an unchanged value were typed', async () => {
+  it('writes nothing when only spaces were added to an unchanged value', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderEnvTextConfigField({ entries: [{ value: 'arkivmelding' }], onChange });
