@@ -60,6 +60,7 @@ pub(crate) fn agent(name: &str) -> Agent {
             }],
             environment: Vec::new(),
             secrets: Vec::new(),
+            access: Vec::new(),
             network: NetworkSpec {
                 mode: NetworkMode::Mediated,
                 allow: NetworkAllow::All,

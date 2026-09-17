@@ -13,6 +13,7 @@ pub(crate) const METHOD_LIST: &str = "agents.v1.list";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
+pub(crate) const METHOD_SSH_ACCESS: &str = "agents.v1.sshAccess";
 pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
 pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
