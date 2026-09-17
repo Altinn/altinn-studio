@@ -146,7 +146,6 @@ jobs:
       id-token: write # Require write permission to Fetch an OIDC token.
       packages: write # Require write permission to move the tt02 tag on GHCR.
     strategy:
-      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
