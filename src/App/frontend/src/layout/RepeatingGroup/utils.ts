@@ -167,6 +167,58 @@ function collectEditableChildren(
     acc.push(childBaseComponentId);
   }
 }
+/**
+ * Helper function to check if a single form component is editable in a repeating group row
+ */
+function isEditableCandidate(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+  parentComponent: CompExternal<'RepeatingGroup'>,
+  hiddenColumns: string[],
+  editButton: boolean,
+): boolean {
+  const childComponent = layoutLookups.getComponent(childBaseComponentId);
+  const componentDef = getComponentDef(childComponent.type);
+
+  const isNotFormComponent: boolean = componentDef.category !== CompCategory.Form;
+  if (isNotFormComponent) {
+    return false;
+  }
+
+  const columnSettings = parentComponent.tableColumns?.[childBaseComponentId];
+  const hiddenInTable = hiddenColumns.includes(childBaseComponentId);
+  const editInTable = columnSettings?.editInTable ?? false;
+  const showInExpandedEdit = columnSettings?.showInExpandedEdit ?? true;
+  if (editButton) {
+    return showInExpandedEdit;
+  }
+
+  return editInTable && !hiddenInTable;
+}
+
+function collectEditableCandidates(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+  parentComponent: CompExternal<'RepeatingGroup'>,
+  hiddenColumns: string[],
+  editButton: boolean,
+  acc: string[],
+) {
+  const childComponent = layoutLookups.getComponent(childBaseComponentId);
+  const componentDef = getComponentDef(childComponent.type);
+
+  if (componentDef.category === CompCategory.Container) {
+    const containerChildren = (childComponent as { children?: string[] }).children ?? [];
+    for (const grandChildId of containerChildren) {
+      collectEditableCandidates(grandChildId, layoutLookups, parentComponent, hiddenColumns, editButton, acc);
+    }
+    return;
+  }
+
+  if (isEditableCandidate(childBaseComponentId, layoutLookups, parentComponent, hiddenColumns, editButton)) {
+    acc.push(childBaseComponentId);
+  }
+}
 export const RepGroupHooks = {
   useAllBaseRows(baseComponentId: string) {
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
@@ -355,5 +407,16 @@ export const RepGroupHooks = {
       );
     }
     return editableChildIds;
+  },
+  /** Static candidates only; readOnly expressions are evaluated by the candidate's edit button. */
+  useEditableChildCandidates(baseComponentId: string, editButton: boolean, hiddenColumns: string[]): string[] {
+    const childrenBaseIds = RepGroupHooks.useChildIds(baseComponentId);
+    const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+    const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+    const candidates: string[] = [];
+    for (const childId of childrenBaseIds) {
+      collectEditableCandidates(childId, layoutLookups, config, hiddenColumns, editButton, candidates);
+    }
+    return candidates;
   },
 };
