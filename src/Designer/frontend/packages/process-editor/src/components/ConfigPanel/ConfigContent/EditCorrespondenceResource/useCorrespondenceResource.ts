@@ -1,4 +1,3 @@
-import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type { Moddle } from 'bpmn-js/lib/model/Types';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
@@ -16,32 +15,26 @@ export type CorrespondenceResource = {
   updateEntries: (entries: EnvironmentEntry<string>[]) => void;
 };
 
-/**
- * Reads and writes the whole `correspondenceResource` list, including the environment-scoped
- * entries.
- *
- * The moddle objects behind the list are not reactive, so a write is followed by a checksum bump
- * that re-renders the component reading from them.
- */
+/** Reads and writes the environment-scoped `correspondenceResource` list of a signing task. */
 export const useCorrespondenceResource = (): CorrespondenceResource => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
   const { updateChecksum: forceReRenderComponent } = useChecksum();
 
-  const correspondenceResources: ModdleElement[] | undefined = TaskUtils.getTaskExtension(
-    bpmnDetails.element,
-  )?.signatureConfig?.correspondenceResource;
+  const signatureConfig = TaskUtils.getTaskExtension(bpmnDetails.element)?.signatureConfig;
 
   const updateEntries = (entries: EnvironmentEntry<string>[]): void => {
     BpmnGuard.ensureHasSignatureConfig(bpmnDetails.element);
     const modeling: Modeling = modelerRef.current.get('modeling');
     const moddle: Moddle = modelerRef.current.get('moddle');
-    const signatureConfig = TaskUtils.getTaskExtension(bpmnDetails.element).signatureConfig;
 
     modeling.updateModdleProperties(bpmnDetails.element, signatureConfig, {
-      correspondenceResource: toEnvironmentConfigElements(entries, moddle, correspondenceResources),
+      correspondenceResource: toEnvironmentConfigElements(entries, moddle),
     });
     forceReRenderComponent();
   };
 
-  return { entries: fromEnvironmentConfigElements(correspondenceResources), updateEntries };
+  return {
+    entries: fromEnvironmentConfigElements(signatureConfig?.correspondenceResource),
+    updateEntries,
+  };
 };

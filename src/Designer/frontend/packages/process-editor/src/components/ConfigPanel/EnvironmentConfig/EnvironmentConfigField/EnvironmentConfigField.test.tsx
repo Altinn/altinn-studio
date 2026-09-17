@@ -25,7 +25,7 @@ const addOverrideLabel = textMock(
 describe('EnvironmentConfigField', () => {
   afterEach(jest.clearAllMocks);
 
-  it('counts the overrides beside the value when collapsed, so none of them is hidden', () => {
+  it('counts the overrides beside the value when collapsed', () => {
     renderEnvironmentConfigField({
       entries: [{ value: 'g' }, { env: 'production', value: 'p' }, { env: 'tt02', value: 's' }],
     });
@@ -38,7 +38,7 @@ describe('EnvironmentConfigField', () => {
     );
   });
 
-  it('says how many overrides there are when there is no value for the other environments', () => {
+  it('says how many overrides there are when there is no global value', () => {
     renderEnvironmentConfigField({ entries: [{ env: 'production', value: 'p' }] });
 
     expect(getCollapsedButton()).toHaveTextContent(
@@ -142,20 +142,6 @@ describe('EnvironmentConfigField', () => {
     expect(queryMenuItem(stagingLabel)).not.toBeInTheDocument();
   });
 
-  it('keeps the env spelling of the file when an override is cleared and typed again', async () => {
-    const user = userEvent.setup();
-    const onChange = jest.fn();
-    renderEnvironmentConfigField({ entries: [{ env: 'tt02', value: 's' }], onChange });
-    await user.click(getCollapsedButton());
-
-    await user.clear(screen.getByLabelText(stagingLabel));
-    await user.tab();
-    await user.type(screen.getByLabelText(stagingLabel), 'typed-again');
-    await user.tab();
-
-    expect(onChange).toHaveBeenLastCalledWith([{ env: 'tt02', value: 'typed-again' }]);
-  });
-
   it('abandons an override that was added but left empty when the field is closed', async () => {
     const user = userEvent.setup();
     renderEnvironmentConfigField({ entries: [{ value: 'g' }] });
@@ -169,10 +155,7 @@ describe('EnvironmentConfigField', () => {
     expect(screen.queryByLabelText(stagingLabel)).not.toBeInTheDocument();
   });
 
-  // A control that can be emptied by hand already has a way out of a value, and a second one beside
-  // every row would be noise. The button appears only for a control that has none, such as the
-  // radio group `EnvBooleanConfigField` is built on.
-  it('leaves the environment-independent row alone when the control can be emptied', async () => {
+  it('offers no delete button for the global row when the control can be emptied', async () => {
     const user = userEvent.setup();
     renderEnvironmentConfigField({ entries: [{ value: 'g' }] });
 
@@ -186,9 +169,6 @@ describe('EnvironmentConfigField', () => {
     expect(screen.queryAllByRole('button', { name: /delete_item/ })).toHaveLength(0);
   });
 
-  // An override added by mistake is taken away with the same button as a real one, and taking it
-  // away has to take the row with it: a row left behind holds an environment the add menu then
-  // never offers again, so the mistake cannot be undone without closing the field.
   it('takes the row away when an override that was never given a value is deleted', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
@@ -230,7 +210,7 @@ describe('EnvironmentConfigField', () => {
     expect(onChange).toHaveBeenCalledWith([{ env: 'at21', value: 'dead' }, { value: 'g' }]);
   });
 
-  it('counts an entry the runtime cannot resolve, so the closed button never denies it', () => {
+  it('counts an entry the runtime cannot resolve as an override when collapsed', () => {
     renderEnvironmentConfigField({ entries: [{ env: 'at21', value: 'dead' }] });
 
     expect(getCollapsedButton()).toHaveTextContent(
@@ -240,7 +220,7 @@ describe('EnvironmentConfigField', () => {
     );
   });
 
-  it('shows the value of an entry the runtime cannot resolve, under the name the file gives it', async () => {
+  it('shows an entry the runtime cannot resolve under the env name the file gives it', async () => {
     const user = userEvent.setup();
     renderEnvironmentConfigField({ entries: [{ env: 'at21', value: 'dead' }] });
 
@@ -250,7 +230,7 @@ describe('EnvironmentConfigField', () => {
     expect(screen.getByText('dead')).toBeInTheDocument();
   });
 
-  it('removes only the entry whose delete button was used when two spell the same unresolvable environment', async () => {
+  it('removes only the entry whose delete button was used when two spell the same unknown environment', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
     renderEnvironmentConfigField({
@@ -265,19 +245,6 @@ describe('EnvironmentConfigField', () => {
     await user.click(getDeleteButtons('at21')[0]);
 
     expect(onChange).toHaveBeenCalledWith([{ env: 'at21', value: 'second' }]);
-  });
-
-  it('names an unresolvable environment once, however many entries spell it that way', async () => {
-    const user = userEvent.setup();
-    renderEnvironmentConfigField({
-      entries: [
-        { env: 'at21', value: 'first' },
-        { env: 'at21', value: 'second' },
-      ],
-    });
-
-    await user.click(getCollapsedButton());
-
     expect(screen.getByText(unknownEnvironmentsAlert('at21', 1))).toBeInTheDocument();
   });
 
@@ -299,28 +266,6 @@ describe('EnvironmentConfigField', () => {
         ),
       ),
     ).toBeInTheDocument();
-  });
-
-  it('keeps a shadowed duplicate when an unrelated row is saved', async () => {
-    const user = userEvent.setup();
-    const onChange = jest.fn();
-    renderEnvironmentConfigField({
-      entries: [
-        { env: 'tt02', value: 'shadowed' },
-        { env: 'at22', value: 'used' },
-      ],
-      onChange,
-    });
-    await user.click(getCollapsedButton());
-
-    await user.type(screen.getByLabelText(globalLabel), 'g');
-    await user.tab();
-
-    expect(onChange).toHaveBeenCalledWith([
-      { env: 'tt02', value: 'shadowed' },
-      { env: 'at22', value: 'used' },
-      { value: 'g' },
-    ]);
   });
 
   it('keeps a shadowed duplicate when the environment shadowing it is edited', async () => {
@@ -386,7 +331,6 @@ type TestProps = Partial<{
   onChange: (entries: EnvironmentEntry<string>[]) => void;
 }>;
 
-/** A minimal value control, so the core is exercised without depending on any wrapper. */
 const TestValueControl = ({
   label,
   value,

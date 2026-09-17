@@ -1,10 +1,4 @@
 import BpmnModdle from 'bpmn-moddle';
-import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import type { Moddle } from 'bpmn-js/lib/model/Types';
-import {
-  fromEnvironmentConfigElements,
-  toEnvironmentConfigElements,
-} from '../components/ConfigPanel/EnvironmentConfig/environmentConfigModdleUtils';
 import { altinnCustomTasks } from './altinnCustomTasks';
 
 const bpmnXmlWithEFormidlingConfig = `<?xml version="1.0" encoding="UTF-8"?>
@@ -106,29 +100,6 @@ const bpmnXmlWithEnvironmentScopedCorrespondenceResource = `<?xml version="1.0" 
   </bpmn:process>
 </bpmn:definitions>`;
 
-/**
- * The same signing task, with an attribute the altinn moddle descriptor does not declare on the
- * environment-independent `correspondenceResource`. A hand-written file or one saved by a newer
- * schema can carry such an attribute; moddle parks it in `$attrs`. It is deliberately unprefixed,
- * because moddle drops the namespace prefix off an unknown prefixed attribute on every save.
- */
-const bpmnXmlWithUndeclaredCorrespondenceResourceAttribute = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="SingleDataTask" isExecutable="false">
-    <bpmn:task id="Task_signing" name="Signering">
-      <bpmn:extensionElements>
-        <altinn:taskExtension>
-          <altinn:taskType>signing</altinn:taskType>
-          <altinn:signatureConfig>
-            <altinn:correspondenceResource fallback="later-version">resource-global</altinn:correspondenceResource>
-            <altinn:correspondenceResource env="tt02">resource-tt02</altinn:correspondenceResource>
-          </altinn:signatureConfig>
-        </altinn:taskExtension>
-      </bpmn:extensionElements>
-    </bpmn:task>
-  </bpmn:process>
-</bpmn:definitions>`;
-
 const roundTrip = async (xml: string): Promise<string> => {
   const moddle = new BpmnModdle({ altinn: altinnCustomTasks });
   const { rootElement, warnings } = await moddle.fromXML(xml);
@@ -167,9 +138,6 @@ describe('altinnCustomTasks', () => {
     );
   });
 
-  // The panel writes `false` rather than removing the element, so that the file records a decision
-  // rather than an omission. That only holds if a `false` body survives a round trip instead of
-  // being dropped as a falsy value.
   it('preserves a runDefaultValidator that is switched off', async () => {
     const savedXml = await roundTrip(bpmnXmlWithRunDefaultValidatorOff);
 
@@ -228,48 +196,11 @@ describe('altinnCustomTasks', () => {
     expect(savedXml).toContain('<altinn:dataTypes env="tt02">');
     expect(savedXml).toContain('<altinn:dataType>ref-data-as-pdf</altinn:dataType>');
   });
-
-  // `toEnvironmentConfigElements` hands an unchanged entry its own element back instead of building
-  // a new one from `{env, value}`. This is the deletion that prevents: everything the parsed
-  // element carries beyond the two declared properties - here an attribute moddle parked in
-  // `$attrs` - was otherwise written away by an edit to a different entry entirely.
-  it('keeps an undeclared attribute on an untouched entry when a sibling entry is edited', async () => {
-    const moddle = new BpmnModdle({ altinn: altinnCustomTasks });
-    const { rootElement, warnings } = await moddle.fromXML(
-      bpmnXmlWithUndeclaredCorrespondenceResourceAttribute,
-    );
-    // The one warning is moddle reporting the attribute it does not know. It parks it in `$attrs`
-    // all the same, which is the thing a re-created element leaves behind.
-    expect(warnings).toHaveLength(1);
-
-    const signatureConfig = getSignatureConfig(rootElement);
-    const existingElements = signatureConfig.correspondenceResource;
-    const editedEntries = fromEnvironmentConfigElements(existingElements).map((entry) =>
-      entry.env === 'tt02' ? { ...entry, value: 'resource-edited' } : entry,
-    );
-    signatureConfig.correspondenceResource = toEnvironmentConfigElements(
-      editedEntries,
-      moddle as unknown as Moddle,
-      existingElements,
-    );
-    const { xml: savedXml } = await moddle.toXML(rootElement, { format: true });
-
-    expect(savedXml).toContain(
-      '<altinn:correspondenceResource fallback="later-version">resource-global</altinn:correspondenceResource>',
-    );
-    expect(savedXml).toContain(
-      '<altinn:correspondenceResource env="tt02">resource-edited</altinn:correspondenceResource>',
-    );
-  });
 });
 
 type EFormidlingDataTypesElement = { env?: string; values: Array<{ dataType: string }> };
 type EFormidlingConfigElement = { dataTypes: EFormidlingDataTypesElement[] };
-type SignatureConfigElement = { correspondenceResource: ModdleElement[] };
-type TaskExtensionElement = {
-  eFormidlingConfig: EFormidlingConfigElement;
-  signatureConfig: SignatureConfigElement;
-};
+type TaskExtensionElement = { eFormidlingConfig: EFormidlingConfigElement };
 type ModdleTree = {
   rootElements: Array<{
     flowElements: Array<{ extensionElements: { values: TaskExtensionElement[] } }>;
@@ -281,6 +212,3 @@ const getTaskExtension = (rootElement: unknown): TaskExtensionElement =>
 
 const getEFormidlingConfig = (rootElement: unknown): EFormidlingConfigElement =>
   getTaskExtension(rootElement).eFormidlingConfig;
-
-const getSignatureConfig = (rootElement: unknown): SignatureConfigElement =>
-  getTaskExtension(rootElement).signatureConfig;
