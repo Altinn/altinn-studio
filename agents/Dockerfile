@@ -9,6 +9,7 @@ RUN apt-get update \
         build-essential \
         ca-certificates \
         curl \
+        fonts-jetbrains-mono \
         fonts-liberation \
         git \
         jq \
@@ -104,8 +105,8 @@ RUN case "${TARGETARCH}" in \
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
     && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-# Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF
-# with a system font (Liberation Mono from fonts-liberation above is in its default family list).
+# Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF.
+# JetBrains Mono includes the picker glyphs used by the terminal UI.
 # Both are static single binaries published per architecture without checksum files, so the
 # digests are pinned here and must move together with the version.
 ARG ASCIINEMA_VERSION=3.2.1
