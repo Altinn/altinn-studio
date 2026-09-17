@@ -40,7 +40,7 @@ export const ProcessEditor = (): JSX.Element => {
 
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
-  const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
+  const { data: bpmnXml } = useBpmnQuery(org, app);
   const { data: appVersion, isLoading: appVersionPending } = useAppVersionQuery(org, app);
   const { mutate: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
@@ -125,7 +125,7 @@ export const ProcessEditor = (): JSX.Element => {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
-  if (hasBpmnQueryError || bpmnXml === null) {
+  if (bpmnXml === null) {
     return <NoBpmnFoundAlert />;
   }
 
