@@ -19,6 +19,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- Deleting an Agent no longer logs a panic when its Sandbox has an active network-control connection.
 - The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.
 - On Windows, detaching from a Session with `Ctrl-b d` returns control to the terminal UI without dropping the next key press.
 - Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex and Claude Code keep their conversations in that history; Claude Code no longer uses its fullscreen renderer, which could corrupt the display when scrolling in tmux. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.

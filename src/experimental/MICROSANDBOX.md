@@ -305,34 +305,46 @@ Altinn Studio's digest table in the same change.
 
 ## 7. Update Altinn Studio
 
-Only update Altinn Studio after the downstream runtime release is complete and verified.
+Only update Altinn Studio after the downstream runtime release is complete and verified, or after a
+source-only descendant has been audited as compatible with the already verified runtime release.
 
 1. Update every `microsandbox*` Git revision together in the root `Cargo.toml`.
 2. Regenerate the root `Cargo.lock` and confirm every Git-sourced Microsandbox package resolves to
    the same revision and downstream version.
-3. Search the repository for every remaining reference to the previous pin and replace each hit.
-   Do not rely on a list of known files; search for the identifiers themselves:
+3. Search the repository for every remaining reference to the previous pin. For a runtime release,
+   replace the previous version, revision and bundle digests. For a source-only update, replace the
+   source revision but keep the compatible runtime version and bundle digests unchanged. Do not rely
+   on a list of known files; search for the identifiers themselves:
 
    ```bash
    git grep -n -e '<previous-downstream-version>' -e '<previous-revision-sha>'
    git grep -n -F -f <(printf '%s\n' <previous-bundle-digests>)
    ```
 
-   Expected hits include the runtime bundle digest table in `sandbox-microsandbox/src/client.rs`,
-   container images that download the runtime bundle (CI fails on any skew between such a pin and
-   `Cargo.lock`), and comments that name the pinned downstream version. Repeat the search until it
-   returns only this runbook and changelog history.
+   Runtime-release hits include the runtime bundle digest table in
+   `sandbox-microsandbox/src/client.rs`, container images that download the runtime bundle (CI fails
+   on any skew between such a pin and `Cargo.lock`), and comments that name the pinned downstream
+   version. For a source-only update, verify those runtime references still match the compatible
+   `digdir-v*` tag. Repeat the source-revision search until it returns only this runbook and changelog
+   history.
 4. Confirm that the Cargo revision is tagged by either the corresponding `digdir-v*` release or an
-   explicitly runtime-compatible `digdir-source-v*` tag. A source-only tag is only valid when the
-   diff from the runtime tag stays inside the host SDK library:
+   explicitly runtime-compatible `digdir-source-v*` tag. Start a source-only audit with the complete
+   diff from the runtime tag:
 
    ```bash
-   git diff --stat digdir-v<runtime-version>..digdir-source-v<runtime-version>-<consumer> -- . ':!sdk/rust'
+   git diff --stat digdir-v<runtime-version>..digdir-source-v<runtime-version>-<consumer> -- .
    ```
 
-   The output must be empty, or list only test modules whose non-test code is untouched. Any
-   change under `crates/protocol`, `crates/agentd`, `crates/runtime`, `crates/network`,
-   `vendor/libkrunfw` or the release workflow means a new Digdir runtime revision is required.
+   Changes confined to `sdk/rust` are normally source-only. Shared host libraries under `crates/`
+   may also qualify when the consumer pull request records that the changed production symbols are
+   reached only from the embedded host SDK, the existing runtime does not execute the changed path,
+   and protocol and artifact behavior are unchanged. This explicit audit is required because the
+   repository paths alone do not identify which binary executes shared library code.
+
+   A new Digdir runtime revision is required for changes used by the published `msb`, embedded
+   `agentd`, libkrunfw or firmware artifacts, or for changes to the host/guest protocol, release
+   workflow or artifact composition. Tests alone may change without a runtime release when their
+   non-test code is untouched.
 
 5. Run the experimental formatting, lint, build and unit-test targets.
 6. Run the ignored Microsandbox end-to-end tests on hosts with Docker, Internet access and hardware
