@@ -13,6 +13,7 @@ pub(crate) const METHOD_LIST: &str = "agents.v1.list";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
+pub(crate) const METHOD_SSH_ACCESS: &str = "agents.v1.sshAccess";
 pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
 pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
@@ -123,6 +124,9 @@ pub(crate) struct SessionEnsureParams {
     pub name: crate::sessions::SessionName,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub harness: Option<crate::Harness>,
+    /// Provider-owned model and effort level; validated, otherwise opaque to the daemon.
+    #[serde(default, skip_serializing_if = "crate::ModelSelection::is_empty")]
+    pub model_selection: crate::ModelSelection,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_prompt: Option<String>,
     #[serde(default, skip_serializing_if = "is_false")]

@@ -26,6 +26,7 @@ installed harness versions; testing an existing Sandbox does not prove the rebui
 | Model error without a completion report | The wait times out; inspect the Session and recover manually. |
 | Short completion timeout | Queuing, input readiness and delivery finish before the completion timeout starts. A timeout reports that the prompt was submitted; inspect turns before retrying. The next prompt contains no leftover draft. |
 | Idle/resume, before and after the first turn | An untouched Session remains usable; an established conversation resumes with its history. |
+| Create with `--model`/`--effort`, and with only manifest `defaults` | `get sessions` shows the resolved selection and the harness reports the same model and effort, also after idle-stop and resume; an unknown value fails visibly in the terminal. |
 | Transcript writes while the terminal is quiet | Recent transcript writes keep an unattached Session alive; missing or old transcripts do not prevent idle-stop. |
 | Authentication and configuration | Mediated login/inference works without unexpected onboarding or authentication dialogs; configured instructions and skills are available. |
 
@@ -36,5 +37,5 @@ Inspect `get sessions` (including `-o json`) and `turns` alongside the terminal.
 tool results and turn boundaries, including after compaction. A successful model response alone is insufficient.
 
 Run the normal formatting, lint and test checks, plus `cargo test -p agent --lib -- --ignored` on a host with Node.js
-and tmux for the terminal integration check. Record tested versions, commands and observed results in the PR;
+and tmux for the terminal integration checks. The scrollback check also requires Linux and util-linux `script`. Record tested versions, commands and observed results in the PR;
 update adapter fixtures when native output changes. Never publish credentials or authentication-bearing process arguments.

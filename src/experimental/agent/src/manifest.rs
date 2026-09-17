@@ -101,8 +101,26 @@ pub struct Spec {
     /// Host-owned values made available only through mediated requests.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub secrets: Vec<SecretSpec>,
+    /// Ways the Agent's user reaches into the Sandbox besides Sessions and `exec`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub access: Vec<AccessSpec>,
     /// Sandbox egress mediation policy.
     pub network: NetworkSpec,
+}
+
+/// One access capability the platform provides to the Agent's user.
+///
+/// Access is an Agent-level capability like `harnesses` and `secrets`: the
+/// platform owns the guest user, the transport and the key material, so a
+/// variant carries no tunables.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase", tag = "type")]
+pub enum AccessSpec {
+    /// OpenSSH access as the platform-owned guest user, reached through `agentctl ssh`.
+    ///
+    /// A struct variant so that `deny_unknown_fields` rejects tunables; serde
+    /// does not enforce it for unit variants of an internally tagged enum.
+    Ssh {},
 }
 
 /// Sandbox settings as supplied by an Agent manifest.
@@ -293,6 +311,12 @@ impl Spec {
         }
     }
 
+    /// Returns whether the Agent declares SSH access.
+    #[must_use]
+    pub fn ssh_access(&self) -> bool {
+        self.access.contains(&AccessSpec::Ssh {})
+    }
+
     fn validate(&self) -> Result<(), Error> {
         let mut mount_targets = std::collections::BTreeSet::new();
         for (index, mount) in self.sandbox.mounts.iter().enumerate() {
@@ -353,6 +377,12 @@ impl Spec {
         }
         self.validate_environment()?;
         self.validate_secrets()?;
+        let mut access = std::collections::BTreeSet::new();
+        if let Some(index) = self.access.iter().position(|capability| !access.insert(*capability)) {
+            return Err(Error::Invalid(format!(
+                "spec.access[{index}] duplicates an access capability"
+            )));
+        }
         if self.network.deny.iter().any(|host| !valid_host_pattern(host)) {
             return Err(Error::Invalid(
                 "spec.network.deny contains an invalid host pattern".into(),
@@ -661,6 +691,8 @@ impl Condition {
     pub const READY: &'static str = "Ready";
     /// Condition type for the Sandbox lifecycle underneath `Ready`.
     pub const SANDBOX_READY: &'static str = "SandboxReady";
+    /// Condition type for declared SSH access underneath `Ready`.
+    pub const SSH_READY: &'static str = "SshReady";
 
     /// Finds the `Ready` condition in a condition list.
     #[must_use]

@@ -260,6 +260,7 @@ namespace Altinn.App.Models
     public bool? MobilBoenhet { get; set; }
 
     [Range(1d, 999d)]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [XmlElement("AntallEnerom", Order = 4)]
     [JsonProperty("AntallEnerom")]
     [JsonPropertyName("AntallEnerom")]
@@ -278,6 +279,7 @@ namespace Altinn.App.Models
     public bool? TvEllerInternett { get; set; }
 
     [Range(0d, 999d)]
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [XmlElement("AntallRomMedKjokken", Order = 7)]
     [JsonProperty("AntallRomMedKjokken")]
     [JsonPropertyName("AntallRomMedKjokken")]

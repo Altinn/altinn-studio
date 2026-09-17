@@ -164,15 +164,13 @@ impl crate::sessions::SessionStore for Database {
         &'a self,
         agent: &'a str,
         name: &'a crate::sessions::SessionName,
-        harness: crate::Harness,
-        initial_prompt: Option<&'a str>,
+        new: crate::sessions::NewSession,
     ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
         Box::pin(async move {
             self.request(|response| Command::EnsureSession {
                 agent: agent.into(),
                 name: name.clone(),
-                harness,
-                initial_prompt: initial_prompt.map(str::to_owned),
+                new,
                 response,
             })
             .await
@@ -398,6 +396,45 @@ impl sandbox::secret_store::SecretStore for Database {
     }
 }
 
+impl crate::ssh::HostKeyStore for Database {
+    fn load_host_key(&self, id: AgentId) -> sandbox::LocalFuture<'_, Result<Option<Zeroizing<Vec<u8>>>, Error>> {
+        Box::pin(async move {
+            match self
+                .request(|response| Command::ResolveSecret {
+                    name: ssh_host_key_name(id),
+                    response,
+                })
+                .await
+            {
+                Ok(material) => Ok(Some(Zeroizing::new(material.expose().to_vec()))),
+                Err(Error::NotFound) => Ok(None),
+                Err(error) => Err(error),
+            }
+        })
+    }
+
+    fn store_host_key(&self, id: AgentId, key: Zeroizing<Vec<u8>>) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::SetSecret {
+                name: ssh_host_key_name(id),
+                value: key,
+                response,
+            })
+            .await
+        })
+    }
+
+    fn delete_host_key(&self, id: AgentId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::DeleteSecret {
+                name: ssh_host_key_name(id),
+                response,
+            })
+            .await
+        })
+    }
+}
+
 enum Command {
     Get {
         id: AgentId,
@@ -435,6 +472,10 @@ enum Command {
         value: Zeroizing<Vec<u8>>,
         response: oneshot::Sender<Result<(), Error>>,
     },
+    DeleteSecret {
+        name: String,
+        response: oneshot::Sender<Result<(), Error>>,
+    },
     ReplaceAgentSecrets {
         id: AgentId,
         secrets: Vec<StoredSecret>,
@@ -459,8 +500,7 @@ enum Command {
     EnsureSession {
         agent: String,
         name: crate::sessions::SessionName,
-        harness: crate::Harness,
-        initial_prompt: Option<String>,
+        new: crate::sessions::NewSession,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
     GetSession {
@@ -662,6 +702,9 @@ fn execute(connection: &mut Connection, command: Command) {
         } => {
             let _ = response.send(agents::finalize_deletion(connection, id, generation));
         }
+        Command::DeleteSecret { name, response } => {
+            let _ignored = response.send(secrets::delete_secret(connection, &name));
+        }
         Command::SetSecret { name, value, response } => {
             let _ = response.send(secrets::set_secret(connection, &name, &value));
         }
@@ -689,17 +732,10 @@ fn execute_session(connection: &mut Connection, command: Command) {
         Command::EnsureSession {
             agent,
             name,
-            harness,
-            initial_prompt,
+            new,
             response,
         } => {
-            let _ = response.send(sessions::ensure(
-                connection,
-                &agent,
-                &name,
-                harness,
-                initial_prompt.as_deref(),
-            ));
+            let _ = response.send(sessions::ensure(connection, &agent, &name, &new));
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));
@@ -822,6 +858,12 @@ fn agent_secret_prefix(id: AgentId) -> String {
     format!("agent/{id}/")
 }
 
+/// Secret row holding one incarnation's SSH host key. The name is outside the
+/// `agent/<id>/` prefix so that replacing the manifest's secrets keeps it.
+pub(crate) fn ssh_host_key_name(id: AgentId) -> String {
+    format!("agent-ssh/{id}/host-key")
+}
+
 fn agent_secret_name(id: AgentId, name: &str) -> String {
     format!("{}{name}", agent_secret_prefix(id))
 }
@@ -855,9 +897,11 @@ mod tests {
         drop(open(&path).expect("current database"));
         for _ in 0..4 {
             let connection = Connection::open(&path).expect("database");
-            connection.pragma_update(None, "user_version", 1).expect("old version");
+            connection
+                .pragma_update(None, "user_version", super::schema::VERSION - 1)
+                .expect("old version");
             drop(connection);
-            Database::migrate(&path).expect("adopt expanded version 1 after backup");
+            Database::migrate(&path).expect("adopt the expanded previous version after backup");
         }
         let backups = std::fs::read_dir(directory.path().join("backups"))
             .expect("backups")

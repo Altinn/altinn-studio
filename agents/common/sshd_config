@@ -1,0 +1,36 @@
+# OpenSSH server policy for Agent access, installed by the Agent image.
+#
+# agentd writes the host key and authorized_keys under /var/lib/agent/ssh when an Agent declares
+# `spec.access: [{type: ssh}]`; agent-ssh.service starts sshd only once the host key exists. The
+# server listens on the guest loopback only and is reached through `agentctl ssh-proxy`.
+#
+# The guest user `agent` has passwordless sudo, so PermitRootLogin and the forwarding limits below
+# are hygiene, not a security boundary: SSH logins share the Sandbox's one trust boundary.
+ListenAddress 127.0.0.1
+Port 2222
+AddressFamily inet
+
+HostKey /var/lib/agent/ssh/ssh_host_ed25519_key
+AuthorizedKeysFile /var/lib/agent/ssh/authorized_keys
+PidFile /run/agent-sshd.pid
+
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+AllowUsers agent
+StrictModes yes
+UsePAM yes
+
+AllowAgentForwarding no
+X11Forwarding no
+PermitTunnel no
+AllowTcpForwarding yes
+GatewayPorts no
+PermitUserEnvironment no
+
+AcceptEnv LANG LC_*
+PrintMotd no
+LogLevel INFO
+
+Subsystem sftp internal-sftp

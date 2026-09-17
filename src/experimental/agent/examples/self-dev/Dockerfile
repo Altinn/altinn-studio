@@ -27,6 +27,7 @@ RUN apt-get update \
         lldb \
         linux-perf \
         nftables \
+        openssh-server \
         pkg-config \
         podman \
         podman-docker \
@@ -121,6 +122,19 @@ COPY --chown=agent:agent --chmod=0600 claude-state.json /home/agent/.claude/.cla
 
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
+
+# SSH access, as in agents/Dockerfile: the image owns sshd, its policy and the unit; agentd writes
+# the per-Agent host key and authorized_keys under /var/lib/agent/ssh. The distribution's own
+# ssh.service and ssh.socket are masked so nothing listens beyond the guest loopback.
+COPY sshd_config /etc/agent/sshd_config
+COPY ssh.service /etc/systemd/system/agent-ssh.service
+COPY ssh-tmpfiles.conf /usr/lib/tmpfiles.d/agent-ssh.conf
+RUN systemctl mask ssh.service ssh.socket \
+    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
+    && install -d -m 0755 /run/sshd \
+    && ssh-keygen -q -t ed25519 -N '' -f /tmp/build-host-key \
+    && /usr/sbin/sshd -t -f /etc/agent/sshd_config -o HostKey=/tmp/build-host-key \
+    && rm -f /tmp/build-host-key /tmp/build-host-key.pub
 
 # All guest Executions inherit init.scope, whose default task limit is too low
 # for concurrent harnesses. The kernel pid limit remains the Sandbox boundary.

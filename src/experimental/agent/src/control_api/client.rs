@@ -10,7 +10,7 @@ use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, NameParams, Notification, ReadMessage, Request, Response,
+    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification, ReadMessage, Request, Response,
     SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
     ShutdownResult, read_message,
 };
@@ -152,6 +152,16 @@ impl Client {
         .await
     }
 
+    /// Describes how to reach an Agent over SSH.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is unknown, deleting, or declares no SSH access.
+    pub async fn ssh_access(&self, name: &str) -> Result<crate::ssh::AccessInfo, Error> {
+        self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }, None)
+            .await
+    }
+
     /// Requests deletion of an Agent and its owned sandbox.
     ///
     /// # Errors
@@ -187,19 +197,22 @@ impl Client {
 
     /// Creates or resolves one named session attach target.
     ///
-    /// `wait` decides whether the call returns after one Agent reconciliation
-    /// pass or follows background retries until Ready; a progress sink
-    /// independently opts in to streamed provisioning events.
+    /// `request` selects the harness, model, effort and first prompt of a
+    /// Session this call creates; see [`sessions::Service::ensure`] for the
+    /// precedence against manifest defaults. `wait` decides whether the call
+    /// returns after one Agent reconciliation pass or follows background
+    /// retries until Ready; a progress sink independently opts in to streamed
+    /// provisioning events.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is not ready or the registry cannot persist the session.
+    /// Returns an error when the Agent is not ready, a selection conflicts with
+    /// an existing Session, or the registry cannot persist the session.
     pub async fn ensure_session(
         &self,
         agent: &str,
         name: sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<String>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<sessions::AttachTarget, Error> {
@@ -208,8 +221,9 @@ impl Client {
             SessionEnsureParams {
                 agent: agent.into(),
                 name,
-                harness,
-                initial_prompt,
+                harness: request.harness,
+                model_selection: request.model_selection,
+                initial_prompt: request.initial_prompt,
                 progress: progress.is_some(),
                 follow: wait == WaitPolicy::UntilReady,
             },

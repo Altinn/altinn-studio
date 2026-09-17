@@ -50,6 +50,7 @@ struct BackendState {
     by_name: BTreeMap<SandboxName, SandboxId>,
     executions: BTreeSet<(SandboxId, execution::ExecutionId)>,
     files: BTreeMap<(SandboxId, SandboxPath), Vec<u8>>,
+    file_writes: Vec<SandboxPath>,
     execution_specs: Vec<execution::ExecutionSpec>,
     matched_execution_events: VecDeque<MatchedExecutionEvents>,
     queued_execution_events: VecDeque<Vec<execution::ExecutionEvent>>,
@@ -116,6 +117,12 @@ impl Provider {
     #[must_use]
     pub fn execution_specs(&self) -> Vec<execution::ExecutionSpec> {
         self.state.borrow().execution_specs.clone()
+    }
+
+    /// Returns the path of every file write observed by this Provider, in order.
+    #[must_use]
+    pub fn file_writes(&self) -> Vec<SandboxPath> {
+        self.state.borrow().file_writes.clone()
     }
 
     /// Supplies the events returned by the next terminal Execution.
@@ -596,10 +603,9 @@ impl SandboxBackend for Provider {
                 source,
             })?;
             self.ensure_running(sandbox_id)?;
-            self.state
-                .borrow_mut()
-                .files
-                .insert((sandbox_id.clone(), path.clone()), bytes);
+            let mut storage = self.state.borrow_mut();
+            storage.files.insert((sandbox_id.clone(), path.clone()), bytes);
+            storage.file_writes.push(path.clone());
             Ok(())
         })
     }

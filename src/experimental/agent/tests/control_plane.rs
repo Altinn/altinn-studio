@@ -799,6 +799,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
+        defaults: agent::ModelSelection::default(),
     });
     let error = fixture
         .control_plane
@@ -1700,4 +1701,115 @@ async fn stale_status_write_is_rejected() {
         .await
         .expect_err("stale status should fail");
     assert!(matches!(error, Error::Conflict));
+}
+
+fn is_ssh_server_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/test" && args == &["-x", "/usr/sbin/sshd"]
+    )
+}
+
+fn exited(code: i32) -> Vec<sandbox::execution::ExecutionEvent> {
+    vec![
+        sandbox::execution::ExecutionEvent::Started { process_id: None },
+        sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code }),
+    ]
+}
+
+#[tokio::test(flavor = "local")]
+async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
+    let temporary = TempDirectory::new("ssh-access");
+    let home = agent::local::home::ControlPlaneHome::resolve(Some(&temporary.path().join("home"))).expect("home");
+    home.prepare().expect("prepare home");
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let keys = Rc::new(agent::ssh::memory::InMemoryHostKeyStore::new());
+    let ssh = Rc::new(
+        agent::ssh::Access::new(
+            &home,
+            PathBuf::from("/usr/local/bin/agentctl"),
+            keys.clone(),
+            store.clone(),
+        )
+        .with_user_home(None),
+    );
+    let reconciler = Reconciler::new(store.clone(), sandbox_service(provider), Observers::new()).with_ssh_access(ssh);
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let mut request = apply_request("worker");
+    request.agent.spec.access = vec![agent::AccessSpec::Ssh {}];
+    control_plane.apply(request).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("stored").id;
+
+    // The image lacks a server: the Agent is not Ready and the failure is permanent.
+    backend.queue_execution_events_matching(is_ssh_server_check, exited(1));
+    let error = reconciler
+        .reconcile(id)
+        .await
+        .expect_err("missing server fails the pass");
+    assert_eq!(agent::ReconcileFailure::classify(&error).kind, FailureKind::Invalid);
+    let status = store.get(id).await.expect("record").agent.status;
+    let ready = status.ready_condition().expect("Ready condition");
+    assert_eq!(ready.status, ConditionStatus::False);
+    assert_eq!(ready.reason, "SshAccessFailed");
+    assert!(ready.message.contains("cannot provide SSH access"));
+    let ssh_ready = status
+        .conditions
+        .iter()
+        .find(|condition| condition.kind == agent::Condition::SSH_READY)
+        .expect("SshReady condition");
+    assert_eq!(ssh_ready.status, ConditionStatus::False);
+    assert!(
+        status
+            .sandbox
+            .as_ref()
+            .and_then(agent::sandbox::Assignment::id)
+            .is_some()
+    );
+    assert!(!keys.contains(id));
+
+    // A server is present: the Agent is Ready and SshReady is reported alongside SandboxReady.
+    backend.queue_execution_events_matching(is_ssh_server_check, exited(0));
+    reconciler.reconcile(id).await.expect("reconcile with a server");
+    let status = store.get(id).await.expect("record").agent.status;
+    assert!(status.is_ready());
+    assert_eq!(
+        status
+            .conditions
+            .iter()
+            .map(|condition| (condition.kind.as_str(), condition.status))
+            .collect::<Vec<_>>(),
+        [
+            (agent::Condition::SANDBOX_READY, ConditionStatus::True),
+            (agent::Condition::SSH_READY, ConditionStatus::True),
+            (agent::Condition::READY, ConditionStatus::True),
+        ]
+    );
+    assert!(keys.contains(id));
+    let ssh_home = agent::ssh::SshHome::new(&home);
+    assert!(ssh_home.identity_path(id).is_file());
+    let known_hosts = std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts");
+    assert!(known_hosts.starts_with(&format!("agent-{id} ssh-ed25519 ")));
+    assert!(known_hosts.contains("\naltinn-agent-worker ssh-ed25519 "));
+    assert!(
+        std::fs::read_to_string(ssh_home.config_path())
+            .expect("config")
+            .contains("Host altinn-agent-worker\n")
+    );
+
+    control_plane.delete("worker").await.expect("delete request");
+    reconciler.reconcile(id).await.expect("delete");
+    assert!(!keys.contains(id));
+    assert!(!ssh_home.agent_directory(id).exists());
+    assert_eq!(
+        std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts"),
+        ""
+    );
+    assert!(
+        !std::fs::read_to_string(ssh_home.config_path())
+            .expect("config")
+            .contains("Host ")
+    );
 }

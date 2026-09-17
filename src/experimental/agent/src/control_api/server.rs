@@ -14,9 +14,9 @@ use super::protocol::{
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, NameParams, Notification, PROTOCOL_VERSION,
-    ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams,
-    SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification,
+    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -87,13 +87,12 @@ impl AuthenticationApi for harness::AuthenticationManager {
 
 /// Host-tracked session operations exposed through the local control API.
 pub trait SessionApi {
-    /// Creates or resolves one named session attach target.
+    /// Creates or resolves one named session attach target; see [`sessions::Service::ensure`].
     fn ensure<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<&'a str>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
@@ -136,12 +135,11 @@ impl SessionApi for sessions::Service {
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<&'a str>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness, initial_prompt, wait, progress).await })
+        Box::pin(async move { Self::ensure(self, agent, name, request, wait, progress).await })
     }
 
     fn prompt<'a>(
@@ -200,6 +198,18 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
         Box::pin(async move { Self::ensure(self, name, wait, progress).await })
+    }
+}
+
+/// SSH access descriptors exposed through the local control API.
+pub trait SshAccessApi {
+    /// Describes the SSH access of a named Agent.
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::ssh::AccessInfo, Error>>;
+}
+
+impl SshAccessApi for crate::ssh::Access {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::ssh::AccessInfo, Error>> {
+        Box::pin(async move { Self::describe(self, name).await })
     }
 }
 
@@ -283,6 +293,7 @@ pub struct Server {
     authentication: Rc<dyn AuthenticationApi>,
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
+    ssh: Rc<dyn SshAccessApi>,
     on_error: ErrorHandler,
     lifecycle: Lifecycle,
 }
@@ -295,6 +306,7 @@ impl Server {
         authentication: Rc<dyn AuthenticationApi>,
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
+        ssh: Rc<dyn SshAccessApi>,
         on_error: ErrorHandler,
     ) -> Self {
         Self {
@@ -302,6 +314,7 @@ impl Server {
             authentication,
             executions,
             sessions,
+            ssh,
             on_error,
             lifecycle: Lifecycle::default(),
         }
@@ -412,6 +425,7 @@ impl Server {
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params, progress).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params, progress).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
@@ -494,6 +508,14 @@ impl Server {
         )
     }
 
+    async fn handle_ssh_access(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.ssh.describe(&params.name).await)
+    }
+
     async fn handle_execution_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
         let Ok(params) = serde_json::from_value::<ExecutionEnsureParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
@@ -518,21 +540,28 @@ impl Server {
     }
 
     async fn handle_session_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
-        let Ok(params) = serde_json::from_value::<SessionEnsureParams>(value) else {
-            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        let params = match serde_json::from_value::<SessionEnsureParams>(value) {
+            Ok(params) => params,
+            // The selections carry their own validation, so name the decoding failure
+            // instead of blaming the two required fields.
+            Err(error) => {
+                return error_response(
+                    id,
+                    CODE_INVALID_PARAMS,
+                    format!("agent and session name are required, and selections must be valid: {error}"),
+                );
+            }
         };
         let (wait, progress) = observation(params.follow, params.progress, progress);
+        let request = sessions::SessionRequest {
+            harness: params.harness,
+            model_selection: params.model_selection,
+            initial_prompt: params.initial_prompt,
+        };
         result_response(
             id,
             self.sessions
-                .ensure(
-                    &params.agent,
-                    &params.name,
-                    params.harness,
-                    params.initial_prompt.as_deref(),
-                    wait,
-                    progress,
-                )
+                .ensure(&params.agent, &params.name, request, wait, progress)
                 .await,
         )
     }

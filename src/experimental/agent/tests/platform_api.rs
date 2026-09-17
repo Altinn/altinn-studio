@@ -75,8 +75,7 @@ async fn session_reports_require_the_current_launch_token() {
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            agent::sessions::NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("session");
@@ -279,8 +278,7 @@ async fn launch_bookkeeping_round_trips_and_resets() {
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            agent::sessions::NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("session");

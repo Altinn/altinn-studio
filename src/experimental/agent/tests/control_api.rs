@@ -10,7 +10,7 @@ use std::{
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi},
+    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi},
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
@@ -27,6 +27,28 @@ use support::agent;
 struct IgnoreNotifications;
 
 struct FakeAuthentication;
+struct FakeSshAccess;
+
+impl SshAccessApi for FakeSshAccess {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::ssh::AccessInfo, Error>> {
+        Box::pin(async move {
+            if name != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(agent::ssh::AccessInfo {
+                kind: "ssh".into(),
+                agent: name.into(),
+                agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+                alias: "altinn-agent-worker".into(),
+                user: "agent".into(),
+                identity_file: "/home/me/.agent/ssh/38f41de4-6ff7-4679-ae46-678bc61e4dcb/id_ed25519".into(),
+                known_hosts_file: "/home/me/.agent/ssh/known_hosts".into(),
+                config_file: "/home/me/.agent/ssh/config".into(),
+                proxy_command: "/usr/local/bin/agentctl ssh-proxy agent/worker".into(),
+            })
+        })
+    }
+}
 struct FakeExecutions {
     progress_ensures: Rc<Cell<usize>>,
 }
@@ -42,7 +64,7 @@ struct UpgradeGates {
 }
 
 struct FakeSessions {
-    ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
@@ -95,12 +117,11 @@ impl SessionApi for FakeSessions {
         &'a self,
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
-        harness: Option<agent::Harness>,
-        _initial_prompt: Option<&'a str>,
+        request: agent::sessions::SessionRequest,
         _wait: WaitPolicy,
         _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
-        self.ensured_harnesses.borrow_mut().push(harness);
+        self.ensured.borrow_mut().push(request);
         Box::pin(async { Err(Error::NotFound) })
     }
 
@@ -216,7 +237,7 @@ struct ScriptedConnector {
 struct ApiFixture {
     server: Rc<Server>,
     client: Client,
-    ensured_harnesses: Rc<RefCell<Vec<Option<agent::Harness>>>>,
+    ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     progress_ensures: Rc<Cell<usize>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
@@ -258,7 +279,7 @@ fn api() -> ApiFixture {
         Rc::new(InMemoryAgentStore::new()),
         Rc::new(IgnoreNotifications),
     ));
-    let ensured_harnesses = Rc::new(RefCell::new(Vec::new()));
+    let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let progress_ensures = Rc::new(Cell::new(0));
@@ -272,19 +293,20 @@ fn api() -> ApiFixture {
             progress_ensures: progress_ensures.clone(),
         }),
         Rc::new(FakeSessions {
-            ensured_harnesses: ensured_harnesses.clone(),
+            ensured: ensured.clone(),
             sent: sent.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
         }),
+        Rc::new(FakeSshAccess),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
     ApiFixture {
         server,
         client,
-        ensured_harnesses,
+        ensured,
         sent,
         progress_ensures,
         upgrade_blockers,
@@ -635,21 +657,40 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     assert_eq!(execution.operating_system, "linux");
     assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
+    let request = agent::sessions::SessionRequest {
+        harness: Some(agent::Harness::ClaudeCode),
+        model_selection: agent::ModelSelection {
+            model: Some(agent::Model::new("claude-fable-5").expect("model")),
+            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+        },
+        initial_prompt: None,
+    };
     let ensure_error = client
         .ensure_session(
             "worker",
             agent::sessions::SessionName::new("s1").expect("Session name"),
-            Some(agent::Harness::ClaudeCode),
-            None,
+            request.clone(),
             WaitPolicy::FirstPass,
             None,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
     assert!(matches!(ensure_error, Error::Rpc(error) if error.code == -32004));
+    let omitted = client
+        .ensure_session(
+            "worker",
+            agent::sessions::SessionName::new("s2").expect("Session name"),
+            agent::sessions::SessionRequest::default(),
+            WaitPolicy::FirstPass,
+            None,
+        )
+        .await
+        .expect_err("fake Session ensure should fail after decoding parameters");
+    assert!(matches!(omitted, Error::Rpc(error) if error.code == -32004));
     assert_eq!(
-        fixture.ensured_harnesses.borrow().as_slice(),
-        &[Some(agent::Harness::ClaudeCode)]
+        fixture.ensured.borrow().as_slice(),
+        &[request, agent::sessions::SessionRequest::default()],
+        "model and effort travel as opaque values and stay absent when omitted"
     );
     let session_error = client
         .get_session("worker", agent::sessions::SessionName::new("s1").expect("Session name"))
@@ -768,6 +809,41 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
         .expect("active client should not wait for idle connection")
         .expect("get");
     assert_eq!(fetched.metadata.name, "worker");
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_ensure_rejects_invalid_selections_before_reaching_the_service() {
+    let fixture = api();
+    let (mut raw_client, raw_server) = tokio::io::duplex(4096);
+    let api = fixture.server.clone();
+    tokio::task::spawn_local(async move {
+        let _ignored = api.serve_connection(raw_server).await;
+    });
+    let mut reader = BufReader::new(&mut raw_client);
+    for (id, params) in [
+        (1, r#"{"agent":"worker","name":"s1","model_selection":{"model":""}}"#),
+        (
+            2,
+            r#"{"agent":"worker","name":"s1","model_selection":{"effort":"very high"}}"#,
+        ),
+    ] {
+        let request = format!(r#"{{"jsonrpc":"2.0","id":{id},"method":"sessions.v1.ensure","params":{params}}}"#);
+        reader
+            .get_mut()
+            .write_all(format!("{request}\n").as_bytes())
+            .await
+            .expect("write request");
+        let mut response = String::new();
+        reader.read_line(&mut response).await.expect("read response");
+        let response: serde_json::Value = serde_json::from_str(&response).expect("JSON-RPC response");
+        assert_eq!(response["error"]["code"], -32602, "{response}");
+        let message = response["error"]["message"].as_str().expect("message");
+        assert!(
+            message.contains("must be 1-128 ASCII letters"),
+            "the validation failure names the rule: {message}"
+        );
+    }
+    assert!(fixture.ensured.borrow().is_empty());
 }
 
 #[cfg(unix)]
