@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::{path::PathBuf, time::SystemTime};
+use std::path::PathBuf;
 
 use agent::{
     API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
@@ -72,26 +72,19 @@ pub(crate) fn agent(name: &str) -> Agent {
     }
 }
 
-pub(crate) struct TempDirectory(PathBuf);
+pub(crate) struct TempDirectory(tempfile::TempDir);
 
 impl TempDirectory {
     pub(crate) fn new(label: &str) -> Self {
-        let nonce = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .expect("system time should follow the epoch")
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!("agent-platform-{label}-{}-{nonce}", std::process::id()));
-        std::fs::create_dir_all(&path).expect("temporary directory should be created");
-        Self(path)
+        Self(
+            tempfile::Builder::new()
+                .prefix(&format!("agent-platform-{label}-"))
+                .tempdir()
+                .expect("temporary directory should be created"),
+        )
     }
 
     pub(crate) fn path(&self) -> &std::path::Path {
-        &self.0
-    }
-}
-
-impl Drop for TempDirectory {
-    fn drop(&mut self) {
-        let _ignored = std::fs::remove_dir_all(&self.0);
+        self.0.path()
     }
 }

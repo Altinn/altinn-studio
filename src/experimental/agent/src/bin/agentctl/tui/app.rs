@@ -14,8 +14,16 @@ use crate::{format, forward::ForwardSpec};
 /// Key hints of the new Session form, shared by the modal and the footer.
 pub(crate) const NEW_SESSION_HINTS: [(&str, &str); 4] = [
     ("enter", "create"),
-    ("tab", "field"),
+    ("tab/↑/↓", "field"),
     ("←/→", "harness"),
+    ("esc", "cancel"),
+];
+
+/// Key hints of the create Agent form, shared by the modal and the footer.
+pub(crate) const CREATE_AGENT_HINTS: [(&str, &str); 4] = [
+    ("enter", "create"),
+    ("tab/↑/↓", "field"),
+    ("←/→", "select"),
     ("esc", "cancel"),
 ];
 
@@ -397,16 +405,16 @@ impl CreateForm {
                 Ok(action) => return Some(action),
                 Err(invalid) => self.error = Some(invalid),
             },
-            KeyCode::Tab => {
+            KeyCode::Tab | KeyCode::Down => {
                 self.field = self.field.next();
                 self.error = None;
             }
-            KeyCode::BackTab => {
+            KeyCode::BackTab | KeyCode::Up => {
                 self.field = self.field.previous();
                 self.error = None;
             }
-            KeyCode::Right | KeyCode::Down => self.select(1),
-            KeyCode::Left | KeyCode::Up => self.select(-1),
+            KeyCode::Right => self.select(1),
+            KeyCode::Left => self.select(-1),
             KeyCode::Backspace if matches!(self.field, CreateField::Name | CreateField::EnvironmentFile) => {
                 match self.field {
                     CreateField::Name => {
@@ -1133,12 +1141,7 @@ impl App {
             return match modal {
                 Modal::ConfirmDelete { .. } => vec![("y", "confirm"), ("n", "cancel")],
                 Modal::NewSession(_) => NEW_SESSION_HINTS.to_vec(),
-                Modal::CreateAgent { .. } => vec![
-                    ("enter", "create"),
-                    ("tab", "field"),
-                    ("←/→", "select"),
-                    ("esc", "cancel"),
-                ],
+                Modal::CreateAgent { .. } => CREATE_AGENT_HINTS.to_vec(),
                 Modal::PortForward { .. } => vec![("enter", "forward"), ("tab", "field"), ("esc", "cancel")],
             };
         }
@@ -1628,7 +1631,7 @@ mod tests {
             app.hints(),
             vec![
                 ("enter", "create"),
-                ("tab", "field"),
+                ("tab/↑/↓", "field"),
                 ("←/→", "select"),
                 ("esc", "cancel")
             ]
@@ -1786,6 +1789,24 @@ mod tests {
         assert_eq!(create_form(&app).variant, 1);
         assert_eq!(create_form(&app).variant_label(), Some("nested".into()));
         assert_eq!(create_form(&app).placeholder(), Some("builder-nested"));
+    }
+
+    #[test]
+    fn create_form_cycles_fields_with_arrows_and_tab() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/sources/fresh", "fresh")]));
+        assert_eq!(create_form(&app).field, CreateField::Agent);
+
+        app.on_key(key(KeyCode::Down));
+        assert_eq!(create_form(&app).field, CreateField::Variant);
+        app.on_key(key(KeyCode::Down));
+        assert_eq!(create_form(&app).field, CreateField::Name);
+        app.on_key(key(KeyCode::Up));
+        assert_eq!(create_form(&app).field, CreateField::Variant);
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(create_form(&app).field, CreateField::Name);
+        app.on_key(key(KeyCode::BackTab));
+        assert_eq!(create_form(&app).field, CreateField::Variant);
     }
 
     #[test]

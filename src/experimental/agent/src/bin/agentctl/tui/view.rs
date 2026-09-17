@@ -7,13 +7,14 @@ use ratatui::{
 };
 
 use super::MANIFEST_FILE;
-use super::app::{App, ForwardField, Modal, Tone};
+use super::app::{App, CREATE_AGENT_HINTS, ForwardField, Modal, Tone};
 
 const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
 const CREATE_AGENT_POPUP_HEIGHT: u16 = 8;
 const CREATE_AGENT_FIELD_ROWS: usize = 4;
 const CREATE_FIELD_LABEL_WIDTH: usize = 10;
 const CREATE_PICKER_VALUE_WIDTH: usize = 18;
+const CREATE_PICKER_DETAIL_OFFSET: usize = CREATE_FIELD_LABEL_WIDTH + 2 + CREATE_PICKER_VALUE_WIDTH + 2 + 8;
 
 pub(crate) fn render(frame: &mut Frame, app: &App) {
     let [header, body, footer] =
@@ -277,6 +278,10 @@ fn field_line(label: &str, value: &str, focused: bool, empty_hint: Option<String
 }
 
 fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm) {
+    let popup_width = CREATE_AGENT_POPUP_WIDTH.min(area.width);
+    let detail_width = usize::from(popup_width)
+        .saturating_sub(2)
+        .saturating_sub(CREATE_PICKER_DETAIL_OFFSET);
     let mut lines = form.agent().zip(form.candidate()).map_or_else(
         || {
             vec![
@@ -291,7 +296,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 )),
             ]
         },
-        |(agent, candidate)| picker_lines(form, agent, candidate),
+        |(agent, candidate)| picker_lines(form, agent, candidate, detail_width),
     );
     while lines.len() < CREATE_AGENT_FIELD_ROWS {
         lines.push(Line::default());
@@ -302,19 +307,14 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
     } else {
         lines.push(Line::default());
     }
-    lines.push(hint_line(&[
-        ("enter", "create"),
-        ("tab", "field"),
-        ("←/→", "select"),
-        ("esc", "cancel"),
-    ]));
+    lines.push(hint_line(&CREATE_AGENT_HINTS));
     popup_sized(
         frame,
         area,
         " create agent ",
         Color::Cyan,
         lines,
-        CREATE_AGENT_POPUP_WIDTH,
+        popup_width,
         CREATE_AGENT_POPUP_HEIGHT,
     );
 }
@@ -323,6 +323,7 @@ fn picker_lines(
     form: &super::app::CreateForm,
     agent: &super::app::AgentDefinition,
     candidate: &super::app::ManifestCandidate,
+    detail_width: usize,
 ) -> Vec<Line<'static>> {
     let agent_path = abbreviate_home(&agent.directory.display().to_string());
     let manifest_file = candidate.path.file_name().map_or_else(
@@ -335,18 +336,20 @@ fn picker_lines(
         picker_line(
             "Agent:",
             &agent_label,
-            agent_path,
+            &agent_path,
             form.field == super::app::CreateField::Agent,
             form.agent,
             form.agents.len(),
+            detail_width,
         ),
         picker_line(
             "Variant:",
             &variant_label,
-            manifest_file,
+            &manifest_file,
             form.field == super::app::CreateField::Variant,
             form.variant,
             agent.variants.len(),
+            detail_width,
         ),
     ];
     lines.push(Line::from(name_field_spans(form)));
@@ -362,10 +365,11 @@ fn picker_lines(
 fn picker_line(
     label: &'static str,
     value: &str,
-    detail: String,
+    detail: &str,
     focused: bool,
     selected: usize,
     total: usize,
+    detail_width: usize,
 ) -> Line<'static> {
     let control = if focused { Color::Cyan } else { Color::DarkGray };
     let value_style = if focused {
@@ -381,7 +385,7 @@ fn picker_line(
         Span::styled(value, value_style),
         Span::styled(" ▸", Style::new().fg(control)),
         Span::styled(format!(" {position:>5}  "), Style::new().fg(Color::DarkGray)),
-        Span::styled(detail, Style::new().fg(Color::DarkGray)),
+        Span::styled(tail_ellipsized(detail, detail_width), Style::new().fg(Color::DarkGray)),
     ])
 }
 
@@ -428,6 +432,25 @@ fn fixed_width(value: &str, width: usize) -> String {
         truncated.push('…');
         truncated
     }
+}
+
+fn tail_ellipsized(value: &str, width: usize) -> String {
+    if Line::from(value).width() <= width {
+        return value.to_owned();
+    }
+    if width == 0 {
+        return String::new();
+    }
+
+    let available = width.saturating_sub(1);
+    let mut start = value.len();
+    for (index, _) in value.char_indices().rev() {
+        if Line::from(&value[index..]).width() > available {
+            break;
+        }
+        start = index;
+    }
+    format!("…{}", &value[start..])
 }
 
 /// Renders the name input; an empty buffer shows the placeholder with a
@@ -637,7 +660,7 @@ mod tests {
         assert!(text.contains("Variant:  ◂ default"));
         assert!(text.contains("Name:       full"));
         assert!(text.contains("Env file:   default: .env beside manifest"));
-        assert!(text.contains("enter create · tab field · ←/→ select · esc cancel"));
+        assert!(text.contains("enter create · tab/↑/↓ field · ←/→ select · esc cancel"));
         let initial_geometry = create_modal_geometry(&text);
         let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
         let variant_line = text
@@ -674,6 +697,32 @@ mod tests {
         assert!(text.contains("Name:       copy▏"));
         assert!(text.contains("Env file:   default: .env beside manifest"));
         assert_eq!(create_modal_geometry(&text), initial_geometry);
+    }
+
+    #[test]
+    fn create_agent_modal_preserves_the_end_of_long_source_paths() {
+        use super::super::app::{CreateForm, ManifestCandidate};
+
+        let prefix = "/a/source/directory/whose/leading/components/do/not/fit/inside/the/create/agent/modal";
+        let mut app = App::new();
+        app.modal = Some(Modal::CreateAgent(CreateForm::new(
+            vec![ManifestCandidate::new(
+                std::path::PathBuf::from(prefix).join("agents/full/agent.yaml"),
+                Ok("full".into()),
+            )],
+            None,
+        )));
+        let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
+        terminal.draw(|frame| render(frame, &app)).expect("modal draw");
+        let text = buffer_text(&terminal);
+        let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
+        assert!(agent_line.contains('…'));
+        assert!(agent_line.contains("/not/fit/inside/the/create/agent/modal/agents/full"));
+        assert!(!agent_line.contains("/a/source/directory"));
+        assert!(
+            agent_line.trim_end().ends_with('│'),
+            "path remains inside the modal: {agent_line}"
+        );
     }
 
     #[test]
