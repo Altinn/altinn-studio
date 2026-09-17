@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -10,11 +11,19 @@ import classes from 'src/layout/PersonLookup/PersonLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
-  const { dataModelBindings, textResourceBindings, required } = useItemWhenType(targetBaseComponentId, 'PersonLookup');
+  const config = useComponentConfig(targetBaseComponentId, 'PersonLookup');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'PersonLookup');
+  const required = useEvalExpression(config.required, Expressions.PersonLookup.required);
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.PersonLookup.textResourceBindings.title,
+  );
+
   const { formData } = useDataModelBindings(dataModelBindings);
   const { fullName, ssn } = formData;
   const emptyFieldText = useSummaryOverrides<'PersonLookup'>(targetBaseComponentId)?.emptyFieldText;
@@ -38,7 +47,7 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
           data-size='sm'
           level={2}
         >
-          <Lang id={textResourceBindings?.title} />
+          <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
         </Heading>
         <div className={classes.personLookupComponent}>
           <div className={classes.personLookupComponentSsn}>

@@ -1,5 +1,8 @@
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export interface LabelData {
@@ -22,21 +25,52 @@ export function useLabelData({
   baseComponentId: string;
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }): LabelData {
-  const item = useItemFor(baseComponentId);
+  const config = useComponentConfig(baseComponentId);
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const required = useEvalExpression(
+    'required' in config ? config.required : undefined,
+    CommonExpressions.FormComponentProps.required,
+  );
+  const evaluatedTitle = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+  const evaluatedHelp = useEvalExpression(
+    config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
+    CommonExpressions.TRBLabel.help,
+  );
+  const evaluatedDescription = useEvalExpression(
+    config.textResourceBindings && 'description' in config.textResourceBindings
+      ? config.textResourceBindings.description
+      : undefined,
+    CommonExpressions.TRBLabel.description,
+  );
+
   const componentId = useIndexedId(baseComponentId);
-
-  const readOnly = 'readOnly' in item ? item.readOnly : undefined;
-  const required = 'required' in item ? item.required : undefined;
-  const showOptionalMarking = 'labelSettings' in item && !!item.labelSettings?.optionalIndicator;
-
-  const trb = item.textResourceBindings;
-  const { title, help, description } = trb
-    ? {
-        title: 'title' in trb ? trb.title : undefined,
-        help: 'help' in trb ? trb.help : undefined,
-        description: 'description' in trb ? trb.description : undefined,
-      }
-    : { title: undefined, help: undefined, description: undefined };
+  const title =
+    config.textResourceBindings &&
+    'title' in config.textResourceBindings &&
+    config.textResourceBindings.title !== undefined
+      ? evaluatedTitle
+      : undefined;
+  const help =
+    config.textResourceBindings &&
+    'help' in config.textResourceBindings &&
+    config.textResourceBindings.help !== undefined
+      ? evaluatedHelp
+      : undefined;
+  const description =
+    config.textResourceBindings &&
+    'description' in config.textResourceBindings &&
+    config.textResourceBindings.description !== undefined
+      ? evaluatedDescription
+      : undefined;
+  const showOptionalMarking = 'labelSettings' in config && !!config.labelSettings?.optionalIndicator;
 
   const shouldShowLabel =
     (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && !!title;

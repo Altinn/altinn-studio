@@ -45,12 +45,16 @@ interface Props {
 }
 
 function InnerExpressionRunner({ expression, positionalArguments, valueArguments }: Props) {
-  const result = useEvalExpression(expression, {
-    returnType: ExprVal.Any,
-    defaultValue: null,
-    positionalArguments,
-    valueArguments,
-  });
+  const result = useEvalExpression(
+    expression,
+    {
+      returnType: ExprVal.Any,
+      defaultValue: null,
+      propertyPath: 'expression',
+      errorIntroText: 'Invalid test expression',
+    },
+    { positionalArguments, valueArguments },
+  );
   return <div data-testid='expr-result'>{JSON.stringify(result)}</div>;
 }
 

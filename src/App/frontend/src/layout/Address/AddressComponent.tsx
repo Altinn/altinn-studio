@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 import { AddressLayout } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { AddressFieldKey } from '@app/form-component';
 
 import { FormStore } from 'src/features/form/FormContext';
@@ -11,24 +12,38 @@ import { useComponentValidationsFor } from 'src/features/validation/selectors/co
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { usePostPlace } from 'src/layout/Address/usePostPlace';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<'Address'>) {
-  const {
-    id,
-    required,
-    readOnly,
-    simplified,
-    saveWhileTyping,
-    textResourceBindings,
-    dataModelBindings,
-    labelSettings,
-  } = useItemWhenType(baseComponentId, 'Address');
+  const config = useComponentConfig(baseComponentId, 'Address');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Address');
+  const componentId = useIndexedId(baseComponentId);
+  const required = useEvalExpression(config.required, Expressions.Address.required);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Address.readOnly);
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
+  const careOfTitle = useEvalExpression(
+    config.textResourceBindings?.careOfTitle,
+    Expressions.Address.textResourceBindings.careOfTitle,
+  );
+  const zipCodeTitle = useEvalExpression(
+    config.textResourceBindings?.zipCodeTitle,
+    Expressions.Address.textResourceBindings.zipCodeTitle,
+  );
+  const postPlaceTitle = useEvalExpression(
+    config.textResourceBindings?.postPlaceTitle,
+    Expressions.Address.textResourceBindings.postPlaceTitle,
+  );
+  const houseNumberTitle = useEvalExpression(
+    config.textResourceBindings?.houseNumberTitle,
+    Expressions.Address.textResourceBindings.houseNumberTitle,
+  );
 
   const bindingValidations = useBindingValidationsFor<'Address'>(baseComponentId);
   const componentValidations = useComponentValidationsFor(baseComponentId);
-  const { formData, setValue } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  const { formData, setValue } = useDataModelBindings(dataModelBindings, config.saveWhileTyping);
   const debounce = FormStore.data.useDebounceImmediately();
   const { address, careOf, postPlace, zipCode, houseNumber } = formData;
 
@@ -53,16 +68,16 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
 
   return (
     <AddressLayout
-      id={id}
-      simplified={simplified}
+      id={componentId}
+      simplified={config.simplified}
       required={required}
       readOnly={readOnly}
-      showOptionalMarking={!!labelSettings?.optionalIndicator}
-      title={textResourceBindings?.title}
-      careOfTitle={textResourceBindings?.careOfTitle}
-      zipCodeTitle={textResourceBindings?.zipCodeTitle}
-      postPlaceTitle={textResourceBindings?.postPlaceTitle}
-      houseNumberTitle={textResourceBindings?.houseNumberTitle}
+      showOptionalMarking={!!config.labelSettings?.optionalIndicator}
+      title={config.textResourceBindings?.title === undefined ? undefined : title}
+      careOfTitle={config.textResourceBindings?.careOfTitle === undefined ? undefined : careOfTitle}
+      zipCodeTitle={config.textResourceBindings?.zipCodeTitle === undefined ? undefined : zipCodeTitle}
+      postPlaceTitle={config.textResourceBindings?.postPlaceTitle === undefined ? undefined : postPlaceTitle}
+      houseNumberTitle={config.textResourceBindings?.houseNumberTitle === undefined ? undefined : houseNumberTitle}
       address={address}
       careOf={careOf}
       zipCode={zipCode}

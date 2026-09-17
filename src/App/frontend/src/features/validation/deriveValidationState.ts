@@ -22,11 +22,11 @@ import {
   type ValidationFilter,
 } from 'src/layout';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
-import { getCurrentDataModelPath, getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import { getCurrentDataModelPath, getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
-import type { CompIntermediate } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
 type BindingEntry = [bindingKey: string, reference: IDataModelReference];
@@ -75,14 +75,14 @@ function isDataModelReference(reference: unknown): reference is IDataModelRefere
   );
 }
 
-function getBindings(item: CompIntermediate): BindingEntry[] {
-  const bindings = item.dataModelBindings;
+function getBindings(item: CompExternal, node: DerivedValidationNode): BindingEntry[] {
+  const bindings = getIndexedDataModelBindings(item.dataModelBindings, node.rowContexts);
   return bindings
     ? Object.entries(bindings).filter((entry): entry is BindingEntry => isDataModelReference(entry[1]))
     : [];
 }
 
-function shouldValidateNode(item: CompIntermediate): boolean {
+function shouldValidateNode(item: CompExternal): boolean {
   return !('renderAsSummary' in item && item.renderAsSummary);
 }
 
@@ -138,15 +138,18 @@ function getExpressionValidations(
 
 function makeComponentValidationContext(
   node: DerivedValidationNode,
-  item: CompIntermediate,
+  item: CompExternal,
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
   taskId: string | undefined,
 ): ComponentValidationContext {
+  const component = { ...item };
+  component.id = node.id;
+  component.dataModelBindings = getIndexedDataModelBindings(item.dataModelBindings, node.rowContexts);
   return {
     baseComponentId: node.baseId,
-    component: item,
+    component,
     formState: state,
     instanceData,
     taskId,
@@ -187,7 +190,7 @@ function applyValidationFilters(
 
 function getRawValidationsForNode(
   node: DerivedValidationNode,
-  item: CompIntermediate,
+  item: CompExternal,
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
@@ -197,7 +200,7 @@ function getRawValidationsForNode(
     return emptyArray;
   }
 
-  const bindings = getBindings(item);
+  const bindings = getBindings(item, node);
   const def = getComponentDef(item.type);
   if (!def) {
     return emptyArray;
@@ -235,7 +238,7 @@ function getRawValidationsForNode(
 function getVisibilityBreakdown(
   state: FormStoreState,
   node: DerivedValidationNode,
-  item: CompIntermediate,
+  item: CompExternal,
 ): ValidationVisibilityBreakdown {
   const initial = getInitialMaskFromItem(item);
   const form = state.validation.formMask ?? 0;
@@ -280,7 +283,7 @@ export function buildDerivedValidationState(
   const visibleBreakdownByNode = new Map<string, ValidationVisibilityBreakdown>();
 
   for (const node of nodes) {
-    const item = getRuntimeIntermediateItem(state.bootstrap.layoutLookups.getComponent(node.baseId), node.rowContexts);
+    const item = state.bootstrap.layoutLookups.getComponent(node.baseId);
     nodeById.set(node.id, node);
     addToIndex(nodeIdsByPage, node.pageKey, node.id);
     for (const rowId of node.rowIds) {

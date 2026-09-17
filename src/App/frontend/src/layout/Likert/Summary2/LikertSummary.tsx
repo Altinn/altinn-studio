@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
@@ -18,7 +19,8 @@ import {
 } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -26,15 +28,25 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides<'Likert'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const rows = useLikertRows(targetBaseComponentId);
-  const { textResourceBindings, dataModelBindings, readOnly, required } = useItemWhenType(
-    targetBaseComponentId,
-    'Likert',
+  const config = useComponentConfig(targetBaseComponentId, 'Likert');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Likert');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Likert.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Likert.required);
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Likert.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.Likert.textResourceBindings.title,
   );
 
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
+    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
 
   if (!rows.length || rows.length <= 0) {
     return (
@@ -105,11 +117,23 @@ type LikertRowSummaryProps = {
 };
 
 function LikertRowSummary({ rowBaseId, emptyFieldText, readOnly, isCompact }: LikertRowSummaryProps) {
-  const { textResourceBindings, required } = useItemWhenType(rowBaseId, 'LikertItem');
+  const config = useComponentConfig(rowBaseId, 'LikertItem');
+  const required = useEvalExpression(config.required, Expressions.LikertItem.required);
+  const summaryTitle2 = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.LikertItem.textResourceBindings.summaryTitle,
+  );
+  const title2 = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.LikertItem.textResourceBindings.title,
+  );
+
   const displayData = useDisplayData(rowBaseId);
   const validations = useUnifiedValidationsForNode(rowBaseId);
   const errors = validationsOfSeverity(validations, 'error');
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle2) ||
+    (config.textResourceBindings?.title === undefined ? undefined : title2);
 
   useReportSummaryRender(
     displayData.trim() === ''

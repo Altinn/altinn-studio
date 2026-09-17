@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -7,7 +9,8 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const NumberSummary = ({ targetBaseComponentId }: Summary2Props) => {
@@ -16,12 +19,21 @@ export const NumberSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const displayData = useDisplayData(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const item = useItemWhenType(targetBaseComponentId, 'Number');
-  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
-  const direction = item.direction;
+  const config = useComponentConfig(targetBaseComponentId, 'Number');
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Number.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.Number.textResourceBindings.title,
+  );
 
-  const compact = (direction === 'horizontal' && isCompact == undefined) || isCompact;
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
+    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
 
+  const compact = (config.direction === 'horizontal' && isCompact == undefined) || isCompact;
   return (
     <SummaryFlex
       targetBaseId={targetBaseComponentId}

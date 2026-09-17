@@ -8,7 +8,7 @@ import IconShadow from 'leaflet/dist/images/marker-shadow.png';
 import type { PathOptions } from 'leaflet';
 
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
 const markerIcon = icon({
   iconUrl: Icon,
@@ -24,7 +24,7 @@ type MapGeometriesProps = {
 };
 
 export function MapGeometries({ baseComponentId, readOnly }: MapGeometriesProps) {
-  const { toolbar } = useItemWhenType(baseComponentId, 'Map');
+  const config = useComponentConfig(baseComponentId, 'Map');
   let geometries = useMapParsedGeometries(baseComponentId);
 
   if (!geometries || geometries.length === 0) {
@@ -32,7 +32,7 @@ export function MapGeometries({ baseComponentId, readOnly }: MapGeometriesProps)
   }
 
   // if toolbar is defined and map is editable, we want to render editable geometries separately
-  if (toolbar && !readOnly) {
+  if (config.toolbar && !readOnly) {
     geometries = geometries?.filter((g) => !g.isEditable);
   }
 

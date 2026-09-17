@@ -1,26 +1,34 @@
 import React, { useEffect } from 'react';
 
 import { Button } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { signingQueries } from 'src/layout/SigneeList/api';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export function SubmitSigningButton({ baseComponentId }: { baseComponentId: string }) {
   const { langAsString } = useLanguage();
   const { mutate: processNext, isPending: isSubmitting, isSuccess } = useProcessNext();
 
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
+  const config = useComponentConfig(baseComponentId, 'SigningActions');
+  const submitButton = useEvalExpression(
+    config.textResourceBindings?.submitButton,
+    Expressions.SigningActions.textResourceBindings.submitButton,
+  );
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: signingQueries.all });
   }, [isSuccess, queryClient]);
 
-  const submitButtonText = textResourceBindings?.submitButton ?? 'signing.submit_button';
+  const submitButtonText =
+    (config.textResourceBindings?.submitButton === undefined ? undefined : submitButton) ?? 'signing.submit_button';
 
   return (
     <Button

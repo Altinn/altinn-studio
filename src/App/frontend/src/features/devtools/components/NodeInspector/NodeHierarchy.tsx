@@ -13,8 +13,7 @@ import { baseIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 
 interface Common {
   selected: string | undefined;
@@ -60,7 +59,7 @@ const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
 );
 
 const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProps) => {
-  const component = useExternalItem(baseId);
+  const component = useComponentConfig(baseId);
   const nodeId = useIndexedId(baseId);
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(nodeId, false);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
@@ -117,7 +116,8 @@ const NodeHierarchyItem = ({ baseId, onClick, selected }: INodeHierarchyItemProp
 };
 
 function RepeatingGroupExtensions({ baseId, selected, onClick }: INodeHierarchyItemProps) {
-  const nodeItem = useItemWhenType(baseId, 'RepeatingGroup');
+  const nodeItem = useComponentConfig(baseId, 'RepeatingGroup');
+  const dataModelBindings = useDataModelBindingsFor(baseId, 'RepeatingGroup');
   const rows = RepGroupHooks.useAllRowsWithHidden(baseId);
   const childIds = RepGroupHooks.useChildIds(baseId);
 
@@ -140,7 +140,7 @@ function RepeatingGroupExtensions({ baseId, selected, onClick }: INodeHierarchyI
             Rad {row?.index} {row.hidden ? '(skjult)' : ''}
           </span>
           <DataModelLocationProvider
-            groupBinding={nodeItem.dataModelBindings.group}
+            groupBinding={dataModelBindings.group}
             rowIndex={row.index}
           >
             <NodeHierarchy

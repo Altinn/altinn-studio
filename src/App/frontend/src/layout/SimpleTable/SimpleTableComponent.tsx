@@ -9,6 +9,7 @@ import {
   type TableActionButton,
 } from '@app/form-component';
 import { useIsMobile } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Link } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import { pick } from 'dot-object';
@@ -22,7 +23,8 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface TableComponentProps extends PropsFromGenericComponent<'SimpleTable'> {
@@ -30,15 +32,22 @@ interface TableComponentProps extends PropsFromGenericComponent<'SimpleTable'> {
 }
 
 export function SimpleTableComponent({ baseComponentId, dataModelBindings }: TableComponentProps) {
-  const { textResourceBindings, enableDelete, enableEdit, zebra, size, columns } = useItemWhenType(
-    baseComponentId,
-    'SimpleTable',
+  const config = useComponentConfig(baseComponentId, 'SimpleTable');
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.SimpleTable.textResourceBindings.title,
   );
+  const description = useEvalExpression(
+    config.textResourceBindings?.description,
+    Expressions.SimpleTable.textResourceBindings.description,
+  );
+  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.SimpleTable.textResourceBindings.help);
+
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const removeFromList = FormStore.data.useRemoveFromListCallback();
-  const { title, description, help } = textResourceBindings ?? {};
+
   const { elementAsString } = useLanguage();
-  const accessibleTitle = elementAsString(title);
+  const accessibleTitle = elementAsString(config.textResourceBindings?.title === undefined ? undefined : title);
   const isMobile = useIsMobile();
   const data = formData.tableData;
   const schemaLookup = FormStore.bootstrap.useSchemaLookup();
@@ -54,7 +63,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
 
   const actionButtons: TableActionButton[] = [];
 
-  if (enableDelete) {
+  if (config.enableDelete) {
     actionButtons.push({
       onClick: (idx) => {
         removeFromList({
@@ -77,7 +86,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
     });
   }
 
-  if (enableEdit) {
+  if (config.enableEdit) {
     actionButtons.push({
       onClick: (idx, _) => {
         setEditItemIndex(idx);
@@ -146,27 +155,38 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
       )}
 
       <AppTable
-        zebra={zebra}
-        size={size}
+        zebra={config.zebra}
+        size={config.size}
         mobile={isMobile}
         actionButtons={actionButtons}
         actionButtonHeader={langAsString('general.action')}
         emptyText={langAsString('general.empty_table')}
         caption={
-          title && (
+          (config.textResourceBindings?.title === undefined ? undefined : title) && (
             <Caption
-              title={<Lang id={title} />}
-              description={description && <Lang id={description} />}
-              helpText={help ? { text: <Lang id={help} />, accessibleTitle } : undefined}
+              title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
+              description={
+                (config.textResourceBindings?.description === undefined ? undefined : description) && (
+                  <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
+                )
+              }
+              helpText={
+                (config.textResourceBindings?.help === undefined ? undefined : help)
+                  ? {
+                      text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
+                      accessibleTitle,
+                    }
+                  : undefined
+              }
             />
           )
         }
         data={data}
         stickyHeader={true}
-        columns={columns.map((config) => {
-          const { component } = config;
+        columns={config.columns.map((config) => {
           let renderCell;
-          if (component) {
+          if (config.component) {
+            const component = config.component;
             renderCell = (_, __, rowIndex) => {
               const rowData = data[rowIndex];
               if (component.type === 'link') {

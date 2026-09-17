@@ -14,23 +14,24 @@ import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings'
 import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { useSourceOptions } from 'src/features/options/useSourceOptions';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { CompIntermediateExact, CompWithBehavior } from 'src/layout/layout';
+import type { CompExternalExact, CompWithBehavior } from 'src/layout/layout';
 
 export type OptionsValueType = 'single' | 'multi';
 
 interface FetchOptionsProps {
-  item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
+  config: CompExternalExact<CompWithBehavior<'canHaveOptions'>>;
 }
 
 interface FilteredAndSortedOptionsProps {
   unsorted: IOptionInternal[];
   valueType: OptionsValueType;
-  item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
+  config: CompExternalExact<CompWithBehavior<'canHaveOptions'>>;
 }
 
 export interface GetOptionsResult {
@@ -112,33 +113,30 @@ export function useSetOptions(
   );
 }
 
-function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
-  const { optionsId, secure, queryParameters } = item;
-  return useGetOptionsUrl(optionsId, queryParameters, secure);
+function useOptionsUrl(config: CompExternalExact<CompWithBehavior<'canHaveOptions'>>) {
+  return useGetOptionsUrl(config.optionsId, config.queryParameters, config.secure);
 }
 
-function hasDynamicOptionsConfig(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
-  return Boolean(item.queryParameters && Object.keys(item.queryParameters).length > 0);
+function hasDynamicOptionsConfig(config: CompExternalExact<CompWithBehavior<'canHaveOptions'>>) {
+  return Boolean(config.queryParameters && Object.keys(config.queryParameters).length > 0);
 }
 
-export function useFetchOptions({ item }: FetchOptionsProps) {
-  const { options, optionsId, source } = item;
-
+export function useFetchOptions({ config }: FetchOptionsProps) {
   // Configuration cannot change during runtime, so breaking the rule of hooks here is acceptable. We do this to
   // avoid gathering lots of data for option sources we don't plan on using. It's always one of these
   // three (source, optionsId or static options).
 
-  if (source) {
+  if (config.source) {
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const unsorted = useSourceOptions(source);
+    const unsorted = useSourceOptions(config.source);
     return { unsorted, isFetching: false, downstreamParameters: undefined };
   }
 
-  if (optionsId) {
+  if (config.optionsId) {
     const staticOptions = FormStore.bootstrap.useStaticOptionsMap();
-    const bootstrapOptions = staticOptions[optionsId];
-    const shouldFetchFromApi = hasDynamicOptionsConfig(item);
+    const bootstrapOptions = staticOptions[config.optionsId];
+    const shouldFetchFromApi = hasDynamicOptionsConfig(config);
 
     if (bootstrapOptions && !shouldFetchFromApi) {
       return {
@@ -150,9 +148,9 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
 
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const url = useOptionsUrl(item);
+    const url = useOptionsUrl(config);
     if (!url) {
-      throw new Error(`Failed to fetch options for node ${item.id}: Unable to construct URL`);
+      throw new Error(`Failed to fetch options for node ${config.id}: Unable to construct URL`);
     }
 
     // eslint-disable-next-line react-compiler/react-compiler
@@ -161,7 +159,7 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
 
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useLogFetchError(error, item);
+    useLogFetchError(error, config);
 
     return {
       isFetching,
@@ -170,10 +168,10 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
     };
   }
 
-  if (options) {
+  if (config.options) {
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const unsorted = useMemo(() => castOptionsToStrings(options), [options]);
+    const unsorted = useMemo(() => castOptionsToStrings(config.options ?? []), [config.options]);
     return { unsorted, isFetching: false, downstreamParameters: undefined };
   }
 
@@ -181,22 +179,24 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
 }
 
 // Log error if fetching options failed
-function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
+function useLogFetchError(error: Error | null, config: CompExternalExact<CompWithBehavior<'canHaveOptions'>>) {
   useEffect(() => {
     if (error) {
-      const { id, optionsId, secure, queryParameters } = item;
-      const _optionsId = optionsId ? `\noptionsId: ${optionsId}` : '';
-      const _queryParameters = queryParameters ? `\nqueryParameters: ${JSON.stringify(queryParameters)}` : '';
-      const _secure = secure ? `\nsecure: ${secure}` : '';
+      const _optionsId = config.optionsId ? `\noptionsId: ${config.optionsId}` : '';
+      const _queryParameters = config.queryParameters
+        ? `\nqueryParameters: ${JSON.stringify(config.queryParameters)}`
+        : '';
+      const _secure = config.secure ? `\nsecure: ${config.secure}` : '';
 
-      window.logErrorOnce(`Failed to fetch options for node ${id}${_optionsId}${_queryParameters}${_secure}`);
+      window.logErrorOnce(`Failed to fetch options for node ${config.id}${_optionsId}${_queryParameters}${_secure}`);
     }
-  }, [error, item]);
+  }, [error, config]);
 }
 
-export function useFilteredAndSortedOptions({ unsorted, valueType, item }: FilteredAndSortedOptionsProps) {
-  const { id, sortOrder, optionFilter, dataModelBindings } = item;
-  const preselected = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
+export function useFilteredAndSortedOptions({ unsorted, valueType, config }: FilteredAndSortedOptionsProps) {
+  const id = useIndexedId(config.id);
+  const dataModelBindings = useDataModelBindingsFor(config.id);
+  const preselected = 'preselectedOptionIndex' in config ? config.preselectedOptionIndex : undefined;
   const langAsString = useLanguage().langAsString;
   const selectedLanguage = useCurrentLanguage();
   const selectedValues = useSetOptions(
@@ -204,7 +204,7 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, item }: Filte
     dataModelBindings as IDataModelBindingsOptionsSimple | undefined,
     unsorted,
   ).selectedValues;
-  const dataSources = useExpressionDataSources(optionFilter);
+  const dataSources = useExpressionDataSources(config.optionFilter);
 
   return useMemo(() => {
     let preselectedOption: IOptionInternal | undefined;
@@ -214,7 +214,7 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, item }: Filte
 
     let options = verifyAndDeduplicateOptions(unsorted, valueType === 'multi');
 
-    if (optionFilter !== undefined && ExprValidation.isValid(optionFilter)) {
+    if (config.optionFilter !== undefined && ExprValidation.isValid(config.optionFilter)) {
       options = options.filter((o) => {
         const { dataModelLocation, ...option } = o;
         const valueArguments: ExprValueArgs<IOptionInternal> = {
@@ -222,7 +222,7 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, item }: Filte
           defaultKey: 'value',
         };
         const keep = evalExpr(
-          optionFilter,
+          config.optionFilter,
           { ...dataSources, currentDataModelPath: dataModelLocation ?? dataSources.currentDataModelPath },
           { returnType: ExprVal.Boolean, defaultValue: true, valueArguments },
         );
@@ -247,8 +247,8 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, item }: Filte
 
     // No need to sort if there are 0 or 1 options. Using langAsString() can lead to re-rendering, so
     // we avoid it if we don't need it.
-    if (options.length > 1 && sortOrder) {
-      options.sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
+    if (options.length > 1 && config.sortOrder) {
+      options.sort(compareOptionAlphabetically(langAsString, config.sortOrder, selectedLanguage));
     }
 
     // Always remove the dataModelLocation at this point. It is only to be used in the filtering process.
@@ -263,9 +263,9 @@ export function useFilteredAndSortedOptions({ unsorted, valueType, item }: Filte
     id,
     unsorted,
     valueType,
-    optionFilter,
+    config.optionFilter,
     preselected,
-    sortOrder,
+    config.sortOrder,
     dataSources,
     selectedValues,
     langAsString,

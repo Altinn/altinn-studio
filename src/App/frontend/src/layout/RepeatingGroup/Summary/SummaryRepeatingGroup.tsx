@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { CompCategory } from '@app/layout-contract';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
@@ -11,13 +12,14 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { getComponentDef } from 'src/layout';
 import { LargeRowSummaryContainer } from 'src/layout/RepeatingGroup/Summary/LargeRowSummaryContainer';
 import classes from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup.module.css';
+import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider, useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -60,7 +62,20 @@ export function SummaryRepeatingGroup(props: SummaryRendererProps) {
 function RegularRepeatingGroup(props: FullProps) {
   const { onChangeClick, changeText, targetBaseComponentId, overrides, rows: _rows } = props;
   const rows = _rows.filter(typedBoolean);
-  const { textResourceBindings: trb } = useItemWhenType(targetBaseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
+  const summaryAccessibleTitle = useEvalExpression(
+    config.textResourceBindings?.summaryAccessibleTitle,
+    Expressions.RepeatingGroup.textResourceBindings.summaryAccessibleTitle,
+  );
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.RepeatingGroup.textResourceBindings.summaryTitle,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.RepeatingGroup.textResourceBindings.title,
+  );
+
   const display = overrides?.display;
   const { langAsString } = useLanguage();
 
@@ -68,9 +83,24 @@ function RegularRepeatingGroup(props: FullProps) {
   const groupValidations = useDeepValidationsForNode(targetBaseComponentId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const summaryAccessibleTitleTrb = trb && 'summaryAccessibleTitle' in trb ? trb.summaryAccessibleTitle : undefined;
-  const summaryTitleTrb = trb && 'summaryTitle' in trb ? trb.summaryTitle : undefined;
-  const titleTrb = trb && 'title' in trb ? trb.title : undefined;
+  const summaryAccessibleTitleTrb =
+    config.textResourceBindings && 'summaryAccessibleTitle' in config.textResourceBindings
+      ? config.textResourceBindings?.summaryAccessibleTitle === undefined
+        ? undefined
+        : summaryAccessibleTitle
+      : undefined;
+  const summaryTitleTrb =
+    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
+      ? config.textResourceBindings?.summaryTitle === undefined
+        ? undefined
+        : summaryTitle
+      : undefined;
+  const titleTrb =
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings?.title === undefined
+        ? undefined
+        : title
+      : undefined;
   const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
 
   return (
@@ -144,13 +174,9 @@ function RegularRepeatingGroupRow({
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const { tableColumns } = useItemWhenType(targetBaseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
 
-  const hiddenColumns = tableColumns
-    ? Object.entries(tableColumns)
-        .filter(([_, settings]) => settings.hidden === true)
-        .map(([id]) => id)
-    : [];
+  const hiddenColumns = useHiddenColumns(config.tableColumns);
 
   const childSummaryComponents = children
     .filter((baseId) => !inExcludedChildren(idMutator(baseId), baseId))

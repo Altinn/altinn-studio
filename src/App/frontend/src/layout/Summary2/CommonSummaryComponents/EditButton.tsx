@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, useIsMobile } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
@@ -13,7 +14,8 @@ import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepG
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export type EditButtonProps = {
   targetBaseComponentId: string;
@@ -61,12 +63,20 @@ export function EditButton({
   const pdfModeActive = usePdfModeActive();
   const isMobile = useIsMobile();
 
-  const componentConfig = useItemFor(targetBaseComponentId);
-  const { textResourceBindings } = componentConfig;
+  const config = useComponentConfig(targetBaseComponentId);
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
 
-  const isReadOnly = 'readOnly' in componentConfig && componentConfig.readOnly === true;
-  const titleTrb = textResourceBindings && 'title' in textResourceBindings ? textResourceBindings.title : undefined;
-  const accessibleTitle = titleTrb ? langAsString(titleTrb) : '';
+  const isReadOnly = 'readOnly' in config && readOnly === true;
+  const accessibleTitle = title ? langAsString(title) : '';
 
   const overrides = useTaskOverrides();
   const overriddenTaskId = overrides?.taskId;
