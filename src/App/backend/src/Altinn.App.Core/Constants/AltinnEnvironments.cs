@@ -6,11 +6,8 @@ namespace Altinn.App.Core.Constants;
 
 internal static class AltinnEnvironments
 {
-    // Altinn Studio mirrors the table below in
+    // Mirrored in the process editor, keep the two in sync:
     // src/Designer/frontend/packages/process-editor/src/components/ConfigPanel/EnvironmentConfig/altinnEnvironments.ts
-    // so that the process editor offers exactly the environments this runtime resolves. A jest test
-    // next to that file parses this one and fails when the two disagree, so update the mirror in
-    // the same change as the table.
     public static IReadOnlyDictionary<HostingEnvironment, IEnumerable<string>> Map { get; } =
         new Dictionary<HostingEnvironment, IEnumerable<string>>
         {

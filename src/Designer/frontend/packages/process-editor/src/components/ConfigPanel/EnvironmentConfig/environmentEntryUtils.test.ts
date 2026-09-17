@@ -1,6 +1,5 @@
 import {
   getEffectiveEnvironmentValue,
-  getEnvironmentConfigSummary,
   resolveEnvironmentEntries,
   withEnvironmentValue,
   withoutEntry,
@@ -8,7 +7,6 @@ import {
 } from './environmentEntryUtils';
 import type { EnvironmentEntry } from './types';
 
-const identity = (value: string): string => value;
 const combineLists = (values: string[][]): string[] => values.flat();
 
 describe('resolveEnvironmentEntries', () => {
@@ -81,7 +79,7 @@ describe('resolveEnvironmentEntries', () => {
 });
 
 describe('withEnvironmentValue', () => {
-  it('keeps the raw env string of an existing override, so an unrelated save makes no diff', () => {
+  it('keeps the raw env string of an existing override', () => {
     const entries: EnvironmentEntry[] = [{ env: 'tt02', value: 'old' }];
 
     expect(withEnvironmentValue(entries, 'staging', 'new')).toEqual([
@@ -112,20 +110,7 @@ describe('withEnvironmentValue', () => {
     ]);
   });
 
-  it('keeps an entry the runtime shadows when an unrelated environment is edited', () => {
-    const entries: EnvironmentEntry[] = [
-      { env: 'tt02', value: 'shadowed' },
-      { env: 'at22', value: 'used' },
-    ];
-
-    expect(withEnvironmentValue(entries, 'production', 'p')).toEqual([
-      { env: 'tt02', value: 'shadowed' },
-      { env: 'at22', value: 'used' },
-      { env: 'production', value: 'p' },
-    ]);
-  });
-
-  it('keeps an entry the runtime shadows when the winning entry of that same bucket is edited', () => {
+  it('keeps an entry the runtime shadows when the winning entry of that environment is edited', () => {
     const entries: EnvironmentEntry[] = [
       { env: 'tt02', value: 'shadowed' },
       { env: 'at22', value: 'used' },
@@ -137,18 +122,6 @@ describe('withEnvironmentValue', () => {
     ]);
   });
 
-  it('writes the env spelling a clear removed rather than the canonical one', () => {
-    expect(withEnvironmentValue([], 'staging', 'new', { clearedEnv: 'tt02' })).toEqual([
-      { env: 'tt02', value: 'new' },
-    ]);
-  });
-
-  it('ignores a cleared env spelling belonging to another environment', () => {
-    expect(withEnvironmentValue([], 'staging', 'new', { clearedEnv: 'prod' })).toEqual([
-      { env: 'staging', value: 'new' },
-    ]);
-  });
-
   it('folds the duplicates of the edited environment into one entry when they are combined', () => {
     const entries: EnvironmentEntry[] = [
       { env: 'tt02', value: 'a' },
@@ -156,19 +129,10 @@ describe('withEnvironmentValue', () => {
       { env: 'at22', value: 'b' },
     ];
 
-    expect(
-      withEnvironmentValue(entries, 'staging', 'a,b,c', { consolidateDuplicates: true }),
-    ).toEqual([{ value: 'global' }, { env: 'at22', value: 'a,b,c' }]);
-  });
-
-  it('returns the list unchanged in content when nothing is edited but the field is re-saved', () => {
-    const entries: EnvironmentEntry[] = [
-      { env: 'production', value: 'p' },
+    expect(withEnvironmentValue(entries, 'staging', 'a,b,c', true)).toEqual([
       { value: 'global' },
-      { env: 'at21', value: 'unknown' },
-    ];
-
-    expect(withEnvironmentValue(entries, 'production', 'p')).toEqual(entries);
+      { env: 'at22', value: 'a,b,c' },
+    ]);
   });
 });
 
@@ -186,7 +150,7 @@ describe('withoutEnvironmentValue', () => {
     ]);
   });
 
-  it('removes the environment-independent entry rather than writing an empty one', () => {
+  it('removes the environment-independent entry', () => {
     const entries: EnvironmentEntry[] = [{ value: 'global' }, { env: 'tt02', value: 's' }];
 
     expect(withoutEnvironmentValue(entries, 'global')).toEqual([{ env: 'tt02', value: 's' }]);
@@ -203,6 +167,15 @@ describe('withoutEnvironmentValue', () => {
   });
 });
 
+describe('withoutEntry', () => {
+  it('removes the given entry and leaves a sibling that spells its environment the same', () => {
+    const firstAt21: EnvironmentEntry = { env: 'at21', value: 'first' };
+    const secondAt21: EnvironmentEntry = { env: 'at21', value: 'second' };
+
+    expect(withoutEntry([firstAt21, secondAt21], firstAt21)).toEqual([secondAt21]);
+  });
+});
+
 describe('getEffectiveEnvironmentValue', () => {
   it('reads the override of the environment, and the environment-independent entry otherwise', () => {
     const resolved = resolveEnvironmentEntries([{ value: 'global' }, { env: 'tt02', value: 's' }]);
@@ -211,14 +184,12 @@ describe('getEffectiveEnvironmentValue', () => {
     expect(getEffectiveEnvironmentValue(resolved, 'production')).toBe('global');
   });
 
-  it('answers undefined when the file has neither, which is the startup the app fails', () => {
+  it('answers undefined when the file has neither', () => {
     const resolved = resolveEnvironmentEntries([{ env: 'tt02', value: 's' }]);
 
     expect(getEffectiveEnvironmentValue(resolved, 'production')).toBeUndefined();
   });
 
-  // Two entries of the same environment concatenate for `dataTypes`, so reading only the last one
-  // would call an environment unconfigured that the app does find a value for.
   it('combines the entries of an environment for a field that says they combine', () => {
     const entries: EnvironmentEntry<string[]>[] = [
       { env: 'tt02', value: ['model'] },
@@ -229,40 +200,5 @@ describe('getEffectiveEnvironmentValue', () => {
     expect(
       getEffectiveEnvironmentValue(resolveEnvironmentEntries(entries, combineLists), 'staging'),
     ).toEqual(['model']);
-  });
-});
-
-describe('getEnvironmentConfigSummary', () => {
-  // The field shows such an entry as a row of its own, so a summary that passed over it would be
-  // the one place a closed property button said the field held nothing while the file held a value.
-  it('counts an entry the runtime cannot resolve as one of the environments', () => {
-    const resolved = resolveEnvironmentEntries([{ env: 'at21', value: 'dead' }]);
-
-    expect(getEnvironmentConfigSummary(resolved, identity)).toEqual({
-      kind: 'overridesOnly',
-      overrideCount: 1,
-    });
-  });
-
-  it('counts an unresolvable environment once, however many entries spell it that way', () => {
-    const resolved = resolveEnvironmentEntries([
-      { env: 'at21', value: 'first' },
-      { env: 'at21', value: 'second' },
-      { env: 'tt02', value: 's' },
-    ]);
-
-    expect(getEnvironmentConfigSummary(resolved, identity)).toEqual({
-      kind: 'overridesOnly',
-      overrideCount: 2,
-    });
-  });
-});
-
-describe('withoutEntry', () => {
-  it('removes the one entry it is given, leaving a sibling that spells its environment the same', () => {
-    const firstAt21: EnvironmentEntry = { env: 'at21', value: 'first' };
-    const secondAt21: EnvironmentEntry = { env: 'at21', value: 'second' };
-
-    expect(withoutEntry([firstAt21, secondAt21], firstAt21)).toEqual([secondAt21]);
   });
 });

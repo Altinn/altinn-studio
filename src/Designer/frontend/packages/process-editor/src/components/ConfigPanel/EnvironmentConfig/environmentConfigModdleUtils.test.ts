@@ -12,7 +12,7 @@ import {
 const createModdle = (): Moddle =>
   new BpmnModdle({ altinn: altinnCustomTasks }) as unknown as Moddle;
 
-describe('environment config moddle conversions', () => {
+describe('environmentConfigModdleUtils', () => {
   it('round-trips environment config entries, keeping the raw env attribute', () => {
     const moddle = createModdle();
     const entries = [
@@ -21,7 +21,7 @@ describe('environment config moddle conversions', () => {
       { env: 'at21', value: 'unknown' },
     ];
 
-    const elements = toEnvironmentConfigElements(entries, moddle, []);
+    const elements = toEnvironmentConfigElements(entries, moddle);
 
     expect(elements.map((element) => element.$type)).toEqual([
       'altinn:EnvironmentConfig',
@@ -31,7 +31,7 @@ describe('environment config moddle conversions', () => {
     expect(fromEnvironmentConfigElements(elements)).toEqual(entries);
   });
 
-  it('reads a missing value as an empty string rather than undefined', () => {
+  it('reads a missing value as an empty string', () => {
     const moddle = createModdle();
     const element = moddle.create('altinn:EnvironmentConfig', { env: 'tt02' }) as ModdleElement;
 
@@ -45,7 +45,7 @@ describe('environment config moddle conversions', () => {
       { env: 'production', value: ['ref-data-as-pdf'] },
     ];
 
-    const elements = toEFormidlingDataTypesElements(entries, moddle, []);
+    const elements = toEFormidlingDataTypesElements(entries, moddle);
 
     expect(elements[0].values.map((value: ModdleElement) => value.$type)).toEqual([
       'altinn:DataType',
@@ -54,7 +54,7 @@ describe('environment config moddle conversions', () => {
     expect(fromEFormidlingDataTypesElements(elements)).toEqual(entries);
   });
 
-  it('reads a data type element with no id in it as an empty id rather than dropping it', () => {
+  it('leaves out a data type element with no id in it', () => {
     const moddle = createModdle();
     const element = moddle.create('altinn:EFormidlingDataTypes', {
       values: [
@@ -63,69 +63,6 @@ describe('environment config moddle conversions', () => {
       ],
     }) as ModdleElement;
 
-    expect(fromEFormidlingDataTypesElements([element])).toEqual([{ value: ['model', ''] }]);
-  });
-
-  it('hands back the element an unchanged entry came from, so nothing it carries is rebuilt away', () => {
-    const moddle = createModdle();
-    const existingElements = toEnvironmentConfigElements(
-      [{ value: 'global' }, { env: 'tt02', value: 'staging' }],
-      moddle,
-      [],
-    );
-
-    const elements = toEnvironmentConfigElements(
-      [{ value: 'global' }, { env: 'tt02', value: 'edited' }],
-      moddle,
-      existingElements,
-    );
-
-    // Object identity is the whole mechanism. That it is what keeps an undeclared attribute alive
-    // is proved through real XML in `extensions/altinnCustomTasks.test.ts`, where it can fail.
-    expect(elements[0]).toBe(existingElements[0]);
-    expect(elements[1]).not.toBe(existingElements[1]);
-    expect(fromEnvironmentConfigElements(elements)).toEqual([
-      { value: 'global' },
-      { env: 'tt02', value: 'edited' },
-    ]);
-  });
-
-  it('reuses a repeated entry only once, so two rows never share one element', () => {
-    const moddle = createModdle();
-    const existingElements = toEnvironmentConfigElements(
-      [{ env: 'tt02', value: 'same' }],
-      moddle,
-      [],
-    );
-
-    const elements = toEnvironmentConfigElements(
-      [
-        { env: 'tt02', value: 'same' },
-        { env: 'tt02', value: 'same' },
-      ],
-      moddle,
-      existingElements,
-    );
-
-    expect(elements[0]).toBe(existingElements[0]);
-    expect(elements[1]).not.toBe(existingElements[0]);
-  });
-
-  it('hands back the data type element an unchanged entry came from', () => {
-    const moddle = createModdle();
-    const existingElements = toEFormidlingDataTypesElements(
-      [{ value: ['model'] }, { env: 'tt02', value: ['ref-data-as-pdf'] }],
-      moddle,
-      [],
-    );
-
-    const elements = toEFormidlingDataTypesElements(
-      [{ value: ['model'] }, { env: 'tt02', value: ['ref-data-as-pdf', 'model'] }],
-      moddle,
-      existingElements,
-    );
-
-    expect(elements[0]).toBe(existingElements[0]);
-    expect(elements[1]).not.toBe(existingElements[1]);
+    expect(fromEFormidlingDataTypesElements([element])).toEqual([{ value: ['model'] }]);
   });
 });

@@ -46,13 +46,6 @@ Object.defineProperty(window, 'scrollTo', {
   value: jest.fn(),
 });
 
-// jsdom implements no layout, and therefore no scrollIntoView. Components call it to keep a message
-// they have just shown inside the visible area.
-Object.defineProperty(Element.prototype, 'scrollIntoView', {
-  writable: true,
-  value: jest.fn(),
-});
-
 // polyfill for jsdom (taken from https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest)
 Object.assign(global, { TextDecoder, TextEncoder });
 
