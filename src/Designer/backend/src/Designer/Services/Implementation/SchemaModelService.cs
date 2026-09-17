@@ -19,6 +19,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -597,12 +598,11 @@ public class SchemaModelService : ISchemaModelService
         string id
     )
     {
-        // Process tasks only: this restores a binding Designer wrote, and Designer never binds a data type to a service task.
         IEnumerable<string> processTaskIds;
         try
         {
             processTaskIds =
-                altinnAppGitRepository.GetProcessDefinitions()?.Process?.Tasks?.Select(task => task.Id) ?? [];
+                altinnAppGitRepository.GetProcessDefinitions()?.Process?.AllTasks().Select(task => task.Id) ?? [];
         }
         catch (NotFoundHttpRequestException)
         {
