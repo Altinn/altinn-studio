@@ -14,6 +14,8 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({
   useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+  useEvalOptionalText: (value: unknown, descriptor: { defaultValue: unknown }) =>
+    value === undefined ? undefined : (value ?? descriptor.defaultValue),
 }));
 vi.mock('src/utils/layout/DataModelLocation', () => ({
   useIndexedId: (baseId: string) => baseId,
