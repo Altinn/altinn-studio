@@ -15,17 +15,8 @@ import { useCurrentLayoutSet } from '../../../../../hooks/useCurrentLayoutSet';
 import classes from './PdfLayoutBasedSection.module.css';
 
 /**
- * The layout-based half of the pdf task: the pages the pdf is rendered from, and the affordance
- * that creates them.
- *
- * There is nothing to name. In v9 a layout set's folder name is the task id itself - the ui folders
- * endpoint returns no `taskId`, so `getTaskIdForLayoutSet` falls back to the id, and the app
- * frontend resolves the folder from the task id in the url. A name the developer typed would
- * produce a folder neither this panel nor the runtime could find again, leaving the panel offering
- * to create a layout set the task already has.
- *
- * The data model is asked for all the same. A ui folder without a `defaultDataType` makes the app
- * frontend throw when it loads the folder.
+ * The pages a layout based pdf task renders from. The layout set is created under the task id, which
+ * is the ui folder name the app frontend resolves from the url.
  */
 export const PdfLayoutBasedSection = (): React.ReactElement => {
   const { t } = useTranslation();

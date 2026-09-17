@@ -22,10 +22,6 @@ import type { EFormidlingProperty } from './useEFormidlingConfig';
 import { useEFormidlingConfig } from './useEFormidlingConfig';
 import classes from '../ConfigServiceTask.module.css';
 
-/**
- * Named once, because the coverage alert has to call a field the same thing the field calls
- * itself - a warning that names a field the panel does not is a warning nobody can act on.
- */
 const fieldLabelKeys: Record<EFormidlingProperty, string> = {
   disabled: 'process_editor.configuration_panel.eformidling.disabled_label',
   receiver: 'process_editor.configuration_panel.eformidling.receiver_label',
@@ -38,13 +34,7 @@ const fieldLabelKeys: Record<EFormidlingProperty, string> = {
   dataTypes: 'process_editor.configuration_panel.eformidling.data_types_label',
 };
 
-/**
- * The nine environment-scoped properties of `<altinn:eFormidlingConfig>`.
- *
- * Grouped the way `AltinnEFormidlingConfiguration.Validate` partitions them rather than by taste:
- * the five fields it refuses to start without stand open on the panel, and only the optional ones
- * fold away. Hiding a required field behind a disclosure triangle is how an app fails to boot.
- */
+/** The required eFormidling fields stand open; only the optional ones fold away. */
 export const ConfigEFormidlingServiceTask = (): ReactElement => {
   const { t } = useTranslation();
   const { availableDataTypeIds } = useBpmnApiContext();
@@ -58,9 +48,6 @@ export const ConfigEFormidlingServiceTask = (): ReactElement => {
     securityLevel: config.securityLevel.entries,
   });
 
-  // Every property button says what it holds even while it is closed. A disclosure triangle says
-  // nothing, so the fields behind it would be the only place on the panel where the file can hold a
-  // value the panel does not mention.
   const configuredOptionalFieldCount = [
     config.receiver,
     config.dpfShipmentType,
@@ -76,18 +63,13 @@ export const ConfigEFormidlingServiceTask = (): ReactElement => {
       )}
 
       <StudioList.Item>
-        {/* A group of its own for the one field that is neither required nor folded away, so that
-            every field on the panel says whether it has to be answered. */}
         <StudioFormGroup
           className={classes.group}
           description={t('process_editor.configuration_panel.eformidling.sending_description')}
           legend={t('process_editor.configuration_panel.eformidling.sending_legend')}
           tagText={t('general.optional')}
         >
-          {/* The file says `disabled`, and the file keeps saying `disabled`: the wording is what
-              turns around, not the stored value, so a BPMN written here reads the same as one
-              written by hand. That is why the answer for `true` is the one that turns sending
-              off. */}
+          {/* The stored value is `disabled`, so `true` is the answer that turns sending off. */}
           <EnvBooleanConfigField
             {...config.disabled}
             falseLabel={t('process_editor.configuration_panel.eformidling.sending_on')}
@@ -98,9 +80,6 @@ export const ConfigEFormidlingServiceTask = (): ReactElement => {
       </StudioList.Item>
 
       <StudioList.Item>
-        {/* Tagged once for the whole group rather than field by field: the tag belongs on the
-            collapsed fields too, and a required field says nothing while it is a property
-            button. */}
         <StudioFormGroup
           className={classes.group}
           description={t('process_editor.configuration_panel.eformidling.shipment_description')}
@@ -166,11 +145,6 @@ type MissingRequiredConfigAlertProps = {
   gaps: EFormidlingCoverageGap[];
 };
 
-/**
- * The warning a palette-created eFormidling task used to get before this panel existed, which said
- * only that the app would not start and sent the developer to `process.bpmn` to finish the job by
- * hand. It can now name the environments and the fields, in a panel that can fix them.
- */
 const MissingRequiredConfigAlert = ({ gaps }: MissingRequiredConfigAlertProps): ReactElement => {
   const { t } = useTranslation();
 

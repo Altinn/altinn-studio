@@ -10,8 +10,6 @@ import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { ConfigGateway } from './ConfigGateway';
 
-// The write has to land in the extension the panel reads from, or nothing the developer does comes
-// back out of the panel and the controlled field cannot be exercised at all.
 const updateModdleProperties = jest.fn((properties: object, element: object) =>
   Object.assign(element, properties),
 );
@@ -66,8 +64,6 @@ describe('ConfigGateway', () => {
     ).toBeInTheDocument();
   });
 
-  // Suggestion treats an undefined `selected` as uncontrolled and keeps showing its own selection,
-  // so a cleared gateway would go on displaying the model it no longer points at.
   it('empties the field when the developer clears the data model', async () => {
     const user = userEvent.setup();
     const gatewayExtension = createGatewayExtension('model');

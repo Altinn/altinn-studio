@@ -6,11 +6,6 @@ import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 export const mockBpmnId: string = 'testTaskId';
 export const mockBpmnName: string = 'testTaskName';
 
-/**
- * Every moddle element carries its type, and the editor finds the altinn task extension by that
- * type rather than by its position in `extensionElements`. Fixtures declare it for the same reason
- * a parsed bpmn file has it.
- */
 const taskExtensionType: string = 'altinn:TaskExtension';
 
 export const mockBpmnElementForDataTask: ModdleElement = {
@@ -179,13 +174,7 @@ export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
   },
 };
 
-/**
- * A signing task that generates a pdf without being user controlled: it declares a pdf data type but
- * neither of the two properties `TaskUtils.isUserControlledSigning` looks at. The runtime generates
- * the pdf for exactly this task too, because `SigningProcessTask` decides on the pdf data type being
- * declared rather than on the signing being user controlled, so the handlers must treat the pdf data
- * type independently of that branch.
- */
+/** A signing task that generates a pdf without being user controlled. */
 export const mockBpmnElementForSigningTaskWithPdf: ModdleElement = {
   businessObject: {
     extensionElements: {

@@ -42,11 +42,7 @@ describe('BpmnContext', () => {
   });
 
   it('should throw an error when modelerRef.current is undefined', async () => {
-    const wrapper = ({ children }) => (
-      <BpmnContextProvider>
-        {children}
-      </BpmnContextProvider>
-    );
+    const wrapper = ({ children }) => <BpmnContextProvider>{children}</BpmnContextProvider>;
     const { result } = renderHook(() => useBpmnContext(), {
       wrapper,
     });

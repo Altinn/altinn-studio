@@ -182,8 +182,6 @@ describe('OnProcessTaskAddHandler', () => {
       dataTypeId: mockSigneeStatesDataTypeId,
       taskId: testElementId,
     });
-    // The runtime writes the generated pdf to this data type at task end, and fails the task when the
-    // data type is missing or does not accept a pdf.
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributors: [AllowedContributor.AppOwned],
       allowedContentTypes: [AllowedContentType.Pdf],
@@ -194,10 +192,6 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  // The runtime generates the pdf whenever the task declares a data type for it, not when the signing
-  // is user controlled, so the pdf must be registered for a task that carries neither signee states
-  // nor a signee provider. The literal values are deliberate: they are the strings the app runtime
-  // compares against, and asserting the enum against itself would let either value be changed freely.
   it('should register the signing pdf datatype for a signing task that is not user controlled', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
@@ -254,8 +248,6 @@ describe('OnProcessTaskAddHandler', () => {
     });
   });
 
-  // The new service task types need no layout set, data type or policy rule of their own, so no
-  // branch in the handler matches them and nothing happens.
   it.each(['confirmation', 'feedback', 'subformPdf', ''])(
     'should not add layoutSet, dataType or default policy when task type is "%s"',
     (task) => {

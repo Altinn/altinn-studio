@@ -77,8 +77,6 @@ describe('PdfLayoutBasedSection', () => {
       );
     });
 
-    // A layout set created under the task id is the v9 shape, with no `taskId` of its own. The
-    // panel has to recognise the set it just created, rather than offering to create it again.
     it('should recognise a layout set named after the task', () => {
       const pdfBpmnDetails = createPdfBpmnDetails({});
 
@@ -172,9 +170,6 @@ describe('PdfLayoutBasedSection', () => {
       await waitFor(() => expect(getCreateButton()).not.toBeDisabled());
     });
 
-    // The layout set id is the ui folder name, and in v9 the app frontend looks that folder up by
-    // the task id in the url. An id taken from anywhere else produces a folder neither this panel
-    // nor the runtime can find.
     it('should create the layout set under the task own id', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});
@@ -207,7 +202,6 @@ describe('PdfLayoutBasedSection', () => {
       });
     });
 
-    // The app frontend throws when a ui folder has no defaultDataType.
     it('should not call addLayoutSet when no data model is selected', async () => {
       const user = userEvent.setup();
       const pdfBpmnDetails = createPdfBpmnDetails({});

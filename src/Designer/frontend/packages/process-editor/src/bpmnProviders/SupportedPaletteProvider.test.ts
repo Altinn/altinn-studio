@@ -101,9 +101,7 @@ describe('SupportedPaletteProvider', () => {
       expect(result['create.exclusive-gateway']).toBeDefined();
     });
 
-    // The three entries bpmn-js contributes itself arrive titled in English, and its gateway entry
-    // carries the generic diamond although it creates an exclusive gateway.
-    it('restates the entries bpmn-js contributes, in Norwegian and with the gateway shape it creates', () => {
+    it('translates the entries bpmn-js contributes and gives the gateway entry the exclusive gateway icon', () => {
       const mockEntries = {
         'create.start-event': {
           title: 'Create start event',
@@ -185,16 +183,16 @@ describe('SupportedPaletteProvider', () => {
       expect(createdTaskExtension()[property]).toEqual({ $type: moddleType });
     });
 
-    it.each([
-      ['create.altinn-fiks-arkiv-task', 'Fiks Arkiv is configured outside process.bpmn'],
-      ['create.altinn-custom-service-task', 'the app owns whatever configuration it needs'],
-    ])('%s seeds no configuration block, because %s', (entry) => {
-      clickEntry(entry);
+    it.each(['create.altinn-fiks-arkiv-task', 'create.altinn-custom-service-task'])(
+      '%s seeds no configuration block',
+      (entry) => {
+        clickEntry(entry);
 
-      expect(Object.keys(createdTaskExtension())).toEqual(['taskType']);
-    });
+        expect(Object.keys(createdTaskExtension())).toEqual(['taskType']);
+      },
+    );
 
-    it('names the generic service task without leaving a gap for the empty task type', () => {
+    it('names the generic service task without a task type in the name', () => {
       clickEntry('create.altinn-custom-service-task');
 
       expect(mockBpmnFactory.create).toHaveBeenCalledWith('bpmn:ServiceTask', {

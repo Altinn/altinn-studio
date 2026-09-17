@@ -20,15 +20,7 @@ type UsePdfConfigResult = {
   updateFilenameTextResourceKey: (textResourceId: string) => void;
 };
 
-/**
- * Reads and writes `<altinn:pdfConfig>` on the selected pdf task.
- *
- * An emptied filename is written as `undefined`, which removes the element instead of leaving
- * behind a blank one, the same removal the subform pdf config uses.
- *
- * The moddle objects behind the config are not reactive, so a write is followed by a checksum bump
- * that re-renders whatever reads from them.
- */
+/** Reads and writes `<altinn:pdfConfig>` on the selected pdf task. */
 export const usePdfConfig = (): UsePdfConfigResult => {
   const { bpmnDetails } = useBpmnContext();
   const { updateChecksum: forceReRenderComponent } = useChecksum();

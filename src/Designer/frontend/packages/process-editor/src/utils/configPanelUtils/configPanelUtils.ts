@@ -4,8 +4,6 @@ import { TaskUtils } from '../taskUtils';
 
 /**
  * Returns the title to show in the config panel when a task is selected.
- * An element with no task type at all, and a task type the app implements itself, each share one
- * generic title, since neither has a key of its own.
  * @param taskType the task type of the bpmn.
  * @returns the correct title key.
  *
@@ -29,10 +27,7 @@ export const getConfigTitleHelpTextKey = (taskType: BpmnTaskType): string => {
   return `process_editor.configuration_panel_header_help_text_${taskType}`;
 };
 
-/**
- * An empty task type is a task type: it is what the palette writes for a service task the developer
- * has yet to name, and it must get the custom service task texts rather than the missing ones.
- */
+/** An empty task type is what the palette writes for a service task not yet named. */
 const hasTaskType = (taskType: BpmnTaskType): boolean =>
   taskType !== null && taskType !== undefined;
 

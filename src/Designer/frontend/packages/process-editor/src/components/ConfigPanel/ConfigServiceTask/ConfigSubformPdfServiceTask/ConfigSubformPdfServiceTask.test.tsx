@@ -13,8 +13,6 @@ import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
 
-// The write has to land in the config node the panel reads from, or nothing the developer does
-// comes back out of the panel and the controlled fields cannot be exercised at all.
 const updateModdleProperties = jest.fn((properties: object, element: object) =>
   Object.assign(element, properties),
 );
@@ -105,8 +103,6 @@ describe('ConfigSubformPdfServiceTask', () => {
     expect(await screen.findByText(requiredError)).toBeInTheDocument();
   });
 
-  // Suggestion treats an undefined `selected` as uncontrolled and keeps showing its own selection,
-  // so a cleared field would go on displaying the data type the task no longer points at.
   it('empties the field when the developer clears the data type', async () => {
     const user = userEvent.setup();
     const { subformPdfConfig } = renderConfigSubformPdfServiceTask({
@@ -130,8 +126,6 @@ describe('ConfigSubformPdfServiceTask', () => {
   });
 
   describe('the subform component id', () => {
-    // The id is required, and Studio can only derive the candidates when the task has a layout set
-    // of its own, which nothing creates for it. Typing has to work in every state.
     it('saves an id the developer types that no layout offers', async () => {
       const user = userEvent.setup();
       const { subformPdfConfig } = renderConfigSubformPdfServiceTask();
@@ -149,7 +143,6 @@ describe('ConfigSubformPdfServiceTask', () => {
       );
     });
 
-    // Whitespace would make the id miss the component it names.
     it('trims the typed component id in the field as well as in the bpmn', async () => {
       const user = userEvent.setup();
       const { subformPdfConfig } = renderConfigSubformPdfServiceTask();
@@ -190,9 +183,6 @@ describe('ConfigSubformPdfServiceTask', () => {
       await waitFor(() => expect(input).toHaveValue(''));
     });
 
-    // The picker and the create affordance are two halves of one thing: the candidates are the
-    // Subform components in the task own layout set, so with no layout set there is nothing to
-    // offer and the panel has to point at the way out.
     it('offers to create the task pages when it has none to take candidates from', async () => {
       const user = userEvent.setup();
       renderConfigSubformPdfServiceTask({
@@ -234,8 +224,6 @@ describe('ConfigSubformPdfServiceTask', () => {
         ).not.toBeInTheDocument();
       });
 
-      // The runtime resolves the id in the ui folder named after the pdf task. A Subform component
-      // in a data task's folder is the most natural thing to pick and the app cannot find it.
       it('does not offer a subform component that lives in another task layout set', async () => {
         const user = userEvent.setup();
         renderConfigSubformPdfServiceTask({

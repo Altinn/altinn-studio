@@ -17,14 +17,8 @@ export type UseSubformPdfConfigResult = {
 };
 
 /**
- * Reads and writes `<altinn:subformPdfConfig>` on the selected subform pdf task.
- *
- * The palette seeds an empty config node, but a hand-authored task can be missing it, so every
- * write creates the node when it is not there. An emptied value is written as `undefined`, which
- * removes the element instead of leaving behind a blank one the runtime rejects.
- *
- * The moddle objects behind the config are not reactive, so a write is followed by a checksum bump
- * that re-renders whatever reads from them.
+ * Reads and writes `<altinn:subformPdfConfig>` on the selected task, creating the node when a
+ * hand-authored task lacks it. An emptied value removes its element rather than leaving a blank one.
  */
 export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
   const { bpmnDetails } = useBpmnContext();
