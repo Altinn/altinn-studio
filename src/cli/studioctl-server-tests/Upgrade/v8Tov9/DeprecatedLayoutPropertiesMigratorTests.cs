@@ -588,17 +588,19 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.DoesNotContain("\\u", written, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task LeavesFilesWithCommentsForTheDeveloper()
+    [Theory]
+    [InlineData("Dropdown")]
+    [InlineData("PaymentDetails")]
+    public async Task LeavesFilesWithCommentsForTheDeveloper(string type)
     {
-        var before = """
+        var before = $$"""
             {
               "data": {
                 "layout": [
                   {
                     // The colours on offer depend on where the animal is from
                     "id": "colors",
-                    "type": "Dropdown",
+                    "type": "{{type}}",
                     "optionsId": "colors",
                     "mapping": { "Animals.IsForeign": "foreign" }
                   }
@@ -613,7 +615,14 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.Equal(0, result.FilesChanged);
         Assert.Equal(before, _app.Read("ui/Task_1/layouts/Side1.json"));
         Assert.True(result.ManualActionRequired);
-        Assert.Contains(result.Warnings, warning => warning.Contains("comments", StringComparison.Ordinal));
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("comments", warning, StringComparison.Ordinal);
+        Assert.Contains(
+            "`queryParameters` (`refetchDependencies` for `PaymentDetails`)",
+            warning,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("`bindingToShowInSummary` to `summaryBinding`", warning, StringComparison.Ordinal);
     }
 
     [Fact]
