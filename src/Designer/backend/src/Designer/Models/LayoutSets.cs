@@ -5,12 +5,7 @@ using Altinn.Studio.Designer.Converters;
 namespace Altinn.Studio.Designer.Models;
 
 /// <summary>
-/// Designer's view of layout-sets.json. It deliberately does not derive from
-/// <c>Altinn.App.Core.Models.LayoutSets</c>. Designer needs its own element type
-/// (<see cref="LayoutSetConfig"/>), the <c>$schema</c> and <c>uiSettings</c> properties, and
-/// round-tripping of unknown properties, so it used nothing of the runtime model but its name — and from
-/// Altinn.App.Core 8.9 the runtime declares its <c>Sets</c> collection <c>required</c>, which a derived
-/// class is not allowed to hide.
+/// Designer's view of layout-sets.json, deliberately independent of <c>Altinn.App.Core.Models.LayoutSets</c>.
 /// </summary>
 public class LayoutSets
 {

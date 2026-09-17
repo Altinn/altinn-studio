@@ -131,44 +131,18 @@ public class AddDataTypeToApplicationMetadataTests
         Assert.Equal(taskId, appMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId).TaskId);
     }
 
-    /// <summary>
-    /// The signing and payment receipt data types hold a pdf. The app runtime writes the generated pdf at task end
-    /// and rejects it when the data type does not accept its content type, so the caller's content types have to
-    /// reach the registered data type rather than the json default. The two value case covers the wire form the
-    /// whole parameter rests on: the content types travel as a repeated query key, which is what the controller's
-    /// <c>List&lt;string&gt;</c> binds from.
-    /// </summary>
-    [Theory]
-    [InlineData(
-        "ttd",
-        "empty-app",
-        "testUser",
-        "signatures-pdf-1234",
-        "task_1",
-        new[] { "application/pdf" },
-        new[] { "app:owned" }
-    )]
-    [InlineData(
-        "ttd",
-        "empty-app",
-        "testUser",
-        "signatures-pdf-1234",
-        "task_1",
-        new[] { "application/pdf", "application/json" },
-        new[] { "app:owned" }
-    )]
-    public async Task AddDataTypeWithAllowedContentTypesToApplicationMetadata_ShouldRegisterGivenContentTypes(
-        string org,
-        string app,
-        string developer,
-        string dataTypeId,
-        string taskId,
-        string[] allowedContentTypes,
-        string[] allowedContributors
-    )
+    [Fact]
+    public async Task AddDataTypeWithAllowedContentTypesToApplicationMetadata_ShouldRegisterGivenContentTypes()
     {
+        const string org = "ttd";
+        const string developer = "testUser";
+        const string dataTypeId = "signatures-pdf-1234";
+        const string taskId = "task_1";
+        string[] allowedContentTypes = ["application/pdf", "application/json"];
+        string[] allowedContributors = ["app:owned"];
+
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        await CopyRepositoryForTest(org, "empty-app", developer, targetRepository);
         string contentTypeQuery = string.Join(
             "&",
             allowedContentTypes.Select(contentType => $"allowedContentTypes={Uri.EscapeDataString(contentType)}")

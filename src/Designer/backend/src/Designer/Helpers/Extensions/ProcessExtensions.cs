@@ -10,18 +10,20 @@ namespace Altinn.Studio.Designer.Helpers.Extensions;
 public static class ProcessExtensions
 {
     /// <summary>
-    /// Returns every element of the process that is a task: the <c>bpmn:task</c> elements and the
-    /// <c>bpmn:serviceTask</c> elements (PDF generation, eFormidling). Both carry an Altinn task type in
-    /// their extension elements, both take part in the sequence flow, and both can own a ui folder, so any
-    /// lookup that answers "which task is this id, and what type is it" has to consider both. The app
-    /// runtime makes the same union in <c>Altinn.App.Core</c>'s <c>ProcessReader.GetProcessTasks</c>.
+    /// Every <c>bpmn:task</c> and <c>bpmn:serviceTask</c> of the process, the same union the app runtime's
+    /// <c>ProcessReader.GetProcessTasks</c> returns. Call sites that mean user-facing tasks only read <c>Process.Tasks</c>.
     /// </summary>
-    /// <remarks>
-    /// Call sites that deliberately mean process tasks only — a step a user fills in — read
-    /// <c>Process.Tasks</c> directly instead of calling this.
-    /// </remarks>
     public static IEnumerable<ProcessTask> AllTasks(this Process process) =>
         (process.Tasks ?? []).Concat<ProcessTask>(process.ServiceTasks ?? []);
+
+    /// <summary>
+    /// The Altinn task type declared on the task with the given id, or null when there is no such task or type.
+    /// </summary>
+    public static string? TaskTypeOf(this Process process, string taskId) => process.AllTasks().TaskTypeOf(taskId);
+
+    /// <inheritdoc cref="TaskTypeOf(Process, string)"/>
+    public static string? TaskTypeOf(this IEnumerable<ProcessTask> tasks, string taskId) =>
+        tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType;
 
     /// <summary>
     /// Returns the ids of every task, service tasks included, in the order they are first reached when
