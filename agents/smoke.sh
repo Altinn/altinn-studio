@@ -28,16 +28,6 @@ echo "## versions"
 gh --version | head -1
 asciinema --version
 agg --version
-agentctl_version="$(agentctl --version)"
-agentd_version="$(agentd --version)"
-echo "${agentctl_version}"
-echo "${agentd_version}"
-if [ -n "${EXPECTED_AGENT_VERSION:-}" ]; then
-    test "${agentctl_version}" = "agentctl ${EXPECTED_AGENT_VERSION}" \
-        || fail "agentctl version does not match ${EXPECTED_AGENT_VERSION}"
-    test "${agentd_version}" = "agentd ${EXPECTED_AGENT_VERSION}" \
-        || fail "agentd version does not match ${EXPECTED_AGENT_VERSION}"
-fi
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
 test -z "$foreign" || fail "entries under /home/agent not owned by agent:"$'\n'"$foreign"

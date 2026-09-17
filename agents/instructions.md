@@ -72,6 +72,8 @@ and rerun the evidence that demonstrates the outcome. Benchmark and profile perf
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
 
+Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental`.
+
 ## Pull requests
 
 When asked to create or update a pull request:

@@ -12,12 +12,6 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-  workflow_call:
-    inputs:
-      agent_version:
-        description: Experimental Agent release tag or version to install
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -49,23 +43,6 @@ jobs:
           sparse-checkout: |
             agents
 
-      - name: Resolve Agent release
-        id: agent-version
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REQUESTED_VERSION: ${{ inputs.agent_version }}
-        run: |
-          set -eu
-          version="${REQUESTED_VERSION#experimental-agent/}"
-          if [ -z "${version}" ]; then
-            tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
-              --jq '[.[] | select(.draft == false) | .tag_name | select(startswith("experimental-agent/v"))][0]')"
-            version="${tag#experimental-agent/}"
-          fi
-          test -n "${version}"
-          case "${version}" in v*) ;; *) version="v${version}" ;; esac
-          echo "version=${version}" >> "${GITHUB_OUTPUT}"
-
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
         with:
@@ -88,7 +65,6 @@ jobs:
           CAN_PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
           IMAGE_REPOSITORY: ${{ matrix.repository }}
           TARGET: ${{ matrix.variant }}
-          AGENT_VERSION: ${{ steps.agent-version.outputs.version }}
         run: |
           set -eu
 
@@ -116,7 +92,6 @@ jobs:
             --provenance=false \
             --sbom=false \
             --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
-            --build-arg "AGENT_VERSION=${AGENT_VERSION}" \
             --file agents/Dockerfile \
             --platform linux/amd64,linux/arm64 \
             --target "${TARGET}" \
@@ -129,14 +104,12 @@ jobs:
         env:
           IMAGE_REPOSITORY: ${{ matrix.repository }}
           TARGET: ${{ matrix.variant }}
-          AGENT_VERSION: ${{ steps.agent-version.outputs.version }}
         run: |
           set -eu
           docker buildx build \
             --provenance=false \
             --sbom=false \
             --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
-            --build-arg "AGENT_VERSION=${AGENT_VERSION}" \
             --file agents/Dockerfile \
             --platform linux/amd64 \
             --target "${TARGET}" \
@@ -144,6 +117,5 @@ jobs:
             --tag "agent-${TARGET}:smoke" \
             agents
           docker run --rm --init --ipc=host --security-opt seccomp=unconfined --entrypoint bash \
-            --env "EXPECTED_AGENT_VERSION=${AGENT_VERSION}" \
             --volume "${PWD}/agents/smoke.sh:/smoke.sh:ro" \
             "agent-${TARGET}:smoke" /smoke.sh "${TARGET}"

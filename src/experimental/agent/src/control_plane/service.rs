@@ -1,4 +1,4 @@
-use std::{ffi::OsStr, path::PathBuf, rc::Rc};
+use std::{path::PathBuf, rc::Rc};
 
 use ignore::WalkBuilder;
 
@@ -344,10 +344,11 @@ impl ControlPlane {
     }
 }
 
-/// Rejects any bind source containing `.env`, including ignored and hidden entries.
+/// Rejects any bind source containing a `.env` file, case-insensitively and regardless of ignores.
 ///
 /// Filesystem traversal is blocking and may cover a whole checkout, so it stays off the local
-/// async runtime. Symbolic links are not followed, but a link itself named `.env` is rejected.
+/// async runtime. Directories named `.env` are allowed. Symbolic links are not followed, but a
+/// link itself named `.env` is rejected.
 async fn reject_dot_env_in_bind_mounts(agent: &Agent) -> Result<(), Error> {
     let mounts = bind_mount_sources(agent);
     tokio::task::spawn_blocking(move || {
@@ -368,7 +369,12 @@ async fn reject_dot_env_in_bind_mounts(agent: &Agent) -> Result<(), Error> {
                         source.display()
                     ))
                 })?;
-                if entry.file_name() == OsStr::new(super::resource::ENV_FILE) {
+                let is_directory = entry.file_type().is_some_and(|kind| kind.is_dir());
+                let is_env_file = entry
+                    .file_name()
+                    .as_encoded_bytes()
+                    .eq_ignore_ascii_case(super::resource::ENV_FILE.as_bytes());
+                if !is_directory && is_env_file {
                     return Err(Error::Invalid(format!(
                         "{field} bind-mounts {} which contains .env at {}; the Sandbox would see its real values. \
                          Remove the file or keep it outside mounted directories",

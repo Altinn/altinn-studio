@@ -1047,13 +1047,13 @@ async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn git_ignored_nested_dot_env_is_rejected_even_without_declared_secrets() {
+async fn git_ignored_nested_dot_env_is_rejected_case_insensitively_without_declared_secrets() {
     let fixture = fixture();
     let checkout = tempfile::tempdir().expect("checkout");
     let ignored = checkout.path().join("ignored/nested");
     std::fs::create_dir_all(&ignored).expect("ignored directory");
     std::fs::write(checkout.path().join(".gitignore"), "ignored/\n").expect("ignore file");
-    std::fs::write(ignored.join(".env"), "PRIVATE=value\n").expect("nested environment file");
+    std::fs::write(ignored.join(".EnV"), "PRIVATE=value\n").expect("nested environment file");
     let source = tempfile::tempdir().expect("manifest directory");
     let mut request = apply_request_in("worker", source.path().to_path_buf());
     request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
@@ -1066,12 +1066,54 @@ async fn git_ignored_nested_dot_env_is_rejected_even_without_declared_secrets() 
         .control_plane
         .apply(request)
         .await
-        .expect_err("ignored directories are still inspected for .env files");
+        .expect_err("ignored directories are still inspected case-insensitively for .env files");
     assert!(
         matches!(&error, Error::Invalid(message)
-            if message.contains("spec.sandbox.mounts[0]") && message.contains("ignored/nested/.env")),
+            if message.contains("spec.sandbox.mounts[0]") && message.contains("ignored/nested/.EnV")),
         "{error}"
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_directory_named_dot_env_is_allowed() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    std::fs::create_dir(checkout.path().join(".ENV")).expect("directory named .ENV");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect("a directory named .env is not an environment file");
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn a_dot_env_symlink_is_rejected() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    std::fs::write(checkout.path().join("credentials"), "PRIVATE=value\n").expect("target file");
+    std::os::unix::fs::symlink("credentials", checkout.path().join(".ENV")).expect("environment symlink");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("a case-variant .env symlink still exposes a file");
 }
 
 #[tokio::test(flavor = "local")]

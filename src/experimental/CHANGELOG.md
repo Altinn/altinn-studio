@@ -17,13 +17,13 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - The release installers accept `AGENT_INSTALL_MODE=standalone` to verify and copy only `agentctl` and `agentd` into
   `AGENT_INSTALL_DIR`. This supports immutable images and CI jobs without creating self-update state, migrating Agent
   data, starting the daemon, or changing `PATH`.
-- Agent manifest variants. Put a complete Agent in `agent.yaml` and partial, explicitly named variants in sibling `agent.<variant>.yaml` files using `kind: AgentVariant` and `extends`. Variants may chain, replace arrays and scalar values, merge mappings, and remove optional fields with `null`. Run `agentctl apply --variant <variant>` and use the same selector with commands that infer an applied Agent. The TUI groups discovered manifests into separate Agent and Variant pickers, including repository-owned and Git-ignored local variants, reports invalid ones, and accepts an optional environment-file path when creating an Agent.
+- Agent manifests support chained `AgentVariant` files named `agent.<variant>.yaml`. Select them with `--variant` or the TUI, which also supports ignored local variants and an environment file.
 - SSH access to Agents. Declare `spec.access: [{type: ssh}]`, then `agentctl ssh <agent> [-- command]` opens a shell or runs a command in the Sandbox as `agent`. `agentctl ssh-config install` lets plain `ssh`, `sftp` and editors reach the Agent as `altinn-agent-<name>`, and `agentctl ssh-info <agent> -o json` prints the connection details. The Altinn Agent images and the examples declare it; an Agent created from an older image must be deleted and re-applied.
 - Windows contributors can run `.\make-user-install.ps1` to build, package and install a local Agent without Make.
 
 ### Changed
 
-- `agentctl apply` now defaults to `./agent.yaml`. The self-development and Altinn Agents provide nested and worktree variants; both Altinn Agents also provide nested-build variants. Self-development always builds its local Dockerfile, while Altinn images install a checksum-verified released Agent platform instead of building it from `src/experimental` and are rebuilt for every Agent release.
+- `agentctl apply` defaults to `./agent.yaml`. The self-development and Altinn Agents provide nested and worktree variants; Altinn also provides nested-build variants.
 
 ### Fixed
 
@@ -36,7 +36,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Security
 
-- Applying an Agent rejects any bind mount containing a `.env` file, including nested and Git-ignored files, so their real values cannot become visible inside the Sandbox.
+- Applying an Agent rejects bind mounts containing `.env` files, case-insensitively and regardless of ignore rules.
 
 ## [0.1.0-preview.3] - 2026-09-17
 

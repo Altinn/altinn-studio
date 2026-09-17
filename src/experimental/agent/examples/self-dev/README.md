@@ -20,23 +20,21 @@ agentctl apply --env-file ~/.agent/self-dev.env --wait
 agentctl attach session/s1
 ```
 
-Select the reduced nested variant from the same directory:
+For the reduced nested variant:
 
 ```sh
 agentctl apply --variant nested --env-file ~/.agent/self-dev.env --wait
 agentctl create session/s1 --variant nested --harness codex
 ```
 
-The worktree variant mounts the whole checkout, so its environment file must live outside it. Include
-`GIT_USER_NAME`, `GIT_USER_EMAIL`, and `GITHUB_TOKEN` using `.env.sample` as a template:
+The worktree variant requires an environment file outside the mounted checkout:
 
 ```sh
 agentctl apply --variant worktree --env-file ~/.agent/self-dev.env
 ```
 
-Developers may create an ignored local variant such as `agent.mine.yaml`. It can extend another sibling variant,
-but credentials still belong in an external environment file because ignored files remain visible through a bind
-mount.
+Ignored local variants such as `agent.mine.yaml` may extend another sibling variant. Keep their credentials outside
+the mounted checkout.
 
 Inside a running Agent, `instructions.md` tells the harness how to build, test and run the platform nested, and the
 `pr-evidence` skill how to record `agentctl` demonstrations and attach them to pull requests.

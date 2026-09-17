@@ -13,11 +13,14 @@ Choose an Agent and, optionally, a variant:
 | `full` `nested-build` | Reduced resources and a full image built from this checkout |
 | `full` `worktree` | Full published image with the current checkout mounted read-write |
 
-Every Agent installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
-recordings through asciinema, uploaded with `gh pr create --attach`.
+Every Agent installs the `pr-evidence` skill from `agents/skills`.
 
-The Altinn images install the latest released `agentctl` and `agentd` binaries with architecture-specific checksum
-verification; they do not build the platform from `src/experimental`.
+The images do not include `agentctl` or `agentd`. To develop the Agent platform from a full Agent, install the current
+checkout before using a nested variant:
+
+```sh
+make -C src/experimental user-install
+```
 
 The host needs hardware virtualization. Docker is required only for the `nested-build` variant; the other
 repository-owned Altinn manifests use registry references. Install the released Agent CLI on Linux or macOS:
@@ -87,10 +90,8 @@ agentctl apply --variant worktree --env-file ~/.agent/altinn-worktree.env
 The entire checkout, including ignored files, is then visible inside the Agent. Linked Git
 worktrees also need their external common Git directory mounted for Git commands to work inside the Agent.
 
-A `.env` inside the mounted checkout would be readable from the Agent, so `agentctl apply` rejects the worktree
-variant while an existing default `.env` beside its manifest or the selected `.env` of another Agent, for example
-`agents/full/.env`, lies inside the checkout. Keep such secret files outside the checkout and pass their location
-with `agentctl apply --env-file <path>`.
+`agentctl apply` rejects a worktree whose checkout contains a `.env` file, regardless of casing or ignore rules. Keep
+secret files outside the checkout and select one with `--env-file <path>`.
 
 Create or reattach to a Session:
 

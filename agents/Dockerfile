@@ -152,23 +152,6 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
 
-# Install the latest released platform as the same unprivileged user that will run it. Standalone
-# mode verifies the architecture-specific release checksum without creating host self-update state.
-ARG AGENT_VERSION
-USER agent
-RUN curl -fsSL \
-        https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh \
-        -o /tmp/agent-install.sh \
-    && AGENT_VERSION="${AGENT_VERSION}" \
-        AGENT_INSTALL_MODE=standalone \
-        AGENT_INSTALL_DIR=/home/agent/.local/bin \
-        HOME=/home/agent \
-        sh /tmp/agent-install.sh \
-    && rm -f /tmp/agent-install.sh \
-    && /home/agent/.local/bin/agentctl --version \
-    && /home/agent/.local/bin/agentd --version
-USER root
-
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
 
