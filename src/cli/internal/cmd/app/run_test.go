@@ -495,6 +495,35 @@ func TestBuildDotnetRunSpec_ProvisionsTheDevelopmentAppCodes(t *testing.T) {
 	assertAppCodesProvisioned(t, spec.SecretsDir)
 }
 
+// The app does not start without its callback verification codes, so failing to write them is a failure to
+// build the run - not something to carry on past and let the app discover.
+func TestBuildDotnetRunSpec_FailsWhenTheAppCodesCannotBeWritten(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	home := t.TempDir()
+	// A directory where the app codes file belongs: nothing can replace it with a file.
+	blocked := filepath.Join(home, "apps", "ttd", "test-app", "secrets", "app-codes.json")
+	if err := os.MkdirAll(blocked, 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	_, err := service.BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err == nil {
+		t.Fatal("BuildDotnetRunSpec() error = nil, want an error provisioning the app secrets")
+	}
+}
+
 func TestBuildDotnetRunSpec_OverridesInheritedProvisionedSecretsVariables(t *testing.T) {
 	t.Parallel()
 
@@ -604,8 +633,11 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
 	// The host side of the mount exists before the container does, so the runtime never creates it - on
-	// Linux as root, where everything else under the studioctl home is the developer's.
+	// Linux as root, where everything else under the studioctl home is the developer's - and the container
+	// reads its callback verification codes from the mounted directory, so they are in it already, exactly
+	// as for a native run.
 	assertIsDir(t, want)
+	assertAppCodesProvisioned(t, spec.SecretsDir)
 	wantKeys := filepath.Join(home, "apps", "ttd", "test-app", "keys")
 	if spec.KeysDir != wantKeys {
 		t.Fatalf("KeysDir = %q, want %q", spec.KeysDir, wantKeys)
@@ -672,9 +704,6 @@ func TestPrepareDockerRun_RunsAsTheDeveloperAndAdaptsToTheRuntime(t *testing.T) 
 			t.Fatalf("%s was not created before the mount: %v", dir, statErr)
 		}
 	}
-	// The container reads its callback verification codes from the mounted directory, so they are provisioned
-	// into it before it is mounted, exactly as for a native run.
-	assertAppCodesProvisioned(t, spec.SecretsDir)
 	assertRunsAsTheDeveloper(t, spec, "keep-id")
 	for _, mount := range spec.Config.Volumes {
 		if mount.SELinuxRelabel != types.SELinuxRelabelShared {

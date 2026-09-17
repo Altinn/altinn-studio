@@ -64,12 +64,10 @@ func (s *Service) ensureAppSecretsDir(appPath string) (string, error) {
 
 // provisionAppSecrets fills the app's secrets directory with what studioctl provisions for every local run,
 // the way the operator provisions a deployed app's secrets mount before the app starts. Today that is the
-// development app codes; the Maskinporten client is the developer's to store. A directory that could not be
-// placed at all is left alone: the app is then not told where its secrets are either.
+// development app codes, which a v9 app reads at startup and refuses to start without; the Maskinporten
+// client is the developer's to store. The directory is the one ensureAppSecretsDir has just created, so
+// there is nothing to skip: a failure here is a failure to start the app.
 func (s *Service) provisionAppSecrets(dir string) error {
-	if dir == "" {
-		return nil
-	}
 	if err := appsecrets.WriteDevelopmentAppCodes(dir); err != nil {
 		return fmt.Errorf("provision app secrets: %w", err)
 	}

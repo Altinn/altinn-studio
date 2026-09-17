@@ -57,8 +57,8 @@ func AppCodesPath(dir string) string {
 	return filepath.Join(dir, AppCodesFileName)
 }
 
-// WriteDevelopmentAppCodes provisions the development app codes into the secrets directory, creating the
-// directory if it is not there yet.
+// WriteDevelopmentAppCodes provisions the development app codes into the secrets directory. The directory is
+// created, and made owner-only, through the one EnsureDir every writer goes through.
 //
 // Workflow engine callbacks are authenticated with an app-minted JWT signed by a WorkflowEngineCallback app
 // code. The app both mints and verifies the token, so this value never has to match anything else, and a
@@ -81,8 +81,8 @@ func WriteDevelopmentAppCodes(dir string) error {
 		return nil
 	}
 
-	if err = os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
-		return fmt.Errorf("create secrets directory: %w", err)
+	if err = EnsureDir(dir); err != nil {
+		return err
 	}
 	// Owner-only on every platform: the mode on Unix, and on Windows the protected DACL, applied before the
 	// file appears at its final path.
