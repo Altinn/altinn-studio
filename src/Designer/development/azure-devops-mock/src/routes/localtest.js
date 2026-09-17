@@ -122,15 +122,28 @@ async function orgToken(org) {
   return orgTokens.get(org);
 }
 
-/** A Storage call as the org; `ok` is a 2xx answer, `data` the parsed body. */
+/**
+ * A Storage call as the org; `ok` is a 2xx answer, `data` the parsed body. The cached org token
+ * expires after a while (a machine that slept overnight comes back to a 401 on every read), so a
+ * 401 drops it and the call is made once more with a fresh one.
+ */
 async function storageRequest(org, path, method = 'GET') {
-  const token = await orgToken(org);
-  const response = await axios.request({
-    ...passThrough,
-    method,
-    url: `${localtestUrl()}${path}`,
-    headers: { Host: platformHost(), Accept: 'application/json', Authorization: `Bearer ${token}` },
-  });
+  const send = async () =>
+    axios.request({
+      ...passThrough,
+      method,
+      url: `${localtestUrl()}${path}`,
+      headers: {
+        Host: platformHost(),
+        Accept: 'application/json',
+        Authorization: `Bearer ${await orgToken(org)}`,
+      },
+    });
+  let response = await send();
+  if (response.status === 401) {
+    orgTokens.delete(org);
+    response = await send();
+  }
   return { ...response, ok: response.status >= 200 && response.status < 300 };
 }
 
