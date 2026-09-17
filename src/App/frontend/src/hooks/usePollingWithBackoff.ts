@@ -2,16 +2,25 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import { queryFocusManager } from 'src/core/queries/focusManager';
 const DEFAULT_INITIAL_INTERVAL_MS = 1000;
-const INITIAL_ATTEMPTS = 10;
+const DEFAULT_INITIAL_ATTEMPTS = 10;
 const INTERVAL_INCREMENT_MS = 1000;
 const MAX_INTERVAL_MS = 30_000;
 
-export function getPollingInterval(attempt: number, initialIntervalMs = DEFAULT_INITIAL_INTERVAL_MS) {
-  if (attempt < INITIAL_ATTEMPTS) {
+type PollingOptions = {
+  initialIntervalMs?: number;
+  initialAttempts?: number;
+};
+
+export function getPollingInterval(
+  attempt: number,
+  initialIntervalMs = DEFAULT_INITIAL_INTERVAL_MS,
+  initialAttempts = DEFAULT_INITIAL_ATTEMPTS,
+) {
+  if (attempt < initialAttempts) {
     return initialIntervalMs;
   }
 
-  return Math.min(MAX_INTERVAL_MS, initialIntervalMs + (attempt - INITIAL_ATTEMPTS + 1) * INTERVAL_INCREMENT_MS);
+  return Math.min(MAX_INTERVAL_MS, initialIntervalMs + (attempt - initialAttempts + 1) * INTERVAL_INCREMENT_MS);
 }
 
 /**
@@ -24,7 +33,7 @@ export function getPollingInterval(attempt: number, initialIntervalMs = DEFAULT_
 export function usePollingWithBackoff(
   callback: () => Promise<unknown>,
   enabled = true,
-  initialIntervalMs = DEFAULT_INITIAL_INTERVAL_MS,
+  { initialIntervalMs = DEFAULT_INITIAL_INTERVAL_MS, initialAttempts = DEFAULT_INITIAL_ATTEMPTS }: PollingOptions = {},
 ) {
   const callbackRef = useRef(callback);
   const activeCallbackRef = useRef<Promise<unknown> | undefined>(undefined);
@@ -77,11 +86,13 @@ export function usePollingWithBackoff(
         }
 
         attemptsRef.current++;
-        scheduleNext(getPollingInterval(attemptsRef.current, initialIntervalMs));
+        scheduleNext(getPollingInterval(attemptsRef.current, initialIntervalMs, initialAttempts));
       }, delay);
     };
 
-    scheduleNext(wasPausedRef.current ? 0 : getPollingInterval(attemptsRef.current, initialIntervalMs));
+    scheduleNext(
+      wasPausedRef.current ? 0 : getPollingInterval(attemptsRef.current, initialIntervalMs, initialAttempts),
+    );
     wasPausedRef.current = false;
 
     return () => {
@@ -90,5 +101,5 @@ export function usePollingWithBackoff(
         clearTimeout(timeoutId);
       }
     };
-  }, [enabled, isFocused, initialIntervalMs]);
+  }, [enabled, isFocused, initialIntervalMs, initialAttempts]);
 }
