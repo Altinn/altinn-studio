@@ -1,10 +1,11 @@
 //! Linux Sandbox configuration for mediated Claude Code authentication.
 
-use std::io::Cursor;
+use sandbox::SandboxHandle;
 
-use sandbox::{SandboxHandle, SandboxPath};
-
-use crate::{Error, sandbox::platform::run_checked};
+use crate::{
+    Error,
+    sandbox::platform::{files::write_if_changed, run_checked},
+};
 
 use super::super::ACCESS_PLACEHOLDER;
 
@@ -31,26 +32,11 @@ pub(super) async fn configure(
             "scopes": ["user:inference"]
         }
     }))?;
-    sandbox
-        .write_file(
-            &SandboxPath::new(credentials_path.clone()),
-            Box::pin(Cursor::new(credentials)),
-        )
-        .await?;
+    write_if_changed(sandbox, &credentials_path, &credentials).await?;
     if let Some(instructions) = instructions {
-        sandbox
-            .write_file(
-                &SandboxPath::new(instructions_path.clone()),
-                Box::pin(Cursor::new(instructions.to_vec())),
-            )
-            .await?;
+        write_if_changed(sandbox, &instructions_path, instructions).await?;
     }
-    sandbox
-        .write_file(
-            &SandboxPath::new(hook_path.clone()),
-            Box::pin(Cursor::new(super::super::hooks::script()?.into_bytes())),
-        )
-        .await?;
+    write_if_changed(sandbox, &hook_path, super::super::hooks::script()?.as_bytes()).await?;
     // HACK: the mediated setup token is inference-only, so Claude Code cannot read the account's
     // plan entitlement and gates Fable behind a usage-credits prompt. Declaring the subscription
     // type and rate-limit tier in the settings env satisfies the client-side plan-inclusion check
@@ -64,12 +50,7 @@ pub(super) async fn configure(
         },
         "hooks": super::super::hooks::configuration(&hook_path)
     }))?;
-    sandbox
-        .write_file(
-            &SandboxPath::new(settings_path.clone()),
-            Box::pin(Cursor::new(settings)),
-        )
-        .await?;
+    write_if_changed(sandbox, &settings_path, &settings).await?;
     // Runtime file transfer writes as the Sandbox supervisor (root), while
     // executions run as the image user. Correct only the directories and files
     // managed above: recursive ownership walks would traverse the growing

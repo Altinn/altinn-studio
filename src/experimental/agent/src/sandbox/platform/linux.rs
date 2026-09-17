@@ -7,7 +7,7 @@ use ignore::WalkBuilder;
 
 use crate::{Error, control_plane, harness};
 
-use super::super::PlatformAdapter;
+use super::{super::PlatformAdapter, files::write_if_changed};
 
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
@@ -240,13 +240,13 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
         ],
     )
     .await?;
-    write_file(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
-    write_file(sandbox, PODMAN_CA_HOOK_CONF, PODMAN_CA_HOOK_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_CA_HOOK, PODMAN_CA_HOOK_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CA_HOOK_CONF, PODMAN_CA_HOOK_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CA_HOOK, PODMAN_CA_HOOK_CONTENTS).await?;
     run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0755", PODMAN_CA_HOOK]).await?;
     run_checked(
         sandbox,
@@ -315,13 +315,6 @@ async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
         }
         tokio::time::sleep(SYSTEMD_READY_POLL).await;
     }
-}
-
-async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Result<(), Error> {
-    sandbox
-        .write_file(&SandboxPath::new(path), Box::pin(Cursor::new(contents.to_vec())))
-        .await
-        .map_err(Error::from)
 }
 
 /// Concatenates the instruction files in manifest order, each terminated by a newline and
