@@ -32,6 +32,13 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.ProvisionedSecrets.ProvisionedSecretsStartupCheck
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Altinn.App.Core.Internal.LocaltestValidation
   },
   {
@@ -54,13 +61,6 @@
     isImplementationInstance: false,
     lifetime: 0,
     materializedType: Altinn.App.Core.Internal.WorkflowEngine.ServiceTaskRegistrationValidator
-  },
-  {
-    isImplementationFactory: false,
-    isImplementationType: true,
-    isImplementationInstance: false,
-    lifetime: 0,
-    materializedType: Altinn.App.Core.Internal.ProvisionedSecrets.ProvisionedSecretsStartupCheck
   },
   {
     isImplementationFactory: false,
