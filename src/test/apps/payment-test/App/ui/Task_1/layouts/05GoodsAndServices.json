@@ -224,7 +224,7 @@
             true
           ]
         ],
-        "queryParameters": {
+        "refetchDependencies": {
           "paymentDetails": [
             "dataModel",
             "GoodsAndServicesProperties.Inventory.InventoryProperties"

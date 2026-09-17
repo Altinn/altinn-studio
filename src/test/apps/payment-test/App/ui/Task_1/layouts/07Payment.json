@@ -13,7 +13,7 @@
           "title": "Oversikt over betaling",
           "description": "Her er en oversikt over hva du skal betale for."
         },
-        "queryParameters": {
+        "refetchDependencies": {
           "paymentDetails": [
             "dataModel",
             "GoodsAndServicesProperties.Inventory.InventoryProperties"

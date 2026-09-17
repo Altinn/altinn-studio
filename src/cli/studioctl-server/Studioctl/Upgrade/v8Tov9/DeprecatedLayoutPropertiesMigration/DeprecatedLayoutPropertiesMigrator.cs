@@ -19,7 +19,8 @@ internal sealed record DeprecatedLayoutPropertiesMigrationResult(
 /// Rewrites the layout properties removed in v9:
 /// <list type="bullet">
 ///   <item><c>mapping</c> becomes <c>queryParameters</c> holding <c>["dataModel", "&lt;path&gt;"]</c>
-///   expressions, on option components, <c>List</c>, <c>InstantiationButton</c> and <c>PaymentDetails</c>.</item>
+///   expressions, on option components, <c>List</c> and <c>InstantiationButton</c>.</item>
+///   <item><c>mapping</c> on <c>PaymentDetails</c> becomes <c>refetchDependencies</c>.</item>
 ///   <item><c>bindingToShowInSummary</c> on <c>List</c> becomes <c>summaryBinding</c>, which names a key
 ///   in <c>dataModelBindings</c> rather than repeating the data model path.</item>
 /// </list>
@@ -230,8 +231,8 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
     }
 
     /// <summary>
-    /// Turns <c>mapping</c> (data model path -&gt; query parameter) into <c>queryParameters</c>
-    /// (query parameter -&gt; <c>["dataModel", path]</c>), merging into any parameters already configured.
+    /// Turns <c>mapping</c> into expression-based <c>queryParameters</c>, or <c>refetchDependencies</c>
+    /// for payment details, merging into any values already configured.
     /// </summary>
     private ComponentChanges ConvertMapping(JsonObject component, string type, string fileName)
     {
@@ -240,7 +241,8 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             return changes;
 
         var componentId = ComponentId(component);
-        var queryParameters = component["queryParameters"] as JsonObject;
+        var property = type == "PaymentDetails" ? "refetchDependencies" : "queryParameters";
+        var queryParameters = component[property] as JsonObject;
         var converted = new List<KeyValuePair<string, JsonNode?>>();
 
         foreach (var (dataModelPath, parameterNode) in mapping)
@@ -249,7 +251,7 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             {
                 _warnings.Add(
                     $"{fileName}: {type} '{componentId}' maps '{dataModelPath}' to a non-text query parameter name. "
-                        + "Convert this entry to `queryParameters` by hand."
+                        + $"Convert this entry to `{property}` by hand."
                 );
                 changes.ManualActionRequired = true;
                 return changes;
@@ -258,7 +260,7 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             if (queryParameters?.ContainsKey(parameter) == true)
             {
                 _warnings.Add(
-                    $"{fileName}: {type} '{componentId}' already has a `queryParameters` entry named '{parameter}', "
+                    $"{fileName}: {type} '{componentId}' already has a `{property}` entry named '{parameter}', "
                         + $"so the `mapping` entry for '{dataModelPath}' was left in place. Decide which one to keep."
                 );
                 changes.ManualActionRequired = true;
@@ -276,7 +278,7 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         if (queryParameters is null)
         {
             queryParameters = new JsonObject();
-            component["queryParameters"] = queryParameters;
+            component[property] = queryParameters;
         }
 
         foreach (var (parameter, expression) in converted)
