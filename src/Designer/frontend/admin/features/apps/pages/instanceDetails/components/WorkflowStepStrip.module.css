@@ -1,8 +1,11 @@
+/* As tall as a line of the row's text, with the dots centered in it, so they sit on the same
+   line as the status, the name and the date rather than hugging the top of the cell. */
 .dots {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
+  min-height: 1.5rem;
 }
 
 .dot {

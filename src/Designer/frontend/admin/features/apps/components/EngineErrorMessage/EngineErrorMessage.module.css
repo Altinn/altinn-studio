@@ -1,8 +1,8 @@
 .entry {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--ds-size-1);
+  gap: var(--ds-size-2);
+  align-self: stretch;
 }
 
 .meta {
@@ -19,11 +19,7 @@
   white-space: pre-wrap;
 }
 
-/* The whole message as a small code block, so it stands apart from the facts above it and the
-   verbs below it. */
+/* The whole message as its own block on the alert's surface: no box of its own, the alert is the box. */
 .message {
   display: block;
-  padding: var(--ds-size-2) var(--ds-size-3);
-  border-radius: var(--ds-border-radius-sm);
-  background: var(--ds-color-neutral-surface-tinted);
 }

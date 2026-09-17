@@ -15,12 +15,15 @@ const entry = (overrides: Partial<WorkflowErrorEntry> = {}): WorkflowErrorEntry 
 });
 
 describe('EngineErrorMessage', () => {
-  it('shows the whole message as it came, as verbatim technical text', () => {
+  it('shows the whole message as it came, under the problem title as its headline', () => {
     renderEngineErrorMessage(entry());
 
-    expect(screen.getByText(problemMessage).tagName).toBe('CODE');
-    // Nothing is lifted out of the message and said again beside it.
-    expect(screen.queryByText('Could not generate the PDF')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'PdfGenerationException' })).toBeInTheDocument();
+    // The body is laid out as JSON under the engine's prefix, every field still there.
+    const message = screen.getByText(/AppCommand execution failed/);
+    expect(message.tagName).toBe('CODE');
+    expect(message).toHaveTextContent('"detail": "Could not generate the PDF"');
+    expect(message).toHaveTextContent('"workflowFailureCode": "PDF_GENERATION_FAILED"');
   });
 
   it('says when, the HTTP status, how the engine classed the error, and the failure code', () => {
@@ -34,10 +37,11 @@ describe('EngineErrorMessage', () => {
     expect(screen.getByText('PDF_GENERATION_FAILED').tagName).toBe('CODE');
   });
 
-  it('leaves the status out when the engine recorded none', () => {
+  it('leaves the status out when the engine recorded none, and has no headline without a title', () => {
     renderEngineErrorMessage(entry({ message: 'Boom went the pipeline', httpStatusCode: null }));
 
     expect(screen.getByText('Boom went the pipeline').tagName).toBe('CODE');
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     expect(screen.queryByText(/http_status/)).not.toBeInTheDocument();
     expect(
       screen.getByText(textMock('admin.workflows.error.retryable'), { exact: false }),

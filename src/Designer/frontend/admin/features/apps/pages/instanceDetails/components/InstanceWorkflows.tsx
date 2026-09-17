@@ -18,6 +18,7 @@ import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/use
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';
 import { useNow } from 'admin/features/apps/hooks/useNow';
 import type {
+  PersistentItemStatus,
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
@@ -35,7 +36,7 @@ import {
   attentionWorkflowOf,
   focusStepOf,
   isActiveWorkflow,
-  maxRetryCount,
+  failedAttemptCount,
   newestFirst,
   orderedSteps,
   toTime,
@@ -150,14 +151,16 @@ const InstanceWorkflowsContent = ({
           {t('admin.workflows.fetch_more')}
         </StudioButton>
       )}
-      {workflows.map((workflow) => (
-        <WorkflowItem
-          key={workflow.databaseId}
-          context={context}
-          workflow={workflow}
-          defaultOpen={workflow.databaseId === attentionWorkflowId}
-        />
-      ))}
+      <div className={classes.rows}>
+        {workflows.map((workflow) => (
+          <WorkflowItem
+            key={workflow.databaseId}
+            context={context}
+            workflow={workflow}
+            defaultOpen={workflow.databaseId === attentionWorkflowId}
+          />
+        ))}
+      </div>
     </div>
   );
 };
@@ -178,7 +181,7 @@ type WorkflowItemProps = {
 const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => {
   const { t } = useTranslation();
   const now = useNow(isActiveWorkflow(workflow));
-  const attempts = maxRetryCount(workflow);
+  const attempts = failedAttemptCount(workflow);
   const liveNote = liveNoteOf(workflow, now, t);
   // Named while the chain is unfinished; a finished one needs no word beside its dots.
   const currentStep = focusStepOf(workflow);
@@ -205,7 +208,7 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
 
   return (
     <StudioDetails defaultOpen={defaultOpen} data-testid='workflow-row'>
-      <StudioDetails.Summary>
+      <StudioDetails.Summary className={classes.summaryBar}>
         <span key={changeCount} className={summaryClasses}>
           <span className={classes.summaryStatus}>
             <WorkflowStatusTag status={workflow.overallStatus} />
@@ -220,25 +223,29 @@ const WorkflowItem = ({ context, workflow, defaultOpen }: WorkflowItemProps) => 
               </StudioTag>
             )}
           </span>
-          <WorkflowStepStrip workflow={workflow} />
-          <span className={classes.summaryStep}>{currentStepName}</span>
-          <span className={classes.summaryAttempts}>
-            {attempts > 0 && (
-              <span
-                className={classes.attempts}
-                title={t('admin.workflows.row.attempts', { count: attempts })}
-                aria-label={t('admin.workflows.row.attempts', { count: attempts })}
-              >
-                <ArrowsCirclepathIcon aria-hidden='true' />
-                {attempts}
-              </span>
-            )}
-          </span>
-          <span className={classes.summaryLive}>
-            {isActiveWorkflow(workflow) && (
-              <StudioSpinner data-size='xs' aria-label={t('admin.workflows.health.active')} />
-            )}
-            {liveNote && <span>{liveNote}</span>}
+          <span className={classes.summaryProgress}>
+            <span className={classes.summaryDots}>
+              <WorkflowStepStrip workflow={workflow} />
+            </span>
+            <span className={classes.summaryStep}>{currentStepName}</span>
+            <span className={classes.summaryAttempts}>
+              {attempts > 0 && (
+                <span
+                  className={classes.attempts}
+                  title={t('admin.workflows.row.attempts', { count: attempts })}
+                  aria-label={t('admin.workflows.row.attempts', { count: attempts })}
+                >
+                  <ArrowsCirclepathIcon aria-hidden='true' />
+                  {attempts}
+                </span>
+              )}
+            </span>
+            <span className={classes.summaryLive}>
+              {isActiveWorkflow(workflow) && (
+                <StudioSpinner data-size='xs' aria-label={t('admin.workflows.health.active')} />
+              )}
+              {liveNote && <span>{liveNote}</span>}
+            </span>
           </span>
           <span className={classes.summaryDate}>{formatTimestamp(workflow.createdAt)}</span>
         </span>
@@ -324,7 +331,7 @@ const WorkflowSteps = ({
                   <StudioTable.Cell>
                     <WorkflowStatusTag status={step.status} />
                   </StudioTable.Cell>
-                  <StudioTable.Cell>{step.retryCount}</StudioTable.Cell>
+                  <StudioTable.Cell>{step.errorHistory?.length ?? 0}</StudioTable.Cell>
                   <StudioTable.Cell>
                     {formatTimestamp(step.updatedAt, 'milliseconds')}
                   </StudioTable.Cell>
@@ -371,16 +378,31 @@ function hasStepDetails(step: WorkflowStepStatus): boolean {
   return Boolean(step.lastDeferReason) || (step.errorHistory?.length ?? 0) > 0;
 }
 
+/** Statuses in which a step's latest error is the current problem, not history. */
+const STEP_FAILING_STATUSES: readonly PersistentItemStatus[] = [
+  'Failed',
+  'Canceled',
+  'DependencyFailed',
+  'Requeued',
+];
+
 /**
- * A step's own account of what happened: what it is waiting for, its latest error in full, and —
- * on the step the workflow stopped at — the verbs, right under that error. Earlier errors, one per
- * attempt, so a retried step can have many, fold away under the count: they are the same failure
- * over and over more often than not.
+ * A step's own account of what happened: what it is waiting for, its current error in full, and —
+ * on the step the workflow stopped at — the verbs, right under that error. Every other error folds
+ * away under a count: the earlier attempts of a step that keeps failing, or the whole history of a
+ * step that has since succeeded — still there, since the failure happened, but out of the way.
  */
 const StepDetails = ({ step, verbs }: { step: WorkflowStepStatus; verbs?: ReactNode }) => {
   const { t } = useTranslation();
   const deferReason = step.lastDeferReason;
-  const [latestError, ...earlierErrors] = newestFirst(step.errorHistory ?? []);
+  const errors = newestFirst(step.errorHistory ?? []);
+  const isFailing = STEP_FAILING_STATUSES.includes(step.status);
+  const currentError = isFailing ? errors[0] : undefined;
+  const earlierErrors = isFailing ? errors.slice(1) : errors;
+  const historyLabel =
+    step.status === 'Completed'
+      ? t('admin.workflows.step.resolved_errors', { count: earlierErrors.length })
+      : t('admin.workflows.step.earlier_errors', { count: earlierErrors.length });
 
   // The engine leaves the last defer reason on the step after it stops waiting, so only a step that
   // is actually parked may read as currently blocked. On any other step the same text is history,
@@ -404,13 +426,11 @@ const StepDetails = ({ step, verbs }: { step: WorkflowStepStatus; verbs?: ReactN
       {(step.deferCount ?? 0) > 1 && (
         <span>{t('admin.workflows.step.defer_count', { times: step.deferCount })}</span>
       )}
-      {latestError && <EngineErrorMessage entry={latestError} />}
+      {currentError && <EngineErrorMessage entry={currentError} />}
       {verbs}
       {earlierErrors.length > 0 && (
         <StudioDetails data-size='sm' className={classes.earlierErrors}>
-          <StudioDetails.Summary>
-            {t('admin.workflows.step.earlier_errors', { count: earlierErrors.length })}
-          </StudioDetails.Summary>
+          <StudioDetails.Summary>{historyLabel}</StudioDetails.Summary>
           <StudioDetails.Content className={classes.earlierErrorsList}>
             {earlierErrors.map((entry, index) => (
               <EngineErrorMessage key={`${entry.timestamp}-${index}`} entry={entry} />

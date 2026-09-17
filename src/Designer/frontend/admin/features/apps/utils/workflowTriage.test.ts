@@ -8,6 +8,7 @@ import { WorkflowHealth } from './workflowHealth';
 import {
   RETRYING_ATTEMPT_THRESHOLD,
   deriveInstanceHealth,
+  failedAttemptCount,
   focusStepOf,
   isWorkflowRetrying,
   latestErrorOf,
@@ -50,6 +51,20 @@ const error = (timestamp: string, message: string): WorkflowErrorEntry => ({
   timestamp,
   message,
   wasRetryable: true,
+});
+
+describe('failedAttemptCount', () => {
+  it('counts every recorded error across the steps, whatever the retry counter says', () => {
+    const steps = [
+      step(0, 'Completed', {
+        retryCount: 0,
+        errorHistory: [error('2026-08-02T09:01:00Z', 'a'), error('2026-08-02T09:02:00Z', 'b')],
+      }),
+      step(1, 'Completed', { retryCount: 4, errorHistory: [error('2026-08-02T09:03:00Z', 'c')] }),
+      step(2, 'Completed'),
+    ];
+    expect(failedAttemptCount(workflow('Completed', { steps }))).toBe(3);
+  });
 });
 
 describe('isWorkflowRetrying', () => {

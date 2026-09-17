@@ -1,26 +1,56 @@
 /**
- * The app's own failure code, when the engine's message carries one.
+ * An engine error message, read for display.
  *
- * The app runtime answers a failed callback with RFC 9457 problem details, and its
- * `workflowFailureCode` extension is the one field worth lifting out: it is the identifier an
- * operator searches the documentation and the app's log for. The engine records the whole body as
- * one string behind its own prefix, so the code is read back out of the JSON at the end of it.
- * Everything else in the message is read as it came.
+ * The app runtime answers a failed callback with RFC 9457 problem details, and the engine records
+ * the whole body as one string behind its own prefix: `AppCommand failed with client error
+ * BadRequest: {...}`. The `title` (the exception type, in practice) gives the error a headline,
+ * the `workflowFailureCode` extension is the identifier an operator searches the documentation
+ * and the app's log for, and the body itself is handed back parsed so it can be laid out as JSON
+ * instead of one long line. A message without a JSON body is shown as it came.
  */
-export function failureCodeOf(message: string): string | undefined {
+export type EngineErrorReading = {
+  title?: string;
+  failureCode?: string;
+  /** The engine's own words before the body, when there is a body. */
+  prefix?: string;
+  /** The body, parsed, when the message carries one. */
+  body?: unknown;
+};
+
+export function readEngineErrorMessage(message: string): EngineErrorReading {
   const bodyStart = message.indexOf('{');
   if (bodyStart < 0) {
-    return undefined;
+    return {};
   }
-  let parsed: unknown;
+  let body: unknown;
   try {
-    parsed = JSON.parse(message.slice(bodyStart));
+    body = JSON.parse(message.slice(bodyStart));
   } catch {
-    return undefined;
+    return {};
   }
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    return undefined;
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return {};
   }
-  const code = (parsed as { workflowFailureCode?: unknown }).workflowFailureCode;
-  return typeof code === 'string' && code.length > 0 ? code : undefined;
+  const fields = body as { title?: unknown; workflowFailureCode?: unknown };
+  const prefix = message.slice(0, bodyStart).trim();
+  return {
+    title: asText(fields.title),
+    failureCode: asText(fields.workflowFailureCode),
+    prefix: prefix || undefined,
+    body,
+  };
+}
+
+/** The message as it is shown: the prefix on its own line, the body laid out as JSON. */
+export function formatEngineErrorMessage(message: string): string {
+  const { prefix, body } = readEngineErrorMessage(message);
+  if (body === undefined) {
+    return message;
+  }
+  const json = JSON.stringify(body, null, 2);
+  return prefix ? `${prefix}\n${json}` : json;
+}
+
+function asText(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
 }

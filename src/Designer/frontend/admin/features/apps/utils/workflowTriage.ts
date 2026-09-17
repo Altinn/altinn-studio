@@ -43,6 +43,20 @@ export const isFailedWorkflow = (workflow: WorkflowStatus): boolean =>
 export const isActiveWorkflow = (workflow: WorkflowStatus): boolean =>
   ACTIVE_WORKFLOW_STATUSES.includes(workflow.overallStatus);
 
+/** Whether any step of the workflow recorded an error, whatever became of it since. */
+export function hadErrors(workflow: WorkflowStatus): boolean {
+  return (workflow.steps ?? []).some((step) => (step.errorHistory?.length ?? 0) > 0);
+}
+
+/**
+ * How many attempts the workflow's steps have recorded as failed, however they were retried. The
+ * engine's retry counter is zeroed by a manual resume, the error history is not, so this is the
+ * count that survives a recovery.
+ */
+export function failedAttemptCount(workflow: WorkflowStatus): number {
+  return (workflow.steps ?? []).reduce((sum, step) => sum + (step.errorHistory?.length ?? 0), 0);
+}
+
 /** The most attempts any one step of the workflow has made after its first. */
 export function maxRetryCount(workflow: WorkflowStatus): number {
   return workflow.steps.reduce((max, step) => Math.max(max, step.retryCount ?? 0), 0);

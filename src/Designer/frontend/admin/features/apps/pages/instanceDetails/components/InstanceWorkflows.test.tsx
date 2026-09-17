@@ -26,6 +26,9 @@ const sideChainWorkflowId = 'bbbb1111-2222-4333-8444-555566667777';
 
 const problemMessage =
   'AppCommand execution failed with status code InternalServerError: {"title":"PdfGenerationException","status":500,"detail":"Could not generate the PDF"}';
+/** The same message as the view lays it out: the JSON body under the prefix, whitespace collapsed. */
+const shownProblemMessage =
+  'AppCommand execution failed with status code InternalServerError: { "title": "PdfGenerationException", "status": 500, "detail": "Could not generate the PDF" }';
 
 const failedHeadWorkflow = {
   databaseId: headWorkflowId,
@@ -121,10 +124,11 @@ describe('InstanceWorkflows', () => {
     renderInstanceWorkflows();
 
     expect(await screen.findByRole('cell', { name: 'app-command' })).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: '3' })).toBeInTheDocument();
+    // The failed attempts, counted from the step's error history.
+    expect(screen.getByRole('cell', { name: '2' })).toBeInTheDocument();
     // The latest error is in full; the earlier one — the same failure, one attempt earlier —
     // waits behind a toggle.
-    expect(screen.getByText(problemMessage)).toBeVisible();
+    expect(screen.getByText(shownProblemMessage)).toBeVisible();
     expect(screen.getByText('Boom went the pipeline')).not.toBeVisible();
     expect(
       screen.getByText(textMock('admin.workflows.step.defer_count', { times: 2 })),
@@ -144,6 +148,34 @@ describe('InstanceWorkflows', () => {
     renderInstanceWorkflows();
 
     expect(await screen.findByTitle('app-command · Processing')).toHaveAttribute('data-live');
+  });
+
+  it("puts a step's errors in the background once it has succeeded, but keeps them", async () => {
+    const user = userEvent.setup();
+    const recoveredHeadWorkflow = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Completed',
+      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Completed' }],
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [recoveredHeadWorkflow] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const [row] = await screen.findAllByTestId('workflow-row');
+    await user.click(within(row).getByText('Process next: Pdf -> Sign'));
+    // No alert for a failure that is over; the history folds under a line that says it happened.
+    expect(screen.getByText(shownProblemMessage)).not.toBeVisible();
+    expect(
+      within(row).getByText(textMock('admin.workflows.step.resolved_errors', { count: 2 })),
+    ).toBeInTheDocument();
+    // And the row itself says so: the step's dot is amber, and says why on hover.
+    expect(
+      within(row).getByTitle(
+        `app-command · Completed · ${textMock('admin.workflows.row.had_errors')}`,
+      ),
+    ).toHaveAttribute('data-tone', 'warning');
   });
 
   it('opens nothing and says nothing while nothing needs attention', async () => {
@@ -172,11 +204,30 @@ describe('InstanceWorkflows', () => {
 
     const [row] = await screen.findAllByTestId('workflow-row');
     expect(row).toHaveAttribute('open');
-    // The retry count sits on the row as a badge, spoken as the sentence it stands for.
+    // The failed attempts sit on the row as a badge, spoken as the sentence it stands for, and
+    // are counted from the error history rather than from the engine's retry counter.
     expect(
-      within(row).getByLabelText(textMock('admin.workflows.row.attempts', { count: 5 })),
-    ).toHaveTextContent('5');
+      within(row).getByLabelText(textMock('admin.workflows.row.attempts', { count: 2 })),
+    ).toHaveTextContent('2');
     expect(within(row).getByText(/admin\.workflows\.row\.next_attempt_in/)).toBeInTheDocument();
+  });
+
+  it('keeps counting the failed attempts after a manual resume zeroed the retry counter', async () => {
+    const resumedWorkflow = {
+      ...failedHeadWorkflow,
+      overallStatus: 'Completed',
+      steps: [{ ...failedHeadWorkflow.steps[0], status: 'Completed', retryCount: 0 }],
+    };
+    jest.mocked(axios.get).mockResolvedValue({
+      status: 200,
+      data: { ...workflowsResponse, data: [resumedWorkflow] },
+    } as AxiosResponse);
+    renderInstanceWorkflows();
+
+    const [row] = await screen.findAllByTestId('workflow-row');
+    expect(
+      within(row).getByLabelText(textMock('admin.workflows.row.attempts', { count: 2 })),
+    ).toHaveTextContent('2');
   });
   it('says nothing about a next attempt that is only seconds away', async () => {
     const retryingSoon = {
@@ -239,8 +290,8 @@ describe('InstanceWorkflows', () => {
     expect(within(failedRow).getAllByText('app-command').length).toBeGreaterThan(0);
     // A workflow with no steps has no chain to show, and a settled one no error.
     expect(within(settledRow).queryAllByTitle(/ · /)).toHaveLength(0);
-    expect(within(failedRow).getByText(problemMessage)).toBeInTheDocument();
-    expect(within(settledRow).queryByText(problemMessage)).not.toBeInTheDocument();
+    expect(within(failedRow).getByText(shownProblemMessage)).toBeInTheDocument();
+    expect(within(settledRow).queryByText(shownProblemMessage)).not.toBeInTheDocument();
   });
 
   it('opens the row that needs attention from the start, with its error and verbs in view', async () => {
@@ -252,7 +303,7 @@ describe('InstanceWorkflows', () => {
     const [settledRow, failedRow] = await screen.findAllByTestId('workflow-row');
     expect(failedRow).toHaveAttribute('open');
     expect(settledRow).not.toHaveAttribute('open');
-    expect(within(failedRow).getByText(problemMessage)).toBeInTheDocument();
+    expect(within(failedRow).getByText(shownProblemMessage)).toBeInTheDocument();
     // The verbs sit beside the disclosure, over its right edge, for the one row they apply to.
     expect(
       screen.getByRole('button', { name: textMock('admin.workflows.actions.retry') }),
@@ -272,10 +323,12 @@ describe('InstanceWorkflows', () => {
     const messages = within(stepTable).getAllByText(
       (_, element) =>
         element?.tagName === 'CODE' &&
-        [problemMessage, 'Boom went the pipeline'].includes(element.textContent ?? ''),
+        [shownProblemMessage, 'Boom went the pipeline'].includes(
+          (element.textContent ?? '').replace(/\s+/g, ' '),
+        ),
     );
-    expect(messages.map((element) => element.textContent)).toEqual([
-      problemMessage,
+    expect(messages.map((element) => (element.textContent ?? '').replace(/\s+/g, ' '))).toEqual([
+      shownProblemMessage,
       'Boom went the pipeline',
     ]);
     expect(
@@ -337,7 +390,7 @@ describe('InstanceWorkflows', () => {
       .mockResolvedValue({ status: 200, data: workflowsResponse } as AxiosResponse);
     renderInstanceWorkflows();
 
-    const message = await screen.findByText(problemMessage);
+    const message = await screen.findByText(shownProblemMessage);
     expect(message.tagName).toBe('CODE');
     expect(screen.getByText('venter på kvittering').tagName).toBe('CODE');
     // The operation id in the row is the app runtime's own name for the workflow, shown as it came.

@@ -38,6 +38,11 @@ import {
 } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 import { useInstanceDeletionMutation } from 'admin/features/apps/hooks/mutations/useInstanceDeletionMutation';
+import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
+import { useNow } from 'admin/features/apps/hooks/useNow';
+import { WorkflowHealthCell } from 'admin/features/apps/pages/instances/components/WorkflowHealthColumn';
+import { deriveInstanceHealth, isActiveWorkflow } from 'admin/features/apps/utils/workflowTriage';
+import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 
 /**
  * The two Storage-backed cards of the instance page. They are separate sections so the page can
@@ -160,6 +165,14 @@ const InstanceDataViewWithData = ({
         <LabelValue label={t('admin.instances.status')}>
           {<InstanceStatus instance={instance} />}
         </LabelValue>
+        <LabelValue label={t('admin.workflows.health')}>
+          <InstanceWorkflowHealth
+            org={org}
+            environment={environment}
+            app={app}
+            instanceId={instance.id}
+          />
+        </LabelValue>
         <LabelValue label={t('admin.instances.created')}>
           {formatDateAndTime(instance.createdAt)}
         </LabelValue>
@@ -184,6 +197,36 @@ const InstanceDataViewWithData = ({
       </div>
     </StudioCard>
   );
+};
+
+type InstanceWorkflowHealthProps = {
+  org: string;
+  environment: string;
+  app: string;
+  instanceId: string;
+};
+
+/**
+ * The instance's traffic light, beside the flags Storage keeps on it: those say whether the
+ * instance is read or archived, not whether its processing needs attention. The verdict is the
+ * same one the instance list gives, drawn from the workflows the card further down shows.
+ */
+const InstanceWorkflowHealth = ({
+  org,
+  environment,
+  app,
+  instanceId,
+}: InstanceWorkflowHealthProps) => {
+  const { data: workflows, isPending } = useInstanceWorkflowsQuery(
+    org,
+    environment,
+    app,
+    extractInstanceGuid(instanceId),
+  );
+  const now = useNow((workflows ?? []).some(isActiveWorkflow));
+  const health = workflows ? deriveInstanceHealth(workflows, now) : undefined;
+
+  return <WorkflowHealthCell health={health} isPending={isPending} />;
 };
 
 const DataElementGroups = ({
