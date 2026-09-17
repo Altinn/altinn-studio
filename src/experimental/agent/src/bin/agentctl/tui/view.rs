@@ -9,6 +9,12 @@ use ratatui::{
 use super::MANIFEST_FILE;
 use super::app::{App, ForwardField, Modal, Tone};
 
+const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
+const CREATE_AGENT_POPUP_HEIGHT: u16 = 8;
+const CREATE_AGENT_FIELD_ROWS: usize = 4;
+const CREATE_FIELD_LABEL_WIDTH: usize = 10;
+const CREATE_PICKER_VALUE_WIDTH: usize = 18;
+
 pub(crate) fn render(frame: &mut Frame, app: &App) {
     let [header, body, footer] =
         Layout::vertical([Constraint::Length(1), Constraint::Min(0), Constraint::Length(2)]).areas(frame.area());
@@ -287,17 +293,30 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
         },
         |(agent, candidate)| picker_lines(form, agent, candidate),
     );
-    if let Some(error) = &form.error {
-        lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
+    while lines.len() < CREATE_AGENT_FIELD_ROWS {
+        lines.push(Line::default());
     }
-    lines.push(Line::default());
+    let candidate_error = form.candidate().and_then(|candidate| candidate.name.as_ref().err());
+    if let Some(error) = form.error.as_ref().or(candidate_error) {
+        lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
+    } else {
+        lines.push(Line::default());
+    }
     lines.push(hint_line(&[
         ("enter", "create"),
         ("tab", "field"),
         ("←/→", "select"),
         ("esc", "cancel"),
     ]));
-    popup(frame, area, " create agent ", Color::Cyan, lines);
+    popup_sized(
+        frame,
+        area,
+        " create agent ",
+        Color::Cyan,
+        lines,
+        CREATE_AGENT_POPUP_WIDTH,
+        CREATE_AGENT_POPUP_HEIGHT,
+    );
 }
 
 fn picker_lines(
@@ -310,43 +329,39 @@ fn picker_lines(
         || candidate.path.display().to_string(),
         |name| name.to_string_lossy().into_owned(),
     );
+    let agent_label = agent.label();
+    let variant_label = form.variant_label().unwrap_or_default();
     let mut lines = vec![
         picker_line(
-            "Agent:   ",
-            agent.label(),
+            "Agent:",
+            &agent_label,
             agent_path,
             form.field == super::app::CreateField::Agent,
             form.agent,
             form.agents.len(),
         ),
         picker_line(
-            "Variant: ",
-            form.variant_label().unwrap_or_default(),
+            "Variant:",
+            &variant_label,
             manifest_file,
             form.field == super::app::CreateField::Variant,
             form.variant,
             agent.variants.len(),
         ),
     ];
-    if let Err(invalid) = &candidate.name {
-        lines.push(Line::from(Span::styled(
-            format!("         {invalid}"),
-            Style::new().fg(Color::Red),
-        )));
-    }
     lines.push(Line::from(name_field_spans(form)));
-    lines.push(field_line(
-        "Env file: ",
+    lines.push(create_text_field_line(
+        "Env file:",
         &form.env_file,
         form.field == super::app::CreateField::EnvironmentFile,
-        Some("default: .env beside manifest".into()),
+        "default: .env beside manifest",
     ));
     lines
 }
 
 fn picker_line(
     label: &'static str,
-    value: String,
+    value: &str,
     detail: String,
     focused: bool,
     selected: usize,
@@ -358,18 +373,57 @@ fn picker_line(
     } else {
         Style::new()
     };
+    let value = fixed_width(value, CREATE_PICKER_VALUE_WIDTH);
+    let position = format!("{}/{}", selected.saturating_add(1), total);
     Line::from(vec![
-        Span::raw(label),
+        Span::raw(create_field_label(label)),
         Span::styled("◂ ", Style::new().fg(control)),
         Span::styled(value, value_style),
-        Span::styled(" | ", Style::new().fg(Color::DarkGray)),
-        Span::styled(detail, Style::new().fg(Color::DarkGray)),
         Span::styled(" ▸", Style::new().fg(control)),
-        Span::styled(
-            format!("  {}/{}", selected.saturating_add(1), total),
-            Style::new().fg(Color::DarkGray),
-        ),
+        Span::styled(format!(" {position:>5}  "), Style::new().fg(Color::DarkGray)),
+        Span::styled(detail, Style::new().fg(Color::DarkGray)),
     ])
+}
+
+fn create_field_label(label: &str) -> String {
+    format!("{label:<CREATE_FIELD_LABEL_WIDTH$}")
+}
+
+fn create_text_field_line(label: &str, value: &str, focused: bool, empty_hint: &str) -> Line<'static> {
+    let mut spans = vec![Span::raw(create_field_label(label))];
+    if value.is_empty() {
+        let mut hint = empty_hint.chars();
+        if let Some(first) = hint.next() {
+            let style = Style::new().fg(Color::DarkGray);
+            spans.push(Span::styled(
+                first.to_string(),
+                if focused {
+                    style.add_modifier(Modifier::REVERSED)
+                } else {
+                    style
+                },
+            ));
+            spans.push(Span::styled(hint.collect::<String>(), style));
+        }
+    } else {
+        spans.push(Span::raw(value.to_owned()));
+        if focused {
+            spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+        }
+    }
+    Line::from(spans)
+}
+
+fn fixed_width(value: &str, width: usize) -> String {
+    let mut characters = value.chars();
+    let prefix = characters.by_ref().take(width).collect::<String>();
+    if characters.next().is_none() {
+        format!("{prefix:<width$}")
+    } else {
+        let mut truncated = prefix.chars().take(width.saturating_sub(1)).collect::<String>();
+        truncated.push('…');
+        truncated
+    }
 }
 
 /// Renders the name input; an empty buffer shows the placeholder with a
@@ -377,7 +431,7 @@ fn picker_line(
 /// the grayed text instead of leaving a cell-wide gap before it.
 fn name_field_spans(form: &super::app::CreateForm) -> Vec<Span<'static>> {
     let focused = form.field == super::app::CreateField::Name;
-    let mut spans = vec![Span::raw("Name:    ")];
+    let mut spans = vec![Span::raw(create_field_label("Name:"))];
     if !form.name.is_empty() {
         spans.push(Span::raw(form.name.clone()));
         if focused {
@@ -460,7 +514,19 @@ fn popup(frame: &mut Frame, area: Rect, title: &str, border: Color, lines: Vec<L
         .unwrap_or(u16::MAX)
         .saturating_add(2);
     let width = (area.width / 2).max(content).min(area.width);
-    let target = centered_rect(area, width, height);
+    popup_sized(frame, area, title, border, lines, width, height);
+}
+
+fn popup_sized(
+    frame: &mut Frame,
+    area: Rect,
+    title: &str,
+    border: Color,
+    lines: Vec<Line<'_>>,
+    width: u16,
+    height: u16,
+) {
+    let target = centered_rect(area, width.min(area.width), height.min(area.height));
     frame.render_widget(Clear, target);
     let block = Block::bordered()
         .title(title.to_owned())
@@ -509,6 +575,21 @@ mod tests {
         text
     }
 
+    fn create_modal_geometry(text: &str) -> (String, usize, usize) {
+        let top = text
+            .lines()
+            .position(|line| line.contains("create agent"))
+            .expect("create Agent modal top");
+        let border = text.lines().nth(top).expect("create Agent modal border").to_owned();
+        let bottom = text
+            .lines()
+            .enumerate()
+            .skip(top + 1)
+            .find_map(|(row, line)| line.contains('└').then_some(row))
+            .expect("create Agent modal bottom");
+        (border, top, bottom)
+    }
+
     #[test]
     fn frame_shows_header_counts_tree_and_hints() {
         let app = App::new();
@@ -544,11 +625,25 @@ mod tests {
         terminal.draw(|frame| render(frame, &app)).expect("modal draw");
         let text = buffer_text(&terminal);
         assert!(text.contains("create agent"));
-        assert!(text.contains("Agent:   ◂ full | /sources/full ▸  1/2"));
-        assert!(text.contains("Variant: ◂ default | agent.yaml ▸  1/2"));
-        assert!(text.contains("Name:    full"));
-        assert!(text.contains("Env file:  default: .env beside manifest"));
+        assert!(text.contains("Agent:    ◂ full"));
+        assert!(text.contains("Variant:  ◂ default"));
+        assert!(text.contains("Name:     full"));
+        assert!(text.contains("Env file: default: .env beside manifest"));
         assert!(text.contains("enter create · tab field · ←/→ select · esc cancel"));
+        let initial_geometry = create_modal_geometry(&text);
+        let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
+        let variant_line = text
+            .lines()
+            .find(|line| line.contains("Variant:"))
+            .expect("Variant row");
+        let name_line = text.lines().find(|line| line.contains("Name:")).expect("Name row");
+        let env_line = text
+            .lines()
+            .find(|line| line.contains("Env file:"))
+            .expect("environment row");
+        assert_eq!(agent_line.find('◂'), variant_line.find('◂'));
+        assert_eq!(agent_line.find("/sources/full"), variant_line.find("agent.yaml"));
+        assert_eq!(name_line.find("full"), env_line.find("default"));
 
         let Some(Modal::CreateAgent(form)) = &mut app.modal else {
             panic!("expected the CreateAgent modal");
@@ -557,15 +652,14 @@ mod tests {
         form.variant = 0;
         form.field = CreateField::Name;
         form.name = "copy".into();
-        form.error = Some("agent \"copy\" already exists".into());
         terminal.draw(|frame| render(frame, &app)).expect("error draw");
         let text = buffer_text(&terminal);
-        assert!(text.contains("Agent:   ◂ broken | /sources/broken ▸  2/2"));
-        assert!(text.contains("Variant: ◂ default | agent.yaml ▸  1/1"));
+        assert!(text.contains("Agent:    ◂ broken"));
+        assert!(text.contains("Variant:  ◂ default"));
         assert!(text.contains("manifest cannot be decoded"));
-        assert!(text.contains("Name:    copy▏"));
-        assert!(text.contains("Env file:  default: .env beside manifest"));
-        assert!(text.contains("agent \"copy\" already exists"));
+        assert!(text.contains("Name:     copy▏"));
+        assert!(text.contains("Env file: default: .env beside manifest"));
+        assert_eq!(create_modal_geometry(&text), initial_geometry);
     }
 
     #[test]
