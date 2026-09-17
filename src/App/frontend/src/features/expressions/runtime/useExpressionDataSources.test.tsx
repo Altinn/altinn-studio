@@ -1,7 +1,7 @@
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { ExprVal } from 'src/features/expressions/types';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IApplicationSettings } from 'src/types/shared';
 
@@ -38,9 +38,6 @@ vi.mock('src/features/language/LanguageProvider', () => ({
 vi.mock('src/hooks/navigation', () => ({
   useAllNavigationParams: () => ({ pageKey: mockInputs.currentPage }),
 }));
-vi.mock('src/utils/layout/DataModelLocation', () => ({
-  useCurrentDataModelLocation: () => undefined,
-}));
 vi.mock('src/features/form/FormContext', () => ({
   FormStore: { raw: { useLaxStore: () => ContextNotProvided } },
 }));
@@ -67,9 +64,7 @@ beforeEach(() => {
 
 it('updates a language expression when the current language changes', async () => {
   const expression: ['language'] = ['language'];
-  const { result, rerender } = renderHook(() =>
-    useEvalExpression(expression, { returnType: ExprVal.String, defaultValue: '' }),
-  );
+  const { result, rerender } = renderHook(() => useEvalExpression(expression, CommonExpressions.TRBLabel.title));
   expect(result.current).toBe('nb');
 
   mockInputs.currentLanguage = 'en';
@@ -80,9 +75,7 @@ it('updates a language expression when the current language changes', async () =
 
 it('updates an expression that uses the current page when the page changes', async () => {
   const expression: ['linkToPage', string, string, boolean] = ['linkToPage', 'Next', 'target', true];
-  const { result, rerender } = renderHook(() =>
-    useEvalExpression(expression, { returnType: ExprVal.String, defaultValue: '' }),
-  );
+  const { result, rerender } = renderHook(() => useEvalExpression(expression, CommonExpressions.TRBLabel.title));
   expect(result.current).toContain('backToPage=page-1');
 
   mockInputs.currentPage = 'page-2';
@@ -94,9 +87,7 @@ it('updates an expression that uses the current page when the page changes', asy
 it('updates an expression that uses application settings when the settings change', async () => {
   mockInputs.applicationSettings = { setting: 'first' };
   const expression: ['frontendSettings', string] = ['frontendSettings', 'setting'];
-  const { result, rerender } = renderHook(() =>
-    useEvalExpression(expression, { returnType: ExprVal.String, defaultValue: '' }),
-  );
+  const { result, rerender } = renderHook(() => useEvalExpression(expression, CommonExpressions.TRBLabel.title));
   expect(result.current).toBe('first');
 
   mockInputs.applicationSettings = { setting: 'second' };
@@ -109,11 +100,7 @@ it('does not reevaluate an expression that does not use changed hook inputs', as
   const expression: ['equals', number, number] = ['equals', 1, 1];
   const onAfterFunctionCall = vi.fn();
   const { rerender } = renderHook(() =>
-    useEvalExpression(expression, {
-      returnType: ExprVal.Boolean,
-      defaultValue: false,
-      onAfterFunctionCall,
-    }),
+    useEvalExpression(expression, Expressions.Input.required, { onAfterFunctionCall }),
   );
   expect(onAfterFunctionCall).toHaveBeenCalledTimes(1);
 
@@ -126,4 +113,30 @@ it('does not reevaluate an expression that does not use changed hook inputs', as
   });
 
   expect(onAfterFunctionCall).toHaveBeenCalledTimes(1);
+});
+
+it('uses generated fallbacks and preserves explicit false', () => {
+  const { result } = renderHook(() => ({
+    required: useEvalExpression(undefined, Expressions.Input.required),
+    addButton: useEvalExpression(undefined, Expressions.RepeatingGroup.edit.addButton),
+    saveButton: useEvalExpression(false, Expressions.RepeatingGroup.edit.saveButton),
+  }));
+  expect(result.current).toEqual({ required: false, addButton: true, saveButton: false });
+});
+
+it('updates a generated descriptor expression when its dependency changes', async () => {
+  const expression: ['equals', ['language'], string] = ['equals', ['language'], 'nb'];
+  const { result, rerender } = renderHook(() => useEvalExpression(expression, Expressions.Input.required));
+  expect(result.current).toBe(true);
+  mockInputs.currentLanguage = 'en';
+  rerender();
+  await waitFor(() => expect(result.current).toBe(false));
+});
+
+it('uses the generated fallback when evaluation fails', () => {
+  const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
+  const expression: ['dataModel', string] = ['dataModel', 'unknownField'];
+  const { result } = renderHook(() => useEvalExpression(expression, Expressions.RepeatingGroup.edit.saveButton));
+  expect(result.current).toBe(true);
+  expect(logError).toHaveBeenCalled();
 });

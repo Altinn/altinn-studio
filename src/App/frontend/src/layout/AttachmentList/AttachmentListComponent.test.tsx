@@ -4,9 +4,10 @@ import { render, screen } from '@testing-library/react';
 
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
-import { CompInternal } from 'src/layout/layout';
+import { CompExternal } from 'src/layout/layout';
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { IData, IDataType } from 'src/types/shared';
 
 const mockDataTypes = [
@@ -48,7 +49,10 @@ const mockInstanceData = [
   },
 ] as unknown as IData[];
 
-vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/hooks');
+vi.mock('src/utils/layout/useEvalExpression', () => ({
+  useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+}));
 
 vi.mock('src/utils/layout/useComponentStructureData', () => ({
   useComponentStructureData: vi.fn(() => ({
@@ -87,17 +91,17 @@ vi.mock('@app/form-component', () => ({
 }));
 
 describe('AttachmentListComponent', () => {
-  const mockUseItemWhenType = vi.mocked(useItemWhenType<'AttachmentList'>);
+  const mockUseComponentConfig = vi.mocked(useComponentConfig<'AttachmentList'>);
   const mockUseInstanceDataElements = vi.mocked(useInstanceDataElements);
 
-  const setupMockUseNodeItem = ({
+  const setupMockComponentConfig = ({
     groupByDataTypeGrouping = false,
     textResourceBindings = { title: 'test-title' },
     links = true,
     dataTypeIds = ['dataType1', 'dataType2', 'dataType3'],
     showDataTypeDescriptions = false,
   } = {}) => {
-    mockUseItemWhenType.mockImplementation(
+    mockUseComponentConfig.mockImplementation(
       (_baseId) =>
         ({
           groupByDataTypeGrouping,
@@ -105,13 +109,13 @@ describe('AttachmentListComponent', () => {
           links,
           dataTypeIds,
           showDataTypeDescriptions,
-        }) as CompInternal<'AttachmentList'>,
+        }) as ExprResolved<CompExternal<'AttachmentList'>>,
     );
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    setupMockUseNodeItem();
+    setupMockComponentConfig();
 
     window.altinnAppGlobalData.applicationMetadata = {
       ...window.altinnAppGlobalData.applicationMetadata,
@@ -120,7 +124,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should render AttachmentList with grouping disabled by default', () => {
-    setupMockUseNodeItem({ groupByDataTypeGrouping: false });
+    setupMockComponentConfig({ groupByDataTypeGrouping: false });
 
     render(
       <AttachmentListComponent
@@ -134,7 +138,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should enable grouping when groupByDataTypeGrouping is true', () => {
-    setupMockUseNodeItem({ groupByDataTypeGrouping: true });
+    setupMockComponentConfig({ groupByDataTypeGrouping: true });
 
     render(
       <AttachmentListComponent
@@ -147,7 +151,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should pass title and showLinks props', () => {
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       textResourceBindings: { title: 'custom-title' },
       links: true,
     });
@@ -164,7 +168,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should filter attachments based on dataTypeIds when allowedAttachmentTypes is set', () => {
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: false,
       dataTypeIds: ['dataType1'],
     });
@@ -190,7 +194,7 @@ describe('AttachmentListComponent', () => {
       } as unknown as IData,
     ]);
 
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: false,
       dataTypeIds: [DataTypeReference.IncludeAll],
     });
@@ -216,7 +220,7 @@ describe('AttachmentListComponent', () => {
       } as unknown as IData,
     ]);
 
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: false,
       dataTypeIds: [DataTypeReference.RefDataAsPdf],
     });
@@ -232,7 +236,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should pass all attachments when grouping is enabled', () => {
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: true,
     });
 
@@ -247,7 +251,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should include only attachments from current task when dataTypeIds includes FromTask', () => {
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: false,
       dataTypeIds: [DataTypeReference.FromTask],
     });
@@ -263,7 +267,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should pass showDescription=false by default', () => {
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: false,
     });
 
@@ -278,7 +282,7 @@ describe('AttachmentListComponent', () => {
   });
 
   it('should pass showDescription=true when showDataTypeDescriptions is true', () => {
-    setupMockUseNodeItem({
+    setupMockComponentConfig({
       groupByDataTypeGrouping: false,
       showDataTypeDescriptions: true,
     });
