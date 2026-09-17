@@ -13,7 +13,7 @@ import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePag
 import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
@@ -31,22 +31,66 @@ export function EditButtonFirstVisibleAndEditable({
   fallback,
   ...rest
 }: { ids: string[]; fallback: string | undefined } & Omit<EditButtonProps, 'targetBaseComponentId'>) {
-  const hiddenIds = useIsHiddenMulti(ids);
-  const first = ids.find((id) => hiddenIds[id] === false);
-  const isFallbackHidden = useIsHidden(fallback);
-  const target = first ?? (isFallbackHidden ? undefined : fallback);
-
+  const [target, ...remaining] = ids;
   if (!target) {
-    return null;
+    return (
+      <FallbackEditButton
+        fallback={fallback}
+        {...rest}
+      />
+    );
   }
-
   return (
-    <EditButton
+    <CandidateEditButton
       targetBaseComponentId={target}
-      skipLastIdMutator={target === fallback}
+      remaining={remaining}
+      fallback={fallback}
       {...rest}
     />
   );
+}
+
+function CandidateEditButton({
+  targetBaseComponentId,
+  remaining,
+  fallback,
+  ...rest
+}: EditButtonProps & { remaining: string[]; fallback: string | undefined }) {
+  const config = useComponentConfig(targetBaseComponentId);
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const hidden = useIsHidden(targetBaseComponentId);
+  if (hidden || readOnly) {
+    return (
+      <EditButtonFirstVisibleAndEditable
+        ids={remaining}
+        fallback={fallback}
+        {...rest}
+      />
+    );
+  }
+  return (
+    <EditButton
+      targetBaseComponentId={targetBaseComponentId}
+      {...rest}
+    />
+  );
+}
+
+function FallbackEditButton({
+  fallback,
+  ...rest
+}: Omit<EditButtonProps, 'targetBaseComponentId'> & { fallback: string | undefined }) {
+  const hidden = useIsHidden(fallback);
+  return fallback && !hidden ? (
+    <EditButton
+      targetBaseComponentId={fallback}
+      skipLastIdMutator
+      {...rest}
+    />
+  ) : null;
 }
 
 export function EditButton({

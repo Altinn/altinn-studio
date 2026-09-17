@@ -27,8 +27,8 @@ import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summary
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
-import type { BaseRow } from 'src/utils/layout/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
+import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const overrides = useSummaryOverrides<'RepeatingGroup'>(targetBaseComponentId);
@@ -154,7 +154,6 @@ function RepGroupListRow(props: RepGroupListRowProps) {
 }
 
 function RepGroupListRowInner({
-  row,
   targetBaseComponentId,
   visibleChildIds,
   hiddenColumns,
@@ -162,11 +161,7 @@ function RepGroupListRowInner({
 }: RepGroupListRowProps) {
   const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
   const editButton = useEvalExpression(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
-  const editableChildIds = RepGroupHooks.useEditableChildren(
-    targetBaseComponentId,
-    { ...row, editButton },
-    hiddenColumns,
-  );
+  const editableChildIds = RepGroupHooks.useEditableChildCandidates(targetBaseComponentId, editButton, hiddenColumns);
 
   return (
     <RepGroupSummaryEditableProvider editableChildIds={editableChildIds}>
