@@ -51,7 +51,6 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
             description={t('process_editor.configuration_panel_subform_pdf_data_type_description')}
             emptyText={t('process_editor.configuration_panel_subform_pdf_no_data_type_to_select')}
             error={isDataTypeIdTouched && !subformDataTypeId && t('validation_errors.required')}
-            filter={() => true}
             label={t('process_editor.configuration_panel_subform_pdf_data_type_label')}
             multiple={false}
             onBlur={() => setIsDataTypeIdTouched(true)}

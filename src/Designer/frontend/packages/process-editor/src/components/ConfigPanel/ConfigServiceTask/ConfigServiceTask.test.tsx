@@ -74,15 +74,24 @@ describe('ConfigServiceTask', () => {
     ).not.toBeInTheDocument();
   });
 
-  it.each(['', 'myServiceTask', 'eFormidling', 'fiksArkiv', 'pdf', 'subformPdf'])(
-    'should offer an editable task type for "%s"',
+  it.each(['', 'myServiceTask'])('should offer an editable task type for "%s"', (taskType) => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
+      bpmnApiContextProps: { layoutSets: [] },
+    });
+
+    expect(queryTaskTypeField()).toBeInTheDocument();
+  });
+
+  it.each(['eFormidling', 'fiksArkiv', 'pdf', 'subformPdf'])(
+    'should omit the redundant task type for the built-in %s task',
     (taskType) => {
       renderConfigServiceTask({
         bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType } },
         bpmnApiContextProps: { layoutSets: [] },
       });
 
-      expect(queryTaskTypeField()).toBeInTheDocument();
+      expect(queryTaskTypeField()).not.toBeInTheDocument();
     },
   );
 

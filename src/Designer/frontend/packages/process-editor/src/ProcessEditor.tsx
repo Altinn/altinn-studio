@@ -150,22 +150,14 @@ export const ProcessEditor = (): JSX.Element => {
       >
         <BpmnConfigPanelFormContextProvider>
           <StudioRecommendedNextActionContextProvider>
-            <BpmnCanvas />
+            <div className={classes.container}>
+              <Canvas />
+              <ConfigPanel />
+            </div>
           </StudioRecommendedNextActionContextProvider>
         </BpmnConfigPanelFormContextProvider>
       </BpmnApiContextProvider>
     </BpmnContextProvider>
-  );
-};
-
-const BpmnCanvas = (): React.ReactElement => {
-  return (
-    <div className={classes.container}>
-      <Canvas />
-      <div className={classes.container}>
-        <ConfigPanel />
-      </div>
-    </div>
   );
 };
 

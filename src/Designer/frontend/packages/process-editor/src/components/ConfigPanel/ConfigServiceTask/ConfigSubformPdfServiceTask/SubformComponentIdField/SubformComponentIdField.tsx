@@ -34,7 +34,6 @@ export const SubformComponentIdField = ({
       description={t('process_editor.configuration_panel_subform_pdf_component_id_description')}
       emptyText={t('process_editor.configuration_panel_subform_pdf_no_component_to_select')}
       error={isTouched && !subformComponentId && t('validation_errors.required')}
-      filter={() => true}
       label={t('process_editor.configuration_panel_subform_pdf_component_id_label')}
       multiple={false}
       onBlur={() => setIsTouched(true)}

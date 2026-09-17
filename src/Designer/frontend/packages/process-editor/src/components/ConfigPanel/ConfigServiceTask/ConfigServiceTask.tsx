@@ -21,6 +21,7 @@ export const ConfigServiceTask = (): React.ReactElement => {
   const isSubformPdfTask = bpmnDetails.taskType === 'subformPdf';
   const isEFormidlingTask = bpmnDetails.taskType === 'eFormidling';
   const isFiksArkivTask = bpmnDetails.taskType === 'fiksArkiv';
+  const isCustomTask = !isPdfTask && !isSubformPdfTask && !isEFormidlingTask && !isFiksArkivTask;
 
   return (
     <ConfigContentContainer>
@@ -28,8 +29,7 @@ export const ConfigServiceTask = (): React.ReactElement => {
         {isFiksArkivTask && <FiksArkivProcessShapeAlert />}
         <EditTaskId />
         <EditTaskName />
-        {/* Kept for every type, so a typed value can always be changed back. */}
-        <EditServiceTaskType />
+        {isCustomTask && <EditServiceTaskType />}
         {isPdfTask && <ConfigPdfServiceTask />}
         {isSubformPdfTask && <ConfigSubformPdfServiceTask />}
         {isEFormidlingTask && <ConfigEFormidlingServiceTask />}
