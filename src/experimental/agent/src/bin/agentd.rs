@@ -73,7 +73,8 @@ fn ssh_access(
     store: Rc<dyn agent::control_plane::AgentStore>,
 ) -> Result<Rc<agent::ssh::Access>, Error> {
     let agentd = std::env::current_exe()?;
-    let agentctl = agentd.with_file_name(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
+    let sibling = agentd.with_file_name(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
+    let agentctl = agent::ssh::stable_agentctl_path(&sibling, std::env::var_os("PATH").as_deref());
     let host_keys: Rc<dyn agent::ssh::HostKeyStore> = Rc::new(database.clone());
     Ok(Rc::new(agent::ssh::Access::new(home, agentctl, host_keys, store)))
 }

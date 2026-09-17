@@ -290,7 +290,7 @@ impl Access {
             move || ensure_client_key(&home, id, &name)
         })
         .await
-            .map_err(|error| Error::Daemon(format!("SSH client key task failed: {error}")))??;
+        .map_err(|error| Error::Daemon(format!("SSH client key task failed: {error}")))??;
         // `HostKeyAlias` keys the entry by the incarnation for OpenSSH; a second entry under the
         // `Host` alias serves clients that parse the configuration but ignore `HostKeyAlias`,
         // such as JetBrains IDEs, and is replaced when a re-applied name gets a new host key.
@@ -351,6 +351,28 @@ impl Access {
     }
 }
 
+/// Chooses the `agentctl` path the generated `ProxyCommand` runs.
+///
+/// `sibling` is `agentctl` beside the running `agentd`, which on an installed
+/// release is a versioned directory that a later `agentctl self update`
+/// replaces. When a `PATH` entry resolves to the same executable, that stable
+/// spelling, such as `~/.local/bin/agentctl`, is preferred so the configuration
+/// survives upgrades between reconciliation passes.
+#[must_use]
+pub fn stable_agentctl_path(sibling: &Path, path_variable: Option<&std::ffi::OsStr>) -> PathBuf {
+    let Ok(target) = std::fs::canonicalize(sibling) else {
+        return sibling.to_path_buf();
+    };
+    let file_name = sibling.file_name().map(std::ffi::OsStr::to_owned);
+    path_variable
+        .into_iter()
+        .flat_map(std::env::split_paths)
+        .filter(|directory| directory.is_absolute())
+        .filter_map(|directory| Some(directory.join(file_name.as_ref()?)))
+        .find(|candidate| std::fs::canonicalize(candidate).is_ok_and(|resolved| resolved == target))
+        .unwrap_or_else(|| sibling.to_path_buf())
+}
+
 /// Creates the client key pair for an incarnation when missing and returns its public entry.
 fn ensure_client_key(home: &SshHome, id: AgentId, agent: &str) -> Result<String, Error> {
     prepare_directory(home.root())?;
@@ -403,5 +425,37 @@ async fn remove_guest_state(os: &str, sandbox: &SandboxHandle) -> Result<(), Err
         "linux" => platform::linux_ssh::remove_server_state(sandbox).await,
         // Nothing was ever installed on an unsupported operating system.
         _ => Ok(()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::stable_agentctl_path;
+
+    #[test]
+    fn proxy_command_prefers_a_path_entry_resolving_to_the_same_agentctl() {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let releases = directory.path().join("releases").join("v1");
+        let bin = directory.path().join("bin");
+        std::fs::create_dir_all(&releases).expect("release directory");
+        std::fs::create_dir_all(&bin).expect("bin directory");
+        let sibling = releases.join("agentctl");
+        std::fs::write(&sibling, "#!/bin/sh\n").expect("release agentctl");
+        std::fs::write(bin.join("agentctl"), "#!/bin/sh\n").expect("unrelated agentctl");
+
+        let unrelated = std::env::join_paths([bin.clone()]).expect("PATH");
+        assert_eq!(stable_agentctl_path(&sibling, Some(&unrelated)), sibling);
+        assert_eq!(stable_agentctl_path(&sibling, None), sibling);
+
+        #[cfg(unix)]
+        {
+            let stable = directory.path().join("stable");
+            std::fs::create_dir_all(&stable).expect("stable directory");
+            std::os::unix::fs::symlink(&sibling, stable.join("agentctl")).expect("symlink");
+            let path = std::env::join_paths([bin, stable.clone()]).expect("PATH");
+            assert_eq!(stable_agentctl_path(&sibling, Some(&path)), stable.join("agentctl"));
+        }
     }
 }

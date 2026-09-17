@@ -190,6 +190,17 @@ impl GuestTcpStream {
                             .write_all(&data.data)
                             .await
                             .map_err(|source| error::io("write forwarded host connection", source))?;
+                        // A buffered writer such as `tokio::io::stdout()`, used by `ssh-proxy`,
+                        // holds bytes until the buffer fills; an interactive protocol stalls
+                        // waiting for a reply that is sitting unflushed. Push whatever has
+                        // arrived out once the guest has nothing more queued, which keeps a
+                        // bulk transfer batched while never stranding an idle response.
+                        if self.receiver.is_empty() {
+                            host_writer
+                                .flush()
+                                .await
+                                .map_err(|source| error::io("flush forwarded host connection", source))?;
+                        }
                     }
                     MessageType::TcpEof => {
                         host_writer
