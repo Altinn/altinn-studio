@@ -1,18 +1,23 @@
 # Altinn Agents
 
-Choose a Claude Code development environment:
+Choose an Agent family and variant:
 
-| Variant    | Additional tools                                                   |
-| ---------- | ------------------------------------------------------------------ |
-| `minimal`  | .NET, Node.js, Go, GitHub CLI, asciinema and agg                   |
-| `full`     | Rust, Podman, kind, kubectl, Helm, Flux, Playwright CLI and ffmpeg |
-| `worktree` | Full image with the current checkout mounted read-write            |
+| Family / variant | Image and checkout |
+| --- | --- |
+| `minimal` default | Minimal published image and a fresh checkout |
+| `full` default | Full published image and a fresh checkout |
+| `full` `nested` | Full published image, reduced to fit inside another Agent |
+| `full` `nested-build` | Reduced resources and a full image built from this checkout |
+| `full` `worktree` | Full published image with the current checkout mounted read-write |
 
 Every variant installs the `pr-evidence` skill from `agents/skills`: screenshots and clips through Playwright, terminal
 recordings through asciinema, uploaded with `gh pr create --attach`.
 
-The host needs hardware virtualization. Docker is required only for manifests that build an image locally; these
-released variants use registry references. Install the released Agent CLI on Linux or macOS:
+The Altinn images install the pinned released `agentctl` and `agentd` binaries with architecture-specific checksum
+verification; they do not build the platform from `src/experimental`.
+
+The host needs hardware virtualization. Docker is required only for the `nested-build` variant; the other
+repository-owned Altinn manifests use registry references. Install the released Agent CLI on Linux or macOS:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh | sh
@@ -46,12 +51,11 @@ write` only when the Agent must change workflow files. Gists are an account perm
 repository one, so add `Gists: Read and write` when the Agent must create or push them.
 Organization approval may be required.
 
-Copy the chosen variant's `.env.sample` to `.env`, set the sample Git identity, and set `GITHUB_TOKEN`. The selected
+Copy the chosen family's `.env.sample` to `.env`, set the sample Git identity, and set `GITHUB_TOKEN`. The selected
 Git identity enters the Sandbox in plaintext and configures the Sandbox user's global Git settings. The token remains
 on the host and is substituted only for authorized GitHub requests, including attachment uploads to
 `uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
-token prefix, which `gh` needs before it will attach files. The worktree variant does not receive a
-token because its host checkout is mounted into the Agent, so it cannot attach files to pull requests.
+token prefix, which `gh` needs before it will attach files.
 
 From the repository root, configure and start an Agent:
 
@@ -59,20 +63,22 @@ From the repository root, configure and start an Agent:
 cd agents/full
 cp .env.sample .env
 $EDITOR .env
-agentctl apply -f agent.yaml --wait
+agentctl apply --wait
 ```
 
 `--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
 returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
-Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal variant.
+Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal family. From `agents/full`, select a
+repository-owned variant with `agentctl apply --variant nested`, `--variant nested-build`, or `--variant worktree`.
 
 To work directly on the current checkout without cloning it, create `~/.agent/altinn-worktree.env` outside the
 checkout with entries such as `GIT_USER_NAME=Your Name` and `GIT_USER_EMAIL=you@example.com`, then apply from the
 repository root:
 
 ```sh
-agentctl apply -f agents/worktree/agent.yaml --env-file ~/.agent/altinn-worktree.env
+cd agents/full
+agentctl apply --variant worktree --env-file ~/.agent/altinn-worktree.env
 ```
 
 The entire checkout, including ignored files, is then visible inside the Agent. Linked Git

@@ -1,0 +1,2 @@
+# Checkout-local Agent variants are private by default.
+agent.*.yaml

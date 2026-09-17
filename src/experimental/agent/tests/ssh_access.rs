@@ -589,8 +589,10 @@ fn image_sshd_policy_is_hardened_and_owned_by_each_image_family() {
     assert!(self_dev_config.contains("PasswordAuthentication no"));
     for manifest in [
         "agents/full/agent.yaml",
+        "agents/full/agent.nested.yaml",
+        "agents/full/agent.nested-build.yaml",
+        "agents/full/agent.worktree.yaml",
         "agents/minimal/agent.yaml",
-        "agents/worktree/agent.yaml",
         "src/experimental/agent/examples/self-dev/agent.yaml",
         "src/experimental/agent/examples/self-dev/agent.nested.yaml",
         "src/experimental/agent/examples/self-dev/agent.worktree.yaml",

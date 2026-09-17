@@ -161,10 +161,16 @@ fn published_manifests_explicitly_select_git_identity() {
         return;
     }
 
-    for name in ["minimal", "full", "worktree"] {
-        let bytes = std::fs::read(manifests.join(name).join("agent.yaml"))
-            .expect("published Agent manifest should be readable");
-        let agent = manifest::decode(&bytes).expect("published Agent manifest should decode");
+    for path in [
+        manifests.join("minimal/agent.yaml"),
+        manifests.join("full/agent.yaml"),
+        manifests.join("full/agent.nested.yaml"),
+        manifests.join("full/agent.nested-build.yaml"),
+        manifests.join("full/agent.worktree.yaml"),
+    ] {
+        let agent = manifest::resolve(&path)
+            .expect("published Agent manifest should resolve")
+            .agent;
         let names = agent
             .spec
             .environment
