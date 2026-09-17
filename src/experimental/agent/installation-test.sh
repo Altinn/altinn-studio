@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Exercises standalone installation and the managed installation and upgrade lifecycle.
 set -euo pipefail
 
 old_version="v0.0.1-dev.upgrade-smoke"
@@ -42,6 +43,9 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 
 mkdir -p "${smoke_root}"
+
+# Build release fixtures
+
 CARGO_TARGET_DIR="${smoke_target}" CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0 \
   AGENT_VERSION="${old_version}" cargo build --locked -p agent --bins
 ./agent/package.sh "${old_archive}" "${binary_directory}"
@@ -57,6 +61,39 @@ rm -rf -- "${smoke_target}"
 ./agent/package.sh "${target_archive}" "${target_binaries}"
 
 if [ "${RUNNER_OS:-}" = "Windows" ]; then
+  # Standalone installation
+
+  standalone_root="${smoke_root}/standalone"
+  mkdir -p "${standalone_root}/managed"
+  printf '{ "phase": "prepared" }\n' > "${standalone_root}/managed/update.json"
+  export AGENT_INSTALL_MODE=standalone
+  export AGENT_INSTALL_ROOT="$(cygpath -w "${standalone_root}/managed")"
+  export AGENT_INSTALL_DIR="$(cygpath -w "${standalone_root}/bin")"
+  export AGENT_HOME="$(cygpath -w "${standalone_root}/home")"
+  export AGENT_VERSION="${target_version}"
+  export AGENT_LOCAL_ARCHIVE="$(cygpath -w "${target_archive}")"
+  pwsh -NoProfile -File "$(cygpath -w agent/install.ps1)"
+  # shellcheck disable=SC2016 # PowerShell expands its own environment variables.
+  pwsh -NoProfile -Command '
+    $agentctl = Join-Path $env:AGENT_INSTALL_DIR "agentctl.exe"
+    $agentd = Join-Path $env:AGENT_INSTALL_DIR "agentd.exe"
+    if (-not (Test-Path $agentctl -PathType Leaf) -or -not (Test-Path $agentd -PathType Leaf)) {
+      throw "standalone installation did not copy both binaries"
+    }
+    $actual = (& $agentctl --version | Out-String).Trim()
+    if ($actual -ne "agentctl $env:AGENT_VERSION") {
+      throw "standalone agentctl reports $actual"
+    }
+    if (Test-Path (Join-Path $env:AGENT_INSTALL_ROOT "releases")) {
+      throw "standalone installation created a managed release tree"
+    }
+  '
+  test "$(cat "${standalone_root}/managed/update.json")" = '{ "phase": "prepared" }'
+  test ! -e "${standalone_root}/home"
+  unset AGENT_INSTALL_MODE
+
+  # Managed installation and self-update
+
   AGENT_INSTALL_ROOT="$(cygpath -w "${smoke_root}/install")"
   AGENT_INSTALL_DIR="$(cygpath -w "${smoke_root}/bin")"
   AGENT_HOME="$(cygpath -w "${smoke_root}/home")"
@@ -96,6 +133,28 @@ if [ "${RUNNER_OS:-}" = "Windows" ]; then
     }
   '
 else
+  # Standalone installation
+
+  standalone_root="${smoke_root}/standalone"
+  mkdir -p "${standalone_root}/managed"
+  printf '{ "phase": "prepared" }\n' > "${standalone_root}/managed/update.json"
+  AGENT_INSTALL_MODE=standalone \
+    AGENT_INSTALL_ROOT="${standalone_root}/managed" \
+    AGENT_INSTALL_DIR="${standalone_root}/bin" \
+    AGENT_HOME="${standalone_root}/home" \
+    AGENT_VERSION="${target_version}" \
+    AGENT_LOCAL_ARCHIVE="${target_archive}" \
+    ./agent/install.sh
+  test -x "${standalone_root}/bin/agentctl"
+  test -x "${standalone_root}/bin/agentd"
+  test "$("${standalone_root}/bin/agentctl" --version)" = "agentctl ${target_version}"
+  test "$(find "${standalone_root}/bin" -type f | wc -l | tr -d ' ')" = 2
+  test ! -e "${standalone_root}/managed/releases"
+  test ! -e "${standalone_root}/home"
+  test "$(cat "${standalone_root}/managed/update.json")" = '{ "phase": "prepared" }'
+
+  # Managed installation and self-update
+
   export AGENT_INSTALL_ROOT="${smoke_root}/install"
   export AGENT_INSTALL_DIR="${smoke_root}/bin"
   export AGENT_HOME="${smoke_root}/home"

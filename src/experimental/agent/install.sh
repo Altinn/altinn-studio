@@ -4,11 +4,16 @@ umask 077
 
 repository="${AGENT_GITHUB_REPOSITORY:-Altinn/altinn-studio}"
 version="${AGENT_VERSION:-}"
+install_mode="${AGENT_INSTALL_MODE:-managed}"
 bin_directory="${AGENT_INSTALL_DIR:-${HOME}/.local/bin}"
 install_root="${AGENT_INSTALL_ROOT:-${XDG_DATA_HOME:-${HOME}/.local/share}/agent}"
 agent_home="${AGENT_HOME:-${HOME}/.agent}"
 local_archive="${AGENT_LOCAL_ARCHIVE:-}"
 
+case "${install_mode}" in
+  managed | standalone) ;;
+  *) echo "AGENT_INSTALL_MODE must be \"managed\" or \"standalone\"" >&2; exit 1 ;;
+esac
 case "${install_root}" in /*) ;; *) install_root="$(pwd)/${install_root}" ;; esac
 case "${bin_directory}" in /*) ;; *) bin_directory="$(pwd)/${bin_directory}" ;; esac
 case "${agent_home}" in /*) ;; *) agent_home="$(pwd)/${agent_home}" ;; esac
@@ -35,7 +40,7 @@ resume_update() {
   "${target}/agentctl" "$@"
 }
 
-if [ -f "${journal}" ] && ! grep -q '^  "phase": "complete"$' "${journal}"; then
+if [ "${install_mode}" = managed ] && [ -f "${journal}" ] && ! grep -q '^  "phase": "complete"$' "${journal}"; then
   resume_update
   echo "Installed agentctl and agentd to ${bin_directory}"
   exit 0
@@ -77,7 +82,7 @@ source_release="${temporary}/release"
 trap 'rm -rf "${temporary}"' EXIT HUP INT TERM
 
 target="${install_root}/releases/${version}-${platform}"
-if [ ! -d "${target}" ]; then
+if [ "${install_mode}" = standalone ] || [ ! -d "${target}" ]; then
   if [ -n "${local_archive}" ]; then
     archive="$(basename "${local_archive}")"
     cp "${local_archive}" "${temporary}/${archive}"
@@ -96,6 +101,13 @@ if [ ! -d "${target}" ]; then
   mkdir "${source_release}"
   tar -xzf "${temporary}/${archive}" -C "${source_release}"
   chmod 0755 "${source_release}/agentctl" "${source_release}/agentd"
+  if [ "${install_mode}" = standalone ]; then
+    mkdir -p "${bin_directory}"
+    install -m 0755 "${source_release}/agentctl" "${bin_directory}/agentctl"
+    install -m 0755 "${source_release}/agentd" "${bin_directory}/agentd"
+    echo "Installed standalone agentctl and agentd to ${bin_directory}"
+    exit 0
+  fi
   "${source_release}/agentctl" --home "${agent_home}" self __publish-release \
     --install-root "${install_root}" --bin-directory "${bin_directory}" \
     --source-release "${source_release}" --target-version "${version}"

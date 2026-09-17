@@ -66,7 +66,7 @@ jobs:
         run: |
           src/experimental/agent/package.sh "dist/${ARCHIVE}.tar.gz" target/release
 
-      - name: Smoke-test managed installation
+      - name: Smoke-test managed and standalone installation
         env:
           ARCHIVE: ${{ matrix.archive }}
           AGENT_RELEASE_TAG: ${{ github.ref_name }}
@@ -84,6 +84,10 @@ jobs:
             export AGENT_SMOKE_BIN="${AGENT_INSTALL_DIR}"
             unset AGENT_INSTALL_ROOT AGENT_INSTALL_DIR
             pwsh -NoProfile -Command '& (Join-Path $env:AGENT_SMOKE_BIN "agentctl.cmd") --home $env:AGENT_HOME self update --version $env:VERSION'
+            export AGENT_INSTALL_MODE=standalone
+            export AGENT_INSTALL_DIR="$(cygpath -w "${SMOKE_ROOT}/standalone")"
+            pwsh -NoProfile -File "$(cygpath -w src/experimental/agent/install.ps1)"
+            pwsh -NoProfile -Command '& (Join-Path $env:AGENT_INSTALL_DIR "agentctl.exe") --version'
           else
             export AGENT_INSTALL_ROOT="${SMOKE_ROOT}/install"
             export AGENT_INSTALL_DIR="${SMOKE_ROOT}/bin"
@@ -93,6 +97,9 @@ jobs:
             AGENT_SMOKE_BIN="${AGENT_INSTALL_DIR}"
             unset AGENT_INSTALL_ROOT AGENT_INSTALL_DIR
             "${AGENT_SMOKE_BIN}/agentctl" --home "${AGENT_HOME}" self update --version "${VERSION}"
+            AGENT_INSTALL_MODE=standalone AGENT_INSTALL_DIR="${SMOKE_ROOT}/standalone" \
+              sh src/experimental/agent/install.sh
+            "${SMOKE_ROOT}/standalone/agentctl" --version
           fi
 
       - name: Upload release artifact
