@@ -27,7 +27,7 @@ import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summary
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
-import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
+import type { BaseRow } from 'src/utils/layout/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) => {
@@ -134,7 +134,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
 };
 
 interface RepGroupListRowProps {
-  row: RepGroupRow;
+  row: BaseRow;
   targetBaseComponentId: string;
   visibleChildIds: string[];
   hiddenColumns: string[];
