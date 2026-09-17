@@ -71,6 +71,39 @@ runs:
         echo "Frontend server is ready on http://localhost:8080"
       shell: bash
 
+    # The app libraries require the platform to say where provisioned secrets live and what the files are
+    # called (RUNTIME_APP_SECRETS_DIR and the RUNTIME_APP_*_SECRETS_FILENAME variables), and a v9 app does not
+    # start without a complete Maskinporten client in that directory. The studioctl on this branch does not
+    # set the variables yet, so this step plays the platform: one directory with a throwaway client, shared by
+    # every test app, handed on through the environment `studioctl run` passes to the app. Replaced by
+    # `studioctl app maskinporten set` once studioctl provisions the directory itself.
+    - name: Provision secrets for the test apps
+      if: ${{ inputs.run-localtest == 'true' && inputs.app-run-targets-json != '' }}
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+      with:
+        script: |
+          const crypto = require('node:crypto');
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const secretsDir = path.join(process.env.RUNNER_TEMP, 'app-secrets');
+          fs.mkdirSync(secretsDir, { recursive: true, mode: 0o700 });
+
+          const { privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+          const jwk = { ...privateKey.export({ format: 'jwk' }), use: 'sig', alg: 'RS256', kid: 'ci-test-apps' };
+          const client = {
+            MaskinportenSettings: {
+              Authority: 'https://test.maskinporten.no/',
+              ClientId: 'ci-test-apps',
+              Jwk: jwk,
+            },
+          };
+          fs.writeFileSync(path.join(secretsDir, 'maskinporten-settings.json'), JSON.stringify(client), { mode: 0o600 });
+
+          core.exportVariable('RUNTIME_APP_SECRETS_DIR', secretsDir);
+          core.exportVariable('RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME', 'maskinporten-settings.json');
+          core.exportVariable('RUNTIME_APP_APPCODES_SECRETS_FILENAME', 'app-codes.json');
+
     - name: Start app processes
       if: ${{ inputs.run-localtest == 'true' && inputs.app-run-targets-json != '' }}
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
