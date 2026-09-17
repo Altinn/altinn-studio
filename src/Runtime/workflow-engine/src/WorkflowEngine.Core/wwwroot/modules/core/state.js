@@ -255,18 +255,15 @@ export const parseTransition = (wf) => {
 const TASK_END_COMMANDS = new Set([
     'EndTask',
     'CommonTaskFinalization',
-    'EndTaskLegacyHook',
     'OnTaskEndingHook',
     'LockTaskData',
     'AbandonTask',
     'OnTaskAbandonHook',
-    'AbandonTaskLegacyHook',
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
     'CleanupGeneratedFromTask',
     'StartTask',
-    'StartTaskLegacyHook',
     'OnTaskStartingHook',
     'CommonTaskInitialization',
 ]);

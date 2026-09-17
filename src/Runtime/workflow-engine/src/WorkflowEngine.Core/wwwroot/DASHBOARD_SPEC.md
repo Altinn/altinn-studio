@@ -861,8 +861,8 @@ Extracts the BPMN transition from `workflow.operationId`. Expected format: `"Pro
 
 Maps step command names to phases:
 
-- **`end`**: EndTask, CommonTaskFinalization, EndTaskLegacyHook, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook, AbandonTaskLegacyHook
-- **`start`**: UnlockTaskData, CleanupGeneratedFromTask, StartTask, StartTaskLegacyHook, OnTaskStartingHook, CommonTaskInitialization
+- **`end`**: EndTask, CommonTaskFinalization, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook
+- **`start`**: UnlockTaskData, CleanupGeneratedFromTask, StartTask, OnTaskStartingHook, CommonTaskInitialization
 - **`process-end`**: OnProcessEndingHook, EndProcessLegacyHook
 - **`null`**: Everything else (service tasks, webhooks)
 
