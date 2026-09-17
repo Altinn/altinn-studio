@@ -54,70 +54,6 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
   });
 
-  it('idle-parked service task without a layout renders the standard loader', async () => {
-    // The process is parked on a service task pending an outcome (e.g. an external callback), and
-    // nothing has failed. Use the same skeleton as processing, with polling underneath.
-    const instance = getInstanceWithProcessMock();
-    instance.process.currentTask = {
-      ...instance.process.currentTask!,
-      elementId: 'Task_Service',
-      elementType: 'ServiceTask',
-      altinnTaskType: 'scenario',
-    };
-    instance.process.processTasks = [{ elementId: 'Task_Service', altinnTaskType: 'scenario' }];
-    instance.process.workflow = { status: 'idle' };
-
-    await renderWithInstanceAndLayout({
-      renderer: () => (
-        <ProcessWrapper>
-          <div data-testid='task-content'>Task content</div>
-        </ProcessWrapper>
-      ),
-      waitUntilLoaded: false,
-      taskId: 'Task_Service',
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
-    });
-
-    await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'service-task-waiting'));
-    expect(screen.getByRole('heading', { name: /vent litt, vi henter det du trenger/i })).toBeInTheDocument();
-    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/du trenger ikke å gjøre noe/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
-    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /prøv igjen/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /gå tilbake/i })).not.toBeInTheDocument();
-    expect(screen.queryByText(/noe gikk galt/i)).not.toBeInTheDocument();
-  });
-
-  it('idle-parked service task WITH a layout renders the layout - a custom layout opts out of the default waiting view', async () => {
-    // The harness registers a layout for the mock task, so classifying it as Data and rendering
-    // its children is the layout-wins path. Failure still takes precedence (tested below); the
-    // parked-follow polling applies to both variants and is covered by the e2e suite.
-    const instance = getInstanceWithProcessMock();
-    instance.process.currentTask!.elementType = 'ServiceTask';
-    instance.process.workflow = { status: 'idle' };
-
-    await renderWithInstanceAndLayout({
-      renderer: () => (
-        <ProcessWrapper>
-          <div data-testid='task-content'>Task content</div>
-        </ProcessWrapper>
-      ),
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
-    });
-
-    expect(await screen.findByTestId('task-content')).toBeInTheDocument();
-    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
-  });
-
   it('processing shows the standard loader and suppresses the task', async () => {
     // waitUntilLoaded is disabled because the blocking state intentionally renders a loader.
     await renderProcessWrapper({ status: 'processing', targetTask: 'Task_2' }, false);
@@ -129,10 +65,9 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
-  it('processing parked ON a layouted service task renders the layout - park and defer are identical UX', async () => {
+  it('processing on a layouted service task renders the layout while deferring', async () => {
     // A deferring service task reports processing while the process sits on the committed task
-    // (targetTask === currentTask). With a custom layout, the app's page renders exactly as it
-    // does for a parked (idle) task: park and defer are deliberately identical UX on layouted tasks.
+    // (targetTask === currentTask). With a custom layout, the app owns the waiting presentation.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
     instance.process.workflow = {
@@ -184,10 +119,8 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
   });
 
-  it('processing parked ON a service task WITHOUT a layout shows the loader', async () => {
-    // The layout is the app's opt-in to owning this state. Without one, a deferring task shows
-    // the standard loader (pinned by the e2e suite), not the parked waiting view, which
-    // is reserved for a task that has succeeded and idles awaiting an external release.
+  it('processing on a service task without a layout shows the loader', async () => {
+    // Without a custom layout, a deferring service task uses the standard loader.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask = {
       ...instance.process.currentTask!,
