@@ -211,7 +211,6 @@ export const createInstancePath = (org, app, partyId, taskId) => `${instancesPat
 
 // Process Editor
 export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/process-definition`; // Get, Put
-export const fiksArkivRoutingPath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/fiks-arkiv-routing`;
 export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/data-types`; // Put
 export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId, allowedContentTypes) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId, allowedContentTypes }, { arrayFormat: 'repeat' })}`; // Post, Delete

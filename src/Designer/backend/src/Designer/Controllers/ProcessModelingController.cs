@@ -47,16 +47,6 @@ public class ProcessModelingController : ControllerBase
         return new FileStreamResult(processDefinitionStream, MediaTypeNames.Text.Plain);
     }
 
-    [HttpGet("fiks-arkiv-routing")]
-    public Task<FiksArkivRouting> GetFiksArkivRouting(string org, string repo, CancellationToken cancellationToken)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        return _processModelingService.GetFiksArkivRouting(
-            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer),
-            cancellationToken
-        );
-    }
-
     [HttpPut("process-definition")]
     public async Task<IActionResult> UpsertProcessDefinitionAndNotify(
         string org,

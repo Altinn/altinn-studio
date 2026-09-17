@@ -19,7 +19,6 @@ import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
 import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useBpmnQuery } from 'app-shared/hooks/queries/useBpmnQuery';
-import { useFiksArkivRoutingQuery } from 'app-shared/hooks/queries/useFiksArkivRoutingQuery';
 import { useBpmnMutation } from 'app-shared/hooks/mutations/useBpmnMutation';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
@@ -37,7 +36,6 @@ import { useDeleteDataTypeFromAppMetadata } from 'app-development/hooks/mutation
 export const ProcessEditor = (): JSX.Element => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: fiksArkivRouting, isError: hasRoutingError } = useFiksArkivRoutingQuery(org, app);
 
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
@@ -136,11 +134,6 @@ export const ProcessEditor = (): JSX.Element => {
   return (
     <BpmnContextProvider bpmnXml={bpmnXml}>
       <BpmnApiContextProvider
-        fiksArkivRouting={
-          hasRoutingError
-            ? { successAction: null, failureAction: null, unavailableReason: 'fetchFailed' }
-            : fiksArkivRouting
-        }
         availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
         availableDataModelIds={availableDataModelIds}
         allDataModelIds={allDataModelIds}

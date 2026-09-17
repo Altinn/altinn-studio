@@ -4,17 +4,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IProcessModelingService
 {
-    Task<FiksArkivRouting> GetFiksArkivRouting(
-        AltinnRepoEditingContext editingContext,
-        CancellationToken cancellationToken
-    );
-
     /// <summary>
     /// Saves the process definition file for a given app.
     /// </summary>

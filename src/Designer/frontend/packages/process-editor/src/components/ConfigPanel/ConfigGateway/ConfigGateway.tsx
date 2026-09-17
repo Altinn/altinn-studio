@@ -11,15 +11,9 @@ import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
 import { ConfigIcon } from '../ConfigContent/ConfigIcon';
 import { useConnectedDataType } from './useConnectedDataType';
 import classes from './ConfigGateway.module.css';
-import { useBpmnContext } from '../../../contexts/BpmnContext';
-import { isFiksArkivGateway } from '../../../utils/fiksArkivRouting';
-import { FiksArkivGateway } from '../FiksArkivRouting/FiksArkivGateway';
-import { useBpmnDiagramVersion } from '../../../hooks/useBpmnDiagramVersion';
 
 export const ConfigGateway = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { bpmnDetails } = useBpmnContext();
-  useBpmnDiagramVersion();
   const { allDataModelIds } = useBpmnApiContext();
   const { connectedDataTypeId, setConnectedDataTypeId } = useConnectedDataType();
 
@@ -51,9 +45,6 @@ export const ConfigGateway = (): React.ReactElement => {
         }}
       />
       <div className={classes.container}>
-        {isFiksArkivGateway(bpmnDetails.element) && (
-          <FiksArkivGateway gateway={bpmnDetails.element} />
-        )}
         <StudioSuggestion
           description={t(
             'process_editor.configuration_panel_gateway_connected_data_type_description',
