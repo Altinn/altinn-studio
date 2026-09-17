@@ -13,10 +13,7 @@ Choose an Agent and, optionally, a variant:
 | `full` `nested-build` | Reduced resources and a full image built from this checkout |
 | `full` `worktree` | Full published image with the current checkout mounted read-write |
 
-Every Agent installs the `pr-evidence` skill from `agents/skills`.
-
-The host needs hardware virtualization. Docker is required only for the `nested-build` variant; the other
-repository-owned Altinn manifests use registry references. Install the released Agent CLI on Linux or macOS:
+Install the released Agent CLI on Linux or macOS:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh | sh
