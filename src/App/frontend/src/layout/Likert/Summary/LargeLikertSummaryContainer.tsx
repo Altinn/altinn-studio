@@ -14,7 +14,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface IDisplayLikertContainer {
   likertBaseId: string;
@@ -39,17 +39,11 @@ export function LargeLikertSummaryContainer({
 }: IDisplayLikertContainer) {
   const config = useComponentConfig(likertBaseId, 'Likert');
   const componentId = useIndexedId(likertBaseId);
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Likert.textResourceBindings.title,
-  );
-  const resolvedSummaryTitle = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Likert.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Likert.textResourceBindings.summaryTitle,
   );
-
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const summaryTitle = config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle;
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const depth = getLayoutDepth(likertBaseId, layoutLookups);

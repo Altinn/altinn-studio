@@ -6,7 +6,7 @@ import { Lang } from 'src/features/language/Lang';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type SubmitPanelProps = {
   baseComponentId: string;
@@ -14,27 +14,22 @@ type SubmitPanelProps = {
 
 export function SubmitPanel({ baseComponentId }: SubmitPanelProps) {
   const config = useComponentConfig(baseComponentId, 'SigningActions');
-  const submitPanelTitle = useEvalExpression(
+  const submitPanelTitle = useEvalOptionalText(
     config.textResourceBindings?.submitPanelTitle,
     Expressions.SigningActions.textResourceBindings.submitPanelTitle,
   );
-  const submitPanelDescription = useEvalExpression(
+  const submitPanelDescription = useEvalOptionalText(
     config.textResourceBindings?.submitPanelDescription,
     Expressions.SigningActions.textResourceBindings.submitPanelDescription,
   );
-  const submitButton = useEvalExpression(
+  const submitButton = useEvalOptionalText(
     config.textResourceBindings?.submitButton,
     Expressions.SigningActions.textResourceBindings.submitButton,
   );
 
-  const titleReadyForSubmit =
-    (config.textResourceBindings?.submitPanelTitle === undefined ? undefined : submitPanelTitle) ??
-    'signing.submit_panel_title';
-  const descriptionReadyForSubmit =
-    (config.textResourceBindings?.submitPanelDescription === undefined ? undefined : submitPanelDescription) ??
-    'signing.submit_panel_description';
-  const submitButtonText =
-    (config.textResourceBindings?.submitButton === undefined ? undefined : submitButton) ?? 'signing.submit_button';
+  const titleReadyForSubmit = submitPanelTitle ?? 'signing.submit_panel_title';
+  const descriptionReadyForSubmit = submitPanelDescription ?? 'signing.submit_panel_description';
+  const submitButtonText = submitButton ?? 'signing.submit_button';
 
   return (
     <SigningPanel

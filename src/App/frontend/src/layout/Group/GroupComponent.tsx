@@ -14,7 +14,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface IGroupComponent {
   baseComponentId: string;
@@ -40,27 +40,16 @@ export function GroupComponent({
   renderLayoutComponent,
 }: IGroupComponent) {
   const config = useComponentConfig(baseComponentId, 'Group');
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Group.textResourceBindings.title,
-  );
-  const resolvedSummaryTitle = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Group.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Group.textResourceBindings.summaryTitle,
   );
-  const resolvedDescription = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Group.textResourceBindings.description,
   );
-  const resolvedHelp = useEvalExpression(
-    config.textResourceBindings?.help,
-    Expressions.Group.textResourceBindings.help,
-  );
-
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const summaryTitle = config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle;
-  const description = config.textResourceBindings?.description === undefined ? undefined : resolvedDescription;
-  const help = config.textResourceBindings?.help === undefined ? undefined : resolvedHelp;
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Group.textResourceBindings.help);
 
   const isHidden = useIsHidden(baseComponentId);
 

@@ -17,7 +17,7 @@ import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -29,15 +29,15 @@ export function LikertSummaryComponent({
   overrides,
 }: SummaryRendererProps) {
   const config = useComponentConfig(targetBaseComponentId, 'Likert');
-  const summaryAccessibleTitle = useEvalExpression(
+  const summaryAccessibleTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryAccessibleTitle,
     Expressions.Likert.textResourceBindings.summaryAccessibleTitle,
   );
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Likert.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const titleTrb = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Likert.textResourceBindings.title,
   );
@@ -53,10 +53,8 @@ export function LikertSummaryComponent({
   const groupHasErrors = hasValidationErrors(groupValidations);
 
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Likert');
-  const summaryAccessibleTitleTrb =
-    config.textResourceBindings?.summaryAccessibleTitle === undefined ? undefined : summaryAccessibleTitle;
-  const summaryTitleTrb = config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle;
-  const titleTrb = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
+  const summaryAccessibleTitleTrb = summaryAccessibleTitle;
+  const summaryTitleTrb = summaryTitle;
   const title = lang(summaryTitleTrb ?? titleTrb);
   const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
   const indexedId = useIndexedId(targetBaseComponentId);
