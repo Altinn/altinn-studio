@@ -456,7 +456,7 @@ mod tests {
         std::fs::write(&sibling, "#!/bin/sh\n").expect("release agentctl");
         std::fs::write(bin.join("agentctl"), "#!/bin/sh\n").expect("unrelated agentctl");
 
-        let unrelated = std::env::join_paths([bin.clone()]).expect("PATH");
+        let unrelated = std::env::join_paths([&bin]).expect("PATH");
         assert_eq!(stable_agentctl_path(&sibling, Some(&unrelated)), sibling);
         assert_eq!(stable_agentctl_path(&sibling, None), sibling);
 
@@ -465,7 +465,7 @@ mod tests {
             let stable = directory.path().join("stable");
             std::fs::create_dir_all(&stable).expect("stable directory");
             std::os::unix::fs::symlink(&sibling, stable.join("agentctl")).expect("symlink");
-            let path = std::env::join_paths([bin, stable.clone()]).expect("PATH");
+            let path = std::env::join_paths([&bin, &stable]).expect("PATH");
             assert_eq!(stable_agentctl_path(&sibling, Some(&path)), stable.join("agentctl"));
         }
     }
