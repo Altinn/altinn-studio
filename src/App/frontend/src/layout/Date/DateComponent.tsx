@@ -8,18 +8,18 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { formatDateLocale } from 'src/utils/dateUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const DateComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Date'>) => {
   const config = useComponentConfig(baseComponentId, 'Date');
   const value = useEvalExpression(config.value, Expressions.Date.value);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Date.textResourceBindings.title);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Date.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Date.textResourceBindings.description,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Date.textResourceBindings.help);
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Date.textResourceBindings.help);
 
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
   const language = useCurrentLanguage();
@@ -45,11 +45,9 @@ export const DateComponent = ({ baseComponentId, overrideDisplay }: PropsFromGen
     <Date
       componentId={componentId}
       value={displayData}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
-      description={
-        showLabel ? (config.textResourceBindings?.description === undefined ? undefined : description) : undefined
-      }
-      help={showLabel ? (config.textResourceBindings?.help === undefined ? undefined : help) : undefined}
+      title={title}
+      description={showLabel ? description : undefined}
+      help={showLabel ? help : undefined}
       hideLabel={!showLabel}
       icon={config.icon}
       direction={config.direction ?? 'horizontal'}

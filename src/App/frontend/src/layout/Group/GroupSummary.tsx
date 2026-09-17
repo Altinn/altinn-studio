@@ -11,7 +11,7 @@ import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 interface GroupComponentSummaryProps extends Summary2Props {
@@ -58,19 +58,16 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
 
 export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
   const config = useComponentConfig(targetBaseComponentId, 'Group');
-  const resolvedSummaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Group.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Group.textResourceBindings.title,
   );
 
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
-  const summaryTitle = config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle;
+  const title = summaryTitle || resolvedTitle;
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';

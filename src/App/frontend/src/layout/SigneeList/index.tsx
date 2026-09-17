@@ -7,7 +7,7 @@ import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -25,7 +25,7 @@ export class SigneeList extends SigneeListDef {
 
   renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {
     const config = useComponentConfig(targetBaseComponentId, 'SigneeList');
-    const summaryTitle = useEvalExpression(
+    const summaryTitle = useEvalOptionalText(
       config.textResourceBindings?.summaryTitle,
       Expressions.SigneeList.textResourceBindings.summaryTitle,
     );
@@ -33,7 +33,7 @@ export class SigneeList extends SigneeListDef {
     return (
       <SigneeListSummary
         targetBaseComponentId={targetBaseComponentId}
-        titleOverride={config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle}
+        titleOverride={summaryTitle}
       />
     );
   }

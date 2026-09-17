@@ -19,7 +19,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -33,12 +33,12 @@ export const CheckboxContainerComponent = ({
   const readOnly = useEvalExpression(config.readOnly, Expressions.Checkboxes.readOnly);
   const required = useEvalExpression(config.required, Expressions.Checkboxes.required);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Checkboxes.alertOnChange);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Checkboxes.textResourceBindings.title,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Checkboxes.textResourceBindings.help);
-  const description = useEvalExpression(
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Checkboxes.textResourceBindings.help);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Checkboxes.textResourceBindings.description,
   );
@@ -59,9 +59,7 @@ export const CheckboxContainerComponent = ({
   });
   const hideLabel =
     overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !config.showLabelsInTable;
-  const ariaLabel = overrideDisplay?.renderedInTable
-    ? langAsString(config.textResourceBindings?.title === undefined ? undefined : title)
-    : undefined;
+  const ariaLabel = overrideDisplay?.renderedInTable ? langAsString(title) : undefined;
   const setChecked = useCallback(
     (isChecked: boolean, option: IOptionInternal) => {
       if (groupBinding.enabled) {
@@ -84,10 +82,10 @@ export const CheckboxContainerComponent = ({
   const labelTextGroup = (
     <LabelContent
       id={useIndexedId(baseComponentId)}
-      label={config.textResourceBindings?.title === undefined ? undefined : title}
+      label={title}
       readOnly={readOnly}
       required={required}
-      help={config.textResourceBindings?.help === undefined ? undefined : help}
+      help={help}
       labelSettings={config.labelSettings}
     />
   );
@@ -104,11 +102,11 @@ export const CheckboxContainerComponent = ({
             {overrideDisplay?.renderLegend !== false && (
               <Fieldset.Legend className={classes.legend}>{labelTextGroup}</Fieldset.Legend>
             )}
-            {(config.textResourceBindings?.description === undefined ? undefined : description) && (
+            {description && (
               <Fieldset.Description
                 className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
               >
-                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
+                <Lang id={description} />
               </Fieldset.Description>
             )}
             <ConditionalWrapper

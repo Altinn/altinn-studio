@@ -25,7 +25,7 @@ import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from '
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
@@ -179,7 +179,7 @@ function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
 export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'CustomButton'>) => {
   const config = useComponentConfig(baseComponentId, 'CustomButton');
   const componentId = useIndexedId(baseComponentId);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.CustomButton.textResourceBindings.title,
   );
@@ -214,7 +214,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   if (isSubformCloseButton && !config.buttonStyle) {
     interceptedButtonStyle = 'primary';
   }
-  let buttonText = config.textResourceBindings?.title === undefined ? undefined : title;
+  let buttonText = title;
   if (isSubformCloseButton && !buttonText) {
     buttonText = 'general.done';
   }

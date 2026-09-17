@@ -14,7 +14,7 @@ import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { maskSsn } from 'src/utils/maskSsn';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -108,15 +108,15 @@ export function InstanceInformationComponent({
   overrideDisplay,
 }: PropsFromGenericComponent<'InstanceInformation'>) {
   const config = useComponentConfig(baseComponentId, 'InstanceInformation');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.InstanceInformation.textResourceBindings.title,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.InstanceInformation.textResourceBindings.description,
   );
-  const help = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings?.help,
     Expressions.InstanceInformation.textResourceBindings.help,
   );
@@ -136,11 +136,9 @@ export function InstanceInformationComponent({
     <InstanceInformationLayout
       componentId={componentId}
       summaryDataObject={summaryDataObject}
-      title={showLabel ? (config.textResourceBindings?.title === undefined ? undefined : title) : undefined}
-      description={
-        showLabel ? (config.textResourceBindings?.description === undefined ? undefined : description) : undefined
-      }
-      help={showLabel ? (config.textResourceBindings?.help === undefined ? undefined : help) : undefined}
+      title={showLabel ? title : undefined}
+      description={showLabel ? description : undefined}
+      help={showLabel ? help : undefined}
       labelGrid={config.grid?.labelGrid}
       innerGrid={innerGrid}
     />
