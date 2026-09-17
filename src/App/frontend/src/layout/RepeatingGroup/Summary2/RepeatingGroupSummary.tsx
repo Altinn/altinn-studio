@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Flex } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
@@ -12,6 +13,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { RepGroupSummaryEditableProvider } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
+import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import {
@@ -23,7 +25,8 @@ import {
 } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -35,25 +38,27 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const rows = RepGroupHooks.useVisibleRows(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, dataModelBindings, minCount, tableColumns } = useItemWhenType(
-    targetBaseComponentId,
-    'RepeatingGroup',
+  const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'RepeatingGroup');
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.RepeatingGroup.textResourceBindings.summaryTitle,
   );
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.RepeatingGroup.textResourceBindings.title,
+  );
+
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
+    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[targetBaseComponentId];
   const isNested = parent?.type === 'node';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-
-  const hiddenColumns = tableColumns
-    ? Object.entries(tableColumns)
-        .filter(([_, settings]) => settings.hidden === true)
-        .map(([id]) => id)
-    : [];
+  const hiddenColumns = useHiddenColumns(config.tableColumns);
   const visibleChildIds = childIds.filter((id) => !hiddenColumns.includes(id));
-
-  const required = minCount !== undefined && minCount > 0;
+  const required = config.minCount !== undefined && config.minCount > 0;
   const { className } = useSummarySoftHidden(hideEmptyFields && rows.length === 0 && !required);
-
   if (rows.length === 0) {
     return (
       <SummaryFlex
@@ -71,7 +76,6 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
       </SummaryFlex>
     );
   }
-
   if (display === 'table') {
     return (
       <SummaryFlexForContainer
@@ -82,7 +86,6 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
       </SummaryFlexForContainer>
     );
   }
-
   return (
     <SummaryFlexForContainer
       hideWhen={hideEmptyFields}
@@ -103,13 +106,13 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
             if (!row) {
               return null;
             }
-
             return (
               <RepGroupListRow
                 key={row.uuid}
                 row={row}
                 targetBaseComponentId={targetBaseComponentId}
                 visibleChildIds={visibleChildIds}
+                hiddenColumns={hiddenColumns}
                 dataModelBindings={dataModelBindings}
                 showDivider={index !== 0}
               />
@@ -136,40 +139,52 @@ interface RepGroupListRowProps {
   row: RepGroupRow;
   targetBaseComponentId: string;
   visibleChildIds: string[];
+  hiddenColumns: string[];
   dataModelBindings: { group: IDataModelReference };
   showDivider: boolean;
 }
 
-function RepGroupListRow({
+function RepGroupListRow(props: RepGroupListRowProps) {
+  return (
+    <DataModelLocationProvider
+      groupBinding={props.dataModelBindings.group}
+      rowIndex={props.row.index}
+    >
+      <RepGroupListRowInner {...props} />
+    </DataModelLocationProvider>
+  );
+}
+
+function RepGroupListRowInner({
   row,
   targetBaseComponentId,
   visibleChildIds,
-  dataModelBindings,
+  hiddenColumns,
   showDivider,
 }: RepGroupListRowProps) {
-  const rowWithExpressions = RepGroupHooks.useRowWithExpressions(targetBaseComponentId, { uuid: row.uuid });
-  const editableChildIds = RepGroupHooks.useEditableChildren(targetBaseComponentId, rowWithExpressions);
+  const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
+  const editButton = useEvalExpression(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
+  const editableChildIds = RepGroupHooks.useEditableChildren(
+    targetBaseComponentId,
+    { ...row, editButton },
+    hiddenColumns,
+  );
 
   return (
-    <DataModelLocationProvider
-      groupBinding={dataModelBindings.group}
-      rowIndex={row.index}
-    >
-      <RepGroupSummaryEditableProvider editableChildIds={editableChildIds}>
-        {showDivider && <hr className={classes.rowDivider} />}
-        <Flex
-          container
-          spacing={6}
-          alignItems='flex-start'
-        >
-          {visibleChildIds.map((baseId) => (
-            <ComponentSummary
-              key={baseId}
-              targetBaseComponentId={baseId}
-            />
-          ))}
-        </Flex>
-      </RepGroupSummaryEditableProvider>
-    </DataModelLocationProvider>
+    <RepGroupSummaryEditableProvider editableChildIds={editableChildIds}>
+      {showDivider && <hr className={classes.rowDivider} />}
+      <Flex
+        container
+        spacing={6}
+        alignItems='flex-start'
+      >
+        {visibleChildIds.map((baseId) => (
+          <ComponentSummary
+            key={baseId}
+            targetBaseComponentId={baseId}
+          />
+        ))}
+      </Flex>
+    </RepGroupSummaryEditableProvider>
   );
 }

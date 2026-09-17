@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AttachmentList } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -13,21 +14,26 @@ import {
   toDisplayAttachments,
   toRenderableAttachments,
 } from 'src/utils/attachmentsUtils';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataType } from 'src/types/shared';
 
 const emptyDataTypeArray: IDataType[] = [];
 
 export function AttachmentListComponent({ baseComponentId }: PropsFromGenericComponent<'AttachmentList'>) {
-  const item = useItemWhenType(baseComponentId, 'AttachmentList');
+  const config = useComponentConfig(baseComponentId, 'AttachmentList');
+  const title = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.AttachmentList.textResourceBindings.title,
+  );
+
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
-  const textResourceBindings = item.textResourceBindings;
-  const showLinks = item.links;
-  const allowedAttachmentTypes = new Set(item.dataTypeIds ?? []);
-  const groupAttachments = item.groupByDataTypeGrouping ?? false;
-  const showDescription = item.showDataTypeDescriptions ?? false;
+
+  const allowedAttachmentTypes = new Set(config.dataTypeIds ?? []);
+  const groupAttachments = config.groupByDataTypeGrouping ?? false;
+  const showDescription = config.showDataTypeDescriptions ?? false;
 
   const dataElements = useInstanceDataElements(undefined);
   const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
@@ -71,9 +77,9 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
     <AttachmentList
       componentId={componentId}
       attachments={displayAttachments}
-      title={textResourceBindings?.title}
+      title={config.textResourceBindings?.title === undefined ? undefined : title}
       groupByDataTypeGrouping={groupAttachments}
-      showLinks={showLinks}
+      showLinks={config.links}
       showDescription={showDescription}
       innerGrid={innerGrid}
     />

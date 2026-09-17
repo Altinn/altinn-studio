@@ -5,12 +5,12 @@ import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildren
 import { SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const SummaryAccordionGroupComponent = ({ targetBaseComponentId, ...rest }: SummaryRendererProps) => {
-  const children = useExternalItem(targetBaseComponentId, 'AccordionGroup')?.children;
+  const children = useComponentConfig(targetBaseComponentId, 'AccordionGroup')?.children;
   return children?.map((childId) => (
     <Child
       key={childId}
@@ -21,7 +21,7 @@ export const SummaryAccordionGroupComponent = ({ targetBaseComponentId, ...rest 
 };
 
 export const SummaryAccordionGroupComponent2 = ({ targetBaseComponentId, ...rest }: Summary2Props) => {
-  const children = useExternalItem(targetBaseComponentId, 'AccordionGroup')?.children;
+  const children = useComponentConfig(targetBaseComponentId, 'AccordionGroup')?.children;
   const canRender = useHasCapability('renderInAccordionGroup');
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
   return (
@@ -41,7 +41,7 @@ export const SummaryAccordionGroupComponent2 = ({ targetBaseComponentId, ...rest
 };
 
 function Child2({ id, ...rest }: { id: string } & Omit<Summary2Props, 'targetBaseComponentId'>) {
-  const component = useExternalItem(id);
+  const component = useComponentConfig(id);
   if (!component || component.type !== 'Accordion') {
     return null;
   }
@@ -57,7 +57,7 @@ function Child2({ id, ...rest }: { id: string } & Omit<Summary2Props, 'targetBas
 }
 
 function Child({ id, ...rest }: { id: string } & Omit<SummaryRendererProps, 'targetBaseComponentId'>) {
-  const component = useExternalItem(id);
+  const component = useComponentConfig(id);
   if (!component || component.type !== 'Accordion') {
     return null;
   }

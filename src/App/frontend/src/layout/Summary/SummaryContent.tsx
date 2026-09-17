@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 
 import { getComponentDef } from '..';
@@ -10,7 +11,8 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import classes from 'src/layout/Summary/SummaryContent.module.css';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 interface SummaryContentProps extends SummaryRendererProps {
@@ -25,23 +27,56 @@ export function SummaryContent({
   RenderSummary,
 }: SummaryContentProps) {
   const { langAsString } = useLanguage();
-  const targetItem = useItemFor(targetBaseComponentId);
+  const config = useComponentConfig(targetBaseComponentId);
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
+  const summaryAccessibleTitle = useEvalExpression(
+    config.textResourceBindings && 'summaryAccessibleTitle' in config.textResourceBindings
+      ? config.textResourceBindings.summaryAccessibleTitle
+      : undefined,
+    CommonExpressions.TRBSummarizable.summaryAccessibleTitle,
+  );
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
+      ? config.textResourceBindings.summaryTitle
+      : undefined,
+    CommonExpressions.TRBSummarizable.summaryTitle,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+
   const display = overrides?.display;
-  const readOnlyComponent = 'readOnly' in targetItem && targetItem.readOnly === true;
+  const readOnlyComponent = 'readOnly' in config && readOnly === true;
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const hasErrors = hasValidationErrors(validations);
   const shouldShowChangeButton = !readOnlyComponent && !display?.hideChangeButton;
-  const def = getComponentDef(targetItem.type);
+  const def = getComponentDef(config.type);
   const displaySummaryBoilerPlate = 'renderSummaryBoilerplate' in def && def.renderSummaryBoilerplate();
 
-  const textBindings = 'textResourceBindings' in targetItem ? targetItem.textResourceBindings : undefined;
   const summaryAccessibleTitleTrb =
-    textBindings && 'summaryAccessibleTitle' in textBindings
-      ? (textBindings.summaryAccessibleTitle as string)
+    config.textResourceBindings &&
+    'summaryAccessibleTitle' in config.textResourceBindings &&
+    config.textResourceBindings.summaryAccessibleTitle !== undefined
+      ? summaryAccessibleTitle
       : undefined;
   const summaryTitleTrb =
-    textBindings && 'summaryTitle' in textBindings ? (textBindings.summaryTitle as string) : undefined;
-  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+    config.textResourceBindings &&
+    'summaryTitle' in config.textResourceBindings &&
+    config.textResourceBindings.summaryTitle !== undefined
+      ? summaryTitle
+      : undefined;
+  const titleTrb =
+    config.textResourceBindings &&
+    'title' in config.textResourceBindings &&
+    config.textResourceBindings.title !== undefined
+      ? title
+      : undefined;
 
   return (
     <div className={classes.container}>

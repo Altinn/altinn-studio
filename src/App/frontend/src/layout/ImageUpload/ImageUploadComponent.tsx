@@ -1,19 +1,23 @@
 import React from 'react';
 
 import { IMAGE_TYPE, ImageUploadLayout } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
 import { isAllowedContentTypesValid } from 'src/layout/ImageUpload/imageUploadUtils';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabelData } from 'src/utils/layout/useLabelData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function ImageUploadComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'ImageUpload'>) {
   const { dataTypes } = getApplicationMetadata();
-  const { crop, readOnly } = useItemWhenType(baseComponentId, 'ImageUpload');
+  const config = useComponentConfig(baseComponentId, 'ImageUpload');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.ImageUpload.readOnly);
+
   const { storedImage, imageUrl, saveImage, deleteImage } = useImageFile(baseComponentId);
   const { title, help, description, required, showOptionalMarking } = useLabelData({
     baseComponentId,
@@ -30,7 +34,7 @@ export function ImageUploadComponent({ baseComponentId, overrideDisplay }: Props
   return (
     <ImageUploadLayout
       componentId={componentId}
-      crop={crop}
+      crop={config.crop}
       readOnly={readOnly}
       required={required}
       showOptionalMarking={showOptionalMarking}

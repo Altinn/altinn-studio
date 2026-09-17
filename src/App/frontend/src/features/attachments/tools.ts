@@ -10,7 +10,7 @@ import type {
   UploadedAttachment,
 } from 'src/features/attachments';
 import type { FormStoreState } from 'src/features/form/FormContext';
-import type { CompIntermediate } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
 export const attachmentMutationKeys = {
@@ -38,7 +38,7 @@ export type PendingAttachmentMutation =
       dataElementId: string;
     };
 
-export function makeAttachmentNode(baseId: string, component: CompIntermediate): AttachmentNode {
+export function makeAttachmentNode(baseId: string, component: CompExternal): AttachmentNode {
   return {
     id: component.id,
     baseId,

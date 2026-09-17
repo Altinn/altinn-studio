@@ -20,9 +20,6 @@ export const Config = asAttachmentUploader(
       renderInCards: true,
       renderInCardsMedia: false,
     },
-    functionality: {
-      customExpressions: true,
-    },
   }),
 )
   .extendTextResources(CG.common('TRBLabel'))

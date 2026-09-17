@@ -4,7 +4,7 @@ import { TileLayer, WMSTileLayer } from 'react-leaflet';
 import type { MapTileLayer, MapWMSLayer } from '@app/layout-contract/generated/components/Map/config.generated';
 
 import { DefaultMapLayers } from 'src/layout/Map/utils';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
 function OurTileLayer({ layer }: { layer: MapTileLayer }) {
   return (
@@ -40,7 +40,7 @@ interface MapLayersProps {
 }
 
 export function MapLayers({ baseComponentId }: MapLayersProps) {
-  const customLayers = useExternalItem(baseComponentId, 'Map').layers;
+  const customLayers = useComponentConfig(baseComponentId, 'Map').layers;
   const layers = customLayers ?? DefaultMapLayers;
 
   return (

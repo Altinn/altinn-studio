@@ -6,13 +6,13 @@ import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/gener
 import { useSetOptions } from 'src/features/options/useGetOptions';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsHidden } from 'src/utils/layout/hidden';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
-import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface Props {
-  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  baseComponentId: string;
   parent: RuntimeNodeParent;
   valueType: OptionsValueType;
   options: IOptionInternal[];
@@ -24,10 +24,10 @@ interface Props {
  * from a repeating group. If the options changed and the selected option (or selected row in a repeating group)
  * is gone, we should not save stale/invalid data, so we clear it.
  */
-export function EffectRemoveStaleValues({ item, parent, valueType, options }: Props) {
+export function EffectRemoveStaleValues({ baseComponentId, parent, valueType, options }: Props) {
   const isHidden = useIsHidden(parent.baseId);
 
-  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId) as IDataModelBindingsOptionsSimple | undefined;
   const setResult = useSetOptions(valueType, dataModelBindings, options);
   const setResultAsRef = useAsRef(setResult);
   const optionsAsRef = useAsRef(options);

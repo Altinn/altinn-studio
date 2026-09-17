@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { FormattedInput, getDescriptionId, getLabelId, Input, Label, NumericInput } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { InputProps } from '@app/form-component';
 import type {
   HTMLAutoCompleteValues,
@@ -15,11 +16,14 @@ import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import classes from 'src/layout/Input/InputComponent.module.css';
 import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
 import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type NumberFormatProps = Omit<NumberFormatPropsCG, 'thousandSeparator' | 'decimalSeparator' | 'suffix' | 'prefix'> & {
@@ -103,69 +107,72 @@ const InputVariant = ({
   baseComponentId,
   overrideDisplay,
   labelId,
-}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'> & { labelId: string }) => {
-  const {
-    id,
-    readOnly,
-    required,
-    formatting,
-    variant: inputVariant,
-    textResourceBindings,
-    dataModelBindings,
-    saveWhileTyping,
-    autocomplete,
-    maxLength,
-  } = useItemWhenType(baseComponentId, 'Input');
+}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'> & {
+  labelId: string;
+}) => {
+  const config = useComponentConfig(baseComponentId, 'Input');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Input');
+  const componentId = useIndexedId(baseComponentId);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Input.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Input.required);
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Input.textResourceBindings.title);
+  const description = useEvalExpression(
+    config.textResourceBindings?.description,
+    Expressions.Input.textResourceBindings.description,
+  );
+  const prefix = useEvalExpression(config.textResourceBindings?.prefix, Expressions.Input.textResourceBindings.prefix);
+  const suffix = useEvalExpression(config.textResourceBindings?.suffix, Expressions.Input.textResourceBindings.suffix);
+
   const {
     formData: { simpleBinding: realFormValue },
     setValue,
-  } = useDataModelBindings(dataModelBindings, saveWhileTyping);
+  } = useDataModelBindings(dataModelBindings, config.saveWhileTyping);
   const { langAsString } = useLanguage();
-  const characterLimit = useCharacterLimit(maxLength);
-
+  const characterLimit = useCharacterLimit(config.maxLength);
   const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
-  const reactNumberFormatConfig = useMapToReactNumberConfig(formatting, formValue);
-  const variant = getVariantWithFormat(inputVariant, reactNumberFormatConfig?.number);
-  const { inputMode, pattern } = getMobileKeyboardProps(variant, autocomplete);
+  const reactNumberFormatConfig = useMapToReactNumberConfig(useResolvedFormatting(config.formatting), formValue);
+  const variant = getVariantWithFormat(config.variant, reactNumberFormatConfig?.number);
+  const { inputMode, pattern } = getMobileKeyboardProps(variant, config.autocomplete);
   const debounce = FormStore.data.useDebounceImmediately();
-
-  const descriptionId = getDescriptionId(id);
+  const descriptionId = getDescriptionId(componentId);
   const validationsId = `${baseComponentId}-validations`;
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const hasValidations = validations.length > 0;
-
   const inputDescribedBy = buildAriaDescribedBy({
     renderedInTable: overrideDisplay?.renderedInTable,
-    hasTitle: !!textResourceBindings?.title,
+    hasTitle: !!(config.textResourceBindings?.title === undefined ? undefined : title),
     descriptionId,
-    hasDescription: !!textResourceBindings?.description,
+    hasDescription: !!(config.textResourceBindings?.description === undefined ? undefined : description),
     validationsId,
     hasValidations,
   });
-
-  const labelProps = textResourceBindings?.title
-    ? { 'aria-label': langAsString(textResourceBindings.title) }
+  const labelProps = (config.textResourceBindings?.title === undefined ? undefined : title)
+    ? {
+        'aria-label': langAsString(config.textResourceBindings?.title === undefined ? undefined : title),
+      }
     : { 'aria-labelledby': labelId };
-
   const inputProps: InputProps = {
-    id,
+    id: componentId,
     ...labelProps,
     'aria-describedby': inputDescribedBy,
-    autoComplete: autocomplete,
-    className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
+    autoComplete: config.autocomplete,
+    className: config.formatting?.align ? classes[`text-align-${config.formatting.align}`] : '',
     readOnly,
     textonly: overrideDisplay?.rowReadOnly && readOnly,
     required,
     onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
-    prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
-    suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
+    prefix: (config.textResourceBindings?.prefix === undefined ? undefined : prefix)
+      ? langAsString(config.textResourceBindings?.prefix === undefined ? undefined : prefix)
+      : undefined,
+    suffix: (config.textResourceBindings?.suffix === undefined ? undefined : suffix)
+      ? langAsString(config.textResourceBindings?.suffix === undefined ? undefined : suffix)
+      : undefined,
     style: { width: '100%' },
     inputMode,
     pattern,
   };
-
   switch (variant.type) {
     case 'search':
     case 'text':
@@ -260,19 +267,21 @@ export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'
   baseComponentId,
   overrideDisplay,
 }) => {
-  const { grid, id, required } = useItemWhenType(baseComponentId, 'Input');
+  const config = useComponentConfig(baseComponentId, 'Input');
+  const componentId = useIndexedId(baseComponentId);
+  const required = useEvalExpression(config.required, Expressions.Input.required);
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
 
-  const labelId = getLabelId(id);
+  const labelId = getLabelId(componentId);
 
   return (
     <Label
       id={labelId}
-      htmlFor={id}
+      htmlFor={componentId}
       label={labelText}
-      grid={grid?.labelGrid}
+      grid={config.grid?.labelGrid}
       required={required}
       requiredIndicator={getRequiredComponent()}
       optionalIndicator={getOptionalComponent()}
