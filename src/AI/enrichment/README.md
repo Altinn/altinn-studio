@@ -153,6 +153,183 @@ In the app repo, drop the `.nupkg` in a `packages/` folder, point a `nuget.confi
 then `dotnet add App package Altinn.App.Ai.Enrichment --prerelease`. Replace the local
 feed with a published package when/if the library moves to a real feed.
 
+## Observability (Langfuse)
+
+Off by default. When enabled, each execution of the `ai` task becomes one Langfuse
+**trace**, and everything the run did hangs under it:
+
+```
+session = instance id ......... one submission, including engine retries and replays
+ └─ trace  ai-enrichment:<taskId>
+     └─ chain  step:<step name>
+         └─ span  rule:<rule key>            (one per item, evaluated concurrently)
+             ├─ generation  llm:<model> #1   input, output, tokens, finish reason
+             ├─ tool        tool:<name>      arguments and result
+             └─ generation  llm:<model> #2
+```
+
+A generation carries `tool_names` in its metadata, so whether a given response caused
+a tool call is visible without expanding the tree. `rule_key`, `step_name`,
+`iteration` and `tool_name` are flat metadata keys, so a question like "every
+`frist.klagefrist` that came back `ikke_vurdert` this month" is one filter rather
+than a text search through prompts.
+
+```json
+"AiEnrichment": {
+  "Langfuse": {
+    "Enabled": true,
+    "Host": "https://langfuse.digdir.cloud",
+    "PublicKey": "pk-lf-...",
+    "SecretKeySecretName": "<key-vault-secret-name>",
+    "Environment": "tt02"
+  }
+}
+```
+
+`SecretKey` can be set directly for local development and wins over
+`SecretKeySecretName`, exactly like the gateway API key. Keys are project-scoped, so
+each app points at its own Langfuse project.
+
+Notes worth knowing before you turn it on:
+
+- **Traces contain the full submission.** `PayloadCapture` is `Full` and that is the
+  only mode implemented — prompts, application data, model output and tool results all
+  reach Langfuse. Point it at an instance you are allowed to send that to.
+- **Spans go only to Langfuse.** The library runs its own `TracerProvider` listening to
+  one `ActivitySource`, so enrichment spans never reach the app's Application Insights
+  exporter and app spans never reach Langfuse.
+- **Credentials are checked at start-up.** A rejected key disables tracing with one
+  clear log line rather than silently exporting into the void; an unreachable Langfuse
+  only warns, since it may be back before the first submission.
+- **Token counts need `AiEnrichment:Agent:StreamIncludeUsage`** (default on). Without it
+  a streaming gateway returns no usage block and every generation shows zero tokens.
+- **Cost needs a model price in Langfuse.** Token counts arrive regardless, but
+  `totalCost` stays zero until the model is registered in the project.
+
+### When no traces turn up
+
+Start with the probe. It emits one complete run — root, step, item, generation,
+tool — through the same registration, preflight, provider and exporter an app uses,
+then reads the trace back out of Langfuse again:
+
+```bash
+cd tools/Altinn.App.Ai.Enrichment.TraceProbe
+dotnet run                    # reads ./.env, or pass a path
+```
+
+```
+LANGFUSE_BASE_URL=https://langfuse.digdir.cloud
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_ENVIRONMENT=local-yourname
+```
+
+`.env` is gitignored repository-wide. The probe turns `Diagnostics` on for itself, so
+the exporter's own complaints are visible, and it distinguishes the two failures that
+look identical from the app: no span created (configuration, secret or credentials) and
+a span created but never stored (transport, or the wrong project).
+
+It reads the trace back rather than trusting the export, because an accepted batch and
+a stored trace are different claims — ingestion is asynchronous and the exporter is
+satisfied by an HTTP 200 it never re-checks.
+
+If the probe succeeds and the app still shows nothing, the difference is in the app, and
+the per-run log line below is what separates the cases.
+
+Each run logs one line naming its Langfuse trace and linking to it:
+
+```
+ai task Task_AiEnrichment: Langfuse trace 0af7… (session 50012345/0195c0de,
+ambient trace 4bf9…, link https://langfuse.digdir.cloud/project/<id>/traces/0af7…)
+```
+
+That line is the fork in the road. If it is **missing**, no span was created, so the
+problem is upstream of the export — tracing is off for the environment the app is
+running in, or the `ai` task never ran. Check that the `Enabled` in the *effective*
+configuration is true: `appsettings.Development.json` overrides `appsettings.json`,
+and both apps ship with tracing off for local development.
+
+If the line **is there** and Langfuse is still empty, spans are being created and
+dropped somewhere after the process boundary. Set `Diagnostics: true` to route the
+OpenTelemetry SDK's own warnings and errors — which is the only place the OTLP
+exporter reports a failed delivery — to the app log. Those event sources are
+process-wide, so when the host app runs its own OpenTelemetry pipeline, expect some
+lines about its exporter rather than this one.
+
+The link needs `ProjectId`; without it the log line still carries the trace id, which
+is searchable in Langfuse.
+
+#### Tracing a local run
+
+`Enabled` is off in both apps' `appsettings.Development.json`, so a local run traces
+nothing by default. To turn it on, override the section in that file:
+
+```json
+"AiEnrichment": {
+  "Langfuse": {
+    "Enabled": true,
+    "Environment": "local-yourname",
+    "Diagnostics": true
+  }
+}
+```
+
+`Host`, `PublicKey` and `SecretKeySecretName` are inherited from `appsettings.json`, so
+only the local-only values belong here. Give local runs their own `Environment` — it
+keeps experiments out of the tt02 data you will later evaluate on.
+
+The secret key resolves through the same path as in tt02. In Development the app binds
+`SecretsLocalClient`, which looks the name up in the gitignored `App/secrets.json`:
+
+```json
+{
+  "ttd--olebhansen--klage-parkering-borttauing--langfuse-secretkey": "sk-lf-..."
+}
+```
+
+Using the real secret name rather than a direct `SecretKey` means local testing
+exercises the same resolution path that runs in tt02, so a wrong secret name fails
+locally instead of on deploy.
+
+### Scoring a run afterwards
+
+Tracing captures what the model did; a score records whether it was right. The two
+are joined by the instance id, which is the Langfuse session id — so a spreadsheet of
+instance ids and verdicts is enough to find the runs and judge them, with no extra
+identifier to keep track of.
+
+`ILangfuseScoreClient` is registered alongside the tracer and works whether or not
+export is enabled:
+
+```csharp
+var traceIds = await scores.FindTraceIdsBySession(instance.Id);
+await scores.CreateScore(new LangfuseScore
+{
+    Id = $"review-{instanceGuid}",      // same id later overwrites, never duplicates
+    TraceId = traceIds[0],
+    Name = "saksbehandler_vurdering",
+    Value = 1,
+    DataType = "BOOLEAN",
+});
+```
+
+For bulk imports there is a CLI:
+
+```bash
+export LANGFUSE_BASE_URL=... LANGFUSE_PUBLIC_KEY=... LANGFUSE_SECRET_KEY=...
+dotnet run --project tools/Altinn.App.Ai.Enrichment.ScoreImport -- vurderinger.csv
+```
+
+The file needs a header and two or three columns — `instanceId`, `value` and an
+optional `comment`. Values may be numbers or the words a caseworker actually types
+(`ja`/`nei`, `true`/`false`, `korrekt`/`feil`), and both comma- and semicolon-separated
+exports work. Re-running a corrected file replaces the earlier verdicts rather than
+adding a second set.
+
+Runs also stamp their Langfuse trace id onto the output data elements
+(`langfuseTraceId` metadata), which closes the loop the other way: from a stored
+result back to the run that produced it.
+
 ## Running tests
 
 ```bash

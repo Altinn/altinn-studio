@@ -2,9 +2,12 @@ using Altinn.App.Ai.Enrichment.Chat;
 using Altinn.App.Ai.Enrichment.Mapping;
 using Altinn.App.Ai.Enrichment.Orchestration;
 using Altinn.App.Ai.Enrichment.Pipeline;
+using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Registries;
 using Altinn.App.Ai.Enrichment.Rendering;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Ai.Enrichment.Tools;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Ai.Enrichment.Agents;
 
@@ -18,6 +21,8 @@ public sealed class AgentRuntimeFactory(
     IChatService chatService,
     ITypstRenderer typstRenderer,
     IRulesLoader rulesLoader,
+    IOptions<AgentOptions> agentOptions,
+    EnrichmentTrace trace,
     ILoggerFactory loggerFactory)
 {
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, AgentRuntime> _cache =
@@ -44,7 +49,7 @@ public sealed class AgentRuntimeFactory(
             .Select(step => CreateStep(step, folder, registries, mappers))
             .ToList();
 
-        return new AgentRuntime(folder.Name, steps, loggerFactory.CreateLogger($"Agent.{folder.Name}"));
+        return new AgentRuntime(folder.Name, steps, trace, loggerFactory.CreateLogger($"Agent.{folder.Name}"));
     }
 
     private IEnrichmentStep CreateStep(
@@ -86,6 +91,8 @@ public sealed class AgentRuntimeFactory(
             chatService,
             toolRegistry,
             promptProvider,
+            agentOptions,
+            trace,
             loggerFactory.CreateLogger<EvaluationOrchestrator>());
     }
 

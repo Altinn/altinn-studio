@@ -59,6 +59,14 @@ public static class AgentValidator
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(step.TraceDir))
+        {
+            errors.Add(
+                $"{prefix}: 'traceDir' has been removed. It dumped whole conversations, "
+                + "application data included, as plaintext under the temp directory. "
+                + $"Configure {Configuration.LangfuseOptions.SectionName}:Enabled instead.");
+        }
+
         if (step.Type == "mapping-pdf" && string.IsNullOrWhiteSpace(step.Template))
             errors.Add($"{prefix}: missing 'template'.");
         if (!string.IsNullOrWhiteSpace(step.Template) && string.IsNullOrWhiteSpace(step.Output))

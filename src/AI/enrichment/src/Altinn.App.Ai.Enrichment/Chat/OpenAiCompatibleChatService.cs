@@ -64,6 +64,9 @@ public sealed class OpenAiCompatibleChatService(
             Tools = request.Tools is { Count: > 0 } ? request.Tools : null,
             ToolChoice = request.Tools is { Count: > 0 } ? request.ToolChoice : null,
             Stream = streaming ? true : null,
+            // Without this most OpenAI-compatible gateways omit the usage block entirely
+            // when streaming, so token counts never reach the trace.
+            StreamOptions = streaming && opts.StreamIncludeUsage ? new StreamOptionsBody { IncludeUsage = true } : null,
         };
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -176,6 +179,7 @@ public sealed class OpenAiCompatibleChatService(
             Content = msg?.Content ?? "",
             ToolCalls = toolCalls,
             FinishReason = choice.FinishReason,
+            Model = parsed.Model,
             Usage = parsed.Usage ?? new Dictionary<string, object?>(),
             StatusCode = status,
             ElapsedMs = (int)sw.ElapsedMilliseconds,
@@ -191,6 +195,7 @@ public sealed class OpenAiCompatibleChatService(
         var content = new System.Text.StringBuilder();
         var pending = new SortedDictionary<int, PendingToolCall>();
         string? finishReason = null;
+        string? model = null;
         IReadOnlyDictionary<string, object?>? usage = null;
 
         while (await reader.ReadLineAsync(ct) is { } line)
@@ -245,6 +250,12 @@ public sealed class OpenAiCompatibleChatService(
                     finishReason = choice.FinishReason;
             }
 
+            if (!string.IsNullOrEmpty(evt.Model))
+                model = evt.Model;
+
+            // With include_usage the gateway appends a final chunk whose only payload is
+            // the usage block; its choices entry carries an empty delta, so the loop above
+            // walks it harmlessly and this picks the numbers up.
             if (evt.Usage is { Count: > 0 })
                 usage = evt.Usage;
         }
@@ -264,6 +275,7 @@ public sealed class OpenAiCompatibleChatService(
             Content = content.ToString(),
             ToolCalls = toolCalls,
             FinishReason = finishReason,
+            Model = model,
             Usage = usage ?? new Dictionary<string, object?>(),
             StatusCode = status,
             ElapsedMs = (int)sw.ElapsedMilliseconds,
@@ -283,12 +295,19 @@ public sealed class OpenAiCompatibleChatService(
         public IReadOnlyList<ToolDefinition>? Tools { get; init; }
         [JsonPropertyName("tool_choice")] public string? ToolChoice { get; init; }
         public bool? Stream { get; init; }
+        [JsonPropertyName("stream_options")] public StreamOptionsBody? StreamOptions { get; init; }
+    }
+
+    private sealed record StreamOptionsBody
+    {
+        [JsonPropertyName("include_usage")] public bool IncludeUsage { get; init; }
     }
 
     private sealed record ChatCompletionsResponse
     {
         public List<ChoiceDto>? Choices { get; init; }
         public Dictionary<string, object?>? Usage { get; init; }
+        public string? Model { get; init; }
     }
 
     private sealed record ChoiceDto
@@ -319,6 +338,7 @@ public sealed class OpenAiCompatibleChatService(
     {
         public List<StreamChoiceDto>? Choices { get; init; }
         public Dictionary<string, object?>? Usage { get; init; }
+        public string? Model { get; init; }
     }
 
     private sealed record StreamChoiceDto

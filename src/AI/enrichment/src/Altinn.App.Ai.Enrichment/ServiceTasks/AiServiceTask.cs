@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Ai.Enrichment.Agents;
 using Altinn.App.Ai.Enrichment.Models;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 #if NET10_0_OR_GREATER
@@ -33,6 +34,7 @@ public sealed class AiServiceTask(
 #if NET10_0_OR_GREATER
     IInstanceClient instanceClient,
 #endif
+    EnrichmentTrace trace,
     ILogger<AiServiceTask> logger) : IServiceTask
 {
     public const string TaskType = "ai";
@@ -46,6 +48,14 @@ public sealed class AiServiceTask(
     /// non-deterministic) agent re-run instead of storing duplicate outputs.
     /// </summary>
     internal const string WorkflowIdMetadataKey = "aiEnrichmentWorkflowId";
+
+    /// <summary>
+    /// Metadata key holding the Langfuse trace id for the run that produced the
+    /// element. Traces are already findable by session id, but storing it on the
+    /// instance closes the loop the other way: from a stored output back to the run
+    /// that made it, which is what a caseworker's later verdict needs.
+    /// </summary>
+    internal const string LangfuseTraceIdMetadataKey = "langfuseTraceId";
 #endif
 
     // Default serialization on purpose: null fields stay present as null, matching
@@ -84,6 +94,25 @@ public sealed class AiServiceTask(
         var taskId = mutator.Instance.Process?.CurrentTask?.ElementId
             ?? throw new InvalidOperationException("Instance has no current process task.");
 
+        var ambient = System.Diagnostics.Activity.Current;
+        using var run = trace.StartRun($"ai-enrichment:{taskId}", ambient);
+
+        // One line per run, tying the app's own logs to the Langfuse trace. It is what an
+        // operator follows from an alert to the run, and — when Langfuse looks empty — it
+        // is the only signal separating "tracing is switched off" from "a span was created
+        // and something downstream swallowed it".
+        if (run is not null)
+        {
+            logger.LogInformation(
+                "ai task {TaskId}: Langfuse trace {LangfuseTraceId} (session {SessionId}, "
+                    + "ambient trace {AmbientTraceId}, link {LangfuseUrl})",
+                taskId,
+                run.TraceId.ToHexString(),
+                SessionId(mutator.Instance),
+                ambient?.TraceId.ToHexString(),
+                trace.DeepLink(run) ?? "(set AiEnrichment:Langfuse:ProjectId for a link)");
+        }
+
         try
         {
             var taskOptions = options.Value.ForTask(taskId);
@@ -102,6 +131,17 @@ public sealed class AiServiceTask(
                     "ai task {TaskId}: outputs from workflow {WorkflowId} already stored on the instance; "
                         + "skipping agent re-run (replay of an attempt whose success response was lost)",
                     taskId, workflowId);
+
+                // A replay is correct behaviour, not a failure, so it stays at default level
+                // and simply carries no children — the session shows why a submission has
+                // more than one trace without anyone having to cross-reference the engine.
+                trace.DescribeRun(
+                    run,
+                    SessionId(mutator.Instance),
+                    applicationJson: null,
+                    RunMetadata(context, mutator.Instance, taskId, agentName: null, replay: true),
+                    Tags(mutator.Instance, replay: true));
+                trace.CompleteRun(run, $"skipped: outputs from workflow {workflowId} already stored");
                 return ServiceTaskResult.Success();
             }
 #endif
@@ -121,7 +161,16 @@ public sealed class AiServiceTask(
                 "ai task {TaskId}: running agent '{AgentName}' over data element {DataElementId} ({DataType})",
                 taskId, runtime.Name, inputElement.Id, inputElement.DataType);
 
+            trace.DescribeRun(
+                run,
+                SessionId(mutator.Instance),
+                application.RootElement.GetRawText(),
+                RunMetadata(context, mutator.Instance, taskId, runtime.Name, replay: false),
+                Tags(mutator.Instance, replay: false));
+
             var result = await runtime.ExecuteAsync(application, context.CancellationToken);
+
+            var traceId = run?.TraceId.ToHexString();
 
             foreach (var (key, value) in result.Context.Entries)
             {
@@ -129,12 +178,13 @@ public sealed class AiServiceTask(
                     continue;
                 AddOutputElement(
                     context, taskOptions.JsonOutputDataType, "application/json", $"{key}.json",
-                    Encoding.UTF8.GetBytes(json));
+                    Encoding.UTF8.GetBytes(json), traceId);
             }
 
             foreach (var file in result.Files)
-                AddOutputElement(context, taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data);
+                AddOutputElement(context, taskOptions.PdfOutputDataType, file.ContentType, file.Name, file.Data, traceId);
 
+            trace.CompleteRun(run, DescribeOutput(result));
             return ServiceTaskResult.Success();
         }
         catch (OperationCanceledException)
@@ -150,13 +200,16 @@ public sealed class AiServiceTask(
             if (ex is InvalidOperationException or FileNotFoundException or DirectoryNotFoundException)
             {
                 logger.LogError(ex, "ai task {TaskId} failed permanently (configuration/contract error)", taskId);
+                trace.CompleteRun(run, null, ex);
                 return ServiceTaskResult.FailedPermanent(ex.Message);
             }
 
             logger.LogError(ex, "ai task {TaskId} failed; the workflow engine may retry the step", taskId);
+            trace.CompleteRun(run, null, ex);
             return ServiceTaskResult.FailedRetryable(ex.Message);
 #else
             logger.LogError(ex, "ai task {TaskId} failed; process halts on this task for retry", taskId);
+            trace.CompleteRun(run, null, ex);
             return ServiceTaskResult.FailedAbortProcessNext();
 #endif
         }
@@ -171,14 +224,20 @@ public sealed class AiServiceTask(
         string dataTypeId,
         string contentType,
         string filename,
-        ReadOnlyMemory<byte> bytes)
+        ReadOnlyMemory<byte> bytes,
+        string? langfuseTraceId)
     {
 #if NET10_0_OR_GREATER
-        List<KeyValueEntry>? metadata = context.WorkflowId is { } workflowId
-            ? [new KeyValueEntry { Key = WorkflowIdMetadataKey, Value = workflowId.ToString() }]
-            : null;
+        List<KeyValueEntry>? metadata = null;
+        if (context.WorkflowId is { } workflowId)
+            (metadata ??= []).Add(new KeyValueEntry { Key = WorkflowIdMetadataKey, Value = workflowId.ToString() });
+        if (!string.IsNullOrEmpty(langfuseTraceId))
+            (metadata ??= []).Add(new KeyValueEntry { Key = LangfuseTraceIdMetadataKey, Value = langfuseTraceId });
+
         context.InstanceDataMutator.AddBinaryDataElement(dataTypeId, contentType, filename, bytes, metadata: metadata);
 #else
+        // Data-element metadata arrived with app-lib v9; on net8 the trace is still
+        // findable by session id, which is the instance id.
         context.InstanceDataMutator.AddBinaryDataElement(dataTypeId, contentType, filename, bytes);
 #endif
     }
@@ -204,6 +263,66 @@ public sealed class AiServiceTask(
             && element.Metadata?.Any(entry => entry.Key == WorkflowIdMetadataKey && entry.Value == marker) == true);
     }
 #endif
+
+    /// <summary>
+    /// Groups every trace for one submission: the first run, any workflow-engine
+    /// retries, and any replays. Instance ids are already scoped by party, so this
+    /// needs nothing else to be unique.
+    /// </summary>
+    private static string? SessionId(Instance instance) => instance.Id;
+
+    private static IReadOnlyDictionary<string, object?> RunMetadata(
+        ServiceTaskContext context,
+        Instance instance,
+        string taskId,
+        string? agentName,
+        bool replay)
+    {
+        var metadata = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["instance_id"] = instance.Id,
+            ["app_id"] = instance.AppId,
+            ["org"] = instance.Org,
+            ["task_id"] = taskId,
+        };
+
+        if (agentName is not null)
+            metadata["agent_name"] = agentName;
+        if (replay)
+            metadata["replay"] = true;
+
+#if NET10_0_OR_GREATER
+        // The engine's ids are what separate one attempt from another; without them a
+        // retried submission is three indistinguishable traces in the same session.
+        if (context.WorkflowId is { } workflowId)
+            metadata["workflow_id"] = workflowId.ToString();
+        if (context.StepId is { } stepId)
+            metadata["step_id"] = stepId.ToString();
+#endif
+
+        return metadata;
+    }
+
+    private static IReadOnlyList<string> Tags(Instance instance, bool replay)
+    {
+        var tags = new List<string> { "altinn", "ai-enrichment" };
+        if (!string.IsNullOrEmpty(instance.AppId))
+            tags.Add(instance.AppId);
+        if (replay)
+            tags.Add("replay");
+        return tags;
+    }
+
+    /// <summary>
+    /// What the run produced, by shape rather than content — the outputs themselves are
+    /// already stored on the instance, and a PDF has no business being in a trace.
+    /// </summary>
+    private static string DescribeOutput(EnrichmentResult result) =>
+        JsonSerializer.Serialize(new
+        {
+            json = result.Context.Entries.Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray(),
+            files = result.Files.Select(f => new { name = f.Name, bytes = f.Data.Length }).ToArray(),
+        });
 
     private string ResolveAgentFolderPath(string taskId, AiEnrichmentTaskOptions taskOptions)
     {
