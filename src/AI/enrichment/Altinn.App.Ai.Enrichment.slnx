@@ -7,5 +7,6 @@
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Altinn.App.Ai.Enrichment.ScoreImport/Altinn.App.Ai.Enrichment.ScoreImport.csproj" />
+    <Project Path="tools/Altinn.App.Ai.Enrichment.TraceProbe/Altinn.App.Ai.Enrichment.TraceProbe.csproj" />
   </Folder>
 </Solution>
