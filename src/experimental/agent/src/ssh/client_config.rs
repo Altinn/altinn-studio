@@ -51,19 +51,15 @@ pub fn render_config(entries: &[HostEntry], user_home: Option<&Path>) -> String 
     text
 }
 
-/// Renders a host path for `IdentityFile` or `UserKnownHostsFile`.
+/// Renders a host path for `IdentityFile`, `UserKnownHostsFile` or `Include`.
 ///
 /// A path below the user's home is written `~/...` with forward slashes, which
 /// every OpenSSH port expands; anything else is written as the host spells it.
 /// Anything outside a conservative character set is double-quoted with `"` and
 /// `\` escaped, which is what OpenSSH's tokenizer understands, and `%` is
-/// doubled because OpenSSH percent-expands these two directives.
+/// doubled because OpenSSH percent-expands all three directives.
 #[must_use]
 pub fn render_path(path: &Path, user_home: Option<&Path>) -> String {
-    render_path_with(path, user_home, true)
-}
-
-fn render_path_with(path: &Path, user_home: Option<&Path>, percent_expanded: bool) -> String {
     let text = user_home
         .and_then(|home| path.strip_prefix(home).ok())
         .filter(|relative| !relative.as_os_str().is_empty())
@@ -78,12 +74,7 @@ fn render_path_with(path: &Path, user_home: Option<&Path>, percent_expanded: boo
                 text
             },
         );
-    let quoted = quote_config_value(&text);
-    if percent_expanded {
-        quoted.replace('%', "%%")
-    } else {
-        quoted
-    }
+    quote_config_value(&text).replace('%', "%%")
 }
 
 /// How the host runs the string OpenSSH hands to `ProxyCommand`.
@@ -264,8 +255,7 @@ pub enum IncludeOutcome {
 /// Renders the `Include` directive for the generated configuration.
 #[must_use]
 pub fn render_include(config: &Path, user_home: Option<&Path>) -> String {
-    // `Include` is not percent-expanded, so a `%` stays single.
-    format!("Include {}", render_path_with(config, user_home, false))
+    format!("Include {}", render_path(config, user_home))
 }
 
 /// Idempotently inserts `include` as the first line of `user_config`.
@@ -274,14 +264,15 @@ pub fn render_include(config: &Path, user_home: Option<&Path>) -> String {
 /// block, so only a copy that precedes the first block counts as installed; a
 /// copy nested in a block is left alone and a global one is added above it.
 /// Every existing line is kept verbatim. A symbolic link, as dotfile managers
-/// create, is followed so the linked file is updated and the link survives. A
-/// missing file or directory is created with user-only access.
+/// create, is followed so the linked file is updated and the link survives,
+/// also when its target does not exist yet. A missing file or directory is
+/// created with user-only access.
 ///
 /// # Errors
 ///
 /// Returns an error when the file cannot be read or written.
 pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutcome, Error> {
-    let target = std::fs::canonicalize(user_config).unwrap_or_else(|_| user_config.to_path_buf());
+    let target = link_target(user_config)?;
     let existing = match std::fs::read_to_string(&target) {
         Ok(text) => text,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
@@ -303,6 +294,33 @@ pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutco
     }
     write_private_file(&target, text.as_bytes())?;
     Ok(IncludeOutcome::Installed)
+}
+
+/// Follows a chain of symbolic links to the file they name, whether or not it
+/// exists yet, so a write lands in the linked file and the link survives.
+fn link_target(path: &Path) -> Result<PathBuf, Error> {
+    let mut current = path.to_path_buf();
+    for _ in 0..40 {
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                let next = std::fs::read_link(&current)?;
+                current = if next.is_absolute() {
+                    next
+                } else {
+                    current
+                        .parent()
+                        .map_or_else(|| next.clone(), |parent| parent.join(&next))
+                };
+            }
+            Ok(_) => return Ok(current),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(current),
+            Err(error) => return Err(error.into()),
+        }
+    }
+    Err(Error::Invalid(format!(
+        "{} is a chain of too many symbolic links",
+        path.display()
+    )))
 }
 
 /// Yields the trimmed lines of an OpenSSH client configuration that apply
@@ -389,8 +407,8 @@ Host altinn-agent-worker
         );
         assert_eq!(
             render_include(Path::new("/srv/100%/config"), None),
-            r#"Include "/srv/100%/config""#,
-            "Include is not percent-expanded"
+            r#"Include "/srv/100%%/config""#,
+            "Include is percent-expanded like IdentityFile"
         );
     }
 
@@ -550,6 +568,25 @@ Host altinn-agent-worker
         assert_eq!(
             std::fs::read_to_string(&dotfiles).expect("managed config"),
             "Include ~/.agent/ssh/config\n\nHost github.com\n    User git\n"
+        );
+
+        // A link whose target does not exist yet: the target is created, the link kept.
+        let dangling_target = directory.path().join("dotfiles").join("later").join("ssh_config");
+        let dangling = ssh.join("config-dangling");
+        std::os::unix::fs::symlink(&dangling_target, &dangling).expect("dangling symlink");
+        assert_eq!(
+            install_include(&dangling, "Include ~/.agent/ssh/config").expect("install through dangling link"),
+            IncludeOutcome::Installed
+        );
+        assert!(
+            std::fs::symlink_metadata(&dangling)
+                .expect("metadata")
+                .file_type()
+                .is_symlink()
+        );
+        assert_eq!(
+            std::fs::read_to_string(&dangling_target).expect("created target"),
+            "Include ~/.agent/ssh/config\n"
         );
     }
 }

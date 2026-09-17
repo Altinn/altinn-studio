@@ -40,8 +40,8 @@ pub use client_config::{
 };
 pub use keys::KeyPair;
 
-/// Guest user every SSH login becomes; the platform-owned Sandbox user.
-pub const GUEST_USER: &str = "agent";
+/// Guest user every SSH login becomes: the platform-owned Sandbox user the Linux adapter defines.
+pub const GUEST_USER: &str = platform::USER;
 /// Guest loopback port the Agent's server listens on.
 pub const GUEST_PORT: u16 = 2222;
 /// The `type` value of an SSH access descriptor.
@@ -264,8 +264,10 @@ impl Access {
     pub async fn reconcile(&self, record: &AgentRecord, sandbox: &SandboxHandle) -> Result<bool, Error> {
         let os = sandbox.snapshot().image.platform.os.clone();
         if !record.agent.spec.ssh_access() {
-            self.remove_host_material(record).await?;
+            // Guest first: while a stop can still fail, the host key and known_hosts must
+            // keep matching the server that may still be running.
             remove_guest_state(&os, sandbox).await?;
+            self.remove_host_material(record).await?;
             return Ok(false);
         }
         verify_guest_server(&os, sandbox).await?;

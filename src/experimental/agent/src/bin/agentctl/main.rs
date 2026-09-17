@@ -939,7 +939,7 @@ async fn resolve_execution_agent(
     }
     let (kind, name) = resource_reference(&resource, None)?;
     if kind != Resource::Agent {
-        return Err(Error::Invalid("exec requires an Agent resource".into()).into());
+        return Err(Error::Invalid("this command requires an Agent resource".into()).into());
     }
     require_name(name, "Agent").map_err(CommandError::from)
 }

@@ -322,6 +322,7 @@ async fn a_failed_server_stop_keeps_the_state_for_the_next_pass() {
     let sandbox = fixture.sandbox(&record).await;
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
 
+    let known_hosts_before = fixture.known_hosts();
     record.agent.spec.access.clear();
     record.agent.metadata.generation = 2;
     fixture.store(&record, 1).await;
@@ -346,6 +347,16 @@ async fn a_failed_server_stop_keeps_the_state_for_the_next_pass() {
         count_sudo(&fixture.backend, &["-n", "/bin/rm", "-rf", "/var/lib/agent/ssh"]),
         0
     );
+    assert!(
+        fixture.keys.contains(record.id),
+        "the host key stays while the server that holds it may still run"
+    );
+    assert_eq!(
+        fixture.known_hosts(),
+        known_hosts_before,
+        "known_hosts keeps matching that server"
+    );
+    assert!(fixture.ssh_home().identity_path(record.id).is_file());
     assert!(
         read_guest_file(&sandbox, "/var/lib/agent/ssh/authorized_keys")
             .await

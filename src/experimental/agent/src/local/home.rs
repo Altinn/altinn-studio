@@ -122,11 +122,13 @@ impl ControlPlaneHome {
 /// lives; it is unrelated to the control-plane home, which may be relocated.
 #[must_use]
 pub fn user_home_directory() -> Option<PathBuf> {
-    let variable = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-    env::var_os(variable)
+    env::var_os(HOME_VARIABLE)
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
 }
+
+/// The environment variable the host uses for the user's home directory.
+const HOME_VARIABLE: &str = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
 
 /// Held exclusive process lock for one local control-plane home.
 #[derive(Debug)]
@@ -150,27 +152,17 @@ pub(crate) fn secure_file(path: &Path) -> Result<(), Error> {
     secure_file_for_host(path)
 }
 
-#[cfg(target_os = "windows")]
+/// `~/.agent`. On Windows that is below `USERPROFILE`, not `LOCALAPPDATA`:
+/// endpoint-protection filters commonly applied to the `AppData` tree can leave
+/// `AF_UNIX` sockets there unconnectable and their files undeletable, which
+/// breaks the local API socket and Microsandbox.
 fn default_home() -> Result<PathBuf, Error> {
-    // Not LOCALAPPDATA: endpoint-protection filters commonly applied to the
-    // AppData tree can leave AF_UNIX sockets there unconnectable and their
-    // files undeletable, which breaks the local API socket and Microsandbox.
-    env::var_os("USERPROFILE")
-        .map(|path| PathBuf::from(path).join(".agent"))
-        .ok_or_else(|| Error::Invalid("USERPROFILE is not set".into()))
-}
-
-#[cfg(unix)]
-fn default_home() -> Result<PathBuf, Error> {
-    env::var_os("HOME")
-        .map(PathBuf::from)
-        .map(|path| path.join(".agent"))
-        .ok_or_else(|| Error::Invalid("HOME is not set".into()))
-}
-
-#[cfg(not(any(unix, target_os = "windows")))]
-fn default_home() -> Result<PathBuf, Error> {
-    Err(Error::Invalid("unsupported host operating system".into()))
+    if !cfg!(any(unix, windows)) {
+        return Err(Error::Invalid("unsupported host operating system".into()));
+    }
+    user_home_directory()
+        .map(|home| home.join(".agent"))
+        .ok_or_else(|| Error::Invalid(format!("{HOME_VARIABLE} is not set")))
 }
 
 #[cfg(unix)]

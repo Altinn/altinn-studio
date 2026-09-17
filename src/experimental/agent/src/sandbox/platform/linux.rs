@@ -9,6 +9,8 @@ use crate::{Error, control_plane, harness};
 
 use super::{super::PlatformAdapter, files::write_if_changed};
 
+/// The platform-owned Sandbox user every Session, Execution and SSH login runs as.
+pub(crate) const USER: &str = "agent";
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
 pub(crate) const CONTAINER_HOST: &str = "unix:///run/podman/podman.sock";
