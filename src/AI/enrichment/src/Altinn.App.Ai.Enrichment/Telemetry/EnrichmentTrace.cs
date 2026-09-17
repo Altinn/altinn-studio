@@ -330,12 +330,24 @@ public sealed class EnrichmentTrace(IOptions<LangfuseOptions> options)
     /// <summary>Verdict status the orchestrator uses when it could not reach a judgement.</summary>
     private const string UnevaluatedStatus = "ikke_vurdert";
 
-    private static Activity? Start(string name, string observationType)
+    private Activity? Start(string name, string observationType)
     {
         try
         {
             var activity = EnrichmentActivitySource.Source.StartActivity(name, ActivityKind.Internal);
-            activity?.SetTag(LangfuseAttributes.ObservationType, observationType);
+            if (activity is null)
+                return null;
+
+            activity.SetTag(LangfuseAttributes.ObservationType, observationType);
+
+            // Langfuse resolves the environment per observation, not per trace. A child
+            // without the attribute is stored as "default" while its own trace sits in the
+            // configured environment, which splits one run across two environments in every
+            // filter, dashboard and cost figure — and hides the children from anyone
+            // browsing the environment the run belongs to.
+            if (!string.IsNullOrWhiteSpace(Options.Environment))
+                activity.SetTag(LangfuseAttributes.Environment, Options.Environment);
+
             return activity;
         }
         catch (Exception)
