@@ -227,6 +227,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let platform = Linux;
 
     platform.setup(&record, &sandbox).await.expect("first setup");
+    let first_pass_writes = backend.file_writes();
     let mutable_state = br#"{"theme":"light","projects":{"/home/agent/code/example":{"hasTrustDialogAccepted":true}}}"#;
     sandbox
         .write_file(
@@ -236,6 +237,21 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         .await
         .expect("write harness-owned state");
     platform.setup(&record, &sandbox).await.expect("second setup");
+
+    // Harnesses watch their configuration and skills live: a pass that changes nothing must not
+    // rewrite them. Only the home archive, consumed by tar and watched by nobody, is re-sent.
+    let second_pass_writes = backend
+        .file_writes()
+        .into_iter()
+        .skip(first_pass_writes.len() + 1)
+        .map(|path| path.as_str().to_owned())
+        .collect::<Vec<_>>();
+    assert_eq!(second_pass_writes, ["/tmp/agent-home.tar"]);
+    assert!(
+        first_pass_writes
+            .iter()
+            .any(|path| path.as_str() == "/home/agent/.claude/skills/evidence/SKILL.md")
+    );
 
     let preserved = read_file(&sandbox, "/home/agent/.claude/.claude.json").await;
     assert_eq!(preserved, mutable_state);

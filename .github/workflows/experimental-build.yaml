@@ -126,6 +126,7 @@ jobs:
           sparse-checkout: |
             src/experimental
             src/ci/github-runner/coordinator
+            agents
 
       - name: Install native build dependencies
         if: runner.os == 'Linux'

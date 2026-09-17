@@ -1,33 +1,40 @@
-//! Client-owned port forwards into Agent sandboxes.
+//! Client-owned connections into Agent Sandboxes.
 //!
-//! Forwards follow the k9s model: they live in this process, accept
+//! Port forwards follow the k9s model: they live in the client process, accept
 //! connections on a local listener, and dial the guest through the Sandbox
 //! agent relay. They end when the process exits or the forward is stopped.
+//! [`relay_guest_port`] is the single-connection form behind
+//! `agentctl ssh-proxy`: one fresh dial, relayed over an arbitrary byte
+//! stream pair such as the process's standard input and output.
 
 use std::{cell::RefCell, net::IpAddr, path::PathBuf, rc::Rc};
 
-use agent::{
-    Error,
-    sandbox::{Assignment, GuestDialer},
-};
 use tokio::net::TcpListener;
+
+use crate::Error;
+
+use super::{Assignment, GuestDialer};
 
 /// One requested local-to-guest port mapping.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct ForwardSpec {
+pub struct ForwardSpec {
     /// Local interface address accepting connections.
-    pub(crate) address: IpAddr,
+    pub address: IpAddr,
     /// Local port to bind; zero selects an ephemeral port.
-    pub(crate) local_port: u16,
+    pub local_port: u16,
     /// Guest port that receives forwarded connections.
-    pub(crate) guest_port: u16,
+    pub guest_port: u16,
 }
 
 impl ForwardSpec {
     /// Parses `GUEST`, `LOCAL:GUEST`, or `ADDRESS:LOCAL:GUEST`.
     ///
     /// An empty local port (`:GUEST`) selects an ephemeral local port.
-    pub(crate) fn parse(text: &str) -> Result<Self, String> {
+    ///
+    /// # Errors
+    ///
+    /// Returns a message describing the malformed mapping.
+    pub fn parse(text: &str) -> Result<Self, String> {
         let parts = text.split(':').collect::<Vec<_>>();
         let (address, local, guest) = match parts.as_slice() {
             [guest] => (None, *guest, *guest),
@@ -59,7 +66,7 @@ fn parse_port(text: &str) -> Result<u16, String> {
 }
 
 /// One running forward with its local listener task.
-pub(crate) struct PortForward {
+pub struct PortForward {
     spec: ForwardSpec,
     local: std::net::SocketAddr,
     task: tokio::task::JoinHandle<()>,
@@ -72,7 +79,7 @@ impl PortForward {
     /// # Errors
     ///
     /// Returns an error when the local address cannot be bound.
-    pub(crate) async fn start(home: PathBuf, assignment: Assignment, spec: ForwardSpec) -> Result<Self, Error> {
+    pub async fn start(home: PathBuf, assignment: Assignment, spec: ForwardSpec) -> Result<Self, Error> {
         let listener = TcpListener::bind((spec.address, spec.local_port))
             .await
             .map_err(Error::from)?;
@@ -94,27 +101,31 @@ impl PortForward {
     }
 
     /// Returns the requested mapping.
-    pub(crate) const fn spec(&self) -> &ForwardSpec {
+    #[must_use]
+    pub const fn spec(&self) -> &ForwardSpec {
         &self.spec
     }
 
     /// Returns the bound local address, with any ephemeral port resolved.
-    pub(crate) const fn local_address(&self) -> std::net::SocketAddr {
+    #[must_use]
+    pub const fn local_address(&self) -> std::net::SocketAddr {
         self.local
     }
 
     /// Returns the most recent connection failure, when one occurred.
-    pub(crate) fn status(&self) -> Option<String> {
+    #[must_use]
+    pub fn status(&self) -> Option<String> {
         self.status.borrow().clone()
     }
 
     /// Reports whether the listener task has ended and stopped serving.
-    pub(crate) fn finished(&self) -> bool {
+    #[must_use]
+    pub fn finished(&self) -> bool {
         self.task.is_finished()
     }
 
     /// Stops the listener and drops in-flight relays.
-    pub(crate) fn stop(&self) {
+    pub fn stop(&self) {
         self.task.abort();
     }
 }
@@ -148,7 +159,7 @@ async fn accept_loop(
             }
         };
         if dialer.is_none() {
-            match agent::sandbox::guest_tcp_dialer(&home, &assignment).await {
+            match super::guest_tcp_dialer(&home, &assignment).await {
                 Ok(connected) => dialer = Some(Rc::new(connected)),
                 Err(error) => {
                     *status.borrow_mut() = Some(error.to_string());
@@ -173,6 +184,32 @@ async fn accept_loop(
             }
         }
     }
+}
+
+/// Dials one guest loopback port and relays it over `reader` and `writer`
+/// until both directions close.
+///
+/// Every call dials fresh through the recorded Sandbox Provider, so a
+/// connection made after a Sandbox runtime restart needs no recovery logic.
+///
+/// # Errors
+///
+/// Returns an error when the Sandbox cannot be reached, the guest refuses the
+/// connection, or the relay fails.
+pub async fn relay_guest_port<R, W>(
+    home: &std::path::Path,
+    assignment: &Assignment,
+    guest_port: u16,
+    reader: R,
+    writer: W,
+) -> Result<(), Error>
+where
+    R: tokio::io::AsyncRead + Unpin,
+    W: tokio::io::AsyncWrite + Unpin,
+{
+    let dialer = super::guest_tcp_dialer(home, assignment).await?;
+    let guest = dialer.connect("127.0.0.1", guest_port).await?;
+    guest.relay_io(reader, writer).await
 }
 
 #[cfg(test)]

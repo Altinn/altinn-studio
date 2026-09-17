@@ -49,6 +49,8 @@ spec:
         - github.com
         - api.github.com
         - uploads.github.com
+  access:
+    - type: ssh
   network:
     mode: mediated
     allow: all

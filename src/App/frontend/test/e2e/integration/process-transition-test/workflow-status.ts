@@ -32,16 +32,16 @@ const appFrontend = new AppFrontend();
  *                error and resets the retry counter, so the two must never be conflated.
  *   - deferDelayMs how long the engine waits between those re-checks.
  *   - serviceView "default" (Task_Service, built-in waiting/failure views) or "layout"
- *                (Task_ServiceLayout, the app's own layout renders while deferring).
+ *                (Task_ServiceLayout, the app's own layout renders while processing or deferring).
  *
  * The two hooks:
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
  *     engine surfaces `processing` (delay / transient retries) or `failed` (endState failure) on Task_1.
- *   - postCommit: an IServiceTask ("scenario") runs it POST-commit inside ExecuteServiceTask — a
+ *   - postCommit: an IPipelineServiceTask ("scenario") runs it POST-commit inside ExecuteServiceTask — a
  *     critical post-commit step of the committed Task_1 -> Task_Service transition — so
  *     `processing` is observable on the committed Task_Service and an endState "failure" is a real
  *     permanent failure (terminal Failed -> frontend `failed`). On success the service task
- *     auto-advances to Task_2. Non-gating side effects (the Altinn event registrations) are
+ *     advances the process to Task_2. Non-gating side effects (the Altinn event registrations) are
  *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
  *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
  *
@@ -192,6 +192,16 @@ function submitAndReloadDuringTransition() {
 }
 
 describe('Live workflow status (real engine)', () => {
+  let heldInstanceGateUrl: string | undefined;
+
+  afterEach(() => {
+    if (heldInstanceGateUrl) {
+      const url = heldInstanceGateUrl;
+      heldInstanceGateUrl = undefined;
+      cy.request('DELETE', url);
+    }
+  });
+
   it('idle: no delay/fail advances straight to Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     cy.get('#finishedLoading').should('exist');
@@ -326,7 +336,7 @@ describe('Live workflow status (real engine)', () => {
 
     // "Prøv igjen" must NOT be a plain process/next (that is 409-blocked while the workflow is
     // failed): it resumes the failed workflow (POST process/resume), the engine re-runs the failed
-    // step, the service task succeeds this time and auto-advances - and the page navigates onto the
+    // step, the service task succeeds this time and the process advances. The page navigates onto the
     // committed Task_2 without a reload.
     cy.findByRole('button', { name: 'Prøv igjen' }).click();
     cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
@@ -353,7 +363,7 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
 
-    // 3 deferrals x 2s, then the task settles and auto-advances - no interaction from this session.
+    // 3 deferrals x 2s, then the task succeeds and the process advances without further user interaction.
     cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
@@ -420,21 +430,31 @@ describe('Live workflow status (real engine)', () => {
     });
   });
 
-  it('deferral with a custom layout: the app page renders during the wait', () => {
-    // A service task with a custom layout owns its waiting presentation while deferring.
+  it('deferral with a custom layout: the app page survives refresh and follows completion', () => {
+    // The app's custom page owns the waiting presentation while the workflow is processing.
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
-    fillLevers({ path: 'postCommit', serviceView: 'layout', deferrals: 3, deferDelayMs: 5000 });
+    fillLevers({ path: 'postCommit', serviceView: 'layout' });
+    captureInstanceRoot().then((instanceRoot) => {
+      const [appRoot, instanceId] = instanceRoot.split('/instance/');
+      heldInstanceGateUrl = `${appRoot}/test/service-task-gates/${instanceId.split('/')[1]}`;
+      cy.request('PUT', heldInstanceGateUrl).its('status').should('eq', 204);
+    });
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    // The app's page renders while the workflow is still processing (deferring), where the
-    // default view would show the standard loader.
+    // A custom layout renders throughout the wait, including after reloading the instance.
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
     cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 30000 }).should('be.visible');
     workflowLoader().should('not.exist');
     cy.contains('Vi behandler forespørselen din').should('not.exist');
 
-    // The deferring task resolves itself without an out-of-band release.
+    cy.reload();
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 15000 }).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
+
+    // Release the awaited outcome only after verifying the reloaded layout. The engine's next
+    // check completes the task and the page follows the process to Task_2.
+    cy.then(() => cy.request('DELETE', heldInstanceGateUrl!));
     cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
   });
@@ -494,7 +514,7 @@ describe('Live workflow status (real engine)', () => {
     workflowLoader().should('be.visible');
     cy.findByRole('button', { name: task2SubmitButton }).should('not.exist');
 
-    // Once the service task completes it auto-advances to Task_2 and the status settles. The page is
+    // Once the service task succeeds, the process advances to Task_2 and the status settles. The page is
     // parked on the now-old Task_Service url, but the poll observes the settled workflow and
     // navigates onto the committed Task_2 on its own - no reload, no manual navigation.
     cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');

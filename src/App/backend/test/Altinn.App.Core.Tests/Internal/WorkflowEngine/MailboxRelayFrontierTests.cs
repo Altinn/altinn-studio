@@ -483,35 +483,6 @@ public class MailboxRelayFrontierTests
         await AssertFrontierHeldOpenBy(reader, CreateInstance(), successor, "retention purged Main and receiver 1");
     }
 
-    [Fact]
-    public async Task AConcludedExchangeThatAdvancesNothing_LetsTheFrontierEmpty()
-    {
-        // The bound: once the task concluded and asked for nothing downstream, all-settled is correct.
-        var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection);
-        WorkflowEngineService reader = CreateReader(collection);
-
-        Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Completed);
-        Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
-        Assert.NotEqual(Guid.Empty, main);
-
-        await relay.Continue(
-            new MailboxContinuation.Conclude([_mailboxId]),
-            CreateRequest(receiver, Guid.NewGuid()) with
-            {
-                AutoAdvanceProcess = false,
-            },
-            CancellationToken.None
-        );
-        collection.Settle(receiver);
-
-        CurrentTaskWorkflowState state = await reader.GetCurrentTaskWorkflowState(
-            CreateInstance(),
-            CancellationToken.None
-        );
-        Assert.IsType<CurrentTaskWorkflowState.Unblocked>(state);
-    }
-
     /// <summary>
     /// The same invariant across the new hop: a continuation is enqueued from inside the receiver that
     /// concluded the exchange before it, so the collection never reads all-settled at the hand-over — and it

@@ -2115,7 +2115,7 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
             spec.program(),
             Program::Command { executable, args }
                 if executable.as_str() == "/usr/bin/tmux"
-                    && args.first().is_some_and(|argument| argument == "new-session")
+                    && args.windows(2).any(|arguments| arguments == [";", "new-session"])
         ) && spec
             .working_directory()
             .is_some_and(|path| path.as_str() == "/home/agent/code")

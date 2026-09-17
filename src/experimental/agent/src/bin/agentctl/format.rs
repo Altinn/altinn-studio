@@ -1,5 +1,35 @@
 use agent::{Agent, ConditionStatus};
 
+/// Lists the declared access capabilities, or `-` when there are none.
+pub(crate) fn format_access(spec: &agent::Spec) -> String {
+    if spec.access.is_empty() {
+        return "-".into();
+    }
+    spec.access
+        .iter()
+        .map(|capability| match capability {
+            agent::AccessSpec::Ssh {} => "ssh",
+        })
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+/// Renders an SSH access descriptor as aligned `key: value` lines.
+pub(crate) fn ssh_access_lines(access: &agent::ssh::AccessInfo) -> Vec<String> {
+    vec![
+        format!("Type:        {}", access.kind),
+        format!("Agent:       {}", access.agent),
+        format!("Agent ID:    {}", access.agent_id),
+        format!("Alias:       {}", access.alias),
+        format!("User:        {}", access.user),
+        format!("Identity:    {}", access.identity_file.display()),
+        format!("Known hosts: {}", access.known_hosts_file.display()),
+        format!("Config:      {}", access.config_file.display()),
+        format!("Proxy:       {}", access.proxy_command),
+        format!("Connect:     ssh -F {} {}", access.config_file.display(), access.alias),
+    ]
+}
+
 pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
     let provider = agent
         .status
@@ -47,6 +77,7 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         format!("Source:     {source}"),
         format!("Secrets:    {secrets}"),
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),
+        format!("Access:     {}", format_access(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
         "Conditions:".to_owned(),

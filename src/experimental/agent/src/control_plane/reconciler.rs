@@ -15,6 +15,7 @@ pub struct Reconciler {
     store: SharedAgentStore,
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
+    ssh: Option<Rc<crate::ssh::Access>>,
     observers: Observers,
 }
 
@@ -26,8 +27,16 @@ impl Reconciler {
             store,
             sandboxes,
             sessions: None,
+            ssh: None,
             observers,
         }
+    }
+
+    /// Reconciles declared SSH access after the Sandbox is set up.
+    #[must_use]
+    pub fn with_ssh_access(mut self, ssh: Rc<crate::ssh::Access>) -> Self {
+        self.ssh = Some(ssh);
+        self
     }
 
     /// Wakes dependent Sessions when readiness or Sandbox identity changes.
@@ -114,17 +123,20 @@ impl Reconciler {
             .provider()
             .clone();
 
-        let status = Status::observed(
-            record.agent.metadata.generation,
-            Some(crate::sandbox::Assignment::Materialized {
-                provider,
-                id: ensured.id,
-            }),
-            vec![
-                condition(Condition::SANDBOX_READY, ConditionStatus::True, "SandboxRunning", ""),
-                condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""),
-            ],
-        );
+        let assignment = crate::sandbox::Assignment::Materialized {
+            provider,
+            id: ensured.id,
+        };
+        let mut conditions = vec![condition(
+            Condition::SANDBOX_READY,
+            ConditionStatus::True,
+            "SandboxRunning",
+            "",
+        )];
+        self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions)
+            .await?;
+        conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
+        let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         self.update_status(&record, status, None).await?;
         if ensured.runtime_restarted {
             self.notify_sessions(record.id);
@@ -132,8 +144,59 @@ impl Reconciler {
         Ok(())
     }
 
+    /// Reconciles declared SSH access and appends its condition. A failure is
+    /// recorded as the Agent's `Ready=False` before it is returned.
+    async fn reconcile_ssh(
+        &self,
+        record: &AgentRecord,
+        sandbox: &::sandbox::SandboxHandle,
+        assignment: &crate::sandbox::Assignment,
+        conditions: &mut Vec<Condition>,
+    ) -> Result<(), Error> {
+        let Some(ssh) = &self.ssh else {
+            return Ok(());
+        };
+        match ssh.reconcile(record, sandbox).await {
+            Ok(true) => {
+                conditions.push(condition(
+                    Condition::SSH_READY,
+                    ConditionStatus::True,
+                    "ServerRunning",
+                    "",
+                ));
+                Ok(())
+            }
+            Ok(false) => Ok(()),
+            Err(error) => {
+                let failure = ReconcileFailure::classify(&error);
+                conditions.push(condition(
+                    Condition::SSH_READY,
+                    ConditionStatus::False,
+                    "ReconcileFailed",
+                    &failure.message,
+                ));
+                conditions.push(condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    "SshAccessFailed",
+                    &failure.message,
+                ));
+                let status = Status::observed(
+                    record.agent.metadata.generation,
+                    Some(assignment.clone()),
+                    std::mem::take(conditions),
+                );
+                self.update_status(record, status, Some(failure.kind)).await?;
+                Err(error)
+            }
+        }
+    }
+
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {
         self.sandboxes.release(record).await?;
+        if let Some(ssh) = &self.ssh {
+            ssh.remove(record).await?;
+        }
         self.notify_sessions(record.id);
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
