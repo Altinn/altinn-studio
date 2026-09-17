@@ -29,6 +29,9 @@ const NESTED_ENVIRONMENT: &str = "AGENT_CLAUDE_ACCESS_TOKEN";
 /// the same stored credential.
 const NESTED_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-nested-placeholder-not-a-real-credential";
 const API_HOST: &str = "api.anthropic.com";
+/// Fullscreen Claude owns an alternate-screen viewport whose redraws can corrupt under tmux;
+/// normal-screen output remains stable and gives tmux durable scrollback.
+const DISABLE_ALTERNATE_SCREEN_ENVIRONMENT: &str = "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN";
 /// The model recorded for Sessions that predate recorded selections. The adapter
 /// launched every Session on this alias from preview 2 until selections arrived,
 /// because the mediated setup token cannot enumerate models and Fable never
@@ -68,7 +71,11 @@ pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str
 pub(super) fn manages_environment(name: &str) -> bool {
     matches!(
         name,
-        ACCESS_ENVIRONMENT | NESTED_ENVIRONMENT | "CLAUDE_CONFIG_DIR" | "DISABLE_AUTOUPDATER"
+        ACCESS_ENVIRONMENT
+            | NESTED_ENVIRONMENT
+            | "CLAUDE_CONFIG_DIR"
+            | DISABLE_ALTERNATE_SCREEN_ENVIRONMENT
+            | "DISABLE_AUTOUPDATER"
     )
 }
 
@@ -202,10 +209,11 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     };
     ProcessLaunch {
         command,
-        // Launch-only override keeps the tmux session non-interactive without
-        // depending on image ENV propagating into it.
+        // Launch-only overrides keep the tmux session non-interactive and its
+        // conversation in tmux history without depending on image ENV.
         environment: vec![
             ("CLAUDE_CONFIG_DIR".into(), config),
+            (DISABLE_ALTERNATE_SCREEN_ENVIRONMENT.into(), "1".into()),
             ("DISABLE_AUTOUPDATER".into(), "1".into()),
         ],
     }
@@ -260,6 +268,18 @@ mod tests {
         assert!(launch.command.contains("--resume 160cdb4b-5997-464c-9d22-602786eb45d4"));
         assert!(launch.command.contains("else exec claude"));
         assert!(launch.environment.contains(&("DISABLE_AUTOUPDATER".into(), "1".into())));
+    }
+
+    #[test]
+    fn launches_in_tmux_scrollback_instead_of_the_alternate_screen() {
+        let launch = super::launch_linux(&request(None, None));
+
+        assert!(
+            launch
+                .environment
+                .contains(&(super::DISABLE_ALTERNATE_SCREEN_ENVIRONMENT.into(), "1".into()))
+        );
+        assert!(super::manages_environment(super::DISABLE_ALTERNATE_SCREEN_ENVIRONMENT));
     }
 
     #[test]

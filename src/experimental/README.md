@@ -16,7 +16,8 @@ The main goals are:
 ## Development
 
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
-installs `agentctl` and `agentd` for the current user.
+installs `agentctl` and `agentd` for the current user. On Windows without Make, run `.\make-user-install.ps1` for the
+same build, package and installation flow.
 
 Maintainers updating the Microsandbox or libkrunfw forks should follow the
 [downstream maintenance runbook](MICROSANDBOX.md).

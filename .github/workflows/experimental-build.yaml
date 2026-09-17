@@ -86,8 +86,8 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Test managed upgrade
-        run: ./agent/test-upgrade.sh
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh
 
       - name: Check dependencies
         run: make deps-check
@@ -159,5 +159,5 @@ jobs:
           -p sandbox-microsandbox
           --all-targets --all-features --locked
 
-      - name: Test managed upgrade
-        run: ./agent/test-upgrade.sh
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh

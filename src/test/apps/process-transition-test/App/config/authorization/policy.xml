@@ -107,7 +107,7 @@
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <!-- Advancing off the "scenario" service task (Task_Service) authorizes an action named
                  after the task type (GetActionsThatAllowProcessNextForTaskType falls back to the
-                 task type for custom types). Needed for the auto-advance after the service task
+                 task type for custom types). Needed for the transition after the service task
                  succeeds AND for the user's "Prøv igjen" retry on the failed task view. -->
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
               >scenario</xacml:AttributeValue
@@ -261,7 +261,7 @@
         </xacml:AllOf>
         <xacml:AllOf>
           <!-- Advancing off the "scenario" service task (Task_Service) authorizes an action named
-               after the task type; the auto-advance after a successful service task runs
+               after the task type; the transition after a successful service task runs
                out-of-band and must be permitted for the service owner too. -->
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"

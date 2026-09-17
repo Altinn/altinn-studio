@@ -190,7 +190,7 @@ internal sealed class MailboxRelay
             case ServiceTaskDeferredResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
-            case ServiceTaskSuccessResult { AutoAdvanceProcess: true }
+            case ServiceTaskSuccessResult
                 when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the conclusion")
                     is { } noAfterKey:
                 return noAfterKey;
@@ -206,7 +206,7 @@ internal sealed class MailboxRelay
 
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
+                    ProcessNextContinuation = new(success.Action),
                     MailboxContinuation = new MailboxContinuation.Conclude([.. carried.Select(m => m.Mailbox.Id)]),
                 };
 
@@ -217,7 +217,6 @@ internal sealed class MailboxRelay
                         + $"of type '{result.GetType().Name}', which this version of the app-lib cannot act "
                         + "on. A conclusion must carry one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
-                        + $"{nameof(ServiceTaskResult.SuccessWithoutAutoAdvance)}, "
                         + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                         + $"{nameof(ServiceTaskResult.FailedPermanent)} or "
                         + $"{nameof(ServiceTaskResult.Defer)} — never a type of its own.",
@@ -281,7 +280,7 @@ internal sealed class MailboxRelay
             case ServiceTaskDeferredResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
-            case ServiceTaskSuccessResult { AutoAdvanceProcess: true }
+            case ServiceTaskSuccessResult
                 when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the exchange")
                     is { } noAfterKey:
                 return noAfterKey;
@@ -290,7 +289,7 @@ internal sealed class MailboxRelay
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulProcessEngineCommandResult
                 {
-                    ProcessNextContinuation = success.AutoAdvanceProcess ? new(success.Action) : null,
+                    ProcessNextContinuation = new(success.Action),
                     MailboxContinuation = new MailboxContinuation.Conclude([mailbox.Id]),
                 };
 
@@ -305,7 +304,6 @@ internal sealed class MailboxRelay
                         + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
                         + "handler must return one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
-                        + $"{nameof(ServiceTaskResult.SuccessWithoutAutoAdvance)}, "
                         + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                         + $"{nameof(ServiceTaskResult.FailedPermanent)}, {nameof(ServiceTaskResult.Defer)} or "
                         + $"{nameof(ServiceTaskExchangeResult.AwaitNextReply)} — never a type of its own.",

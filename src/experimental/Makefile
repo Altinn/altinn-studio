@@ -30,12 +30,12 @@ build: ## Build all experimental Rust crates
 	@echo "✓ Build successful"
 
 user-install: ## Build, package and install agentctl and agentd for the current user
+ifeq ($(OS),Windows_NT)
+	@powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(abspath make-user-install.ps1)"
+else
 	@echo "Building experimental Agent $(USER_INSTALL_VERSION)..."
 	@AGENT_VERSION=$(USER_INSTALL_VERSION) cargo build --release --locked -p agent --bins
 	@./agent/package.sh "$(USER_INSTALL_ARCHIVE)" "$(RELEASE_BIN_DIR)"
-ifeq ($(OS),Windows_NT)
-	@AGENT_VERSION=$(USER_INSTALL_VERSION) AGENT_LOCAL_ARCHIVE="$(USER_INSTALL_ARCHIVE)" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(abspath agent/install.ps1)"
-else
 	@AGENT_VERSION=$(USER_INSTALL_VERSION) AGENT_LOCAL_ARCHIVE="$(USER_INSTALL_ARCHIVE)" ./agent/install.sh
 endif
 

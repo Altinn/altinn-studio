@@ -64,14 +64,14 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
   </div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="mapping">
+<details class="card adocs-expand adocs-expand-small component-property" id="refetchdependencies">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="mapping">mapping</span>
+    <span class="component-property-name" title="refetchDependencies">refetchDependencies</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Uttrykk som utløser ny henting etter at endrede skjemadata er lagret. Verdiene sendes ikke til serveren.</div></div>
 </details>

@@ -30,6 +30,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: remove `ServiceTaskResult.SuccessWithoutAutoAdvance()` and `ServiceTaskSuccessResult.AutoAdvanceProcess`. A successful service task now always advances the process, using its optional action. For work awaiting an external outcome, use a pipeline with a durable sending stage followed by `Defer` polling or a mailbox reply handler.
 - The "Go back" button on the failed service task screen. Use "Try again" to retry processing. Returning to an earlier task cannot reliably undo work already performed. The `service_task.back_button` text key is no longer used; apps can remove overrides for it.
 
 ## [9.0.0-preview.5] - 2026-09-04

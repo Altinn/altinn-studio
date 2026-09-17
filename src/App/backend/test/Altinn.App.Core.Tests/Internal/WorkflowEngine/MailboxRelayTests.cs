@@ -441,21 +441,6 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public async Task Conclusion_WithoutAutoAdvance_StillClosesTheMailbox()
-    {
-        var recorder = new RelayRecorder();
-
-        await CreateRelay(recorder)
-            .Continue(
-                new MailboxContinuation.Conclude([_mailboxId]),
-                CreateRequest(Guid.NewGuid(), autoAdvance: false),
-                CancellationToken.None
-            );
-
-        Assert.Equal(["close-mailbox"], recorder.Calls);
-    }
-
-    [Fact]
     public async Task PermanentlyFailedConclusion_ClosesTheMailboxAndStartsNothing()
     {
         var recorder = new RelayRecorder();
@@ -618,20 +603,6 @@ public class MailboxRelayTests
     public void AVerdictThatMakesNoKeyedCall_IsUnaffectedByAMissingStepId()
     {
         // Refusing this too would take the close with it.
-        var carry = new WorkflowCallbackStateCarry();
-
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(
-            MailboxRelay.Decide(
-                ServiceTaskResult.SuccessWithoutAutoAdvance(),
-                ServiceTaskType,
-                Guid.Empty,
-                Delivered(),
-                carry,
-                ArchivingReplyIndex,
-                OpeningStageIndex
-            )
-        );
-
         FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.FailedPermanent("the archive never confirmed"),
@@ -931,27 +902,6 @@ public class MailboxRelayTests
         Assert.Equal("confirm", success.ProcessNextContinuation?.Action);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
-    }
-
-    [Fact]
-    public void SuccessWithoutAutoAdvance_ConcludesTheExchangeWithoutAdvancingTheProcess()
-    {
-        var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
-
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
-            ServiceTaskResult.SuccessWithoutAutoAdvance(),
-            ServiceTaskType,
-            _stepId,
-            Delivered(),
-            carry,
-            ArchivingReplyIndex,
-            OpeningStageIndex
-        );
-
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
     }
 
     [Fact]
@@ -1999,28 +1949,6 @@ public class MailboxRelayTests
         // Dropped before the capture, so the published blob carries no concluded exchange.
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
         Assert.Null(carry.FindMailbox(2));
-    }
-
-    [Fact]
-    public void OpeningStageConclusion_SuccessWithoutAutoAdvance_ClosesWithoutAdvancing()
-    {
-        var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
-
-        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
-            ServiceTaskResult.SuccessWithoutAutoAdvance(),
-            ServiceTaskType,
-            // No keyed call is made, so the missing id must not refuse the verdict.
-            Guid.Empty,
-            carry
-        );
-
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
-            success.MailboxContinuation
-        );
-        Assert.Equal(_mailboxId, Assert.Single(conclude.MailboxIds));
     }
 
     [Fact]
