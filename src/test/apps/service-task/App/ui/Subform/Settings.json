@@ -3,7 +3,8 @@
   "pages": {
     "order": [
       "Side1"
-    ]
+    ],
+    "pdfLayoutName": "PdfLayout"
   },
   "defaultDataType": "SubformModel"
 }
