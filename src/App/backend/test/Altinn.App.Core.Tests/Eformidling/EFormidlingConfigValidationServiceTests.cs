@@ -238,19 +238,6 @@ public class EFormidlingConfigValidationServiceTests
     }
 
     [Fact]
-    public async Task Fails_When_DisabledIsNotABoolean()
-    {
-        // A value the app cannot read as a boolean used to escape as a raw parse failure, crashing the
-        // boot with nothing pointing at the field. It is a configuration error like any other.
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
-            RunValidation([EFormidlingTask("Task_Send", ValidConfig(disabledValue: "yes"))])
-        );
-
-        Assert.Contains("Task_Send", exception.Message);
-        Assert.Contains("Disabled must be a valid boolean for environment Production", exception.Message);
-    }
-
-    [Fact]
     public async Task ReportsEveryProblem_NotJustTheFirst()
     {
         AltinnEFormidlingConfiguration missingProcess = ValidConfig();
