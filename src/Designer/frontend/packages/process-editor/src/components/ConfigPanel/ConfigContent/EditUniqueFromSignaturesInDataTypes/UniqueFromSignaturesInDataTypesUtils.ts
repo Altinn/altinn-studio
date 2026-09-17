@@ -10,41 +10,28 @@ export const updateDataTypes = (
   bpmnDetails: BpmnDetails,
   updatedDataTypes: string[],
 ) => {
-  let uniqueFromSignaturesInDataTypesElement: ModdleElement = TaskUtils.getTaskExtension(
-    bpmnDetails.element,
-  ).signatureConfig?.uniqueFromSignaturesInDataTypes;
-
-  if (!uniqueFromSignaturesInDataTypesElement) {
-    uniqueFromSignaturesInDataTypesElement = bpmnFactory.create(
-      'altinn:UniqueFromSignaturesInDataTypes',
-    );
-  }
-
-  uniqueFromSignaturesInDataTypesElement.dataTypes = updatedDataTypes.map((dataType) =>
-    bpmnFactory.create('altinn:DataType', {
-      dataType,
-    }),
-  );
-
-  updateUniqueFromSignaturesInDataTypes(
-    modeling,
-    bpmnDetails,
-    uniqueFromSignaturesInDataTypesElement,
-  );
-};
-
-const updateUniqueFromSignaturesInDataTypes = (
-  modeling: Modeling,
-  bpmnDetails: BpmnDetails,
-  uniqueFromSignaturesInDataTypesElement: ModdleElement,
-) => {
-  modeling.updateModdleProperties(
-    bpmnDetails.element,
-    TaskUtils.getTaskExtension(bpmnDetails.element).signatureConfig,
+  const { element } = bpmnDetails;
+  const taskExtension = TaskUtils.getTaskExtension(element);
+  const uniqueFromSignaturesInDataTypes = bpmnFactory.create(
+    'altinn:UniqueFromSignaturesInDataTypes',
     {
-      uniqueFromSignaturesInDataTypes: uniqueFromSignaturesInDataTypesElement,
+      dataTypes: updatedDataTypes.map((dataType) =>
+        bpmnFactory.create('altinn:DataType', { dataType }),
+      ),
     },
   );
+
+  if (taskExtension.signatureConfig) {
+    modeling.updateModdleProperties(element, taskExtension.signatureConfig, {
+      uniqueFromSignaturesInDataTypes,
+    });
+  } else {
+    modeling.updateModdleProperties(element, taskExtension, {
+      signatureConfig: bpmnFactory.create('altinn:SignatureConfig', {
+        uniqueFromSignaturesInDataTypes,
+      }),
+    });
+  }
 };
 
 export const getSelectedDataTypes = (bpmnDetails: BpmnDetails): string[] => {
