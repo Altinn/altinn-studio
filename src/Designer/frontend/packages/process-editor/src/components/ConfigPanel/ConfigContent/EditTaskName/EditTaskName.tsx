@@ -24,6 +24,7 @@ export const EditTaskName = (): React.ReactElement => {
 
   return (
     <StudioToggleableTextfield
+      key={bpmnDetails.name}
       label={t('process_editor.configuration_panel_name_label')}
       title={t('process_editor.configuration_panel_name_label')}
       onBlur={handleOnTaskNameBlur}

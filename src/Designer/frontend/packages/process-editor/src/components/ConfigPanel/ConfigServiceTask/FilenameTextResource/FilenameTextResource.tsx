@@ -6,7 +6,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import { generateTextResourceId } from './generateTextResourceId';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import classes from './FilenameTextResource.module.css';
 
 type TextResource = { id: string; value: string };
@@ -30,7 +30,6 @@ export const FilenameTextResource = ({
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   const [isTextResourceEditorOpen, setIsTextResourceEditorOpen] = useState(false);
-  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(textResourceId);
 
   const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
 
@@ -52,22 +51,12 @@ export const FilenameTextResource = ({
     tabLabelSearch: t('process_editor.configuration_panel_pdf_filename_tab_search'),
   };
 
-  const handleTextResourceIdChange = (id: string): void => {
-    onTextResourceIdChange(id);
-    setCurrentTextResourceId(id);
-  };
-
   const handleValueChange = (id: string, value: string): void => {
     upsertTextResource({
       textId: id,
       language: DEFAULT_LANGUAGE,
       translation: value,
     });
-  };
-
-  const handleDeleteTextResource = (): void => {
-    onTextResourceIdChange('');
-    setCurrentTextResourceId('');
   };
 
   return (
@@ -79,12 +68,12 @@ export const FilenameTextResource = ({
         <div className={classes.filenameContent}>
           <StudioTextResourceAction
             textResources={textResources}
-            textResourceId={currentTextResourceId}
-            generateId={() => generateTextResourceId(textResourceIdPrefix)}
+            textResourceId={textResourceId}
+            generateId={() => `${textResourceIdPrefix}-${generateRandomId(8)}`}
             setIsOpen={setIsTextResourceEditorOpen}
-            handleIdChange={handleTextResourceIdChange}
+            handleIdChange={onTextResourceIdChange}
             handleValueChange={handleValueChange}
-            handleRemoveTextResource={handleDeleteTextResource}
+            handleRemoveTextResource={() => onTextResourceIdChange('')}
             texts={texts}
           />
         </div>

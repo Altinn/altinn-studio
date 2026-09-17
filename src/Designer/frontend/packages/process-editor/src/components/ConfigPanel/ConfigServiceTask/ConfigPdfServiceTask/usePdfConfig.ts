@@ -1,9 +1,8 @@
+import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useChecksum } from '../../../../hooks/useChecksum';
 import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 import { TaskUtils } from '../../../../utils/taskUtils';
-
-const FILENAME_TEXT_RESOURCE_KEY_TYPE = 'altinn:FilenameTextResourceKey';
 
 export type PdfConfig = {
   autoPdfTaskIds?: {
@@ -18,37 +17,48 @@ type UsePdfConfigResult = {
   pdfConfig: PdfConfig;
   storedFilenameTextResourceId: string;
   updateFilenameTextResourceKey: (textResourceId: string) => void;
+  updateTaskIds: (taskIds: string[]) => void;
 };
 
-/** Reads and writes `<altinn:pdfConfig>` on the selected pdf task. */
 export const usePdfConfig = (): UsePdfConfigResult => {
   const { bpmnDetails } = useBpmnContext();
-  const { updateChecksum: forceReRenderComponent } = useChecksum();
-
-  const pdfConfig: PdfConfig = TaskUtils.getTaskExtension(bpmnDetails?.element)?.pdfConfig ?? {};
-
+  const { updateChecksum } = useChecksum();
+  const taskExtension = TaskUtils.getTaskExtension(bpmnDetails.element);
+  const pdfConfig: PdfConfig = taskExtension?.pdfConfig ?? {};
   const storedFilenameTextResourceId = pdfConfig.filenameTextResourceKey?.value ?? '';
+
+  const updateConfig = (
+    studioModeler: StudioModeler,
+    properties: Record<string, ModdleElement | undefined>,
+  ): void => {
+    if (taskExtension.pdfConfig) {
+      studioModeler.updateModdleProperties(properties, taskExtension.pdfConfig);
+    } else {
+      studioModeler.updateModdleProperties(
+        { pdfConfig: studioModeler.createElement('altinn:PdfConfig', properties) },
+        taskExtension,
+      );
+    }
+    updateChecksum();
+  };
 
   const updateFilenameTextResourceKey = (textResourceId: string): void => {
     if (textResourceId === storedFilenameTextResourceId) return;
-
     const studioModeler = new StudioModeler(bpmnDetails.element);
-
-    studioModeler.updateModdleProperties(
-      {
-        filenameTextResourceKey: textResourceId
-          ? studioModeler.createElement(FILENAME_TEXT_RESOURCE_KEY_TYPE, { value: textResourceId })
-          : undefined,
-      },
-      pdfConfig,
-    );
-
-    forceReRenderComponent();
+    updateConfig(studioModeler, {
+      filenameTextResourceKey: textResourceId
+        ? studioModeler.createElement('altinn:FilenameTextResourceKey', { value: textResourceId })
+        : undefined,
+    });
   };
 
-  return {
-    pdfConfig,
-    storedFilenameTextResourceId,
-    updateFilenameTextResourceKey,
+  const updateTaskIds = (taskIds: string[]): void => {
+    const studioModeler = new StudioModeler(bpmnDetails.element);
+    const autoPdfTaskIds: ModdleElement = studioModeler.createElement('altinn:AutoPdfTaskIds', {
+      taskIds: taskIds.map((value) => studioModeler.createElement('altinn:TaskId', { value })),
+    });
+    updateConfig(studioModeler, { autoPdfTaskIds });
   };
+
+  return { pdfConfig, storedFilenameTextResourceId, updateFilenameTextResourceKey, updateTaskIds };
 };

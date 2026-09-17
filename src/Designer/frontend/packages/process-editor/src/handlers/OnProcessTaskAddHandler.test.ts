@@ -1,10 +1,6 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
-import {
-  OnProcessTaskAddHandler,
-  AllowedContributor,
-  AllowedContentType,
-} from './OnProcessTaskAddHandler';
+import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
@@ -16,18 +12,6 @@ import {
   mockSigningPdfDataTypeId,
 } from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
-
-jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {
-  const actual = jest.requireActual('@altinn/process-editor/utils/bpmnModeler/StudioModeler');
-  return {
-    ...actual,
-    StudioModeler: jest.fn().mockImplementation((args) => {
-      const instance = new actual.StudioModeler(args);
-      instance.getElement = jest.fn().mockReturnValue(instance.element);
-      return instance;
-    }),
-  };
-});
 
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
@@ -124,7 +108,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
       allowedContributors: [AllowedContributor.AppOwned],
-      allowedContentTypes: [AllowedContentType.Pdf],
+      allowedContentTypes: ['application/pdf'],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: testElementId,
     });
@@ -184,7 +168,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributors: [AllowedContributor.AppOwned],
-      allowedContentTypes: [AllowedContentType.Pdf],
+      allowedContentTypes: ['application/pdf'],
       dataTypeId: mockSigningPdfDataTypeId,
       taskId: testElementId,
     });

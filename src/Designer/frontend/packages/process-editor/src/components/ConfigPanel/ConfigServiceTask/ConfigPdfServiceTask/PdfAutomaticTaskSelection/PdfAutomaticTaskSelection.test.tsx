@@ -28,19 +28,16 @@ const defaultMockTasks = [
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
-  return {
-    StudioModeler: jest.fn().mockImplementation(() => {
-      return {
-        getElementsByType: jest.fn(() => mockTasks),
-      };
-    }),
-  };
-});
-
 const mockUpdateTaskIds = jest.fn();
-jest.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => mockUpdateTaskIds,
+jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => ({
+  StudioModeler: jest.fn().mockImplementation(() => ({
+    getElementsByType: () => mockTasks,
+    createElement: (type: string, properties: object) => ({ $type: type, ...properties }),
+    updateModdleProperties: (properties: object, element: object) => {
+      Object.assign(element, properties);
+      mockUpdateTaskIds(properties['autoPdfTaskIds'].taskIds.map(({ value }) => value));
+    },
+  })),
 }));
 
 describe('PdfAutomaticTaskSelection', () => {

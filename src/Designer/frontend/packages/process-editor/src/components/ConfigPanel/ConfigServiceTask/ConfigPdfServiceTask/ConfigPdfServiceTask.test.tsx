@@ -15,10 +15,6 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   };
 });
 
-jest.mock('../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => jest.fn(),
-}));
-
 jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));

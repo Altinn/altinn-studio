@@ -32,8 +32,8 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
   const filenameTextResourceId: string = subformPdfConfig?.filenameTextResourceKey?.value ?? '';
 
   const updateConfig = (studioModeler: StudioModeler, properties: object): void => {
-    if (subformPdfConfig) {
-      studioModeler.updateModdleProperties(properties, subformPdfConfig);
+    if (taskExtension.subformPdfConfig) {
+      studioModeler.updateModdleProperties(properties, taskExtension.subformPdfConfig);
     } else {
       studioModeler.updateModdleProperties(
         { subformPdfConfig: studioModeler.createElement(SUBFORM_PDF_CONFIG_TYPE, properties) },

@@ -9,6 +9,7 @@ import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
 import type Modeler from 'bpmn-js/lib/Modeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -82,10 +83,24 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
     [setBpmnDetails, updateBpmnDetails],
   );
 
+  const handleElementsChanged = useCallback(
+    ({ elements }: { elements: Element[] }): void => {
+      setBpmnDetails((current) => {
+        if (!current || !elements.includes(current.element)) return current;
+        return {
+          ...getBpmnEditorDetailsFromBusinessObject(current.element.businessObject),
+          element: current.element,
+        };
+      });
+    },
+    [setBpmnDetails],
+  );
+
   useModelerEventListener<void>('commandStack.changed', handleCommandStackChanged);
   useModelerEventListener<TaskEvent>('shape.added', handleShapeAdd);
   useModelerEventListener<TaskEvent>('shape.remove', handleShapeRemove);
   useModelerEventListener<SelectionChangedEvent>('selection.changed', handleSelectionChange);
+  useModelerEventListener('elements.changed', handleElementsChanged);
 
   return useEditorCallback();
 };
