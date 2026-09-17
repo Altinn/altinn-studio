@@ -37,7 +37,7 @@ func localtestImage(ctx *Options) resource.ImageResource {
 	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.Localtest.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+		PullPolicy: pullPolicyFor(ctx.Images.Core.Localtest),
 	}
 }
 

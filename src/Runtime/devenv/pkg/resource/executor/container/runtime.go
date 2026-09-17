@@ -39,6 +39,7 @@ func (b Backend) observeContainer(
 	}
 
 	observed.RuntimeID = firstNonEmptyString(info.ID, info.Name, c.Name)
+	observed.ImageID = info.ImageID
 	observed.Status = containerInfoStatus(info)
 	observed.Managed = resourceManagedByGraph(info.Labels, graphID)
 	return observed, nil
