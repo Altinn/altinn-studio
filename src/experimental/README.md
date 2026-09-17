@@ -85,38 +85,6 @@ unexpected harness exits use bounded backoff.
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
 
-### Scrolling attached Sessions
-
-Codex runs inline so tmux retains its output. Use the mouse wheel, or press `Ctrl+B` then `[` to
-enter tmux copy mode (`q` exits with the default key bindings). Classic Claude Code uses the same
-history. In Claude Code fullscreen mode, Claude owns scrolling: use the wheel or `PgUp`/`PgDn`.
-`Ctrl+O` opens its transcript; from there `[` writes the expanded conversation into terminal history,
-and `v` opens it in an editor. `/export` also saves a readable conversation.
-
-New panes retain up to 50,000 lines. Reattaching applies mouse support to existing Sessions, but
-cannot restore discarded lines or increase an existing pane's allocated history. An already-running
-Codex picks up inline rendering on its next harness launch. Detach/reattach retains a live pane's
-history; an idle stop destroys that pane, and resume reconstructs the conversation from the harness
-transcript. `agentctl turns session/<session> --agent <agent>` reads conversation text and tool-call
-names, not complete terminal output or raw tool results.
-
-The outer terminal's scrollbar is not the authoritative history. In Windows Terminal, hold `Shift`
-while selecting native terminal text when mouse handling is active. With the default tmux prefix,
-press `Ctrl+B` twice to send Claude Code its background-task shortcut. Extended keys are enabled
-for terminals that support Shift+Enter; the outer terminal still needs to send a distinct key sequence.
-
-The runtime configures tmux on creation and attachment, including custom images; the shipped
-`.tmux.conf` files mirror these defaults. Array index 99 in `terminal-features` is reserved by the
-runtime. Alternate-screen support and Claude's renderer preference remain enabled; terminal
-passthrough is not enabled by this policy. Regular tmux is supported, including inside iTerm2;
-Claude fullscreen does not support iTerm2's `tmux -CC` integration. tmux through 3.6 may flicker
-with Claude fullscreen because it lacks synchronized output support.
-
-References: [Codex configuration](https://developers.openai.com/codex/config-reference),
-[Claude fullscreen](https://code.claude.com/docs/en/fullscreen),
-[Claude tmux keyboard setup](https://code.claude.com/docs/en/terminal-config#configure-tmux),
-and [tmux scrollback limitations](https://github.com/tmux/tmux/wiki/FAQ).
-
 ## Images, home and harnesses
 
 See the [harness compatibility test plan](agent/HARNESSES.md) when updating harness installations.

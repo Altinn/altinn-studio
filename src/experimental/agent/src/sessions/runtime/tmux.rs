@@ -28,9 +28,9 @@ const INPUT_READY_GRACE: std::time::Duration = std::time::Duration::from_secs(2)
 const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
 
-/// Apply in the same command queue as creation: history-limit is captured when
-/// a pane is created. Reapply on attach so existing servers pick up mouse mode.
-/// Index 99 is reserved by the runtime; appending would grow the array on attach.
+// Set history-limit before pane creation; reapply on attach for existing servers.
+// Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
+// Reserve index 99: appending would grow terminal-features on every attach.
 fn terminal_options() -> Vec<String> {
     [
         "set-option",

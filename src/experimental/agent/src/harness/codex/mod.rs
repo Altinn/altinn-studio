@@ -189,6 +189,7 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
     // Inline rendering lets tmux retain conversation output in pane history.
+    // https://developers.openai.com/codex/config-reference
     let mut configuration = format!(
         "-c 'cli_auth_credentials_store=\"file\"' -c 'tui.alternate_screen=\"never\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
          -c 'projects.{}.trust_level=\"trusted\"'",
