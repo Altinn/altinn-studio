@@ -5,7 +5,7 @@ import { MissingRowIdException } from 'src/features/formData/MissingRowIdExcepti
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { deriveNodes } from 'src/features/validation/deriveNodes';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
-import { getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -172,23 +172,19 @@ describe('deriveNodes', () => {
     const samePrefixNode = nodes.find((node) => node.id === 'same-prefix-0');
     const insideGroup =
       insideGroupNode &&
-      getRuntimeIntermediateItem(
-        state.bootstrap.layoutLookups.getComponent(insideGroupNode.baseId),
+      getIndexedDataModelBindings<'Input'>(
+        state.bootstrap.layoutLookups.getComponent(insideGroupNode.baseId, 'Input').dataModelBindings,
         insideGroupNode.rowContexts,
       );
     const samePrefix =
       samePrefixNode &&
-      getRuntimeIntermediateItem(
-        state.bootstrap.layoutLookups.getComponent(samePrefixNode.baseId),
+      getIndexedDataModelBindings<'Input'>(
+        state.bootstrap.layoutLookups.getComponent(samePrefixNode.baseId, 'Input').dataModelBindings,
         samePrefixNode.rowContexts,
       );
 
-    if (insideGroup?.type !== 'Input' || samePrefix?.type !== 'Input') {
-      throw new Error('Expected derived nodes to be Input components');
-    }
-
-    expect(insideGroup.dataModelBindings.simpleBinding.field).toBe('person[0].name');
-    expect(samePrefix.dataModelBindings.simpleBinding.field).toBe('personName');
+    expect(insideGroup?.simpleBinding.field).toBe('person[0].name');
+    expect(samePrefix?.simpleBinding.field).toBe('personName');
   });
 
   it('transposes nested repeating group bindings from row contexts', () => {
@@ -249,19 +245,22 @@ describe('deriveNodes', () => {
     const streetNode = nodes.find((node) => node.id === 'street-0-0');
     const addresses =
       addressesNode &&
-      getRuntimeIntermediateItem(
-        state.bootstrap.layoutLookups.getComponent(addressesNode.baseId),
+      getIndexedDataModelBindings<'RepeatingGroup'>(
+        state.bootstrap.layoutLookups.getComponent(addressesNode.baseId, 'RepeatingGroup').dataModelBindings,
         addressesNode.rowContexts,
       );
     const street =
       streetNode &&
-      getRuntimeIntermediateItem(state.bootstrap.layoutLookups.getComponent(streetNode.baseId), streetNode.rowContexts);
+      getIndexedDataModelBindings<'Input'>(
+        state.bootstrap.layoutLookups.getComponent(streetNode.baseId, 'Input').dataModelBindings,
+        streetNode.rowContexts,
+      );
 
-    if (addresses?.type !== 'RepeatingGroup' || street?.type !== 'Input') {
-      throw new Error('Expected nested repeating group and input nodes');
+    if (!addresses || !street) {
+      throw new Error('Expected nested repeating group and input bindings');
     }
 
-    expect(addresses.dataModelBindings.group.field).toBe('people[0].addresses');
-    expect(street.dataModelBindings.simpleBinding.field).toBe('people[0].addresses[0].street');
+    expect(addresses.group.field).toBe('people[0].addresses');
+    expect(street.simpleBinding.field).toBe('people[0].addresses[0].street');
   });
 });

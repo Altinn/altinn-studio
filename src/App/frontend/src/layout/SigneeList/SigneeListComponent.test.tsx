@@ -9,9 +9,12 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { type fetchSigneeList, NotificationStatus, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
-vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/hooks');
+vi.mock('src/utils/layout/useEvalExpression', () => ({
+  useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+}));
 vi.mock('src/utils/layout/DataModelLocation', () => ({
   useIndexedId: (baseId: string) => baseId,
 }));
@@ -79,13 +82,13 @@ describe('SigneeListComponent', () => {
       instanceGuid: 'instanceGuid',
       taskId: 'taskId',
     });
-    vi.mocked(useItemWhenType).mockReturnValue({
+    vi.mocked(useComponentConfig).mockReturnValue({
       textResourceBindings: {
         title: 'Signee List',
         description: 'description',
         help: 'help',
       },
-    } as ReturnType<typeof useItemWhenType>);
+    } as ReturnType<typeof useComponentConfig>);
   });
 
   it('should render correctly', () => {

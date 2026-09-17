@@ -30,7 +30,7 @@ const mockDocumentList: SigningDocument[] = [
   },
 ];
 
-vi.mock('src/utils/layout/useNodeItem', () => ({}));
+vi.mock('src/utils/layout/useFormData', () => ({}));
 
 vi.mock('src/utils/layout/DataModelLocation', () => ({
   useIndexedId: (baseId: string) => baseId,
