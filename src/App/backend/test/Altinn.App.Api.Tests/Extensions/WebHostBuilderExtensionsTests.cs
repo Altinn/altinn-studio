@@ -299,11 +299,28 @@ public sealed class WebHostBuilderExtensionsTests
         File.WriteAllText(Path.Join(tempDirectory.Path, "platform-settings.json"), "{}");
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
 
+        // The excluded names are resolved from the variables the platform sets, the way ConfigureAppWebHost
+        // resolves them: nothing here is told what a hosted file is called.
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([
+                new(ProvisionedSecrets.DirectoryKey, tempDirectory.Path),
+                new(ProvisionedSecretFiles.Maskinporten.FileNameKey, "credentials-the-platform-named.json"),
+            ])
+            .Build();
+        List<string> hostedFileNames = [];
+        foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
+        {
+            if (file.TryResolve(configuration, out ProvisionedSecretFile? resolved) && resolved.IsResolved)
+            {
+                hostedFileNames.Add(resolved.FileName);
+            }
+        }
+
         WebHostBuilderExtensions.AddRuntimeConfigFiles(
             configBuilder,
             new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path,
-            ["credentials-the-platform-named.json"]
+            configuration[ProvisionedSecrets.DirectoryKey],
+            hostedFileNames
         );
 
         string[] jsonSourcePaths = configBuilder

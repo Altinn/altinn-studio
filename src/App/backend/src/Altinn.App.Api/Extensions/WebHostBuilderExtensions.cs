@@ -34,36 +34,30 @@ public static class WebHostBuilderExtensions
 
                 // Both the directory and the hosted file names come from the platform, and are read back out
                 // of the configuration built so far - which includes the environment studioctl just imported.
+                // Each file resolves its own name, the same way the provisioned secrets channel does; a name
+                // the platform did not set excludes nothing, because that environment has a bigger problem and
+                // the provisioned secrets startup check is what reports it.
+                HashSet<string> hostedFileNames = new(StringComparer.OrdinalIgnoreCase);
+                foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
+                {
+                    if (
+                        file.TryResolve(context.Configuration, out ProvisionedSecretFile? resolved)
+                        && resolved.IsResolved
+                    )
+                    {
+                        hostedFileNames.Add(resolved.FileName);
+                    }
+                }
+
                 AddRuntimeConfigFiles(
                     configBuilder,
                     context.HostingEnvironment,
                     context.Configuration[ProvisionedSecrets.DirectoryKey],
-                    HostedProvisionedFileNames(context.Configuration)
+                    hostedFileNames
                 );
                 configBuilder.LoadAppConfig(args);
             }
         );
-    }
-
-    /// <summary>
-    /// The names the platform gave the files the libraries host on the provisioned secrets channel. A file
-    /// whose name the platform did not set excludes nothing here — that environment has a bigger problem, and
-    /// the provisioned secrets startup check is what reports it.
-    /// </summary>
-    /// <param name="configuration">The app's configuration as built so far.</param>
-    private static IReadOnlyCollection<string> HostedProvisionedFileNames(IConfiguration configuration)
-    {
-        HashSet<string> fileNames = new(StringComparer.OrdinalIgnoreCase);
-        foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
-        {
-            string? fileName = configuration[file.FileNameKey];
-            if (!string.IsNullOrWhiteSpace(fileName))
-            {
-                fileNames.Add(fileName);
-            }
-        }
-
-        return fileNames;
     }
 
     /// <summary>

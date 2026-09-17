@@ -6,6 +6,9 @@ namespace Altinn.App.Core.Internal.ProvisionedSecrets;
 /// files, and the sweep of the secrets directory into the app's own configuration root excludes exactly these
 /// files. A file listed here is therefore reachable through <see cref="ProvisionedSecrets"/> and nowhere
 /// else.</para>
+/// <para>These are the configured descriptors: what the libraries know about a file before an app runs. What
+/// the platform called it is not here — <see cref="ProvisionedSecrets.FromConfiguration"/> resolves every
+/// descriptor once, and the channel holds the resolved copies.</para>
 /// <para>Maskinporten is the first tenant. The app codes file is the next one.</para>
 /// </summary>
 internal static class ProvisionedSecretFiles

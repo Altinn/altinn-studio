@@ -266,14 +266,7 @@ public class MaskinportenSettingsTest
             await File.WriteAllTextAsync(filePath, json);
 
             var services = new ServiceCollection();
-            services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-            services.AddSingleton(_ => new ProvisionedSecrets(
-                tempDir,
-                new Dictionary<ProvisionedSecretFile, string>
-                {
-                    [ProvisionedSecretFiles.Maskinporten] = "maskinporten-settings.json",
-                }
-            ));
+            services.AddSingleton<IConfiguration>(ProvisionedConfiguration(tempDir));
             services.AddRuntimeEnvironment();
             services.Configure<GeneralSettings>(_ => { });
             services.Configure<PlatformSettings>(_ => { });
@@ -321,14 +314,7 @@ public class MaskinportenSettingsTest
             await File.WriteAllTextAsync(filePath, json);
 
             var services = new ServiceCollection();
-            services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-            services.AddSingleton(_ => new ProvisionedSecrets(
-                tempDir,
-                new Dictionary<ProvisionedSecretFile, string>
-                {
-                    [ProvisionedSecretFiles.Maskinporten] = "maskinporten-settings.json",
-                }
-            ));
+            services.AddSingleton<IConfiguration>(ProvisionedConfiguration(tempDir));
             services.AddRuntimeEnvironment();
             services.Configure<GeneralSettings>(_ => { });
             services.Configure<PlatformSettings>(_ => { });
@@ -351,4 +337,18 @@ public class MaskinportenSettingsTest
             Directory.Delete(tempDir, recursive: true);
         }
     }
+
+    /// <summary>
+    /// The app's configuration as the platform leaves it: where the secrets are, and what it called the
+    /// Maskinporten file. The registration resolves those into the channel, so nothing here names a file the
+    /// libraries would have to be told about twice.
+    /// </summary>
+    /// <param name="secretsDirectory">The directory standing in for the platform's secrets mount.</param>
+    private static IConfigurationRoot ProvisionedConfiguration(string secretsDirectory) =>
+        new ConfigurationBuilder()
+            .AddInMemoryCollection([
+                new(ProvisionedSecrets.DirectoryKey, secretsDirectory),
+                new(ProvisionedSecretFiles.Maskinporten.FileNameKey, "maskinporten-settings.json"),
+            ])
+            .Build();
 }

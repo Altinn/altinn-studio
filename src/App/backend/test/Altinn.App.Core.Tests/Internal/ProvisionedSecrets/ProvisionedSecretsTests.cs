@@ -31,6 +31,10 @@ public sealed class ProvisionedSecretsTests
         Assert.Equal(tempDirectory.Path, ProvisionedSecrets.GetExistingProviderRoot(missingDirectory));
     }
 
+    /// <summary>
+    /// A consumer passes the descriptor the libraries declare — which carries no file name at all — and the
+    /// channel answers with the one it resolved.
+    /// </summary>
     [Fact]
     public void PathOf_IsTheFileInTheProvisionedDirectory()
     {
@@ -42,6 +46,37 @@ public sealed class ProvisionedSecretsTests
             Path.GetFullPath(Path.Join(tempDirectory.Path, _maskinportenFileName)),
             Path.GetFullPath(secrets.PathOf(_maskinporten))
         );
+    }
+
+    [Fact]
+    public void PathOf_Throws_WhenTheFileIsNotHostedHere()
+    {
+        using var tempDirectory = new TempDirectory();
+
+        using var secrets = CreateChannel(tempDirectory.Path);
+
+        var exception = Assert.Throws<ArgumentException>(() =>
+            secrets.PathOf(new ProvisionedSecretFile("RUNTIME_APP_SOMETHING_ELSE_FILENAME", "SomethingElse"))
+        );
+
+        Assert.Contains("RUNTIME_APP_SOMETHING_ELSE_FILENAME", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The channel holds resolved files only: the variables are read when it is built, and never again.
+    /// </summary>
+    [Fact]
+    public void Files_AreEveryHostedFile_Resolved()
+    {
+        using var tempDirectory = new TempDirectory();
+
+        using var secrets = CreateChannel(tempDirectory.Path);
+
+        Assert.Equal(
+            ProvisionedSecretFiles.All.Select(file => file.FileNameKey),
+            secrets.Files.Select(file => file.FileNameKey)
+        );
+        Assert.All(secrets.Files, file => Assert.True(file.IsResolved));
     }
 
     /// <summary>
@@ -235,6 +270,86 @@ public sealed class ProvisionedSecretsTests
     }
 
     /// <summary>
+    /// The descriptor a consumer holds carries what the libraries configured; resolution adds what the
+    /// platform answered, on a copy. The descriptor itself is left alone, so the two can never be confused.
+    /// </summary>
+    [Fact]
+    public void Resolve_ReturnsACopyCarryingTheNameThePlatformGaveIt()
+    {
+        ProvisionedSecretFile resolved = _maskinporten.Resolve(
+            ConfigurationWith((_maskinporten.FileNameKey, _maskinportenFileName))
+        );
+
+        Assert.Equal(_maskinportenFileName, resolved.FileName);
+        Assert.True(resolved.IsResolved);
+        Assert.Equal(_maskinporten.FileNameKey, resolved.FileNameKey);
+        Assert.Equal(_maskinporten.SectionName, resolved.SectionName);
+
+        Assert.Null(_maskinporten.FileName);
+        Assert.False(_maskinporten.IsResolved);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("  ")]
+    public void Resolve_Throws_WhenTheVariableIsNotSet(string? fileName)
+    {
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
+            _maskinporten.Resolve(ConfigurationWith((_maskinporten.FileNameKey, fileName)))
+        );
+
+        Assert.Contains(_maskinporten.FileNameKey, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("studioctl app run", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Resolve_Throws_WhenTheNameIsAPath()
+    {
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
+            _maskinporten.Resolve(ConfigurationWith((_maskinporten.FileNameKey, "nested/credentials.json")))
+        );
+
+        Assert.Contains(_maskinporten.FileNameKey, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("must name a file inside the directory", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The non-throwing sibling, for the sweep of the secrets directory: it excludes the hosted files by name,
+    /// and a name the platform never set excludes nothing rather than failing the sweep.
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("nested/credentials.json")]
+    [InlineData("nested\\credentials.json")]
+    [InlineData("/absolute/credentials.json")]
+    [InlineData(".")]
+    [InlineData("..")]
+    public void TryResolve_IsFalse_WhenThereIsNoUsableName(string? fileName)
+    {
+        bool resolvedName = _maskinporten.TryResolve(
+            ConfigurationWith((_maskinporten.FileNameKey, fileName)),
+            out ProvisionedSecretFile? resolved
+        );
+
+        Assert.False(resolvedName);
+        Assert.Null(resolved);
+    }
+
+    [Fact]
+    public void TryResolve_IsTrue_WhenThePlatformNamedTheFile()
+    {
+        bool resolvedName = _maskinporten.TryResolve(
+            ConfigurationWith((_maskinporten.FileNameKey, _maskinportenFileName)),
+            out ProvisionedSecretFile? resolved
+        );
+
+        Assert.True(resolvedName);
+        Assert.Equal(_maskinportenFileName, resolved?.FileName);
+    }
+
+    /// <summary>
     /// The channel is opened at host startup rather than the first time a tenant wants a secret, so an
     /// environment that never said where the secrets are fails to start instead of failing one request hours
     /// later.
@@ -281,13 +396,19 @@ public sealed class ProvisionedSecretsTests
     }
 
     /// <summary>
-    /// The channel for one hosted file, provisioned under <paramref name="maskinportenFileName"/>.
+    /// The channel the platform described, with the Maskinporten file provisioned under
+    /// <paramref name="maskinportenFileName"/>.
     /// </summary>
     private static ProvisionedSecrets CreateChannel(
         string secretsDirectory,
         string maskinportenFileName = _maskinportenFileName
     ) =>
-        new(secretsDirectory, new Dictionary<ProvisionedSecretFile, string> { [_maskinporten] = maskinportenFileName });
+        ProvisionedSecrets.FromConfiguration(
+            ConfigurationWith(
+                (ProvisionedSecrets.DirectoryKey, secretsDirectory),
+                (_maskinporten.FileNameKey, maskinportenFileName)
+            )
+        );
 
     private static IConfigurationRoot ConfigurationWith(params (string Key, string? Value)[] values) =>
         new ConfigurationBuilder()

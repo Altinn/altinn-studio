@@ -18,6 +18,10 @@ namespace Altinn.App.Core.Internal.ProvisionedSecrets;
 /// a local run. Both are required in every environment and there is no fallback, deliberately — a location the
 /// libraries had guessed would read nothing at all the day the writer moved it, and say nothing about why. The
 /// one contract the libraries do hold is the content: the section a file wraps its contents in.</para>
+/// <para><see cref="FromConfiguration"/> is where all of that is read, once: it resolves the directory and
+/// every descriptor in <see cref="ProvisionedSecretFiles.All"/>, and <see cref="Files"/> holds the resolved
+/// copies. Consumers hold the static descriptors and ask this channel — nothing else is given the app's
+/// configuration to read these variables out of.</para>
 /// <para>The file provider polls, because in a cluster this directory is a Kubernetes projected volume:
 /// operator-driven rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a
 /// restart.</para>
@@ -32,17 +36,16 @@ internal sealed class ProvisionedSecrets : IDisposable
 
     /// <summary>
     /// How a value that is not set is supplied, in the two kinds of environment an app runs in. Part of every
-    /// failure message, because the fix is different in each and neither is the app's own configuration.
+    /// failure message, because the fix is different in each and neither is the app's own configuration. A
+    /// file resolves its own name (see <see cref="ProvisionedSecretFile.Resolve"/>) and says the same thing
+    /// when it cannot, so this is shared rather than written twice.
     /// </summary>
-    private const string WhereTheValueComesFrom =
+    internal const string WhereTheValueComesFrom =
         "The platform sets it for a deployed app. A local run gets it from studioctl, so start the app with "
         + "'studioctl app run', or have studioctl on PATH so 'dotnet run' can import the same environment.";
 
-    private static readonly char[] _directorySeparators = ['/', '\\'];
-
     private readonly PhysicalFileProvider _fileProvider;
     private readonly IConfigurationRoot _root;
-    private readonly IReadOnlyDictionary<ProvisionedSecretFile, string> _fileNames;
 
     /// <summary>
     /// The absolute path of the directory the secrets are read from.
@@ -50,17 +53,35 @@ internal sealed class ProvisionedSecrets : IDisposable
     public string Directory { get; }
 
     /// <summary>
-    /// The channel over <paramref name="directory"/>, for the files named in <paramref name="fileNames"/>.
+    /// Every hosted file, resolved: each one carries the name the platform gave it.
+    /// </summary>
+    public IReadOnlyList<ProvisionedSecretFile> Files { get; }
+
+    /// <summary>
+    /// The channel over <paramref name="directory"/>, for the resolved <paramref name="files"/>. Private
+    /// because resolution belongs to <see cref="FromConfiguration"/>, which is the only caller.
     /// </summary>
     /// <param name="directory">The directory the platform provisions the app's secrets into.</param>
-    /// <param name="fileNames">The name the platform gave each hosted file.</param>
-    internal ProvisionedSecrets(string directory, IReadOnlyDictionary<ProvisionedSecretFile, string> fileNames)
+    /// <param name="files">Every hosted file, each carrying the name the platform gave it.</param>
+    private ProvisionedSecrets(string directory, IReadOnlyList<ProvisionedSecretFile> files)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
-        ArgumentNullException.ThrowIfNull(fileNames);
+        ArgumentNullException.ThrowIfNull(files);
+
+        foreach (ProvisionedSecretFile file in files)
+        {
+            if (!file.IsResolved)
+            {
+                throw new ArgumentException(
+                    $"'{file.FileNameKey}' carries no resolved file name. The channel holds resolved files "
+                        + $"only; build it through {nameof(FromConfiguration)}.",
+                    nameof(files)
+                );
+            }
+        }
 
         Directory = Path.GetFullPath(directory);
-        _fileNames = fileNames;
+        Files = files;
         string providerRoot = GetExistingProviderRoot(Directory);
 
         _fileProvider = new PhysicalFileProvider(providerRoot)
@@ -72,13 +93,13 @@ internal sealed class ProvisionedSecrets : IDisposable
         };
 
         var builder = new ConfigurationBuilder();
-        foreach (ProvisionedSecretFile file in fileNames.Keys)
+        foreach (ProvisionedSecretFile file in files)
         {
             // Every file is optional: one the platform writes after the app started appears without a
             // restart, because the provider is polling.
             builder.AddJsonFile(
                 provider: _fileProvider,
-                path: Path.GetRelativePath(providerRoot, PathOf(file)),
+                path: Path.GetRelativePath(providerRoot, Path.Join(Directory, file.FileName)),
                 optional: true,
                 reloadOnChange: true
             );
@@ -90,24 +111,43 @@ internal sealed class ProvisionedSecrets : IDisposable
     /// <summary>
     /// The contents of <paramref name="file"/>, as a configuration section to bind options against.
     /// </summary>
-    /// <param name="file">One of the files this channel was built for.</param>
+    /// <param name="file">One of the files this channel was built for, resolved or not.</param>
     public IConfiguration Section(ProvisionedSecretFile file) => _root.GetSection(file.SectionName);
 
     /// <summary>
-    /// Where <paramref name="file"/> is provisioned, as an absolute path.
+    /// Where <paramref name="file"/> is provisioned, as an absolute path: the channel's directory and the name
+    /// this channel resolved for that file. Callers pass the static descriptor and never hold the name.
     /// </summary>
     /// <param name="file">One of the files this channel was built for.</param>
-    public string PathOf(ProvisionedSecretFile file) => Path.Join(Directory, _fileNames[file]);
+    /// <exception cref="ArgumentException"><paramref name="file"/> is not one of them.</exception>
+    public string PathOf(ProvisionedSecretFile file)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+
+        foreach (ProvisionedSecretFile resolved in Files)
+        {
+            if (string.Equals(resolved.FileNameKey, file.FileNameKey, StringComparison.Ordinal))
+            {
+                return Path.Join(Directory, resolved.FileName);
+            }
+        }
+
+        throw new ArgumentException(
+            $"'{file.FileNameKey}' is not one of the files this channel hosts. Every hosted file is declared "
+                + $"in {nameof(ProvisionedSecretFiles)}.",
+            nameof(file)
+        );
+    }
 
     /// <summary>
     /// <para>The channel as the platform describes it: the directory named by <see cref="DirectoryKey"/>, and
-    /// every hosted file under the name its own <see cref="ProvisionedSecretFile.FileNameKey"/> gives it.
-    /// These are read from the app's configuration because that is where both ways of delivering them land —
-    /// the process environment of a deployed app or of <c>studioctl app run</c>, and the environment
+    /// every hosted file resolved against its own <see cref="ProvisionedSecretFile.FileNameKey"/>. These are
+    /// read from the app's configuration because that is where both ways of delivering them land — the process
+    /// environment of a deployed app or of <c>studioctl app run</c>, and the environment
     /// <c>StudioctlLocalConfiguration</c> imports for a <c>dotnet run</c> (see
     /// <see cref="StudioctlAppEnvironment"/>) — and they are the only things this type reads from there.</para>
-    /// <para>A value that is missing, or that is not a bare file name, fails startup. There is no location to
-    /// fall back to that would not be a guess.</para>
+    /// <para>A value that is missing, or a file name that is not a bare file name, fails startup. There is no
+    /// location to fall back to that would not be a guess.</para>
     /// </summary>
     /// <param name="configuration">The app's own configuration.</param>
     /// <exception cref="ApplicationConfigException">A required value is missing or is not a bare file name.</exception>
@@ -115,57 +155,35 @@ internal sealed class ProvisionedSecrets : IDisposable
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        string directory = RequireValue(configuration, DirectoryKey);
+        string directory = RequireDirectory(configuration);
+        ProvisionedSecretFile[] files = [.. ProvisionedSecretFiles.All.Select(file => file.Resolve(configuration))];
 
-        Dictionary<ProvisionedSecretFile, string> fileNames = [];
-        foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
-        {
-            fileNames[file] = RequireFileName(configuration, file);
-        }
-
-        return new ProvisionedSecrets(directory, fileNames);
+        return new ProvisionedSecrets(directory, files);
     }
 
     /// <summary>
-    /// The name <paramref name="file"/> is provisioned under. It has to be a bare name inside the secrets
-    /// directory: a path would let whoever set it read a file somewhere else entirely, which is the same hole
-    /// as letting the app choose.
+    /// The message for a value nobody set. Shared with <see cref="ProvisionedSecretFile"/>, which resolves the
+    /// file names and reports a missing one the same way.
     /// </summary>
-    /// <param name="configuration">The app's own configuration.</param>
-    /// <param name="file">One of the hosted files.</param>
-    /// <exception cref="ApplicationConfigException">The value is missing or is not a bare file name.</exception>
-    internal static string RequireFileName(IConfiguration configuration, ProvisionedSecretFile file)
-    {
-        string fileName = RequireValue(configuration, file.FileNameKey);
-        if (fileName.IndexOfAny(_directorySeparators) >= 0 || fileName is "." or "..")
-        {
-            throw new ApplicationConfigException(
-                $"'{file.FileNameKey}' must name a file inside the directory named by '{DirectoryKey}', but it "
-                    + $"is set to '{fileName}'. {WhereTheValueComesFrom}"
-            );
-        }
-
-        return fileName;
-    }
+    /// <param name="key">The configuration key that was not set.</param>
+    internal static string MissingValueMessage(string key) =>
+        $"'{key}' is not set, and the app libraries need it to read the secrets the platform provisions. "
+        + WhereTheValueComesFrom;
 
     /// <summary>
-    /// The value of <paramref name="key"/>, which every environment is required to set.
+    /// The directory the secrets are read from, which every environment is required to name.
     /// </summary>
     /// <param name="configuration">The app's own configuration.</param>
-    /// <param name="key">The configuration key to read.</param>
     /// <exception cref="ApplicationConfigException">The value is missing or blank.</exception>
-    private static string RequireValue(IConfiguration configuration, string key)
+    private static string RequireDirectory(IConfiguration configuration)
     {
-        string? value = configuration[key];
-        if (string.IsNullOrWhiteSpace(value))
+        string? directory = configuration[DirectoryKey];
+        if (string.IsNullOrWhiteSpace(directory))
         {
-            throw new ApplicationConfigException(
-                $"'{key}' is not set, and the app libraries need it to read the secrets the platform "
-                    + $"provisions. {WhereTheValueComesFrom}"
-            );
+            throw new ApplicationConfigException(MissingValueMessage(DirectoryKey));
         }
 
-        return value;
+        return directory;
     }
 
     /// <summary>
