@@ -356,10 +356,12 @@ async fn assert_build_cache_reused(
                 event,
                 SandboxEvent::StepOutput { name, bytes, .. }
                     if name == "Build Docker image"
-                        && bytes.windows(b"CACHED".len()).any(|window| window == b"CACHED")
+                        && [b"CACHED".as_slice(), b"Using cache".as_slice()]
+                            .iter()
+                            .any(|marker| bytes.windows(marker.len()).any(|window| window == *marker))
             )
         }),
-        "second Docker build should report a reused BuildKit layer"
+        "second Docker build should report a reused layer; events: {events:#?}"
     );
     for skipped in ["Export Docker image", "Import Microsandbox image"] {
         assert!(
