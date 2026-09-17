@@ -7,13 +7,13 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSetOptions } from 'src/features/options/useGetOptions';
 import { useIsHidden } from 'src/utils/layout/hidden';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
-import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 interface Props {
-  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  baseComponentId: string;
   parent: RuntimeNodeParent;
   valueType: OptionsValueType;
   options: IOptionInternal[];
@@ -22,10 +22,10 @@ interface Props {
 /**
  * This effect is responsible for setting the label/display value in the data model.
  */
-export function EffectStoreLabel({ item, parent, valueType, options }: Props) {
+export function EffectStoreLabel({ baseComponentId, parent, valueType, options }: Props) {
   const isHidden = useIsHidden(parent.baseId);
   const { langAsString } = useLanguage();
-  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId) as IDataModelBindingsOptionsSimple | undefined;
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
   const { selectedValues } = useSetOptions(valueType, dataModelBindings, options);
 

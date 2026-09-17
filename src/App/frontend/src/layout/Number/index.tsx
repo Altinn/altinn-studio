@@ -1,24 +1,28 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
-import { evalFormatting } from 'src/layout/Input/formatting';
+import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import { NumberDef } from 'src/layout/Number/config.def.generated';
 import { NumberComponent } from 'src/layout/Number/NumberComponent';
 import { NumberSummary } from 'src/layout/Number/NumberSummary';
 import { formatNumericText } from 'src/utils/formattingUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { DisplayData } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Number extends NumberDef implements DisplayData {
   useDisplayData(baseComponentId: string): string {
-    const item = useItemWhenType(baseComponentId, 'Number');
-    const number = item?.value;
-    const formatting = item?.formatting;
+    const config = useComponentConfig(baseComponentId, 'Number');
+    const value = useEvalExpression(config.value, Expressions.Number.value);
+
+    const number = value;
+    const formatting = useResolvedFormatting(config.formatting);
     const currentLanguage = useCurrentLanguage();
     if (number === undefined || isNaN(number)) {
       return '';
@@ -42,13 +46,5 @@ export class Number extends NumberDef implements DisplayData {
 
   renderSummary2(props: Summary2Props): JSX.Element | null {
     return <NumberSummary {...props} />;
-  }
-
-  evalExpressions(props: ExprResolver<'Number'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      formatting: evalFormatting(props),
-      value: props.evalNum(props.item.value, NaN),
-    };
   }
 }

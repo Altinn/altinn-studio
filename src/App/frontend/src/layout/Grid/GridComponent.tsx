@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, useIsMobile } from '@app/form-component';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
@@ -34,9 +35,9 @@ import {
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface ColSpanHiddenOverlapWarningParams {
@@ -93,18 +94,27 @@ function useWarnIfColSpanOverlapsHiddenColumns({
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { baseComponentId } = props;
-  const { rows, textResourceBindings, labelSettings } = useItemWhenType(baseComponentId, 'Grid');
-  const { title, description, help } = textResourceBindings ?? {};
+  const config = useComponentConfig(baseComponentId, 'Grid');
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Grid.textResourceBindings.title);
+  const description = useEvalExpression(
+    config.textResourceBindings?.description,
+    Expressions.Grid.textResourceBindings.description,
+  );
+  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Grid.textResourceBindings.help);
+
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const shouldHaveFullWidth = parent?.type === 'page';
   const { elementAsString } = useLanguage();
-  const accessibleTitle = elementAsString(title);
+  const accessibleTitle = elementAsString(config.textResourceBindings?.title === undefined ? undefined : title);
   const indexedId = useIndexedId(baseComponentId);
 
-  const columnHiddenExprs = useMemo(() => rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [], [rows]);
+  const columnHiddenExprs = useMemo(
+    () => config.rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [],
+    [config.rows],
+  );
   const expressionDataSources = useExpressionDataSources(columnHiddenExprs);
   const hiddenColumnIndices = useMemo(
     () =>
@@ -138,17 +148,28 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
         id={indexedId}
         className={css.table}
       >
-        {title && (
+        {(config.textResourceBindings?.title === undefined ? undefined : title) && (
           <Caption
             className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
-            title={<Lang id={title} />}
-            description={description && <Lang id={description} />}
-            helpText={help ? { text: <Lang id={help} />, accessibleTitle } : undefined}
-            labelSettings={labelSettings}
+            title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
+            description={
+              (config.textResourceBindings?.description === undefined ? undefined : description) && (
+                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
+              )
+            }
+            helpText={
+              (config.textResourceBindings?.help === undefined ? undefined : help)
+                ? {
+                    text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
+                    accessibleTitle,
+                  }
+                : undefined
+            }
+            labelSettings={config.labelSettings}
           />
         )}
         <GridRowsRenderer
-          rows={rows}
+          rows={config.rows}
           isNested={isNested}
           mutableColumnSettings={columnSettings}
           hiddenColumnIndices={hiddenColumnIndices}
@@ -350,11 +371,7 @@ function CellWithComponent({
 }: CellWithComponentProps) {
   const isHidden = useIsHidden(baseComponentId);
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
-  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
-    returnType: ExprVal.Number,
-    defaultValue: 1,
-    errorIntroText: `Invalid expression for colSpan in Grid cell with component "${baseComponentId}"`,
-  });
+  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
     cellIdx: cellIdx ?? -1,
@@ -395,11 +412,7 @@ function CellWithText({
   cellIdx,
   hiddenColumnIndices,
 }: CellWithTextProps) {
-  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
-    returnType: ExprVal.Number,
-    defaultValue: 1,
-    errorIntroText: 'Invalid expression for colSpan in Grid text cell',
-  });
+  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
     cellIdx: cellIdx ?? -1,
@@ -444,23 +457,37 @@ function CellWithLabel({
   hiddenColumnIndices,
 }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const item = useItemFor(labelFrom);
-  const trb = item.textResourceBindings;
-  const required = 'required' in item && item.required;
-  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, {
-    returnType: ExprVal.Number,
-    defaultValue: 1,
-    errorIntroText: `Invalid expression for colSpan in Grid cell with label from "${labelFrom}"`,
-  });
+  const config = useComponentConfig(labelFrom);
+  const evaluatedRequired = useEvalExpression(
+    'required' in config ? config.required : undefined,
+    CommonExpressions.FormComponentProps.required,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+  const help = useEvalExpression(
+    config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
+    CommonExpressions.TRBLabel.help,
+  );
+  const description = useEvalExpression(
+    config.textResourceBindings && 'description' in config.textResourceBindings
+      ? config.textResourceBindings.description
+      : undefined,
+    CommonExpressions.TRBLabel.description,
+  );
+
+  const required = 'required' in config && evaluatedRequired;
+  const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
     cellIdx: cellIdx ?? -1,
     hiddenColumnIndices,
     cellDescription: `with label from "${labelFrom}"`,
   });
-  const title = trb && 'title' in trb ? trb.title : undefined;
-  const help = trb && 'help' in trb ? trb.help : undefined;
-  const description = trb && 'description' in trb && typeof trb.description === 'string' ? trb.description : undefined;
+
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
   return (

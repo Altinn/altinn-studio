@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { ConditionalWrapper, Flex } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingProps } from '@digdir/designsystemet-react';
@@ -9,8 +10,8 @@ import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 interface GroupComponentSummaryProps extends Summary2Props {
@@ -36,7 +37,7 @@ interface ChildComponentProps extends Pick<GroupComponentSummaryProps, 'hierarch
 }
 
 function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
-  const child = useExternalItem(id);
+  const child = useComponentConfig(id);
   if (!child) {
     return null;
   }
@@ -56,15 +57,24 @@ function ChildComponent({ id, hierarchyLevel }: ChildComponentProps) {
 }
 
 export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: GroupComponentSummaryProps) => {
-  const item = useItemWhenType(targetBaseComponentId, 'Group');
-  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
-  const summaryTitle = item.textResourceBindings?.summaryTitle;
+  const config = useComponentConfig(targetBaseComponentId, 'Group');
+  const resolvedSummaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Group.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.Group.textResourceBindings.title,
+  );
+
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle) ||
+    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const summaryTitle = config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle;
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
-
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-
   return (
     <ConditionalWrapper
       condition={hierarchyLevel === 0}
@@ -94,7 +104,7 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
           spacing={6}
           alignItems='flex-start'
         >
-          {item.children.map((childId) => (
+          {config.children.map((childId) => (
             <ChildComponent
               key={childId}
               id={childId}

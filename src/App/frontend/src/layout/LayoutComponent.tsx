@@ -2,12 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
-import type {
-  ComponentBase,
-  FormComponentProps,
-  IDataModelReference,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { ErrorObject } from 'ajv';
 
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
@@ -16,8 +11,6 @@ import { validateEmptyFieldAllBindings } from 'src/features/validation/nodeValid
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
 import type { CompCapabilities } from 'src/codegen/Config';
-import type { SimpleEval } from 'src/features/expressions';
-import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
 import type { ComponentValidation } from 'src/features/validation';
@@ -30,30 +23,14 @@ import type {
 import type {
   CompExternal,
   CompExternalExact,
-  CompIntermediateExact,
   ComponentLayoutValidationProps,
   CompTypes,
   IDataModelBindings,
-  ITextResourceBindingsExternal,
 } from 'src/layout/layout';
 import type { LegacySummaryOverrides } from 'src/layout/Summary/SummaryComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { RowContext } from 'src/utils/layout/rowContext';
 import type { BaseRow } from 'src/utils/layout/types';
-
-export interface ExprResolver<Type extends CompTypes> {
-  item: CompIntermediateExact<Type>;
-  evalBase: () => ExprResolved<Omit<ComponentBase, 'hidden'>>;
-  evalFormProps: () => ExprResolved<FormComponentProps>;
-  evalSummarizable: () => ExprResolved<SummarizableComponentProps>;
-  evalStr: SimpleEval<ExprVal.String>;
-  evalNum: SimpleEval<ExprVal.Number>;
-  evalBool: SimpleEval<ExprVal.Boolean>;
-  evalAny: SimpleEval<ExprVal.Any>;
-  evalTrb: () => {
-    textResourceBindings: ExprResolved<ITextResourceBindingsExternal<Type>>;
-  };
-}
 
 export type RuntimeChild = {
   baseId: string;
@@ -86,19 +63,6 @@ export abstract class AnyComponent<Type extends CompTypes> {
   renderLayoutValidators(_props: ComponentLayoutValidationProps<Type>): JSX.Element | null {
     return null;
   }
-
-  /**
-   * The default expression evaluator, implemented by code generation. Do not try to override this yourself. If you
-   * need custom expression support, set that in your component configuration.
-   */
-  abstract evalDefaultExpressions(props: ExprResolver<Type>): unknown;
-
-  /**
-   * Resolves all expressions in the layout configuration, and returns a new layout configuration
-   * with expressions resolved. Will either be implemented using code generation (if your component has no custom
-   * expressions), or must be implemented manually.
-   */
-  abstract evalExpressions(props: ExprResolver<Type>): unknown;
 
   /**
    * Given a node, a list of the node's data, for display in the devtools node inspector

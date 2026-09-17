@@ -14,12 +14,7 @@ import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils'
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type {
-  ChildClaimerProps,
-  ExprResolver,
-  RuntimeChildrenProps,
-  SummaryRendererProps,
-} from 'src/layout/LayoutComponent';
+import type { ChildClaimerProps, RuntimeChildrenProps, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Likert extends LikertDef {
@@ -76,14 +71,6 @@ export class Likert extends LikertDef {
     }
 
     return errors;
-  }
-
-  evalExpressions(props: ExprResolver<'Likert'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      required: props.evalBool(props.item.required, false),
-      readOnly: props.evalBool(props.item.readOnly, false),
-    };
   }
 
   getOptionsEffectValueType() {

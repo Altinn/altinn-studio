@@ -34,12 +34,6 @@ export interface EvalExprOptions<V extends ExprVal = ExprVal> extends ExprConfig
   valueArguments?: ExprValueArgs;
 }
 
-export type SimpleEval<T extends ExprVal> = (
-  expr: ExprValToActualOrExpr<T> | undefined,
-  defaultValue: ExprValToActual<T>,
-  dataSources?: Partial<ExpressionDataSources>,
-) => ExprValToActual<T>;
-
 export type EvaluateExpressionParams = {
   expr: Expression;
   path: string[];

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading, Table } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
 
@@ -14,7 +15,8 @@ import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButt
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 type Row = Record<string, string | number | boolean>;
@@ -25,26 +27,32 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const displayData = useDisplayData(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-
-  const { tableHeaders, dataModelBindings, required, textResourceBindings } = useItemWhenType(
-    targetBaseComponentId,
-    'List',
+  const config = useComponentConfig(targetBaseComponentId, 'List');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'List');
+  const required = useEvalExpression(config.required, Expressions.List.required);
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.List.textResourceBindings.summaryTitle,
   );
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
-  const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
+  const resolvedTitle = useEvalExpression(
+    config.textResourceBindings?.title,
+    Expressions.List.textResourceBindings.title,
+  );
 
+  const title =
+    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
+    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
   const relativeCheckedPath =
     dataModelBindings?.checked && dataModelBindings?.group
       ? dataModelBindings.checked.field.replace(`${dataModelBindings.group.field}.`, '')
       : undefined;
-
   const displayRows = (formData?.group as Row[])?.filter((row) => {
     if (!relativeCheckedPath) {
       return true;
     }
     return dot.pick(relativeCheckedPath, row) === true;
   });
-
   if (displayRows?.length > 0) {
     return (
       <SummaryFlex
@@ -71,7 +79,7 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
             )}
             <Table.Head>
               <Table.Row>
-                {Object.entries(tableHeaders).map(([key, value]) => (
+                {Object.entries(config.tableHeaders).map(([key, value]) => (
                   <Table.HeaderCell key={key}>
                     <Lang id={value} />
                   </Table.HeaderCell>
@@ -81,12 +89,11 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
             <Table.Body>
               {displayRows?.map((row, rowIndex) => (
                 <Table.Row key={rowIndex}>
-                  {Object.entries(tableHeaders).map(([key]) => {
+                  {Object.entries(config.tableHeaders).map(([key]) => {
                     const binding = dataModelBindings?.[key];
                     if (!binding || !dataModelBindings?.group) {
                       return null;
                     }
-
                     const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
                     const data = dot.pick(relativePath, row);
                     return (
@@ -106,7 +113,6 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
       </SummaryFlex>
     );
   }
-
   return (
     <SummaryFlex
       targetBaseId={targetBaseComponentId}

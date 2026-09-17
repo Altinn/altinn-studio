@@ -1,7 +1,7 @@
 import { useFetchOptions, useFilteredAndSortedOptions } from 'src/features/options/useGetOptions';
-import { useIntermediateItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { CompIntermediateExact, CompWithBehavior } from 'src/layout/layout';
+import type { CompExternalExact, CompWithBehavior } from 'src/layout/layout';
 
 interface OptionsResult {
   options: IOptionInternal[];
@@ -12,8 +12,8 @@ export function useOptionsFor<T extends CompWithBehavior<'canHaveOptions'>>(
   baseComponentId: string,
   valueType: 'single' | 'multi',
 ): OptionsResult {
-  const item = useIntermediateItem(baseComponentId) as CompIntermediateExact<T>;
-  const { unsorted, isFetching } = useFetchOptions({ item });
-  const { options } = useFilteredAndSortedOptions({ unsorted, valueType, item });
+  const config = useComponentConfig(baseComponentId) as CompExternalExact<T>;
+  const { unsorted, isFetching } = useFetchOptions({ config });
+  const { options } = useFilteredAndSortedOptions({ unsorted, valueType, config });
   return { isFetching, options };
 }

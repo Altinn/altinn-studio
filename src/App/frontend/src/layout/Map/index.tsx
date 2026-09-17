@@ -7,11 +7,11 @@ import { MapComponent } from 'src/layout/Map/MapComponent';
 import { MapComponentSummary } from 'src/layout/Map/MapComponentSummary';
 import { MapSummary } from 'src/layout/Map/Summary2/MapSummary';
 import { parseLocation } from 'src/layout/Map/utils';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Map extends MapDef {
@@ -73,24 +73,5 @@ export class Map extends MapDef {
     errors.push(...geometriesBindingErrors);
 
     return errors;
-  }
-
-  evalExpressions(props: ExprResolver<'Map'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      centerLocation: {
-        latitude: props.evalNum(props.item.centerLocation?.latitude, 0),
-        longitude: props.evalNum(props.item.centerLocation?.longitude, 0),
-      },
-      ...(props.item.toolbar && {
-        toolbar: {
-          polyline: props.evalBool(props.item.toolbar.polyline, false),
-          polygon: props.evalBool(props.item.toolbar.polygon, false),
-          rectangle: props.evalBool(props.item.toolbar.rectangle, false),
-          circle: props.evalBool(props.item.toolbar.circle, false),
-          marker: props.evalBool(props.item.toolbar.marker, false),
-        },
-      }),
-    };
   }
 }

@@ -18,9 +18,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
   .addProperty(new CG.prop('saveWhileTyping', CG.common('SaveWhileTyping').optional({ default: true })))

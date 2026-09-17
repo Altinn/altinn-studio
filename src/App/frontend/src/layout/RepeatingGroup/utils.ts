@@ -1,24 +1,22 @@
 import { useCallback, useMemo } from 'react';
 
-import { CompCategory } from '@app/layout-contract';
+import { CompCategory, type ExpressionDescriptor } from '@app/layout-contract';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getComponentDef } from 'src/layout';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getRepeatingChildBaseIds } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompExternal } from 'src/layout/layout';
-import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export interface RepGroupRow extends BaseRow {
@@ -30,40 +28,40 @@ export interface RepGroupRowWithButtons extends RepGroupRow {
   deleteButton: boolean;
 }
 
-export type RepGroupRowWithExpressions = RepGroupRow & GroupExpressions;
+type EditableRow = BaseRow & { editButton: boolean };
 
 const noRows: never[] = [];
 
 interface EvalExprProps<T extends ExprVal> {
   expr: ExprValToActualOrExpr<T> | undefined;
-  defaultValue?: ExprValToActual<T>;
+  descriptor: ExpressionDescriptor<T>;
   dataSources: ExpressionDataSources;
   groupBinding: IDataModelReference | undefined;
   rowIndex: number;
+  componentId: string;
 }
 
-function evalString({ expr, defaultValue = '', dataSources, groupBinding, rowIndex }: EvalExprProps<ExprVal.String>) {
-  if (!ExprValidation.isValidOrScalar(expr, ExprVal.String) || !groupBinding) {
-    return defaultValue;
+function evalRowExpression<T extends ExprVal>({
+  expr,
+  descriptor,
+  dataSources,
+  groupBinding,
+  rowIndex,
+  componentId,
+}: EvalExprProps<T>) {
+  const options = { ...descriptor, errorIntroText: `${descriptor.errorIntroText} (component '${componentId}')` };
+  if (
+    !groupBinding ||
+    expr === undefined ||
+    !ExprValidation.isValidOrScalar(expr, descriptor.returnType, options.errorIntroText)
+  ) {
+    return descriptor.defaultValue;
   }
-
   const currentDataModelPath = {
     dataType: groupBinding.dataType,
     field: `${groupBinding.field}[${rowIndex}]`,
   };
-  return evalExpr(expr, { ...dataSources, currentDataModelPath }, { returnType: ExprVal.String, defaultValue });
-}
-
-function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIndex }: EvalExprProps<ExprVal.Boolean>) {
-  if (!ExprValidation.isValidOrScalar(expr, ExprVal.Boolean) || !groupBinding) {
-    return defaultValue;
-  }
-
-  const currentDataModelPath = {
-    dataType: groupBinding.dataType,
-    field: `${groupBinding.field}[${rowIndex}]`,
-  };
-  return evalExpr(expr, { ...dataSources, currentDataModelPath }, { returnType: ExprVal.Boolean, defaultValue });
+  return evalExpr(expr, { ...dataSources, currentDataModelPath }, options);
 }
 
 function getReadOnlyExpression(component: CompExternal): ExprValToActualOrExpr<ExprVal.Boolean> | undefined {
@@ -79,8 +77,10 @@ function isReadOnlyComponent(
   if (!('readOnly' in childComponent) || childComponent.readOnly === undefined) {
     return false;
   }
-  return evalBool({
+  return evalRowExpression({
     expr: childComponent.readOnly,
+    componentId: childComponent.id,
+    descriptor: CommonExpressions.FormComponentProps.readOnly,
     dataSources,
     groupBinding,
     rowIndex,
@@ -94,7 +94,8 @@ function isEditableFormComponent(
   childBaseComponentId: string,
   layoutLookups: LayoutLookups,
   parentComponent: CompExternal<'RepeatingGroup'>,
-  rowWithExpressions: RepGroupRowWithExpressions | undefined,
+  hiddenColumns: string[],
+  rowWithExpressions: EditableRow | undefined,
   dataSources: ExpressionDataSources,
   groupBinding: IDataModelReference | undefined,
 ): boolean {
@@ -111,10 +112,10 @@ function isEditableFormComponent(
   }
 
   const columnSettings = parentComponent.tableColumns?.[childBaseComponentId];
-  const hiddenInTable = columnSettings?.hidden === true;
+  const hiddenInTable = hiddenColumns.includes(childBaseComponentId);
   const editInTable = columnSettings?.editInTable ?? false;
   const showInExpandedEdit = columnSettings?.showInExpandedEdit ?? true;
-  const editButtonVisible = rowWithExpressions?.edit?.editButton !== false;
+  const editButtonVisible = rowWithExpressions?.editButton !== false;
 
   if (editButtonVisible) {
     return showInExpandedEdit;
@@ -127,7 +128,8 @@ function collectEditableChildren(
   childBaseComponentId: string,
   layoutLookups: LayoutLookups,
   parentComponent: CompExternal<'RepeatingGroup'>,
-  rowWithExpressions: RepGroupRowWithExpressions | undefined,
+  hiddenColumns: string[],
+  rowWithExpressions: EditableRow | undefined,
   dataSources: ExpressionDataSources,
   groupBinding: IDataModelReference | undefined,
   acc: string[],
@@ -142,6 +144,7 @@ function collectEditableChildren(
         grandChildId,
         layoutLookups,
         parentComponent,
+        hiddenColumns,
         rowWithExpressions,
         dataSources,
         groupBinding,
@@ -156,6 +159,7 @@ function collectEditableChildren(
       childBaseComponentId,
       layoutLookups,
       parentComponent,
+      hiddenColumns,
       rowWithExpressions,
       dataSources,
       groupBinding,
@@ -164,7 +168,6 @@ function collectEditableChildren(
     acc.push(childBaseComponentId);
   }
 }
-
 export const RepGroupHooks = {
   useAllBaseRows(baseComponentId: string) {
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
@@ -172,7 +175,8 @@ export const RepGroupHooks = {
   },
 
   useAllRowsWithHidden(baseComponentId: string): RepGroupRow[] {
-    const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const componentId = useIndexedId(baseComponentId);
+    const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const dataSources = useExpressionDataSources(component?.hiddenRow);
     const rows = RepGroupHooks.useAllBaseRows(baseComponentId);
@@ -182,15 +186,23 @@ export const RepGroupHooks = {
         (groupBinding &&
           rows.map((row) => ({
             ...row,
-            hidden: evalBool({ expr: component?.hiddenRow, dataSources, groupBinding, rowIndex: row.index }),
+            hidden: evalRowExpression({
+              expr: component?.hiddenRow,
+              componentId,
+              descriptor: Expressions.RepeatingGroup.hiddenRow,
+              dataSources,
+              groupBinding,
+              rowIndex: row.index,
+            }),
           }))) ??
         noRows,
-      [rows, component?.hiddenRow, dataSources, groupBinding],
+      [rows, component?.hiddenRow, dataSources, groupBinding, componentId],
     );
   },
 
   useAllRowsWithButtons(baseComponentId: string): RepGroupRowWithButtons[] {
-    const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const componentId = useIndexedId(baseComponentId);
+    const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const hiddenRow = component?.hiddenRow;
     const editButton = component?.edit?.editButton;
@@ -202,21 +214,34 @@ export const RepGroupHooks = {
       () =>
         (groupBinding &&
           rows.map((row) => {
-            const baseProps = { dataSources, groupBinding, rowIndex: row.index };
+            const baseProps = { dataSources, groupBinding, rowIndex: row.index, componentId };
             return {
               ...row,
-              hidden: evalBool({ expr: hiddenRow, ...baseProps }) ?? false,
-              editButton: evalBool({ expr: editButton, ...baseProps, defaultValue: true }) ?? true,
-              deleteButton: evalBool({ expr: deleteButton, ...baseProps, defaultValue: true }) ?? true,
+              hidden: evalRowExpression({
+                expr: hiddenRow,
+                descriptor: Expressions.RepeatingGroup.hiddenRow,
+                ...baseProps,
+              }),
+              editButton: evalRowExpression({
+                expr: editButton,
+                descriptor: Expressions.RepeatingGroup.edit.editButton,
+                ...baseProps,
+              }),
+              deleteButton: evalRowExpression({
+                expr: deleteButton,
+                descriptor: Expressions.RepeatingGroup.edit.deleteButton,
+                ...baseProps,
+              }),
             };
           })) ??
         noRows,
-      [dataSources, deleteButton, editButton, groupBinding, hiddenRow, rows],
+      [dataSources, deleteButton, editButton, groupBinding, hiddenRow, rows, componentId],
     );
   },
 
   useGetFreshRowsWithButtons(baseComponentId: string): () => RepGroupRowWithButtons[] {
-    const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const componentId = useIndexedId(baseComponentId);
+    const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     const hiddenRow = component?.hiddenRow;
     const editButton = component?.edit?.editButton;
@@ -227,57 +252,25 @@ export const RepGroupHooks = {
     return useCallback(() => {
       const freshRows = getFreshRows(groupBinding);
       return freshRows.map((row) => {
-        const baseProps = { dataSources, groupBinding, rowIndex: row.index };
+        const baseProps = { dataSources, groupBinding, rowIndex: row.index, componentId };
         return {
           ...row,
-          hidden: evalBool({ expr: hiddenRow, ...baseProps }) ?? false,
-          editButton: evalBool({ expr: editButton, ...baseProps, defaultValue: true }) ?? true,
-          deleteButton: evalBool({ expr: deleteButton, ...baseProps, defaultValue: true }) ?? true,
+          hidden:
+            evalRowExpression({ expr: hiddenRow, descriptor: Expressions.RepeatingGroup.hiddenRow, ...baseProps }) ??
+            false,
+          editButton: evalRowExpression({
+            expr: editButton,
+            descriptor: Expressions.RepeatingGroup.edit.editButton,
+            ...baseProps,
+          }),
+          deleteButton: evalRowExpression({
+            expr: deleteButton,
+            descriptor: Expressions.RepeatingGroup.edit.deleteButton,
+            ...baseProps,
+          }),
         };
       });
-    }, [dataSources, deleteButton, editButton, getFreshRows, groupBinding, hiddenRow]);
-  },
-
-  useRowWithExpressions(
-    baseComponentId: string,
-    _row: 'first' | { uuid: string } | { index: number },
-  ): RepGroupRowWithExpressions | undefined {
-    const component = useExternalItem(baseComponentId, 'RepeatingGroup');
-    const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
-    const hiddenRow = component?.hiddenRow;
-    const edit = component?.edit;
-    const trb = component?.textResourceBindings;
-    const dataSources = useExpressionDataSources({ hiddenRow, edit, trb });
-    const rows = RepGroupHooks.useAllBaseRows(baseComponentId);
-    const row = _row === 'first' ? rows[0] : 'uuid' in _row ? rows.find((r) => r.uuid === _row.uuid) : rows[_row.index];
-
-    return useMemoDeepEqual(() => {
-      if (!groupBinding || !row) {
-        return undefined;
-      }
-      const baseProps = { dataSources, groupBinding, rowIndex: row.index };
-      return {
-        ...row,
-        hidden: evalBool({ expr: hiddenRow, ...baseProps }) ?? false,
-        textResourceBindings: trb
-          ? {
-              editButtonClose: evalString({ expr: trb.editButtonClose, ...baseProps }),
-              editButtonOpen: evalString({ expr: trb.editButtonOpen, ...baseProps }),
-              saveAndNextButton: evalString({ expr: trb.saveAndNextButton, ...baseProps }),
-              saveButton: evalString({ expr: trb.saveButton, ...baseProps }),
-            }
-          : undefined,
-        edit: edit
-          ? {
-              alertOnDelete: evalBool({ expr: edit.alertOnDelete, ...baseProps }),
-              editButton: evalBool({ expr: edit.editButton, ...baseProps, defaultValue: true }),
-              deleteButton: evalBool({ expr: edit.deleteButton, ...baseProps, defaultValue: true }),
-              saveAndNextButton: evalBool({ expr: edit.saveAndNextButton, ...baseProps }),
-              saveButton: evalBool({ expr: edit.saveButton, ...baseProps, defaultValue: true }),
-            }
-          : undefined,
-      };
-    }, [groupBinding, row, dataSources, hiddenRow, trb, edit]);
+    }, [dataSources, deleteButton, editButton, getFreshRows, groupBinding, hiddenRow, componentId]);
   },
 
   useVisibleRows(baseComponentId: string) {
@@ -286,14 +279,14 @@ export const RepGroupHooks = {
   },
 
   useChildIds(baseComponentId: string) {
-    const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
     return getRepeatingChildBaseIds(component?.children ?? [], component?.edit?.multiPage === true);
   },
 
   useChildIdsWithMultiPage(
     baseComponentId: string,
   ): { baseId: string; indexedId: string; multiPageIndex: number | undefined }[] {
-    const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const idMutator = useComponentIdMutator();
     if (!component?.edit?.multiPage) {
       return (
@@ -324,7 +317,11 @@ export const RepGroupHooks = {
     }));
   },
 
-  useEditableChildren(baseComponentId: string, rowWithExpressions: RepGroupRowWithExpressions | undefined): string[] {
+  useEditableChildren(
+    baseComponentId: string,
+    rowWithExpressions: EditableRow | undefined,
+    hiddenColumns: string[],
+  ): string[] {
     const childrenBaseIds = RepGroupHooks.useChildIds(baseComponentId);
     const layoutLookups = FormStore.bootstrap.useLayoutLookups();
     const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
@@ -345,6 +342,7 @@ export const RepGroupHooks = {
         childId,
         layoutLookups,
         component,
+        hiddenColumns,
         rowWithExpressions,
         dataSources,
         groupBinding,

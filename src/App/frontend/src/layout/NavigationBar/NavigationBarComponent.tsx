@@ -10,14 +10,16 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
 import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComponent<'NavigationBar'>) {
-  const { id, compact, validateOnForward, validateOnBackward } = useItemWhenType(baseComponentId, 'NavigationBar');
+  const config = useComponentConfig(baseComponentId, 'NavigationBar');
+  const id = useIndexedId(baseComponentId);
   const [showMenu, setShowMenu] = React.useState(false);
-  const isCompact = useIsMobile() || compact === true;
+  const isCompact = useIsMobile() || config.compact === true;
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
   const onPageNavigationValidation = useOnPageNavigationValidation();
@@ -28,8 +30,8 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
   const { getPageValidation } = usePageValidation(baseComponentId);
   // Use component-level validation if set, otherwise fall back to page-level
   // When page-level validation is set, only validate forward navigation
-  const validationOnForward = getPageValidation() ?? validateOnForward;
-  const validationOnBackward = getPageValidation() ? undefined : validateOnBackward;
+  const validationOnForward = getPageValidation() ?? config.validateOnForward;
+  const validationOnBackward = getPageValidation() ? undefined : config.validateOnBackward;
 
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
 

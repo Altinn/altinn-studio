@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import classNames from 'classnames';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';
@@ -17,7 +18,8 @@ import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IAttachment } from 'src/features/attachments';
 
 interface IFileUploadTableRowProps {
@@ -36,9 +38,11 @@ export function FileTableRow({
   isSummary,
 }: IFileUploadTableRowProps) {
   const { langAsString } = useLanguage();
-  const item = useItemWhenType(baseComponentId, 'FileUpload');
-  const hasTag = fileUploadHasTag(item);
-  const { readOnly } = item;
+  const config = useComponentConfig(baseComponentId, 'FileUpload');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
+
+  const hasTag = fileUploadHasTag(config);
+
   const pdfModeActive = usePdfModeActive();
   const readableSize = getSizeWithUnit(attachment.data.size, 2);
 

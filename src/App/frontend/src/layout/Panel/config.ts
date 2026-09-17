@@ -22,9 +22,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addTextResource(
     new CG.trb({

@@ -15,7 +15,7 @@ import type {
   PropsFromGenericComponent,
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class ImageUpload extends ImageUploadDef {
@@ -55,11 +55,5 @@ export class ImageUpload extends ImageUploadDef {
 
   renderSummary2(props: Summary2Props): JSX.Element | null {
     return <ImageUploadSummary2 {...props} />;
-  }
-
-  evalExpressions(props: ExprResolver<'ImageUpload'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-    };
   }
 }

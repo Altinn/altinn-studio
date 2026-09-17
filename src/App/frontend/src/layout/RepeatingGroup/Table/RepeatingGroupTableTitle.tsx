@@ -1,17 +1,16 @@
 import React from 'react';
 
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
-import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { EvalExprOptions } from 'src/features/expressions';
 
 interface IProps {
   baseComponentId: string;
@@ -26,9 +25,9 @@ export const RepeatingGroupTableTitle = ({ baseComponentId, columnSettings }: IP
     overrideDisplay: undefined,
   });
   const groupComponentId = useRepeatingGroupComponentId();
-  const { edit } = useItemWhenType(groupComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(groupComponentId, 'RepeatingGroup');
   const editInTable = columnSettings[baseComponentId]?.editInTable;
-  const isOnlyTable = edit?.mode === 'onlyTable';
+  const isOnlyTable = config.edit?.mode === 'onlyTable';
   const showIndicators = editInTable || (isOnlyTable && editInTable !== false);
   return (
     <span
@@ -46,18 +45,14 @@ export function useTableTitle(baseComponentId: string): string {
   const textResourceBindings = FormStore.bootstrap
     .useLayoutLookups()
     .getComponent(baseComponentId).textResourceBindings;
-  const exprOptions: EvalExprOptions<ExprVal.String> = {
-    returnType: ExprVal.String,
-    defaultValue: '',
-    errorIntroText: `Invalid expression in ${baseComponentId}`,
-  };
+
   const tableTitle = useEvalExpression(
     textResourceBindings && 'tableTitle' in textResourceBindings ? textResourceBindings.tableTitle : '',
-    exprOptions,
+    CommonExpressions.TRBFormComp.tableTitle,
   );
   const title = useEvalExpression(
     textResourceBindings && 'title' in textResourceBindings ? textResourceBindings.title : '',
-    exprOptions,
+    CommonExpressions.TRBLabel.title,
   );
 
   return tableTitle || title || '';

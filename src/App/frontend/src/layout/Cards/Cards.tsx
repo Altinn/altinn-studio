@@ -10,7 +10,7 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -24,16 +24,10 @@ const colorVariantMap: Record<string, 'tinted' | 'default'> = {
 };
 
 export const Cards = ({ baseComponentId }: PropsFromGenericComponent<'Cards'>) => {
-  const {
-    cards,
-    minMediaHeight,
-    minWidth,
-    color,
-    mediaPosition: _mediaPosition,
-  } = useExternalItem(baseComponentId, 'Cards');
-  const processedMinWidth = parseSize(minWidth, '250px');
-  const processedMinMediaHeight = parseSize(minMediaHeight, '150px');
-  const mediaPosition = _mediaPosition ?? 'top';
+  const config = useComponentConfig(baseComponentId, 'Cards');
+  const processedMinWidth = parseSize(config.minWidth, '250px');
+  const processedMinMediaHeight = parseSize(config.minMediaHeight, '150px');
+  const mediaPosition = config.mediaPosition ?? 'top';
   const cardContainer: CSSProperties = {
     display: 'grid',
     gap: '28px',
@@ -42,13 +36,13 @@ export const Cards = ({ baseComponentId }: PropsFromGenericComponent<'Cards'>) =
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div style={cardContainer}>
-        {cards.map((card, idx) => (
+        {config.cards.map((card, idx) => (
           <AppCard
             key={idx}
             title={<Lang id={card.title} />}
             description={<Lang id={card.description} />}
             footer={<Lang id={card.footer} />}
-            variant={colorVariantMap[color]}
+            variant={colorVariantMap[config.color]}
             mediaPosition={mediaPosition}
             media={
               card.media && (

@@ -19,9 +19,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: false,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addProperty(
     new CG.prop(

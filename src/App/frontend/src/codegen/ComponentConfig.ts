@@ -407,11 +407,6 @@ export class ComponentConfig {
     const category = this.config.category;
     const categorySymbol = CategoryImports[category].toTypeScript();
 
-    const ExprResolver = new CG.import({
-      import: 'ExprResolver',
-      from: 'src/layout/LayoutComponent',
-    });
-
     const DisplayData = new CG.import({
       import: 'DisplayData',
       from: 'src/features/displayData/index',
@@ -426,35 +421,9 @@ export class ComponentConfig {
       from: 'src/layout',
     });
 
-    const isFormComponent = this.config.category === CompCategory.Form;
-    const isSummarizable = this.behaviors.isSummarizable;
-
-    const evalCommonProps = [
-      { base: CG.common('ComponentBase'), condition: true, evaluator: 'evalBase' },
-      { base: CG.common('FormComponentProps'), condition: isFormComponent, evaluator: 'evalFormProps' },
-      { base: CG.common('SummarizableComponentProps'), condition: isSummarizable, evaluator: 'evalSummarizable' },
-    ];
-
     const implementsInterfaces: string[] = [];
-    const evalLines: string[] = [];
-    const itemLine: string[] = [];
-    for (const { base, condition, evaluator } of evalCommonProps) {
-      if (condition) {
-        itemLine.push(`keyof ${base}`);
-        evalLines.push(`...props.${evaluator}(),`);
-      }
-    }
 
     const additionalMethods: string[] = [];
-
-    if (!this.config.functionality.customExpressions) {
-      additionalMethods.push(
-        `// Do not override this one, set functionality.customExpressions to true instead
-        evalExpressions(props: ${ExprResolver}<'${this.type}'>) {
-          return this.evalDefaultExpressions(props);
-        }`,
-      );
-    }
 
     if (this.hasDataModelBindings()) {
       additionalMethods.push(
@@ -466,7 +435,7 @@ export class ComponentConfig {
     if (
       this.hasDataModelBindings() &&
       this.config.category === CompCategory.Form &&
-      this.config.functionality.displayData !== false
+      this.config.displayData !== false
     ) {
       additionalMethods.push(
         `// This component has data model bindings, so it should be able to produce a display string
@@ -480,15 +449,6 @@ export class ComponentConfig {
       protected readonly type = '${this.type}';
 
       ${this.config.directRendering ? 'directRender(): boolean { return true; }' : ''}
-
-      // Do not override this one, set functionality.customExpressions to true instead
-      evalDefaultExpressions(props: ${ExprResolver}<'${this.type}'>) {
-        return {
-          ...props.item as Omit<typeof props.item, ${itemLine.join(' | ')} | 'hidden'>,
-          ${evalLines.join('\n')}
-          ...props.evalTrb(),
-        };
-      }
 
       ${additionalMethods.join('\n\n')}
     }`;
