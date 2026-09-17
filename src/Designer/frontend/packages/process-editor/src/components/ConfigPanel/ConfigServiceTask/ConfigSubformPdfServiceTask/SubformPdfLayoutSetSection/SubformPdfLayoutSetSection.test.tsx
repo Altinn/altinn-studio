@@ -22,9 +22,6 @@ const dataModelLabel = textMock(
 describe('SubformPdfLayoutSetSection', () => {
   afterEach(jest.clearAllMocks);
 
-  // The layout set id is the ui folder name, and in v9 the app frontend looks that folder up by the
-  // task id in the pdf url. An id taken from anywhere else produces a folder neither the picker in
-  // this panel nor the runtime can find.
   it('creates the pages under the task own id', async () => {
     const user = userEvent.setup();
     const addLayoutSet = jest.fn();
@@ -41,8 +38,6 @@ describe('SubformPdfLayoutSetSection', () => {
     });
   });
 
-  // The app frontend throws when a ui folder has no defaultDataType, so pages created without one
-  // would break the task they were meant to fix.
   it('reports the missing data model instead of creating pages without one', async () => {
     const user = userEvent.setup();
     const addLayoutSet = jest.fn();
@@ -74,8 +69,6 @@ describe('SubformPdfLayoutSetSection', () => {
       expect(screen.queryByRole('button', { name: createButtonName })).not.toBeInTheDocument();
     });
 
-    // Creating the pages is half the job: the component the task points at is something the
-    // developer still has to add to them.
     it('says the subform component still has to be added', () => {
       renderSubformPdfLayoutSetSection({ layoutSets });
 

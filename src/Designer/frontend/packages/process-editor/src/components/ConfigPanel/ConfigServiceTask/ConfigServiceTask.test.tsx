@@ -78,8 +78,6 @@ describe('ConfigServiceTask', () => {
     ).not.toBeInTheDocument();
   });
 
-  // The type field is what decides which panel is shown, so unmounting it on the value just typed
-  // would leave the developer in a panel with no way back to the type they came from.
   it.each(['', 'myServiceTask', 'eFormidling', 'fiksArkiv', 'pdf', 'subformPdf'])(
     'should offer an editable task type for "%s"',
     (taskType) => {
@@ -100,8 +98,6 @@ describe('ConfigServiceTask', () => {
     expect(queryEFormidlingField()).toBeInTheDocument();
   });
 
-  // fiksArkiv takes no BPMN configuration at all - `FiksArkivSettings` comes from appsettings - so
-  // it has no fields here, only the warning about the shape it sits in.
   it.each(['fiksArkiv', 'myServiceTask'])(
     'should render no eFormidling configuration for %s',
     (taskType) => {
@@ -113,8 +109,6 @@ describe('ConfigServiceTask', () => {
     },
   );
 
-  // The runtime refuses to start a fiksArkiv task that is not followed by an exclusive gateway, and
-  // the palette creates the task without one. No other task type has that rule.
   it('should warn about the process shape of a fiksArkiv task with nothing after it', () => {
     renderConfigServiceTask({
       bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType: 'fiksArkiv' } },

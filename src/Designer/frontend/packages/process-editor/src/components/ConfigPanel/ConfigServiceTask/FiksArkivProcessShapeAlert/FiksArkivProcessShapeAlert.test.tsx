@@ -18,8 +18,6 @@ describe('FiksArkivProcessShapeAlert', () => {
     expect(screen.getByText(missingGatewayText)).toBeInTheDocument();
   });
 
-  // Which gateway is short of flows is the difference between a warning the developer can act on
-  // and one they have to go looking for, and a diagram can hold several.
   it('names the gateway that has too few flows', () => {
     renderFiksArkivProcessShapeAlert(createTask([createGateway('Gateway_1', 1)]));
 
@@ -33,10 +31,6 @@ describe('FiksArkivProcessShapeAlert', () => {
     expect(screen.queryByText(gatewayWithoutBranchesText(['Gateway_1']))).not.toBeInTheDocument();
   });
 
-  // Undo and redo change the process while the selection stays on the task, so this happens under
-  // an open panel, and the bpmn-js elements the warning reads are mutated in place. Without the
-  // subscription the warning would go on asking for a gateway the diagram already has, until the
-  // task is selected a second time.
   it('stops warning once the diagram has the gateway, without the task being selected again', () => {
     const task = createTask([]);
     renderFiksArkivProcessShapeAlert(task);

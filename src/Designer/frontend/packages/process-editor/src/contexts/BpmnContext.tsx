@@ -20,10 +20,7 @@ export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
 };
-export const BpmnContextProvider = ({
-  bpmnXml,
-  children,
-}: Partial<BpmnContextProviderProps>) => {
+export const BpmnContextProvider = ({ bpmnXml, children }: Partial<BpmnContextProviderProps>) => {
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [initialBpmnXml] = useState<string>(bpmnXml);

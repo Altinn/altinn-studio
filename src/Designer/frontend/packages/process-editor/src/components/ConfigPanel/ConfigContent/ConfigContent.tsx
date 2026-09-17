@@ -72,9 +72,7 @@ export const ConfigContent = (): React.ReactElement => {
             {!isFirstSigningTask && (
               <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
             )}
-            {/* The runtime runs the default validator only when the task type is literally
-                `signing` (`SigningTaskValidator.ShouldRunForTask`), which is also what the palette
-                writes for both kinds of signing task. */}
+            {/* The runtime reads runDefaultValidator only for task type `signing`. */}
             {isSigningTask && (
               <EditRunDefaultValidator key={`${bpmnDetails.id}-runDefaultValidator`} />
             )}

@@ -21,12 +21,7 @@ export interface BpmnExtensionElementsEditor {
     };
     signatureConfig?: {
       signatureDataType: string;
-      /**
-       * The data type the pdf generated at task end is stored in. Optional in the schema: a signing
-       * task that declares none generates no pdf.
-       */
       signingPdfDataType?: string;
-      /** Set, together with a signee provider, on a user controlled signing task. */
       signeeStatesDataTypeId?: string;
     };
   }>;

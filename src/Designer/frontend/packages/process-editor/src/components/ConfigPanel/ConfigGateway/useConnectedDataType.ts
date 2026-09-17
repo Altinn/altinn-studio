@@ -11,13 +11,7 @@ export type UseConnectedDataTypeResult = {
   setConnectedDataTypeId: (dataTypeId: string) => void;
 };
 
-/**
- * Reads and writes `<altinn:gatewayExtension><altinn:connectedDataTypeId>` on the selected gateway.
- *
- * The extension sits directly under the gateway's `bpmn:extensionElements`, as a sibling of where a
- * task's `altinn:taskExtension` would be. The moddle objects behind it are not reactive, so a write
- * is followed by a checksum bump that re-renders whatever reads from them.
- */
+/** Reads and writes `<altinn:gatewayExtension><altinn:connectedDataTypeId>` on the selected gateway. */
 export const useConnectedDataType = (): UseConnectedDataTypeResult => {
   const { bpmnDetails } = useBpmnContext();
   const { updateChecksum: forceReRenderComponent } = useChecksum();
@@ -26,8 +20,7 @@ export const useConnectedDataType = (): UseConnectedDataTypeResult => {
   const connectedDataTypeId = getGatewayExtension(element)?.connectedDataTypeId ?? '';
 
   const setConnectedDataTypeId = (dataTypeId: string): void => {
-    // Moddle omits a property that is undefined, which is what removes the element from the xml
-    // again and hands the choice of data model back to the runtime's own fallback.
+    // An undefined property removes the element, handing the choice back to the runtime fallback.
     const newDataTypeId = dataTypeId || undefined;
     if (newDataTypeId === (connectedDataTypeId || undefined)) return;
 
@@ -54,12 +47,7 @@ const getGatewayExtension = (element: Element): ModdleElement | undefined =>
     (value: ModdleElement) => value?.$type === GATEWAY_EXTENSION_TYPE,
   );
 
-/**
- * A gateway drawn in Studio carries no extension elements at all until something needs one, so the
- * first write has to build the whole node. Anything the element already carries is kept, and the
- * gateway extension is appended rather than put first, since nothing reads a gateway's extensions
- * by position.
- */
+/** A gateway carries no extension elements until something needs one; other extensions are kept. */
 const addGatewayExtension = (
   studioModeler: StudioModeler,
   element: Element,

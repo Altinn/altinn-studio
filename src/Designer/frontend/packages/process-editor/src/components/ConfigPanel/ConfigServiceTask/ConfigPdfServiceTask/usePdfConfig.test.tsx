@@ -6,8 +6,6 @@ import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock'
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 
-// Moddle writes the given properties onto the element it is handed, and deletes the ones set to
-// `undefined`. The mock does the same, so a test can read back what the hook just stored.
 const updateModdleProperties = jest.fn((properties: object, element: object) =>
   Object.assign(element, properties),
 );
@@ -161,8 +159,6 @@ describe('usePdfConfig', () => {
       );
     });
 
-    // The moddle objects are not reactive, so without a state change of its own the panel would go
-    // on showing the filename it opened with, whatever was just written.
     it('re-reads the config after a write, so its owner shows the value it just stored', () => {
       const bpmnDetails = createBpmnDetailsWithPdfConfig({});
 

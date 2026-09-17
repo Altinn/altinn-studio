@@ -174,8 +174,6 @@ describe('ConfigContent', () => {
     expect(designDetails).toBeInTheDocument();
   });
 
-  // The switch sits in the block that covers both kinds of signing task, and the runtime reads the
-  // value on both, so where it renders is the part that can quietly break.
   describe('Default signature validator', () => {
     const runDefaultValidatorLabel = textMock(
       'process_editor.configuration_panel_run_default_validator_label',
@@ -205,8 +203,6 @@ describe('ConfigContent', () => {
       expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
     });
 
-    // The palette writes `taskType: 'signing'` for user controlled signing too, and the runtime
-    // reads that exact value, so the delegated variant is a signing task carrying a signee provider.
     it('should show the validator switch on a user controlled signing task', () => {
       renderConfigContent(
         {},

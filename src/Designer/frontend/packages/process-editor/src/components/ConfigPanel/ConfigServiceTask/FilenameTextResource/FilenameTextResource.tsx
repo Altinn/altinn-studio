@@ -12,18 +12,12 @@ import classes from './FilenameTextResource.module.css';
 type TextResource = { id: string; value: string };
 
 export type FilenameTextResourceProps = {
-  /** The text resource id currently stored in the bpmn, or an empty string when there is none. */
   textResourceId: string;
-  /** Called with the new id, or an empty string when the developer removes the filename. */
   onTextResourceIdChange: (textResourceId: string) => void;
-  /** The prefix a newly written text resource id gets, so each panel's filenames are recognizable. */
   textResourceIdPrefix: string;
 };
 
-/**
- * The filename of a generated pdf, as a text resource. Shared by the pdf and subform pdf panels,
- * which store the same value under different config nodes and therefore own the write themselves.
- */
+/** The filename of a generated pdf, as a text resource. The owner writes the id to its config node. */
 export const FilenameTextResource = ({
   textResourceId,
   onTextResourceIdChange,

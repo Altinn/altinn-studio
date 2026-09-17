@@ -25,14 +25,10 @@ export const ConfigServiceTask = (): React.ReactElement => {
   return (
     <ConfigContentContainer>
       <div className={classes.configContent}>
-        {/* Above the fields rather than among them: it is the whole app that will not start, and
-            the repair is on the canvas rather than anywhere in this panel. */}
         {isFiksArkivTask && <FiksArkivProcessShapeAlert />}
         <EditTaskId />
         <EditTaskName />
-        {/* Every service task keeps the type field, including the ones Studio has a panel for. The
-            type is what decides which panel is shown, so unmounting it on the value just typed
-            would leave the developer with no way back to the type they came from. */}
+        {/* Kept for every type, so a typed value can always be changed back. */}
         <EditServiceTaskType />
         {isPdfTask && <ConfigPdfServiceTask />}
         {isSubformPdfTask && <ConfigSubformPdfServiceTask />}

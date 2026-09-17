@@ -8,8 +8,6 @@ export const modelerOffMock = jest.fn();
 
 export const mockModelerRef = {
   current: {
-    // A panel may subscribe to modeler events to keep itself in step with the canvas, so the mock
-    // has to answer `on`/`off` the way the real modeler does.
     on: modelerOnMock,
     off: modelerOffMock,
     get: (service: string) => {

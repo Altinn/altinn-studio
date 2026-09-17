@@ -41,12 +41,7 @@ type BpmnTaskConfig = {
   signing: SigningTaskConfig;
 };
 
-/**
- * The task types that keep their data types in a per-type config node. Deliberately narrower than
- * `BpmnTaskType`, which is open: a custom service task's type is an arbitrary string, and the
- * lookup below has no entry for it. Requiring this type at the call site keeps the lookup total
- * instead of letting it throw on a key it was never given.
- */
+/** The task types that keep their data types in a config node of their own. */
 export type BpmnDataTypeCarryingTaskType = keyof BpmnTaskConfig;
 
 const bpmnTaskConfig: BpmnTaskConfig = {
@@ -110,15 +105,11 @@ export class StudioModeler {
     return this.elementRegistry.filter((element) => element.type === elementType) as Element[];
   }
 
-  /**
-   * Every id in the diagram, whatever the element type. Bpmn ids are xsd:ID, so they must be unique
-   * across the whole document and not just within a type.
-   */
+  /** Bpmn ids are unique across the whole document, not only within an element type. */
   public getAllElementIds(): string[] {
     return this.elementRegistry.getAll().map((element) => element.id);
   }
 
-  /** Payment is the only task type with a receipt pdf data type, so it takes no task type. */
   public getReceiptPdfDataTypeIdFromBusinessObject(
     businessObject: BpmnBusinessObjectEditor,
   ): string {
@@ -128,16 +119,7 @@ export class StudioModeler {
     ];
   }
 
-  /**
-   * Signing is the only task type with a pdf data type of its own, so it takes no task type. The
-   * property is optional in the schema, and the palette seeds one only on the user controlled
-   * signing task, so the caller gets undefined for a signing task that generates no pdf. Whether a
-   * pdf is generated follows the property alone, not the kind of signing.
-   *
-   * Read through the declared property rather than through {@link bpmnTaskConfig}, so that the
-   * return type is one the compiler checks against `BpmnBusinessObjectEditor` instead of an
-   * annotation over an index that resolves to `any`.
-   */
+  /** Undefined for a signing task that generates no pdf. */
   public getSigningPdfDataTypeIdFromBusinessObject(
     businessObject: BpmnBusinessObjectEditor,
   ): string | undefined {

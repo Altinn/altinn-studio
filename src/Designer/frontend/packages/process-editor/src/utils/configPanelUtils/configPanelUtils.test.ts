@@ -79,8 +79,6 @@ describe('configPanelUtils', () => {
     });
   });
 
-  // The keys above are built from the task type, so a new task type, a renamed key or a deleted
-  // translation all fail here rather than surfacing as a raw key in the panel header.
   describe('the keys resolve in nb.json', () => {
     it.each([...builtInBpmnTaskTypes, 'myServiceTask', '', null])(
       'has a title and a help text for %p',

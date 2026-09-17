@@ -13,8 +13,6 @@
   gap: var(--ds-size-2);
 }
 
-/* The list a task-specific panel lays its sections out in. Shared by the pdf and subform pdf
-   panels so the two read as the same panel with different fields. */
 .taskConfigList {
   display: flex;
   flex-direction: column;
@@ -25,9 +23,6 @@
   list-style-type: none;
 }
 
-/* A stack of fields the full width of the panel: a collapsed field is a property button that fills
-   the row, and an expanded one holds textfields that need the same room. Shared by every panel that
-   groups fields this way, so a group reads the same wherever it appears. */
 .group {
   display: flex;
   flex-direction: column;

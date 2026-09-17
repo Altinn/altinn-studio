@@ -19,8 +19,6 @@ describe('ConfigContentContainer', () => {
     ).toBeInTheDocument();
   });
 
-  // A service task created from the generic palette entry starts out with an empty task type. It
-  // still has to get a heading, because the field that repairs it sits directly underneath.
   it.each(['', 'myServiceTask'])('renders a heading for the custom task type "%s"', (taskType) => {
     renderConfigContentContainer(taskType);
 

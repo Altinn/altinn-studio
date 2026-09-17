@@ -36,8 +36,6 @@ const getFormLayouts = jest.fn((_org: string, _app: string, layoutSetName: strin
 describe('useSubformComponentIds', () => {
   afterEach(jest.clearAllMocks);
 
-  // The runtime resolves the component id in the ui folder named after the pdf task, so a Subform
-  // component anywhere else is an id it cannot find.
   it('offers only the subform components in the layout set named after the task', async () => {
     const { result } = renderUseSubformComponentIds(subformDataType);
 
@@ -46,8 +44,6 @@ describe('useSubformComponentIds', () => {
     expect(getFormLayouts).toHaveBeenCalledWith(org, app, taskLayoutSetId);
   });
 
-  // The ux editor owns `[FormLayouts, org, app, set]` and caches its own converted model there. The
-  // untouched response must not land under that key, or the two shapes meet.
   it('caches the untouched response under a key of its own', async () => {
     const queryClient = createQueryClientMock();
     const { result } = renderUseSubformComponentIds(subformDataType, queryClient);

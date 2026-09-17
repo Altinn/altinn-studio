@@ -13,14 +13,8 @@ export type UseRunDefaultValidatorResult = {
 };
 
 /**
- * Reads and writes `<altinn:runDefaultValidator>` inside the signing task's signature config.
- *
- * `AltinnSignatureConfiguration.RunDefaultValidator` is a non-nullable `bool`, so an absent element
- * deserialises to `false` and the validator does not run. There is no third "not set" state to
- * represent, and this hook reports the absent element as `false` for that reason.
- *
- * The moddle objects behind the config are not reactive, so a write is followed by a checksum bump
- * that re-renders whatever reads from them.
+ * Reads and writes `<altinn:runDefaultValidator>` in the signing task's signature config. The runtime
+ * reads it as a non-nullable bool, so an absent element is `false`.
  */
 export const useRunDefaultValidator = (): UseRunDefaultValidatorResult => {
   const { bpmnDetails } = useBpmnContext();
@@ -32,8 +26,7 @@ export const useRunDefaultValidator = (): UseRunDefaultValidatorResult => {
 
   const setRunDefaultValidator = (value: boolean): void => {
     const studioModeler = new StudioModeler(bpmnDetails.element);
-    // `false` is written out rather than removing the element: the two mean the same to the
-    // runtime, and a value in the file says the choice was made rather than forgotten.
+    // `false` is written rather than removing the element, so the file records the choice.
     const runDefaultValidatorElement = studioModeler.createElement(RUN_DEFAULT_VALIDATOR_TYPE, {
       value,
     });
@@ -44,8 +37,6 @@ export const useRunDefaultValidator = (): UseRunDefaultValidatorResult => {
         signatureConfig,
       );
     } else {
-      // A hand-authored signing task can be missing its signature config. Building it here keeps
-      // the toggle working instead of failing on a task Studio itself can render.
       studioModeler.updateModdleProperties(
         {
           signatureConfig: studioModeler.createElement(SIGNATURE_CONFIG_TYPE, {

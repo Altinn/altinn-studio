@@ -159,9 +159,6 @@ export class OnProcessTaskRemoveHandler {
       taskMetadata.taskEvent.element.businessObject,
     );
 
-    // A signing task without a pdf data type never had one registered to remove. Truthiness here
-    // mirrors the add handler, which deliberately differs from `TaskUtils.isUserControlledSigning`'s
-    // presence test: an empty id was never registered, so there is nothing to remove either.
     if (!signingPdfDataTypeId) return;
 
     this.deleteDataTypeFromAppMetadata({
@@ -176,8 +173,6 @@ export class OnProcessTaskRemoveHandler {
       taskMetadata.taskEvent.element.businessObject,
     );
 
-    // A task can be recognized as user controlled while still missing its signee states data type.
-    // There is then nothing registered to remove.
     if (!dataTypeId) return;
 
     this.deleteDataTypeFromAppMetadata({

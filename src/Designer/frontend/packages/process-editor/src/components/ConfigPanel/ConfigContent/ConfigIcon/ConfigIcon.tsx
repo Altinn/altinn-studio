@@ -52,7 +52,6 @@ export const ConfigIcon = ({ taskType, type }: ConfigIconProps): React.ReactElem
       return <BranchingIcon className={classes.icon} />;
   }
 
-  // Any other task type is a service task the app implements itself, so Studio cannot know it.
-  // A cog is bpmn's own service task marker. Elements with no task type at all keep no icon.
+  // Any other task type is a service task the app implements itself.
   return typeof taskType === 'string' ? <CogIcon className={classes.icon} /> : null;
 };

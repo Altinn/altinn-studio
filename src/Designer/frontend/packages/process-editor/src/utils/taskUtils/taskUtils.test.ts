@@ -59,8 +59,6 @@ describe('taskUtils', () => {
       expect(TaskUtils.isUserControlledSigning({ businessObject: {} } as Element)).toBe(false);
     });
 
-    // A process Studio did not write can carry another extension ahead of the altinn one, and the
-    // task is still a user controlled signing task.
     it('looks past an extension element that is not the task extension', () => {
       const element = {
         businessObject: {
@@ -81,8 +79,6 @@ describe('taskUtils', () => {
   });
 
   describe('getTaskExtension', () => {
-    // A bpmn file Studio did not write can carry other extensions in the same list, so position is
-    // not a safe way to find the altinn one.
     it('finds the altinn task extension among other extension elements', () => {
       const taskExtension = { $type: 'altinn:TaskExtension', taskType: 'signing' };
       const element = {
