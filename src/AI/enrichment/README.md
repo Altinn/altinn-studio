@@ -208,6 +208,34 @@ Notes worth knowing before you turn it on:
 
 ### When no traces turn up
 
+Start with the probe. It emits one complete run — root, step, item, generation,
+tool — through the same registration, preflight, provider and exporter an app uses,
+then reads the trace back out of Langfuse again:
+
+```bash
+cd tools/Altinn.App.Ai.Enrichment.TraceProbe
+dotnet run                    # reads ./.env, or pass a path
+```
+
+```
+LANGFUSE_BASE_URL=https://langfuse.digdir.cloud
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_ENVIRONMENT=local-yourname
+```
+
+`.env` is gitignored repository-wide. The probe turns `Diagnostics` on for itself, so
+the exporter's own complaints are visible, and it distinguishes the two failures that
+look identical from the app: no span created (configuration, secret or credentials) and
+a span created but never stored (transport, or the wrong project).
+
+It reads the trace back rather than trusting the export, because an accepted batch and
+a stored trace are different claims — ingestion is asynchronous and the exporter is
+satisfied by an HTTP 200 it never re-checks.
+
+If the probe succeeds and the app still shows nothing, the difference is in the app, and
+the per-run log line below is what separates the cases.
+
 Each run logs one line naming its Langfuse trace and linking to it:
 
 ```
@@ -230,6 +258,38 @@ lines about its exporter rather than this one.
 
 The link needs `ProjectId`; without it the log line still carries the trace id, which
 is searchable in Langfuse.
+
+#### Tracing a local run
+
+`Enabled` is off in both apps' `appsettings.Development.json`, so a local run traces
+nothing by default. To turn it on, override the section in that file:
+
+```json
+"AiEnrichment": {
+  "Langfuse": {
+    "Enabled": true,
+    "Environment": "local-yourname",
+    "Diagnostics": true
+  }
+}
+```
+
+`Host`, `PublicKey` and `SecretKeySecretName` are inherited from `appsettings.json`, so
+only the local-only values belong here. Give local runs their own `Environment` — it
+keeps experiments out of the tt02 data you will later evaluate on.
+
+The secret key resolves through the same path as in tt02. In Development the app binds
+`SecretsLocalClient`, which looks the name up in the gitignored `App/secrets.json`:
+
+```json
+{
+  "ttd--olebhansen--klage-parkering-borttauing--langfuse-secretkey": "sk-lf-..."
+}
+```
+
+Using the real secret name rather than a direct `SecretKey` means local testing
+exercises the same resolution path that runs in tt02, so a wrong secret name fails
+locally instead of on deploy.
 
 ### Scoring a run afterwards
 
