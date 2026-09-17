@@ -116,8 +116,10 @@ fn decodes_the_minimal_manifest() {
 
 #[test]
 fn decodes_the_self_development_manifest() {
-    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
-    let agent = manifest::decode(bytes).expect("self-development manifest should decode");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev/agent.worktree.yaml");
+    let agent = manifest::resolve(&path)
+        .expect("self-development manifest should resolve")
+        .agent;
 
     assert_eq!(agent.metadata.name, "agent-dev-worktree");
     assert_eq!(agent.spec.sandbox.platform.architecture, None);
@@ -265,32 +267,42 @@ fn rejects_environment_collisions_with_secrets_and_harness_owned_values() {
 
 #[test]
 fn self_development_mounts_the_host_checkout_instead_of_cloning() {
-    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
-    let agent = manifest::decode(bytes).expect("self-development manifest should decode");
+    let family = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev");
+    let agent = manifest::resolve(&family.join("agent.worktree.yaml"))
+        .expect("self-development worktree variant should resolve")
+        .agent;
     let dockerfile = include_str!("../examples/self-dev/Dockerfile");
 
-    let mounts = agent.spec.sandbox.mounts;
-    assert_eq!(mounts.len(), 1);
+    let mounts = &agent.spec.sandbox.mounts;
+    assert_eq!(mounts.len(), 2);
     assert!(matches!(
         &mounts[0],
         manifest::MountSpec::Bind { source, target, read_only }
-            if source == std::path::Path::new("../../../../../..")
+            if source == std::path::Path::new("../../../../..")
                 && target.as_str() == "/home/agent/code/altinn-studio"
                 && !read_only
     ));
     assert!(!dockerfile.contains("gh repo clone"));
 
-    let checkout = manifest::decode(include_bytes!("../examples/self-dev/checkout/agent.yaml"))
-        .expect("checkout manifest should decode");
-    assert_eq!(checkout.metadata.name, "agent-dev");
-    assert!(checkout.spec.sandbox.mounts.is_empty());
-    assert_eq!(checkout.spec.environment, agent.spec.environment);
-    let nested = manifest::decode(include_bytes!("../examples/self-dev/nested/agent.yaml"))
-        .expect("nested manifest should decode");
+    let default = manifest::resolve(&family.join("agent.yaml"))
+        .expect("default manifest should resolve")
+        .agent;
+    assert_eq!(default.metadata.name, "agent-dev");
+    assert_eq!(default.spec.sandbox.mounts.len(), 1);
+    assert_eq!(default.spec.environment, agent.spec.environment);
+    let nested = manifest::resolve(&family.join("agent.nested.yaml"))
+        .expect("nested manifest should resolve")
+        .agent;
     assert_eq!(nested.metadata.name, "agent-dev-nested");
-    assert!(nested.spec.sandbox.mounts.is_empty());
+    assert_eq!(nested.spec.sandbox.mounts, default.spec.sandbox.mounts);
     assert_eq!(nested.spec.environment, agent.spec.environment);
-    assert!(nested.spec.sandbox.resources.memory() < agent.spec.sandbox.resources.memory());
+    assert!(nested.spec.sandbox.resources.memory() < default.spec.sandbox.resources.memory());
+    for resolved in [&default, &nested, &agent] {
+        assert!(matches!(
+            &resolved.spec.sandbox.image,
+            sandbox::image::ImageSource::Build { .. }
+        ));
+    }
 }
 
 #[test]
@@ -549,13 +561,14 @@ spec:
 /// guarded here.
 #[test]
 fn example_manifests_keep_claude_code_sessions_on_fable() {
-    for bytes in [
-        &include_bytes!("../examples/minimal/agent.yaml")[..],
-        &include_bytes!("../examples/self-dev/checkout/agent.yaml")[..],
-        &include_bytes!("../examples/self-dev/nested/agent.yaml")[..],
-        &include_bytes!("../examples/self-dev/worktree/agent.yaml")[..],
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    for path in [
+        root.join("examples/minimal/agent.yaml"),
+        root.join("examples/self-dev/agent.yaml"),
+        root.join("examples/self-dev/agent.nested.yaml"),
+        root.join("examples/self-dev/agent.worktree.yaml"),
     ] {
-        let agent = manifest::decode(bytes).expect("manifest should decode");
+        let agent = manifest::resolve(&path).expect("manifest should resolve").agent;
         let claude = agent
             .spec
             .harness(Harness::ClaudeCode)
