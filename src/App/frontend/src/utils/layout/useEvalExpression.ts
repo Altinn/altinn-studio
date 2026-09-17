@@ -2,13 +2,12 @@ import { useMemo } from 'react';
 
 import type { ExpressionDescriptor } from '@app/layout-contract';
 
-import { evalExpr } from 'src/features/expressions';
+import { evaluateDescriptor } from 'src/features/expressions/evaluateDescriptor';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import { ExprValidation } from 'src/features/expressions/validation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import type { EvalExprOptions } from 'src/features/expressions';
+import type { ExpressionRuntimeOptions } from 'src/features/expressions/evaluateDescriptor';
 import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
 /**
@@ -18,22 +17,17 @@ import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/featur
 export function useEvalExpression<V extends ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
   descriptor: ExpressionDescriptor<V>,
-  runtimeOptions?: Omit<EvalExprOptions<V>, 'returnType' | 'defaultValue' | 'errorIntroText'>,
+  runtimeOptions?: ExpressionRuntimeOptions<V>,
 ): ExprValToActual<V> {
   const dataSources = useExpressionDataSources(expr);
   const baseComponentId = useCurrentComponentId();
   const componentId = useIndexedId(baseComponentId);
-  const errorIntroText = baseComponentId
-    ? `${descriptor.errorIntroText} (component '${componentId}')`
-    : descriptor.errorIntroText;
-  const options = useShallowMemo({ ...descriptor, ...runtimeOptions, errorIntroText });
-  return useMemo(() => {
-    if (expr === undefined || !ExprValidation.isValidOrScalar(expr, options.returnType, options.errorIntroText)) {
-      return options.defaultValue;
-    }
-
-    return evalExpr(expr, dataSources, options);
-  }, [dataSources, expr, options]);
+  const stableDescriptor = useShallowMemo(descriptor);
+  const options = useShallowMemo(runtimeOptions ?? {});
+  return useMemo(
+    () => evaluateDescriptor(expr, stableDescriptor, dataSources, baseComponentId ? componentId : undefined, options),
+    [baseComponentId, componentId, dataSources, stableDescriptor, expr, options],
+  );
 }
 
 type ExpressionInputs<D extends Record<string, ExpressionDescriptor>> = {
@@ -57,16 +51,7 @@ export function useEvalExpressionMap<D extends Record<string, ExpressionDescript
     const result: Record<string, unknown> = {};
     for (const [key, expr] of Object.entries(expressions)) {
       const descriptor = descriptors[key];
-      const options = {
-        ...descriptor,
-        errorIntroText: componentId
-          ? `${descriptor.errorIntroText} (component '${componentId}')`
-          : descriptor.errorIntroText,
-      };
-      result[key] =
-        expr === undefined || !ExprValidation.isValidOrScalar(expr, descriptor.returnType, options.errorIntroText)
-          ? descriptor.defaultValue
-          : evalExpr(expr, dataSources, options);
+      result[key] = evaluateDescriptor(expr, descriptor, dataSources, componentId);
     }
     return result as ExpressionResults<D>;
   }, [componentId, dataSources, descriptors, expressions]);
