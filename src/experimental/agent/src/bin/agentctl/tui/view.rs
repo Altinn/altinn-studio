@@ -177,40 +177,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal) {
             ];
             popup(frame, area, " delete ", Color::Red, lines);
         }
-        Modal::NewSession {
-            agent,
-            name,
-            harnesses,
-            harness,
-            error,
-        } => {
-            let mut harness_spans = vec![Span::raw("Harness: ")];
-            for (index, kind) in harnesses.iter().enumerate() {
-                if index > 0 {
-                    harness_spans.push(Span::raw("  "));
-                }
-                let style = if index == *harness {
-                    Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED)
-                } else {
-                    Style::new().fg(Color::DarkGray)
-                };
-                harness_spans.push(Span::styled(kind.as_str(), style));
-            }
-            let mut lines = vec![
-                Line::from(format!("Agent:   {agent}")),
-                Line::from(vec![
-                    Span::raw(format!("Name:    {name}")),
-                    Span::styled("▏", Style::new().fg(Color::Cyan)),
-                ]),
-                Line::from(harness_spans),
-            ];
-            if let Some(error) = error {
-                lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
-            }
-            lines.push(Line::default());
-            lines.push(hint_line(&[("enter", "create"), ("tab", "harness"), ("esc", "cancel")]));
-            popup(frame, area, " new session ", Color::Cyan, lines);
-        }
+        Modal::NewSession(form) => render_new_session(frame, area, form),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form),
         Modal::PortForward(form) => {
             let mut lines = vec![
@@ -238,6 +205,69 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal) {
             popup(frame, area, title, Color::Cyan, lines);
         }
     }
+}
+
+fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionForm) {
+    use super::app::SessionField;
+
+    let mut harness_spans = vec![Span::raw("Harness: ")];
+    for (index, installation) in form.harnesses.iter().enumerate() {
+        if index > 0 {
+            harness_spans.push(Span::raw("  "));
+        }
+        let style = if index == form.harness {
+            Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED)
+        } else {
+            Style::new().fg(Color::DarkGray)
+        };
+        harness_spans.push(Span::styled(installation.kind.as_str().to_owned(), style));
+    }
+    let mut lines = vec![
+        Line::from(format!("Agent:   {}", form.agent)),
+        field_line("Name:    ", &form.name, form.field == SessionField::Name, None),
+        field_line(
+            "Model:   ",
+            &form.model,
+            form.field == SessionField::Model,
+            Some(selection_hint(form.model_default())),
+        ),
+        field_line(
+            "Effort:  ",
+            &form.effort,
+            form.field == SessionField::Effort,
+            Some(selection_hint(form.effort_default())),
+        ),
+        Line::from(harness_spans),
+    ];
+    if let Some(error) = &form.error {
+        lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
+    }
+    lines.push(Line::default());
+    lines.push(hint_line(&super::app::NEW_SESSION_HINTS));
+    popup(frame, area, " new session ", Color::Cyan, lines);
+}
+
+/// What an empty selection field resolves to: the manifest default or the harness's own.
+fn selection_hint(manifest_default: Option<&str>) -> String {
+    manifest_default.map_or_else(
+        || "harness default".to_owned(),
+        |default| format!("{default} (manifest default)"),
+    )
+}
+
+/// One text field of the new Session form. The cursor marks the focused field;
+/// `empty_hint` shows what an empty field resolves to.
+fn field_line(label: &str, value: &str, focused: bool, empty_hint: Option<String>) -> Line<'static> {
+    let mut spans = vec![Span::raw(format!("{label}{value}"))];
+    if focused {
+        spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+    }
+    if let Some(hint) = empty_hint
+        && value.is_empty()
+    {
+        spans.push(Span::styled(format!(" {hint}"), Style::new().fg(Color::DarkGray)));
+    }
+    Line::from(spans)
 }
 
 fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm) {

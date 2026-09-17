@@ -90,6 +90,14 @@ agentctl attach session/work
 
 Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
 
+A new Session launches with the model and effort level declared by its harness installation's manifest `defaults`;
+the published manifests select Claude Code's `fable` alias. Choose differently for one Session, in the harness's own
+vocabulary; the choice is fixed for that Session:
+
+```sh
+agentctl create session/careful --model opus --effort xhigh
+```
+
 Delete the Agent and its Sandbox:
 
 ```sh

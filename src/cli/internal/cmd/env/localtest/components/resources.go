@@ -1,6 +1,8 @@
 package components
 
 import (
+	"strings"
+
 	"fmt"
 	"os"
 	"path/filepath"
@@ -157,11 +159,20 @@ func resourceEnabledRef(enabled bool) *bool {
 	return new(false)
 }
 
+// disabledImagePrefix marks the placeholder reference given to a component that is not part
+// of this run. It is never pulled, and never names a build anything ran.
+const disabledImagePrefix = "disabled.local/"
+
 func imageRef(ref, name string, enabled bool) string {
 	if enabled {
 		return ref
 	}
-	return "disabled.local/" + name + ":disabled"
+	return disabledImagePrefix + name + ":disabled"
+}
+
+// IsDisabledImageRef reports whether a reference is the placeholder for a disabled component.
+func IsDisabledImageRef(ref string) bool {
+	return strings.HasPrefix(ref, disabledImagePrefix)
 }
 
 func newContainerResource(
