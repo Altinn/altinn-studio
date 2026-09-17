@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.ProvisionedSecrets;
 /// files, and the sweep of the secrets directory into the app's own configuration root excludes exactly these
 /// files. A file listed here is therefore reachable through <see cref="ProvisionedSecrets"/> and nowhere
 /// else.</para>
-/// <para>Maskinporten is the first tenant. <c>app-codes.json</c> is the next one.</para>
+/// <para>Maskinporten is the first tenant. The app codes file is the next one.</para>
 /// </summary>
 internal static class ProvisionedSecretFiles
 {
@@ -14,7 +14,7 @@ internal static class ProvisionedSecretFiles
     /// The credentials of the app's one Maskinporten identity.
     /// </summary>
     public static readonly ProvisionedSecretFile Maskinporten = new(
-        "maskinporten-settings.json",
+        "RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME",
         "MaskinportenSettings"
     );
 

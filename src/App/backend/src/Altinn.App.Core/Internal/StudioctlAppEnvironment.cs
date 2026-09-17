@@ -11,8 +11,12 @@ namespace Altinn.App.Core.Internal;
 /// app's configuration. Either way the values end up in the app's <see cref="IConfiguration"/>, which is
 /// therefore where the libraries read them; the process environment alone would miss the imported case.</para>
 /// <para>Most of what studioctl hands over is ordinary app configuration - platform endpoints, the hostname,
-/// the Kestrel URL - that the app binds exactly as it would in a cluster. The keys here are the ones addressed
-/// to the libraries themselves. studioctl's side of the contract is <c>src/cli/internal/cmd/app/env.go</c>.</para>
+/// the Kestrel URL - that the app binds exactly as it would in a cluster. The key here is the one addressed to
+/// the libraries themselves and meaningful only to studioctl. The <c>RUNTIME_APP_*</c> variables on
+/// <see cref="ProvisionedSecrets.ProvisionedSecrets"/> are not that: they are the platform's contract with the
+/// app, set by the operator's configuration for a deployed app and by studioctl for a local run, and they
+/// reach the app through these same two routes. studioctl's side of the contract is
+/// <c>src/cli/internal/cmd/app/env.go</c>.</para>
 /// </summary>
 internal static class StudioctlAppEnvironment
 {
@@ -22,14 +26,4 @@ internal static class StudioctlAppEnvironment
     /// there is nothing to import.
     /// </summary>
     internal const string AppRunKey = "STUDIOCTL_APP_RUN";
-
-    /// <summary>
-    /// <para>The directory studioctl provisions a local run's secrets into, the way the operator provisions the
-    /// secrets mount in a cluster. It holds every file the platform provisions for the app libraries, among
-    /// them the Maskinporten client stored with <c>studioctl app maskinporten set</c>;
-    /// <c>ProvisionedSecrets.ForPlatform</c> reads it, on the localtest platform only.</para>
-    /// <para>Deliberately not shaped like a configuration section an app would think to write: the directory
-    /// belongs to studioctl, the way the secrets mount belongs to the operator.</para>
-    /// </summary>
-    internal const string AppSecretsDirectoryKey = "STUDIOCTL_APP_SECRETS_DIR";
 }

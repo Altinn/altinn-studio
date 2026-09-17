@@ -1,8 +1,10 @@
 using System.Text;
 using System.Text.Json;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.ProvisionedSecrets;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -265,7 +267,16 @@ public class MaskinportenSettingsTest
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-            services.AddSingleton(_ => new ProvisionedSecrets(tempDir, ProvisionedSecretFiles.All));
+            services.AddSingleton(_ => new ProvisionedSecrets(
+                tempDir,
+                new Dictionary<ProvisionedSecretFile, string>
+                {
+                    [ProvisionedSecretFiles.Maskinporten] = "maskinporten-settings.json",
+                }
+            ));
+            services.AddRuntimeEnvironment();
+            services.Configure<GeneralSettings>(_ => { });
+            services.Configure<PlatformSettings>(_ => { });
             services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();
@@ -311,7 +322,16 @@ public class MaskinportenSettingsTest
 
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
-            services.AddSingleton(_ => new ProvisionedSecrets(tempDir, ProvisionedSecretFiles.All));
+            services.AddSingleton(_ => new ProvisionedSecrets(
+                tempDir,
+                new Dictionary<ProvisionedSecretFile, string>
+                {
+                    [ProvisionedSecretFiles.Maskinporten] = "maskinporten-settings.json",
+                }
+            ));
+            services.AddRuntimeEnvironment();
+            services.Configure<GeneralSettings>(_ => { });
+            services.Configure<PlatformSettings>(_ => { });
             services.AddMaskinportenSettings();
 
             await using var serviceProvider = services.BuildStrictServiceProvider();

@@ -12,7 +12,8 @@ namespace Altinn.App.Api.Extensions;
 /// <para>Development only, and skipped when <see cref="StudioctlAppEnvironment.AppRunKey"/> is already in the
 /// process environment. A studioctl that is missing or fails leaves the configuration as it was, with the
 /// failure written to the debug output and nothing else: an app is free to run on its own configuration.
-/// The keys the libraries read out of what is imported are listed on <see cref="StudioctlAppEnvironment"/>.</para>
+/// What the libraries read out of what is imported is <see cref="StudioctlAppEnvironment"/>'s own key, and the
+/// <c>RUNTIME_APP_*</c> variables that say where the platform provisioned the app's secrets.</para>
 /// </summary>
 internal static class StudioctlLocalConfiguration
 {

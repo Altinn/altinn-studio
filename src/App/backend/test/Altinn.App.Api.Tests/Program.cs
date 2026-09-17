@@ -18,6 +18,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Sign;
+using Altinn.App.Tests.Common;
 using Altinn.App.Tests.Common.Mocks;
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
@@ -76,6 +77,14 @@ builder.Configuration["AppCodes:WorkflowEngineCallback:0:Id"] = "test";
 builder.Configuration["AppCodes:WorkflowEngineCallback:0:Code"] = "test-workflow-engine-callback-secret-long-enough";
 builder.Configuration["AppCodes:WorkflowEngineCallback:0:IssuedAt"] = "2020-01-01T00:00:00Z";
 builder.Configuration["AppCodes:WorkflowEngineCallback:0:ExpiresAt"] = "2999-01-01T00:00:00Z";
+
+// The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
+// the app's one Maskinporten client; the libraries require both, and refuse to start without them. Stand in
+// for the platform with a throwaway client in a temp directory.
+foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variables)
+{
+    builder.Configuration[key] = value;
+}
 
 // AppConfigurationCache.Disable = true;
 

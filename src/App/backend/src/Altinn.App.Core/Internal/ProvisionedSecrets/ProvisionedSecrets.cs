@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.App;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -11,26 +12,37 @@ namespace Altinn.App.Core.Internal.ProvisionedSecrets;
 /// one. Nothing an app supplies — a configuration section, an environment variable, a
 /// <c>Configure&lt;T&gt;</c> call — can reach a provisioned secret, so what the platform provisioned is what
 /// the app gets, and an app cannot renegotiate it.</para>
-/// <para>Where the secrets are provisioned is the platform's to say, never the app's. In a cluster that is the
-/// fixed <see cref="ClusterDirectory"/> mount. On the localtest platform studioctl provisions the same
-/// directory the way the operator does in a cluster, and names the one it provisions into through
-/// <see cref="StudioctlAppEnvironment.AppSecretsDirectoryKey"/>; see <see cref="ForPlatform"/>.</para>
+/// <para>Where the secrets are and what each file is called is the platform's to say, and the libraries
+/// hardcode neither. Whoever writes the files names the directory in <see cref="DirectoryKey"/> and each file
+/// in its own <see cref="ProvisionedSecretFile.FileNameKey"/>: the operator for a deployed app, studioctl for
+/// a local run. Both are required in every environment and there is no fallback, deliberately — a location the
+/// libraries had guessed would read nothing at all the day the writer moved it, and say nothing about why. The
+/// one contract the libraries do hold is the content: the section a file wraps its contents in.</para>
 /// <para>The file provider polls, because in a cluster this directory is a Kubernetes projected volume:
 /// operator-driven rotation therefore reaches <see cref="IOptionsMonitor{TOptions}"/> consumers without a
-/// restart. The same polling is what lets a developer store a secret for a local run that is already up.</para>
+/// restart.</para>
 /// <para>This is a DI singleton holding the built root open, and the container disposes it.</para>
 /// </summary>
 internal sealed class ProvisionedSecrets : IDisposable
 {
     /// <summary>
-    /// Where the platform provisions the app's secrets in a cluster. Deliberately not reachable from the app's
-    /// configuration: an app able to move this could point the libraries at secrets of its own, which is the
-    /// whole thing this type exists to prevent.
+    /// The configuration key naming the directory the platform provisions the app's secrets into.
     /// </summary>
-    internal const string ClusterDirectory = "/mnt/app-secrets";
+    internal const string DirectoryKey = "RUNTIME_APP_SECRETS_DIR";
+
+    /// <summary>
+    /// How a value that is not set is supplied, in the two kinds of environment an app runs in. Part of every
+    /// failure message, because the fix is different in each and neither is the app's own configuration.
+    /// </summary>
+    private const string WhereTheValueComesFrom =
+        "The platform sets it for a deployed app. A local run gets it from studioctl, so start the app with "
+        + "'studioctl app run', or have studioctl on PATH so 'dotnet run' can import the same environment.";
+
+    private static readonly char[] _directorySeparators = ['/', '\\'];
 
     private readonly PhysicalFileProvider _fileProvider;
     private readonly IConfigurationRoot _root;
+    private readonly IReadOnlyDictionary<ProvisionedSecretFile, string> _fileNames;
 
     /// <summary>
     /// The absolute path of the directory the secrets are read from.
@@ -38,19 +50,17 @@ internal sealed class ProvisionedSecrets : IDisposable
     public string Directory { get; }
 
     /// <summary>
-    /// Whether the directory is provisioned by studioctl for a local run rather than by the platform's
-    /// operator. Decides what a developer is told when a file is missing, nothing else.
+    /// The channel over <paramref name="directory"/>, for the files named in <paramref name="fileNames"/>.
     /// </summary>
-    public bool ProvisionedByStudioctl { get; }
-
-    internal ProvisionedSecrets(
-        string directory,
-        IReadOnlyCollection<ProvisionedSecretFile> files,
-        bool provisionedByStudioctl = false
-    )
+    /// <param name="directory">The directory the platform provisions the app's secrets into.</param>
+    /// <param name="fileNames">The name the platform gave each hosted file.</param>
+    internal ProvisionedSecrets(string directory, IReadOnlyDictionary<ProvisionedSecretFile, string> fileNames)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+        ArgumentNullException.ThrowIfNull(fileNames);
+
         Directory = Path.GetFullPath(directory);
-        ProvisionedByStudioctl = provisionedByStudioctl;
+        _fileNames = fileNames;
         string providerRoot = GetExistingProviderRoot(Directory);
 
         _fileProvider = new PhysicalFileProvider(providerRoot)
@@ -62,10 +72,10 @@ internal sealed class ProvisionedSecrets : IDisposable
         };
 
         var builder = new ConfigurationBuilder();
-        foreach (ProvisionedSecretFile file in files)
+        foreach (ProvisionedSecretFile file in fileNames.Keys)
         {
-            // Every file is optional: one the operator writes after the app started - a Maskinporten client
-            // provisioned later, say - appears without a restart, because the provider is polling.
+            // Every file is optional: one the platform writes after the app started appears without a
+            // restart, because the provider is polling.
             builder.AddJsonFile(
                 provider: _fileProvider,
                 path: Path.GetRelativePath(providerRoot, PathOf(file)),
@@ -87,37 +97,75 @@ internal sealed class ProvisionedSecrets : IDisposable
     /// Where <paramref name="file"/> is provisioned, as an absolute path.
     /// </summary>
     /// <param name="file">One of the files this channel was built for.</param>
-    public string PathOf(ProvisionedSecretFile file) => Path.Join(Directory, file.FileName);
+    public string PathOf(ProvisionedSecretFile file) => Path.Join(Directory, _fileNames[file]);
 
     /// <summary>
-    /// <para>The channel for the platform the app runs on. In a cluster the secrets are at the fixed mount. On
-    /// the localtest platform they are in the directory studioctl names through
-    /// <see cref="StudioctlAppEnvironment.AppSecretsDirectoryKey"/>: every local run is configured by
-    /// studioctl, whether <c>studioctl app run</c> started the app or <c>StudioctlLocalConfiguration</c>
-    /// imported the environment for a <c>dotnet run</c>, and both carry the directory. The key is read from the
-    /// app's configuration because that is where both deliver it (see <see cref="StudioctlAppEnvironment"/>),
-    /// and it is the only thing this type reads from there.</para>
-    /// <para>The key is honored on localtest only: the same gate every other local-only behavior in the app
-    /// libraries sits behind (<c>AuthenticationTokenResolver</c>, <c>MaskinportenWellKnownRefreshService</c>),
-    /// and one an app cannot pass without breaking its own platform calls. A localtest run with no directory
-    /// named was started outside studioctl altogether - not installed, or its environment not imported - and
-    /// gets the cluster path, so that a missing-secret failure can send the developer to studioctl.</para>
+    /// <para>The channel as the platform describes it: the directory named by <see cref="DirectoryKey"/>, and
+    /// every hosted file under the name its own <see cref="ProvisionedSecretFile.FileNameKey"/> gives it.
+    /// These are read from the app's configuration because that is where both ways of delivering them land —
+    /// the process environment of a deployed app or of <c>studioctl app run</c>, and the environment
+    /// <c>StudioctlLocalConfiguration</c> imports for a <c>dotnet run</c> (see
+    /// <see cref="StudioctlAppEnvironment"/>) — and they are the only things this type reads from there.</para>
+    /// <para>A value that is missing, or that is not a bare file name, fails startup. There is no location to
+    /// fall back to that would not be a guess.</para>
     /// </summary>
-    /// <param name="runtimeEnvironment">The platform the app is running on.</param>
-    /// <param name="configuration">The app's own configuration, read for studioctl's key alone.</param>
-    internal static ProvisionedSecrets ForPlatform(RuntimeEnvironment runtimeEnvironment, IConfiguration configuration)
+    /// <param name="configuration">The app's own configuration.</param>
+    /// <exception cref="ApplicationConfigException">A required value is missing or is not a bare file name.</exception>
+    internal static ProvisionedSecrets FromConfiguration(IConfiguration configuration)
     {
-        string? studioctlSecretsDirectory = runtimeEnvironment.IsLocaltestPlatform()
-            ? configuration[StudioctlAppEnvironment.AppSecretsDirectoryKey]
-            : null;
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        return string.IsNullOrWhiteSpace(studioctlSecretsDirectory)
-            ? new ProvisionedSecrets(ClusterDirectory, ProvisionedSecretFiles.All)
-            : new ProvisionedSecrets(
-                studioctlSecretsDirectory,
-                ProvisionedSecretFiles.All,
-                provisionedByStudioctl: true
+        string directory = RequireValue(configuration, DirectoryKey);
+
+        Dictionary<ProvisionedSecretFile, string> fileNames = [];
+        foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
+        {
+            fileNames[file] = RequireFileName(configuration, file);
+        }
+
+        return new ProvisionedSecrets(directory, fileNames);
+    }
+
+    /// <summary>
+    /// The name <paramref name="file"/> is provisioned under. It has to be a bare name inside the secrets
+    /// directory: a path would let whoever set it read a file somewhere else entirely, which is the same hole
+    /// as letting the app choose.
+    /// </summary>
+    /// <param name="configuration">The app's own configuration.</param>
+    /// <param name="file">One of the hosted files.</param>
+    /// <exception cref="ApplicationConfigException">The value is missing or is not a bare file name.</exception>
+    internal static string RequireFileName(IConfiguration configuration, ProvisionedSecretFile file)
+    {
+        string fileName = RequireValue(configuration, file.FileNameKey);
+        if (fileName.IndexOfAny(_directorySeparators) >= 0 || fileName is "." or "..")
+        {
+            throw new ApplicationConfigException(
+                $"'{file.FileNameKey}' must name a file inside the directory named by '{DirectoryKey}', but it "
+                    + $"is set to '{fileName}'. {WhereTheValueComesFrom}"
             );
+        }
+
+        return fileName;
+    }
+
+    /// <summary>
+    /// The value of <paramref name="key"/>, which every environment is required to set.
+    /// </summary>
+    /// <param name="configuration">The app's own configuration.</param>
+    /// <param name="key">The configuration key to read.</param>
+    /// <exception cref="ApplicationConfigException">The value is missing or blank.</exception>
+    private static string RequireValue(IConfiguration configuration, string key)
+    {
+        string? value = configuration[key];
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ApplicationConfigException(
+                $"'{key}' is not set, and the app libraries need it to read the secrets the platform "
+                    + $"provisions. {WhereTheValueComesFrom}"
+            );
+        }
+
+        return value;
     }
 
     /// <summary>

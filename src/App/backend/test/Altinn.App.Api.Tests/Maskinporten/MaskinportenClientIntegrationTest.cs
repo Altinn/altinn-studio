@@ -4,7 +4,6 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
-using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,20 +23,17 @@ public class MaskinportenClientIntegrationTests
     [Fact]
     public async Task ProvisionedSettingsFile_IsWhatTheClientAuthenticatesWith()
     {
-        // Arrange - the platform mounts the credentials as a file; this is the only way in
+        // Arrange - the platform mounts the credentials as a file and says where; this is the only way in
         using var secretsDirectory = new TempDirectory();
-        string settingsPath = Path.Join(secretsDirectory.Path, "maskinporten-settings.json");
-        await File.WriteAllTextAsync(settingsPath, SettingsJson("provisioned-client"));
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
-        // Act - RegisterCustomAppServices runs before AddAltinnAppServices, so this source wins the TryAdd
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
-            services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory.Path, ProvisionedSecretFiles.All))
-        );
+        // Act
+        var app = AppBuilder.Build(configData: ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path));
 
         // Assert
         var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
         Assert.Equal("provisioned-client", settings.ClientId);
-        Assert.Equal("https://maskinporten.dev/", settings.Authority);
+        Assert.Equal("https://test.maskinporten.no/", settings.Authority);
     }
 
     [Fact]
@@ -45,20 +41,18 @@ public class MaskinportenClientIntegrationTests
     {
         // Arrange - an app supplying its own MaskinportenSettings section, the pre-v9 hazard
         using var secretsDirectory = new TempDirectory();
-        string settingsPath = Path.Join(secretsDirectory.Path, "maskinporten-settings.json");
-        await File.WriteAllTextAsync(settingsPath, SettingsJson("provisioned-client"));
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
         var app = AppBuilder.Build(
             configData:
             [
+                .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path),
                 new("MaskinportenSettings:clientId", "app-supplied-client"),
                 new("MaskinportenSettings:jwkBase64", "app-supplied-key"),
                 new("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
                 new("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own"),
-            ],
-            registerCustomAppServices: services =>
-                services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory.Path, ProvisionedSecretFiles.All))
+            ]
         );
 
         // Assert - the app's section is not a Maskinporten configuration surface at all
@@ -67,15 +61,57 @@ public class MaskinportenClientIntegrationTests
         Assert.Null(settings.JwkBase64);
     }
 
-    private static string SettingsJson(string clientId) =>
-        $$"""
-            {
-              "MaskinportenSettings": {
-                "authority": "https://maskinporten.dev/",
-                "clientId": "{{clientId}}"
-              }
-            }
-            """;
+    /// <summary>
+    /// Every app has a provisioned Maskinporten client, so an app given none does not start at all: an
+    /// operator sees a deployment that failed, rather than a token request that fails hours later.
+    /// </summary>
+    [Fact]
+    public async Task Host_DoesNotStart_WhenNoClientIsProvisioned()
+    {
+        using var secretsDirectory = new TempDirectory();
+
+        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
+        Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Host_Starts_WhenTheClientIsProvisioned()
+    {
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
+
+        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+
+        await app.StartAsync();
+        await app.StopAsync();
+
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+    }
+
+    /// <summary>
+    /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port, no
+    /// localtest probing, and the callback app code the workflow engine integration validates at startup.
+    /// </summary>
+    /// <param name="secretsDirectory">The directory standing in for the platform's secrets mount.</param>
+    private static IEnumerable<KeyValuePair<string, string?>> HostConfiguration(string secretsDirectory) =>
+        [
+            .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory),
+            new("urls", "http://127.0.0.1:0"),
+            new("GeneralSettings:DisableLocaltestValidation", "true"),
+            new("AppCodes:WorkflowEngineCallback:0:Id", "test"),
+            new("AppCodes:WorkflowEngineCallback:0:Code", "test-workflow-engine-callback-secret-long-enough"),
+            new("AppCodes:WorkflowEngineCallback:0:IssuedAt", "2020-01-01T00:00:00Z"),
+            new("AppCodes:WorkflowEngineCallback:0:ExpiresAt", "2999-01-01T00:00:00Z"),
+        ];
+
+    private static Task WriteProvisionedClient(string secretsDirectory, string clientId) =>
+        File.WriteAllTextAsync(
+            Path.Join(secretsDirectory, ProvisionedSecretsTestEnvironment.MaskinportenFileName),
+            ProvisionedSecretsTestEnvironment.CreateMaskinportenSettingsJson(clientId)
+        );
 
     private sealed class TempDirectory : IDisposable
     {

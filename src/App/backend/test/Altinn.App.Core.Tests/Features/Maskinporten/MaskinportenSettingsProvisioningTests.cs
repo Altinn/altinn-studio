@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
@@ -15,6 +16,10 @@ namespace Altinn.App.Core.Tests.Features.Maskinporten;
 /// </summary>
 public sealed class MaskinportenSettingsProvisioningTests
 {
+    private const string _fileName = "maskinporten-settings.json";
+    private const string _platformHostName = "at22.altinn.cloud";
+    private const string _localtestHostName = "local.altinn.cloud";
+
     private static readonly ProvisionedSecretFile _file = ProvisionedSecretFiles.Maskinporten;
 
     [Fact]
@@ -23,7 +28,7 @@ public sealed class MaskinportenSettingsProvisioningTests
         using var tempDirectory = new TempDirectory();
         await WriteSettings(tempDirectory.Path, "provisioned-client");
 
-        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
+        await using var serviceProvider = BuildAppProvider(_platformHostName, tempDirectory.Path);
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
         Assert.Equal("provisioned-client", settings.ClientId);
@@ -39,7 +44,8 @@ public sealed class MaskinportenSettingsProvisioningTests
         using var tempDirectory = new TempDirectory();
         await WriteSettings(tempDirectory.Path, "provisioned-client");
 
-        await using var serviceProvider = BuildOptionsProvider(
+        await using var serviceProvider = BuildAppProvider(
+            _platformHostName,
             tempDirectory.Path,
             ("MaskinportenSettings:clientId", "app-supplied-client"),
             ("MaskinportenSettings:jwkBase64", "app-supplied-key"),
@@ -57,14 +63,14 @@ public sealed class MaskinportenSettingsProvisioningTests
     {
         using var tempDirectory = new TempDirectory();
 
-        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
+        await using var serviceProvider = BuildAppProvider(_platformHostName, tempDirectory.Path);
 
         var exception = Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
         );
         // The failure names the place the platform provisions into, not a field, and points a developer who
         // hits it on their own machine at the tool that provisions locally.
-        Assert.Contains(Path.Join(tempDirectory.Path, _file.FileName), exception.Message, StringComparison.Ordinal);
+        Assert.Contains(Path.Join(tempDirectory.Path, _fileName), exception.Message, StringComparison.Ordinal);
         Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
     }
@@ -75,11 +81,11 @@ public sealed class MaskinportenSettingsProvisioningTests
         // A partial file is a different problem from a missing one, and the data annotations describe it.
         using var tempDirectory = new TempDirectory();
         await File.WriteAllTextAsync(
-            Path.Join(tempDirectory.Path, _file.FileName),
+            Path.Join(tempDirectory.Path, _fileName),
             """{ "MaskinportenSettings": { "clientId": "half-a-client" } }"""
         );
 
-        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
+        await using var serviceProvider = BuildAppProvider(_platformHostName, tempDirectory.Path);
 
         var exception = Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
@@ -98,7 +104,7 @@ public sealed class MaskinportenSettingsProvisioningTests
         using var tempDirectory = new TempDirectory();
         await WriteSettings(tempDirectory.Path, "client-before");
 
-        await using var serviceProvider = BuildOptionsProvider(tempDirectory.Path);
+        await using var serviceProvider = BuildAppProvider(_platformHostName, tempDirectory.Path);
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
         Assert.Equal("client-before", options.CurrentValue.ClientId);
 
@@ -108,19 +114,22 @@ public sealed class MaskinportenSettingsProvisioningTests
     }
 
     /// <summary>
-    /// On localtest studioctl provisions the credentials the way the operator does in a cluster, and names the
-    /// directory it provisions into. That is how a developer tests a real Maskinporten integration from a local
-    /// run without the credentials ever entering the app's configuration.
+    /// The credentials come from wherever the platform put them, under whatever it called the file. On
+    /// localtest that is studioctl's doing, and the app is none the wiser.
     /// </summary>
     [Fact]
-    public async Task Options_ReadTheStudioctlDirectory_OnLocaltest()
+    public async Task Options_ReadTheFileWherePlatformSaysItIs()
     {
         using var tempDirectory = new TempDirectory();
-        await WriteSettings(tempDirectory.Path, "developers-own-client");
+        await File.WriteAllTextAsync(
+            Path.Join(tempDirectory.Path, "a-name-studioctl-chose.json"),
+            SettingsJson("developers-own-client")
+        );
 
         await using var serviceProvider = BuildAppProvider(
-            hostName: "local.altinn.cloud",
-            (StudioctlAppEnvironment.AppSecretsDirectoryKey, tempDirectory.Path)
+            _localtestHostName,
+            tempDirectory.Path,
+            fileName: "a-name-studioctl-chose.json"
         );
 
         var settings = serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
@@ -134,8 +143,11 @@ public sealed class MaskinportenSettingsProvisioningTests
     [Fact]
     public async Task Options_IgnoreAMaskinportenSection_OnLocaltest()
     {
+        using var tempDirectory = new TempDirectory();
+
         await using var serviceProvider = BuildAppProvider(
-            hostName: "local.altinn.cloud",
+            _localtestHostName,
+            tempDirectory.Path,
             ("MaskinportenSettings:authority", "https://test.maskinporten.no/"),
             ("MaskinportenSettings:clientId", "developers-own-client")
         );
@@ -146,18 +158,16 @@ public sealed class MaskinportenSettingsProvisioningTests
     }
 
     /// <summary>
-    /// studioctl named a directory but nothing has been stored there yet - the state a developer is in the
-    /// first time their integration asks for a token. The failure says exactly what to run, and not where.
+    /// The platform provisioned a directory but no client - the state a developer is in before they have
+    /// stored one. On localtest the failure says exactly what to run, and not where: where studioctl keeps
+    /// the client is studioctl's business, and naming it would invite hand edits.
     /// </summary>
     [Fact]
-    public async Task Options_NameTheStudioctlCommand_WhenTheStudioctlDirectoryIsEmpty()
+    public async Task Options_NameTheStudioctlCommand_WhenNothingIsStoredLocally()
     {
         using var tempDirectory = new TempDirectory();
 
-        await using var serviceProvider = BuildAppProvider(
-            hostName: "local.altinn.cloud",
-            (StudioctlAppEnvironment.AppSecretsDirectoryKey, tempDirectory.Path)
-        );
+        await using var serviceProvider = BuildAppProvider(_localtestHostName, tempDirectory.Path);
 
         var exception = Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
@@ -168,52 +178,101 @@ public sealed class MaskinportenSettingsProvisioningTests
             StringComparison.Ordinal
         );
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
-        // Where studioctl keeps the file is not the developer's concern; naming it would invite hand edits.
         Assert.DoesNotContain(tempDirectory.Path, exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// The Maskinporten options as an app binds them, through the real registration, for a given platform
-    /// hostname and app configuration. Nothing is provisioned at the cluster's location - which is the
-    /// situation on a developer's machine.
+    /// Every app has a provisioned Maskinporten client, so an app with none does not start: the failure is a
+    /// deployment problem an operator sees, not a token request that fails hours in.
+    /// </summary>
+    [Fact]
+    public async Task Host_DoesNotStart_WhenNothingIsProvisioned()
+    {
+        using var tempDirectory = new TempDirectory();
+        using IHost host = BuildAppHost(_localtestHostName, tempDirectory.Path);
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
+
+        Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Host_Starts_WhenTheClientIsProvisioned()
+    {
+        using var tempDirectory = new TempDirectory();
+        await WriteSettings(tempDirectory.Path, "provisioned-client");
+        using IHost host = BuildAppHost(_localtestHostName, tempDirectory.Path);
+
+        await host.StartAsync();
+        await host.StopAsync();
+
+        var settings = host.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
+        Assert.Equal("provisioned-client", settings.ClientId);
+    }
+
+    /// <summary>
+    /// The Maskinporten options exactly as an app binds them, through the real registration: the platform
+    /// names the secrets directory and the file, and the app's own configuration adds
+    /// <paramref name="appConfiguration"/> on top - which is the thing that must never reach the credentials.
     /// </summary>
     private static ServiceProvider BuildAppProvider(
         string hostName,
+        string secretsDirectory,
+        params (string Key, string? Value)[] appConfiguration
+    ) => BuildAppProvider(hostName, secretsDirectory, _fileName, appConfiguration);
+
+    private static ServiceProvider BuildAppProvider(
+        string hostName,
+        string secretsDirectory,
+        string fileName,
         params (string Key, string? Value)[] appConfiguration
     )
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(ConfigurationWith(appConfiguration));
-        services.AddRuntimeEnvironment();
-        services.Configure<GeneralSettings>(options => options.HostName = hostName);
-        services.Configure<PlatformSettings>(_ => { });
-        services.AddMaskinportenSettings();
+        services.AddSingleton<IConfiguration>(
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(ConfigurationWith(secretsDirectory, fileName, appConfiguration))
+                .Build()
+        );
+        AddMaskinportenTenant(services, hostName);
 
         return services.BuildStrictServiceProvider();
     }
 
     /// <summary>
-    /// The Maskinporten options exactly as an app binds them, for secrets provisioned into
-    /// <paramref name="secretsDirectory"/> and an app configuration of <paramref name="appConfiguration"/>.
-    /// Registering the channel first is the only way to move the directory - an app has no such lever.
+    /// The same registration inside a host, so that startup validation runs.
     /// </summary>
-    private static ServiceProvider BuildOptionsProvider(
-        string secretsDirectory,
-        params (string Key, string? Value)[] appConfiguration
-    )
+    private static IHost BuildAppHost(string hostName, string secretsDirectory)
     {
-        var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(ConfigurationWith(appConfiguration));
-        services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory, ProvisionedSecretFiles.All));
-        services.AddMaskinportenSettings();
+        HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings());
+        builder.Configuration.AddInMemoryCollection(ConfigurationWith(secretsDirectory, _fileName, []));
+        builder.Services.AddLogging();
+        AddMaskinportenTenant(builder.Services, hostName);
 
-        return services.BuildStrictServiceProvider();
+        return builder.Build();
     }
 
-    private static IConfigurationRoot ConfigurationWith(params (string Key, string? Value)[] values) =>
-        new ConfigurationBuilder()
-            .AddInMemoryCollection(values.Select(value => new KeyValuePair<string, string?>(value.Key, value.Value)))
-            .Build();
+    private static void AddMaskinportenTenant(IServiceCollection services, string hostName)
+    {
+        services.AddRuntimeEnvironment();
+        services.Configure<GeneralSettings>(options => options.HostName = hostName);
+        services.Configure<PlatformSettings>(_ => { });
+        services.AddMaskinportenSettings();
+    }
+
+    /// <summary>
+    /// The app's configuration: the variables the platform sets, plus whatever the app itself supplies.
+    /// </summary>
+    private static IEnumerable<KeyValuePair<string, string?>> ConfigurationWith(
+        string secretsDirectory,
+        string fileName,
+        (string Key, string? Value)[] appConfiguration
+    ) =>
+        [
+            new(ProvisionedSecrets.DirectoryKey, secretsDirectory),
+            new(_file.FileNameKey, fileName),
+            .. appConfiguration.Select(value => new KeyValuePair<string, string?>(value.Key, value.Value)),
+        ];
 
     /// <summary>
     /// The configured client id, or <c>null</c> while the settings are still unreadable — polling for a file
@@ -233,18 +292,8 @@ public sealed class MaskinportenSettingsProvisioningTests
 
     private static async Task WriteSettings(string secretsDirectory, string clientId, DateTime? lastWriteTimeUtc = null)
     {
-        string path = Path.Join(secretsDirectory, _file.FileName);
-        await File.WriteAllTextAsync(
-            path,
-            $$"""
-            {
-              "MaskinportenSettings": {
-                "authority": "https://test.maskinporten.no/",
-                "clientId": "{{clientId}}"
-              }
-            }
-            """
-        );
+        string path = Path.Join(secretsDirectory, _fileName);
+        await File.WriteAllTextAsync(path, SettingsJson(clientId));
 
         if (lastWriteTimeUtc is not null)
         {
@@ -252,6 +301,16 @@ public sealed class MaskinportenSettingsProvisioningTests
             File.SetLastWriteTimeUtc(path, lastWriteTimeUtc.Value);
         }
     }
+
+    private static string SettingsJson(string clientId) =>
+        $$"""
+            {
+              "MaskinportenSettings": {
+                "authority": "https://test.maskinporten.no/",
+                "clientId": "{{clientId}}"
+              }
+            }
+            """;
 
     private sealed class TempDirectory : IDisposable
     {

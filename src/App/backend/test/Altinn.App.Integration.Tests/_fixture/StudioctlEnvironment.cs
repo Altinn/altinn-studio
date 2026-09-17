@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
+using Altinn.App.Tests.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Integration.Tests;
@@ -285,16 +286,30 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
 
     private readonly ILogger _logger;
 
-    private StudioctlAppProcess(ILogger logger, string appDirectory, int processId, Uri baseUri, string? logPath)
+    private StudioctlAppProcess(
+        ILogger logger,
+        string appDirectory,
+        string secretsDirectory,
+        int processId,
+        Uri baseUri,
+        string? logPath
+    )
     {
         _logger = logger;
         AppDirectory = appDirectory;
+        SecretsDirectory = secretsDirectory;
         ProcessId = processId;
         BaseUri = baseUri;
         LogPath = logPath;
     }
 
     public string AppDirectory { get; }
+
+    /// <summary>
+    /// Where this app's provisioned secrets were written for it. See <see cref="ProvisionSecrets"/>.
+    /// </summary>
+    public string SecretsDirectory { get; }
+
     public int ProcessId { get; }
     public Uri BaseUri { get; }
     public string? LogPath { get; }
@@ -322,11 +337,13 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         CancellationToken cancellationToken
     )
     {
+        string secretsDirectory = ProvisionSecrets(appDirectory);
+
         var result = await RunStudioctl(
             appDirectory,
             fixtureConfigurationPath,
             nugetPackagesDirectory,
-            environmentVariables,
+            WithProvisionedSecrets(environmentVariables, secretsDirectory),
             logger,
             cancellationToken,
             appFrontendAssetBaseUrl,
@@ -340,7 +357,47 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             appDirectory
         );
 
-        return ParseRunResult(logger, appDirectory, result.StdOut);
+        return ParseRunResult(logger, appDirectory, secretsDirectory, result.StdOut);
+    }
+
+    /// <summary>
+    /// <para>Stands in for the platform, which provisions an app's secrets and tells it where they are. Every
+    /// v9 app has a Maskinporten client provisioned for it, and the app libraries refuse to start without
+    /// one, so the fixture writes a throwaway client for each app it runs.</para>
+    /// <para>studioctl does not provision a local run's secrets yet — that is the next change in this stack,
+    /// where <c>studioctl app maskinporten set</c> takes this over. Until then the fixture writes the file in
+    /// the shape the operator writes it and hands the app the same variables a deployed app is given;
+    /// studioctl passes its own environment through to the app it starts.</para>
+    /// </summary>
+    /// <param name="appDirectory">The generated app this run belongs to.</param>
+    private static string ProvisionSecrets(string appDirectory)
+    {
+        string secretsDirectory = Path.Join(
+            Path.GetTempPath(),
+            "altinn-app-integration-secrets",
+            $"{Path.GetFileName(appDirectory.TrimEnd(Path.DirectorySeparatorChar))}-{Guid.NewGuid():N}"
+        );
+        Directory.CreateDirectory(secretsDirectory);
+        ProvisionedSecretsTestEnvironment.WriteMaskinportenClient(secretsDirectory, "integration-test");
+
+        return secretsDirectory;
+    }
+
+    private static IReadOnlyDictionary<string, string> WithProvisionedSecrets(
+        IReadOnlyDictionary<string, string>? environmentVariables,
+        string secretsDirectory
+    )
+    {
+        Dictionary<string, string> merged = environmentVariables is null
+            ? new(StringComparer.OrdinalIgnoreCase)
+            : new(environmentVariables, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (key, value) in ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory))
+        {
+            merged[key] = value ?? string.Empty;
+        }
+
+        return merged;
     }
 
     public static async Task StopByPathBestEffort(string appDirectory, ILogger logger)
@@ -424,6 +481,8 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        TryDeleteSecrets();
+
         try
         {
             await StopByPath(AppDirectory, _logger);
@@ -455,7 +514,12 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         }
     }
 
-    private static StudioctlAppProcess ParseRunResult(ILogger logger, string appDirectory, string stdout)
+    private static StudioctlAppProcess ParseRunResult(
+        ILogger logger,
+        string appDirectory,
+        string secretsDirectory,
+        string stdout
+    )
     {
         // The harness always starts apps with --json. Treat non-JSON output as a studioctl contract break.
         var json = stdout.Trim();
@@ -471,7 +535,20 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
             throw new InvalidOperationException("studioctl run JSON did not include a valid url");
 
-        return new StudioctlAppProcess(logger, appDirectory, result.ProcessId, uri, result.LogPath);
+        return new StudioctlAppProcess(logger, appDirectory, secretsDirectory, result.ProcessId, uri, result.LogPath);
+    }
+
+    private void TryDeleteSecrets()
+    {
+        try
+        {
+            if (Directory.Exists(SecretsDirectory))
+                Directory.Delete(SecretsDirectory, recursive: true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete provisioned secrets {SecretsDirectory}", SecretsDirectory);
+        }
     }
 
     private static void TryKill(System.Diagnostics.Process process)
