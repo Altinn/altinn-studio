@@ -993,10 +993,15 @@ fn memory_manifest_digest(request: &image::ResolveRequest) -> String {
     let mut digest = Sha256::new();
     digest.update(b"sandbox.memory-image-manifest.v1\0");
     match &request.source {
-        image::ImageSource::Build { context, dockerfile } => {
+        image::ImageSource::Build {
+            context,
+            dockerfile,
+            target,
+        } => {
             update_digest_part(&mut digest, b"build");
             update_digest_part(&mut digest, context.as_os_str().as_encoded_bytes());
             update_digest_part(&mut digest, dockerfile.as_os_str().as_encoded_bytes());
+            update_optional_digest_part(&mut digest, target.as_deref());
         }
         image::ImageSource::Reference { reference } => {
             update_digest_part(&mut digest, b"reference");

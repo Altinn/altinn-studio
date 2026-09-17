@@ -6,7 +6,7 @@ use std::{
 };
 
 use agent::{
-    Agent, Error,
+    Agent, AgentVariantName, Error,
     control_api::Client,
     control_plane::ApplyRequest,
     control_plane::WaitPolicy,
@@ -87,9 +87,12 @@ enum Command {
     },
     /// Create or update an Agent from a manifest.
     Apply {
-        /// Agent manifest path.
-        #[arg(short = 'f', long = "filename")]
-        filename: PathBuf,
+        /// Agent manifest path; defaults to ./agent.yaml.
+        #[arg(short = 'f', long = "filename", conflicts_with = "variant")]
+        filename: Option<PathBuf>,
+        /// Variant of the Agent in the current directory.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "filename")]
+        variant: Option<AgentVariantName>,
         /// Override metadata.name so one manifest can create multiple Agents.
         #[arg(long)]
         name: Option<String>,
@@ -111,10 +114,13 @@ enum Command {
         /// Optional resource name when it is not part of `resource`.
         name: Option<String>,
         /// Owning Agent for Session resources; inferred from the current directory when omitted.
-        #[arg(long)]
+        #[arg(long, conflicts_with = "variant")]
         agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
         /// List Sessions across every Agent instead of resolving one owner.
-        #[arg(short = 'A', long, conflicts_with = "agent")]
+        #[arg(short = 'A', long, conflicts_with_all = ["agent", "variant"])]
         all_agents: bool,
         /// Output format.
         #[arg(short = 'o', long, default_value = "table", value_enum)]
@@ -144,8 +150,11 @@ enum Command {
         /// Optional Session name when it is not part of `resource`.
         name: Option<String>,
         /// Owning Agent; inferred from the current directory when omitted.
-        #[arg(long)]
+        #[arg(long, conflicts_with = "variant")]
         agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
         #[command(flatten)]
         selection: SessionSelection,
     },
@@ -160,8 +169,11 @@ enum Command {
         /// Agent resource or name; inferred from the current directory when omitted.
         resource: Option<String>,
         /// Agent name, as an alternative to the positional resource.
-        #[arg(long, conflicts_with = "resource")]
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
         agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
         /// Command and arguments to execute after `--`.
         #[arg(last = true, required = true, num_args = 1..)]
         command: Vec<String>,
@@ -169,8 +181,11 @@ enum Command {
     /// Forward local ports to a running Agent sandbox until interrupted.
     PortForward {
         /// Agent name, as an alternative to a leading Agent argument.
-        #[arg(long)]
+        #[arg(long, conflicts_with = "variant")]
         agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
         /// Optional leading Agent resource or name, followed by port mappings
         /// written as GUEST, LOCAL:GUEST, or ADDRESS:LOCAL:GUEST. An empty
         /// local port (`:GUEST`) selects an ephemeral local port. The Agent is
@@ -181,8 +196,11 @@ enum Command {
     /// Open an OpenSSH session to an Agent through `agentctl ssh-proxy`.
     Ssh {
         /// Agent name, as an alternative to the positional resource.
-        #[arg(long, conflicts_with = "resource")]
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
         agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
         /// Agent resource or name; inferred from the current directory when omitted.
         resource: Option<String>,
         /// Remote command and arguments after `--`; an interactive shell when omitted.
@@ -206,8 +224,11 @@ enum Command {
         /// Agent resource or name; inferred from the current directory when omitted.
         resource: Option<String>,
         /// Agent name, as an alternative to the positional resource.
-        #[arg(long, conflicts_with = "resource")]
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
         agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
         /// Output format.
         #[arg(short = 'o', long, default_value = "table", value_enum)]
         output: OutputFormat,
@@ -243,8 +264,11 @@ struct SessionTarget {
     /// Optional Session name when it is not part of `resource`.
     name: Option<String>,
     /// Owning Agent; inferred from the current directory when omitted.
-    #[arg(long)]
+    #[arg(long, conflicts_with = "variant")]
     agent: Option<String>,
+    /// Select the closest Agent by its applied leaf variant.
+    #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+    variant: Option<AgentVariantName>,
 }
 
 /// Selections fixed when a command creates a Session. An existing Session keeps
@@ -418,12 +442,14 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         }
         Command::Apply {
             filename,
+            variant,
             name,
             env_file,
             wait,
             timeout,
         } => {
-            let mut request = read_apply_request(filename, env_file).await?;
+            let filename = apply_manifest_path(filename, variant)?;
+            let mut request = read_apply_request(filename, env_file)?;
             if let Some(name) = name {
                 request.agent.metadata.name = name;
             }
@@ -439,9 +465,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             resource,
             name,
             agent,
+            variant,
             all_agents,
             output,
-        } => get_resources(client, &resource, name, agent, all_agents, output).await?,
+        } => get_resources(client, &resource, name, agent, variant, all_agents, output).await?,
         Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
         Command::Delete { resource, name } => {
             let (resource, name) = resource_reference(&resource, name)?;
@@ -456,23 +483,30 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             resource,
             name,
             agent,
+            variant,
             selection,
-        } => attach(home, client, &resource, name, agent, selection).await?,
+        } => attach(home, client, &resource, name, agent, variant, selection).await?,
         Command::Exec {
             stdin,
             tty,
             resource,
             agent,
+            variant,
             command,
-        } => return exec_command(home, client, resource, agent, &command, stdin, tty).await,
-        Command::PortForward { agent, arguments } => {
-            return port_forward(home, client, agent, &arguments).await;
+        } => return exec_command(home, client, resource, agent, variant, &command, stdin, tty).await,
+        Command::PortForward {
+            agent,
+            variant,
+            arguments,
+        } => {
+            return port_forward(home, client, agent, variant, &arguments).await;
         }
         Command::Ssh {
             agent,
+            variant,
             resource,
             command,
-        } => return ssh(client, resource, agent, &command).await,
+        } => return ssh(client, resource, agent, variant, &command).await,
         Command::SshProxy { resource } => return ssh_proxy(home, client, resource).await,
         Command::SshConfig {
             command: SshConfigCommand::Install,
@@ -480,8 +514,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
         Command::SshInfo {
             resource,
             agent,
+            variant,
             output,
-        } => ssh_info(client, resource, agent, output).await?,
+        } => ssh_info(client, resource, agent, variant, output).await?,
         Command::Create {
             target,
             selection,
@@ -510,13 +545,14 @@ async fn get_resources(
     resource: &str,
     name: Option<String>,
     agent: Option<String>,
+    variant: Option<AgentVariantName>,
     all_agents: bool,
     output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
     match resource {
         Resource::Agent => {
-            reject_session_scope(agent.as_deref(), all_agents)?;
+            reject_session_scope(agent.as_deref(), variant.as_ref(), all_agents)?;
             let agents = if let Some(name) = name {
                 vec![client.get(&name).await?]
             } else {
@@ -535,7 +571,7 @@ async fn get_resources(
                     )
                     .into());
                 }
-                let agent = resolve_agent_name(client, agent).await?;
+                let agent = resolve_agent_name(client, agent, variant).await?;
                 vec![
                     client
                         .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
@@ -544,7 +580,7 @@ async fn get_resources(
             } else if all_agents {
                 client.list_sessions(None).await?
             } else {
-                let agent = resolve_agent_name(client, agent).await?;
+                let agent = resolve_agent_name(client, agent, variant).await?;
                 client.list_sessions(Some(&agent)).await?
             };
             match output {
@@ -570,6 +606,7 @@ async fn attach(
     resource: &str,
     name: Option<String>,
     agent: Option<String>,
+    variant: Option<AgentVariantName>,
     selection: SessionSelection,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
@@ -577,7 +614,7 @@ async fn attach(
         return Err(Error::Invalid("attach requires a Session resource".into()).into());
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
-    let agent = resolve_agent_name(client, agent).await?;
+    let agent = resolve_agent_name(client, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
         .until(client.ensure_session(
@@ -592,16 +629,21 @@ async fn attach(
     Ok(())
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "command flags remain explicit at the execution boundary"
+)]
 async fn exec_command(
     home: &ControlPlaneHome,
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
+    variant: Option<AgentVariantName>,
     command: &[String],
     stdin: bool,
     tty: bool,
 ) -> CommandResult<ExitCode> {
-    let agent = resolve_execution_agent(client, resource, agent).await?;
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     if tty && (!std::io::stdin().is_terminal() || !std::io::stdout().is_terminal()) {
         return Err(Error::Invalid("-it requires an interactive local terminal".into()).into());
     }
@@ -647,11 +689,15 @@ async fn port_forward(
     home: &ControlPlaneHome,
     client: &Client,
     agent: Option<String>,
+    variant: Option<AgentVariantName>,
     arguments: &[String],
 ) -> CommandResult<ExitCode> {
     let (resource, ports) = split_forward_arguments(arguments);
     if agent.is_some() && resource.is_some() {
         return Err(Error::Invalid("the Agent was supplied both as an argument and with --agent".into()).into());
+    }
+    if variant.is_some() && resource.is_some() {
+        return Err(Error::Invalid("the Agent was supplied both as an argument and with --variant".into()).into());
     }
     if ports.is_empty() {
         return Err(Error::Invalid("at least one port mapping is required".into()).into());
@@ -661,7 +707,7 @@ async fn port_forward(
         .map(|port| forward::ForwardSpec::parse(port))
         .collect::<Result<Vec<_>, String>>()
         .map_err(CommandError::Message)?;
-    let agent = resolve_execution_agent(client, resource, agent).await?;
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
         .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
@@ -711,9 +757,10 @@ async fn ssh(
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
+    variant: Option<AgentVariantName>,
     command: &[String],
 ) -> CommandResult<ExitCode> {
-    let agent = resolve_execution_agent(client, resource, agent).await?;
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     wait.until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
         .await?;
@@ -755,7 +802,7 @@ fn ssh_client_error(error: &std::io::Error) -> CommandError {
 /// Progress and errors go to standard error, which `ssh` shows to the user;
 /// standard output carries only the SSH byte stream.
 async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -> CommandResult<ExitCode> {
-    let agent = resolve_execution_agent(client, Some(resource), None).await?;
+    let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
         .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
@@ -794,9 +841,10 @@ async fn ssh_info(
     client: &Client,
     resource: Option<String>,
     agent: Option<String>,
+    variant: Option<AgentVariantName>,
     output: OutputFormat,
 ) -> CommandResult<()> {
-    let agent = resolve_execution_agent(client, resource, agent).await?;
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let access = client.ssh_access(&agent).await?;
     match output {
         OutputFormat::Json => print_json(&access)?,
@@ -816,7 +864,7 @@ async fn session_target(client: &Client, target: SessionTarget) -> CommandResult
         return Err(Error::Invalid("this command requires a Session resource".into()).into());
     }
     let session = SessionName::new(require_name(name, "Session")?)?;
-    let agent = resolve_agent_name(client, target.agent).await?;
+    let agent = resolve_agent_name(client, target.agent, target.variant).await?;
     Ok((agent, session))
 }
 
@@ -927,12 +975,13 @@ async fn resolve_execution_agent(
     client: &Client,
     resource: Option<String>,
     explicit: Option<String>,
+    variant: Option<AgentVariantName>,
 ) -> CommandResult<String> {
     if let Some(explicit) = explicit {
         return Ok(explicit);
     }
     let Some(resource) = resource else {
-        return resolve_agent_name(client, None).await;
+        return resolve_agent_name(client, None, variant).await;
     };
     if !resource.contains('/') {
         return Ok(resource);
@@ -1032,22 +1081,30 @@ fn require_name(name: Option<String>, resource: &str) -> Result<String, Error> {
     name.ok_or_else(|| Error::Invalid(format!("{resource} name is required")))
 }
 
-fn reject_session_scope(agent: Option<&str>, all_agents: bool) -> Result<(), Error> {
-    if agent.is_some() || all_agents {
+fn reject_session_scope(
+    agent: Option<&str>,
+    variant: Option<&AgentVariantName>,
+    all_agents: bool,
+) -> Result<(), Error> {
+    if agent.is_some() || variant.is_some() || all_agents {
         Err(Error::Invalid(
-            "--agent and --all-agents apply only to Session resources".into(),
+            "--agent, --variant, and --all-agents apply only to Session resources".into(),
         ))
     } else {
         Ok(())
     }
 }
 
-async fn resolve_agent_name(client: &Client, explicit: Option<String>) -> CommandResult<String> {
+async fn resolve_agent_name(
+    client: &Client,
+    explicit: Option<String>,
+    variant: Option<AgentVariantName>,
+) -> CommandResult<String> {
     if let Some(agent) = explicit {
         return Ok(agent);
     }
     let directory = std::env::current_dir().map_err(Error::from)?;
-    match client.resolve_agent(directory).await {
+    match client.resolve_agent_variant(directory, variant).await {
         Ok(agent) => Ok(agent.metadata.name),
         Err(error) => Err(inference_error(error)),
     }
@@ -1055,9 +1112,9 @@ async fn resolve_agent_name(client: &Client, explicit: Option<String>) -> Comman
 
 fn inference_error(error: Error) -> CommandError {
     match error {
-        Error::Rpc(error) if error.is_not_found() => {
-            CommandError::Message("no Agent was applied from the current directory; specify --agent".into())
-        }
+        Error::Rpc(error) if error.is_not_found() => CommandError::Message(
+            "no Agent was applied from the current directory; specify --agent or --variant".into(),
+        ),
         Error::Rpc(error) => CommandError::Message(error.message),
         error => error.into(),
     }
@@ -1119,6 +1176,10 @@ fn parse_model(value: &str) -> Result<agent::Model, String> {
 }
 
 fn parse_effort(value: &str) -> Result<agent::Effort, String> {
+    value.parse().map_err(|error: Error| error.to_string())
+}
+
+fn parse_variant_name(value: &str) -> Result<AgentVariantName, String> {
     value.parse().map_err(|error: Error| error.to_string())
 }
 
@@ -1251,11 +1312,19 @@ fn daemon_executable(agentctl: &Path) -> PathBuf {
     agentctl.with_file_name(format!("agentd{}", std::env::consts::EXE_SUFFIX))
 }
 
-async fn read_apply_request(filename: PathBuf, env_file: Option<PathBuf>) -> Result<ApplyRequest, Error> {
+fn apply_manifest_path(filename: Option<PathBuf>, variant: Option<AgentVariantName>) -> Result<PathBuf, Error> {
+    match (filename, variant) {
+        (Some(filename), None) => Ok(filename),
+        (None, Some(variant)) => Ok(PathBuf::from(variant.filename())),
+        (None, None) => Ok(PathBuf::from(manifest::MANIFEST_FILE)),
+        (Some(_), Some(_)) => Err(Error::Invalid("--filename and --variant are mutually exclusive".into())),
+    }
+}
+
+fn read_apply_request(filename: PathBuf, env_file: Option<PathBuf>) -> Result<ApplyRequest, Error> {
     let filename = absolute(filename)?;
     let env_file = env_file.map(absolute).transpose()?;
-    let bytes = tokio::fs::read(&filename).await?;
-    let agent = manifest::decode(&bytes)?;
+    let agent = manifest::resolve(&filename)?.agent;
     let source_directory = filename
         .parent()
         .ok_or_else(|| Error::Invalid("manifest path has no parent directory".into()))?
@@ -1414,6 +1483,7 @@ mod tests {
                         resource: "session/s1".into(),
                         name: None,
                         agent: owner.map(str::to_owned),
+                        variant: None,
                     },
                     SessionSelection::default(),
                     PromptInput {
@@ -1486,6 +1556,7 @@ mod tests {
                 resource: "session/s1".into(),
                 name: None,
                 agent: Some("worker".into()),
+                variant: None,
             },
             PromptInput {
                 prompt: Some("go".into()),
@@ -1569,6 +1640,7 @@ mod tests {
             resource,
             agent,
             command,
+            ..
         } = explicit.command
         else {
             panic!("expected exec command");
@@ -1591,7 +1663,7 @@ mod tests {
     fn port_forward_accepts_kubectl_shapes_and_inference() {
         let explicit = Arguments::try_parse_from(["agentctl", "port-forward", "agent/worker", "9090:80", ":5432"])
             .expect("explicit port-forward arguments");
-        let Command::PortForward { agent, arguments } = explicit.command else {
+        let Command::PortForward { agent, arguments, .. } = explicit.command else {
             panic!("expected port-forward command");
         };
         assert!(agent.is_none());
@@ -1609,7 +1681,7 @@ mod tests {
 
         let flagged = Arguments::try_parse_from(["agentctl", "port-forward", "--agent", "worker", "0.0.0.0:80:80"])
             .expect("flagged port-forward arguments");
-        let Command::PortForward { agent, arguments } = flagged.command else {
+        let Command::PortForward { agent, arguments, .. } = flagged.command else {
             panic!("expected port-forward command");
         };
         assert_eq!(agent.as_deref(), Some("worker"));
@@ -1624,6 +1696,7 @@ mod tests {
             agent,
             resource,
             command,
+            ..
         } = explicit.command
         else {
             panic!("expected ssh command");
@@ -1638,7 +1711,8 @@ mod tests {
             Command::Ssh {
                 agent: None,
                 resource: None,
-                command
+                command,
+                ..
             } if command.is_empty()
         ));
         assert!(Arguments::try_parse_from(["agentctl", "ssh", "--agent", "worker", "agent/other"]).is_err());
@@ -1661,7 +1735,8 @@ mod tests {
             Command::SshInfo {
                 resource: Some(resource),
                 agent: None,
-                output: OutputFormat::Json
+                output: OutputFormat::Json,
+                ..
             } if resource == "worker"
         ));
     }
@@ -1730,6 +1805,45 @@ mod tests {
     }
 
     #[test]
+    fn apply_defaults_to_agent_yaml_and_accepts_only_variant_names() {
+        let default = Arguments::try_parse_from(["agentctl", "apply"]).expect("default apply");
+        let Command::Apply { filename, variant, .. } = default.command else {
+            panic!("expected apply command");
+        };
+        assert!(filename.is_none());
+        assert!(variant.is_none());
+        assert_eq!(
+            apply_manifest_path(filename, variant).expect("default path"),
+            Path::new("agent.yaml")
+        );
+
+        let nested =
+            Arguments::try_parse_from(["agentctl", "apply", "--variant", "nested-build"]).expect("variant apply");
+        let Command::Apply { filename, variant, .. } = nested.command else {
+            panic!("expected apply command");
+        };
+        assert_eq!(
+            apply_manifest_path(filename, variant).expect("variant path"),
+            Path::new("agent.nested-build.yaml")
+        );
+        assert!(Arguments::try_parse_from(["agentctl", "apply", "-f", "agent.yaml", "--variant", "nested"]).is_err());
+        assert!(Arguments::try_parse_from(["agentctl", "apply", "--variant", "../nested"]).is_err());
+        assert!(
+            Arguments::try_parse_from([
+                "agentctl",
+                "exec",
+                "--agent",
+                "worker",
+                "--variant",
+                "nested",
+                "--",
+                "true"
+            ])
+            .is_err()
+        );
+    }
+
+    #[test]
     fn wait_durations_are_bounded_and_explicit() {
         assert_eq!(parse_duration("30s").expect("seconds"), Duration::from_secs(30));
         assert_eq!(parse_duration("10m").expect("minutes"), Duration::from_mins(10));
@@ -1757,11 +1871,11 @@ mod tests {
     fn inference_errors_have_one_actionable_message() {
         let ambiguous = inference_error(Error::Rpc(agent::control_api::ResponseError {
             code: -32602,
-            message: "multiple Agents were applied from this directory; specify --agent".into(),
+            message: "multiple Agents were applied from this directory; specify --agent or --variant".into(),
         }));
         assert_eq!(
             ambiguous.to_string(),
-            "multiple Agents were applied from this directory; specify --agent"
+            "multiple Agents were applied from this directory; specify --agent or --variant"
         );
 
         let missing = inference_error(Error::Rpc(agent::control_api::ResponseError {
@@ -1770,7 +1884,7 @@ mod tests {
         }));
         assert_eq!(
             missing.to_string(),
-            "no Agent was applied from the current directory; specify --agent"
+            "no Agent was applied from the current directory; specify --agent or --variant"
         );
     }
 
@@ -1786,9 +1900,7 @@ mod tests {
         let original_directory = std::env::current_dir().expect("current directory");
         std::env::set_current_dir(directory.path()).expect("enter temporary directory");
 
-        let result = LocalRuntime::new()
-            .expect("local runtime")
-            .block_on(read_apply_request(PathBuf::from("agent.yaml"), None));
+        let result = read_apply_request(PathBuf::from("agent.yaml"), None);
 
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");

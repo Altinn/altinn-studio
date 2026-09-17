@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v2";
+pub const PROTOCOL_VERSION: &str = "v3";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
@@ -160,6 +160,8 @@ pub(crate) struct SessionTurnsParams {
 #[serde(deny_unknown_fields)]
 pub(crate) struct DirectoryParams {
     pub directory: std::path::PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub variant: Option<crate::AgentVariantName>,
 }
 
 #[derive(Deserialize, Serialize)]

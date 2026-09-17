@@ -28,7 +28,8 @@ printf '%s\n' "$AGENT_CLAUDE_ACCESS_TOKEN" | agentctl claude login --from-stdin
 agentctl codex login --from-stdin < ~/.codex/auth.json
 printf 'GITHUB_TOKEN=%s\nGIT_USER_NAME=%s\nGIT_USER_EMAIL=%s\n' \
   "$GITHUB_TOKEN" "$GIT_USER_NAME" "$GIT_USER_EMAIL" > ~/nested.env
-agentctl apply -f altinn-studio/src/experimental/agent/examples/self-dev/nested/agent.yaml --env-file ~/nested.env
+cd altinn-studio/src/experimental/agent/examples/self-dev
+agentctl apply --variant nested --env-file ~/nested.env
 ```
 
 Real secrets are host-mediated: never search for, print, copy or persist their values. The credential placeholder

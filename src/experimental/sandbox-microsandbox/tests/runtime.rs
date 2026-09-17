@@ -42,6 +42,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
             image: ImageSource::Build {
                 context: PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/runtime-image"),
                 dockerfile: PathBuf::from("Dockerfile"),
+                target: None,
             },
             platform: native_linux_platform(),
             resources: direct_resources("1", "512Mi", "4Gi"),

@@ -538,17 +538,10 @@ fn sshd_directives(text: &str) -> BTreeMap<String, Vec<String>> {
 }
 
 #[test]
-fn image_sshd_policy_is_hardened_and_shared_by_every_image() {
+fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
     let root = repository_root();
     let published = root.join("agents/common");
     let self_dev = root.join("src/experimental/agent/examples/self-dev");
-    for file in ["sshd_config", "ssh.service", "ssh-tmpfiles.conf"] {
-        assert_eq!(
-            std::fs::read_to_string(published.join(file)).expect(file),
-            std::fs::read_to_string(self_dev.join(file)).expect(file),
-            "{file} must be identical in agents/common and the self-dev example"
-        );
-    }
 
     let config = std::fs::read_to_string(published.join("sshd_config")).expect("sshd_config");
     let directives = sshd_directives(&config);
@@ -588,16 +581,25 @@ fn image_sshd_policy_is_hardened_and_shared_by_every_image() {
     assert!(base_stage.contains("openssh-server"));
     assert!(base_stage.contains("COPY common/ssh.service /etc/systemd/system/agent-ssh.service"));
     assert!(base_stage.contains("systemctl mask ssh.service ssh.socket"));
+    let self_dev_dockerfile = std::fs::read_to_string(self_dev.join("Dockerfile")).expect("self-dev Dockerfile");
+    assert!(self_dev_dockerfile.contains("COPY ssh.service /etc/systemd/system/agent-ssh.service"));
+    assert!(self_dev_dockerfile.contains("systemctl mask ssh.service ssh.socket"));
+    let self_dev_config = std::fs::read_to_string(self_dev.join("sshd_config")).expect("self-dev sshd_config");
+    assert!(self_dev_config.contains("ListenAddress 127.0.0.1"));
+    assert!(self_dev_config.contains("PasswordAuthentication no"));
     for manifest in [
         "agents/full/agent.yaml",
+        "agents/full/agent.nested.yaml",
+        "agents/full/agent.nested-build.yaml",
+        "agents/full/agent.worktree.yaml",
         "agents/minimal/agent.yaml",
-        "agents/worktree/agent.yaml",
-        "src/experimental/agent/examples/self-dev/checkout/agent.yaml",
-        "src/experimental/agent/examples/self-dev/nested/agent.yaml",
-        "src/experimental/agent/examples/self-dev/worktree/agent.yaml",
+        "src/experimental/agent/examples/self-dev/agent.yaml",
+        "src/experimental/agent/examples/self-dev/agent.nested.yaml",
+        "src/experimental/agent/examples/self-dev/agent.worktree.yaml",
     ] {
-        let bytes = std::fs::read(root.join(manifest)).expect(manifest);
-        let decoded = agent::manifest::decode(&bytes).unwrap_or_else(|error| panic!("{manifest}: {error}"));
+        let decoded = agent::manifest::resolve(&root.join(manifest))
+            .unwrap_or_else(|error| panic!("{manifest}: {error}"))
+            .agent;
         assert!(decoded.spec.ssh_access(), "{manifest} declares SSH access");
     }
 }

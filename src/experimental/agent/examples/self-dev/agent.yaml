@@ -1,12 +1,12 @@
 apiVersion: agents.platform/v1alpha1
 kind: Agent
 metadata:
-  name: agent-dev-worktree
+  name: agent-dev
 spec:
   sandbox:
     image:
       type: build
-      context: ..
+      context: .
       dockerfile: Dockerfile
     platform:
       os: linux
@@ -18,16 +18,15 @@ spec:
         mode: direct
     initSystem: image
     mounts:
-      - type: bind
-        source: ../../../../../..
-        target: /home/agent/code/altinn-studio
-        readOnly: false
+      - type: tmpfs
+        target: /tmp
+        capacity: "2Gi"
   home:
     source: home
   instructions:
-    - source: ../instructions.md
+    - source: instructions.md
   skills:
-    - source: ../skills/pr-evidence
+    - source: skills/pr-evidence
   harnesses:
     - type: claudeCode
       auth: mediated
