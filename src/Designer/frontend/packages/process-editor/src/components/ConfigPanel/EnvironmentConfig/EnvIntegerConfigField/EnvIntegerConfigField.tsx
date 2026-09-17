@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { useState } from 'react';
 import { StudioTextfield } from '@studio/components';
 import { usePropState } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
@@ -38,9 +39,11 @@ const IntegerValueControl = ({
   const { t } = useTranslation();
   const [localValue, setLocalValue] = usePropState<string>(value);
   const errorKey = getIntegerValueErrorKey(localValue);
+  const [hasBlurred, setHasBlurred] = useState(!!getIntegerValueErrorKey(value));
 
   // A value that is not a whole number is shown with its error rather than written to the bpmn.
   const handleBlur = (): void => {
+    setHasBlurred(true);
     if (errorKey) return;
     const trimmedValue = localValue.trim();
     setLocalValue(trimmedValue);
@@ -49,7 +52,7 @@ const IntegerValueControl = ({
 
   return (
     <StudioTextfield
-      error={errorKey && t(errorKey)}
+      error={hasBlurred && errorKey && t(errorKey)}
       label={label}
       onBlur={handleBlur}
       onChange={(event) => setLocalValue(event.target.value)}

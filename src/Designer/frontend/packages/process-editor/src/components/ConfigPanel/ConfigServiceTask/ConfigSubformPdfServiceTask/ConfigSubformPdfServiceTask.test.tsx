@@ -58,6 +58,36 @@ describe('ConfigSubformPdfServiceTask', () => {
     );
   });
 
+  it('filters data types as the developer searches and shows when nothing matches', async () => {
+    const user = userEvent.setup();
+    renderConfigSubformPdfServiceTask({
+      availableDataTypeIds: [subformDataType, 'other-data'],
+    });
+    const input = screen.getByRole('textbox', { name: dataTypeLabel });
+
+    await user.click(input);
+    await user.type(input, 'subform');
+
+    expect(
+      await screen.findByRole('option', { name: subformDataType, hidden: true }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', { name: 'other-data', hidden: true }),
+    ).not.toBeInTheDocument();
+
+    await user.clear(input);
+    await user.type(input, 'missing');
+
+    expect(
+      screen.queryByRole('option', { name: subformDataType, hidden: true }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('process_editor.configuration_panel_subform_pdf_no_data_type_to_select'),
+      ),
+    ).toBeVisible();
+  });
+
   it('offers the data type the task already points at, even when the app no longer has it', async () => {
     const user = userEvent.setup();
     renderConfigSubformPdfServiceTask({

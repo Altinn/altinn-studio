@@ -33,6 +33,18 @@ describe('EditTaskName', () => {
     );
   });
 
+  it('focuses the input so a name can be edited with the keyboard', async () => {
+    const user = userEvent.setup();
+    renderEditTaskName();
+
+    await user.tab();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByRole('textbox', { name: nameLabel })).toHaveFocus();
+    await user.keyboard('{Control>}a{/Control}Keyboard name{Tab}');
+    expect(updateElementPropertiesMock).toHaveBeenCalledWith({ name: 'Keyboard name' });
+  });
+
   it('should accept an empty name, since a bpmn name is optional', async () => {
     const user = userEvent.setup();
     renderEditTaskName();

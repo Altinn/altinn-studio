@@ -119,6 +119,46 @@ describe('SelectDataTypes', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
+  it('removes the binding when the selected model is cleared and the field is left', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypes = jest.fn();
+    renderSelectDataTypes(
+      { existingDataType: 'model', dataModelIds: ['model'] },
+      { mutateDataTypes },
+    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue('model'));
+    await user.clear(input);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(mutateDataTypes).toHaveBeenCalledWith({ connectedTaskId, newDataTypes: [undefined] });
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('preserves the binding when clearing is not allowed', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypes = jest.fn();
+    renderSelectDataTypes(
+      { existingDataType: 'model', dataModelIds: ['model'], hideDeleteButton: true },
+      { mutateDataTypes },
+    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue('model'));
+    await user.clear(input);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(mutateDataTypes).not.toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
   it('should not call updateDataTypes when data type is set to existing', async () => {
     const user = userEvent.setup();
     const mutateDataTypesMock = jest.fn();
