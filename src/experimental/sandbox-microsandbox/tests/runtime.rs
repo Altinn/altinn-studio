@@ -124,25 +124,35 @@ async fn assert_atomic_replacement(backend: &MicrosandboxProvider, sandbox: &San
     let mode = run(
         backend,
         &sandbox.id,
-        shell(&format!("chmod 4750 {path} && stat -c %a {path}")),
+        shell(&format!("stat -c %a {path} && chmod 4750 {path} && stat -c %a {path}")),
     )
     .await;
-    assert_eq!(mode.stdout.as_ref(), b"4750\n");
+    assert_eq!(mode.stdout.as_ref(), b"644\n4750\n", "a new file gets the default mode");
     // One digest per observation, each from a single open of the path, so an observation can
-    // only be the complete old file, the complete new file, or a torn one.
+    // only be the complete old file, the complete new file, or a torn one. The reader marks
+    // its first observation so the replacement provably overlaps with it.
     let old_digest = hex(&Sha256::digest(&old));
     let new_digest = hex(&Sha256::digest(&new));
+    let ready = "/workspace/.reader-ready";
     let reader = backend
         .start_execution(
             &sandbox.id,
             StartExecutionRequest::new(shell(&format!(
                 "end=$(($(date +%s) + 20)); while [ $(date +%s) -lt $end ]; do \
-                 digest=$(sha256sum < {path} | cut -d ' ' -f 1); echo \"$digest\"; \
+                 digest=$(sha256sum < {path} | cut -d ' ' -f 1); echo \"$digest\"; touch {ready}; \
                  [ \"$digest\" = {new_digest} ] && break; done"
             ))),
         )
         .await
         .expect("reader should start");
+    for attempt in 0.. {
+        let probe = run(backend, &sandbox.id, shell(&format!("test -f {ready}"))).await;
+        if probe.status.success() {
+            break;
+        }
+        assert!(attempt < 100, "reader never started observing the file");
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
     backend
         .write_file(
             &sandbox.id,
@@ -160,12 +170,15 @@ async fn assert_atomic_replacement(backend: &MicrosandboxProvider, sandbox: &San
             "reader observed a partial or mixed file: {line:?}"
         );
     }
+    assert!(lines.contains(&old_digest), "reader never observed the original");
     assert!(lines.contains(&new_digest), "reader never observed the replacement");
     assert_eq!(read(backend, &sandbox.id, path).await, new);
     let after = run(
         backend,
         &sandbox.id,
-        shell(&format!("stat -c %a {path}; ls -A /workspace | grep -c agent- || true")),
+        shell(&format!(
+            "rm {ready}; stat -c %a {path}; ls -A /workspace | grep -c agent- || true"
+        )),
     )
     .await;
     assert_eq!(after.stdout.as_ref(), b"4750\n0\n");

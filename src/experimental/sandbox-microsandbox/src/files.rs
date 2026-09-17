@@ -1,5 +1,5 @@
 use futures_util::stream;
-use microsandbox::sandbox::{FsEntryKind, FsMetadata, FsSetAttrs, SandboxFsOps};
+use microsandbox::sandbox::{FsEntryKind, FsHandle, FsMetadata, FsOpenOptions, FsSetAttrs, SandboxFsOps};
 use sandbox::{Error, SandboxId, SandboxPath, file_transfer::ByteReader};
 use tokio::io::AsyncReadExt as _;
 use tokio_util::io::StreamReader;
@@ -31,8 +31,10 @@ impl MicrosandboxProvider {
 
     /// Replaces the file atomically: the contents stream into a hidden sibling, which is renamed
     /// over the destination once complete, so a concurrent reader sees the old or the new file
-    /// and never a truncated or partially written one. A replaced regular file keeps its mode
-    /// and owner; a new file is created with the guest supervisor's defaults.
+    /// and never a truncated or partially written one. The sibling is created readable by the
+    /// guest supervisor only, so the contents are not exposed while they stream. A replaced
+    /// regular file keeps its mode and owner; a new file gets the guest's default mode once
+    /// complete, as an in-place write would have.
     pub(crate) async fn write_file_stream(
         &self,
         sandbox_id: &SandboxId,
@@ -66,13 +68,62 @@ async fn existing_regular_file(fs: &SandboxFsOps<'_>, path: &str) -> Result<Opti
     Ok(matches!(metadata.kind, FsEntryKind::File).then_some(metadata))
 }
 
+/// Owner read and write only, for the sibling while its contents stream.
+const STAGING_MODE: u32 = 0o600;
+/// What the guest supervisor's default file creation yields; a new file ends up with this.
+const DEFAULT_MODE: u32 = 0o644;
+
 async fn stage(
     fs: &SandboxFsOps<'_>,
     staging: &str,
     existing: Option<&FsMetadata>,
-    mut contents: ByteReader,
+    contents: ByteReader,
 ) -> Result<(), Error> {
-    let destination = fs.write_stream(staging).await.map_err(crate::error::microsandbox)?;
+    // The mode applies at creation, before any byte is written; a plain streamed write would
+    // create the sibling with the guest's default, world-readable mode.
+    let options = FsOpenOptions {
+        write: true,
+        create_new: true,
+        mode: Some(STAGING_MODE),
+        ..FsOpenOptions::default()
+    };
+    let handle = fs
+        .open_file(staging, options)
+        .await
+        .map_err(crate::error::microsandbox)?;
+    let streamed = stream_into(fs, handle, contents).await;
+    let closed = fs.close_handle(handle).await.map_err(crate::error::microsandbox);
+    streamed?;
+    closed?;
+    let mode = if let Some(existing) = existing {
+        // Ownership first: chown clears set-user-ID and set-group-ID bits, so the mode must be
+        // applied afterwards for the replacement to keep them.
+        let ownership = FsSetAttrs {
+            uid: Some(existing.uid),
+            gid: Some(existing.gid),
+            ..FsSetAttrs::default()
+        };
+        fs.set_stat(staging, false, ownership)
+            .await
+            .map_err(crate::error::microsandbox)?;
+        existing.mode
+    } else {
+        DEFAULT_MODE
+    };
+    let attributes = FsSetAttrs {
+        mode: Some(mode),
+        ..FsSetAttrs::default()
+    };
+    fs.set_stat(staging, false, attributes)
+        .await
+        .map_err(crate::error::microsandbox)
+}
+
+async fn stream_into(fs: &SandboxFsOps<'_>, handle: FsHandle, mut contents: ByteReader) -> Result<(), Error> {
+    let destination = fs
+        .write_handle_stream(handle, 0, None)
+        .await
+        .map_err(crate::error::microsandbox)?;
     let mut buffer = vec![0_u8; 64 * 1024].into_boxed_slice();
     loop {
         let read = contents
@@ -87,27 +138,7 @@ async fn stage(
             .await
             .map_err(crate::error::microsandbox)?;
     }
-    destination.close().await.map_err(crate::error::microsandbox)?;
-    if let Some(existing) = existing {
-        // Ownership first: chown clears set-user-ID and set-group-ID bits, so the mode must be
-        // applied afterwards for the replacement to keep them.
-        let ownership = FsSetAttrs {
-            uid: Some(existing.uid),
-            gid: Some(existing.gid),
-            ..FsSetAttrs::default()
-        };
-        fs.set_stat(staging, false, ownership)
-            .await
-            .map_err(crate::error::microsandbox)?;
-        let mode = FsSetAttrs {
-            mode: Some(existing.mode),
-            ..FsSetAttrs::default()
-        };
-        fs.set_stat(staging, false, mode)
-            .await
-            .map_err(crate::error::microsandbox)?;
-    }
-    Ok(())
+    destination.close().await.map_err(crate::error::microsandbox)
 }
 
 /// A hidden sibling in the destination's directory, so the final rename stays on one file system
