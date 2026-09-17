@@ -24,10 +24,7 @@ public class ValidationIssueWithSource
             Source = source,
             NoIncrementalUpdates = noIncrementalUpdates,
             CustomTextKey = issue.CustomTextKey,
-            // Altinn.App.Core marks ValidationIssue.CustomTextParams obsolete in favor of
-            // CustomTextParameters, which is a dictionary rather than a list. The customTextParams
-            // property below is the wire contract the previewed app frontend reads, so the list shape
-            // is kept and the obsolete member is read deliberately.
+            // Obsolete in Altinn.App.Core, but customTextParams is the wire contract the previewed app frontend reads.
 #pragma warning disable CS0618 // Type or member is obsolete
             CustomTextParams = issue.CustomTextParams,
 #pragma warning restore CS0618

@@ -259,9 +259,6 @@ public class PreviewBootstrapService(
         return instanceNode;
     }
 
-    // Service tasks are included because the real runtime includes them: Altinn.App.Core builds
-    // process.processTasks from every flow element that is a ProcessTask, and ServiceTask is one. Leaving
-    // them out would make the previewed app frontend reject a service task id that production accepts.
     private List<ProcessTask> TryGetProcessTasks(AltinnRepoEditingContext editingContext)
     {
         try

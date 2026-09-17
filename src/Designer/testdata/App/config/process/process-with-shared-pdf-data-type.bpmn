@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="Altinn_SingleDataTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>To_Task_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:incoming>To_Task_1</bpmn:incoming>
+      <bpmn:outgoing>To_Task_2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Signering 1">
+      <bpmn:incoming>To_Task_2</bpmn:incoming>
+      <bpmn:outgoing>To_Task_3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>model</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signatureInformation-1234</altinn:signatureDataType>
+            <altinn:signingPdfDataType>signing-pdf-1234</altinn:signingPdfDataType>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_3" name="Signering 2">
+      <bpmn:incoming>To_Task_3</bpmn:incoming>
+      <bpmn:outgoing>To_End</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>model</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signatureInformation-5678</altinn:signatureDataType>
+            <altinn:signingPdfDataType>signing-pdf-1234</altinn:signingPdfDataType>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1" name="End">
+      <bpmn:incoming>To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="To_Task_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="To_Task_2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="To_Task_3" sourceRef="Task_2" targetRef="Task_3" />
+    <bpmn:sequenceFlow id="To_End" sourceRef="Task_3" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>
