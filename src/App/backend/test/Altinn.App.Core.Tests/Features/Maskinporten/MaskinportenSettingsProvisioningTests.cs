@@ -6,6 +6,8 @@ using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten;
@@ -206,36 +208,74 @@ public sealed class MaskinportenSettingsProvisioningTests
             StringComparison.Ordinal
         );
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("without a restart", exception.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(tempDirectory.Path, exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// Every app has a provisioned Maskinporten client, so an app with none does not start: the failure is a
-    /// deployment problem an operator sees, not a token request that fails hours in.
+    /// Studio provisions every app's Maskinporten client, so a deployed app with none does not start: that is
+    /// a deployment an operator has to see, not a token request that fails hours in.
     /// </summary>
     [Fact]
-    public async Task Host_DoesNotStart_WhenNothingIsProvisioned()
+    public async Task Host_DoesNotStart_WhenNothingIsProvisionedOnThePlatform()
     {
         using var tempDirectory = new TempDirectory();
-        using IHost host = BuildAppHost(_localtestHostName, tempDirectory.Path);
+        using IHost host = BuildAppHost(_platformHostName, tempDirectory.Path);
 
         var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
 
+        Assert.Contains(Path.Join(tempDirectory.Path, _fileName), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A local run starts without a client. Most apps never call a Maskinporten-protected API, and a developer
+    /// working on one of those should not have to store a client before the app will run at all. What it costs
+    /// is the first token request, which fails with the command that stores one - said once at startup too, so
+    /// that a developer who does need a client is not left to discover it from a failing request.
+    /// </summary>
+    [Fact]
+    public async Task Host_Starts_WhenNothingIsStoredLocally()
+    {
+        using var tempDirectory = new TempDirectory();
+        using IHost host = BuildAppHost(_localtestHostName, tempDirectory.Path);
+
+        await host.StartAsync();
+        await host.StopAsync();
+
+        FakeLogRecord startupLine = Assert.Single(
+            host.Services.GetFakeLogCollector().GetSnapshot(),
+            log =>
+                log.Level == LogLevel.Information
+                && log.Message.Contains("No Maskinporten client is stored", StringComparison.Ordinal)
+        );
+        Assert.Contains("The app starts without one", startupLine.Message, StringComparison.Ordinal);
+        Assert.Contains("studioctl app maskinporten set", startupLine.Message, StringComparison.Ordinal);
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            host.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value
+        );
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task Host_Starts_WhenTheClientIsProvisioned()
+    [Theory]
+    [InlineData(_platformHostName)]
+    [InlineData(_localtestHostName)]
+    public async Task Host_Starts_WhenTheClientIsProvisioned(string hostName)
     {
         using var tempDirectory = new TempDirectory();
         await WriteSettings(tempDirectory.Path, "provisioned-client");
-        using IHost host = BuildAppHost(_localtestHostName, tempDirectory.Path);
+        using IHost host = BuildAppHost(hostName, tempDirectory.Path);
 
         await host.StartAsync();
         await host.StopAsync();
 
         var settings = host.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
         Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.DoesNotContain(
+            host.Services.GetFakeLogCollector().GetSnapshot(),
+            log => log.Message.Contains("No Maskinporten client is stored", StringComparison.Ordinal)
+        );
     }
 
     /// <summary>
@@ -268,13 +308,14 @@ public sealed class MaskinportenSettingsProvisioningTests
     }
 
     /// <summary>
-    /// The same registration inside a host, so that startup validation runs.
+    /// The same registration inside a host, so that the startup check runs. Logging is collected rather than
+    /// discarded: on a local run what the startup check says is the whole of what a developer gets.
     /// </summary>
     private static IHost BuildAppHost(string hostName, string secretsDirectory)
     {
         HostApplicationBuilder builder = Host.CreateEmptyApplicationBuilder(new HostApplicationBuilderSettings());
         builder.Configuration.AddInMemoryCollection(ConfigurationWith(secretsDirectory, _fileName, []));
-        builder.Services.AddLogging();
+        builder.Services.AddFakeLogging();
         AddMaskinportenTenant(builder.Services, hostName);
 
         return builder.Build();
@@ -283,6 +324,8 @@ public sealed class MaskinportenSettingsProvisioningTests
     private static void AddMaskinportenTenant(IServiceCollection services, string hostName)
     {
         services.AddRuntimeEnvironment();
+        // The startup check logs, and a container built without a host has no logging of its own.
+        services.AddLogging();
         services.Configure<GeneralSettings>(options => options.HostName = hostName);
         services.Configure<PlatformSettings>(_ => { });
         services.AddMaskinportenSettings();

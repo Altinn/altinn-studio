@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Extensions;
@@ -204,6 +205,8 @@ public sealed class WebHostBuilderExtensionsTests
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
         services.AddRuntimeEnvironment();
+        // The Maskinporten startup check logs, and a container built without a host has no logging of its own.
+        services.AddLogging();
         services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
         services.Configure<PlatformSettings>(_ => { });
         services.AddMaskinportenSettings();

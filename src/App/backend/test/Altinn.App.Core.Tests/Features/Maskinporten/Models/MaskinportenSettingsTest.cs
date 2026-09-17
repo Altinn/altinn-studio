@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.ProvisionedSecrets;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -268,6 +269,7 @@ public class MaskinportenSettingsTest
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(ProvisionedConfiguration(tempDir));
             services.AddRuntimeEnvironment();
+            services.AddLogging();
             services.Configure<GeneralSettings>(_ => { });
             services.Configure<PlatformSettings>(_ => { });
             services.AddMaskinportenSettings();
@@ -316,6 +318,7 @@ public class MaskinportenSettingsTest
             var services = new ServiceCollection();
             services.AddSingleton<IConfiguration>(ProvisionedConfiguration(tempDir));
             services.AddRuntimeEnvironment();
+            services.AddLogging();
             services.Configure<GeneralSettings>(_ => { });
             services.Configure<PlatformSettings>(_ => { });
             services.AddMaskinportenSettings();

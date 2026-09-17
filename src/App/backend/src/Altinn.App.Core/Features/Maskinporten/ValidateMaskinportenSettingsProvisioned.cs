@@ -14,9 +14,12 @@ namespace Altinn.App.Core.Features.Maskinporten;
 /// platform provisioned, and the data annotations name the fields it is missing. This validator speaks for
 /// the empty file alone, so every field <see cref="MaskinportenSettings"/> holds counts as something read -
 /// including the key, which no annotation requires.</para>
-/// <para>Every app has a provisioned Maskinporten client, so this runs at host startup and an app with no
-/// credentials does not start. Rotating a file that is there is a different matter, and still reaches a
-/// running app without a restart through the channel's polling file provider.</para>
+/// <para>Where the failure surfaces depends on where the app runs. On the platform, where every app has a
+/// provisioned client, <see cref="MaskinportenSettingsStartupCheck"/> reads the credentials at host startup
+/// and an app with none does not start. On a local run the app starts, and this message reaches the
+/// developer on the first token request instead, through <see cref="MaskinportenClient.Settings"/>, which
+/// wraps it. Either way a file that appears or is rotated afterwards reaches a running app without a restart,
+/// through the channel's polling file provider.</para>
 /// </summary>
 /// <param name="secrets">The channel the credentials are provisioned through.</param>
 /// <param name="runtimeEnvironment">The platform the app is running on.</param>
@@ -51,7 +54,7 @@ internal sealed class ValidateMaskinportenSettingsProvisioned(
     ) =>
         runtimeEnvironment.IsLocaltestPlatform()
             ? "No Maskinporten client is stored for this local run. Store one with "
-                + "'studioctl app maskinporten set', then start the app again."
+                + "'studioctl app maskinporten set'; a running app picks it up without a restart."
             : $"No Maskinporten credentials were read from '{secrets.PathOf(ProvisionedSecretFiles.Maskinporten)}', "
                 + "where the platform provisions them. Studio provisions the app's client when the app is deployed. "
                 + "For a local run, start the app through studioctl and store a client with "

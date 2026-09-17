@@ -49,9 +49,10 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     internal MaskinportenSettings Settings => ReadProvisionedSettings(_options);
 
     /// <summary>
-    /// The credentials as the options monitor currently has them. Startup validation has already run by the
-    /// time a token is asked for, but a rotated file is validated again on reload, so the failure has to be
-    /// translated here too rather than only at startup.
+    /// The credentials as the options monitor currently has them. On the platform the startup check has read
+    /// them long before a token is asked for; on a local run it deliberately has not, and this is where a
+    /// missing client is first heard of. A rotated file is validated again on reload either way, so the
+    /// failure is translated here rather than only at startup.
     /// </summary>
     /// <param name="options">The monitor the provisioned credentials are bound through.</param>
     /// <exception cref="MaskinportenConfigurationException">The credentials are missing or invalid.</exception>

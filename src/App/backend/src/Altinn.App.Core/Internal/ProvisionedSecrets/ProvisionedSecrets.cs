@@ -95,11 +95,12 @@ internal sealed class ProvisionedSecrets : IDisposable
         var builder = new ConfigurationBuilder();
         foreach (ProvisionedSecretFile file in files)
         {
-            // optional: true is a provider-level setting and nothing more. Every tenant validates its file at
-            // startup, so a missing one is reported there, with a message that says what to do about it -
-            // rather than as the JSON provider's bare FileNotFoundException while the container is still
-            // building this root. Carrying a rotated file to consumers without a restart is the polling
-            // provider's doing, together with reloadOnChange.
+            // optional: true is a provider-level setting and nothing more. Every tenant validates its file -
+            // at host startup, or on first use where a tenant deliberately starts without one - so a missing
+            // file is reported there, with a message that says what to do about it, rather than as the JSON
+            // provider's bare FileNotFoundException while the container is still building this root. Carrying
+            // a rotated file to consumers without a restart is the polling provider's doing, together with
+            // reloadOnChange.
             builder.AddJsonFile(
                 provider: _fileProvider,
                 path: Path.GetRelativePath(providerRoot, Path.Join(Directory, file.FileName)),

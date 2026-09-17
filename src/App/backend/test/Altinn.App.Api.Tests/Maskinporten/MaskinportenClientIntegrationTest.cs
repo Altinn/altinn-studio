@@ -13,6 +13,9 @@ namespace Altinn.App.Api.Tests.Maskinporten;
 
 public class MaskinportenClientIntegrationTests
 {
+    private const string _platformHostName = "at22.altinn.cloud";
+    private const string _localtestHostName = "local.altinn.cloud";
+
     [Fact]
     public void ConfigureAppWebHost_AddsMaskinportenService()
     {
@@ -62,17 +65,38 @@ public class MaskinportenClientIntegrationTests
     }
 
     /// <summary>
-    /// Every app has a provisioned Maskinporten client, so an app given none does not start at all: an
-    /// operator sees a deployment that failed, rather than a token request that fails hours later.
+    /// Studio provisions every app's Maskinporten client, so a deployed app given none does not start at all:
+    /// an operator sees a deployment that failed, rather than a token request that fails hours later.
     /// </summary>
     [Fact]
-    public async Task Host_DoesNotStart_WhenNoClientIsProvisioned()
+    public async Task Host_DoesNotStart_WhenNoClientIsProvisionedOnThePlatform()
+    {
+        using var secretsDirectory = new TempDirectory();
+
+        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path, _platformHostName));
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
+        Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A local run starts without a client, because most apps never call a Maskinporten-protected API. What
+    /// the developer pays instead is the first token request, which reads the credentials through
+    /// <c>MaskinportenClient.Settings</c> and fails with the command that stores one.
+    /// </summary>
+    [Fact]
+    public async Task Host_Starts_WhenNoClientIsStoredLocally()
     {
         using var secretsDirectory = new TempDirectory();
 
         await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
 
-        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
+        await app.StartAsync();
+        await app.StopAsync();
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue
+        );
         Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
     }
 
@@ -94,13 +118,20 @@ public class MaskinportenClientIntegrationTests
     /// <summary>
     /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port, no
     /// localtest probing, and the callback app code the workflow engine integration validates at startup.
+    /// The host name decides which platform the app believes it is on, and a test host is on localtest unless
+    /// it says otherwise.
     /// </summary>
     /// <param name="secretsDirectory">The directory standing in for the platform's secrets mount.</param>
-    private static IEnumerable<KeyValuePair<string, string?>> HostConfiguration(string secretsDirectory) =>
+    /// <param name="hostName">The host name the app is served under.</param>
+    private static IEnumerable<KeyValuePair<string, string?>> HostConfiguration(
+        string secretsDirectory,
+        string hostName = _localtestHostName
+    ) =>
         [
             .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory),
             new("urls", "http://127.0.0.1:0"),
             new("GeneralSettings:DisableLocaltestValidation", "true"),
+            new("GeneralSettings:HostName", hostName),
             new("AppCodes:WorkflowEngineCallback:0:Id", "test"),
             new("AppCodes:WorkflowEngineCallback:0:Code", "test-workflow-engine-callback-secret-long-enough"),
             new("AppCodes:WorkflowEngineCallback:0:IssuedAt", "2020-01-01T00:00:00Z"),

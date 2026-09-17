@@ -67,6 +67,13 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.Features.Maskinporten.MaskinportenSettingsStartupCheck
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Altinn.App.Core.Features.Maskinporten.MaskinportenWellKnownRefreshService
   },
   {
