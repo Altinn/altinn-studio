@@ -16,6 +16,9 @@ type appEnv struct {
 	values map[string]string
 }
 
+// newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
+// secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
+// the data-protection keys go.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,
@@ -56,19 +59,18 @@ func (e appEnv) addRunDefaults(
 	// Where the app's secrets are and what every file in that directory is called, named for the app exactly
 	// as the platform names them for a deployed app - the same variables the operator's configuration map
 	// sets in every environment (infra/runtime/apps-config/base/apps-runtime-common-env.yaml), because
-	// studioctl is the platform for a local run. The app libraries require all of them and fall back to
-	// nothing, so naming the directory means naming its files too, whether or not studioctl has written one
-	// yet: the Maskinporten client stored with `studioctl app maskinporten set` lands under the name
-	// advertised here, and a client stored while the app runs is picked up without a restart. None of the
-	// three is taken from the inherited environment: the contract is studioctl's to state, not the shell's.
-	if secretsDir != "" {
-		e.values[appsecrets.EnvSecretsDir] = secretsDir
-		e.values[appsecrets.EnvMaskinportenFileName] = appsecrets.MaskinportenFileName
-		e.values[appsecrets.EnvAppCodesFileName] = appsecrets.AppCodesFileName
-	}
-	// Where the app persists its data-protection keys. A native run uses the developer's home directory, as
-	// the app libraries default to; a container run is told the directory studioctl mounts for it, as the
-	// platform tells a deployed app.
+	// studioctl is the platform for a local run. All three are set on every run: the app libraries require
+	// them and fall back to nothing, the directory exists by the time a spec is built, and studioctl writes
+	// into it whether or not the developer has stored anything there. The Maskinporten client stored with
+	// `studioctl app maskinporten set` lands under the name advertised here, and a client stored while the
+	// app runs is picked up without a restart. None of the three is taken from the inherited environment:
+	// the contract is studioctl's to state, not the shell's.
+	e.values[appsecrets.EnvSecretsDir] = secretsDir
+	e.values[appsecrets.EnvMaskinportenFileName] = appsecrets.MaskinportenFileName
+	e.values[appsecrets.EnvAppCodesFileName] = appsecrets.AppCodesFileName
+	// Where the app persists its data-protection keys, which is the one part a run can leave unsaid: a
+	// native run keeps the app libraries' default, the developer's own home directory, and only a container
+	// run is told a directory, the one studioctl mounts for it, as the platform tells a deployed app.
 	if keysDir != "" {
 		e.values[EnvKeysDirectory] = keysDir
 	}

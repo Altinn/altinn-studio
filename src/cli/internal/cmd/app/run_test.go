@@ -23,11 +23,32 @@ func testService() *appsvc.Service {
 	return appsvc.NewService(&config.Config{Version: config.NewVersion("test-version")})
 }
 
+// testRunService is a service that can place an app's secrets directory. Building a run or env spec creates
+// that directory, so every spec test needs a home to place it under.
+func testRunService(t *testing.T) *appsvc.Service {
+	t.Helper()
+
+	return appsvc.NewService(&config.Config{Home: t.TempDir(), Version: config.NewVersion("test-version")})
+}
+
+// assertIsDir checks that a directory the app is about to be pointed at is there already.
+func assertIsDir(t *testing.T, dir string) {
+	t.Helper()
+
+	info, err := os.Stat(dir)
+	if err != nil || !info.IsDir() {
+		t.Fatalf("%s is not a directory: %v", dir, err)
+	}
+}
+
 func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	t.Parallel()
 
-	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
-		AppRoot:   t.TempDir(),
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+
+	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
 	if err != nil {
@@ -51,7 +72,7 @@ func TestBuildDockerRunSpec_DoesNotAddAppFrontendAssetBaseUrlByDefault(t *testin
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -69,7 +90,7 @@ func TestBuildDockerRunSpec_UsesAppFrontendAssetBaseUrlOverride(t *testing.T) {
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	want := "http://app-frontend.local.altinn.cloud:8000"
 
-	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{AppFrontendAssetBaseUrl: want})
@@ -87,8 +108,11 @@ func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 
 	want := "ghcr.io/altinn/altinn-studio/app:frontend-test"
 
-	spec, err := testService().BuildDockerRunSpec(repocontext.Detection{
-		AppRoot:   t.TempDir(),
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+
+	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{ImageTag: want})
 	if err != nil {
@@ -104,8 +128,9 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	projectPath := writeAppProject(t, appPath)
-	spec, err := testService().BuildDotnetRunSpec(
+	spec, err := testRunService(t).BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -152,7 +177,7 @@ func TestBuildDotnetRunSpec_DoesNotAddAppFrontendAssetBaseUrlByDefault(t *testin
 	writeAppProject(t, appPath)
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	spec, err := testService().BuildDotnetRunSpec(
+	spec, err := testRunService(t).BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -171,8 +196,9 @@ func TestBuildDotnetRunSpec_PreservesCurrentEnv(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	writeAppProject(t, appPath)
-	spec, err := testService().BuildDotnetRunSpec(
+	spec, err := testRunService(t).BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -206,7 +232,7 @@ func TestBuildDotnetRunSpec_PreservesAppFrontendAssetBaseUrlOverride(t *testing.
 	writeAppProject(t, appPath)
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	spec, err := testService().BuildDotnetRunSpec(
+	spec, err := testRunService(t).BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -231,7 +257,7 @@ func TestBuildDotnetRunSpec_UsesAppFrontendAssetBaseUrlOptionOverCurrentEnv(t *t
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	want := "http://app-frontend.local.altinn.cloud:8000"
 
-	spec, err := testService().BuildDotnetRunSpec(
+	spec, err := testRunService(t).BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
@@ -252,8 +278,9 @@ func TestBuildDotnetRunSpec_RandomHostPortAsksKestrelToSelectPort(t *testing.T) 
 	t.Parallel()
 
 	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	writeAppProject(t, appPath)
-	spec, err := testService().BuildDotnetRunSpec(
+	spec, err := testRunService(t).BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		[]string{"--seed", "1"},
@@ -426,6 +453,9 @@ func TestBuildDotnetRunSpec_NamesTheProvisionedSecrets(t *testing.T) {
 	if spec.SecretsDir != want {
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
+	// The directory the app is pointed at is there before the app is, whether or not anything has been
+	// stored in it. `studioctl app env` builds this same spec, so an app started from an IDE finds it too.
+	assertIsDir(t, want)
 	// The app is given the whole contract the platform gives a deployed app: where the secrets are, and what
 	// every file in there is called. The app libraries require all three and fall back to nothing.
 	assertProvisionedSecretsEnv(t, spec.Env, want)
@@ -462,26 +492,63 @@ func TestBuildDotnetRunSpec_OverridesInheritedProvisionedSecretsVariables(t *tes
 	assertProvisionedSecretsEnv(t, spec.Env, filepath.Join(home, "apps", "ttd", "test-app", "secrets"))
 }
 
-func TestBuildDotnetRunSpec_NamesNoSecretsDirectoryWithoutAHome(t *testing.T) {
+// A run without a secrets directory is not a run studioctl can start: the app would be left without the
+// files studioctl provisions for it and without the variables the app libraries require. Both specs
+// therefore fail rather than quietly leave the directory unnamed - whether there is nowhere to put it, or
+// nothing to name it after.
+func TestBuildRunSpecs_FailWithoutSomewhereToPlaceTheSecretsDirectory(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	writeAppProject(t, appPath)
 
-	spec, err := testService().BuildDotnetRunSpec(t.Context(), appPath, nil, nil, defaultTopology(), appsvc.DotnetRunOptions{})
-	if err != nil {
-		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	// No studioctl home: nowhere to place the directory.
+	_, err := testService().BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err == nil {
+		t.Fatal("BuildDotnetRunSpec() error = nil, want an error naming the secrets directory")
 	}
+	_, err = testService().BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err == nil {
+		t.Fatal("BuildDockerRunSpec() error = nil, want an error naming the secrets directory")
+	}
+}
 
-	if spec.SecretsDir != "" {
-		t.Fatalf("SecretsDir = %q, want none", spec.SecretsDir)
+func TestBuildRunSpecs_FailWithoutAnAppIDToNameTheSecretsDirectoryAfter(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppProject(t, appPath)
+
+	// No application metadata: nothing to key the directory on.
+	_, err := testRunService(t).BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err == nil {
+		t.Fatal("BuildDotnetRunSpec() error = nil, want an error reading the app id")
 	}
-	// Nothing to key a directory on, so nothing is named - not even the file names, which would describe a
-	// directory the app was never told about.
-	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_DIR")
-	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME")
-	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_APPCODES_FILENAME")
+	_, err = testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err == nil {
+		t.Fatal("BuildDockerRunSpec() error = nil, want an error reading the app id")
+	}
 }
 
 func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t *testing.T) {
@@ -504,6 +571,9 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 	if spec.SecretsDir != want {
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
+	// The host side of the mount exists before the container does, so the runtime never creates it - on
+	// Linux as root, where everything else under the studioctl home is the developer's.
+	assertIsDir(t, want)
 	wantKeys := filepath.Join(home, "apps", "ttd", "test-app", "keys")
 	if spec.KeysDir != wantKeys {
 		t.Fatalf("KeysDir = %q, want %q", spec.KeysDir, wantKeys)

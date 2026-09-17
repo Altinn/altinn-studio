@@ -47,17 +47,24 @@ func (s *Service) AppSecretsDir(appPath string) (string, error) {
 	return dir, nil
 }
 
-// appSecretsDirOrEmpty is AppSecretsDir for the run and env specs, which are built for app directories
-// that may lack metadata: with nothing to key the directory on, no directory is named.
-func (s *Service) appSecretsDirOrEmpty(appPath string) string {
+// ensureAppSecretsDir places the app's secrets directory and creates it, owner-only, before anything is
+// written into it or an app is told to read from it. Every local run has one - the app libraries require the
+// platform to name the directory whether or not anything is stored in it yet - so this is the single place
+// it comes into existence, and a run that cannot have one says so instead of starting without it.
+func (s *Service) ensureAppSecretsDir(appPath string) (string, error) {
 	dir, err := s.AppSecretsDir(appPath)
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return dir
+	if err := appsecrets.EnsureDir(dir); err != nil {
+		return "", fmt.Errorf("prepare the app's secrets directory: %w", err)
+	}
+	return dir, nil
 }
 
-// appKeysDirOrEmpty is the containerized run's data-protection keys directory, on the same terms.
+// appKeysDirOrEmpty is the containerized run's data-protection keys directory, which is optional: a native
+// run deliberately leaves the app libraries' own default in place, and a container run mounts one only when
+// there is somewhere to put it.
 func (s *Service) appKeysDirOrEmpty(appPath string) string {
 	if s.cfg == nil || s.cfg.Home == "" {
 		return ""

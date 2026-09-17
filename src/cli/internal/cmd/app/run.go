@@ -119,7 +119,12 @@ func (s *Service) BuildDotnetRunSpec(
 		port = "0"
 	}
 	baseURL := nativeAppBaseURL(port)
-	secretsDir := s.appSecretsDirOrEmpty(appPath)
+	// Created here rather than at the point the app starts, so that `studioctl app env` - which builds this
+	// spec and prints it for an app started from an IDE - leaves behind the same directory `app run` would.
+	secretsDir, err := s.ensureAppSecretsDir(appPath)
+	if err != nil {
+		return DotnetRunSpec{}, err
+	}
 
 	return DotnetRunSpec{
 		Dir:            filepath.Dir(projectPath),
@@ -216,7 +221,10 @@ func (s *Service) BuildDockerRunSpec(
 	if imageTag == "" {
 		imageTag = appimage.DefaultLocalTag(appPath)
 	}
-	secretsDir := s.appSecretsDirOrEmpty(appPath)
+	secretsDir, err := s.ensureAppSecretsDir(appPath)
+	if err != nil {
+		return DockerRunSpec{}, err
+	}
 	keysDir := s.appKeysDirOrEmpty(appPath)
 	keysDirEnv := ""
 	if keysDir != "" {
@@ -267,19 +275,17 @@ func (s *Service) BuildDockerRunSpec(
 	}, nil
 }
 
-// PrepareDockerRun readies a spec for the runtime it is about to run on. The host directories it mounts are
+// PrepareDockerRun readies a spec for the runtime it is about to run on. The keys directory it mounts is
 // created first (a missing one is otherwise created by the runtime, on Linux as root, where everything else
-// under the studioctl home is the developer's), and the container runs as the developer with the userns and
-// SELinux handling the localtest containers use: the mounted secrets are owner-only on the host, and a
-// deployed app likewise runs as the one user that can read its secret. The image's own user (uid 1000) could
-// not read them on a Linux host with another uid.
+// under the studioctl home is the developer's; the secrets directory already exists, created when the spec
+// was built), and the container runs as the developer with the userns and SELinux handling the localtest
+// containers use: the mounted secrets are owner-only on the host, and a deployed app likewise runs as the
+// one user that can read its secret. The image's own user (uid 1000) could not read them on a Linux host
+// with another uid.
 func (s *Service) PrepareDockerRun(spec *DockerRunSpec, toolchain types.ContainerToolchain) error {
-	for _, dir := range []string{spec.SecretsDir, spec.KeysDir} {
-		if dir == "" {
-			continue
-		}
-		if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
-			return fmt.Errorf("create app directory %s: %w", filepath.Base(dir), err)
+	if spec.KeysDir != "" {
+		if err := os.MkdirAll(spec.KeysDir, osutil.DirPermOwnerOnly); err != nil {
+			return fmt.Errorf("create app directory %s: %w", filepath.Base(spec.KeysDir), err)
 		}
 	}
 	user, usernsMode, relabel := components.RuntimeUser(toolchain)
@@ -290,19 +296,19 @@ func (s *Service) PrepareDockerRun(spec *DockerRunSpec, toolchain types.Containe
 }
 
 // appMounts gives the container what the platform gives a deployed app: its secrets directory read-only at
-// /mnt/app-secrets and a writable directory for data-protection keys at /mnt/keys. The secrets directory is
-// mounted rather than the file, so that a client stored while the container runs - an atomic replace on the
-// host - is seen inside it.
+// /mnt/app-secrets and a writable directory for data-protection keys at /mnt/keys. The secrets mount is
+// always there - every run has a secrets directory - while the keys mount depends on studioctl having
+// somewhere to persist them. The secrets directory is mounted rather than the file, so that a client stored
+// while the container runs - an atomic replace on the host - is seen inside it.
 func appMounts(secretsDir, keysDir string) []types.VolumeMount {
-	var mounts []types.VolumeMount
-	if secretsDir != "" {
-		mounts = append(mounts, types.VolumeMount{
+	mounts := []types.VolumeMount{
+		{
 			HostPath:       secretsDir,
 			ContainerPath:  appsecrets.ContainerDir,
 			Type:           types.VolumeMountTypeBind,
 			SELinuxRelabel: types.SELinuxRelabelNone,
 			ReadOnly:       true,
-		})
+		},
 	}
 	if keysDir != "" {
 		mounts = append(mounts, types.VolumeMount{

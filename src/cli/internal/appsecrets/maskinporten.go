@@ -213,8 +213,8 @@ func StoreMaskinportenClient(dir string, client MaskinportenClient) (string, err
 	if err := client.Validate(); err != nil {
 		return "", err
 	}
-	if err := os.MkdirAll(dir, osutil.DirPermOwnerOnly); err != nil {
-		return "", fmt.Errorf("create secrets directory: %w", err)
+	if err := EnsureDir(dir); err != nil {
+		return "", err
 	}
 	payload, err := json.MarshalIndent(map[string]MaskinportenClient{wrapperKey: client}, "", "  ")
 	if err != nil {
