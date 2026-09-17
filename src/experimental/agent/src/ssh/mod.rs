@@ -35,8 +35,8 @@ use crate::{
 };
 
 pub use client_config::{
-    HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include, render_path,
-    render_proxy_command, upsert_known_host,
+    CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
+    render_path, render_proxy_command, upsert_known_host,
 };
 pub use keys::KeyPair;
 
@@ -247,7 +247,7 @@ impl Access {
             identity_file: self.home.identity_path(record.id),
             known_hosts_file: self.home.known_hosts_path(),
             config_file: self.home.config_path(),
-            proxy_command: render_proxy_command(&self.agentctl, name)?,
+            proxy_command: render_proxy_command(&self.agentctl, name, CommandShell::host())?,
         })
     }
 
@@ -348,7 +348,11 @@ impl Access {
                 Ok(HostEntry {
                     alias: alias(&record.agent.metadata.name),
                     user: GUEST_USER.into(),
-                    proxy_command: render_proxy_command(&self.agentctl, &record.agent.metadata.name)?,
+                    proxy_command: render_proxy_command(
+                        &self.agentctl,
+                        &record.agent.metadata.name,
+                        CommandShell::host(),
+                    )?,
                     host_key_alias: host_key_alias(record.id),
                     identity_file: self.home.identity_path(record.id),
                     known_hosts_file: self.home.known_hosts_path(),

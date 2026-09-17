@@ -51,14 +51,19 @@ pub fn render_config(entries: &[HostEntry], user_home: Option<&Path>) -> String 
     text
 }
 
-/// Renders a host path for an OpenSSH configuration value.
+/// Renders a host path for `IdentityFile` or `UserKnownHostsFile`.
 ///
 /// A path below the user's home is written `~/...` with forward slashes, which
 /// every OpenSSH port expands; anything else is written as the host spells it.
 /// Anything outside a conservative character set is double-quoted with `"` and
-/// `\` escaped, which is what OpenSSH's tokenizer understands.
+/// `\` escaped, which is what OpenSSH's tokenizer understands, and `%` is
+/// doubled because OpenSSH percent-expands these two directives.
 #[must_use]
 pub fn render_path(path: &Path, user_home: Option<&Path>) -> String {
+    render_path_with(path, user_home, true)
+}
+
+fn render_path_with(path: &Path, user_home: Option<&Path>, percent_expanded: bool) -> String {
     let text = user_home
         .and_then(|home| path.strip_prefix(home).ok())
         .filter(|relative| !relative.as_os_str().is_empty())
@@ -73,42 +78,97 @@ pub fn render_path(path: &Path, user_home: Option<&Path>) -> String {
                 text
             },
         );
-    quote_config_value(&text)
+    let quoted = quote_config_value(&text);
+    if percent_expanded {
+        quoted.replace('%', "%%")
+    } else {
+        quoted
+    }
+}
+
+/// How the host runs the string OpenSSH hands to `ProxyCommand`.
+///
+/// Unix OpenSSH runs it through `/bin/sh -c`; Win32-OpenSSH hands it to
+/// `CreateProcess`, which knows only double quotes. `agentd` generates the
+/// configuration on the host that runs `ssh`, so it picks the host's shell.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CommandShell {
+    /// `/bin/sh`: single quotes make every character literal.
+    Posix,
+    /// `CreateProcess` command-line rules: double quotes, no expansion.
+    Windows,
+}
+
+impl CommandShell {
+    /// Returns the shell of the host this binary runs on.
+    #[must_use]
+    pub const fn host() -> Self {
+        if cfg!(windows) { Self::Windows } else { Self::Posix }
+    }
 }
 
 /// Renders the `ProxyCommand` value dialing one Agent through `agentctl`.
 ///
 /// The executable is always absolute: the shell running the command on Unix
 /// would expand `~`, Win32-OpenSSH would not, and neither has `agentctl` on a
-/// predictable `PATH`. OpenSSH hands the value to a shell, so the executable
-/// is quoted with `"` and `\` escaped: that is the one quoting form OpenSSH's
-/// own tokenizer, `/bin/sh` and Win32-OpenSSH all leave intact. `$`, backticks
-/// and `;` inside double quotes would still be shell syntax on Unix, so a path
-/// containing them is refused rather than rendered.
+/// predictable `PATH`. Three parsers see the value: OpenSSH percent-expands it
+/// (`%h`, `%p`, so a literal `%` becomes `%%`), then the host's shell splits
+/// it. Quoting for that shell makes `$`, backticks, `;`, spaces and quotes in
+/// a user's directory name literal, so such paths work rather than being
+/// refused; only characters no configuration line can carry are rejected.
 ///
 /// # Errors
 ///
-/// Returns an error when the executable path contains characters that cannot be
-/// passed through the shell safely.
-pub fn render_proxy_command(agentctl: &Path, agent: &str) -> Result<String, Error> {
-    let executable = agentctl.display().to_string();
-    if executable.contains(['$', '`', ';', '\n', '\r', '\0']) || agentctl.as_os_str().to_str().is_none() {
+/// Returns an error when the path is not UTF-8 or contains a line break or NUL.
+pub fn render_proxy_command(agentctl: &Path, agent: &str, shell: CommandShell) -> Result<String, Error> {
+    let Some(executable) = agentctl.to_str() else {
         return Err(Error::Invalid(format!(
-            "agentctl path {executable:?} contains characters that cannot be passed to the SSH ProxyCommand shell; \
-             install agentctl at a plain path"
+            "agentctl path {} is not valid UTF-8 and cannot be written to the SSH client configuration",
+            agentctl.display()
+        )));
+    };
+    if executable.contains(['\n', '\r', '\0']) {
+        return Err(Error::Invalid(format!(
+            "agentctl path {executable:?} contains a line break, which no SSH configuration line can carry"
         )));
     }
-    Ok(format!("{} ssh-proxy agent/{agent}", quote_config_value(&executable)))
+    let quoted = match shell {
+        CommandShell::Posix => posix_quote(executable),
+        CommandShell::Windows => windows_quote(executable),
+    };
+    Ok(format!("{} ssh-proxy agent/{agent}", quoted.replace('%', "%%")))
+}
+
+/// Quotes one word for `/bin/sh`: single quotes, with an embedded `'` written as `'\''`.
+fn posix_quote(text: &str) -> String {
+    if is_plain(text) {
+        return text.to_owned();
+    }
+    format!("'{}'", text.replace('\'', r"'\''"))
+}
+
+/// Quotes one word for `CreateProcess` command-line parsing: double quotes, in
+/// which a backslash is literal unless it precedes a `"`; `"` is not valid in a
+/// Windows path, so it is escaped defensively.
+fn windows_quote(text: &str) -> String {
+    if is_plain(text) {
+        return text.to_owned();
+    }
+    format!("\"{}\"", text.replace('"', "\\\""))
+}
+
+/// Whether a token needs no quoting under any of the parsers involved.
+fn is_plain(text: &str) -> bool {
+    !text.is_empty()
+        && text
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || "/~._-:+@".contains(character))
 }
 
 /// Quotes an OpenSSH configuration token unless it consists only of characters
 /// that need no quoting. Inside quotes `\` and `"` are backslash-escaped.
 fn quote_config_value(text: &str) -> String {
-    let plain = !text.is_empty()
-        && text
-            .chars()
-            .all(|character| character.is_ascii_alphanumeric() || "/~._-:+@".contains(character));
-    if plain {
+    if is_plain(text) {
         return text.to_owned();
     }
     let mut quoted = String::with_capacity(text.len() + 2);
@@ -204,7 +264,8 @@ pub enum IncludeOutcome {
 /// Renders the `Include` directive for the generated configuration.
 #[must_use]
 pub fn render_include(config: &Path, user_home: Option<&Path>) -> String {
-    format!("Include {}", render_path(config, user_home))
+    // `Include` is not percent-expanded, so a `%` stays single.
+    format!("Include {}", render_path_with(config, user_home, false))
 }
 
 /// Idempotently inserts `include` as the first line of `user_config`.
@@ -263,15 +324,16 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include, render_path,
-        render_proxy_command, upsert_known_host,
+        CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
+        render_path, render_proxy_command, upsert_known_host,
     };
 
     fn entry(name: &str, id: &str, root: &Path) -> HostEntry {
         HostEntry {
             alias: format!("altinn-agent-{name}"),
             user: "agent".into(),
-            proxy_command: render_proxy_command(Path::new("/usr/local/bin/agentctl"), name).expect("proxy command"),
+            proxy_command: render_proxy_command(Path::new("/usr/local/bin/agentctl"), name, CommandShell::Posix)
+                .expect("proxy command"),
             host_key_alias: format!("agent-{id}"),
             identity_file: root.join(id).join("id_ed25519"),
             known_hosts_file: root.join("known_hosts"),
@@ -313,27 +375,80 @@ Host altinn-agent-worker
             "/home/me"
         );
         assert_eq!(
-            render_proxy_command(Path::new("/opt/agent tools/agentctl"), "worker").expect("quoted"),
-            "\"/opt/agent tools/agentctl\" ssh-proxy agent/worker"
-        );
-        assert_eq!(
-            render_proxy_command(Path::new(r"C:\Program Files\agent\agentctl.exe"), "worker").expect("Windows"),
-            r#""C:\\Program Files\\agent\\agentctl.exe" ssh-proxy agent/worker"#
+            render_proxy_command(Path::new("/opt/agent tools/agentctl"), "worker", CommandShell::Posix).expect("posix"),
+            "'/opt/agent tools/agentctl' ssh-proxy agent/worker"
         );
         assert_eq!(
             render_path(Path::new("/srv/say \"hi\"/known_hosts"), None),
             r#""/srv/say \"hi\"/known_hosts""#
         );
-        for hostile in ["/opt/a;rm -rf /", "/opt/$HOME/agentctl", "/opt/`id`/agentctl"] {
+        assert_eq!(
+            render_path(Path::new("/srv/100%/known_hosts"), None),
+            r#""/srv/100%%/known_hosts""#,
+            "IdentityFile and UserKnownHostsFile are percent-expanded"
+        );
+        assert_eq!(
+            render_include(Path::new("/srv/100%/config"), None),
+            r#"Include "/srv/100%/config""#,
+            "Include is not percent-expanded"
+        );
+    }
+
+    #[test]
+    fn proxy_command_quotes_for_the_host_shell_and_doubles_percent() {
+        // Windows: CreateProcess rules, backslashes literal, `%` doubled for OpenSSH.
+        assert_eq!(
+            render_proxy_command(
+                Path::new(r"C:\Users\100%$user\.local\bin\agentctl.exe"),
+                "worker",
+                CommandShell::Windows
+            )
+            .expect("Windows"),
+            r#""C:\Users\100%%$user\.local\bin\agentctl.exe" ssh-proxy agent/worker"#
+        );
+        assert_eq!(
+            render_proxy_command(Path::new(r"C:\agent\agentctl.exe"), "worker", CommandShell::Windows)
+                .expect("Windows plain"),
+            r#""C:\agent\agentctl.exe" ssh-proxy agent/worker"#
+        );
+        // Unix: single quotes make shell syntax in the user's directory name literal.
+        assert_eq!(
+            render_proxy_command(Path::new("/home/we$ird;u'ser/agentctl"), "worker", CommandShell::Posix)
+                .expect("posix"),
+            r"'/home/we$ird;u'\''ser/agentctl' ssh-proxy agent/worker"
+        );
+        assert_eq!(
+            render_proxy_command(Path::new("/home/100%/agentctl"), "worker", CommandShell::Posix).expect("posix"),
+            "'/home/100%%/agentctl' ssh-proxy agent/worker"
+        );
+        for impossible in ["/opt/line\nbreak/agentctl", "/opt/nul\0/agentctl"] {
             assert!(
-                render_proxy_command(Path::new(hostile), "worker").is_err(),
-                "{hostile} must be refused"
+                render_proxy_command(Path::new(impossible), "worker", CommandShell::Posix).is_err(),
+                "{impossible:?} cannot be written on one configuration line"
             );
         }
-        assert_eq!(
-            render_include(Path::new("/home/me/.agent/ssh/config"), Some(Path::new("/home/me"))),
-            "Include ~/.agent/ssh/config"
-        );
+    }
+
+    /// The Unix form survives the real shell: what `sh` sees after OpenSSH has
+    /// undone `%%` is exactly the installed path.
+    #[cfg(unix)]
+    #[test]
+    fn posix_proxy_command_round_trips_through_sh() {
+        for path in [
+            "/opt/agent tools/agentctl",
+            "/home/we$ird;u'ser/`id`/agentctl",
+            "/home/100%/agent\"quote/agentctl",
+        ] {
+            let rendered = render_proxy_command(Path::new(path), "worker", CommandShell::Posix).expect("posix");
+            let command = rendered.replace("%%", "%");
+            let word = command.strip_suffix(" ssh-proxy agent/worker").expect("suffix");
+            let output = std::process::Command::new("sh")
+                .arg("-c")
+                .arg(format!("printf '%s' {word}"))
+                .output()
+                .expect("sh");
+            assert_eq!(String::from_utf8(output.stdout).expect("UTF-8"), path);
+        }
     }
 
     #[test]

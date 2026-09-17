@@ -100,7 +100,7 @@ agentctl create session/careful --model opus --effort xhigh
 
 ## SSH access
 
-All published variants declare `access: [{type: ssh}]`, so an editor, `sftp` or `rsync` can reach the Agent's Sandbox as the
+All published variants declare `access: [{type: ssh}]`, so an editor or `sftp` can reach the Agent's Sandbox as the
 user `agent`. Open a shell or run one command:
 
 ```sh
@@ -117,7 +117,6 @@ client, including remote-development features of editors that read OpenSSH confi
 agentctl ssh-config install
 ssh altinn-agent-altinn-full
 sftp altinn-agent-altinn-full
-rsync -av ./fixtures/ altinn-agent-altinn-full:code/fixtures/
 ```
 
 `agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths and proxy command for tools that want

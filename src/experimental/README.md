@@ -116,7 +116,7 @@ image or the user and is not used as a trusted bootstrap marker.
 
 `spec.access: [{type: ssh}]` gives the Agent's user OpenSSH access to the Sandbox as the platform-owned user `agent`:
 `agentctl ssh <agent> [-- command]` opens it, `agentctl ssh-config install` makes the alias `altinn-agent-<name>`
-available to plain `ssh`, `sftp`, `rsync` and editors that read OpenSSH configuration, and
+available to plain `ssh`, `sftp` and editors that read OpenSSH configuration, and
 `agentctl ssh-info <agent> -o json` describes the connection for other tools. The server listens only inside the
 Sandbox and is reached through `agentctl ssh-proxy`; the image must ship OpenSSH with the platform's `agent-ssh`
 unit under systemd, as the published images do. `agent` has passwordless `sudo`, so an SSH login shares the
