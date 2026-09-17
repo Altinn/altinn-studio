@@ -286,10 +286,11 @@ pub(crate) enum CreateField {
     Agent,
     Variant,
     Name,
+    EnvironmentFile,
 }
 
 impl CreateField {
-    const ORDER: [Self; 3] = [Self::Agent, Self::Variant, Self::Name];
+    const ORDER: [Self; 4] = [Self::Agent, Self::Variant, Self::Name, Self::EnvironmentFile];
 
     fn next(self) -> Self {
         let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
@@ -302,7 +303,7 @@ impl CreateField {
     }
 }
 
-/// Create-agent form state: independent Agent and variant pickers plus a name override.
+/// Create-agent form state: independent Agent and variant pickers plus apply overrides.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CreateForm {
     pub(crate) agents: Vec<AgentDefinition>,
@@ -310,6 +311,7 @@ pub(crate) struct CreateForm {
     pub(crate) variant: usize,
     pub(crate) field: CreateField,
     pub(crate) name: String,
+    pub(crate) env_file: String,
     pub(crate) error: Option<String>,
 }
 
@@ -355,6 +357,7 @@ impl CreateForm {
             variant,
             field: CreateField::Agent,
             name: String::new(),
+            env_file: String::new(),
             error: None,
         }
     }
@@ -404,8 +407,16 @@ impl CreateForm {
             }
             KeyCode::Right | KeyCode::Down => self.select(1),
             KeyCode::Left | KeyCode::Up => self.select(-1),
-            KeyCode::Backspace if self.field == CreateField::Name => {
-                self.name.pop();
+            KeyCode::Backspace if matches!(self.field, CreateField::Name | CreateField::EnvironmentFile) => {
+                match self.field {
+                    CreateField::Name => {
+                        self.name.pop();
+                    }
+                    CreateField::EnvironmentFile => {
+                        self.env_file.pop();
+                    }
+                    CreateField::Agent | CreateField::Variant => {}
+                }
                 self.error = None;
             }
             KeyCode::Char(character)
@@ -415,6 +426,15 @@ impl CreateForm {
                     && self.name.len() < ::sandbox::MAX_SANDBOX_NAME_BYTES =>
             {
                 self.name.push(character);
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if self.field == CreateField::EnvironmentFile
+                    && key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                    && !character.is_control()
+                    && self.env_file.len() < 4096 =>
+            {
+                self.env_file.push(character);
                 self.error = None;
             }
             _ => {}
@@ -432,7 +452,7 @@ impl CreateForm {
                 let length = self.agent().map_or(0, |agent| agent.variants.len());
                 self.variant = wrapped_index(self.variant, length, delta);
             }
-            CreateField::Name => return,
+            CreateField::Name | CreateField::EnvironmentFile => return,
         }
         self.error = None;
     }
@@ -454,6 +474,7 @@ impl CreateForm {
         Ok(Action::CreateAgent {
             manifest: candidate.path.clone(),
             name,
+            env_file: (!self.env_file.is_empty()).then(|| PathBuf::from(&self.env_file)),
             form: self.clone(),
         })
     }
@@ -593,6 +614,7 @@ pub(crate) enum Action {
     CreateAgent {
         manifest: PathBuf,
         name: String,
+        env_file: Option<PathBuf>,
         form: CreateForm,
     },
     Exec {
@@ -1617,12 +1639,39 @@ mod tests {
     fn create_form_submits_the_placeholder_name_when_nothing_is_typed() {
         let mut app = populated();
         app.open_create(candidates(&[("/sources/fresh", "fresh")]));
-        let Action::CreateAgent { manifest, name, .. } = app.on_key(key(KeyCode::Enter)) else {
+        let Action::CreateAgent {
+            manifest,
+            name,
+            env_file,
+            ..
+        } = app.on_key(key(KeyCode::Enter))
+        else {
             panic!("expected a CreateAgent action");
         };
         assert_eq!(manifest, PathBuf::from("/sources/fresh/agent.yaml"));
         assert_eq!(name, "fresh");
+        assert_eq!(env_file, None);
         assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn create_form_accepts_an_environment_file_path() {
+        let mut app = populated();
+        app.open_create(candidates(&[("/sources/fresh", "fresh")]));
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(create_form(&app).field, CreateField::EnvironmentFile);
+        for character in "../private/fresh.env".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+        app.on_key(key(KeyCode::Char('x')));
+        app.on_key(key(KeyCode::Backspace));
+
+        let Action::CreateAgent { env_file, .. } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected a CreateAgent action");
+        };
+        assert_eq!(env_file, Some(PathBuf::from("../private/fresh.env")));
     }
 
     #[test]

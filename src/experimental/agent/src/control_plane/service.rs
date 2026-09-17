@@ -1,4 +1,6 @@
-use std::{path::PathBuf, rc::Rc};
+use std::{ffi::OsStr, path::PathBuf, rc::Rc};
+
+use ignore::WalkBuilder;
 
 use crate::{Agent, AgentId, Error, MountSpec};
 
@@ -62,6 +64,7 @@ impl ControlPlane {
         desired.clear_managed_fields();
         resolve_mount_sources(&mut desired, &request.source_directory).await?;
         desired.validate()?;
+        reject_dot_env_in_bind_mounts(&desired).await?;
 
         loop {
             let result = match self.store.get_by_name(&desired.metadata.name).await {
@@ -156,12 +159,13 @@ impl ControlPlane {
         }
     }
 
-    /// Rejects desired state that would expose a real secret file inside a Sandbox.
+    /// Rejects desired state that would expose a selected secret file inside a Sandbox.
     ///
     /// Secret files hold the real values that mediation exists to keep out of Sandboxes. A bind
-    /// mount whose source contains this Agent's selected secret file, an existing default `.env`,
-    /// or another active Agent's secret file would hand those values to the guest, so the
-    /// combination is refused at apply time. Bind mount sources are canonical by this point.
+    /// mount whose source contains this Agent's selected non-default secret file or another active
+    /// Agent's selected secret file would hand those values to the guest, so the combination is
+    /// refused at apply time. Default `.env` files are covered by the bind-source scan above. Bind
+    /// mount sources are canonical by this point.
     async fn reject_exposed_secret_files(
         &self,
         id: AgentId,
@@ -172,13 +176,8 @@ impl ControlPlane {
         let mut secret_files = Vec::new();
         if !desired.spec.secrets.is_empty() {
             let path = env_file.map_or_else(|| source_directory.join(super::resource::ENV_FILE), PathBuf::from);
-            secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
-            let default_env_file = source_directory.join(super::resource::ENV_FILE);
-            if env_file.is_some() && tokio::fs::try_exists(&default_env_file).await? {
-                secret_files.push((
-                    desired.metadata.name.clone(),
-                    canonical_secret_file(&default_env_file).await,
-                ));
+            if env_file.is_some() || tokio::fs::try_exists(&path).await? {
+                secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
             }
         }
         let mut mounts = bind_mount_sources(desired);
@@ -187,10 +186,10 @@ impl ControlPlane {
                 continue;
             }
             if !other.agent.spec.secrets.is_empty() {
-                secret_files.push((
-                    other.agent.metadata.name.clone(),
-                    canonical_secret_file(&other.env_file_path()).await,
-                ));
+                let path = other.env_file_path();
+                if other.env_file.is_some() || tokio::fs::try_exists(&path).await? {
+                    secret_files.push((other.agent.metadata.name.clone(), canonical_secret_file(&path).await));
+                }
             }
             if !desired.spec.secrets.is_empty() {
                 mounts.extend(
@@ -343,6 +342,46 @@ impl ControlPlane {
             Err(error) => Err(error),
         }
     }
+}
+
+/// Rejects any bind source containing `.env`, including ignored and hidden entries.
+///
+/// Filesystem traversal is blocking and may cover a whole checkout, so it stays off the local
+/// async runtime. Symbolic links are not followed, but a link itself named `.env` is rejected.
+async fn reject_dot_env_in_bind_mounts(agent: &Agent) -> Result<(), Error> {
+    let mounts = bind_mount_sources(agent);
+    tokio::task::spawn_blocking(move || {
+        for (field, source) in mounts {
+            for result in WalkBuilder::new(&source)
+                .hidden(false)
+                .ignore(false)
+                .git_ignore(false)
+                .git_global(false)
+                .git_exclude(false)
+                .parents(false)
+                .follow_links(false)
+                .build()
+            {
+                let entry = result.map_err(|error| {
+                    Error::Invalid(format!(
+                        "cannot inspect {field}.source {} for .env files: {error}",
+                        source.display()
+                    ))
+                })?;
+                if entry.file_name() == OsStr::new(super::resource::ENV_FILE) {
+                    return Err(Error::Invalid(format!(
+                        "{field} bind-mounts {} which contains .env at {}; the Sandbox would see its real values. \
+                         Remove the file or keep it outside mounted directories",
+                        source.display(),
+                        entry.path().display(),
+                    )));
+                }
+            }
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|error| Error::Daemon(format!("bind-mount .env inspection failed: {error}")))?
 }
 
 /// Converts a stored record to its API representation, projecting provenance into status.

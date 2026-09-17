@@ -974,7 +974,7 @@ async fn directory_resolution_survives_a_symlinked_parent_of_a_missing_source() 
 }
 
 #[tokio::test(flavor = "local")]
-async fn secret_file_inside_a_bind_mount_is_rejected() {
+async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
     let fixture = fixture();
     let root = tempfile::tempdir().expect("temporary checkout");
     let source_directory = root.path().join("examples/worktree");
@@ -992,15 +992,11 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         read_only: false,
     });
 
-    let error = fixture
+    let initial = fixture
         .control_plane
         .apply(request.clone())
         .await
-        .expect_err("the default .env beside the manifest lies inside the mounted checkout");
-    assert!(
-        matches!(&error, Error::Invalid(message) if message.contains("secret file") && message.contains("--env-file")),
-        "{error}"
-    );
+        .expect("an absent default .env does not make the mount unsafe");
 
     let outside = tempfile::tempdir().expect("secret directory outside the checkout");
     request.env_file = Some(outside.path().join("worker.env"));
@@ -1017,16 +1013,19 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         stored(&fixture, "worker").await.env_file_path(),
         outside.path().join("worker.env")
     );
+    assert!(applied.metadata.generation > initial.metadata.generation);
 
-    std::fs::write(source_directory.join(".env"), "GITHUB_TOKEN=checkout-token\n")
-        .expect("leftover default environment file");
+    std::fs::write(root.path().join(".env"), "GITHUB_TOKEN=checkout-token\n").expect("environment file");
     let error = fixture
         .control_plane
         .apply(request.clone())
         .await
-        .expect_err("an existing default .env remains exposed despite the external override");
-    assert!(matches!(error, Error::Invalid(_)), "{error}");
-    std::fs::remove_file(source_directory.join(".env")).expect("remove default environment file");
+        .expect_err("a .env anywhere in the mount is rejected despite the external override");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("contains .env")),
+        "{error}"
+    );
+    std::fs::remove_file(root.path().join(".env")).expect("remove environment file");
 
     let mut unchanged = request.clone();
     unchanged.env_file = None;
@@ -1045,6 +1044,34 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         .await
         .expect_err("an explicit secret file inside the mount is still rejected");
     assert!(matches!(error, Error::Invalid(_)));
+}
+
+#[tokio::test(flavor = "local")]
+async fn git_ignored_nested_dot_env_is_rejected_even_without_declared_secrets() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    let ignored = checkout.path().join("ignored/nested");
+    std::fs::create_dir_all(&ignored).expect("ignored directory");
+    std::fs::write(checkout.path().join(".gitignore"), "ignored/\n").expect("ignore file");
+    std::fs::write(ignored.join(".env"), "PRIVATE=value\n").expect("nested environment file");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let error = fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("ignored directories are still inspected for .env files");
+    assert!(
+        matches!(&error, Error::Invalid(message)
+            if message.contains("spec.sandbox.mounts[0]") && message.contains("ignored/nested/.env")),
+        "{error}"
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -1117,6 +1144,9 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
     let with_secrets = root.path().join("agents/full");
     std::fs::create_dir_all(&with_secrets).expect("secret Agent source directory");
     let mut secret_agent = apply_request_in("full", with_secrets);
+    let selected_secret_file = root.path().join("credentials.txt");
+    std::fs::write(&selected_secret_file, "GITHUB_TOKEN=private\n").expect("selected environment file");
+    secret_agent.env_file = Some(selected_secret_file);
     secret_agent.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
         placeholder: None,
@@ -1138,7 +1168,7 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
         .control_plane
         .apply(worktree)
         .await
-        .expect_err("the mount would expose the other Agent's .env");
+        .expect_err("the mount would expose the other Agent's selected environment file");
     assert!(
         matches!(&error, Error::Invalid(message) if message.contains("Agent \"full\"")),
         "{error}"

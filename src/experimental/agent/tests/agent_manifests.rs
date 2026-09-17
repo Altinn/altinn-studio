@@ -129,13 +129,33 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
         }
     }
     let dockerfile = std::fs::read_to_string(repository_root().join("agents/Dockerfile")).expect("Altinn Dockerfile");
-    assert!(!dockerfile.contains("AGENT_VERSION"));
+    assert!(dockerfile.contains("ARG AGENT_VERSION\n"));
+    assert!(!dockerfile.contains("ARG AGENT_VERSION="));
+    assert!(dockerfile.contains("AGENT_VERSION=\"${AGENT_VERSION}\""));
     assert!(dockerfile.contains("AGENT_INSTALL_MODE=standalone"));
     assert!(dockerfile.contains("/main/src/experimental/agent/install.sh"));
     assert!(dockerfile.contains("USER agent"));
     assert!(dockerfile.contains("FROM base AS minimal"));
     assert!(dockerfile.contains("FROM base AS full"));
     assert!(!dockerfile.contains("cargo build"));
+
+    let image_workflow = std::fs::read_to_string(repository_root().join(".github/workflows/agents-images.yaml"))
+        .expect("Agent image workflow");
+    serde_yaml_ng::from_str::<serde_yaml_ng::Value>(&image_workflow).expect("valid Agent image workflow YAML");
+    assert!(image_workflow.contains("workflow_call:"));
+    assert_eq!(
+        image_workflow
+            .matches("--build-arg \"AGENT_VERSION=${AGENT_VERSION}\"")
+            .count(),
+        2
+    );
+    assert!(image_workflow.contains("EXPECTED_AGENT_VERSION=${AGENT_VERSION}"));
+    let release_workflow =
+        std::fs::read_to_string(repository_root().join(".github/workflows/experimental-agent-release.yaml"))
+            .expect("Agent release workflow");
+    serde_yaml_ng::from_str::<serde_yaml_ng::Value>(&release_workflow).expect("valid Agent release workflow YAML");
+    assert!(release_workflow.contains("uses: ./.github/workflows/agents-images.yaml"));
+    assert!(release_workflow.contains("agent_version: ${{ github.ref_name }}"));
 }
 
 #[test]

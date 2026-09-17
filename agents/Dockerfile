@@ -154,11 +154,13 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 
 # Install the latest released platform as the same unprivileged user that will run it. Standalone
 # mode verifies the architecture-specific release checksum without creating host self-update state.
+ARG AGENT_VERSION
 USER agent
 RUN curl -fsSL \
         https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh \
         -o /tmp/agent-install.sh \
-    && AGENT_INSTALL_MODE=standalone \
+    && AGENT_VERSION="${AGENT_VERSION}" \
+        AGENT_INSTALL_MODE=standalone \
         AGENT_INSTALL_DIR=/home/agent/.local/bin \
         HOME=/home/agent \
         sh /tmp/agent-install.sh \

@@ -335,6 +335,12 @@ fn picker_lines(
         )));
     }
     lines.push(Line::from(name_field_spans(form)));
+    lines.push(field_line(
+        "Env file: ",
+        &form.env_file,
+        form.field == super::app::CreateField::EnvironmentFile,
+        Some("default: .env beside manifest".into()),
+    ));
     lines
 }
 
@@ -541,6 +547,7 @@ mod tests {
         assert!(text.contains("Agent:   ◂ full | /sources/full ▸  1/2"));
         assert!(text.contains("Variant: ◂ default | agent.yaml ▸  1/2"));
         assert!(text.contains("Name:    full"));
+        assert!(text.contains("Env file:  default: .env beside manifest"));
         assert!(text.contains("enter create · tab field · ←/→ select · esc cancel"));
 
         let Some(Modal::CreateAgent(form)) = &mut app.modal else {
@@ -557,6 +564,7 @@ mod tests {
         assert!(text.contains("Variant: ◂ default | agent.yaml ▸  1/1"));
         assert!(text.contains("manifest cannot be decoded"));
         assert!(text.contains("Name:    copy▏"));
+        assert!(text.contains("Env file:  default: .env beside manifest"));
         assert!(text.contains("agent \"copy\" already exists"));
     }
 

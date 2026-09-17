@@ -103,8 +103,13 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                             spawn_discovery(discovered_tx.clone(), app.agents.clone());
                         }
                     }
-                    Action::CreateAgent { manifest, name, form } => {
-                        create(&mut app, &mut tui, client, manifest, name, form).await?;
+                    Action::CreateAgent {
+                        manifest,
+                        name,
+                        env_file,
+                        form,
+                    } => {
+                        create(&mut app, &mut tui, client, manifest, name, env_file, form).await?;
                     }
                     Action::CreateForward { agent, spec, replace } => {
                         if let Some(id) = replace {
@@ -290,9 +295,10 @@ async fn create(
     client: &Client,
     manifest: PathBuf,
     name: String,
+    env_file: Option<PathBuf>,
     mut form: CreateForm,
 ) -> CommandResult<()> {
-    match create_agent(client, manifest, name).await {
+    match create_agent(client, manifest, name, env_file).await {
         Ok(applied) => {
             refresh(app, tui, client).await?;
             app.select_agent(&applied);
@@ -305,8 +311,13 @@ async fn create(
     Ok(())
 }
 
-async fn create_agent(client: &Client, manifest: PathBuf, name: String) -> Result<String, Error> {
-    let mut request = crate::read_apply_request(manifest, None)?;
+async fn create_agent(
+    client: &Client,
+    manifest: PathBuf,
+    name: String,
+    env_file: Option<PathBuf>,
+) -> Result<String, Error> {
+    let mut request = crate::read_apply_request(manifest, env_file)?;
     request.agent.metadata.name = name;
     request.create_only = true;
     let applied = client.apply(request).await?;
