@@ -35,7 +35,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -47,15 +47,15 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const componentId = useIndexedId(baseComponentId);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.RepeatingGroup.textResourceBindings.title,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.RepeatingGroup.textResourceBindings.description,
   );
-  const help = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings?.help,
     Expressions.RepeatingGroup.textResourceBindings.help,
   );
@@ -135,21 +135,17 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         // the "Legg til ny" button.
         border={isNested && rowsToDisplay.length > 0}
       >
-        {(config.textResourceBindings?.title === undefined ? undefined : title) && (
+        {title && (
           <Caption
             id={`group-${componentId}-caption`}
             className={cn({ [classes.fullWidthCaption]: !isEmpty && !isNested })}
-            title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
-            description={
-              (config.textResourceBindings?.description === undefined ? undefined : description) && (
-                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-              )
-            }
+            title={<Lang id={title} />}
+            description={description && <Lang id={description} />}
             helpText={
-              (config.textResourceBindings?.help === undefined ? undefined : help)
+              help
                 ? {
-                    text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
-                    accessibleTitle: config.textResourceBindings?.title === undefined ? undefined : title,
+                    text: <Lang id={help} />,
+                    accessibleTitle: title,
                   }
                 : undefined
             }

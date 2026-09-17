@@ -34,7 +34,7 @@ import classes from 'src/layout/List/ListComponent.module.css';
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -57,15 +57,15 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
   const required = useEvalExpression(config.required, Expressions.List.required);
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.List.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.List.textResourceBindings.title,
   );
-  const resolvedDescription = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.List.textResourceBindings.description,
   );
@@ -112,10 +112,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     }
     return JSON.stringify(selectedRow) === JSON.stringify(row);
   }
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
-  const description = config.textResourceBindings?.description === undefined ? undefined : resolvedDescription;
+  const title = summaryTitle || resolvedTitle;
   const handleRowClick = (row: Row) => {
     if (readOnly) {
       return;

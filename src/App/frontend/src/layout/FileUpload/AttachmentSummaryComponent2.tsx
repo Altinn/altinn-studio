@@ -15,19 +15,19 @@ import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
   const config = useComponentConfig<'FileUpload'>(targetBaseComponentId, (t) => t === 'FileUpload');
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
       ? config.textResourceBindings.summaryTitle
       : undefined,
     CommonExpressions.TRBSummarizable.summaryTitle,
   );
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
@@ -68,9 +68,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
       <div className={classes.summaryHeader}>
         <Label
           textResourceBindings={{
-            title:
-              (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-              (config.textResourceBindings?.title === undefined ? undefined : title),
+            title: summaryTitle || title,
           }}
           baseComponentId={targetBaseComponentId}
           overrideId={`attachment-summary2-${targetBaseComponentId}`}

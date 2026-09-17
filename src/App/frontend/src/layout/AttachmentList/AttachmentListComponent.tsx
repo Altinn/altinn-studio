@@ -16,7 +16,7 @@ import {
 } from 'src/utils/attachmentsUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataType } from 'src/types/shared';
 
@@ -24,7 +24,7 @@ const emptyDataTypeArray: IDataType[] = [];
 
 export function AttachmentListComponent({ baseComponentId }: PropsFromGenericComponent<'AttachmentList'>) {
   const config = useComponentConfig(baseComponentId, 'AttachmentList');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.AttachmentList.textResourceBindings.title,
   );
@@ -77,7 +77,7 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
     <AttachmentList
       componentId={componentId}
       attachments={displayAttachments}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
+      title={title}
       groupByDataTypeGrouping={groupAttachments}
       showLinks={config.links}
       showDescription={showDescription}

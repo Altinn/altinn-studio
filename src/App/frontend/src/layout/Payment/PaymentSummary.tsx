@@ -5,23 +5,21 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { PaymentReceiptDetails } from 'src/layout/Payment/PaymentReceiptDetails/PaymentReceiptDetails';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function PaymentSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'Payment');
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Payment.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Payment.textResourceBindings.title,
   );
 
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const title = summaryTitle || resolvedTitle;
 
   return (
     <SummaryFlex

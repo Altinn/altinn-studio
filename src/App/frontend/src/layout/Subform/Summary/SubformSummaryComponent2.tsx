@@ -27,7 +27,7 @@ import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSe
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -40,7 +40,7 @@ const SummarySubformWrapperInner = ({
 }>) => {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
 
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
@@ -55,7 +55,7 @@ const SummarySubformWrapperInner = ({
             renderLabelAs='span'
             weight='regular'
             textResourceBindings={{
-              title: config.textResourceBindings?.title === undefined ? undefined : title,
+              title,
             }}
             className={classes.summaryLabelMargin}
           />
@@ -74,7 +74,7 @@ const SummarySubformWrapperInner = ({
             uiFolder={config.layoutSet}
             baseComponentId={targetBaseComponentId}
             entryDisplayName={config.entryDisplayName}
-            title={config.textResourceBindings?.title === undefined ? undefined : title}
+            title={title}
           />
         </Fragment>
       ))}

@@ -7,11 +7,11 @@ import type { PropsFromGenericComponent } from '..';
 
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export const PrintButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'PrintButton'>) => {
   const config = useComponentConfig(baseComponentId, 'PrintButton');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.PrintButton.textResourceBindings.title,
   );
@@ -20,7 +20,7 @@ export const PrintButtonComponent = ({ baseComponentId }: PropsFromGenericCompon
   return (
     <PrintButton
       componentId={componentId}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
+      title={title}
       onClick={() => window.print()}
       innerGrid={innerGrid}
     />

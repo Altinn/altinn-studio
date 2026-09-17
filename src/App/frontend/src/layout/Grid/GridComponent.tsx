@@ -36,7 +36,7 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -95,12 +95,12 @@ function useWarnIfColSpanOverlapsHiddenColumns({
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const { baseComponentId } = props;
   const config = useComponentConfig(baseComponentId, 'Grid');
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Grid.textResourceBindings.title);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Grid.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Grid.textResourceBindings.description,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Grid.textResourceBindings.help);
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Grid.textResourceBindings.help);
 
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
@@ -108,7 +108,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const isNested = parent?.type === 'node';
   const shouldHaveFullWidth = parent?.type === 'page';
   const { elementAsString } = useLanguage();
-  const accessibleTitle = elementAsString(config.textResourceBindings?.title === undefined ? undefined : title);
+  const accessibleTitle = elementAsString(title);
   const indexedId = useIndexedId(baseComponentId);
 
   const columnHiddenExprs = useMemo(
@@ -148,19 +148,15 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
         id={indexedId}
         className={css.table}
       >
-        {(config.textResourceBindings?.title === undefined ? undefined : title) && (
+        {title && (
           <Caption
             className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
-            title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
-            description={
-              (config.textResourceBindings?.description === undefined ? undefined : description) && (
-                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-              )
-            }
+            title={<Lang id={title} />}
+            description={description && <Lang id={description} />}
             helpText={
-              (config.textResourceBindings?.help === undefined ? undefined : help)
+              help
                 ? {
-                    text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
+                    text: <Lang id={help} />,
                     accessibleTitle,
                   }
                 : undefined
@@ -462,17 +458,17 @@ function CellWithLabel({
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const help = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
     CommonExpressions.TRBLabel.help,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings && 'description' in config.textResourceBindings
       ? config.textResourceBindings.description
       : undefined,

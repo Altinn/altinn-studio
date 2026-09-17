@@ -10,7 +10,7 @@ import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/S
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -33,21 +33,18 @@ function getHeadingLevel(headingLevel: number | undefined) {
 
 export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRendererProps) {
   const config = useComponentConfig(targetBaseComponentId, 'Accordion');
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Accordion.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Accordion.textResourceBindings.title,
   );
 
   const { langAsString } = useLanguage();
 
-  const title = langAsString(
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-      (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle),
-  );
+  const title = langAsString(summaryTitle || resolvedTitle);
   const Heading = getHeadingLevel(config.headingLevel);
 
   return (
@@ -70,11 +67,11 @@ export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRend
 export function SummaryAccordionComponent2({ targetBaseComponentId }: Summary2Props) {
   const canRenderInAccordion = useHasCapability('renderInAccordion');
   const config = useComponentConfig(targetBaseComponentId, 'Accordion');
-  const summaryTitle2 = useEvalExpression(
+  const summaryTitle2 = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Accordion.textResourceBindings.summaryTitle,
   );
-  const title2 = useEvalExpression(
+  const title2 = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Accordion.textResourceBindings.title,
   );
@@ -83,10 +80,7 @@ export function SummaryAccordionComponent2({ targetBaseComponentId }: Summary2Pr
 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
-  const title = langAsString(
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle2) ||
-      (config.textResourceBindings?.title === undefined ? undefined : title2),
-  );
+  const title = langAsString(summaryTitle2 || title2);
   const Heading = getHeadingLevel(config.headingLevel);
 
   return (

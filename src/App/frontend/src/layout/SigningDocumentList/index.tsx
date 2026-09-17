@@ -7,7 +7,7 @@ import { SigningDocumentListDef } from 'src/layout/SigningDocumentList/config.de
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalExpressionMap } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalExpressionMap, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
@@ -35,11 +35,11 @@ export class SigningDocumentList extends SigningDocumentListDef {
 
   renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {
     const config = useComponentConfig(targetBaseComponentId, 'SigningDocumentList');
-    const summaryTitle = useEvalExpression(
+    const summaryTitle = useEvalOptionalText(
       config.textResourceBindings?.summaryTitle,
       Expressions.SigningDocumentList.textResourceBindings.summaryTitle,
     );
-    const title = useEvalExpression(
+    const title = useEvalOptionalText(
       config.textResourceBindings?.title,
       Expressions.SigningDocumentList.textResourceBindings.title,
     );
@@ -47,10 +47,7 @@ export class SigningDocumentList extends SigningDocumentListDef {
       config.textResourceBindings?.help,
       Expressions.SigningDocumentList.textResourceBindings.help,
     );
-    const summaryHeading =
-      (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ??
-      (config.textResourceBindings?.title === undefined ? undefined : title) ??
-      'signing_document_list_summary.header';
+    const summaryHeading = summaryTitle ?? title ?? 'signing_document_list_summary.header';
 
     return (
       <SummaryFlex

@@ -10,7 +10,7 @@ import { AllComponentValidations } from 'src/features/validation/ComponentValida
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function MultipleSelectComponent({
@@ -22,15 +22,15 @@ export function MultipleSelectComponent({
   const readOnly = useEvalExpression(config.readOnly, Expressions.MultipleSelect.readOnly);
   const required = useEvalExpression(config.required, Expressions.MultipleSelect.required);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.MultipleSelect.alertOnChange);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.MultipleSelect.textResourceBindings.title,
   );
-  const help = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings?.help,
     Expressions.MultipleSelect.textResourceBindings.help,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.MultipleSelect.textResourceBindings.description,
   );
@@ -64,9 +64,9 @@ export function MultipleSelectComponent({
       required={required}
       isValid={isValid}
       alertOnChange={alertOnChange}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
-      help={config.textResourceBindings?.help === undefined ? undefined : help}
-      description={config.textResourceBindings?.description === undefined ? undefined : description}
+      title={title}
+      help={help}
+      description={description}
       showOptionalMarking={!!config.labelSettings?.optionalIndicator}
       labelGrid={config.grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}

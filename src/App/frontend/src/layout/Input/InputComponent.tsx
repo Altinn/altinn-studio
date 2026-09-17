@@ -22,7 +22,7 @@ import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-
 import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -115,13 +115,19 @@ const InputVariant = ({
   const componentId = useIndexedId(baseComponentId);
   const readOnly = useEvalExpression(config.readOnly, Expressions.Input.readOnly);
   const required = useEvalExpression(config.required, Expressions.Input.required);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Input.textResourceBindings.title);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Input.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Input.textResourceBindings.description,
   );
-  const prefix = useEvalExpression(config.textResourceBindings?.prefix, Expressions.Input.textResourceBindings.prefix);
-  const suffix = useEvalExpression(config.textResourceBindings?.suffix, Expressions.Input.textResourceBindings.suffix);
+  const prefix = useEvalOptionalText(
+    config.textResourceBindings?.prefix,
+    Expressions.Input.textResourceBindings.prefix,
+  );
+  const suffix = useEvalOptionalText(
+    config.textResourceBindings?.suffix,
+    Expressions.Input.textResourceBindings.suffix,
+  );
 
   const {
     formData: { simpleBinding: realFormValue },
@@ -141,15 +147,15 @@ const InputVariant = ({
   const hasValidations = validations.length > 0;
   const inputDescribedBy = buildAriaDescribedBy({
     renderedInTable: overrideDisplay?.renderedInTable,
-    hasTitle: !!(config.textResourceBindings?.title === undefined ? undefined : title),
+    hasTitle: !!title,
     descriptionId,
-    hasDescription: !!(config.textResourceBindings?.description === undefined ? undefined : description),
+    hasDescription: !!description,
     validationsId,
     hasValidations,
   });
-  const labelProps = (config.textResourceBindings?.title === undefined ? undefined : title)
+  const labelProps = title
     ? {
-        'aria-label': langAsString(config.textResourceBindings?.title === undefined ? undefined : title),
+        'aria-label': langAsString(title),
       }
     : { 'aria-labelledby': labelId };
   const inputProps: InputProps = {
@@ -163,12 +169,8 @@ const InputVariant = ({
     required,
     onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
-    prefix: (config.textResourceBindings?.prefix === undefined ? undefined : prefix)
-      ? langAsString(config.textResourceBindings?.prefix === undefined ? undefined : prefix)
-      : undefined,
-    suffix: (config.textResourceBindings?.suffix === undefined ? undefined : suffix)
-      ? langAsString(config.textResourceBindings?.suffix === undefined ? undefined : suffix)
-      : undefined,
+    prefix: prefix ? langAsString(prefix) : undefined,
+    suffix: suffix ? langAsString(suffix) : undefined,
     style: { width: '100%' },
     inputMode,
     pattern,

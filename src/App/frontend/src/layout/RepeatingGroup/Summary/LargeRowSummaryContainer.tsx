@@ -16,7 +16,7 @@ import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelL
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
 
 export interface IDisplayRepAsLargeGroup {
@@ -42,11 +42,11 @@ export function LargeRowSummaryContainer({
 }: IDisplayRepAsLargeGroup) {
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const componentId = useIndexedId(baseComponentId);
-  const resolvedTitle = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.RepeatingGroup.textResourceBindings.title,
   );
-  const resolvedSummaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.RepeatingGroup.textResourceBindings.summaryTitle,
   );
@@ -58,9 +58,6 @@ export function LargeRowSummaryContainer({
   const idMutator = useComponentIdMutator();
 
   const hiddenColumns = useHiddenColumns(config.tableColumns);
-
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const summaryTitle = config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle;
 
   const parent = layoutLookups.componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';

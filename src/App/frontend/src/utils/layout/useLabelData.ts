@@ -2,7 +2,7 @@ import { CommonExpressions } from '@app/layout-contract/generated/expressions.ge
 
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export interface LabelData {
@@ -34,17 +34,17 @@ export function useLabelData({
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
-  const evaluatedTitle = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const evaluatedHelp = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
     CommonExpressions.TRBLabel.help,
   );
-  const evaluatedDescription = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings && 'description' in config.textResourceBindings
       ? config.textResourceBindings.description
       : undefined,
@@ -52,24 +52,6 @@ export function useLabelData({
   );
 
   const componentId = useIndexedId(baseComponentId);
-  const title =
-    config.textResourceBindings &&
-    'title' in config.textResourceBindings &&
-    config.textResourceBindings.title !== undefined
-      ? evaluatedTitle
-      : undefined;
-  const help =
-    config.textResourceBindings &&
-    'help' in config.textResourceBindings &&
-    config.textResourceBindings.help !== undefined
-      ? evaluatedHelp
-      : undefined;
-  const description =
-    config.textResourceBindings &&
-    'description' in config.textResourceBindings &&
-    config.textResourceBindings.description !== undefined
-      ? evaluatedDescription
-      : undefined;
   const showOptionalMarking = 'labelSettings' in config && !!config.labelSettings?.optionalIndicator;
 
   const shouldShowLabel =

@@ -10,7 +10,7 @@ import { AllComponentValidations } from 'src/features/validation/ComponentValida
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { useLabelData } from 'src/utils/layout/useLabelData';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -21,7 +21,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
   const config = useComponentConfig(baseComponentId, 'TextArea');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'TextArea');
   const readOnly = useEvalExpression(config.readOnly, Expressions.TextArea.readOnly);
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.TextArea.textResourceBindings.title,
   );
@@ -48,12 +48,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
       maxLength={config.maxLength}
       autoComplete={config.autocomplete}
       title={title}
-      ariaLabel={
-        overrideDisplay?.renderedInTable === true &&
-        (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle)
-          ? langAsString(config.textResourceBindings?.title === undefined ? undefined : resolvedTitle)
-          : undefined
-      }
+      ariaLabel={overrideDisplay?.renderedInTable === true && resolvedTitle ? langAsString(resolvedTitle) : undefined}
       help={help}
       description={description}
       showOptionalMarking={showOptionalMarking}

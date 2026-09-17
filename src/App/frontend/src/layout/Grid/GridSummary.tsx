@@ -48,25 +48,23 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const indexedId = useIndexedId(targetBaseComponentId);
   const config = useComponentConfig(targetBaseComponentId, 'Grid');
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Grid.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Grid.textResourceBindings.title,
   );
 
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const title = summaryTitle || resolvedTitle;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const pdfModeActive = usePdfModeActive();
@@ -424,17 +422,15 @@ function SummaryCellWithComponent({
     CommonExpressions.FormComponentProps.required,
   );
 
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const textResourceBindings =
-    config.textResourceBindings && 'title' in config.textResourceBindings ? { title } : undefined;
   const required = 'required' in config ? required2 : false;
   const indexedId = useIndexedId(baseComponentId);
-  const content = getComponentCellData(baseComponentId, config.type, displayData, textResourceBindings);
+  const content = getComponentCellData(baseComponentId, config.type, displayData, title);
 
   const isEmpty = typeof content === 'string' && content.trim() === '';
   useReportSummaryRender(
@@ -551,14 +547,14 @@ function getComponentCellData<T extends CompTypes>(
   baseComponentId: string,
   type: T,
   displayData: string,
-  textResourceBindings?: ITextResourceBindings,
+  title: string | undefined,
 ) {
   if (type === 'Custom') {
     return <ComponentSummary targetBaseComponentId={baseComponentId} />;
   } else if (implementsDisplayData(getComponentDef(type))) {
     return displayData || '';
-  } else if (textResourceBindings && 'title' in textResourceBindings) {
-    return <Lang id={textResourceBindings.title} />;
+  } else if (title !== undefined) {
+    return <Lang id={title} />;
   } else {
     return (
       <GenericComponent

@@ -14,7 +14,7 @@ import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function SigneeListComponent({ baseComponentId }: PropsFromGenericComponent<'SigneeList'>) {
@@ -23,12 +23,12 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
   const componentId = useIndexedId(baseComponentId);
 
   const config = useComponentConfig(baseComponentId, 'SigneeList');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.SigneeList.textResourceBindings.title,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.SigneeList.textResourceBindings.help);
-  const description = useEvalExpression(
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.SigneeList.textResourceBindings.help);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.SigneeList.textResourceBindings.description,
   );
@@ -41,29 +41,27 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
 
   return (
     <>
-      {(config.textResourceBindings?.title === undefined ? undefined : title) && (
+      {title && (
         <div className={captionClasses.tableCaption}>
           <div className={captionClasses.titleAndHelpWrapper}>
             <Heading
               level={3}
               data-size='sm'
             >
-              <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
+              <Lang id={title} />
             </Heading>
-            {(config.textResourceBindings?.help === undefined ? undefined : help) && (
+            {help && (
               <HelpTextContainer
                 id={componentId}
-                helpText={<Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />}
+                helpText={<Lang id={help} />}
               />
             )}
           </div>
-          {(config.textResourceBindings?.description === undefined ? undefined : description) && (
+          {description && (
             <Description
               className={captionClasses.description}
               componentId={componentId}
-              description={
-                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-              }
+              description={<Lang id={description} />}
             />
           )}
         </div>
@@ -76,11 +74,7 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
         headerClassName={classes.header}
         tableClassName={classes.table}
         tableTestId={baseComponentId}
-        ariaLabel={
-          (config.textResourceBindings?.title === undefined ? undefined : title)
-            ? langAsString(config.textResourceBindings?.title === undefined ? undefined : title)
-            : undefined
-        }
+        ariaLabel={title ? langAsString(title) : undefined}
         columns={[
           {
             header: langAsString('signee_list.header_name'),

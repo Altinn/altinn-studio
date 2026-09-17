@@ -14,7 +14,7 @@ import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { usePostPlace } from 'src/layout/Address/usePostPlace';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<'Address'>) {
@@ -23,20 +23,20 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
   const componentId = useIndexedId(baseComponentId);
   const required = useEvalExpression(config.required, Expressions.Address.required);
   const readOnly = useEvalExpression(config.readOnly, Expressions.Address.readOnly);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
-  const careOfTitle = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
+  const careOfTitle = useEvalOptionalText(
     config.textResourceBindings?.careOfTitle,
     Expressions.Address.textResourceBindings.careOfTitle,
   );
-  const zipCodeTitle = useEvalExpression(
+  const zipCodeTitle = useEvalOptionalText(
     config.textResourceBindings?.zipCodeTitle,
     Expressions.Address.textResourceBindings.zipCodeTitle,
   );
-  const postPlaceTitle = useEvalExpression(
+  const postPlaceTitle = useEvalOptionalText(
     config.textResourceBindings?.postPlaceTitle,
     Expressions.Address.textResourceBindings.postPlaceTitle,
   );
-  const houseNumberTitle = useEvalExpression(
+  const houseNumberTitle = useEvalOptionalText(
     config.textResourceBindings?.houseNumberTitle,
     Expressions.Address.textResourceBindings.houseNumberTitle,
   );
@@ -73,11 +73,11 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
       required={required}
       readOnly={readOnly}
       showOptionalMarking={!!config.labelSettings?.optionalIndicator}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
-      careOfTitle={config.textResourceBindings?.careOfTitle === undefined ? undefined : careOfTitle}
-      zipCodeTitle={config.textResourceBindings?.zipCodeTitle === undefined ? undefined : zipCodeTitle}
-      postPlaceTitle={config.textResourceBindings?.postPlaceTitle === undefined ? undefined : postPlaceTitle}
-      houseNumberTitle={config.textResourceBindings?.houseNumberTitle === undefined ? undefined : houseNumberTitle}
+      title={title}
+      careOfTitle={careOfTitle}
+      zipCodeTitle={zipCodeTitle}
+      postPlaceTitle={postPlaceTitle}
+      houseNumberTitle={houseNumberTitle}
       address={address}
       careOf={careOf}
       zipCode={zipCode}

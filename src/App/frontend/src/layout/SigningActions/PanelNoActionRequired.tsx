@@ -9,7 +9,7 @@ import { useProfile } from 'src/features/profile/ProfileProvider';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 
 type NoActionRequiredPanelProps = {
@@ -20,46 +20,34 @@ type NoActionRequiredPanelProps = {
 export function NoActionRequiredPanel({ baseComponentId, hasSigned }: NoActionRequiredPanelProps) {
   const currentUserPartyId = useProfile()?.partyId;
   const config = useComponentConfig(baseComponentId, 'SigningActions');
-  const noActionRequiredPanelTitleHasSigned = useEvalExpression(
+  const noActionRequiredPanelTitleHasSigned = useEvalOptionalText(
     config.textResourceBindings?.noActionRequiredPanelTitleHasSigned,
     Expressions.SigningActions.textResourceBindings.noActionRequiredPanelTitleHasSigned,
   );
-  const noActionRequiredPanelTitleNotSigned = useEvalExpression(
+  const noActionRequiredPanelTitleNotSigned = useEvalOptionalText(
     config.textResourceBindings?.noActionRequiredPanelTitleNotSigned,
     Expressions.SigningActions.textResourceBindings.noActionRequiredPanelTitleNotSigned,
   );
-  const noActionRequiredPanelDescriptionHasSigned = useEvalExpression(
+  const noActionRequiredPanelDescriptionHasSigned = useEvalOptionalText(
     config.textResourceBindings?.noActionRequiredPanelDescriptionHasSigned,
     Expressions.SigningActions.textResourceBindings.noActionRequiredPanelDescriptionHasSigned,
   );
-  const noActionRequiredPanelDescriptionNotSigned = useEvalExpression(
+  const noActionRequiredPanelDescriptionNotSigned = useEvalOptionalText(
     config.textResourceBindings?.noActionRequiredPanelDescriptionNotSigned,
     Expressions.SigningActions.textResourceBindings.noActionRequiredPanelDescriptionNotSigned,
   );
-  const noActionRequiredButton = useEvalExpression(
+  const noActionRequiredButton = useEvalOptionalText(
     config.textResourceBindings?.noActionRequiredButton,
     Expressions.SigningActions.textResourceBindings.noActionRequiredButton,
   );
 
-  const titleHasSigned =
-    (config.textResourceBindings?.noActionRequiredPanelTitleHasSigned === undefined
-      ? undefined
-      : noActionRequiredPanelTitleHasSigned) ?? 'signing.no_action_required_panel_title_has_signed';
-  const titleNotSigned =
-    (config.textResourceBindings?.noActionRequiredPanelTitleNotSigned === undefined
-      ? undefined
-      : noActionRequiredPanelTitleNotSigned) ?? 'signing.no_action_required_panel_title_not_signed';
+  const titleHasSigned = noActionRequiredPanelTitleHasSigned ?? 'signing.no_action_required_panel_title_has_signed';
+  const titleNotSigned = noActionRequiredPanelTitleNotSigned ?? 'signing.no_action_required_panel_title_not_signed';
   const descriptionHasSigned =
-    (config.textResourceBindings?.noActionRequiredPanelDescriptionHasSigned === undefined
-      ? undefined
-      : noActionRequiredPanelDescriptionHasSigned) ?? 'signing.no_action_required_panel_description_has_signed';
+    noActionRequiredPanelDescriptionHasSigned ?? 'signing.no_action_required_panel_description_has_signed';
   const descriptionNotSigned =
-    (config.textResourceBindings?.noActionRequiredPanelDescriptionNotSigned === undefined
-      ? undefined
-      : noActionRequiredPanelDescriptionNotSigned) ?? 'signing.no_action_required_panel_description_not_signed';
-  const goToInboxButton =
-    (config.textResourceBindings?.noActionRequiredButton === undefined ? undefined : noActionRequiredButton) ??
-    'signing.no_action_required_button';
+    noActionRequiredPanelDescriptionNotSigned ?? 'signing.no_action_required_panel_description_not_signed';
+  const goToInboxButton = noActionRequiredButton ?? 'signing.no_action_required_button';
 
   return (
     <SigningPanel

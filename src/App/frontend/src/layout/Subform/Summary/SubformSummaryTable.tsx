@@ -27,7 +27,7 @@ import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButt
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { IData } from 'src/types/shared';
 
@@ -116,8 +116,8 @@ export function SubformSummaryTable({
 }: Pick<Summary2Props, 'targetBaseComponentId'>): React.JSX.Element | null {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const componentId = useIndexedId(targetBaseComponentId);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Subform.textResourceBindings.description,
   );
@@ -155,7 +155,7 @@ export function SubformSummaryTable({
           renderLabelAs='span'
           weight='regular'
           textResourceBindings={{
-            title: config.textResourceBindings?.title === undefined ? undefined : title,
+            title,
           }}
           className={classes2.summaryLabelMargin}
         />
@@ -181,15 +181,11 @@ export function SubformSummaryTable({
           id={`subform-${componentId}-table`}
           className={classes1.subformTable}
         >
-          {(config.textResourceBindings?.title === undefined ? undefined : title) && (
+          {title && (
             <Caption
               id={`subform-${componentId}-caption`}
-              title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
-              description={
-                (config.textResourceBindings?.description === undefined ? undefined : description) && (
-                  <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-                )
-              }
+              title={<Lang id={title} />}
+              description={description && <Lang id={description} />}
             />
           )}
           <Table.Head id={`subform-${componentId}-table-body`}>

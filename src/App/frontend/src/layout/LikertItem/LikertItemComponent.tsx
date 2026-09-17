@@ -15,7 +15,7 @@ import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGro
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
@@ -47,7 +47,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
   const componentId = useIndexedId(baseComponentId);
   const readOnly = useEvalExpression(config.readOnly, Expressions.LikertItem.readOnly);
   const required = useEvalExpression(config.required, Expressions.LikertItem.required);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.LikertItem.textResourceBindings.title,
   );
@@ -73,7 +73,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
           weight='regular'
         >
           <span>
-            <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
+            <Lang id={title} />
             <RequiredIndicator required={required} />
           </span>
         </Label>

@@ -10,13 +10,16 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accordion'>) => {
   const config = useComponentConfig(baseComponentId, 'Accordion');
   const openByDefault = useEvalExpression(config.openByDefault, Expressions.Accordion.openByDefault);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Accordion.textResourceBindings.title);
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Accordion.textResourceBindings.title,
+  );
 
   const canRender = useHasCapability('renderInAccordion');
   // Inside an AccordionGroup the group already provides the Card wrapper, so the
@@ -25,7 +28,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
   return (
     <AccordionLayout
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
+      title={title}
       openByDefault={Boolean(openByDefault)}
       renderAsItem={renderAsAccordionItem}
       className={classes.container}

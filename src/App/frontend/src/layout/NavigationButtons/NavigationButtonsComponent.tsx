@@ -20,7 +20,7 @@ import {
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -54,14 +54,12 @@ export function NavigationButtonsComponent({ baseComponentId }: Props) {
 
 function WithSummary({ baseComponentId, summaryBaseComponentId }: Props & { summaryBaseComponentId: string }) {
   const config = useComponentConfig(summaryBaseComponentId, 'Summary');
-  const returnToSummaryButtonTitle = useEvalExpression(
+  const returnToSummaryButtonTitle = useEvalOptionalText(
     config.textResourceBindings?.returnToSummaryButtonTitle,
     Expressions.Summary.textResourceBindings.returnToSummaryButtonTitle,
   );
 
-  const returnToViewText =
-    (config.textResourceBindings?.returnToSummaryButtonTitle === undefined ? undefined : returnToSummaryButtonTitle) ??
-    'form_filler.back_to_summary';
+  const returnToViewText = returnToSummaryButtonTitle ?? 'form_filler.back_to_summary';
   const showNextButtonSummary = config.display != null && config.display.nextButton === true;
 
   return (
@@ -80,15 +78,15 @@ function NavigationButtonsComponentInner({
 }: Props & { returnToViewText: string; showNextButtonSummary: boolean }) {
   const config = useComponentConfig(baseComponentId, 'NavigationButtons');
   const componentId = useIndexedId(baseComponentId);
-  const next = useEvalExpression(
+  const next = useEvalOptionalText(
     config.textResourceBindings?.next,
     Expressions.NavigationButtons.textResourceBindings.next,
   );
-  const back = useEvalExpression(
+  const back = useEvalOptionalText(
     config.textResourceBindings?.back,
     Expressions.NavigationButtons.textResourceBindings.back,
   );
-  const resolvedBackToPage = useEvalExpression(
+  const resolvedBackToPage = useEvalOptionalText(
     config.textResourceBindings?.backToPage,
     Expressions.NavigationButtons.textResourceBindings.backToPage,
   );
@@ -202,10 +200,10 @@ function NavigationButtonsComponentInner({
   return (
     <NavigationButtons
       componentId={componentId}
-      next={(config.textResourceBindings?.next === undefined ? undefined : next) || undefined}
-      back={(config.textResourceBindings?.back === undefined ? undefined : back) || undefined}
+      next={next || undefined}
+      back={back || undefined}
       backToSummary={returnToViewText}
-      backToPage={(config.textResourceBindings?.backToPage === undefined ? undefined : resolvedBackToPage) || undefined}
+      backToPage={resolvedBackToPage || undefined}
       backToPageParams={[smartLowerCaseFirst(langAsString(backToPage ?? ''))]}
       showNext={showNextButton}
       showPrevious={hasPrevious && config.showBackButton !== false}

@@ -9,14 +9,14 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export function SubmitSigningButton({ baseComponentId }: { baseComponentId: string }) {
   const { langAsString } = useLanguage();
   const { mutate: processNext, isPending: isSubmitting, isSuccess } = useProcessNext();
 
   const config = useComponentConfig(baseComponentId, 'SigningActions');
-  const submitButton = useEvalExpression(
+  const submitButton = useEvalOptionalText(
     config.textResourceBindings?.submitButton,
     Expressions.SigningActions.textResourceBindings.submitButton,
   );
@@ -27,8 +27,7 @@ export function SubmitSigningButton({ baseComponentId }: { baseComponentId: stri
     queryClient.invalidateQueries({ queryKey: signingQueries.all });
   }, [isSuccess, queryClient]);
 
-  const submitButtonText =
-    (config.textResourceBindings?.submitButton === undefined ? undefined : submitButton) ?? 'signing.submit_button';
+  const submitButtonText = submitButton ?? 'signing.submit_button';
 
   return (
     <Button

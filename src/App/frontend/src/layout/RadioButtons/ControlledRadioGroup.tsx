@@ -19,7 +19,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>) => {
@@ -38,17 +38,17 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const help = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
     CommonExpressions.TRBLabel.help,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings && 'description' in config.textResourceBindings
       ? config.textResourceBindings.description
       : undefined,
@@ -93,10 +93,10 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
               <Lang id={leftColumnHeader} />{' '}
             </>
           ) : null}
-          <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
+          <Lang id={title} />
         </>
       }
-      help={config.textResourceBindings?.help === undefined ? undefined : help}
+      help={help}
       required={required}
       readOnly={readOnly}
       labelSettings={labelSettings}
@@ -105,9 +105,7 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
   const hideLabel =
     overrideDisplay?.renderedInTable === true && calculatedOptions.length === 1 && !config.showLabelsInTable;
   const renderLegend = overrideDisplay?.renderLegend !== false;
-  const fieldsetAriaLabel = !renderLegend
-    ? langAsString(config.textResourceBindings?.title === undefined ? undefined : title)
-    : undefined;
+  const fieldsetAriaLabel = !renderLegend ? langAsString(title) : undefined;
   const shouldDisplayHorizontally = shouldUseRowLayout({
     layout: config.layout,
     optionsCount: calculatedOptions.length,
@@ -127,11 +125,11 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
           aria-label={fieldsetAriaLabel}
         >
           {renderLegend && <Fieldset.Legend className={classes.legend}>{labelText}</Fieldset.Legend>}
-          {(config.textResourceBindings?.description === undefined ? undefined : description) && (
+          {description && (
             <Fieldset.Description
               className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
             >
-              <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
+              <Lang id={description} />
             </Fieldset.Description>
           )}
           <ConditionalWrapper

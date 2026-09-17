@@ -6,18 +6,18 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'IFrame'>): JSX.Element => {
   const config = useComponentConfig(baseComponentId, 'IFrame');
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.IFrame.textResourceBindings.title);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.IFrame.textResourceBindings.title);
 
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
   return (
     <IFrameLayout
       componentId={componentId}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
+      title={title}
       sandbox={config.sandbox}
       innerGrid={innerGrid}
     />

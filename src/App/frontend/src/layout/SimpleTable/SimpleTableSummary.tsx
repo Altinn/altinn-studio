@@ -11,7 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 const emptyArray: never[] = [];
@@ -20,19 +20,17 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'SimpleTable');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'SimpleTable');
   const required = useEvalExpression(config.required, Expressions.SimpleTable.required);
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.SimpleTable.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.SimpleTable.textResourceBindings.title,
   );
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const title = summaryTitle || resolvedTitle;
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
 

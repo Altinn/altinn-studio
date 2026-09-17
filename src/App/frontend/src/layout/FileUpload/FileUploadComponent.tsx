@@ -32,7 +32,7 @@ import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): React.JSX.Element {
@@ -44,11 +44,11 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
     config.maxNumberOfAttachments,
     Expressions.FileUpload.maxNumberOfAttachments,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.FileUpload.textResourceBindings.description,
   );
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.FileUpload.textResourceBindings.title,
   );
@@ -88,9 +88,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
 
   const dragLabelId = `file-upload-drag-${componentId}`;
   const formatLabelId = `file-upload-format-${componentId}`;
-  const descriptionId = (config.textResourceBindings?.description === undefined ? undefined : description)
-    ? getDescriptionId(componentId)
-    : undefined;
+  const descriptionId = description ? getDescriptionId(componentId) : undefined;
   const ariaDescribedBy = [descriptionId, dragLabelId, formatLabelId].filter(Boolean).join(' ');
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -154,11 +152,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
               onDrop={handleDrop}
               hasValidationMessages={hasValidationErrors(validations)}
               acceptedFiles={filesToAccept}
-              labelId={
-                (config.textResourceBindings?.title === undefined ? undefined : title)
-                  ? getLabelId(componentId)
-                  : undefined
-              }
+              labelId={title ? getLabelId(componentId) : undefined}
               describedBy={ariaDescribedBy}
             >
               <div className={classes.fileUploadWrapper}>

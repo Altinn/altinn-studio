@@ -16,7 +16,7 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -27,11 +27,11 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Map');
   const readOnly = useEvalExpression(config.readOnly, Expressions.Map.readOnly);
   const required = useEvalExpression(config.required, Expressions.Map.required);
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Map.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Map.textResourceBindings.title,
   );
@@ -42,9 +42,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
   const markerLocationIsValid = isLocationValid(markerLocation);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const title = summaryTitle || resolvedTitle;
 
   if (markerBinding && !markerLocationIsValid) {
     return (

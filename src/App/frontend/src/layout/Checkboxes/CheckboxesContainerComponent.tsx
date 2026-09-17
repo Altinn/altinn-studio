@@ -10,7 +10,7 @@ import { AllComponentValidations } from 'src/features/validation/ComponentValida
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const CheckboxContainerComponent = ({
@@ -22,12 +22,12 @@ export const CheckboxContainerComponent = ({
   const readOnly = useEvalExpression(config.readOnly, Expressions.Checkboxes.readOnly);
   const required = useEvalExpression(config.required, Expressions.Checkboxes.required);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Checkboxes.alertOnChange);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.Checkboxes.textResourceBindings.title,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Checkboxes.textResourceBindings.help);
-  const description = useEvalExpression(
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Checkboxes.textResourceBindings.help);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Checkboxes.textResourceBindings.description,
   );
@@ -70,9 +70,9 @@ export const CheckboxContainerComponent = ({
       isValid={isValid}
       alertOnChange={alertOnChange}
       layout={config.layout}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
-      help={config.textResourceBindings?.help === undefined ? undefined : help}
-      description={config.textResourceBindings?.description === undefined ? undefined : description}
+      title={title}
+      help={help}
+      description={description}
       showOptionalMarking={!!config.labelSettings?.optionalIndicator}
       showLabelsInTable={config.showLabelsInTable}
       renderedInTable={overrideDisplay?.renderedInTable}

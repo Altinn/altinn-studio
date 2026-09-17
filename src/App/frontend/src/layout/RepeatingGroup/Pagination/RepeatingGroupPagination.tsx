@@ -18,7 +18,7 @@ import {
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 interface RepeatingGroupPaginationProps {
   inTable?: boolean;
@@ -43,11 +43,11 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const isTablet = useIsMobileOrTablet();
   const isMobile = useIsMobile();
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
-  const paginationNextButton = useEvalExpression(
+  const paginationNextButton = useEvalOptionalText(
     config.textResourceBindings?.paginationNextButton,
     Expressions.RepeatingGroup.textResourceBindings.paginationNextButton,
   );
-  const paginationBackButton = useEvalExpression(
+  const paginationBackButton = useEvalOptionalText(
     config.textResourceBindings?.paginationBackButton,
     Expressions.RepeatingGroup.textResourceBindings.paginationBackButton,
   );
@@ -88,12 +88,8 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
       )}
     >
       <PaginationComponent
-        nextTextKey={
-          config.textResourceBindings?.paginationNextButton === undefined ? 'general.next' : paginationNextButton
-        }
-        backTextKey={
-          config.textResourceBindings?.paginationBackButton === undefined ? 'general.back' : paginationBackButton
-        }
+        nextTextKey={paginationNextButton ?? 'general.next'}
+        backTextKey={paginationBackButton ?? 'general.back'}
         data-pagination-id={indexedId}
         className={classes.pagination}
         currentPage={currentPage + 1}

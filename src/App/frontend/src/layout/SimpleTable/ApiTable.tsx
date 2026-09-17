@@ -13,7 +13,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
@@ -22,18 +22,21 @@ interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
 
 export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
   const config = useComponentConfig(baseComponentId, 'SimpleTable');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.SimpleTable.textResourceBindings.title,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.SimpleTable.textResourceBindings.description,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.SimpleTable.textResourceBindings.help);
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.SimpleTable.textResourceBindings.help,
+  );
 
   const { elementAsString, langAsString } = useLanguage();
-  const accessibleTitle = elementAsString(config.textResourceBindings?.title === undefined ? undefined : title);
+  const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const { data } = useExternalApis([externalApi.id]);
 
@@ -64,18 +67,14 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
       zebra={config.zebra}
       size={config.size}
       caption={
-        (config.textResourceBindings?.title === undefined ? undefined : title) && (
+        title && (
           <Caption
-            title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
-            description={
-              (config.textResourceBindings?.description === undefined ? undefined : description) && (
-                <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-              )
-            }
+            title={<Lang id={title} />}
+            description={description && <Lang id={description} />}
             helpText={
-              (config.textResourceBindings?.help === undefined ? undefined : help)
+              help
                 ? {
-                    text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
+                    text: <Lang id={help} />,
                     accessibleTitle,
                   }
                 : undefined

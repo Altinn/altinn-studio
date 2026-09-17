@@ -27,20 +27,20 @@ import { evalSubformString, useExpressionDataSourcesForSubform, useSubformFormDa
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
 
 export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<'Subform'>): React.JSX.Element | null {
   const config = useComponentConfig(baseComponentId, 'Subform');
   const componentId = useIndexedId(baseComponentId);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Subform.textResourceBindings.description,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Subform.textResourceBindings.help);
-  const addButton = useEvalExpression(
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Subform.textResourceBindings.help);
+  const addButton = useEvalOptionalText(
     config.textResourceBindings?.addButton,
     Expressions.Subform.textResourceBindings.addButton,
   );
@@ -103,20 +103,16 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
           id={`subform-${componentId}-table`}
           className={classes.subformTable}
         >
-          {(config.textResourceBindings?.title === undefined ? undefined : title) && (
+          {title && (
             <Caption
               id={`subform-${componentId}-caption`}
-              title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
-              description={
-                (config.textResourceBindings?.description === undefined ? undefined : description) && (
-                  <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-                )
-              }
+              title={<Lang id={title} />}
+              description={description && <Lang id={description} />}
               helpText={
-                (config.textResourceBindings?.help === undefined ? undefined : help)
+                help
                   ? {
-                      text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
-                      accessibleTitle: config.textResourceBindings?.title === undefined ? undefined : title,
+                      text: <Lang id={help} />,
+                      accessibleTitle: title,
                     }
                   : undefined
               }
@@ -194,7 +190,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                   aria-hidden='true'
                 />
               )}
-              {langAsString(config.textResourceBindings?.addButton === undefined ? undefined : addButton)}
+              {langAsString(addButton)}
             </Button>
           </div>
         )}

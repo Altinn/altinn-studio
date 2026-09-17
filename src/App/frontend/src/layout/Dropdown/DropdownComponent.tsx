@@ -9,7 +9,7 @@ import { AllComponentValidations } from 'src/features/validation/ComponentValida
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Dropdown'>) {
@@ -17,9 +17,12 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
   const readOnly = useEvalExpression(config.readOnly, Expressions.Dropdown.readOnly);
   const required = useEvalExpression(config.required, Expressions.Dropdown.required);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Dropdown.alertOnChange);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Dropdown.textResourceBindings.title);
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.Dropdown.textResourceBindings.help);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Dropdown.textResourceBindings.title,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Dropdown.textResourceBindings.help);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Dropdown.textResourceBindings.description,
   );
@@ -46,9 +49,9 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
       required={required}
       isValid={isValid}
       alertOnChange={alertOnChange}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
-      help={config.textResourceBindings?.help === undefined ? undefined : help}
-      description={config.textResourceBindings?.description === undefined ? undefined : description}
+      title={title}
+      help={help}
+      description={description}
       showOptionalMarking={!!config.labelSettings?.optionalIndicator}
       labelGrid={config.grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}

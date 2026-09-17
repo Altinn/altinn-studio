@@ -21,7 +21,7 @@ import classes from 'src/layout/Payment/PaymentComponent.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 import { TaskKeys } from 'src/routesBuilder';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
@@ -32,21 +32,12 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
   const config = useComponentConfig(baseComponentId, 'Payment');
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Payment.textResourceBindings.title,
-  );
-  const resolvedDescription = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Payment.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Payment.textResourceBindings.description,
   );
-  const resolvedHelp = useEvalExpression(
-    config.textResourceBindings?.help,
-    Expressions.Payment.textResourceBindings.help,
-  );
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const description = config.textResourceBindings?.description === undefined ? undefined : resolvedDescription;
-  const help = config.textResourceBindings?.help === undefined ? undefined : resolvedHelp;
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Payment.textResourceBindings.help);
 
   const { data: process, refetch: reFetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();

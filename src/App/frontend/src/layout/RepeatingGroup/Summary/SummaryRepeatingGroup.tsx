@@ -19,7 +19,7 @@ import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider, useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -63,15 +63,15 @@ function RegularRepeatingGroup(props: FullProps) {
   const { onChangeClick, changeText, targetBaseComponentId, overrides, rows: _rows } = props;
   const rows = _rows.filter(typedBoolean);
   const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
-  const summaryAccessibleTitle = useEvalExpression(
+  const summaryAccessibleTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryAccessibleTitle,
     Expressions.RepeatingGroup.textResourceBindings.summaryAccessibleTitle,
   );
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.RepeatingGroup.textResourceBindings.summaryTitle,
   );
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.RepeatingGroup.textResourceBindings.title,
   );
@@ -83,25 +83,7 @@ function RegularRepeatingGroup(props: FullProps) {
   const groupValidations = useDeepValidationsForNode(targetBaseComponentId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const summaryAccessibleTitleTrb =
-    config.textResourceBindings && 'summaryAccessibleTitle' in config.textResourceBindings
-      ? config.textResourceBindings?.summaryAccessibleTitle === undefined
-        ? undefined
-        : summaryAccessibleTitle
-      : undefined;
-  const summaryTitleTrb =
-    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
-      ? config.textResourceBindings?.summaryTitle === undefined
-        ? undefined
-        : summaryTitle
-      : undefined;
-  const titleTrb =
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings?.title === undefined
-        ? undefined
-        : title
-      : undefined;
-  const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
+  const ariaLabel = langAsString(summaryTitle ?? summaryAccessibleTitle ?? title);
 
   return (
     <>
@@ -111,7 +93,7 @@ function RegularRepeatingGroup(props: FullProps) {
       >
         <div className={classes.container}>
           <span className={classes.label}>
-            <Lang id={summaryTitleTrb ?? titleTrb} />
+            <Lang id={summaryTitle ?? title} />
           </span>
           {!display?.hideChangeButton ? (
             <EditButton

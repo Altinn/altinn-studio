@@ -12,45 +12,34 @@ import { useHasNoDataInBindings } from 'src/layout/Summary2/isEmpty/isEmptyCompo
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'Address');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Address');
   const required = useEvalExpression(config.required, Expressions.Address.required);
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Address.textResourceBindings.title,
-  );
-  const resolvedSummaryTitle = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Address.textResourceBindings.summaryTitle,
   );
-  const resolvedCareOfTitle = useEvalExpression(
+  const careOfTitle = useEvalOptionalText(
     config.textResourceBindings?.careOfTitle,
     Expressions.Address.textResourceBindings.careOfTitle,
   );
-  const resolvedZipCodeTitle = useEvalExpression(
+  const zipCodeTitle = useEvalOptionalText(
     config.textResourceBindings?.zipCodeTitle,
     Expressions.Address.textResourceBindings.zipCodeTitle,
   );
-  const resolvedPostPlaceTitle = useEvalExpression(
+  const postPlaceTitle = useEvalOptionalText(
     config.textResourceBindings?.postPlaceTitle,
     Expressions.Address.textResourceBindings.postPlaceTitle,
   );
-  const resolvedHouseNumberTitle = useEvalExpression(
+  const houseNumberTitle = useEvalOptionalText(
     config.textResourceBindings?.houseNumberTitle,
     Expressions.Address.textResourceBindings.houseNumberTitle,
   );
-
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const summaryTitle = config.textResourceBindings?.summaryTitle === undefined ? undefined : resolvedSummaryTitle;
-  const careOfTitle = config.textResourceBindings?.careOfTitle === undefined ? undefined : resolvedCareOfTitle;
-  const zipCodeTitle = config.textResourceBindings?.zipCodeTitle === undefined ? undefined : resolvedZipCodeTitle;
-  const postPlaceTitle = config.textResourceBindings?.postPlaceTitle === undefined ? undefined : resolvedPostPlaceTitle;
-  const houseNumberTitle =
-    config.textResourceBindings?.houseNumberTitle === undefined ? undefined : resolvedHouseNumberTitle;
 
   const { formData } = useDataModelBindings(dataModelBindings);
   const { address, postPlace, zipCode, careOf, houseNumber } = formData;

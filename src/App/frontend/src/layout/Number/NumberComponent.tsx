@@ -8,27 +8,18 @@ import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const NumberComponent = ({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Number'>) => {
   const config = useComponentConfig(baseComponentId, 'Number');
   const value = useEvalExpression(config.value, Expressions.Number.value);
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Number.textResourceBindings.title,
-  );
-  const resolvedDescription = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Number.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Number.textResourceBindings.description,
   );
-  const resolvedHelp = useEvalExpression(
-    config.textResourceBindings?.help,
-    Expressions.Number.textResourceBindings.help,
-  );
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const description = config.textResourceBindings?.description === undefined ? undefined : resolvedDescription;
-  const help = config.textResourceBindings?.help === undefined ? undefined : resolvedHelp;
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Number.textResourceBindings.help);
   const formatting = useResolvedFormatting(config.formatting);
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
   const currentLanguage = useCurrentLanguage();

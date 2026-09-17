@@ -18,7 +18,7 @@ import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 
 interface LikertTitleProps {
@@ -60,19 +60,13 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   const config = useComponentConfig(baseComponentId, 'Likert');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Likert');
   const componentId = useIndexedId(baseComponentId);
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Likert.textResourceBindings.title,
-  );
-  const resolvedDescription = useEvalExpression(
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Likert.textResourceBindings.title);
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Likert.textResourceBindings.description,
   );
-  const resolvedHelp = useEvalExpression(
-    config.textResourceBindings?.help,
-    Expressions.Likert.textResourceBindings.help,
-  );
-  const leftColumnHeader = useEvalExpression(
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Likert.textResourceBindings.help);
+  const leftColumnHeader = useEvalOptionalText(
     config.textResourceBindings?.leftColumnHeader,
     Expressions.Likert.textResourceBindings.leftColumnHeader,
   );
@@ -82,9 +76,6 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   const rows = useLikertRows(baseComponentId);
   const { options: calculatedOptions, isFetching } = useOptionsFor(makeLikertChildId(baseComponentId), 'single');
   const indexedId = useIndexedId(baseComponentId);
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
-  const description = config.textResourceBindings?.description === undefined ? undefined : resolvedDescription;
-  const help = config.textResourceBindings?.help === undefined ? undefined : resolvedHelp;
   const labelId = getLabelId(indexedId);
   if (mobileView) {
     return (
@@ -107,14 +98,8 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
         <div
           role='group'
           className={classes.likertMobileGroup}
-          aria-labelledby={
-            (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle) ? labelId : undefined
-          }
-          aria-describedby={
-            (config.textResourceBindings?.description === undefined ? undefined : resolvedDescription)
-              ? getDescriptionId(indexedId)
-              : undefined
-          }
+          aria-labelledby={title ? labelId : undefined}
+          aria-describedby={description ? getDescriptionId(indexedId) : undefined}
         >
           {rows.map((row) =>
             row ? (
@@ -145,11 +130,7 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
           border
           className={classes.likertTable}
           aria-labelledby={title ? labelId : undefined}
-          aria-describedby={
-            (config.textResourceBindings?.description === undefined ? undefined : resolvedDescription)
-              ? getDescriptionId(indexedId)
-              : undefined
-          }
+          aria-describedby={description ? getDescriptionId(indexedId) : undefined}
         >
           {title && (
             <caption className={classes.likertHeading}>
@@ -167,17 +148,10 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
               <Table.HeaderCell scope='col'>
                 <span
                   className={cn({
-                    'sr-only':
-                      (config.textResourceBindings?.leftColumnHeader === undefined ? undefined : leftColumnHeader) ==
-                      null,
+                    'sr-only': leftColumnHeader == null,
                   })}
                 >
-                  <Lang
-                    id={
-                      (config.textResourceBindings?.leftColumnHeader === undefined ? undefined : leftColumnHeader) ??
-                      'likert.left_column_default_header_text'
-                    }
-                  />
+                  <Lang id={leftColumnHeader ?? 'likert.left_column_default_header_text'} />
                 </span>
               </Table.HeaderCell>
               {calculatedOptions.map((option, index) => {

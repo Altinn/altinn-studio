@@ -11,12 +11,12 @@ import { useIsSubformPage } from 'src/hooks/navigation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export function ActionButtonComponent({ baseComponentId }: PropsFromGenericComponent<'ActionButton'>) {
   const config = useComponentConfig(baseComponentId, 'ActionButton');
   const componentId = useIndexedId(baseComponentId);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.ActionButton.textResourceBindings.title,
   );
@@ -32,7 +32,7 @@ export function ActionButtonComponent({ baseComponentId }: PropsFromGenericCompo
   return (
     <ActionButton
       componentId={componentId}
-      title={(config.textResourceBindings?.title === undefined ? undefined : title) ?? `actions.${config.action}`}
+      title={title ?? `actions.${config.action}`}
       buttonStyle={config.buttonStyle}
       disabled={!isAuthorized(config.action)}
       isLoading={isPerformingProcessNext}
