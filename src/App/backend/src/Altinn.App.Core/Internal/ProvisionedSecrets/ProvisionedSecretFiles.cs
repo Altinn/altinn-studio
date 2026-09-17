@@ -26,7 +26,7 @@ internal static class ProvisionedSecretFiles
     /// The app's callback verification codes: the shared secrets it signs and verifies the callbacks of the
     /// workflow engine, the notification service and the payment provider with.
     /// </summary>
-    public static readonly ProvisionedSecretFile AppCodes = new("app-codes.json", "AppCodes");
+    public static readonly ProvisionedSecretFile AppCodes = new("RUNTIME_APP_SECRETS_APPCODES_FILENAME", "AppCodes");
 
     /// <summary>
     /// Every hosted file.

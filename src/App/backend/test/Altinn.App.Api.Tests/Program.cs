@@ -5,7 +5,6 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
-using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Cache;
@@ -72,14 +71,10 @@ builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfi
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
 
-// The app's callback verification codes are provisioned as a file, never configured, so the test host is
-// given a provisioned directory the way a deployed app is given its secrets mount. It holds a
-// WorkflowEngineCallback app-code, which every test host needs to pass the always-on startup validation.
-builder.Services.AddSingleton(_ => ProvisionedTestSecrets.CreateChannel());
-
 // The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
-// the app's one Maskinporten client; the libraries require both, and refuse to start without them. Stand in
-// for the platform with a throwaway client in a temp directory.
+// both files the libraries host: the app's one Maskinporten client, and the callback verification codes whose
+// WorkflowEngineCallback entry every test host needs to pass the always-on startup validation. The libraries
+// require all of it and refuse to start without it, so stand in for the platform with a throwaway directory.
 foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variables)
 {
     builder.Configuration[key] = value;

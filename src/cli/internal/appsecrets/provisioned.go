@@ -16,8 +16,9 @@ import (
 // because studioctl is the platform for a local run. The app libraries require all of them and fall back to
 // nothing, deliberately - a location they had guessed would read nothing at all the day the writer moved it.
 //
-// studioctl advertises every name here, including files no tenant of its own writes yet, so that the app it
-// starts is given the same complete contract a deployed app is given.
+// studioctl advertises every name here, so that the app it starts is given the same complete contract a
+// deployed app is given, and writes the files under those same names: the app codes for every local run, the
+// Maskinporten client when the developer stores one.
 const (
 	// EnvSecretsDir names the directory the app's secrets are provisioned into.
 	EnvSecretsDir = "RUNTIME_APP_SECRETS_DIR" //nolint:gosec // G101: the name of a variable, not a credential.
@@ -29,10 +30,12 @@ const (
 	EnvAppCodesFileName = "RUNTIME_APP_SECRETS_APPCODES_FILENAME"
 
 	// MaskinportenFileName is what studioctl calls the Maskinporten client file - the name the operator uses
-	// in a cluster, for a file with the same content.
+	// in a cluster, for a file with the same content. It is both what EnvMaskinportenFileName tells the app
+	// and what StoreMaskinportenClient writes.
 	MaskinportenFileName = "maskinporten-settings.json"
 
-	// AppCodesFileName is what studioctl calls the app codes file, on the same terms.
+	// AppCodesFileName is what studioctl calls the app codes file, on the same terms: what
+	// EnvAppCodesFileName tells the app, and what WriteDevelopmentAppCodes writes.
 	AppCodesFileName = "app-codes.json"
 
 	// ContainerDir is where studioctl mounts the secrets directory when the app runs in a container, matching

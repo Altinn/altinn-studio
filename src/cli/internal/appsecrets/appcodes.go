@@ -11,10 +11,6 @@ import (
 )
 
 const (
-	// AppCodesFileName is the file the app libraries read the app's callback verification codes from, in the
-	// secrets directory - the same name, and the same shape, the operator provisions in a cluster.
-	AppCodesFileName = "app-codes.json"
-
 	// devWorkflowEngineCallbackID identifies the development code among the codes of its kind.
 	devWorkflowEngineCallbackID = "local-dev"
 
@@ -55,7 +51,8 @@ type appCodesFile struct {
 	AppCodes appCodeKinds `json:"AppCodes"`
 }
 
-// AppCodesPath returns the path of the app codes file in a secrets directory.
+// AppCodesPath returns the path of the app codes file in a secrets directory, under the name studioctl tells
+// the app to look for it by.
 func AppCodesPath(dir string) string {
 	return filepath.Join(dir, AppCodesFileName)
 }

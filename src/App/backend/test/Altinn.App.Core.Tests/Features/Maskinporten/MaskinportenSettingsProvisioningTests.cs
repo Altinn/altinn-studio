@@ -342,6 +342,9 @@ public sealed class MaskinportenSettingsProvisioningTests
         [
             new(ProvisionedSecrets.DirectoryKey, secretsDirectory),
             new(_file.FileNameKey, fileName),
+            // Every hosted file's name is required, this tenant's and the others': the app codes file is not
+            // what these tests are about, but a host is not told half the contract.
+            new(ProvisionedSecretFiles.AppCodes.FileNameKey, "app-codes.json"),
             .. appConfiguration.Select(value => new KeyValuePair<string, string?>(value.Key, value.Value)),
         ];
 

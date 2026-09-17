@@ -11,8 +11,10 @@ namespace Altinn.App.Core.Tests.Internal;
 public sealed class ProvisionedSecretsTests
 {
     private const string _maskinportenFileName = "maskinporten-settings.json";
+    private const string _appCodesFileName = "app-codes.json";
 
     private static readonly ProvisionedSecretFile _maskinporten = ProvisionedSecretFiles.Maskinporten;
+    private static readonly ProvisionedSecretFile _appCodes = ProvisionedSecretFiles.AppCodes;
 
     [Fact]
     public void GetExistingProviderRoot_ReturnsPath_WhenDirectoryExists()
@@ -188,7 +190,8 @@ public sealed class ProvisionedSecretsTests
         using ProvisionedSecrets secrets = ProvisionedSecrets.FromConfiguration(
             ConfigurationWith(
                 (ProvisionedSecrets.DirectoryKey, tempDirectory.Path),
-                (_maskinporten.FileNameKey, "credentials.json")
+                (_maskinporten.FileNameKey, "credentials.json"),
+                (_appCodes.FileNameKey, "codes.json")
             )
         );
 
@@ -196,6 +199,10 @@ public sealed class ProvisionedSecretsTests
         Assert.Equal(
             Path.GetFullPath(Path.Join(tempDirectory.Path, "credentials.json")),
             Path.GetFullPath(secrets.PathOf(_maskinporten))
+        );
+        Assert.Equal(
+            Path.GetFullPath(Path.Join(tempDirectory.Path, "codes.json")),
+            Path.GetFullPath(secrets.PathOf(_appCodes))
         );
     }
 
@@ -206,6 +213,7 @@ public sealed class ProvisionedSecretsTests
     [Theory]
     [InlineData(ProvisionedSecrets.DirectoryKey)]
     [InlineData("RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME")]
+    [InlineData("RUNTIME_APP_SECRETS_APPCODES_FILENAME")]
     public void FromConfiguration_Throws_WhenAVariableIsNotSet(string missingKey)
     {
         using var tempDirectory = new TempDirectory();
@@ -213,6 +221,7 @@ public sealed class ProvisionedSecretsTests
         {
             [ProvisionedSecrets.DirectoryKey] = tempDirectory.Path,
             [_maskinporten.FileNameKey] = _maskinportenFileName,
+            [_appCodes.FileNameKey] = _appCodesFileName,
         };
         values.Remove(missingKey);
 
@@ -233,7 +242,8 @@ public sealed class ProvisionedSecretsTests
             ProvisionedSecrets.FromConfiguration(
                 ConfigurationWith(
                     (ProvisionedSecrets.DirectoryKey, tempDirectory.Path),
-                    (_maskinporten.FileNameKey, "  ")
+                    (_maskinporten.FileNameKey, "  "),
+                    (_appCodes.FileNameKey, _appCodesFileName)
                 )
             )
         );
@@ -260,7 +270,8 @@ public sealed class ProvisionedSecretsTests
             ProvisionedSecrets.FromConfiguration(
                 ConfigurationWith(
                     (ProvisionedSecrets.DirectoryKey, tempDirectory.Path),
-                    (_maskinporten.FileNameKey, fileName)
+                    (_maskinporten.FileNameKey, fileName),
+                    (_appCodes.FileNameKey, _appCodesFileName)
                 )
             )
         );
@@ -370,7 +381,8 @@ public sealed class ProvisionedSecretsTests
         using var tempDirectory = new TempDirectory();
         using IHost host = BuildChannelHost(
             (ProvisionedSecrets.DirectoryKey, tempDirectory.Path),
-            (_maskinporten.FileNameKey, _maskinportenFileName)
+            (_maskinporten.FileNameKey, _maskinportenFileName),
+            (_appCodes.FileNameKey, _appCodesFileName)
         );
 
         await host.StartAsync();
@@ -406,7 +418,8 @@ public sealed class ProvisionedSecretsTests
         ProvisionedSecrets.FromConfiguration(
             ConfigurationWith(
                 (ProvisionedSecrets.DirectoryKey, secretsDirectory),
-                (_maskinporten.FileNameKey, maskinportenFileName)
+                (_maskinporten.FileNameKey, maskinportenFileName),
+                (_appCodes.FileNameKey, _appCodesFileName)
             )
         );
 

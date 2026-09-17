@@ -19,6 +19,7 @@ namespace Altinn.App.Core.Tests.Internal;
 public sealed class AppCodesProvisioningTests
 {
     private static readonly ProvisionedSecretFile _file = ProvisionedSecretFiles.AppCodes;
+    private const string _fileName = "app-codes.json";
 
     [Fact]
     public async Task Options_BindTheProvisionedFile()
@@ -109,23 +110,25 @@ public sealed class AppCodesProvisioningTests
     /// <summary>
     /// The app's services as an app gets them, for codes provisioned into
     /// <paramref name="secretsDirectory"/> and an app configuration of <paramref name="appConfiguration"/>.
-    /// Registering the channel first is the only way to move the directory - an app has no such lever.
+    /// The platform's variables are what move the directory - an app has no such lever.
     /// </summary>
     private static ServiceProvider BuildAppProvider(
         string secretsDirectory,
         params (string Key, string? Value)[] appConfiguration
     )
     {
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([
+                new(ProvisionedSecrets.DirectoryKey, secretsDirectory),
+                new(ProvisionedSecretFiles.Maskinporten.FileNameKey, "maskinporten-settings.json"),
+                new(_file.FileNameKey, _fileName),
+                .. appConfiguration.Select(value => new KeyValuePair<string, string?>(value.Key, value.Value)),
+            ])
+            .Build();
+
         var services = new ServiceCollection();
-        services.AddSingleton(_ => new ProvisionedSecrets(secretsDirectory, ProvisionedSecretFiles.All));
-        services.AddPlatformServices(
-            new ConfigurationBuilder()
-                .AddInMemoryCollection(
-                    appConfiguration.Select(value => new KeyValuePair<string, string?>(value.Key, value.Value))
-                )
-                .Build(),
-            Mock.Of<IWebHostEnvironment>()
-        );
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddPlatformServices(configuration, Mock.Of<IWebHostEnvironment>());
 
         // Not the strict provider: AddPlatformServices is one half of an app's registrations, and the other
         // half supplies what some of these services depend on.
@@ -137,7 +140,7 @@ public sealed class AppCodesProvisioningTests
     /// </summary>
     private static async Task WriteAppCodes(string secretsDirectory, string code, DateTime? lastWriteTimeUtc = null)
     {
-        string path = Path.Join(secretsDirectory, _file.FileName);
+        string path = Path.Join(secretsDirectory, _fileName);
         await File.WriteAllTextAsync(
             path,
             $$"""
