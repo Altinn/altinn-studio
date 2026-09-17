@@ -43,7 +43,7 @@ pub struct Agent {
 /// `metadata` and `spec` remain YAML values until they have been merged with a
 /// complete Agent. The expanded document is then decoded through [`Agent`], so
 /// nested unknown fields are rejected by the same strict contract.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct AgentVariant {
     /// Manifest schema version, which must match every manifest in the chain.
@@ -854,7 +854,7 @@ pub fn resolve(path: &Path) -> Result<ResolvedManifest, Error> {
     let mut versions = Vec::new();
     let value = resolve_value(&leaf, &mut chain, &mut versions).map_err(|error| with_chain(error, &chain))?;
     let bytes = serde_yaml_ng::to_string(&value).map_err(Error::Yaml)?;
-    let agent = decode(bytes.as_bytes()).map_err(|error| manifest_error(&leaf, "expanded Agent", error))?;
+    let agent = decode(bytes.as_bytes()).map_err(|error| manifest_error(&leaf, "expanded Agent", &error))?;
     Ok(ResolvedManifest { agent, chain })
 }
 
@@ -894,7 +894,7 @@ fn resolve_value(
             .iter()
             .map(PathBuf::as_path)
             .chain(std::iter::once(path))
-            .map(|entry| display_leaf(entry))
+            .map(display_leaf)
             .collect::<Vec<_>>()
             .join(" -> ");
         return Err(Error::Invalid(format!("variant inheritance cycle: {cycle}")));
@@ -929,7 +929,7 @@ fn resolve_value(
     versions.push((path.to_path_buf(), version));
     match kind.as_str() {
         KIND => {
-            decode(&bytes).map_err(|error| manifest_error(path, "complete Agent", error))?;
+            decode(&bytes).map_err(|error| manifest_error(path, "complete Agent", &error))?;
             Ok(value)
         }
         VARIANT_KIND => {
@@ -944,16 +944,18 @@ fn resolve_value(
             validate_variant(&variant, path)?;
             let base = sibling_base(path, &variant.extends)?;
             let mut inherited = resolve_value(&base, chain, versions)?;
-            let mut patch = value;
-            let patch_mapping = patch.as_mapping_mut().expect("mapping checked above");
-            patch_mapping.remove(serde_yaml_ng::Value::String("extends".into()));
-            patch_mapping.insert(
+            let mut overlay = value;
+            let overlay_mapping = overlay
+                .as_mapping_mut()
+                .ok_or_else(|| Error::Invalid(format!("{}: manifest must be a mapping", display_leaf(path))))?;
+            overlay_mapping.remove(serde_yaml_ng::Value::String("extends".into()));
+            overlay_mapping.insert(
                 serde_yaml_ng::Value::String("kind".into()),
                 serde_yaml_ng::Value::String(KIND.into()),
             );
-            merge_value(&mut inherited, patch);
+            merge_value(&mut inherited, overlay);
             let expanded = serde_yaml_ng::to_string(&inherited).map_err(Error::Yaml)?;
-            decode(expanded.as_bytes()).map_err(|error| manifest_error(path, "expanded variant", error))?;
+            decode(expanded.as_bytes()).map_err(|error| manifest_error(path, "expanded variant", &error))?;
             Ok(inherited)
         }
         _ => Err(Error::Invalid(format!(
@@ -1080,7 +1082,7 @@ fn display_leaf(path: &Path) -> String {
     )
 }
 
-fn manifest_error(path: &Path, context: &str, error: Error) -> Error {
+fn manifest_error(path: &Path, context: &str, error: &Error) -> Error {
     Error::Invalid(format!("{}: invalid {context}: {error}", display_leaf(path)))
 }
 

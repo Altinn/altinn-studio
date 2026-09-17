@@ -449,7 +449,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             timeout,
         } => {
             let filename = apply_manifest_path(filename, variant)?;
-            let mut request = read_apply_request(filename, env_file).await?;
+            let mut request = read_apply_request(filename, env_file)?;
             if let Some(name) = name {
                 request.agent.metadata.name = name;
             }
@@ -629,6 +629,10 @@ async fn attach(
     Ok(())
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "command flags remain explicit at the execution boundary"
+)]
 async fn exec_command(
     home: &ControlPlaneHome,
     client: &Client,
@@ -1317,7 +1321,7 @@ fn apply_manifest_path(filename: Option<PathBuf>, variant: Option<String>) -> Re
     }
 }
 
-async fn read_apply_request(filename: PathBuf, env_file: Option<PathBuf>) -> Result<ApplyRequest, Error> {
+fn read_apply_request(filename: PathBuf, env_file: Option<PathBuf>) -> Result<ApplyRequest, Error> {
     let filename = absolute(filename)?;
     let env_file = env_file.map(absolute).transpose()?;
     let agent = manifest::resolve(&filename)?.agent;
@@ -1896,9 +1900,7 @@ mod tests {
         let original_directory = std::env::current_dir().expect("current directory");
         std::env::set_current_dir(directory.path()).expect("enter temporary directory");
 
-        let result = LocalRuntime::new()
-            .expect("local runtime")
-            .block_on(read_apply_request(PathBuf::from("agent.yaml"), None));
+        let result = read_apply_request(PathBuf::from("agent.yaml"), None);
 
         std::env::set_current_dir(original_directory).expect("restore current directory");
         let request = result.expect("read apply request");

@@ -10,9 +10,7 @@ fn repository_root() -> PathBuf {
 }
 
 fn resolved(path: &Path) -> Agent {
-    manifest::resolve(path)
-        .unwrap_or_else(|error| panic!("{}: {error}", path.display()))
-        .agent
+    manifest::resolve(path).expect("manifest should resolve").agent
 }
 
 fn assert_inputs_exist(agent: &Agent, family: &Path) {
