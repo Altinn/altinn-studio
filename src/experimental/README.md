@@ -73,7 +73,8 @@ or cross-directory paths.
 
 Run `agentctl apply` for `./agent.yaml`, `agentctl apply --variant nested` for `./agent.nested.yaml`, or retain exact
 path selection with `agentctl apply -f path/to/agent.nested.yaml`. Checkout-local variants may be Git-ignored: TUI
-discovery enumerates valid siblings beside each non-ignored `agent.yaml` without descending into ignored directories.
+discovery enumerates valid siblings beside each non-ignored `agent.yaml` without descending into ignored directories,
+then presents the manifest directory as the Agent and its leaves in a separate Variant picker.
 Commands that infer an applied Agent accept `--variant` to match recorded leaf-manifest provenance; `--agent` remains
 the explicit global resource-name selector.
 

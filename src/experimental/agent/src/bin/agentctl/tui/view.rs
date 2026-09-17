@@ -271,7 +271,7 @@ fn field_line(label: &str, value: &str, focused: bool, empty_hint: Option<String
 }
 
 fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm) {
-    let mut lines = form.candidates.get(form.selected).map_or_else(
+    let mut lines = form.family().zip(form.candidate()).map_or_else(
         || {
             vec![
                 Line::from("No agent manifests found."),
@@ -285,7 +285,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 )),
             ]
         },
-        |candidate| picker_lines(form, candidate),
+        |(family, candidate)| picker_lines(form, family, candidate),
     );
     if let Some(error) = &form.error {
         lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
@@ -293,34 +293,44 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
     lines.push(Line::default());
     lines.push(hint_line(&[
         ("enter", "create"),
-        ("tab", "manifest"),
+        ("tab", "field"),
+        ("←/→", "select"),
         ("esc", "cancel"),
     ]));
     popup(frame, area, " create agent ", Color::Cyan, lines);
 }
 
-fn picker_lines(form: &super::app::CreateForm, candidate: &super::app::ManifestCandidate) -> Vec<Line<'static>> {
-    let manifest_path = abbreviate_home(&candidate.path.display().to_string());
-    let mut manifest_spans = vec![
-        Span::raw("Manifest: "),
-        Span::styled("◂ ", Style::new().fg(Color::DarkGray)),
-    ];
-    if let Ok(name) = &candidate.name {
-        manifest_spans.push(Span::styled(name.clone(), Style::new().fg(Color::Cyan)));
-        manifest_spans.push(Span::styled(" | ", Style::new().fg(Color::DarkGray)));
-    }
-    manifest_spans.extend([
-        Span::styled(manifest_path, Style::new().fg(Color::DarkGray)),
-        Span::styled(" ▸", Style::new().fg(Color::DarkGray)),
-        Span::styled(
-            format!("  {}/{}", form.selected + 1, form.candidates.len()),
-            Style::new().fg(Color::DarkGray),
+fn picker_lines(
+    form: &super::app::CreateForm,
+    family: &super::app::ManifestFamily,
+    candidate: &super::app::ManifestCandidate,
+) -> Vec<Line<'static>> {
+    let family_path = abbreviate_home(&family.directory.display().to_string());
+    let manifest_file = candidate.path.file_name().map_or_else(
+        || candidate.path.display().to_string(),
+        |name| name.to_string_lossy().into_owned(),
+    );
+    let mut lines = vec![
+        picker_line(
+            "Agent:   ",
+            family.label(),
+            family_path,
+            form.field == super::app::CreateField::Agent,
+            form.agent,
+            form.families.len(),
         ),
-    ]);
-    let mut lines = vec![Line::from(manifest_spans)];
+        picker_line(
+            "Variant: ",
+            form.variant_label().unwrap_or_default().to_owned(),
+            manifest_file,
+            form.field == super::app::CreateField::Variant,
+            form.variant,
+            family.variants.len(),
+        ),
+    ];
     if let Err(invalid) = &candidate.name {
         lines.push(Line::from(Span::styled(
-            format!("          {invalid}"),
+            format!("         {invalid}"),
             Style::new().fg(Color::Red),
         )));
     }
@@ -328,19 +338,50 @@ fn picker_lines(form: &super::app::CreateForm, candidate: &super::app::ManifestC
     lines
 }
 
+fn picker_line(
+    label: &'static str,
+    value: String,
+    detail: String,
+    focused: bool,
+    selected: usize,
+    total: usize,
+) -> Line<'static> {
+    let control = if focused { Color::Cyan } else { Color::DarkGray };
+    let value_style = if focused {
+        Style::new().fg(Color::Cyan)
+    } else {
+        Style::new()
+    };
+    Line::from(vec![
+        Span::raw(label),
+        Span::styled("◂ ", Style::new().fg(control)),
+        Span::styled(value, value_style),
+        Span::styled(" | ", Style::new().fg(Color::DarkGray)),
+        Span::styled(detail, Style::new().fg(Color::DarkGray)),
+        Span::styled(" ▸", Style::new().fg(control)),
+        Span::styled(
+            format!("  {}/{}", selected.saturating_add(1), total),
+            Style::new().fg(Color::DarkGray),
+        ),
+    ])
+}
+
 /// Renders the name input; an empty buffer shows the placeholder with a
 /// block cursor over its first character, so the cursor sits flush against
 /// the grayed text instead of leaving a cell-wide gap before it.
 fn name_field_spans(form: &super::app::CreateForm) -> Vec<Span<'static>> {
-    let mut spans = vec![Span::raw("Name:     ")];
+    let focused = form.field == super::app::CreateField::Name;
+    let mut spans = vec![Span::raw("Name:    ")];
     if !form.name.is_empty() {
         spans.push(Span::raw(form.name.clone()));
-        spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+        if focused {
+            spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+        }
         return spans;
     }
     let mut placeholder = form.placeholder().unwrap_or_default().chars();
     match placeholder.next() {
-        Some(first) => {
+        Some(first) if focused => {
             spans.push(Span::styled(
                 first.to_string(),
                 Style::new().fg(Color::DarkGray).add_modifier(Modifier::REVERSED),
@@ -350,7 +391,12 @@ fn name_field_spans(form: &super::app::CreateForm) -> Vec<Span<'static>> {
                 Style::new().fg(Color::DarkGray),
             ));
         }
-        None => spans.push(Span::styled("▏", Style::new().fg(Color::Cyan))),
+        Some(first) => spans.push(Span::styled(
+            format!("{first}{}", placeholder.collect::<String>()),
+            Style::new().fg(Color::DarkGray),
+        )),
+        None if focused => spans.push(Span::styled("▏", Style::new().fg(Color::Cyan))),
+        None => {}
     }
     spans
 }
@@ -471,60 +517,64 @@ mod tests {
 
     #[test]
     fn create_agent_modal_shows_the_picker_and_placeholder_name() {
-        use super::super::app::{CreateForm, ManifestCandidate};
+        use super::super::app::{CreateField, CreateForm, ManifestCandidate};
 
         let mut app = App::new();
-        app.modal = Some(Modal::CreateAgent(CreateForm {
-            candidates: vec![
+        app.modal = Some(Modal::CreateAgent(CreateForm::new(
+            vec![
                 ManifestCandidate {
                     path: std::path::PathBuf::from("/sources/full/agent.yaml"),
                     name: Ok("full".into()),
+                },
+                ManifestCandidate {
+                    path: std::path::PathBuf::from("/sources/full/agent.nested.yaml"),
+                    name: Ok("full-nested".into()),
                 },
                 ManifestCandidate {
                     path: std::path::PathBuf::from("/sources/broken/agent.yaml"),
                     name: Err("manifest cannot be decoded".into()),
                 },
             ],
-            selected: 0,
-            name: String::new(),
-            error: None,
-        }));
-        let mut terminal = Terminal::new(TestBackend::new(80, 14)).expect("test terminal");
+            None,
+        )));
+        let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
         terminal.draw(|frame| render(frame, &app)).expect("modal draw");
         let text = buffer_text(&terminal);
         assert!(text.contains("create agent"));
-        assert!(text.contains("◂ full | /sources/full/agent.yaml ▸"));
-        assert!(text.contains("1/2"));
-        assert!(text.contains("Name:     full"));
-        assert!(text.contains("enter create · tab manifest · esc cancel"));
+        assert!(text.contains("Agent:   ◂ full | /sources/full ▸  1/2"));
+        assert!(text.contains("Variant: ◂ default | agent.yaml ▸  1/2"));
+        assert!(text.contains("Name:    full"));
+        assert!(text.contains("enter create · tab field · ←/→ select · esc cancel"));
 
         let Some(Modal::CreateAgent(form)) = &mut app.modal else {
             panic!("expected the CreateAgent modal");
         };
-        form.selected = 1;
+        form.agent = 1;
+        form.variant = 0;
+        form.field = CreateField::Name;
         form.name = "copy".into();
         form.error = Some("agent \"copy\" already exists".into());
         terminal.draw(|frame| render(frame, &app)).expect("error draw");
         let text = buffer_text(&terminal);
-        assert!(text.contains("◂ /sources/broken/agent.yaml ▸"));
+        assert!(text.contains("Agent:   ◂ broken | /sources/broken ▸  2/2"));
+        assert!(text.contains("Variant: ◂ default | agent.yaml ▸  1/1"));
         assert!(text.contains("manifest cannot be decoded"));
-        assert!(text.contains("Name:     copy▏"));
+        assert!(text.contains("Name:    copy▏"));
         assert!(text.contains("agent \"copy\" already exists"));
     }
 
     #[test]
     fn create_agent_placeholder_first_character_is_the_block_cursor() {
-        use super::super::app::{CreateForm, ManifestCandidate};
+        use super::super::app::{CreateField, CreateForm, ManifestCandidate};
 
-        let form = CreateForm {
-            candidates: vec![ManifestCandidate {
+        let mut form = CreateForm::new(
+            vec![ManifestCandidate {
                 path: std::path::PathBuf::from("/sources/full/agent.yaml"),
                 name: Ok("full".into()),
             }],
-            selected: 0,
-            name: String::new(),
-            error: None,
-        };
+            None,
+        );
+        form.field = CreateField::Name;
         let spans = name_field_spans(&form);
         assert_eq!(spans[1].content, "f");
         assert!(spans[1].style.add_modifier.contains(Modifier::REVERSED));
@@ -553,17 +603,12 @@ mod tests {
         use super::super::app::CreateForm;
 
         let mut app = App::new();
-        app.modal = Some(Modal::CreateAgent(CreateForm {
-            candidates: Vec::new(),
-            selected: 0,
-            name: String::new(),
-            error: None,
-        }));
+        app.modal = Some(Modal::CreateAgent(CreateForm::new(Vec::new(), None)));
         let mut terminal = Terminal::new(TestBackend::new(80, 14)).expect("test terminal");
         terminal.draw(|frame| render(frame, &app)).expect("empty draw");
         let text = buffer_text(&terminal);
         assert!(text.contains("No agent manifests found."));
-        assert!(text.contains("agentctl apply -f"));
+        assert!(text.contains("agentctl apply"));
     }
 
     #[test]

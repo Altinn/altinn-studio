@@ -1,4 +1,7 @@
-use std::{collections::HashSet, path::PathBuf};
+use std::{
+    collections::HashSet,
+    path::{Path, PathBuf},
+};
 
 use agent::{
     Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
@@ -223,19 +226,140 @@ pub(crate) struct ManifestCandidate {
     pub(crate) name: Result<String, String>,
 }
 
-/// Create-agent form state: a manifest picker plus a placeholder-backed name.
+/// One Agent manifest family and its default and variant leaves.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ManifestFamily {
+    /// Directory containing the family's `agent.yaml`.
+    pub(crate) directory: PathBuf,
+    /// Manifest leaves in picker order, with `agent.yaml` first.
+    pub(crate) variants: Vec<ManifestCandidate>,
+}
+
+impl ManifestFamily {
+    /// User-facing Agent label, taken from the expanded default when possible.
+    pub(crate) fn label(&self) -> String {
+        self.variants
+            .iter()
+            .find(|candidate| {
+                candidate
+                    .path
+                    .file_name()
+                    .is_some_and(|name| name == agent::manifest::MANIFEST_FILE)
+            })
+            .or_else(|| self.variants.first())
+            .and_then(|candidate| candidate.name.as_ref().ok())
+            .cloned()
+            .or_else(|| {
+                self.directory
+                    .file_name()
+                    .map(|name| name.to_string_lossy().into_owned())
+            })
+            .unwrap_or_else(|| self.directory.display().to_string())
+    }
+}
+
+/// Focused field of the create-Agent form.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum CreateField {
+    Agent,
+    Variant,
+    Name,
+}
+
+impl CreateField {
+    const ORDER: [Self; 3] = [Self::Agent, Self::Variant, Self::Name];
+
+    fn next(self) -> Self {
+        let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
+        Self::ORDER[(index + 1) % Self::ORDER.len()]
+    }
+
+    fn previous(self) -> Self {
+        let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
+        Self::ORDER[(index + Self::ORDER.len() - 1) % Self::ORDER.len()]
+    }
+}
+
+/// Create-agent form state: independent Agent and variant pickers plus a name override.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CreateForm {
-    pub(crate) candidates: Vec<ManifestCandidate>,
-    pub(crate) selected: usize,
+    pub(crate) families: Vec<ManifestFamily>,
+    pub(crate) agent: usize,
+    pub(crate) variant: usize,
+    pub(crate) field: CreateField,
     pub(crate) name: String,
     pub(crate) error: Option<String>,
 }
 
 impl CreateForm {
+    /// Groups discovered leaves by sibling directory and preselects exact provenance.
+    pub(crate) fn new(candidates: Vec<ManifestCandidate>, selected_path: Option<&Path>) -> Self {
+        let mut families = Vec::<ManifestFamily>::new();
+        for candidate in candidates {
+            let directory = candidate.path.parent().unwrap_or_else(|| Path::new("")).to_path_buf();
+            if let Some(family) = families.iter_mut().find(|family| family.directory == directory) {
+                family.variants.push(candidate);
+            } else {
+                families.push(ManifestFamily {
+                    directory,
+                    variants: vec![candidate],
+                });
+            }
+        }
+        for family in &mut families {
+            family.variants.sort_by_key(|candidate| {
+                (
+                    candidate
+                        .path
+                        .file_name()
+                        .is_none_or(|name| name != agent::manifest::MANIFEST_FILE),
+                    candidate.path.clone(),
+                )
+            });
+        }
+        let selected = selected_path.and_then(|selected| {
+            families.iter().enumerate().find_map(|(agent, family)| {
+                family
+                    .variants
+                    .iter()
+                    .position(|candidate| candidate.path == selected)
+                    .map(|variant| (agent, variant))
+            })
+        });
+        let (agent, variant) = selected.unwrap_or_default();
+        Self {
+            families,
+            agent,
+            variant,
+            field: CreateField::Agent,
+            name: String::new(),
+            error: None,
+        }
+    }
+
+    pub(crate) fn family(&self) -> Option<&ManifestFamily> {
+        self.families.get(self.agent)
+    }
+
+    pub(crate) fn candidate(&self) -> Option<&ManifestCandidate> {
+        self.family()?.variants.get(self.variant)
+    }
+
+    pub(crate) fn variant_label(&self) -> Option<&str> {
+        let path = &self.candidate()?.path;
+        if path
+            .file_name()
+            .is_some_and(|name| name == agent::manifest::MANIFEST_FILE)
+        {
+            Some("default")
+        } else {
+            agent::manifest::variant_from_filename(path).or_else(|| path.file_name().and_then(|name| name.to_str()))
+        }
+    }
+
     /// Returns the selected manifest's name, shown grayed while nothing is typed.
     pub(crate) fn placeholder(&self) -> Option<&str> {
-        self.candidates.get(self.selected)?.name.as_deref().ok()
+        self.candidate()?.name.as_deref().ok()
     }
 
     /// Applies one key press; a submitted or cancelled form returns its Action.
@@ -246,14 +370,23 @@ impl CreateForm {
                 Ok(action) => return Some(action),
                 Err(invalid) => self.error = Some(invalid),
             },
-            KeyCode::Tab | KeyCode::Right | KeyCode::Down => self.select(1),
-            KeyCode::BackTab | KeyCode::Left | KeyCode::Up => self.select(-1),
-            KeyCode::Backspace => {
+            KeyCode::Tab => {
+                self.field = self.field.next();
+                self.error = None;
+            }
+            KeyCode::BackTab => {
+                self.field = self.field.previous();
+                self.error = None;
+            }
+            KeyCode::Right | KeyCode::Down => self.select(1),
+            KeyCode::Left | KeyCode::Up => self.select(-1),
+            KeyCode::Backspace if self.field == CreateField::Name => {
                 self.name.pop();
                 self.error = None;
             }
             KeyCode::Char(character)
-                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                if self.field == CreateField::Name
+                    && key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
                     && ::sandbox::SandboxName::accepts(character)
                     && self.name.len() < ::sandbox::MAX_SANDBOX_NAME_BYTES =>
             {
@@ -266,20 +399,24 @@ impl CreateForm {
     }
 
     fn select(&mut self, delta: isize) {
-        if self.candidates.is_empty() {
-            return;
+        match self.field {
+            CreateField::Agent => {
+                self.agent = wrapped_index(self.agent, self.families.len(), delta);
+                self.variant = 0;
+            }
+            CreateField::Variant => {
+                let length = self.family().map_or(0, |family| family.variants.len());
+                self.variant = wrapped_index(self.variant, length, delta);
+            }
+            CreateField::Name => return,
         }
-        let length = isize::try_from(self.candidates.len()).unwrap_or(1);
-        let current = isize::try_from(self.selected).unwrap_or_default();
-        self.selected = usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default();
         self.error = None;
     }
 
     fn submission(&self, agents: &[Agent]) -> Result<Action, String> {
         let candidate = self
-            .candidates
-            .get(self.selected)
-            .ok_or_else(|| "no manifest available; apply one with agentctl apply -f".to_owned())?;
+            .candidate()
+            .ok_or_else(|| "no Agent manifests found; apply one with agentctl apply".to_owned())?;
         let manifest_name = candidate.name.as_ref().map_err(Clone::clone)?;
         let name = if self.name.is_empty() {
             manifest_name.clone()
@@ -296,6 +433,15 @@ impl CreateForm {
             form: self.clone(),
         })
     }
+}
+
+fn wrapped_index(current: usize, length: usize, delta: isize) -> usize {
+    if length == 0 {
+        return 0;
+    }
+    let length = isize::try_from(length).unwrap_or(1);
+    let current = isize::try_from(current).unwrap_or_default();
+    usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default()
 }
 
 /// k9s-style port-forward form state.
@@ -780,15 +926,7 @@ impl App {
                 .map(agent::Provenance::manifest_or_default),
             None => None,
         };
-        let selected = manifest
-            .and_then(|manifest| candidates.iter().position(|candidate| candidate.path == manifest))
-            .unwrap_or_default();
-        self.modal = Some(Modal::CreateAgent(CreateForm {
-            candidates,
-            selected,
-            name: String::new(),
-            error: None,
-        }));
+        self.modal = Some(Modal::CreateAgent(CreateForm::new(candidates, manifest.as_deref())));
     }
 
     pub(crate) fn select_agent(&mut self, name: &str) {
@@ -949,7 +1087,12 @@ impl App {
             return match modal {
                 Modal::ConfirmDelete { .. } => vec![("y", "confirm"), ("n", "cancel")],
                 Modal::NewSession(_) => NEW_SESSION_HINTS.to_vec(),
-                Modal::CreateAgent { .. } => vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")],
+                Modal::CreateAgent { .. } => vec![
+                    ("enter", "create"),
+                    ("tab", "field"),
+                    ("←/→", "select"),
+                    ("esc", "cancel"),
+                ],
                 Modal::PortForward { .. } => vec![("enter", "forward"), ("tab", "field"), ("esc", "cancel")],
             };
         }
@@ -1419,22 +1562,31 @@ mod tests {
             if agent.metadata.name == "worker" {
                 agent.status.provenance = Some(agent::Provenance {
                     source_directory: PathBuf::from("/sources/worker"),
-                    manifest_path: None,
+                    manifest_path: Some(PathBuf::from("/sources/worker/agent.nested.yaml")),
                     env_file: None,
                 });
             }
         }
         app.selected = 3;
-        app.open_create(candidates(&[
-            ("/sources/builder", "builder"),
-            ("/sources/worker", "worker"),
-        ]));
+        let mut discovered = candidates(&[("/sources/builder", "builder"), ("/sources/worker", "worker")]);
+        discovered.push(ManifestCandidate {
+            path: PathBuf::from("/sources/worker/agent.nested.yaml"),
+            name: Ok("worker-nested".into()),
+        });
+        app.open_create(discovered);
         let form = create_form(&app);
-        assert_eq!(form.selected, 1);
-        assert_eq!(form.placeholder(), Some("worker"));
+        assert_eq!(form.agent, 1);
+        assert_eq!(form.variant, 1);
+        assert_eq!(form.variant_label(), Some("nested"));
+        assert_eq!(form.placeholder(), Some("worker-nested"));
         assert_eq!(
             app.hints(),
-            vec![("enter", "create"), ("tab", "manifest"), ("esc", "cancel")]
+            vec![
+                ("enter", "create"),
+                ("tab", "field"),
+                ("←/→", "select"),
+                ("esc", "cancel")
+            ]
         );
     }
 
@@ -1455,8 +1607,10 @@ mod tests {
         let mut app = populated();
         app.open_create(candidates(&[("/a", "alpha"), ("/b", "beta")]));
         assert_eq!(create_form(&app).placeholder(), Some("alpha"));
-        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Right));
         assert_eq!(create_form(&app).placeholder(), Some("beta"));
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Tab));
         app.on_key(key(KeyCode::Char('m')));
         app.on_key(key(KeyCode::Char('E')));
         app.on_key(key(KeyCode::Char('y')));
@@ -1477,6 +1631,8 @@ mod tests {
             create_form(&app).error.as_deref(),
             Some("agent \"worker\" already exists")
         );
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Tab));
         app.on_key(key(KeyCode::Char('-')));
         assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
         let error = create_form(&app).error.as_deref().expect("invalid name error");
@@ -1508,17 +1664,59 @@ mod tests {
     }
 
     #[test]
+    fn create_form_keeps_invalid_variants_visible_but_blocks_submission() {
+        let mut app = populated();
+        app.open_create(vec![
+            ManifestCandidate {
+                path: PathBuf::from("/sources/full/agent.yaml"),
+                name: Ok("full".into()),
+            },
+            ManifestCandidate {
+                path: PathBuf::from("/sources/full/agent.broken.yaml"),
+                name: Err("agent.broken.yaml: missing base".into()),
+            },
+        ]);
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Right));
+        let form = create_form(&app);
+        assert_eq!(form.variant_label(), Some("broken"));
+        assert_eq!(form.placeholder(), None);
+
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert_eq!(
+            create_form(&app).error.as_deref(),
+            Some("agent.broken.yaml: missing base")
+        );
+    }
+
+    #[test]
     fn create_form_selection_wraps_and_clears_errors() {
         let mut app = populated();
-        app.open_create(candidates(&[("/a", "builder"), ("/b", "beta")]));
+        let mut discovered = candidates(&[("/a", "builder"), ("/b", "beta")]);
+        discovered.push(ManifestCandidate {
+            path: PathBuf::from("/a/agent.nested.yaml"),
+            name: Ok("builder-nested".into()),
+        });
+        app.open_create(discovered);
         app.on_key(key(KeyCode::Enter));
         assert!(create_form(&app).error.is_some());
         app.on_key(key(KeyCode::Left));
         let form = create_form(&app);
-        assert_eq!(form.selected, 1);
+        assert_eq!(form.agent, 1);
+        assert_eq!(form.variant, 0);
         assert_eq!(form.error, None);
         app.on_key(key(KeyCode::Tab));
-        assert_eq!(create_form(&app).selected, 0);
+        assert_eq!(create_form(&app).field, CreateField::Variant);
+        app.on_key(key(KeyCode::Right));
+        assert_eq!(create_form(&app).variant, 0);
+        app.on_key(key(KeyCode::BackTab));
+        app.on_key(key(KeyCode::Right));
+        assert_eq!(create_form(&app).agent, 0);
+        app.on_key(key(KeyCode::Tab));
+        app.on_key(key(KeyCode::Right));
+        assert_eq!(create_form(&app).variant, 1);
+        assert_eq!(create_form(&app).variant_label(), Some("nested"));
+        assert_eq!(create_form(&app).placeholder(), Some("builder-nested"));
     }
 
     #[test]
