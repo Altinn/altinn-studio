@@ -2,7 +2,7 @@ import { CommonExpressions, Expressions } from '@app/layout-contract/generated/e
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IApplicationSettings } from 'src/types/shared';
 
 const mockInputs: {
@@ -139,4 +139,38 @@ it('uses the generated fallback when evaluation fails', () => {
   const { result } = renderHook(() => useEvalExpression(expression, Expressions.RepeatingGroup.edit.saveButton));
   expect(result.current).toBe(true);
   expect(logError).toHaveBeenCalled();
+});
+
+it('preserves absent optional text without changing generic descriptor defaults', () => {
+  const descriptor = { ...CommonExpressions.TRBLabel.title, defaultValue: 'fallback-title' };
+  const { result } = renderHook(() => ({
+    optional: useEvalOptionalText(undefined, descriptor),
+    generic: useEvalExpression(undefined, descriptor),
+    empty: useEvalOptionalText('', descriptor),
+  }));
+  expect(result.current).toEqual({ optional: undefined, generic: 'fallback-title', empty: '' });
+});
+
+it('uses the descriptor fallback when a configured optional text expression fails', () => {
+  vi.spyOn(window, 'logError').mockImplementation(() => undefined);
+  const descriptor = { ...CommonExpressions.TRBLabel.title, defaultValue: 'fallback-title' };
+  const expression: ['dataModel', string] = ['dataModel', 'unknownField'];
+  const { result } = renderHook(() => useEvalOptionalText(expression, descriptor));
+  expect(result.current).toBe('fallback-title');
+});
+
+it('subscribes to optional text dependencies as bindings are added and removed', async () => {
+  const expression: ['language'] = ['language'];
+  const { result, rerender } = renderHook(
+    ({ configured }) => useEvalOptionalText(configured ? expression : undefined, CommonExpressions.TRBLabel.title),
+    { initialProps: { configured: false } },
+  );
+  expect(result.current).toBeUndefined();
+  rerender({ configured: true });
+  await waitFor(() => expect(result.current).toBe('nb'));
+  mockInputs.currentLanguage = 'en';
+  rerender({ configured: true });
+  await waitFor(() => expect(result.current).toBe('en'));
+  rerender({ configured: false });
+  await waitFor(() => expect(result.current).toBeUndefined());
 });
