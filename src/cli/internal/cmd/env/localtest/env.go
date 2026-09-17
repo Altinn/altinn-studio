@@ -294,7 +294,57 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 		return nil, fmt.Errorf("get resource status: %w", err)
 	}
 
-	return localtestStatus(graph.All(), snapshot, opts.RequireDesired), nil
+	return localtestStatus(
+		graph.All(),
+		snapshot,
+		e.containerImages(ctx, graph.All(), snapshot),
+		opts.RequireDesired,
+	), nil
+}
+
+// containerImages resolves the image behind each container that exists, keyed by container
+// name. It reads the container rather than the configured reference because a moving tag no
+// longer identifies a build: a container keeps the one it was created from until the
+// environment is recreated, which is as true of a stopped container as a running one. The
+// image is read from the snapshot the status pass already collected.
+func (e *Env) containerImages(
+	ctx context.Context,
+	resources []resource.Resource,
+	snapshot executor.Snapshot,
+) map[string]ContainerImage {
+	images := make(map[string]ContainerImage)
+	for _, res := range resources {
+		containerResource, ok := res.(*resource.Container)
+		if !ok {
+			continue
+		}
+		observed, found := snapshot.Resources[containerResource.ID()]
+		if !found || observed.ImageID == "" {
+			continue
+		}
+		images[containerResource.Name] = e.resolveContainerImage(
+			ctx,
+			observed.ImageID,
+			containerImageRef(containerResource),
+		)
+	}
+	return images
+}
+
+// resolveContainerImage pairs an image with the reference it came from, and keeps the
+// reference only when it still resolves to that image. A reference this command builds can
+// name something the environment never ran - a tag that has moved since, or a component the
+// environment was started with differently - and reporting it would then misdescribe the
+// container.
+func (e *Env) resolveContainerImage(ctx context.Context, imageID, ref string) ContainerImage {
+	if ref == "" {
+		return ContainerImage{Ref: "", ImageID: imageID}
+	}
+	info, err := e.client.ImageInspect(ctx, ref)
+	if err != nil || info.ID != imageID {
+		return ContainerImage{Ref: "", ImageID: imageID}
+	}
+	return ContainerImage{Ref: ref, ImageID: imageID}
 }
 
 func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
@@ -394,7 +444,7 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 	}
 
 	var renderer resourcegraph.Renderer
-	if _, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
+	outputs, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
 		e.startRenderer(
 			exec,
 			&renderer,
@@ -404,7 +454,8 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 			spinnerMsg,
 		)
 		return nil
-	})); err != nil {
+	}))
+	if err != nil {
 		if renderer != nil {
 			renderer.FailAll(err.Error())
 			renderer.Stop()
@@ -415,8 +466,24 @@ func (e *Env) applyResources(ctx context.Context, resources []resource.Resource,
 	if renderer != nil {
 		renderer.Stop()
 	}
+	e.warnAboutStaleImages(resources, outputs)
 	e.out.Success("Environment started")
 	return nil
+}
+
+// warnAboutStaleImages reports images the registry could not be reached for. The environment
+// then runs whatever copy is on the machine, which can be any age, and the progress line
+// saying so is gone by the time the run finishes.
+func (e *Env) warnAboutStaleImages(resources []resource.Resource, outputs executor.Outputs) {
+	for _, res := range resources {
+		image, ok := res.(*resource.PulledImage)
+		if !ok {
+			continue
+		}
+		if output, found := outputs.Image(image.ID()); found && output.Stale {
+			e.out.Warningf("Could not reach the registry for %s; using the copy already on this machine.", image.Ref)
+		}
+	}
 }
 
 func (e *Env) destroyResources(ctx context.Context, resources []resource.Resource, logStartMessage string) error {
@@ -502,6 +569,7 @@ func applyPlannedResources(plan executor.ApplyPlan) []executor.PlannedResource {
 func localtestStatus(
 	resources []resource.Resource,
 	snapshot executor.Snapshot,
+	images map[string]ContainerImage,
 	requireDesired bool,
 ) *Status {
 	status := Status{
@@ -524,7 +592,12 @@ func localtestStatus(
 		}
 		status.Containers = append(
 			status.Containers,
-			ContainerStatus{Name: containerResource.Name, Status: localtestStatusString(resourceStatus)},
+			ContainerStatus{
+				Name:    containerResource.Name,
+				Image:   images[containerResource.Name].Ref,
+				ImageID: images[containerResource.Name].ImageID,
+				Status:  localtestStatusString(resourceStatus),
+			},
 		)
 		containerCount++
 		if containerConverged(containerResource, resourceStatus, requireDesired) {
@@ -537,6 +610,17 @@ func localtestStatus(
 
 	status.Running = containerCount > 0 && convergedContainers == containerCount
 	return &status
+}
+
+// containerImageRef returns the reference a container was started from. It is empty for an
+// image built from the local checkout, and for a component this command treats as disabled:
+// the reference would then be a placeholder rather than anything the container ran.
+func containerImageRef(containerResource *resource.Container) string {
+	pulled, ok := containerResource.Image.Resource().(*resource.PulledImage)
+	if !ok || components.IsDisabledImageRef(pulled.Ref) {
+		return ""
+	}
+	return pulled.Ref
 }
 
 func managedResourceStatus(snapshot executor.Snapshot, id resource.ResourceID) executor.Status {
