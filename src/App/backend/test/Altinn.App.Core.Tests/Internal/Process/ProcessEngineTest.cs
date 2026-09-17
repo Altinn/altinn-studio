@@ -1526,7 +1526,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task Next_ReportsFinalRefetchedProcessState_WhenWorkflowAutoAdvances()
+    public async Task Next_ReportsFinalRefetchedProcessState_WhenServiceTaskAdvancesTheProcess()
     {
         Guid workflowId = Guid.NewGuid();
         var acquiredAt = DateTimeOffset.UtcNow;
@@ -2816,7 +2816,7 @@ public sealed class ProcessEngineTest
     }
 
     [Fact]
-    public async Task EnqueueProcessNext_AutoAdvanceSameTaskLoop_RunsCommonTaskInitializationBeforeServiceTaskExecution()
+    public async Task EnqueueProcessNext_ServiceTaskLoop_RunsCommonTaskInitializationBeforeServiceTaskExecution()
     {
         // Arrange
         Guid parentWorkflowId = Guid.NewGuid();

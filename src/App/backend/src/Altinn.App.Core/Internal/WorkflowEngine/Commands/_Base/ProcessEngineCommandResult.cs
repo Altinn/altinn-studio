@@ -22,8 +22,8 @@ internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineComman
 }
 
 /// <summary>
-/// The command ran without error, but the outcome it awaits is not available yet. The controller saves
-/// data and re-signs state as it would for a success, but must not auto-advance the process.
+/// The command ran without error, but the outcome it awaits is not available yet. The engine runs
+/// the command again after the delay. The controller returns the incoming state without saving changes.
 /// </summary>
 internal sealed class DeferredProcessEngineCommandResult : ProcessEngineCommandResult
 {

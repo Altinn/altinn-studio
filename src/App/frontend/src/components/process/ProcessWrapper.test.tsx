@@ -153,7 +153,7 @@ describe('ProcessWrapper workflow state machine', () => {
   });
 
   it('processing FROM a layouted service task toward another task keeps the spinner', async () => {
-    // Once the deferring task resolves and auto-advances, the dependent transition targets the
+    // Once the deferring task succeeds, the dependent transition targets the
     // next task: the process is in flight AWAY from the service task, so its layout no longer
     // owns the presentation and the advancing view takes over until the transition settles.
     const instance = getInstanceWithProcessMock();
