@@ -1,17 +1,17 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 import { queryFocusManager } from 'src/core/queries/focusManager';
-const INITIAL_INTERVAL_MS = 1000;
+const DEFAULT_INITIAL_INTERVAL_MS = 1000;
 const INITIAL_ATTEMPTS = 10;
 const INTERVAL_INCREMENT_MS = 1000;
 const MAX_INTERVAL_MS = 30_000;
 
-export function getPollingInterval(attempt: number) {
+export function getPollingInterval(attempt: number, initialIntervalMs = DEFAULT_INITIAL_INTERVAL_MS) {
   if (attempt < INITIAL_ATTEMPTS) {
-    return INITIAL_INTERVAL_MS;
+    return initialIntervalMs;
   }
 
-  return Math.min(MAX_INTERVAL_MS, INITIAL_INTERVAL_MS + (attempt - INITIAL_ATTEMPTS + 1) * INTERVAL_INCREMENT_MS);
+  return Math.min(MAX_INTERVAL_MS, initialIntervalMs + (attempt - INITIAL_ATTEMPTS + 1) * INTERVAL_INCREMENT_MS);
 }
 
 /**
@@ -21,7 +21,11 @@ export function getPollingInterval(attempt: number) {
  * The callback must handle its own errors. Each invocation finishes before the next one is
  * scheduled, so a slow request can never cause overlapping calls.
  */
-export function usePollingWithBackoff(callback: () => Promise<unknown>, enabled = true) {
+export function usePollingWithBackoff(
+  callback: () => Promise<unknown>,
+  enabled = true,
+  initialIntervalMs = DEFAULT_INITIAL_INTERVAL_MS,
+) {
   const callbackRef = useRef(callback);
   const activeCallbackRef = useRef<Promise<unknown> | undefined>(undefined);
   const attemptsRef = useRef(0);
@@ -73,11 +77,11 @@ export function usePollingWithBackoff(callback: () => Promise<unknown>, enabled 
         }
 
         attemptsRef.current++;
-        scheduleNext(getPollingInterval(attemptsRef.current));
+        scheduleNext(getPollingInterval(attemptsRef.current, initialIntervalMs));
       }, delay);
     };
 
-    scheduleNext(wasPausedRef.current ? 0 : getPollingInterval(attemptsRef.current));
+    scheduleNext(wasPausedRef.current ? 0 : getPollingInterval(attemptsRef.current, initialIntervalMs));
     wasPausedRef.current = false;
 
     return () => {
@@ -86,5 +90,5 @@ export function usePollingWithBackoff(callback: () => Promise<unknown>, enabled 
         clearTimeout(timeoutId);
       }
     };
-  }, [enabled, isFocused]);
+  }, [enabled, isFocused, initialIntervalMs]);
 }

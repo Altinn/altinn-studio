@@ -84,7 +84,7 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   // mutation is pending lets the submitting tab discover server-side processing without replacing
   // the form during client validation. The same episode continues until processing settles, then
   // stops. Resume has a separate mutation key and deliberately keeps its task view mounted.
-  usePollingWithBackoff(pollInstance, shouldPollProcess);
+  usePollingWithBackoff(pollInstance, shouldPollProcess, 250);
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've
   // been failing for a while" (sustained outage). A background refetch error while we hold

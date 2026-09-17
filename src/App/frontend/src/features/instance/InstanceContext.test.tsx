@@ -3,17 +3,24 @@ import React from 'react';
 import { act, screen } from '@testing-library/react';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { InstanceProvider, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 
 // The error page (UnknownError) calls the real axios isAxiosError on the thrown error.
 vi.unmock('axios');
 
-// Transition polling starts after one second. Each failed refetch cycle internally retries 3 times
-// with exponential backoff (1s/2s/4s), so a full failed cycle takes about eight seconds before the
-// polling hook schedules its next attempt. Advancing 12s therefore completes one cycle at a time.
-const ONE_POLL_CYCLE_MS = 12_000;
+function InstanceProbe() {
+  const { dataUpdatedAt, errorUpdateCount } = useInstanceDataQuery();
+  return (
+    <div
+      data-testid='instance-probe'
+      data-poll-result={`${dataUpdatedAt}:${errorUpdateCount}`}
+    >
+      Instance loaded
+    </div>
+  );
+}
 
 function getProcessingInstance(): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -22,16 +29,25 @@ function getProcessingInstance(): IInstanceWithProcess {
 }
 
 async function advanceOnePollCycle() {
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(ONE_POLL_CYCLE_MS);
-  });
+  const previousResult = screen.getByTestId('instance-probe').getAttribute('data-poll-result');
+  // Wait for a completed refetch rather than assuming a fixed polling or retry cadence.
+  for (let elapsed = 0; elapsed < 60_000; elapsed += 250) {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    const probe = screen.queryByTestId('instance-probe');
+    if (!probe || probe.getAttribute('data-poll-result') !== previousResult) {
+      return;
+    }
+  }
+  throw new Error('Instance poll did not settle within sixty seconds');
 }
 
 async function renderInstanceProvider(getInstance: () => Promise<IInstanceWithProcess>) {
   return renderWithDefaultProviders({
     renderer: () => (
       <InstanceProvider>
-        <div data-testid='instance-probe'>Instance loaded</div>
+        <InstanceProbe />
       </InstanceProvider>
     ),
     router: ({ children }) => <InstanceRouter>{children}</InstanceRouter>,
@@ -62,10 +78,10 @@ describe('InstanceProvider poll-failure tolerance', () => {
       throw new Error('initial load failed');
     });
 
-    // Let the initial fetch exhaust its internal retries (~7s of backoff). The extra cycles just
-    // advance time past provider startup; the query settles into error along the way.
-    await advanceOnePollCycle();
-    await advanceOnePollCycle();
+    // Let the initial fetch exhaust its internal retries (~7s of backoff).
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(24_000);
+    });
 
     // No cached data to fall back on: the full error page is the only sensible render.
     expect(await screen.findByText(/det har skjedd en ukjent feil/i)).toBeInTheDocument();
