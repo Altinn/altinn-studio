@@ -42,23 +42,7 @@ public class PolicyFileSyncTaskIdTests
         await CopyRepositoryForTest(org, app, developer, targetRepository);
         await AddFileToRepo(policyFilePath, "App/config/authorization/policy.xml");
 
-        string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
-        processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
-        //processContent = metadata.TaskIdChange.Aggregate(processContent,
-        //(current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
-        using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
-
-        string url = VersionPrefix(org, targetRepository);
-
-        using var form = new MultipartFormDataContent();
-        string metadataString = JsonSerializer.Serialize(
-            metadata,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        );
-        form.Add(new StreamContent(processStream), "content", "process.bpmn");
-        form.Add(new StringContent(metadataString, Encoding.UTF8, MediaTypeNames.Application.Json), "metadata");
-
-        using var response = await HttpClient.PutAsync(url, form);
+        using var response = await UpsertProcessDefinition(org, targetRepository, bpmnFilePath, metadata);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string policyFileFromRepo = TestDataHelper.GetFileFromRepo(
@@ -93,7 +77,12 @@ public class PolicyFileSyncTaskIdTests
             TaskIdChange = new TaskIdChange { OldId = oldId, NewId = newId },
         };
 
-        using var response = await UpsertProcessDefinition(org, targetRepository, metadata);
+        using var response = await UpsertProcessDefinition(
+            org,
+            targetRepository,
+            "App/config/process/process.bpmn",
+            metadata
+        );
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
         string policyFileFromRepo = TestDataHelper.GetFileFromRepo(
@@ -128,10 +117,11 @@ public class PolicyFileSyncTaskIdTests
     private async Task<HttpResponseMessage> UpsertProcessDefinition(
         string org,
         string targetRepository,
+        string bpmnFilePath,
         ProcessDefinitionMetadata metadata
     )
     {
-        string processContent = SharedResourcesHelper.LoadTestDataAsString("App/config/process/process.bpmn");
+        string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         using var form = new MultipartFormDataContent();

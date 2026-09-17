@@ -33,8 +33,6 @@ public class UiFoldersService : IUiFoldersService
     private readonly IPublisher _publisher;
     private readonly ILogger<UiFoldersService> _logger;
     private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
-    private const string PdfLayoutFilename = "PdfLayout";
-    private const string ServiceTaskLayoutFilename = "ServiceTask";
 
     public UiFoldersService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -63,8 +61,6 @@ public class UiFoldersService : IUiFoldersService
         );
     }
 
-    // Service tasks count here: a PDF service task's ui folder is named after the service task, so renaming
-    // the folder has to rename the service task with it, exactly as for an ordinary process task.
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
         definitions.Process.AllTasks().Any(task => task.Id == taskId);
 
@@ -350,15 +346,13 @@ public class UiFoldersService : IUiFoldersService
         TaskType? taskType
     )
     {
-        if (taskType == TaskType.Pdf)
+        if (taskType is TaskType.Pdf or TaskType.SubformPdf)
         {
-            await CreatePdfLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
-            return;
-        }
-
-        if (taskType == TaskType.SubformPdf)
-        {
-            await CreateSubformPdfLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
+            await CreateServiceTaskLayoutSetFiles(
+                altinnAppGitRepository,
+                newLayoutSet,
+                withPdfLayout: taskType == TaskType.Pdf
+            );
             return;
         }
 
@@ -421,70 +415,42 @@ public class UiFoldersService : IUiFoldersService
     }
 
     /// <summary>
-    /// Creates the files of a PDF service task's layout set: the PDF layout the task renders (initially
-    /// empty) and the waiting page. A failed generation needs no page here: the v9 frontend renders its
-    /// own failure view, with retry, over any custom layout. The v8 generator in
-    /// <see cref="AppDevelopmentService"/> still emits an error page with retry and back buttons, since
-    /// the v8 runtime relies on the layout's own buttons for recovery.
+    /// Creates the files of a PDF or subform PDF service task's layout set: the waiting page the app
+    /// frontend shows while the task runs (a ui folder replaces its built-in service task view) and, for a
+    /// PDF task, the initially empty PDF layout it renders. A subform PDF renders from the subform's own
+    /// layout set, so it gets no PDF layout. A failed generation needs no page here: the v9 frontend renders
+    /// its own failure view, with retry, over any custom layout, unlike the v8 generator in
+    /// <see cref="AppDevelopmentService"/>.
     /// </summary>
-    private static async Task CreatePdfLayoutSetFiles(
+    private static async Task CreateServiceTaskLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
-        LayoutSetConfig layoutSet
+        LayoutSetConfig layoutSet,
+        bool withPdfLayout
     )
     {
+        const string PdfLayoutFilename = "PdfLayout";
+        const string ServiceTaskLayoutFilename = "ServiceTask";
+        string layoutSchema = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>();
+
+        if (withPdfLayout)
+        {
+            await altinnAppGitRepository.SaveLayout(
+                layoutSet.Id,
+                PdfLayoutFilename,
+                new JsonObject
+                {
+                    ["$schema"] = layoutSchema,
+                    ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
+                }
+            );
+        }
+
         await altinnAppGitRepository.SaveLayout(
             layoutSet.Id,
-            PdfLayoutFilename,
-            new JsonObject
-            {
-                ["$schema"] = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>(),
-                ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
-            }
-        );
-
-        await SaveServiceTaskWaitingPage(altinnAppGitRepository, layoutSet.Id);
-        await altinnAppGitRepository.SaveLayoutSettings(
-            layoutSet.Id,
-            BuildServiceTaskLayoutSettings(altinnAppGitRepository, layoutSet, PdfLayoutFilename)
-        );
-    }
-
-    /// <summary>
-    /// Creates the files of a subform PDF service task's layout set. The task needs the waiting page for
-    /// the same reason a PDF task does, but none of the PDF layout: the PDF it generates is rendered from
-    /// the subform's own layout set, resolved through the subform component the task points at, so a
-    /// <c>pdfLayoutName</c> here would name a page nothing ever reads.
-    /// </summary>
-    private static async Task CreateSubformPdfLayoutSetFiles(
-        AltinnAppGitRepository altinnAppGitRepository,
-        LayoutSetConfig layoutSet
-    )
-    {
-        await SaveServiceTaskWaitingPage(altinnAppGitRepository, layoutSet.Id);
-        await altinnAppGitRepository.SaveLayoutSettings(
-            layoutSet.Id,
-            BuildServiceTaskLayoutSettings(altinnAppGitRepository, layoutSet)
-        );
-    }
-
-    /// <summary>
-    /// Writes the one page a service task's layout set must have. The page is not optional. The app
-    /// frontend renders any task that has a ui folder as a form task, using that folder's pages in place
-    /// of its built-in service task views, so the set must contain the page a user sees while the task is
-    /// working. That is a waiting page bound to the same <c>service_task.waiting_*</c> text keys as the
-    /// built-in waiting view, so an app's overrides apply to both.
-    /// </summary>
-    private static async Task SaveServiceTaskWaitingPage(
-        AltinnAppGitRepository altinnAppGitRepository,
-        string layoutSetId
-    )
-    {
-        await altinnAppGitRepository.SaveLayout(
-            layoutSetId,
             ServiceTaskLayoutFilename,
             new JsonObject
             {
-                ["$schema"] = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>(),
+                ["$schema"] = layoutSchema,
                 ["data"] = new JsonObject
                 {
                     ["layout"] = new JsonArray([
@@ -505,18 +471,11 @@ public class UiFoldersService : IUiFoldersService
                 },
             }
         );
-    }
 
-    private static JsonObject BuildServiceTaskLayoutSettings(
-        AltinnAppGitRepository altinnAppGitRepository,
-        LayoutSetConfig layoutSet,
-        string? pdfLayoutName = null
-    )
-    {
         JsonObject pages = new();
-        if (pdfLayoutName is not null)
+        if (withPdfLayout)
         {
-            pages["pdfLayoutName"] = pdfLayoutName;
+            pages["pdfLayoutName"] = PdfLayoutFilename;
         }
         pages["order"] = new JsonArray([ServiceTaskLayoutFilename]);
 
@@ -526,15 +485,13 @@ public class UiFoldersService : IUiFoldersService
             ["pages"] = pages,
         };
         ApplyLayoutSetMetadata(settings, layoutSet);
-        return settings;
+        await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id, settings);
     }
 
     /// <summary>
     /// Shared logic for resolving layout sets from the UI folders. Since v9 apps no longer have a
     /// layout-sets.json file, layout sets are derived from the UI folders combined with the process
-    /// definitions. Only folders that are subforms or that match a task are included. A service task
-    /// counts as a match: a PDF task in layout-based mode owns a ui folder just like a process task does,
-    /// and leaving service tasks out of the match dropped those layout sets from every list built here.
+    /// definitions. Only folders that are subforms or that match a task are included.
     /// </summary>
     private async Task<List<LayoutSetInfo>> GetLayoutSetInfos(
         AltinnRepoEditingContext editingContext,
@@ -576,7 +533,7 @@ public class UiFoldersService : IUiFoldersService
                 continue;
             }
 
-            string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
+            string? taskType = hasMatchingTask ? definitions.Process.TaskTypeOf(layoutSetName) ?? string.Empty : null;
 
             layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
@@ -590,17 +547,6 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
-
-    // Resolves the Altinn task type behind a layout set. Service tasks are included so a PDF layout set
-    // reports "pdf" rather than an empty type.
-    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
-    {
-        return definitions
-                .Process.AllTasks()
-                .FirstOrDefault(task => task.Id == taskId)
-                ?.ExtensionElements?.TaskExtension?.TaskType
-            ?? string.Empty;
-    }
 
     public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
@@ -838,12 +784,7 @@ public class UiFoldersService : IUiFoldersService
 
         IEnumerable<ProcessTask> tasks = GetTasks(editingContext, cancellationToken);
 
-        Dictionary<string, string?> taskTypesById = tasks.ToDictionary(
-            task => task.Id,
-            task => task.ExtensionElements?.TaskExtension?.TaskType
-        );
-
-        return taskNavigationGroups.Select(group => group.ToDto(taskId => taskTypesById.GetValueOrDefault(taskId)));
+        return taskNavigationGroups.Select(group => group.ToDto(taskId => tasks.TaskTypeOf(taskId)));
     }
 
     public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigation(
@@ -857,12 +798,6 @@ public class UiFoldersService : IUiFoldersService
         return globalSettingsFile?.TaskNavigation?.ToList() ?? [];
     }
 
-    /// <summary>
-    /// The tasks of the process definition, used to resolve the Altinn task type of an id. Service tasks
-    /// are included: this resolves the type of ids that are already in the saved navigation, and reporting
-    /// no type for an id that has one would only make it read as unknown. Which tasks a user may put in the
-    /// navigation is decided where the navigation is edited, not here.
-    /// </summary>
     public IEnumerable<ProcessTask> GetTasks(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken

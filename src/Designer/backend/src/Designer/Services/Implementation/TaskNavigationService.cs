@@ -34,11 +34,6 @@ public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitReposito
         return layoutSetsFile.UiSettings?.TaskNavigation ?? [];
     }
 
-    /// <summary>
-    /// The tasks of the process definition, used to resolve the Altinn task type of an id already present
-    /// in the saved navigation. Service tasks are included so such an id resolves to its real type instead
-    /// of none.
-    /// </summary>
     public IEnumerable<ProcessTask> GetTasks(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken

@@ -369,18 +369,6 @@ public class AppDevelopmentService : IAppDevelopmentService
         throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
     }
 
-    // Resolves the Altinn task type behind a layout set. Service tasks are included because a pre-v9 PDF
-    // layout set records the service task in its "tasks" array, and it should report "pdf", not an empty
-    // type.
-    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
-    {
-        return definitions
-                .Process.AllTasks()
-                .FirstOrDefault(task => task.Id == taskId)
-                ?.ExtensionElements?.TaskExtension?.TaskType
-            ?? string.Empty;
-    }
-
     public async Task<LayoutSetsModel> GetLayoutSetsExtended(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
@@ -408,7 +396,7 @@ public class AppDevelopmentService : IAppDevelopmentService
             string taskId = set.Tasks?[0];
             if (taskId != null)
             {
-                string taskType = TaskTypeFromDefinitions(definitions, taskId);
+                string taskType = definitions.Process.TaskTypeOf(taskId) ?? string.Empty;
                 layoutSetModel.Task = new TaskModel { Id = taskId, Type = taskType };
             }
             layoutSetsModel.Sets.Add(layoutSetModel);
