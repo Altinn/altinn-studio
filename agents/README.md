@@ -15,6 +15,32 @@ Choose an Agent and, optionally, a variant:
 
 Every Agent installs the `pr-evidence` skill from `agents/skills`.
 
+The host needs hardware virtualization. Docker is required only for the `nested-build` variant; the other
+repository-owned Altinn manifests use registry references. Install the released Agent CLI on Linux or macOS:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.sh | sh
+agentctl claude login
+```
+
+Update Agent with:
+
+```sh
+agentctl self update
+```
+
+Windows additionally requires the `HypervisorPlatform` optional feature. Install from PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/Altinn/altinn-studio/main/src/experimental/agent/install.ps1 | iex
+```
+
+Open a new PowerShell window so the updated user `PATH` takes effect, then authenticate:
+
+```powershell
+agentctl claude login
+```
+
 ## GitHub token
 
 Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
