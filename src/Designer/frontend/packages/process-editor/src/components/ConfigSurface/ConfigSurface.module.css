@@ -3,6 +3,11 @@
   background-color: var(--ds-color-neutral-surface-default);
   border-left: 1px solid var(--ds-color-neutral-border-subtle);
   overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.surface fieldset {
+  min-inline-size: 0;
 }
 
 @media (max-width: 64rem) {

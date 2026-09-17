@@ -1,4 +1,5 @@
 import { get } from 'app-shared/utils/networking';
+import type { FiksArkivRouting } from '../types/FiksArkivRouting';
 import {
   chatThreadsPath,
   chatMessagesPath,
@@ -33,6 +34,7 @@ import {
   accessListMemberPath,
   appValidationPath,
   processEditorPath,
+  fiksArkivRoutingPath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
@@ -241,6 +243,7 @@ export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(conse
 
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
+export const getFiksArkivRouting = (org: string, app: string) => get<FiksArkivRouting>(fiksArkivRoutingPath(org, app));
 export const getProcessTaskType = (org: string, app: string, taskId: string) => get<string>(`${processTaskTypePath(org, app, taskId)}`);
 
 // Contact Page

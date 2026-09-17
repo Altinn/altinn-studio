@@ -4,12 +4,14 @@ import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
+import type { FiksArkivRouting } from 'app-shared/types/FiksArkivRouting';
 
 type QueryOptions = {
   onSuccess: () => void;
 };
 
 export type BpmnApiContextProps = {
+  fiksArkivRouting?: FiksArkivRouting;
   availableDataTypeIds: string[];
   availableDataModelIds: string[];
   allDataModelIds: string[];
