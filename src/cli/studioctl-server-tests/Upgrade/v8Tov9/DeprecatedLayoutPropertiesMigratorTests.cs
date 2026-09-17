@@ -179,21 +179,23 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.Equal("""["dataModel","Animals.IsForeign"]""", Compact(queryParameters?["foreign"]));
     }
 
-    [Fact]
-    public async Task LeavesTheComponentAloneWhenTheQueryParameterNameIsAlreadyTaken()
+    [Theory]
+    [InlineData("Checkboxes", "queryParameters")]
+    [InlineData("PaymentDetails", "refetchDependencies")]
+    public async Task LeavesTheComponentAloneWhenTheExpressionNameIsAlreadyTaken(string type, string property)
     {
         _app.Write(
             "ui/Task_1/layouts/Side1.json",
-            """
+            $$"""
             {
               "data": {
                 "layout": [
                   {
                     "id": "colors",
-                    "type": "Checkboxes",
+                    "type": "{{type}}",
                     "optionsId": "colors",
                     "mapping": { "Animals.IsForeign": "foreign" },
-                    "queryParameters": { "foreign": "true" }
+                    "{{property}}": { "foreign": "true" }
                   }
                 ]
               }
@@ -210,7 +212,7 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
 
         var component = Component("ui/Task_1/layouts/Side1.json", 0);
         Assert.True(component.ContainsKey("mapping"));
-        Assert.Equal("true", Text(component["queryParameters"]?["foreign"]));
+        Assert.Equal("true", Text(component[property]?["foreign"]));
     }
 
     [Fact]
@@ -256,8 +258,9 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         );
         Assert.Equal(
             """["dataModel","Skjema.Amount"]""",
-            Compact(Component("ui/Task_1/layouts/Side1.json", 1)["queryParameters"]?["amount"])
+            Compact(Component("ui/Task_1/layouts/Side1.json", 1)["refetchDependencies"]?["amount"])
         );
+        Assert.False(Component("ui/Task_1/layouts/Side1.json", 1).ContainsKey("queryParameters"));
         var button = Component("ui/Task_1/layouts/Side1.json", 2);
         Assert.Equal("InstantiationButton", Text(button["type"]));
         Assert.False(button.ContainsKey("mode"));
