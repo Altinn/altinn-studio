@@ -1,6 +1,5 @@
-import { useCallback, useState } from 'react';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { useModelerEventListener } from '../../../../hooks/useModelerEventListener';
+import { useBpmnDiagramVersion } from '../../../../hooks/useBpmnDiagramVersion';
 import type { FiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
 import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
 
@@ -11,12 +10,7 @@ import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
 export const useFiksArkivProcessShape = (): FiksArkivProcessShapeIssue | undefined => {
   const { bpmnDetails } = useBpmnContext();
 
-  const [, setDiagramVersion] = useState<number>(0);
-  const handleDiagramChange = useCallback(
-    (): void => setDiagramVersion((version) => version + 1),
-    [],
-  );
-  useModelerEventListener<void>('commandStack.changed', handleDiagramChange);
+  useBpmnDiagramVersion();
 
   return getFiksArkivProcessShapeIssue(bpmnDetails.element);
 };

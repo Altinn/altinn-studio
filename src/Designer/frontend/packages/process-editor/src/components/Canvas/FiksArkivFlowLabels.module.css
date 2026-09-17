@@ -1,0 +1,12 @@
+.label {
+  display: block;
+  width: max-content;
+  padding: var(--ds-size-1) var(--ds-size-2);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-sm);
+  background: var(--ds-color-neutral-background-default);
+  color: var(--ds-color-neutral-text-default);
+  font-size: 0.75rem;
+  pointer-events: none;
+  transform: translateX(-50%);
+}

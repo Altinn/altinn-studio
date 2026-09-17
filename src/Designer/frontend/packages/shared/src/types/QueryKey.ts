@@ -20,6 +20,7 @@ export enum QueryKey {
   DeployPermissions = 'DeployPermissions',
   Environments = 'Environments',
   FetchBpmn = 'FetchBpmn',
+  FiksArkivRouting = 'FiksArkivRouting',
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
   ValidationOnNavigationLayoutSettings = 'ValidationOnNavigationLayoutSettings',

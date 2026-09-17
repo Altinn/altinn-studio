@@ -271,6 +271,9 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getFiksArkivRouting: jest
+    .fn()
+    .mockResolvedValue({ successAction: null, failureAction: 'reject', unavailableReason: null }),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
   getSelectedMaskinportenScopes: jest
