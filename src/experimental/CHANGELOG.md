@@ -22,6 +22,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- Concurrent network requests from an Agent no longer intermittently fail with DNS, HTTP or TLS errors, especially on Windows hosts.
 - Deleting an Agent no longer logs a panic when its Sandbox has an active network-control connection.
 - The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.
 - On Windows, detaching from a Session with `Ctrl-b d` returns control to the terminal UI without dropping the next key press.
