@@ -30,6 +30,15 @@ export function useEvalExpression<V extends ExprVal>(
   );
 }
 
+/** Preserves absent text bindings while configured expressions retain their descriptor fallback. */
+export function useEvalOptionalText(
+  expr: ExprValToActualOrExpr<ExprVal.String> | undefined,
+  descriptor: ExpressionDescriptor<ExprVal.String>,
+): string | undefined {
+  const value = useEvalExpression(expr, descriptor);
+  return expr === undefined ? undefined : value;
+}
+
 type ExpressionInputs<D extends Record<string, ExpressionDescriptor>> = {
   [K in keyof D]?: ExprValToActualOrExpr<D[K]['returnType']>;
 };
