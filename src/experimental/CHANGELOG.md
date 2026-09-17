@@ -15,11 +15,13 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Added
 
 - SSH access to Agents. Declare `spec.access: [{type: ssh}]`, then `agentctl ssh <agent> [-- command]` opens a shell or runs a command in the Sandbox as `agent`. `agentctl ssh-config install` lets plain `ssh`, `sftp` and editors reach the Agent as `altinn-agent-<name>`, and `agentctl ssh-info <agent> -o json` prints the connection details. The Altinn Agent images and the examples declare it; an Agent created from an older image must be deleted and re-applied.
+- Windows contributors can run `.\make-user-install.ps1` to build, package and install a local Agent without Make.
 
 ### Fixed
 
 - The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.
-- Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex keeps its conversation in that history; Claude Code keeps its selected renderer and handles scrolling itself in fullscreen mode. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
+- On Windows, detaching from a Session with `Ctrl-b d` returns control to the terminal UI without dropping the next key press.
+- Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex and Claude Code keep their conversations in that history; Claude Code no longer uses its fullscreen renderer, which could corrupt the display when scrolling in tmux. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
 - Agent setup now writes Sandbox files only when their contents changed, and replaces them atomically. Codex no longer reports missing skill frontmatter after each reconciliation pass.
 
 ## [0.1.0-preview.3] - 2026-09-17
