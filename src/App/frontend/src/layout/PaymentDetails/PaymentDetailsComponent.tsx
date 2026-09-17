@@ -13,20 +13,20 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericComponent<'PaymentDetails'>) {
   const orderDetails = useOrderDetails();
   const refetchOrderDetails = useRefetchOrderDetails();
-  const { queryParameters, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
+  const { refetchDependencies, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
   const { title, description, help } = textResourceBindings || {};
   const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
 
-  const resolvedParameters = useResolvedQueryParameters(queryParameters);
-  const prevParameters = useRef<Record<string, unknown> | undefined>(undefined);
+  const resolvedDependencies = useResolvedQueryParameters(refetchDependencies);
+  const previousDependencies = useRef<Record<string, unknown> | undefined>(undefined);
 
-  // refetch data if we have configured query parameters and their values have changed
+  // refetch data if we have configured refetch dependencies and their values have changed
   useEffect(() => {
-    if (!hasUnsavedChanges && resolvedParameters && !deepEqual(prevParameters.current, resolvedParameters)) {
+    if (!hasUnsavedChanges && resolvedDependencies && !deepEqual(previousDependencies.current, resolvedDependencies)) {
       refetchOrderDetails();
-      prevParameters.current = resolvedParameters;
+      previousDependencies.current = resolvedDependencies;
     }
-  }, [hasUnsavedChanges, resolvedParameters, refetchOrderDetails]);
+  }, [hasUnsavedChanges, resolvedDependencies, refetchOrderDetails]);
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>

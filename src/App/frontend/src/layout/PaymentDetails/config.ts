@@ -52,12 +52,12 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop(
-      'queryParameters',
+      'refetchDependencies',
       CG.common('IQueryParameters')
         .optional()
         .setDescription(
-          'Values to watch for changes. Payment details are fetched again after changed form data is saved.',
-          'Verdier som overvåkes for endringer. Betalingsdetaljene hentes på nytt etter at endrede skjemadata er lagret.',
+          'Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.',
+          'Uttrykk som utløser ny henting etter at endrede skjemadata er lagret. Verdiene sendes ikke til serveren.',
         ),
     ),
   );

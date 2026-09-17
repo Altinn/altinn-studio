@@ -8,8 +8,8 @@ export type CompPaymentDetailsSerialized = {
     description?: ExprValToActualOrExpr<ExprVal.String>;
     help?: ExprValToActualOrExpr<ExprVal.String>;
   };
-  queryParameters?: IQueryParameters;
+  refetchDependencies?: IQueryParameters;
   dataModelBindings?: undefined;
 } & ComponentBase;
 
-// Source hash: 3f34d8e330ee30863f1ee8ee3dd02d4b105c7a81ba2bb135f37b95f6271a44a0
+// Source hash: de42d0f72b920fb55184626650f876dd95f9b46d12bcd4d864e5c2828747fc72

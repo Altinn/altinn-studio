@@ -8631,14 +8631,14 @@ const generatedContract = {
           },
           required: false,
         },
-        queryParameters: {
+        refetchDependencies: {
           type: 'object',
           properties: IQueryParameters['properties'],
           additionalProperties: IQueryParameters['additionalProperties'],
           title: IQueryParameters['title'],
           description: {
-            en: 'Values to watch for changes. Payment details are fetched again after changed form data is saved.',
-            nb: 'Verdier som overvåkes for endringer. Betalingsdetaljene hentes på nytt etter at endrede skjemadata er lagret.',
+            en: 'Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.',
+            nb: 'Uttrykk som utløser ny henting etter at endrede skjemadata er lagret. Verdiene sendes ikke til serveren.',
           },
           required: false,
         },

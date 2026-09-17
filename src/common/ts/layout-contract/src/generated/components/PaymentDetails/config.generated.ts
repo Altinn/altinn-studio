@@ -8,7 +8,7 @@ export interface CompPaymentDetailsExternal extends ComponentBase {
     description?: ExprValToActualOrExpr<ExprVal.String>;
     help?: ExprValToActualOrExpr<ExprVal.String>;
   };
-  queryParameters?: IQueryParameters;
+  refetchDependencies?: IQueryParameters;
   dataModelBindings?: undefined;
 }
 
@@ -40,4 +40,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 423b7f0f11429f19ab8e0c21af214073a5035ccbc7916e6e92b48eff9bc5dbf2
+// Source hash: b9f5b8b7952b381a062c9867d02a16808ca7b319e3fe830c2a117d160b7ea1ca

@@ -5385,8 +5385,8 @@
               },
               "additionalProperties": false
             },
-            "queryParameters": {
-              "description": "Values to watch for changes. Payment details are fetched again after changed form data is saved.",
+            "refetchDependencies": {
+              "description": "Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.",
               "$ref": "#/definitions/IQueryParameters"
             }
           },
@@ -5403,7 +5403,7 @@
             "pageBreak": true,
             "type": true,
             "textResourceBindings": true,
-            "queryParameters": true
+            "refetchDependencies": true
           },
           "required": [
             "id",
