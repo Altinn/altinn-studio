@@ -16,8 +16,8 @@
     "lint:libs": "yarn workspace @studio/common-typescript lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
-    "setup": "yarn run hooks:install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
-    "hooks:install": "node scripts/vcs-setup.mjs hooks",
+    "setup": "yarn run git:hooks && node src/Designer/development/setup.js && yarn run git:ignore-revs",
+    "git:hooks": "node scripts/vcs-setup.mjs hooks",
     "git:ignore-revs": "node scripts/vcs-setup.mjs blame-ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
     "build-app-frontend-bundle": "yarn workspace app-frontend-react build && node src/Designer/development/copy-app-frontend-bundle.mjs",
@@ -25,7 +25,7 @@
     "spell:fix": "node scripts/spellcheck/run.mjs --fix",
     "spell:quick": "node scripts/spellcheck/run.mjs quick",
     "start-app-development": "yarn workspace app-development start",
-    "prepare": "yarn run hooks:install"
+    "prepare": "yarn run git:hooks"
   },
   "syncpack": {
     "semverRange": ""
