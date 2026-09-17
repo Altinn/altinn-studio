@@ -716,6 +716,7 @@ mod tests {
         terminal.draw(|frame| render(frame, &app)).expect("modal draw");
         let text = buffer_text(&terminal);
         let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
+        let agent_line = agent_line.replace('\\', "/");
         assert!(agent_line.contains('…'));
         assert!(agent_line.contains("/not/fit/inside/the/create/agent/modal/agents/full"));
         assert!(!agent_line.contains("/a/source/directory"));
