@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using NuGet.Versioning;
 
@@ -40,19 +39,6 @@ public class ProcessModelingService : IProcessModelingService
             "Templates",
             $"v{version.Major}"
         );
-
-    public Task<FiksArkivRouting> GetFiksArkivRouting(
-        AltinnRepoEditingContext editingContext,
-        CancellationToken cancellationToken
-    )
-    {
-        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            editingContext.Org,
-            editingContext.Repo,
-            editingContext.Developer
-        );
-        return FiksArkivRoutingReader.ReadAsync(Path.Combine(repository.RepositoryDirectory, "App"), cancellationToken);
-    }
 
     /// <inheritdoc/>
     public async Task SaveProcessDefinitionAsync(
