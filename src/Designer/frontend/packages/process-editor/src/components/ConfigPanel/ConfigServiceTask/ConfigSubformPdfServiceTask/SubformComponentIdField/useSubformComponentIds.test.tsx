@@ -44,6 +44,29 @@ describe('useSubformComponentIds', () => {
     expect(getFormLayouts).toHaveBeenCalledWith(org, app, taskLayoutSetId);
   });
 
+  it('refreshes the component options after returning from the layout editor', async () => {
+    const queryClient = createQueryClientMock();
+    const { result: firstResult, unmount } = renderUseSubformComponentIds(
+      subformDataType,
+      queryClient,
+    );
+    await waitFor(() =>
+      expect(firstResult.current.subformComponentIds).toEqual(['TheSubformTable']),
+    );
+    unmount();
+    getFormLayouts.mockResolvedValueOnce(
+      createLayouts([
+        { id: 'NewSubformTable', type: ComponentType.Subform, layoutSet: subformLayoutSetId },
+      ]),
+    );
+
+    const { result: secondResult } = renderUseSubformComponentIds(subformDataType, queryClient);
+
+    await waitFor(() =>
+      expect(secondResult.current.subformComponentIds).toEqual(['NewSubformTable']),
+    );
+  });
+
   it('caches the untouched response under a key of its own', async () => {
     const queryClient = createQueryClientMock();
     const { result } = renderUseSubformComponentIds(subformDataType, queryClient);

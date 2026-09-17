@@ -20,7 +20,7 @@ describe('bpmnObjectBuilders', () => {
       values: [
         {
           taskType: mockTaskTypeData,
-          $type: 'altinn:taskType',
+          $type: 'altinn:TaskExtension',
         },
       ],
     };
@@ -39,6 +39,29 @@ describe('bpmnObjectBuilders', () => {
       expect(bpmnDetails.name).toEqual(mockName);
       expect(bpmnDetails.type).toEqual(mockTypeTask);
       expect(bpmnDetails.taskType).toEqual(mockTaskTypeData);
+    });
+
+    it('finds the task type after an unrelated extension', () => {
+      const bpmnDetails = getBpmnEditorDetailsFromBusinessObject({
+        ...mockBpmnBusinessObject,
+        extensionElements: {
+          values: [
+            { $type: 'other:Extension', taskType: 'other' },
+            ...mockBpmnExtensionElements.values,
+          ],
+        },
+      });
+
+      expect(bpmnDetails.taskType).toBe('data');
+    });
+
+    it('handles an empty extension list', () => {
+      const bpmnDetails = getBpmnEditorDetailsFromBusinessObject({
+        ...mockBpmnBusinessObject,
+        extensionElements: { values: [] },
+      });
+
+      expect(bpmnDetails.taskType).toBeNull();
     });
 
     it('returns taskType with value "null" when extensionElements are not present', () => {

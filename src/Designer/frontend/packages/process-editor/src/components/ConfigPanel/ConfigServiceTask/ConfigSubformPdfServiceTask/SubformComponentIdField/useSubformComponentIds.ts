@@ -31,8 +31,8 @@ export const useSubformComponentIds = (subformDataTypeId: string): UseSubformCom
   const { data: formLayouts } = useQuery<FormLayoutsResponse>({
     queryKey: [QueryKey.FormLayouts, org, app, layoutSetId, 'external'],
     queryFn: () => getFormLayouts(org, app, layoutSetId),
+    staleTime: 0,
     enabled: Boolean(layoutSetId) && subformLayoutSetIds.length > 0,
-    staleTime: Infinity,
   });
 
   return { subformComponentIds: getSubformComponentIds(formLayouts, subformLayoutSetIds) };

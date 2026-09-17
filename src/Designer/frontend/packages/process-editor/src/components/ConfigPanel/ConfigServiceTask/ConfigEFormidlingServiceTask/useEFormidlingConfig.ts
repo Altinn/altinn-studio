@@ -61,12 +61,12 @@ export const useEFormidlingConfig = (): EFormidlingConfig => {
     const moddle: Moddle = modelerRef.current.get('moddle');
     const elements = createElements(moddle);
 
-    if (eFormidlingConfig) {
-      modeling.updateModdleProperties(bpmnDetails.element, eFormidlingConfig, {
+    const taskExtension = TaskUtils.getTaskExtension(bpmnDetails.element);
+    if (taskExtension.eFormidlingConfig) {
+      modeling.updateModdleProperties(bpmnDetails.element, taskExtension.eFormidlingConfig, {
         [property]: elements,
       });
     } else {
-      const taskExtension = TaskUtils.getTaskExtension(bpmnDetails.element);
       modeling.updateModdleProperties(bpmnDetails.element, taskExtension, {
         eFormidlingConfig: moddle.create(eFormidlingConfigType, { [property]: elements }),
       });

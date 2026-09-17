@@ -1,11 +1,6 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type {
-  ExternalComponent,
-  FormLayoutsResponse,
-} from 'app-shared/types/api/FormLayoutsResponse';
+import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-
-const SUBFORM_LAYOUT_SET_TYPE = 'subform';
 
 /** The subform layout sets storing their answers in the given data type. */
 export const getSubformLayoutSetIdsForDataType = (
@@ -14,7 +9,7 @@ export const getSubformLayoutSetIdsForDataType = (
 ): string[] => {
   if (!subformDataTypeId) return [];
   return (layoutSets ?? [])
-    .filter((set) => set.type === SUBFORM_LAYOUT_SET_TYPE && set.dataType === subformDataTypeId)
+    .filter((set) => set.type === 'subform' && set.dataType === subformDataTypeId)
     .map((set) => set.id);
 };
 
@@ -25,12 +20,9 @@ export const getSubformComponentIds = (
 ): string[] =>
   Object.values(formLayouts ?? {})
     .flatMap((formLayout) => formLayout?.data?.layout ?? [])
-    .filter((component) => opensOneOfTheLayoutSets(component, subformLayoutSetIds))
+    .filter(
+      (component) =>
+        component.type === ComponentType.Subform &&
+        subformLayoutSetIds.includes(component.layoutSet as string),
+    )
     .map((component) => component.id);
-
-const opensOneOfTheLayoutSets = (
-  component: ExternalComponent,
-  subformLayoutSetIds: string[],
-): boolean =>
-  component?.type === ComponentType.Subform &&
-  subformLayoutSetIds.includes(component.layoutSet as string);

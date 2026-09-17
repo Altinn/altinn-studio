@@ -40,10 +40,6 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   };
 });
 
-jest.mock('../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => jest.fn(),
-}));
-
 describe('ConfigServiceTask', () => {
   afterEach(() => jest.clearAllMocks());
 

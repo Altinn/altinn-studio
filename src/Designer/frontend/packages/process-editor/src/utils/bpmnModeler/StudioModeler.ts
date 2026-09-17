@@ -6,17 +6,8 @@ import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
 import type { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { TaskUtils } from '../taskUtils';
-
-// Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
-// We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
-
-/*
- * Not all lines in this file are covered by tests because it would require extensive mocking of methods and classes from the bpmn-js library.
- * This effort might not be worthwhile since the package is not very type-safe, meaning our tests might not fail even if the package's API changes.
- */
 
 enum AvailableBpmnInstances {
   Modeling = 'modeling',
@@ -24,37 +15,6 @@ enum AvailableBpmnInstances {
   ElementRegistry = 'elementRegistry',
   BpmnFactory = 'bpmnFactory',
 }
-
-type PaymentTaskConfig = {
-  configNode: string;
-  dataTypeName: string;
-  receiptPdfDataTypeName: string;
-};
-
-type SigningTaskConfig = {
-  configNode: string;
-  dataTypeName: string;
-};
-
-type BpmnTaskConfig = {
-  payment: PaymentTaskConfig;
-  signing: SigningTaskConfig;
-};
-
-/** The task types that keep their data types in a config node of their own. */
-export type BpmnDataTypeCarryingTaskType = keyof BpmnTaskConfig;
-
-const bpmnTaskConfig: BpmnTaskConfig = {
-  payment: {
-    configNode: 'paymentConfig',
-    dataTypeName: 'paymentDataType',
-    receiptPdfDataTypeName: 'paymentReceiptPdfDataType',
-  },
-  signing: {
-    configNode: 'signatureConfig',
-    dataTypeName: 'signatureDataType',
-  },
-};
 
 export class StudioModeler {
   public readonly modelerInstance: Modeler = BpmnModelerInstance.getInstance();
@@ -84,9 +44,7 @@ export class StudioModeler {
   }
 
   public get getCurrentTaskType(): BpmnTaskType {
-    const element = this.getElement();
-    const bpmnAttrs = element.businessObject?.$attrs;
-    return bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
+    return TaskUtils.getTaskExtension(this.getElement())?.taskType ?? null;
   }
 
   public createElement<T>(elementType: string, options: T): Element {
@@ -108,42 +66,5 @@ export class StudioModeler {
   /** Bpmn ids are unique across the whole document, not only within an element type. */
   public getAllElementIds(): string[] {
     return this.elementRegistry.getAll().map((element) => element.id);
-  }
-
-  public getReceiptPdfDataTypeIdFromBusinessObject(
-    businessObject: BpmnBusinessObjectEditor,
-  ): string {
-    const { configNode, receiptPdfDataTypeName } = bpmnTaskConfig.payment;
-    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.[configNode][
-      receiptPdfDataTypeName
-    ];
-  }
-
-  /** Undefined for a signing task that generates no pdf. */
-  public getSigningPdfDataTypeIdFromBusinessObject(
-    businessObject: BpmnBusinessObjectEditor,
-  ): string | undefined {
-    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.signatureConfig
-      ?.signingPdfDataType;
-  }
-
-  public getDataTypeIdFromBusinessObject(
-    bpmnTaskType: BpmnDataTypeCarryingTaskType,
-    businessObject: BpmnBusinessObjectEditor,
-  ): string {
-    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-    const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
-    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.[configNode][dataTypeName];
-  }
-
-  public getSigneeStatesDataTypeId(
-    bpmnTaskType: BpmnDataTypeCarryingTaskType,
-    businessObject: BpmnBusinessObjectEditor,
-  ): string {
-    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-    const signeeStateKey = 'signeeStatesDataTypeId';
-    return TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.[configNode][
-      signeeStateKey
-    ];
   }
 }

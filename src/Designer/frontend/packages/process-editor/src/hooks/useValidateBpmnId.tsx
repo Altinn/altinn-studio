@@ -1,4 +1,4 @@
-import { useBpmnElementIds } from './useBpmnElementIds';
+import { StudioModeler } from '../utils/bpmnModeler/StudioModeler';
 import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
@@ -7,7 +7,9 @@ import { StringUtils } from '@studio/pure-functions';
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const otherElementIds = useBpmnElementIds().filter((id) => id !== bpmnDetails.id);
+  const otherElementIds = new StudioModeler()
+    .getAllElementIds()
+    .filter((id) => id !== bpmnDetails.id);
   const validateBpmnTaskId = (newId: string): string => {
     const errorMessages = {
       unique: t('process_editor.validation_error.id_not_unique'),
