@@ -114,11 +114,7 @@ public sealed class AltinnEFormidlingConfiguration
         return value;
     }
 
-    /// <summary>
-    /// Reads an optional boolean field, defaulting to false when it is absent or blank. A value that is
-    /// present but not a boolean is a configuration error like any other, reported through the validator
-    /// rather than thrown, so the developer sees it alongside everything else wrong with the task.
-    /// </summary>
+    /// <summary>Reads an optional boolean field; absent or blank means false.</summary>
     private static bool GetOptionalBoolConfig(
         List<AltinnEnvironmentConfig> configs,
         ConfigValidator validator,

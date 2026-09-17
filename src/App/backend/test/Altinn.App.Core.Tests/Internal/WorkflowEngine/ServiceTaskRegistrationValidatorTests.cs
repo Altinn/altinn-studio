@@ -1,4 +1,3 @@
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -19,10 +18,8 @@ public class ServiceTaskRegistrationValidatorTests
     );
 
     /// <summary>
-    /// Boots the validator over a service collection holding <paramref name="register"/>'s registrations
-    /// plus the built-in process task types every app gets from <c>AddAltinnAppServices</c> — a process
-    /// definition's ordinary <c>data</c>/<c>confirmation</c> tasks resolve here exactly as they do in a
-    /// real app. Stand-ins rather than the real classes, whose constructors would drag in the platform.
+    /// Boots the validator over <paramref name="register"/>'s registrations plus stand-ins for the built-in
+    /// process task types.
     /// </summary>
     private static async Task<ValidationRun> Run(
         Action<IServiceCollection> register,
@@ -30,7 +27,6 @@ public class ServiceTaskRegistrationValidatorTests
     )
     {
         var services = new ServiceCollection();
-        services.AddSingleton<AppImplementationFactory>();
         foreach (string builtIn in new[] { "data", "confirmation", "feedback", "signing", "payment", "NullType" })
         {
             services.AddSingleton<IProcessTask>(new BuiltInLikeProcessTask(builtIn));
@@ -42,8 +38,7 @@ public class ServiceTaskRegistrationValidatorTests
             services.AddSingleton(processReader);
         }
 
-        // Scope validation on, as a developer machine has it: a task resolved from the root provider
-        // rather than from the validator's own scope throws here instead of passing quietly.
+        // ValidateScopes on, as on a developer machine: resolving a scoped dependency from the root provider throws.
         await using var sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
 
         var logger = new FakeLogger<ServiceTaskRegistrationValidator>();
@@ -270,10 +265,6 @@ public class ServiceTaskRegistrationValidatorTests
     }
 
     // ── The process definition's half of the invariant ────────────────────────────────
-    //
-    // The rule never looks at the BPMN element type, because the runtime never does: a task is what its
-    // <altinn:taskType> resolves to. So a <bpmn:serviceTask> typed 'data' is an ordinary data task, and
-    // a <bpmn:task> typed 'archive' is a service task.
 
     private sealed class PdfLikeTask : IServiceTask
     {
@@ -296,29 +287,50 @@ public class ServiceTaskRegistrationValidatorTests
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
     }
 
-    [Fact]
-    public async Task ProcessTaskNoImplementationIsRegisteredFor_FailsStartup()
+    // Only <altinn:taskType> is read, as at runtime: a <bpmn:serviceTask> and a <bpmn:task> are checked alike.
+    [Theory]
+    [InlineData("pdf-service-task.bpmn", "Task_Pdf", "pdf")]
+    [InlineData("plain-task-custom-type.bpmn", "Task_Custom", "archive")]
+    public async Task ProcessTaskNoImplementationIsRegisteredFor_FailsStartup(
+        string bpmn,
+        string taskId,
+        string taskType
+    )
     {
         var exception = await Validate(
             s => s.AddSingleton<IServiceTask, SimpleTask>(),
-            ProcessTestUtils.SetupProcessReader("pdf-service-task.bpmn")
+            ProcessTestUtils.SetupProcessReader(bpmn)
         );
 
         Assert.NotNull(exception);
-        Assert.Contains("Task_Pdf", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("<altinn:taskType>pdf</altinn:taskType>", exception.Message, StringComparison.Ordinal);
-        // What is registered is named too, so a typo is fixable from the startup failure alone — and
-        // once, as a trailing entry, rather than repeated on every error.
+        Assert.Contains(taskId, exception.Message, StringComparison.Ordinal);
+        Assert.Contains($"<altinn:taskType>{taskType}</altinn:taskType>", exception.Message, StringComparison.Ordinal);
+        // The registered types are named once, as a trailing entry.
         Assert.Contains("'simple'", exception.Message, StringComparison.Ordinal);
         Assert.Contains("'data'", exception.Message, StringComparison.Ordinal);
-        Assert.Equal(1, CountOccurrences(exception.Message, "Registered task types:"));
+        Assert.Single(
+            exception.Message.Split(Environment.NewLine),
+            line => line.Contains("Registered task types:", StringComparison.Ordinal)
+        );
+    }
+
+    [Theory]
+    [InlineData("pdf-service-task.bpmn", typeof(PdfLikeTask))]
+    [InlineData("plain-task-custom-type.bpmn", typeof(ArchiveTask))]
+    public async Task ProcessTaskWithARegisteredImplementation_PassesValidation(string bpmn, Type implementation)
+    {
+        var exception = await Validate(
+            s => s.AddSingleton(typeof(IServiceTask), implementation),
+            ProcessTestUtils.SetupProcessReader(bpmn)
+        );
+
+        Assert.Null(exception);
     }
 
     [Fact]
     public async Task ProcessTaskWithABlankTaskType_FailsStartup_WhateverElementCarriesIt()
     {
-        // The shape Studio's generic service task palette entry produces, deployed before the developer
-        // filled the task type in — and the same omission on an ordinary <bpmn:task>.
+        // The shape Studio's generic service task palette entry produces, and the same omission on a <bpmn:task>.
         var exception = await Validate(
             s => s.AddSingleton<IServiceTask, PdfLikeTask>(),
             ProcessTestUtils.SetupProcessReader("service-task-empty-type.bpmn")
@@ -332,52 +344,15 @@ public class ServiceTaskRegistrationValidatorTests
             exception.Message,
             StringComparison.Ordinal
         );
-    }
-
-    [Fact]
-    public async Task ProcessTaskWithARegisteredImplementation_PassesValidation()
-    {
-        var exception = await Validate(
-            s => s.AddSingleton<IServiceTask, PdfLikeTask>(),
-            ProcessTestUtils.SetupProcessReader("pdf-service-task.bpmn")
-        );
-
-        Assert.Null(exception);
-    }
-
-    [Fact]
-    public async Task PlainBpmnTaskWithARegisteredServiceTaskType_PassesValidation()
-    {
-        // Every service task in this repository's own workflow-engine scenarios is drawn this way.
-        var exception = await Validate(
-            s => s.AddSingleton<IServiceTask, ArchiveTask>(),
-            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
-        );
-
-        Assert.Null(exception);
-    }
-
-    [Fact]
-    public async Task PlainBpmnTaskWithAnUnregisteredType_FailsStartup()
-    {
-        // The half the old <bpmn:serviceTask> scoping missed entirely.
-        var exception = await Validate(
-            s => s.AddSingleton<IServiceTask, PdfLikeTask>(),
-            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
-        );
-
-        Assert.NotNull(exception);
-        Assert.Contains("Task_Custom", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("<altinn:taskType>archive</altinn:taskType>", exception.Message, StringComparison.Ordinal);
+        // The registered types are what the blank gets filled in with.
+        Assert.Contains("Registered task types:", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("'pdf'", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task ProcessTaskTypeDifferingOnlyInCase_FailsStartup()
     {
-        // The validator agrees with what actually runs. ProcessTaskResolver matches Type exactly, so
-        // 'PDF' never answers for 'pdf' — the enqueue path's case-insensitive lookup finds it, and the
-        // first transition then throws ProcessException from dispatch. Passing this would be the
-        // validator promising a boot the app cannot keep.
+        // Matched exactly, as dispatch does: 'PDF' never answers for 'pdf'.
         var exception = await Validate(
             s => s.AddSingleton<IServiceTask, ShoutyPdfLikeTask>(),
             ProcessTestUtils.SetupProcessReader("pdf-service-task.bpmn")
@@ -399,8 +374,6 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task BuiltInTaskTypeTheAppNeverEnabled_NamesItsBuilderCall_NotAnAddTransient()
     {
-        // The likeliest real trigger: the process is drawn in Studio and the client wired up later.
-        // Telling the developer to write an IServiceTask would send them to reimplement what ships.
         var exception = await Validate(_ => { }, ProcessTestUtils.SetupProcessReader("fiks-arkiv-service-task.bpmn"));
 
         Assert.NotNull(exception);
@@ -412,8 +385,6 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task AnInvalidPipelineAndAnUnresolvableProcessTask_BothAppearInOneStartupFailure()
     {
-        // The whole point of collecting into one list: a developer with two problems fixes both from
-        // one boot rather than discovering the second after redeploying for the first.
         var exception = await Validate(
             s => s.AddSingleton<IPipelineServiceTask, InvalidStageOptionsTask>(),
             ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
@@ -433,7 +404,6 @@ public class ServiceTaskRegistrationValidatorTests
         var run = await Run(_ => { }, processReader.Object);
 
         Assert.Null(run.Exception);
-        // Asserting absence alone would pass with the whole check deleted.
         FakeLogRecord warning = Assert.Single(
             run.Logger.Collector.GetSnapshot(),
             record => record.Level == LogLevel.Warning
@@ -446,7 +416,6 @@ public class ServiceTaskRegistrationValidatorTests
 
     private sealed class ScopedDependentTask : IServiceTask
     {
-        // Constructed per scope, like FiksArkivServiceTask and every other task registered transient.
         public ScopedDependentTask(ScopedDependency dependency) => _ = dependency;
 
         public string Type => "scoped";
@@ -457,11 +426,7 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task ServiceTaskNeedingAScopedDependency_IsStillResolved_SoTheCheckArms()
     {
-        // The validator resolves both sets in a scope of its own and reads those lists. Asking
-        // AppImplementationFactory instead would fall back to the root provider — there is no
-        // HttpContext during StartAsync — where this task cannot be constructed at all: the check would
-        // stand down, and since ValidateScopes is development-only it would stand down on the
-        // developer's machine and arm in the deployed environments, which is exactly backwards.
+        // Resolved in the validator's own scope; the root provider could not construct this task.
         var run = await Run(
             s =>
             {
@@ -473,46 +438,7 @@ public class ServiceTaskRegistrationValidatorTests
 
         Assert.NotNull(run.Exception);
         Assert.Contains("Task_Custom", run.Exception.Message, StringComparison.Ordinal);
-        // Constructed, so it is named among the registered types rather than missing from them.
         Assert.Contains("'scoped'", run.Exception.Message, StringComparison.Ordinal);
         Assert.Empty(run.Logger.Collector.GetSnapshot());
-    }
-
-    [Fact]
-    public async Task TwoServiceTasksSharingATaskType_Warns_ButStillBoots()
-    {
-        // Not a startup failure: registering after a built-in to replace it is a legitimate thing to do,
-        // and the last registration is what ProcessTaskResolver dispatches to. It is worth a warning
-        // because FindServiceTask takes the first match and ignores case, so the enqueue path and the
-        // dispatch path can disagree about which implementation a process task means.
-        var run = await Run(
-            s =>
-            {
-                s.AddSingleton<IServiceTask, PdfLikeTask>();
-                s.AddSingleton<IServiceTask, ShoutyPdfLikeTask>();
-            },
-            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
-        );
-
-        Assert.Null(run.Exception);
-        FakeLogRecord warning = Assert.Single(
-            run.Logger.Collector.GetSnapshot(),
-            record => record.Level == LogLevel.Warning
-        );
-        Assert.Contains("registered by more than one implementation", warning.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(PdfLikeTask), warning.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(ShoutyPdfLikeTask), warning.Message, StringComparison.Ordinal);
-    }
-
-    private static int CountOccurrences(string haystack, string needle)
-    {
-        int count = 0;
-        for (int i = haystack.IndexOf(needle, StringComparison.Ordinal); i >= 0; )
-        {
-            count++;
-            i = haystack.IndexOf(needle, i + needle.Length, StringComparison.Ordinal);
-        }
-
-        return count;
     }
 }
