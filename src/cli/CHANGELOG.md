@@ -23,6 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade v9` now recommends the supported service-task results: success advances the process, while waiting for an external outcome uses pipeline polling or mailbox replies.
 - `studioctl app upgrade v9` preserves your C# files' indentation and line endings when simplifying generated type names.
 
 ## [0.1.0-preview.25] - 2026-09-14

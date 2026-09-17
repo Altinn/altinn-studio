@@ -1110,7 +1110,7 @@ public class WorkflowEngineServiceTests
         client.Verify(
             c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()),
             Times.Once,
-            "the resume path must cascade so dependency-failed auto-advance children are reset alongside the parent"
+            "the resume path must cascade so dependency-failed process continuations are reset alongside the parent"
         );
     }
 
@@ -1444,7 +1444,7 @@ public class WorkflowEngineServiceTests
     {
         // The fire-and-forget side-effects workflows must never extend the wait or influence
         // failure classification. The same-batch one shares the anchor's timestamp, but a
-        // dependent (auto-advance) batch's side-effects workflow is strictly newer than the
+        // dependent batch's side-effects workflow is strictly newer than the
         // anchor - only the IsHead=false directive excludes it.
         var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
         var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
