@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `studioctl app upgrade v9` now converts `mapping` to expression-based `queryParameters` for instantiation buttons and payment details. Instantiating legacy buttons become `InstantiationButton` components; other buttons lose their unused `mapping` setting. The unused `save` and `submit` button modes are removed.
 - `studioctl env up` now starts the newest localtest build and the PDF and workflow engine builds deployed to tt02, instead of versions frozen into each studioctl release, so a platform change reaches your machine without waiting for one. It checks for a newer build every time it starts the environment; an environment that is already running keeps the build it started with until you stop and start it again. If the registry cannot be reached, it starts on the images you already have.
 - Updating deletes the image override file from your studioctl directory. It is no longer read, and `STUDIOCTL_IMAGE_LOCALTEST`, `STUDIOCTL_IMAGE_PDF3` and `STUDIOCTL_IMAGE_WORKFLOW_ENGINE` run a specific build for one session instead.
 - `studioctl env status` and `studioctl doctor` show the image each container runs and which build it is. Quote that build when reporting a problem: the tags that follow tt02 move whenever a new build is deployed, so the tag alone no longer identifies it.

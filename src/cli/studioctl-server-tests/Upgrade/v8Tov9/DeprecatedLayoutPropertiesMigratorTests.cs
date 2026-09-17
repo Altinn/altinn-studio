@@ -214,7 +214,7 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task KeepsMappingOnComponentsWhereItStillMeansSomething()
+    public async Task ConvertsInstantiationAndPaymentMappingsIncludingLegacyButtons()
     {
         var before = """
             {
@@ -244,9 +244,84 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
 
         var result = await Migrate();
 
-        Assert.Equal(0, result.FilesChanged);
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(3, result.QueryParametersConverted);
         Assert.Empty(result.Warnings);
-        Assert.Equal(before, _app.Read("ui/Task_1/layouts/Side1.json"));
+        Assert.False(result.ManualActionRequired);
+        for (var index = 0; index < 3; index++)
+            Assert.False(Component("ui/Task_1/layouts/Side1.json", index).ContainsKey("mapping"));
+        Assert.Equal(
+            """["dataModel","Skjema.Name"]""",
+            Compact(Component("ui/Task_1/layouts/Side1.json", 0)["queryParameters"]?["name"])
+        );
+        Assert.Equal(
+            """["dataModel","Skjema.Amount"]""",
+            Compact(Component("ui/Task_1/layouts/Side1.json", 1)["queryParameters"]?["amount"])
+        );
+        var button = Component("ui/Task_1/layouts/Side1.json", 2);
+        Assert.Equal("InstantiationButton", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.Equal("""["dataModel","Skjema.Name"]""", Compact(button["queryParameters"]?["name"]));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
+    }
+
+    [Theory]
+    [InlineData("save")]
+    [InlineData("submit")]
+    public async Task RemovesUnusedMappingOnOtherButtons(string mode)
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            $$"""
+            { "data": { "layout": [{ "id": "button", "type": "Button", "mode": "{{mode}}", "mapping": { "Name": "name" } }] } }
+            """
+        );
+        var result = await Migrate();
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(0, result.QueryParametersConverted);
+        var button = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.Equal("Button", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.False(button.ContainsKey("mapping"));
+        Assert.False(button.ContainsKey("queryParameters"));
+    }
+
+    [Fact]
+    public async Task ConvertsInstantiatingButtonWithoutMapping()
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            """
+            { "data": { "layout": [{ "id": "start", "type": "Button", "mode": "instantiate" }] } }
+            """
+        );
+        var result = await Migrate();
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(0, result.QueryParametersConverted);
+        var button = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.Equal("InstantiationButton", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.False(button.ContainsKey("queryParameters"));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
+    }
+
+    [Theory]
+    [InlineData("save")]
+    [InlineData("submit")]
+    public async Task RemovesModeWithoutMapping(string mode)
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            $$"""
+            { "data": { "layout": [{ "id": "button", "type": "Button", "mode": "{{mode}}" }] } }
+            """
+        );
+        var result = await Migrate();
+        Assert.Equal(1, result.FilesChanged);
+        var button = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.Equal("Button", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
     }
 
     [Fact]

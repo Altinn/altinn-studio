@@ -16,20 +16,19 @@ internal sealed record DeprecatedLayoutPropertiesMigrationResult(
 );
 
 /// <summary>
-/// Rewrites the layout properties v9 removed from the components that fetch options or data lists:
+/// Rewrites the layout properties removed in v9:
 /// <list type="bullet">
 ///   <item><c>mapping</c> becomes <c>queryParameters</c> holding <c>["dataModel", "&lt;path&gt;"]</c>
-///   expressions, on the option components and <c>List</c>.</item>
+///   expressions, on option components, <c>List</c>, <c>InstantiationButton</c> and <c>PaymentDetails</c>.</item>
 ///   <item><c>bindingToShowInSummary</c> on <c>List</c> becomes <c>summaryBinding</c>, which names a key
 ///   in <c>dataModelBindings</c> rather than repeating the data model path.</item>
 /// </list>
-/// <c>mapping</c> on <c>Button</c>, <c>InstantiationButton</c> and <c>PaymentDetails</c> is untouched -
-/// it is prefill/refetch configuration there, not query parameters, and v9 still supports it.
+/// Instantiating <c>Button</c> components become <c>InstantiationButton</c>; other buttons lose their unused mapping.
 /// </summary>
 internal sealed class DeprecatedLayoutPropertiesMigrator
 {
     /// <summary>
-    /// Components whose <c>mapping</c> ended up as query parameters on an options or data list request.
+    /// Components supporting expression-based query parameters.
     /// Both spellings of the tagged file upload are listed: <c>FileUploadWithTag</c> is what a v8 layout
     /// holds, and <c>FileUpload</c> what <see cref="FileUploadWithTagLayoutMigration"/> has already
     /// rewritten it to by the time this runs. Matching both keeps this migration independent of the order
@@ -41,11 +40,13 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         "Dropdown",
         "FileUpload",
         "FileUploadWithTag",
+        "InstantiationButton",
         "Likert",
         "LikertItem",
         "List",
         "MultipleSelect",
         "Option",
+        "PaymentDetails",
         "RadioButtons",
     };
 
@@ -199,6 +200,22 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         var changes = new ComponentChanges();
         if (node is JsonObject obj && obj["type"] is JsonValue typeValue && typeValue.TryGetValue<string>(out var type))
         {
+            if (string.Equals(type, "Button", StringComparison.Ordinal))
+            {
+                if (obj["mode"]?.GetValue<string>() == "instantiate")
+                {
+                    obj["type"] = "InstantiationButton";
+                    obj.Remove("mode");
+                    type = "InstantiationButton";
+                    changes.Changed = true;
+                }
+                else
+                {
+                    changes.Changed |= obj.Remove("mode");
+                    changes.Changed |= obj.Remove("mapping");
+                }
+            }
+
             if (_componentsWithQueryParameters.Contains(type))
                 changes.Add(ConvertMapping(obj, type, fileName));
 
