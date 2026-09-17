@@ -45,7 +45,7 @@ describe('usePollingWithBackoff()', () => {
 
   it('uses the configured initial interval before backing off', async () => {
     const callback = vi.fn().mockResolvedValue(undefined);
-    renderHook(() => usePollingWithBackoff(callback, true, 250));
+    renderHook(() => usePollingWithBackoff(callback, true, { initialIntervalMs: 250 }));
 
     await advance(249);
     expect(callback).not.toHaveBeenCalled();
@@ -61,6 +61,20 @@ describe('usePollingWithBackoff()', () => {
     expect(callback).toHaveBeenCalledTimes(11);
     expect(getPollingInterval(11, 250)).toBe(2250);
     expect(getPollingInterval(100, 250)).toBe(30_000);
+  });
+
+  it('allows a five-second fast phase for instance transitions', async () => {
+    const callback = vi.fn().mockResolvedValue(undefined);
+    renderHook(() => usePollingWithBackoff(callback, true, { initialIntervalMs: 250, initialAttempts: 20 }));
+
+    await advance(5000);
+    expect(callback).toHaveBeenCalledTimes(20);
+    await advance(1249);
+    expect(callback).toHaveBeenCalledTimes(20);
+    await advance(1);
+    expect(callback).toHaveBeenCalledTimes(21);
+    expect(getPollingInterval(21, 250, 20)).toBe(2250);
+    expect(getPollingInterval(100, 250, 20)).toBe(30_000);
   });
 
   it('stops polling entirely while disabled', async () => {
