@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
-using Altinn.App.Tests.Common;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Integration.Tests;
@@ -306,7 +305,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
     public string AppDirectory { get; }
 
     /// <summary>
-    /// Where this app's provisioned secrets were written for it. See <see cref="ProvisionSecrets"/>.
+    /// Where this app was told its provisioned secrets live. See <see cref="CreateSecretsDirectory"/>.
     /// </summary>
     public string SecretsDirectory { get; }
 
@@ -337,7 +336,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
         CancellationToken cancellationToken
     )
     {
-        string secretsDirectory = ProvisionSecrets(appDirectory);
+        string secretsDirectory = CreateSecretsDirectory(appDirectory);
 
         var result = await RunStudioctl(
             appDirectory,
@@ -361,16 +360,15 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
     }
 
     /// <summary>
-    /// <para>Stands in for the platform, which provisions an app's secrets and tells it where they are. Every
-    /// v9 app has a Maskinporten client provisioned for it, and the app libraries refuse to start without
-    /// one, so the fixture writes a throwaway client for each app it runs.</para>
-    /// <para>studioctl does not provision a local run's secrets yet — that is the next change in this stack,
-    /// where <c>studioctl app maskinporten set</c> takes this over. Until then the fixture writes the file in
-    /// the shape the operator writes it and hands the app the same variables a deployed app is given;
-    /// studioctl passes its own environment through to the app it starts.</para>
+    /// <para>Stands in for the platform, which names the directory an app's provisioned secrets live in. The
+    /// directory is created empty: no test app needs a Maskinporten client to start, and the libraries only
+    /// have to be told where to look.</para>
+    /// <para>studioctl does not name a local run's secrets directory yet — that is the next change in this
+    /// stack, which takes this over for every run. Until then the fixture hands the app the same variables a
+    /// deployed app is given; studioctl passes its own environment through to the app it starts.</para>
     /// </summary>
     /// <param name="appDirectory">The generated app this run belongs to.</param>
-    private static string ProvisionSecrets(string appDirectory)
+    private static string CreateSecretsDirectory(string appDirectory)
     {
         string secretsDirectory = Path.Join(
             Path.GetTempPath(),
@@ -378,7 +376,6 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             $"{Path.GetFileName(appDirectory.TrimEnd(Path.DirectorySeparatorChar))}-{Guid.NewGuid():N}"
         );
         Directory.CreateDirectory(secretsDirectory);
-        ProvisionedSecretsTestEnvironment.WriteMaskinportenClient(secretsDirectory, "integration-test");
 
         return secretsDirectory;
     }
@@ -392,10 +389,11 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
             ? new(StringComparer.OrdinalIgnoreCase)
             : new(environmentVariables, StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (key, value) in ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory))
-        {
-            merged[key] = value ?? string.Empty;
-        }
+        // The variables a deployed app is given: where its provisioned secrets live, and what each file in
+        // that directory is called.
+        merged["RUNTIME_APP_SECRETS_DIR"] = secretsDirectory;
+        merged["RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME"] = "maskinporten-settings.json";
+        merged["RUNTIME_APP_SECRETS_APPCODES_FILENAME"] = "app-codes.json";
 
         return merged;
     }

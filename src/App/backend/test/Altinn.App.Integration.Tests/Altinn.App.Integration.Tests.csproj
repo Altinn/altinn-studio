@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
-    <ProjectReference Include="../Altinn.App.Tests.Common/Altinn.App.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
