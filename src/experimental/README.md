@@ -63,21 +63,6 @@ Session scope is explicit through `--agent` or inferred from the closest unique 
 Transient `exec` commands similarly converge the Agent first, then target its exact materialized Sandbox without
 creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
 
-An `agent.yaml` is a complete `kind: Agent`, while a sibling `agent.<variant>.yaml` is a `kind: AgentVariant` with an
-explicit `metadata.name` and an `extends` filename. Variants
-may extend other variants in the same directory. Mappings merge recursively, arrays and scalars replace inherited
-values, and `null` removes a field. Changing a tagged mapping's `type`, such as an image from `reference` to `build`,
-replaces that mapping so fields from the old type do not leak into the new one. The expanded result is strictly
-validated as a complete Agent before it reaches `agentd`. Chains are limited to 16 manifests and cannot use absolute
-or cross-directory paths.
-
-Run `agentctl apply` for `./agent.yaml`, `agentctl apply --variant nested` for `./agent.nested.yaml`, or retain exact
-path selection with `agentctl apply -f path/to/agent.nested.yaml`. Checkout-local variants may be Git-ignored: TUI
-discovery enumerates valid siblings beside each non-ignored `agent.yaml` without descending into ignored directories,
-then presents the manifest directory as the Agent and its leaves in a separate Variant picker.
-Commands that infer an applied Agent accept `--variant` to match recorded leaf-manifest provenance; `--agent` remains
-the explicit global resource-name selector.
-
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized
 Sandbox and owns the in-Sandbox tmux and harness effects for that Session. Both use the same keyed reconciliation
@@ -151,9 +136,8 @@ after changing the file updates the Sandbox environment. Do not declare secrets 
 Manifest secret bindings name a guest environment variable and the hosts where its value may be substituted. The
 matching real value is loaded from the manifest directory's `.env` file, or the file named by
 `agentctl apply --env-file`, and retained only in the owner-protected host database. A bind mount whose source
-contains the selected secret file, an existing default `.env` beside the manifest, or any active Agent's secret file
-is refused at apply time, because the Sandbox would otherwise read the real values from the mounted directory. The
-Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
+contains any active Agent's secret file is refused at apply time, because the Sandbox would otherwise read the real
+values from the mounted directory. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
 the current real value only for an authorized request to an allowed host; rotation does not require copying new
 material into the Sandbox. A custom placeholder is optional for clients that validate token shape.
 
