@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type { ExpressionDescriptor } from '@app/layout-contract';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evaluateDescriptor } from 'src/features/expressions/evaluateDescriptor';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
@@ -27,6 +28,20 @@ export function useEvalExpression<D extends ExpressionDescriptor>(
   return useMemo(
     () => evaluateDescriptor(expr, stableDescriptor, dataSources, baseComponentId ? componentId : undefined, options),
     [baseComponentId, componentId, dataSources, stableDescriptor, expr, options],
+  );
+}
+
+/** Evaluates one property at an explicit location for aggregate queries or event handlers. */
+export function useEvalExpressionCallback<V extends ExprVal>(
+  expr: ExprValToActualOrExpr<V> | undefined,
+  descriptor: ExpressionDescriptor<V>,
+) {
+  const dataSources = useExpressionDataSources(expr);
+  const componentId = useIndexedId(useCurrentComponentId());
+  return useCallback(
+    (currentDataModelPath: IDataModelReference | undefined = dataSources.currentDataModelPath): ExprValToActual<V> =>
+      evaluateDescriptor(expr, descriptor, { ...dataSources, currentDataModelPath }, componentId),
+    [componentId, dataSources, descriptor, expr],
   );
 }
 
