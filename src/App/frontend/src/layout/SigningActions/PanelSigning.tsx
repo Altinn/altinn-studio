@@ -13,7 +13,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type SigningPanelProps = {
   baseComponentId: string;
@@ -86,42 +86,32 @@ function RejectButton({ baseComponentId }: RejectTextProps) {
   const descId = `reject-modal-description-${reactId}`;
   const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
   const config = useComponentConfig(baseComponentId, 'SigningActions');
-  const rejectModalTitle = useEvalExpression(
+  const rejectModalTitle = useEvalOptionalText(
     config.textResourceBindings?.rejectModalTitle,
     Expressions.SigningActions.textResourceBindings.rejectModalTitle,
   );
-  const rejectModalDescription = useEvalExpression(
+  const rejectModalDescription = useEvalOptionalText(
     config.textResourceBindings?.rejectModalDescription,
     Expressions.SigningActions.textResourceBindings.rejectModalDescription,
   );
-  const rejectModalButton = useEvalExpression(
+  const rejectModalButton = useEvalOptionalText(
     config.textResourceBindings?.rejectModalButton,
     Expressions.SigningActions.textResourceBindings.rejectModalButton,
   );
-  const rejectModalCloseButton = useEvalExpression(
+  const rejectModalCloseButton = useEvalOptionalText(
     config.textResourceBindings?.rejectModalCloseButton,
     Expressions.SigningActions.textResourceBindings.rejectModalCloseButton,
   );
-  const rejectModalTriggerButton = useEvalExpression(
+  const rejectModalTriggerButton = useEvalOptionalText(
     config.textResourceBindings?.rejectModalTriggerButton,
     Expressions.SigningActions.textResourceBindings.rejectModalTriggerButton,
   );
 
-  const modalTitle =
-    (config.textResourceBindings?.rejectModalTitle === undefined ? undefined : rejectModalTitle) ??
-    'signing.reject_modal_title';
-  const modalDescription =
-    (config.textResourceBindings?.rejectModalDescription === undefined ? undefined : rejectModalDescription) ??
-    'signing.reject_modal_description';
-  const modalButton =
-    (config.textResourceBindings?.rejectModalButton === undefined ? undefined : rejectModalButton) ??
-    'signing.reject_modal_button';
-  const modalCloseButton =
-    (config.textResourceBindings?.rejectModalCloseButton === undefined ? undefined : rejectModalCloseButton) ??
-    'signing.reject_modal_close_button';
-  const modalTriggerButton =
-    (config.textResourceBindings?.rejectModalTriggerButton === undefined ? undefined : rejectModalTriggerButton) ??
-    'signing.reject_modal_trigger_button';
+  const modalTitle = rejectModalTitle ?? 'signing.reject_modal_title';
+  const modalDescription = rejectModalDescription ?? 'signing.reject_modal_description';
+  const modalButton = rejectModalButton ?? 'signing.reject_modal_button';
+  const modalCloseButton = rejectModalCloseButton ?? 'signing.reject_modal_close_button';
+  const modalTriggerButton = rejectModalTriggerButton ?? 'signing.reject_modal_trigger_button';
 
   return (
     <Dialog.TriggerContext>

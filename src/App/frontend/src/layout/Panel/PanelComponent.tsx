@@ -7,13 +7,13 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'Panel'>) => {
   const config = useComponentConfig(baseComponentId, 'Panel');
-  const body = useEvalExpression(config.textResourceBindings?.body, Expressions.Panel.textResourceBindings.body);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Panel.textResourceBindings.title);
+  const body = useEvalOptionalText(config.textResourceBindings?.body, Expressions.Panel.textResourceBindings.body);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Panel.textResourceBindings.title);
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
@@ -24,10 +24,7 @@ export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'P
       : parent && layoutLookups.componentToChildren[parent.id]) ?? [];
   const isOnBottom = childrenOfParent.indexOf(baseComponentId) === childrenOfParent.length - 1;
   const isOnTop = childrenOfParent.indexOf(baseComponentId) === 0;
-  if (
-    !(config.textResourceBindings?.body === undefined ? undefined : body) &&
-    !(config.textResourceBindings?.title === undefined ? undefined : title)
-  ) {
+  if (!body && !title) {
     window.logWarn('Unable to render panel component: no text resource binding found.');
     return null;
   }
@@ -45,16 +42,12 @@ export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'P
         )}
       >
         <Panel
-          title={
-            (config.textResourceBindings?.title === undefined ? undefined : title) ? (
-              <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
-            ) : undefined
-          }
+          title={title ? <Lang id={title} /> : undefined}
           showIcon={config.showIcon ?? true}
           variant={config.variant ?? 'info'}
           forceMobileLayout={!fullWidth}
         >
-          <Lang id={config.textResourceBindings?.body === undefined ? undefined : body} />
+          <Lang id={body} />
         </Panel>
       </ConditionalWrapper>
     </ComponentStructureWrapper>

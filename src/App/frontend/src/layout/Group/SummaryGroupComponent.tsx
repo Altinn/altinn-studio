@@ -17,7 +17,7 @@ import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export function SummaryGroupComponent({
@@ -28,15 +28,15 @@ export function SummaryGroupComponent({
 }: SummaryRendererProps) {
   const config = useComponentConfig(targetBaseComponentId, 'Group');
   const componentId = useIndexedId(targetBaseComponentId);
-  const summaryAccessibleTitle = useEvalExpression(
+  const summaryAccessibleTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryAccessibleTitle,
     Expressions.Group.textResourceBindings.summaryAccessibleTitle,
   );
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.Group.textResourceBindings.summaryTitle,
   );
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Group.textResourceBindings.title);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Group.textResourceBindings.title);
 
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
@@ -52,25 +52,7 @@ export function SummaryGroupComponent({
   const groupValidations = useDeepValidationsForNode(targetBaseComponentId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const summaryAccessibleTitleTrb =
-    config.textResourceBindings &&
-    'summaryAccessibleTitle' in config.textResourceBindings &&
-    config.textResourceBindings.summaryAccessibleTitle !== undefined
-      ? summaryAccessibleTitle
-      : undefined;
-  const summaryTitleTrb =
-    config.textResourceBindings &&
-    'summaryTitle' in config.textResourceBindings &&
-    config.textResourceBindings.summaryTitle !== undefined
-      ? summaryTitle
-      : undefined;
-  const titleTrb =
-    config.textResourceBindings &&
-    'title' in config.textResourceBindings &&
-    config.textResourceBindings.title !== undefined
-      ? title
-      : undefined;
-  const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
+  const ariaLabel = langAsString(summaryAccessibleTitle ?? summaryTitle ?? title);
   const isHidden = useIsHiddenMulti(config.children);
   const children = config.children.filter((id) => !inExcludedChildren(id) && !isHidden[id]);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
@@ -120,7 +102,7 @@ export function SummaryGroupComponent({
       >
         <div className={classes.container}>
           <span className={classes.label}>
-            <Lang id={summaryTitleTrb ?? titleTrb} />
+            <Lang id={summaryTitle ?? title} />
           </span>
 
           {!display?.hideChangeButton && (

@@ -11,7 +11,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { generatePdfPreview } from 'src/utils/pdfPreview/generatePdfPreview';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
@@ -35,7 +35,7 @@ export function PDFPreviewButtonRenderLayoutValidator({
 export function PDFPreviewButtonComponent({ baseComponentId }: PropsFromGenericComponent<'PDFPreviewButton'>) {
   const config = useComponentConfig(baseComponentId, 'PDFPreviewButton');
   const componentId = useIndexedId(baseComponentId);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.PDFPreviewButton.textResourceBindings.title,
   );
@@ -47,7 +47,7 @@ export function PDFPreviewButtonComponent({ baseComponentId }: PropsFromGenericC
   return (
     <PDFPreviewButton
       componentId={componentId}
-      title={config.textResourceBindings?.title === undefined ? undefined : title}
+      title={title}
       buttonStyle={config.buttonStyle}
       disabled={!instanceId}
       onGenerate={(signal) => generatePdfPreview(instanceId, language, signal)}

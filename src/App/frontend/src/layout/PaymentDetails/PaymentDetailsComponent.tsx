@@ -9,22 +9,22 @@ import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/Or
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericComponent<'PaymentDetails'>) {
   const orderDetails = useOrderDetails();
   const refetchOrderDetails = useRefetchOrderDetails();
   const config = useComponentConfig(baseComponentId, 'PaymentDetails');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.PaymentDetails.textResourceBindings.title,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.PaymentDetails.textResourceBindings.description,
   );
-  const help = useEvalExpression(
+  const help = useEvalOptionalText(
     config.textResourceBindings?.help,
     Expressions.PaymentDetails.textResourceBindings.help,
   );
@@ -46,9 +46,9 @@ export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericCom
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <PaymentDetailsTable
         orderDetails={orderDetails}
-        tableTitle={config.textResourceBindings?.title === undefined ? undefined : title}
-        description={config.textResourceBindings?.description === undefined ? undefined : description}
-        help={config.textResourceBindings?.help === undefined ? undefined : help}
+        tableTitle={title}
+        description={description}
+        help={help}
       />
     </ComponentStructureWrapper>
   );

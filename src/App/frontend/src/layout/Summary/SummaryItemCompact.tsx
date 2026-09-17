@@ -6,7 +6,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface ICompactSummaryItem {
   targetBaseComponentId: string;
@@ -15,36 +15,23 @@ export interface ICompactSummaryItem {
 
 export function SummaryItemCompact({ targetBaseComponentId, displayData }: ICompactSummaryItem) {
   const config = useComponentConfig(targetBaseComponentId);
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
       ? config.textResourceBindings.summaryTitle
       : undefined,
     CommonExpressions.TRBSummarizable.summaryTitle,
   );
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
 
-  const summaryTitleTrb =
-    config.textResourceBindings &&
-    'summaryTitle' in config.textResourceBindings &&
-    config.textResourceBindings.summaryTitle !== undefined
-      ? summaryTitle
-      : undefined;
-  const titleTrb =
-    config.textResourceBindings &&
-    'title' in config.textResourceBindings &&
-    config.textResourceBindings.title !== undefined
-      ? title
-      : undefined;
-
   return (
     <div data-testid='summary-item-compact'>
       {/* FIXME: is data-testid actually necessary? Can we get it in tests in other ways? */}
-      <SummaryTitle title={summaryTitleTrb ?? titleTrb} />
+      <SummaryTitle title={summaryTitle ?? title} />
       <DisplayData displayData={displayData} />
     </div>
   );
