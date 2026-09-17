@@ -18,6 +18,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- Deleting an Agent no longer logs a panic when its Sandbox has an active network-control connection.
 - The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.
 - Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex keeps its conversation in that history; Claude Code keeps its selected renderer and handles scrolling itself in fullscreen mode. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
 - Agent setup now writes Sandbox files only when their contents changed, and replaces them atomically. Codex no longer reports missing skill frontmatter after each reconciliation pass.
