@@ -499,6 +499,11 @@ func TestBuildDotnetRunSpec_ProvisionsTheDevelopmentAppCodes(t *testing.T) {
 // build the run - not something to carry on past and let the app discover.
 func TestBuildDotnetRunSpec_FailsWhenTheAppCodesCannotBeWritten(t *testing.T) {
 	t.Parallel()
+	if runtime.GOOS == "windows" {
+		// The atomic writer's Windows replace moves whatever is in the way aside, directory included, so the
+		// write succeeds there; only the Unix rename refuses a directory at the target.
+		t.Skip("a directory in the way of the app codes file is replaced on Windows")
+	}
 
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
