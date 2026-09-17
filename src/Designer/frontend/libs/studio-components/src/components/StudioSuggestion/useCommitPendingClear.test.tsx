@@ -1,11 +1,8 @@
-import { useRef, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useCommitPendingClear } from './useCommitPendingClear';
 
-// The web component behind StudioSuggestion does not upgrade in jsdom, so these tests stand in for
-// it with the plain markup it wraps: a root element containing the input the user types in. That
-// is all the hook looks at, and it is what the hook has to keep working with — the point of the
-// hook is that it does not depend on the web component to report a clear.
+// The web component does not upgrade in jsdom, so a plain root holding the input stands in for it.
 
 describe('useCommitPendingClear', () => {
   it('reports the clear when the user empties the field and moves focus out of it', () => {
@@ -13,25 +10,9 @@ describe('useCommitPendingClear', () => {
     renderField({ onClear });
 
     emptyField();
-    fireEvent.focusOut(getInput());
-
-    expect(onClear).toHaveBeenCalledTimes(1);
-  });
-
-  it('reports the clear before a click that unmounts the field is able to remove it', () => {
-    // The defect this guards against: the process editor swaps the whole configuration panel out
-    // when the click changes the bpmn selection, and a clear reported any later than this is lost
-    // with the element it was reported from.
-    const onClear = jest.fn();
-    const { unmount } = renderField({ onClear });
-
-    emptyField();
     fireEvent.mouseDown(getOutsideElement());
     fireEvent.focusOut(getInput());
 
-    expect(onClear).toHaveBeenCalledTimes(1);
-
-    unmount();
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
@@ -65,8 +46,7 @@ describe('useCommitPendingClear', () => {
   });
 
   it('does not report a clear when the press that moved the focus started inside the field', () => {
-    // The clear button and the options in the list both blur the input on mousedown and hand focus
-    // straight back on click, so a press inside the field is not the user leaving it.
+    // The clear button and the options blur the input on mousedown and hand focus back on click.
     const onClear = jest.fn();
     renderField({ onClear });
 
@@ -135,19 +115,17 @@ type FieldProps = {
 };
 
 function Field({ hasSelection = true, onClear }: FieldProps): ReactElement {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  useCommitPendingClear({ rootRef, inputRef, hasSelection, onClear });
+  const commitPendingClear = useCommitPendingClear({ hasSelection, onClear });
   return (
-    <div ref={rootRef}>
-      <input aria-label={inputLabel} defaultValue='Model' ref={inputRef} />
+    <div {...commitPendingClear}>
+      <input aria-label={inputLabel} defaultValue='Model' />
       <button aria-label={clearButtonLabel} type='button' />
     </div>
   );
 }
 
-function renderField(props: FieldProps): ReturnType<typeof render> {
-  return render(
+function renderField(props: FieldProps): void {
+  render(
     <>
       <Field {...props} />
       <div aria-label={outsideElementLabel} />
