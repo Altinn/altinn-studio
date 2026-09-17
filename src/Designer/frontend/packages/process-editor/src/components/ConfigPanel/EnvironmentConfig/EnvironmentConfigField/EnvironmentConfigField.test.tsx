@@ -25,6 +25,24 @@ const addOverrideLabel = textMock(
 describe('EnvironmentConfigField', () => {
   afterEach(jest.clearAllMocks);
 
+  it('keeps keyboard focus in the field when opening, adding and removing an override, and closing', async () => {
+    const user = userEvent.setup();
+    renderEnvironmentConfigField();
+
+    await user.click(getCollapsedButton());
+    expect(screen.getByRole('textbox', { name: globalLabel })).toHaveFocus();
+
+    await user.click(screen.getByRole('button', { name: addOverrideLabel }));
+    await user.click(getMenuItem(stagingLabel));
+    expect(screen.getByRole('textbox', { name: stagingLabel })).toHaveFocus();
+
+    await user.click(getDeleteButton(stagingLabel));
+    expect(screen.getByRole('textbox', { name: globalLabel })).toHaveFocus();
+
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    expect(getCollapsedButton()).toHaveFocus();
+  });
+
   it('counts the overrides beside the value when collapsed', () => {
     renderEnvironmentConfigField({
       entries: [{ value: 'g' }, { env: 'production', value: 'p' }, { env: 'tt02', value: 's' }],

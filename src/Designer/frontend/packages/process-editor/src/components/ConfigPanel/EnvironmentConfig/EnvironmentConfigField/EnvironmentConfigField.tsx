@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StudioAlert,
@@ -71,6 +71,22 @@ export function EnvironmentConfigField<TValue>({
 }: EnvironmentConfigFieldProps<TValue>): ReactElement {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [focusTarget, setFocusTarget] = useState<{ scope?: EnvironmentScope }>();
+  const fieldsetRef = useRef<HTMLFieldSetElement>(null);
+  const summaryRef = useRef<HTMLButtonElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!focusTarget) return;
+    if (focusTarget.scope === undefined) {
+      summaryRef.current?.focus();
+    } else {
+      const control =
+        rowRef.current?.querySelector<HTMLInputElement>('input:checked') ??
+        rowRef.current?.querySelector<HTMLElement>('input, textarea, select');
+      control?.focus();
+    }
+  }, [focusTarget]);
   // Overrides added or cleared in the panel but not yet given a value. An empty override would
   // shadow the global value, so they stay out of the bpmn until they have content.
   const [draftEnvironments, setDraftEnvironments] = useState<AltinnEnvironment[]>([]);
@@ -90,6 +106,12 @@ export function EnvironmentConfigField<TValue>({
     setDraftEnvironments((drafts) => drafts.filter((draft) => draft !== environment));
 
   const collapse = (): void => {
+    const invalidControl = fieldsetRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (invalidControl) {
+      invalidControl.focus();
+      return;
+    }
+    setFocusTarget({});
     setDraftEnvironments([]);
     setIsExpanded(false);
   };
@@ -105,6 +127,7 @@ export function EnvironmentConfigField<TValue>({
   };
 
   const handleRemove = (scope: EnvironmentScope): void => {
+    setFocusTarget({ scope: globalScope });
     if (scope !== globalScope) removeDraft(scope);
     if (findEntry(scope)) onChange(withoutEnvironmentValue(entries, scope));
   };
@@ -137,7 +160,11 @@ export function EnvironmentConfigField<TValue>({
   if (!isExpanded) {
     return (
       <StudioProperty.Button
-        onClick={() => setIsExpanded(true)}
+        ref={summaryRef}
+        onClick={() => {
+          setIsExpanded(true);
+          setFocusTarget({ scope: globalScope });
+        }}
         property={label}
         value={getSummaryText()}
       />
@@ -156,7 +183,11 @@ export function EnvironmentConfigField<TValue>({
   };
 
   const renderRow = (scope: EnvironmentScope): ReactElement => (
-    <div className={classes.row} key={scope}>
+    <div
+      className={classes.row}
+      key={scope}
+      ref={scope === focusTarget?.scope ? rowRef : undefined}
+    >
       <div className={classes.control}>
         {renderValueControl({
           label: t(getEnvironmentScopeTextKey(scope)),
@@ -185,6 +216,7 @@ export function EnvironmentConfigField<TValue>({
 
   return (
     <StudioFormGroup
+      ref={fieldsetRef}
       legend={label}
       description={description}
       required={required}
@@ -222,7 +254,12 @@ export function EnvironmentConfigField<TValue>({
             <StudioDropdown.List>
               {availableEnvironments.map((environment) => (
                 <StudioDropdown.Item key={environment}>
-                  <StudioDropdown.Button onClick={() => addDraft(environment)}>
+                  <StudioDropdown.Button
+                    onClick={() => {
+                      addDraft(environment);
+                      setFocusTarget({ scope: environment });
+                    }}
+                  >
                     {t(getEnvironmentScopeTextKey(environment))}
                   </StudioDropdown.Button>
                 </StudioDropdown.Item>
@@ -232,12 +269,9 @@ export function EnvironmentConfigField<TValue>({
         )}
       </div>
       <div className={classes.footer}>
-        <StudioButton
-          icon={<XMarkIcon />}
-          onClick={collapse}
-          title={t('general.close')}
-          variant='secondary'
-        />
+        <StudioButton icon={<XMarkIcon />} onClick={collapse} variant='secondary'>
+          {t('general.close')}
+        </StudioButton>
       </div>
     </StudioFormGroup>
   );

@@ -22,10 +22,36 @@ describe('EnvIntegerConfigField', () => {
     await user.click(getCollapsedButton());
 
     await user.type(screen.getByLabelText(globalLabel), '3.5');
+    expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
     await user.tab();
 
     expect(onChange).not.toHaveBeenCalled();
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
+  });
+
+  it('preserves invalid input when closing and returns focus to the error', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderEnvIntegerConfigField({ entries: [{ value: '3' }], onChange });
+    await user.click(getCollapsedButton());
+    await user.clear(screen.getByRole('textbox', { name: globalLabel }));
+    await user.type(screen.getByRole('textbox', { name: globalLabel }), '3.5');
+
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    const input = screen.getByRole('textbox', { name: globalLabel });
+    expect(input).toHaveValue('3.5');
+    expect(input).toHaveFocus();
+    expect(input).toHaveAccessibleDescription(errorMessage);
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.clear(input);
+    await user.type(input, '4');
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(getCollapsedButton()).toHaveFocus();
+    expect(getCollapsedButton()).toHaveTextContent('4');
+    expect(onChange).toHaveBeenCalledWith([{ value: '4' }]);
   });
 
   it('writes the value once it is corrected, without the spaces around it', async () => {

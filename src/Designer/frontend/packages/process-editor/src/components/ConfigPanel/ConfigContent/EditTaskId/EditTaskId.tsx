@@ -1,3 +1,4 @@
+import { useFocusInput } from '../../../../hooks/useFocusInput';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioToggleableTextfield } from '@studio/components';
@@ -9,6 +10,7 @@ import type { CommandStack } from 'bpmn-js/lib/features/modeling/Modeling';
 
 export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
+  const inputRef = useFocusInput();
   const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
   const { metadataFormRef } = useBpmnConfigPanelFormContext();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
@@ -44,6 +46,7 @@ export const EditTaskId = (): React.ReactElement => {
 
   return (
     <StudioToggleableTextfield
+      ref={inputRef}
       customValidation={validateBpmnTaskId}
       label={t('process_editor.configuration_panel_change_task_id')}
       title={t('process_editor.configuration_panel_change_task_id')}

@@ -1,3 +1,4 @@
+import { useFocusInput } from '../../../../hooks/useFocusInput';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioToggleableTextfield } from '@studio/components';
@@ -11,6 +12,7 @@ const TASK_EXTENSION_TYPE = 'altinn:TaskExtension';
 
 export const EditServiceTaskType = (): React.ReactElement => {
   const { t } = useTranslation();
+  const inputRef = useFocusInput();
   const { bpmnDetails, setBpmnDetails } = useBpmnContext();
   const taskType = bpmnDetails.taskType ?? '';
   const label = t('process_editor.configuration_panel_service_task_type_label');
@@ -36,6 +38,7 @@ export const EditServiceTaskType = (): React.ReactElement => {
 
   return (
     <StudioToggleableTextfield
+      ref={inputRef}
       key={taskType}
       customValidation={validateTaskType}
       description={t('process_editor.configuration_panel_service_task_type_description')}

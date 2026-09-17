@@ -98,8 +98,8 @@ describe('ConfigEFormidlingServiceTask', () => {
       renderConfigEFormidlingServiceTask({ availableDataTypeIds: ['model', 'attachment'] });
 
     await expandOptionalField(user, fieldLabel('data_types'));
-    await user.type(screen.getByLabelText(globalLabel, { exact: false }), 'attachment');
-    await user.click(screen.getByRole('option', { name: 'attachment' }));
+    expect(screen.getByLabelText(globalLabel, { exact: false })).toHaveFocus();
+    await user.keyboard('attachment{Enter}');
 
     expect(updateModdleProperties).toHaveBeenCalledWith(element, eFormidlingConfig, {
       dataTypes: [

@@ -50,7 +50,6 @@ export const ConfigGateway = (): React.ReactElement => {
             'process_editor.configuration_panel_gateway_connected_data_type_description',
           )}
           emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
-          filter={() => true}
           label={t('process_editor.configuration_panel_gateway_connected_data_type_label')}
           multiple={false}
           onSelectedChange={handleSelectedChange}
