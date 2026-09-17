@@ -27,7 +27,7 @@ import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
+import type { BaseRow } from 'src/utils/layout/types';
 
 export interface IRepeatingGroupsEditContainer {
   editId: string;
@@ -60,13 +60,13 @@ function RepeatingGroupsEditContainerInternal({
   forceHideSaveButton,
   row,
 }: IRepeatingGroupsEditContainer & {
-  row: RepGroupRow;
+  row: BaseRow;
 }): JSX.Element | null {
   const baseComponentId = useRepeatingGroupComponentId();
   const closeForEditing = RepGroupContext.useCloseForEditing();
   const deleteRow = useDeleteRowAndFocus();
   const openNextForEditing = RepGroupContext.useOpenNextForEditing();
-  const { visibleRows, editableRows } = useRepeatingGroupRowState();
+  const { visibleRows } = useRepeatingGroupRowState();
   const childIds = RepGroupHooks.useChildIdsWithMultiPage(baseComponentId);
 
   const editingRowIndex = visibleRows.find((r) => r.uuid === editId)?.index;
@@ -259,10 +259,8 @@ function RepeatingGroupsEditContainerInternal({
                   id={`next-button-grp-${id}`}
                   onClick={async () => {
                     // Move focus to the top of its edit container
-                    const currentEditableIndex = editableRows.findIndex((r) => r.uuid === editId);
-                    const nextEditableRow = editableRows[currentEditableIndex + 1];
-                    const opened = await openNextForEditing();
-                    if (opened) {
+                    const nextEditableRow = await openNextForEditing();
+                    if (nextEditableRow !== false) {
                       requestAnimationFrame(() =>
                         // Fall back to focusing this row's edit button like save and close.
                         nextEditableRow ? focusEditContainer(nextEditableRow.index) : focusEditButton(row.index),

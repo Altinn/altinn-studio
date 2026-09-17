@@ -12,11 +12,16 @@ import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelL
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getRepeatingChildBaseIds } from 'src/utils/layout/plugins/claimRepeatingChildren';
+import { useEvalExpressionCallback } from 'src/utils/layout/useEvalExpression';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompExternal } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
+
+export function getRepeatingRowReference(groupBinding: IDataModelReference | undefined, rowIndex: number) {
+  return groupBinding ? { dataType: groupBinding.dataType, field: `${groupBinding.field}[${rowIndex}]` } : undefined;
+}
 
 export interface RepGroupRow extends BaseRow {
   hidden: boolean;
@@ -267,9 +272,15 @@ export const RepGroupHooks = {
     }, [dataSources, deleteButton, editButton, getFreshRows, groupBinding, hiddenRow, componentId]);
   },
 
-  useVisibleRows(baseComponentId: string) {
-    const withHidden = RepGroupHooks.useAllRowsWithHidden(baseComponentId);
-    return withHidden.filter((row) => !row.hidden);
+  useVisibleRows(baseComponentId: string): BaseRow[] {
+    const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+    const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
+    const rows = RepGroupHooks.useAllBaseRows(baseComponentId);
+    const isHidden = useEvalExpressionCallback(config.hiddenRow, Expressions.RepeatingGroup.hiddenRow);
+    return useMemo(
+      () => rows.filter((row) => !isHidden(getRepeatingRowReference(groupBinding, row.index))),
+      [groupBinding, isHidden, rows],
+    );
   },
 
   useChildIds(baseComponentId: string) {
