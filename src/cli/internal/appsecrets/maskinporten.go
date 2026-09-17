@@ -1,6 +1,7 @@
 // Package appsecrets provisions an app's secrets for a local run the way the operator does in a cluster: a
 // directory of files the app libraries read from a location the platform names, never from the app's own
-// configuration. Today the directory holds one file, the app's Maskinporten client.
+// configuration. The names studioctl hands the app are in provisioned.go; today the directory holds one file
+// studioctl writes, the app's Maskinporten client.
 package appsecrets
 
 import (
@@ -17,18 +18,6 @@ import (
 )
 
 const (
-	// MaskinportenFileName is the file the app libraries read the app's Maskinporten client from, in the
-	// secrets directory - the same name, and the same content, the operator provisions in a cluster.
-	MaskinportenFileName = "maskinporten-settings.json"
-
-	// ContainerDir is where the app libraries read provisioned secrets in a cluster, and therefore where the
-	// secrets directory is mounted when the app runs in a container.
-	ContainerDir = "/mnt/app-secrets"
-
-	// EnvSecretsDir is the environment variable through which a native run learns where its secrets directory
-	// is. The app libraries honor it on the localtest platform only.
-	EnvSecretsDir = "STUDIOCTL_APP_SECRETS_DIR" //nolint:gosec // G101: the name of a variable, not a credential.
-
 	// wrapperKey is the object the provisioned file wraps the credentials in, for .NET configuration binding.
 	wrapperKey = "MaskinportenSettings"
 

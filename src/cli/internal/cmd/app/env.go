@@ -53,13 +53,18 @@ func (e appEnv) addRunDefaults(
 	endpoints := newAppEndpointConfig(topology)
 
 	e.values["STUDIOCTL_APP_RUN"] = "1"
-	// The app's secrets directory, provisioned by studioctl the way the operator provisions /mnt/app-secrets
-	// in a cluster. It holds the Maskinporten client stored with `studioctl app maskinporten set`; the app
-	// libraries honor the variable on the localtest platform only. Always named, even before anything is
-	// stored, so that a client stored while the app runs is picked up without a restart - and never taken
-	// from the inherited environment: where the secrets live is studioctl's decision, not the shell's.
+	// Where the app's secrets are and what every file in that directory is called, named for the app exactly
+	// as the platform names them for a deployed app - the same variables the operator's configuration map
+	// sets in every environment (infra/runtime/apps-config/base/apps-runtime-common-env.yaml), because
+	// studioctl is the platform for a local run. The app libraries require all of them and fall back to
+	// nothing, so naming the directory means naming its files too, whether or not studioctl has written one
+	// yet: the Maskinporten client stored with `studioctl app maskinporten set` lands under the name
+	// advertised here, and a client stored while the app runs is picked up without a restart. None of the
+	// three is taken from the inherited environment: the contract is studioctl's to state, not the shell's.
 	if secretsDir != "" {
 		e.values[appsecrets.EnvSecretsDir] = secretsDir
+		e.values[appsecrets.EnvMaskinportenFileName] = appsecrets.MaskinportenFileName
+		e.values[appsecrets.EnvAppCodesFileName] = appsecrets.AppCodesFileName
 	}
 	// Where the app persists its data-protection keys. A native run uses the developer's home directory, as
 	// the app libraries default to; a container run is told the directory studioctl mounts for it, as the

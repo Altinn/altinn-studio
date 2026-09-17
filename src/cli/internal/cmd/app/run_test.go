@@ -401,7 +401,7 @@ func writeAppProject(t *testing.T, appPath string) string {
 	return projectPath
 }
 
-func TestBuildDotnetRunSpec_NamesTheSecretsDirectory(t *testing.T) {
+func TestBuildDotnetRunSpec_NamesTheProvisionedSecrets(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
@@ -426,14 +426,14 @@ func TestBuildDotnetRunSpec_NamesTheSecretsDirectory(t *testing.T) {
 	if spec.SecretsDir != want {
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
-	if got := envValue(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR"); got != want {
-		t.Fatalf("STUDIOCTL_APP_SECRETS_DIR = %q, want %q", got, want)
-	}
+	// The app is given the whole contract the platform gives a deployed app: where the secrets are, and what
+	// every file in there is called. The app libraries require all three and fall back to nothing.
+	assertProvisionedSecretsEnv(t, spec.Env, want)
 	// A native run keeps its data-protection keys where the app libraries default to: the developer's home.
 	assertEnvMissing(t, spec.Env, "ALTINN_KEYS_DIRECTORY")
 }
 
-func TestBuildDotnetRunSpec_OverridesAnInheritedSecretsDirectory(t *testing.T) {
+func TestBuildDotnetRunSpec_OverridesInheritedProvisionedSecretsVariables(t *testing.T) {
 	t.Parallel()
 
 	appPath := t.TempDir()
@@ -442,12 +442,16 @@ func TestBuildDotnetRunSpec_OverridesAnInheritedSecretsDirectory(t *testing.T) {
 	home := t.TempDir()
 	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
 
-	// Where the secrets live is studioctl's decision; a stray value in the shell must not redirect the app.
+	// The contract is studioctl's to state; stray values in the shell must not redirect the app.
 	spec, err := service.BuildDotnetRunSpec(
 		t.Context(),
 		appPath,
 		nil,
-		[]string{"STUDIOCTL_APP_SECRETS_DIR=/somewhere/else"},
+		[]string{
+			"RUNTIME_APP_SECRETS_DIR=/somewhere/else",
+			"RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME=something-else.json",
+			"RUNTIME_APP_APPCODES_SECRETS_FILENAME=something-else.json",
+		},
 		defaultTopology(),
 		appsvc.DotnetRunOptions{},
 	)
@@ -455,10 +459,7 @@ func TestBuildDotnetRunSpec_OverridesAnInheritedSecretsDirectory(t *testing.T) {
 		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
 	}
 
-	want := filepath.Join(home, "apps", "ttd", "test-app", "secrets")
-	if got := envValue(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR"); got != want {
-		t.Fatalf("STUDIOCTL_APP_SECRETS_DIR = %q, want %q (studioctl's own directory)", got, want)
-	}
+	assertProvisionedSecretsEnv(t, spec.Env, filepath.Join(home, "apps", "ttd", "test-app", "secrets"))
 }
 
 func TestBuildDotnetRunSpec_NamesNoSecretsDirectoryWithoutAHome(t *testing.T) {
@@ -476,7 +477,11 @@ func TestBuildDotnetRunSpec_NamesNoSecretsDirectoryWithoutAHome(t *testing.T) {
 	if spec.SecretsDir != "" {
 		t.Fatalf("SecretsDir = %q, want none", spec.SecretsDir)
 	}
-	assertEnvMissing(t, spec.Env, "STUDIOCTL_APP_SECRETS_DIR")
+	// Nothing to key a directory on, so nothing is named - not even the file names, which would describe a
+	// directory the app was never told about.
+	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_DIR")
+	assertEnvMissing(t, spec.Env, "RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME")
+	assertEnvMissing(t, spec.Env, "RUNTIME_APP_APPCODES_SECRETS_FILENAME")
 }
 
 func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t *testing.T) {
@@ -513,11 +518,28 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 	if keys.HostPath != wantKeys || keys.ContainerPath != "/mnt/keys" || keys.ReadOnly {
 		t.Fatalf("keys mount = %+v, want %s writable at /mnt/keys", keys, wantKeys)
 	}
-	// The container reads the deployed location, so it is not told about the secrets directory - but it is
-	// told where its data-protection keys go, as a deployed app is.
-	assertEnvMissing(t, spec.Config.Env, "STUDIOCTL_APP_SECRETS_DIR")
+	// The container is named the mount point, not the host directory, and it is told what every file in
+	// there is called - the app libraries require all three wherever the app runs. Its data-protection keys
+	// are named the same way a deployed app's are.
+	assertProvisionedSecretsEnv(t, spec.Config.Env, "/mnt/app-secrets")
 	if got := envValue(t, spec.Config.Env, "ALTINN_KEYS_DIRECTORY"); got != "/mnt/keys" {
 		t.Fatalf("ALTINN_KEYS_DIRECTORY = %q, want /mnt/keys", got)
+	}
+}
+
+// assertProvisionedSecretsEnv checks the contract the app libraries require: the secrets directory, and the
+// name of every file in it. These are the variables the platform's configuration map sets for a deployed app.
+func assertProvisionedSecretsEnv(t *testing.T, env []string, wantDir string) {
+	t.Helper()
+
+	for key, want := range map[string]string{
+		"RUNTIME_APP_SECRETS_DIR":                   wantDir,
+		"RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME": "maskinporten-settings.json",
+		"RUNTIME_APP_APPCODES_SECRETS_FILENAME":     "app-codes.json",
+	} {
+		if got := envValue(t, env, key); got != want {
+			t.Fatalf("%s = %q, want %q", key, got, want)
+		}
 	}
 }
 

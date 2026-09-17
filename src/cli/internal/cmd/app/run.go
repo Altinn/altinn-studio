@@ -250,14 +250,14 @@ func (s *Service) BuildDockerRunSpec(
 					Protocol:      "tcp",
 				},
 			},
-			// The container finds its secrets where a deployed app does, so it needs no directory named; it
-			// is told where its keys go, as a deployed app is.
+			// The container is named the mount point its secrets directory is mounted at, and is told where
+			// its keys go, exactly as a deployed app is told both.
 			Env: newAppRunEnv(
 				nil,
 				"http://*:"+appcontainers.DefaultContainerPort,
 				topology,
 				opts.AppFrontendAssetBaseUrl,
-				"",
+				appsecrets.ContainerDir,
 				keysDirEnv,
 			),
 			Command: args,
