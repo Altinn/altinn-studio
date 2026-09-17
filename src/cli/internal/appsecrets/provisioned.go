@@ -15,10 +15,10 @@ const (
 	EnvSecretsDir = "RUNTIME_APP_SECRETS_DIR" //nolint:gosec // G101: the name of a variable, not a credential.
 
 	// EnvMaskinportenFileName names the app's Maskinporten client inside that directory.
-	EnvMaskinportenFileName = "RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME"
+	EnvMaskinportenFileName = "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME"
 
 	// EnvAppCodesFileName names the app's callback verification codes inside that directory.
-	EnvAppCodesFileName = "RUNTIME_APP_APPCODES_SECRETS_FILENAME"
+	EnvAppCodesFileName = "RUNTIME_APP_SECRETS_APPCODES_FILENAME"
 
 	// MaskinportenFileName is what studioctl calls the Maskinporten client file - the name the operator uses
 	// in a cluster, for a file with the same content.

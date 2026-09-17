@@ -449,8 +449,8 @@ func TestBuildDotnetRunSpec_OverridesInheritedProvisionedSecretsVariables(t *tes
 		nil,
 		[]string{
 			"RUNTIME_APP_SECRETS_DIR=/somewhere/else",
-			"RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME=something-else.json",
-			"RUNTIME_APP_APPCODES_SECRETS_FILENAME=something-else.json",
+			"RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME=something-else.json",
+			"RUNTIME_APP_SECRETS_APPCODES_FILENAME=something-else.json",
 		},
 		defaultTopology(),
 		appsvc.DotnetRunOptions{},
@@ -480,8 +480,8 @@ func TestBuildDotnetRunSpec_NamesNoSecretsDirectoryWithoutAHome(t *testing.T) {
 	// Nothing to key a directory on, so nothing is named - not even the file names, which would describe a
 	// directory the app was never told about.
 	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_DIR")
-	assertEnvMissing(t, spec.Env, "RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME")
-	assertEnvMissing(t, spec.Env, "RUNTIME_APP_APPCODES_SECRETS_FILENAME")
+	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME")
+	assertEnvMissing(t, spec.Env, "RUNTIME_APP_SECRETS_APPCODES_FILENAME")
 }
 
 func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t *testing.T) {
@@ -534,8 +534,8 @@ func assertProvisionedSecretsEnv(t *testing.T, env []string, wantDir string) {
 
 	for key, want := range map[string]string{
 		"RUNTIME_APP_SECRETS_DIR":                   wantDir,
-		"RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME": "maskinporten-settings.json",
-		"RUNTIME_APP_APPCODES_SECRETS_FILENAME":     "app-codes.json",
+		"RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME": "maskinporten-settings.json",
+		"RUNTIME_APP_SECRETS_APPCODES_FILENAME":     "app-codes.json",
 	} {
 		if got := envValue(t, env, key); got != want {
 			t.Fatalf("%s = %q, want %q", key, got, want)
