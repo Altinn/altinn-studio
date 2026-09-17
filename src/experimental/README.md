@@ -66,8 +66,10 @@ creating durable Session state or taking Sandbox lifecycle ownership away from `
 Agent manifests form sibling families: `agent.yaml` is a complete `kind: Agent`, while
 `agent.<variant>.yaml` is a `kind: AgentVariant` with an explicit `metadata.name` and an `extends` filename. Variants
 may extend other variants in the same directory. Mappings merge recursively, arrays and scalars replace inherited
-values, and `null` removes a field; the expanded result is strictly validated as a complete Agent before it reaches
-`agentd`. Chains are limited to 16 manifests and cannot use absolute or cross-directory paths.
+values, and `null` removes a field. Changing a tagged mapping's `type`, such as an image from `reference` to `build`,
+replaces that mapping so fields from the old type do not leak into the new one. The expanded result is strictly
+validated as a complete Agent before it reaches `agentd`. Chains are limited to 16 manifests and cannot use absolute
+or cross-directory paths.
 
 Run `agentctl apply` for `./agent.yaml`, `agentctl apply --variant nested` for `./agent.nested.yaml`, or retain exact
 path selection with `agentctl apply -f path/to/agent.nested.yaml`. Checkout-local variants may be Git-ignored: TUI

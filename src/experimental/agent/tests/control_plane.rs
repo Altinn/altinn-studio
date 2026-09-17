@@ -429,6 +429,16 @@ async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_mani
     let mut local = apply_request_in("local", root.clone());
     local.manifest_path = Some(root.join("agent.mine.yaml"));
     fixture.control_plane.apply(local).await.expect("local Agent");
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some("mine"))
+            .await
+            .expect("multi-level local variant selection")
+            .metadata
+            .name,
+        "local"
+    );
     assert!(matches!(
         fixture
             .control_plane

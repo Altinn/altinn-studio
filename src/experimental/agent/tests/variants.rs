@@ -84,6 +84,28 @@ fn mappings_merge_while_arrays_replace_and_empty_arrays_clear() {
 }
 
 #[test]
+fn changing_a_tagged_mapping_type_replaces_the_previous_variant() {
+    let directory = family();
+    write(
+        directory.path(),
+        "agent.reference.yaml",
+        &variant(
+            "agent.yaml",
+            "reference",
+            "spec:\n  sandbox:\n    image:\n      type: reference\n      reference: example.invalid/agent:latest\n",
+        ),
+    );
+
+    let agent = manifest::resolve(&directory.path().join("agent.reference.yaml"))
+        .expect("tagged mapping replacement")
+        .agent;
+    assert!(matches!(
+        agent.spec.sandbox.image,
+        sandbox::image::ImageSource::Reference { .. }
+    ));
+}
+
+#[test]
 fn null_removes_optional_fields_and_required_removal_fails_final_validation() {
     let directory = family();
     write(
@@ -160,6 +182,26 @@ fn reports_the_complete_cycle() {
             .contains("agent.one.yaml -> agent.two.yaml -> agent.one.yaml"),
         "{error}"
     );
+}
+
+#[test]
+fn base_errors_include_the_complete_inheritance_chain() {
+    let directory = family();
+    write(
+        directory.path(),
+        "agent.parent.yaml",
+        &variant("agent.missing.yaml", "parent", ""),
+    );
+    write(
+        directory.path(),
+        "agent.leaf.yaml",
+        &variant("agent.parent.yaml", "leaf", ""),
+    );
+
+    let error = manifest::resolve(&directory.path().join("agent.leaf.yaml")).expect_err("missing base");
+    let message = error.to_string();
+    assert!(message.contains("inheritance chain:"), "{message}");
+    assert!(message.contains("agent.leaf.yaml\n  extends agent.parent.yaml\n  extends agent.missing.yaml"));
 }
 
 #[test]
