@@ -6,13 +6,11 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 
 import classes from './Canvas.module.css';
 import { BPMNEditor } from './BPMNEditor';
-import { FiksArkivFlowLabels } from './FiksArkivFlowLabels';
 
 export const Canvas = (): React.ReactElement => {
   return (
     <div className={classes.wrapper}>
       <BPMNEditor />
-      <FiksArkivFlowLabels />
     </div>
   );
 };
