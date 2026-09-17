@@ -79,6 +79,7 @@ const common = {
           new CG.prop(
             'hidden',
             new CG.expr(ExprVal.Boolean)
+              .setFallback(false)
               .setTitle('Hidden', 'Skjult')
               .setDescription(
                 'Expression that will hide the page/form layout if true',
@@ -409,7 +410,7 @@ const common = {
       .addExample({ label: '', value: '' }),
   IQueryParameters: () =>
     new CG.obj()
-      .additionalProperties(new CG.expr(ExprVal.String))
+      .additionalProperties(new CG.expr(ExprVal.String).setFallback(''))
       .setTitle('Query parameters', 'Spørringsparametere')
       .setDescription(
         'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
@@ -440,6 +441,7 @@ const common = {
       new CG.prop(
         'label',
         new CG.expr(ExprVal.String)
+          .setFallback('')
           .setTitle('Label', 'Ledetekst')
           .setDescription(
             'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
@@ -460,6 +462,7 @@ const common = {
       new CG.prop(
         'description',
         new CG.expr(ExprVal.String)
+          .setFallback('')
           .optional()
           .setTitle('Description', 'Beskrivelse')
           .setDescription(
@@ -471,6 +474,7 @@ const common = {
       new CG.prop(
         'helpText',
         new CG.expr(ExprVal.String)
+          .setFallback('')
           .optional()
           .setTitle('Help Text', 'Hjelpetekst')
           .setDescription(
@@ -538,6 +542,7 @@ const common = {
       new CG.prop(
         'optionFilter',
         new CG.expr(ExprVal.Boolean)
+          .setFallback(true)
           .optional()
           .setTitle('Filter options (using an expression)', 'Filtrer alternativer med et uttrykk')
           .setDescription(
@@ -565,6 +570,7 @@ const common = {
       new CG.prop(
         'colSpan',
         new CG.expr(ExprVal.Number)
+          .setFallback(1)
           .optional()
           .setTitle('Column span', 'Kolonnespenn')
           .setDescription(
@@ -972,6 +978,7 @@ const common = {
       new CG.prop(
         'navigationTitle',
         new CG.expr(ExprVal.String)
+          .setFallback('navigation.form_pages')
           .optional()
           .setTitle('Navigation title', 'Navigasjonstittel')
           .setDescription(
@@ -1006,6 +1013,7 @@ const common = {
       new CG.prop(
         'hideAppNameInPdf',
         new CG.expr(ExprVal.Boolean)
+          .setFallback(false)
           .setTitle('Hide app name in PDF', 'Skjul appnavn i PDF')
           .setDescription(
             'Controls whether the app name is hidden in the PDF header and footer.',
@@ -1134,7 +1142,7 @@ const common = {
 
   PatternFormatProps: () =>
     new CG.obj(
-      new CG.prop('format', new CG.expr(ExprVal.String)),
+      new CG.prop('format', new CG.expr(ExprVal.String).setFallback('')),
       new CG.prop('mask', new CG.union(new CG.str(), new CG.arr(new CG.str())).optional()),
       new CG.prop('allowEmptyFormatting', new CG.bool().optional()),
       new CG.prop('patternChar', new CG.str().optional()),
@@ -1143,17 +1151,19 @@ const common = {
     new CG.obj(
       new CG.prop(
         'thousandSeparator',
-        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional(),
+        new CG.union(new CG.expr(ExprVal.Boolean).setFallback(false), new CG.expr(ExprVal.String).setFallback(''))
+          .setExpressionFallback(false)
+          .optional(),
       ),
-      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).setFallback('.').optional()),
       new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
       new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
       new CG.prop('decimalScale', new CG.num().optional()),
       new CG.prop('fixedDecimalScale', new CG.bool().optional()),
       new CG.prop('allowNegative', new CG.bool().optional()),
       new CG.prop('allowLeadingZeros', new CG.bool().optional()),
-      new CG.prop('suffix', new CG.expr(ExprVal.String).optional()),
-      new CG.prop('prefix', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('suffix', new CG.expr(ExprVal.String).setFallback('').optional()),
+      new CG.prop('prefix', new CG.expr(ExprVal.String).setFallback('').optional()),
     )
       .setTitle('Number formatting options', 'Innstillinger for tallformat')
       .setDescription(
@@ -1285,6 +1295,15 @@ export function getSourceForCommon(
   impl.exportAs(key);
   implementationsCache[cacheKey] = impl;
   return impl;
+}
+
+export function getCommonTypeSources() {
+  return Object.keys(common)
+    .sort()
+    .map((key) => ({
+      key,
+      source: getSourceForCommon(key as ValidCommonKeys),
+    }));
 }
 
 export function generateAllCommonTypes(map: { [key: string]: ComponentConfig }) {
