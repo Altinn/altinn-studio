@@ -95,6 +95,34 @@ public sealed class MaskinportenSettingsProvisioningTests
     }
 
     /// <summary>
+    /// A file holding only the key is still a file the platform provisioned, and the data annotations are what
+    /// describe it: they name the fields it is missing. The "nothing is stored" message belongs to the empty
+    /// file alone, and would send a developer to store a client they have already stored.
+    /// </summary>
+    [Fact]
+    public async Task Options_FailValidationFieldByField_WhenOnlyTheKeyWasProvisioned()
+    {
+        using var tempDirectory = new TempDirectory();
+        await File.WriteAllTextAsync(
+            Path.Join(tempDirectory.Path, _fileName),
+            """{ "MaskinportenSettings": { "jwk": { "kty": "RSA", "kid": "a-key-and-nothing-else" } } }"""
+        );
+
+        await using var serviceProvider = BuildAppProvider(_localtestHostName, tempDirectory.Path);
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            serviceProvider.GetRequiredService<IOptions<MaskinportenSettings>>().Value
+        );
+        Assert.Contains("Authority", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("ClientId", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "No Maskinporten client is stored for this local run",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    /// <summary>
     /// Operator key rotation reaches a running app: the channel polls, and the change token it publishes is
     /// what <see cref="IOptionsMonitor{TOptions}"/> rebinds on.
     /// </summary>

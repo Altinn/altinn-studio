@@ -72,7 +72,8 @@ builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
 
 // Provide a WorkflowEngineCallback app-code so the enqueue path can mint callback tokens and the
-// always-on WorkflowEngineCallback startup validation passes for every test host.
+// always-on WorkflowEngineCallback startup validation passes for every test host. The app codes still bind
+// from the app's own configuration here; they move to the provisioned secrets channel in the next PR.
 builder.Configuration["AppCodes:WorkflowEngineCallback:0:Id"] = "test";
 builder.Configuration["AppCodes:WorkflowEngineCallback:0:Code"] = "test-workflow-engine-callback-secret-long-enough";
 builder.Configuration["AppCodes:WorkflowEngineCallback:0:IssuedAt"] = "2020-01-01T00:00:00Z";

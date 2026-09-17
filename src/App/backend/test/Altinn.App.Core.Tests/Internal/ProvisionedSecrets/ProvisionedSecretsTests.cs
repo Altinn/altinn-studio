@@ -205,7 +205,7 @@ public sealed class ProvisionedSecretsTests
     /// </summary>
     [Theory]
     [InlineData(ProvisionedSecrets.DirectoryKey)]
-    [InlineData("RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME")]
+    [InlineData("RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME")]
     public void FromConfiguration_Throws_WhenAVariableIsNotSet(string missingKey)
     {
         using var tempDirectory = new TempDirectory();

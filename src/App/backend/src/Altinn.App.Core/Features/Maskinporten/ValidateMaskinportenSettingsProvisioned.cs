@@ -10,6 +10,10 @@ namespace Altinn.App.Core.Features.Maskinporten;
 /// data annotations on <see cref="MaskinportenSettings"/> report a missing field by name, and the options
 /// factory aggregates every validator's failures, so for the empty file - the case a developer meets first -
 /// this adds the fix to those field names.</para>
+/// <para>Anything at all having been read is enough to step aside: a file with only a key in it is a file the
+/// platform provisioned, and the data annotations name the fields it is missing. This validator speaks for
+/// the empty file alone, so every field <see cref="MaskinportenSettings"/> holds counts as something read -
+/// including the key, which no annotation requires.</para>
 /// <para>Every app has a provisioned Maskinporten client, so this runs at host startup and an app with no
 /// credentials does not start. Rotating a file that is there is a different matter, and still reaches a
 /// running app without a restart through the channel's polling file provider.</para>
@@ -23,12 +27,15 @@ internal sealed class ValidateMaskinportenSettingsProvisioned(
 {
     public ValidateOptionsResult Validate(string? name, MaskinportenSettings options)
     {
-        if (!string.IsNullOrWhiteSpace(options.Authority) || !string.IsNullOrWhiteSpace(options.ClientId))
-        {
-            return ValidateOptionsResult.Skip;
-        }
+        bool somethingWasRead =
+            !string.IsNullOrWhiteSpace(options.Authority)
+            || !string.IsNullOrWhiteSpace(options.ClientId)
+            || options.Jwk is not null
+            || !string.IsNullOrWhiteSpace(options.JwkBase64);
 
-        return ValidateOptionsResult.Fail(MissingCredentialsMessage(secrets, runtimeEnvironment));
+        return somethingWasRead
+            ? ValidateOptionsResult.Skip
+            : ValidateOptionsResult.Fail(MissingCredentialsMessage(secrets, runtimeEnvironment));
     }
 
     /// <summary>

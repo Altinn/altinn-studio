@@ -51,7 +51,6 @@ public static class WebHostBuilderExtensions
 
                 AddRuntimeConfigFiles(
                     configBuilder,
-                    context.HostingEnvironment,
                     context.Configuration[ProvisionedSecrets.DirectoryKey],
                     hostedFileNames
                 );
@@ -61,30 +60,31 @@ public static class WebHostBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the platform's runtime configuration files to the app's own configuration root.
+    /// <para>Adds the platform's runtime configuration files to the app's own configuration root.</para>
+    /// <para>The same in every environment: the platform names the secrets directory wherever an app runs,
+    /// and the files the libraries host there are excluded, so a local run sweeps in exactly what a deployed
+    /// app does — an app-owned <c>postgresql.json</c> a developer drops into studioctl's directory included.
+    /// </para>
     /// </summary>
     /// <param name="configBuilder">The configuration being built.</param>
-    /// <param name="hostEnvironment">The host environment.</param>
     /// <param name="secretsDirectory">
-    /// The directory the platform provisions the app's secrets into. Blank outside Development means the
-    /// platform never said where, which the provisioned secrets startup check reports; there is nothing to
-    /// sweep either way, so this quietly adds nothing rather than raising a second, vaguer failure.
+    /// The directory the platform provisions the app's secrets into. Blank means the platform never said
+    /// where, which the provisioned secrets startup check reports; there is nothing to sweep either way, so
+    /// this quietly adds nothing rather than raising a second, vaguer failure.
     /// </param>
     /// <param name="hostedFileNames">
     /// The files the libraries host on the provisioned secrets channel, which the sweep must leave alone.
     /// </param>
     internal static void AddRuntimeConfigFiles(
         IConfigurationBuilder configBuilder,
-        IHostEnvironment hostEnvironment,
         string? secretsDirectory,
         IReadOnlyCollection<string> hostedFileNames
     )
     {
         ArgumentNullException.ThrowIfNull(configBuilder);
-        ArgumentNullException.ThrowIfNull(hostEnvironment);
         ArgumentNullException.ThrowIfNull(hostedFileNames);
 
-        if (hostEnvironment.IsDevelopment() || string.IsNullOrWhiteSpace(secretsDirectory))
+        if (string.IsNullOrWhiteSpace(secretsDirectory))
         {
             return;
         }

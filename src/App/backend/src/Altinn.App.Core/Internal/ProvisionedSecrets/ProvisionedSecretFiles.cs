@@ -17,7 +17,7 @@ internal static class ProvisionedSecretFiles
     /// The credentials of the app's one Maskinporten identity.
     /// </summary>
     public static readonly ProvisionedSecretFile Maskinporten = new(
-        "RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME",
+        "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME",
         "MaskinportenSettings"
     );
 

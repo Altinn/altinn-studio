@@ -24,7 +24,7 @@ public static class ProvisionedSecretsTestEnvironment
     /// The configuration key naming the app codes file. No library tenant reads it yet, but it is part of the
     /// same contract and a deployed app is given it.
     /// </summary>
-    public const string AppCodesFileNameKey = "RUNTIME_APP_APPCODES_SECRETS_FILENAME";
+    public const string AppCodesFileNameKey = "RUNTIME_APP_SECRETS_APPCODES_FILENAME";
 
     /// <summary>
     /// What a test calls the Maskinporten file. Any name would do — that is the point of the variable — and

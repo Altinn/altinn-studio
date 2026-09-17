@@ -46,21 +46,27 @@ internal sealed class MaskinportenClient : IMaskinportenClient, IDisposable
     /// missing or incomplete surfaces here, as a <see cref="MaskinportenConfigurationException"/> carrying the
     /// options failure - which says where the file was expected and, on a local run, what to run.
     /// </summary>
-    internal MaskinportenSettings Settings
+    internal MaskinportenSettings Settings => ReadProvisionedSettings(_options);
+
+    /// <summary>
+    /// The credentials as the options monitor currently has them. Startup validation has already run by the
+    /// time a token is asked for, but a rotated file is validated again on reload, so the failure has to be
+    /// translated here too rather than only at startup.
+    /// </summary>
+    /// <param name="options">The monitor the provisioned credentials are bound through.</param>
+    /// <exception cref="MaskinportenConfigurationException">The credentials are missing or invalid.</exception>
+    private static MaskinportenSettings ReadProvisionedSettings(IOptionsMonitor<MaskinportenSettings> options)
     {
-        get
+        try
         {
-            try
-            {
-                return _options.CurrentValue;
-            }
-            catch (OptionsValidationException e)
-            {
-                throw new MaskinportenConfigurationException(
-                    "The app's Maskinporten credentials are missing or invalid: " + e.Message,
-                    e
-                );
-            }
+            return options.CurrentValue;
+        }
+        catch (OptionsValidationException e)
+        {
+            throw new MaskinportenConfigurationException(
+                "The app's Maskinporten credentials are missing or invalid: " + e.Message,
+                e
+            );
         }
     }
 

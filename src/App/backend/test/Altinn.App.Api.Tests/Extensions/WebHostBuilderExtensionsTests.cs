@@ -21,24 +21,7 @@ public sealed class WebHostBuilderExtensionsTests
     public WebHostBuilderExtensionsTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
-    public void AddRuntimeConfigFiles_Development_DoesNotAddRuntimeFiles()
-    {
-        using var tempDirectory = new TempDirectory(_outputHelper);
-        File.WriteAllText(Path.Join(tempDirectory.Path, "appsettings.json"), "{}");
-        IConfigurationBuilder configBuilder = new ConfigurationBuilder();
-
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Development),
-            tempDirectory.Path,
-            []
-        );
-
-        Assert.Empty(configBuilder.Sources.OfType<JsonConfigurationSource>());
-    }
-
-    [Fact]
-    public void AddRuntimeConfigFiles_Production_AddsNonOverrideBeforeOverride()
+    public void AddRuntimeConfigFiles_AddsNonOverrideBeforeOverride()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
         File.WriteAllText(Path.Join(tempDirectory.Path, "30-config.json"), "{}");
@@ -47,12 +30,7 @@ public sealed class WebHostBuilderExtensionsTests
         File.WriteAllText(Path.Join(tempDirectory.Path, "40-settings.override.json"), "{}");
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
 
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path,
-            []
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, tempDirectory.Path, []);
 
         string[] jsonSourcePaths = configBuilder
             .Sources.OfType<JsonConfigurationSource>()
@@ -67,7 +45,7 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [Fact]
-    public void AddRuntimeConfigFiles_Production_SkipsFilesAlreadyInConfigurationSources()
+    public void AddRuntimeConfigFiles_SkipsFilesAlreadyInConfigurationSources()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
         File.WriteAllText(Path.Join(tempDirectory.Path, "platform-settings.json"), "{}");
@@ -83,12 +61,7 @@ public sealed class WebHostBuilderExtensionsTests
             reloadOnChange: false
         );
 
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path,
-            []
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, tempDirectory.Path, []);
 
         string[] jsonSourcePaths = configBuilder
             .Sources.OfType<JsonConfigurationSource>()
@@ -108,7 +81,7 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [LinuxOnlyFact]
-    public async Task AddRuntimeConfigFiles_Production_ReloadsWhenKubernetesDataSymlinkChanges()
+    public async Task AddRuntimeConfigFiles_ReloadsWhenKubernetesDataSymlinkChanges()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
         const string fileName = "runtime-settings.json";
@@ -122,12 +95,7 @@ public sealed class WebHostBuilderExtensionsTests
         projectedVolume.CreateSymlinks(KubernetesProjectedVolume.InitialVersionDirectoryName, fileName);
 
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path,
-            []
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, tempDirectory.Path, []);
 
         var configuration = configBuilder.Build();
         using var configurationDisposable = configuration as IDisposable;
@@ -222,8 +190,8 @@ public sealed class WebHostBuilderExtensionsTests
               "GeneralSettings__HostName": "local.altinn.cloud",
               "STUDIOCTL_APP_RUN": "1",
               "RUNTIME_APP_SECRETS_DIR": {{JsonSerializer.Serialize(tempDirectory.Path)}},
-              "RUNTIME_APP_MASKINPORTEN_SECRETS_FILENAME": "maskinporten-settings.json",
-              "RUNTIME_APP_APPCODES_SECRETS_FILENAME": "app-codes.json"
+              "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME": "maskinporten-settings.json",
+              "RUNTIME_APP_SECRETS_APPCODES_FILENAME": "app-codes.json"
             }
             """,
             out Dictionary<string, string?> values
@@ -287,7 +255,7 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [Fact]
-    public void AddRuntimeConfigFiles_Production_NeverAddsAProvisionedSecretsFile()
+    public void AddRuntimeConfigFiles_NeverAddsAProvisionedSecretsFile()
     {
         // The files the libraries host are bound through the provisioned secrets channel. If the sweep of the
         // secrets mount also loaded them, their sections would be back in the app's configuration - where a
@@ -318,7 +286,6 @@ public sealed class WebHostBuilderExtensionsTests
 
         WebHostBuilderExtensions.AddRuntimeConfigFiles(
             configBuilder,
-            new TestHostEnvironment(Environments.Production),
             configuration[ProvisionedSecrets.DirectoryKey],
             hostedFileNames
         );
@@ -343,16 +310,11 @@ public sealed class WebHostBuilderExtensionsTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void AddRuntimeConfigFiles_Production_AddsNothing_WhenNoSecretsDirectoryIsNamed(string? secretsDirectory)
+    public void AddRuntimeConfigFiles_AddsNothing_WhenNoSecretsDirectoryIsNamed(string? secretsDirectory)
     {
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
 
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            secretsDirectory,
-            []
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, secretsDirectory, []);
 
         Assert.Empty(configBuilder.Sources.OfType<JsonConfigurationSource>());
     }
