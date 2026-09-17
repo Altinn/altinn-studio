@@ -395,6 +395,67 @@ async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_manifest() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-variant-sources");
+    let default = apply_request_in("default", root.clone());
+    fixture.control_plane.apply(default).await.expect("default Agent");
+
+    let mut nested = apply_request_in("nested", root.clone());
+    nested.manifest_path = Some(root.join("agent.nested.yaml"));
+    fixture.control_plane.apply(nested).await.expect("nested Agent");
+
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory(&root)
+            .await
+            .expect("default preference")
+            .metadata
+            .name,
+        "default"
+    );
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some("nested"))
+            .await
+            .expect("variant selection")
+            .metadata
+            .name,
+        "nested"
+    );
+
+    let mut local = apply_request_in("local", root.clone());
+    local.manifest_path = Some(root.join("agent.mine.yaml"));
+    fixture.control_plane.apply(local).await.expect("local Agent");
+    assert!(matches!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some("missing"))
+            .await,
+        Err(Error::Invalid(message)) if message.contains("agent.missing.yaml")
+    ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_remains_ambiguous_without_one_default_manifest() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-ambiguous-variant-sources");
+    for (name, variant) in [("nested", "nested"), ("worktree", "worktree")] {
+        let mut request = apply_request_in(name, root.clone());
+        request.manifest_path = Some(root.join(format!("agent.{variant}.yaml")));
+        fixture.control_plane.apply(request).await.expect("variant Agent");
+    }
+    let error = fixture
+        .control_plane
+        .resolve_directory(&root)
+        .await
+        .expect_err("ambiguous variants");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("--agent or --variant")));
+}
+
+#[tokio::test(flavor = "local")]
 async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and_materialization() {
     let fixture = fixture();
     let temporary = TempDirectory::new("bind-mount");

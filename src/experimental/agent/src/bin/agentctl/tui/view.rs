@@ -300,10 +300,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
 }
 
 fn picker_lines(form: &super::app::CreateForm, candidate: &super::app::ManifestCandidate) -> Vec<Line<'static>> {
-    let directory = candidate
-        .path
-        .parent()
-        .map_or_else(String::new, |parent| abbreviate_home(&parent.display().to_string()));
+    let manifest_path = abbreviate_home(&candidate.path.display().to_string());
     let mut manifest_spans = vec![
         Span::raw("Manifest: "),
         Span::styled("◂ ", Style::new().fg(Color::DarkGray)),
@@ -313,7 +310,7 @@ fn picker_lines(form: &super::app::CreateForm, candidate: &super::app::ManifestC
         manifest_spans.push(Span::styled(" | ", Style::new().fg(Color::DarkGray)));
     }
     manifest_spans.extend([
-        Span::styled(directory, Style::new().fg(Color::DarkGray)),
+        Span::styled(manifest_path, Style::new().fg(Color::DarkGray)),
         Span::styled(" ▸", Style::new().fg(Color::DarkGray)),
         Span::styled(
             format!("  {}/{}", form.selected + 1, form.candidates.len()),
@@ -496,7 +493,7 @@ mod tests {
         terminal.draw(|frame| render(frame, &app)).expect("modal draw");
         let text = buffer_text(&terminal);
         assert!(text.contains("create agent"));
-        assert!(text.contains("◂ full | /sources/full ▸"));
+        assert!(text.contains("◂ full | /sources/full/agent.yaml ▸"));
         assert!(text.contains("1/2"));
         assert!(text.contains("Name:     full"));
         assert!(text.contains("enter create · tab manifest · esc cancel"));
@@ -509,7 +506,7 @@ mod tests {
         form.error = Some("agent \"copy\" already exists".into());
         terminal.draw(|frame| render(frame, &app)).expect("error draw");
         let text = buffer_text(&terminal);
-        assert!(text.contains("◂ /sources/broken ▸"));
+        assert!(text.contains("◂ /sources/broken/agent.yaml ▸"));
         assert!(text.contains("manifest cannot be decoded"));
         assert!(text.contains("Name:     copy▏"));
         assert!(text.contains("agent \"copy\" already exists"));

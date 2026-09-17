@@ -23,9 +23,9 @@ pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
 pub use harness::{Effort, Harness, HarnessAuthMode, HarnessSpec, Model, ModelSelection};
 pub use manifest::{
-    API_VERSION, AccessSpec, Agent, Condition, ConditionStatus, EnvironmentSpec, HomeSpec, InstructionsSpec, KIND,
-    Metadata, MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, Provenance, SandboxManifestSpec,
-    SecretSpec, SkillSpec, Spec, Status,
+    API_VERSION, AccessSpec, Agent, AgentVariant, Condition, ConditionStatus, EnvironmentSpec, HomeSpec,
+    InstructionsSpec, KIND, Metadata, MountSpec, NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec,
+    Provenance, ResolvedManifest, SandboxManifestSpec, SecretSpec, SkillSpec, Spec, Status, VARIANT_KIND,
 };
 
 /// Version embedded in a matched `agentctl`/`agentd` build.

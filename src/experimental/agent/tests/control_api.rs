@@ -424,14 +424,14 @@ async fn login_returns_only_non_secret_readiness() {
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
-    assert_eq!(daemon.protocol_version.as_deref(), Some("v2"));
+    assert_eq!(daemon.protocol_version.as_deref(), Some("v3"));
     assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
 }
 
 #[test]
 fn daemon_identity_rejects_preview_1_and_mixed_builds() {
     let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
-        "protocolVersion": "v2",
+        "protocolVersion": "v3",
         "buildVersion": agent::build_version(),
         "futureCapability": true
     }))
@@ -444,7 +444,7 @@ fn daemon_identity_rejects_preview_1_and_mixed_builds() {
             build_version: None,
         },
         agent::control_api::DaemonInfo {
-            protocol_version: Some("v2".into()),
+            protocol_version: Some("v3".into()),
             build_version: Some("another-build".into()),
         },
     ] {

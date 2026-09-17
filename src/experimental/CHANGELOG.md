@@ -17,8 +17,13 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - The release installers accept `AGENT_INSTALL_MODE=standalone` to verify and copy only `agentctl` and `agentd` into
   `AGENT_INSTALL_DIR`. This supports immutable images and CI jobs without creating self-update state, migrating Agent
   data, starting the daemon, or changing `PATH`.
+- Agent manifest variants. Put a complete Agent in `agent.yaml` and partial, explicitly named variants in sibling `agent.<variant>.yaml` files using `kind: AgentVariant` and `extends`. Variants may chain, replace arrays and scalar values, merge mappings, and remove optional fields with `null`. Run `agentctl apply --variant <variant>` and use the same selector with commands that infer an applied Agent. The TUI discovers both repository-owned and Git-ignored local variants and reports invalid ones.
 - SSH access to Agents. Declare `spec.access: [{type: ssh}]`, then `agentctl ssh <agent> [-- command]` opens a shell or runs a command in the Sandbox as `agent`. `agentctl ssh-config install` lets plain `ssh`, `sftp` and editors reach the Agent as `altinn-agent-<name>`, and `agentctl ssh-info <agent> -o json` prints the connection details. The Altinn Agent images and the examples declare it; an Agent created from an older image must be deleted and re-applied.
 - Windows contributors can run `.\make-user-install.ps1` to build, package and install a local Agent without Make.
+
+### Changed
+
+- `agentctl apply` now defaults to `./agent.yaml`. The self-development and Altinn configurations are organized as manifest families with nested and worktree variants; self-development always builds its local Dockerfile, while Altinn images install a checksum-verified released Agent platform instead of building it from `src/experimental`.
 
 ### Fixed
 

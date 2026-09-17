@@ -120,7 +120,20 @@ impl Client {
     ///
     /// Returns an error when no unique Agent matches or the API call fails.
     pub async fn resolve_agent(&self, directory: std::path::PathBuf) -> Result<Agent, Error> {
-        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }, None)
+        self.resolve_agent_variant(directory, None).await
+    }
+
+    /// Resolves the closest persisted Agent by directory and optional leaf variant.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no unique Agent matches or the API call fails.
+    pub async fn resolve_agent_variant(
+        &self,
+        directory: std::path::PathBuf,
+        variant: Option<String>,
+    ) -> Result<Agent, Error> {
+        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory, variant }, None)
             .await
     }
 

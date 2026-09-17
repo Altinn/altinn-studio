@@ -63,6 +63,18 @@ Session scope is explicit through `--agent` or inferred from the closest unique 
 Transient `exec` commands similarly converge the Agent first, then target its exact materialized Sandbox without
 creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
 
+Agent manifests form sibling families: `agent.yaml` is a complete `kind: Agent`, while
+`agent.<variant>.yaml` is a `kind: AgentVariant` with an explicit `metadata.name` and an `extends` filename. Variants
+may extend other variants in the same directory. Mappings merge recursively, arrays and scalars replace inherited
+values, and `null` removes a field; the expanded result is strictly validated as a complete Agent before it reaches
+`agentd`. Chains are limited to 16 manifests and cannot use absolute or cross-directory paths.
+
+Run `agentctl apply` for `./agent.yaml`, `agentctl apply --variant nested` for `./agent.nested.yaml`, or retain exact
+path selection with `agentctl apply -f path/to/agent.nested.yaml`. Checkout-local variants may be Git-ignored: TUI
+discovery enumerates valid siblings beside each non-ignored `agent.yaml` without descending into ignored directories.
+Commands that infer an applied Agent accept `--variant` to match recorded leaf-manifest provenance; `--agent` remains
+the explicit global resource-name selector.
+
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized
 Sandbox and owns the in-Sandbox tmux and harness effects for that Session. Both use the same keyed reconciliation

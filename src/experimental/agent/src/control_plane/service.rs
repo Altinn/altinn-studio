@@ -237,8 +237,29 @@ impl ControlPlane {
     /// Returns an error when no Agent matches, multiple Agents share the closest
     /// source directory, or storage cannot be read.
     pub async fn resolve_directory(&self, directory: &std::path::Path) -> Result<Agent, Error> {
+        self.resolve_directory_variant(directory, None).await
+    }
+
+    /// Resolves the closest Agent associated with `directory`, optionally by
+    /// the variant encoded in its recorded leaf manifest filename.
+    ///
+    /// When several closest Agents tie without an explicit variant, exactly one
+    /// Agent originating from `agent.yaml` is preferred as the family default.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no Agent matches, selection remains ambiguous, or
+    /// storage cannot be read.
+    pub async fn resolve_directory_variant(
+        &self,
+        directory: &std::path::Path,
+        variant: Option<&str>,
+    ) -> Result<Agent, Error> {
         if !directory.is_absolute() {
             return Err(Error::Invalid("directory must be absolute".into()));
+        }
+        if variant.is_some_and(|variant| !crate::manifest::valid_variant_name(variant)) {
+            return Err(Error::Invalid("variant must match [a-z0-9]+(?:-[a-z0-9]+)*".into()));
         }
         let directory = canonical_or_original(directory).await;
         let mut matches = Vec::new();
@@ -258,6 +279,37 @@ impl ControlPlane {
             return Err(Error::NotFound);
         };
         matches.retain(|(_, candidate_depth)| *candidate_depth == depth);
+        if let Some(variant) = variant {
+            let filename = format!("agent.{variant}.yaml");
+            matches.retain(|(record, _)| {
+                record
+                    .manifest_path
+                    .as_deref()
+                    .and_then(std::path::Path::file_name)
+                    .is_some_and(|name| name == filename.as_str())
+            });
+            if matches.is_empty() {
+                return Err(Error::Invalid(format!(
+                    "no Agent associated with this directory was applied from {filename}"
+                )));
+            }
+        } else if matches.len() > 1 {
+            let defaults = matches
+                .iter()
+                .enumerate()
+                .filter_map(|(index, (record, _))| {
+                    let filename = record
+                        .manifest_path
+                        .as_deref()
+                        .and_then(std::path::Path::file_name)
+                        .or_else(|| Some(std::ffi::OsStr::new(crate::manifest::MANIFEST_FILE)));
+                    (filename == Some(std::ffi::OsStr::new(crate::manifest::MANIFEST_FILE))).then_some(index)
+                })
+                .collect::<Vec<_>>();
+            if let [index] = defaults.as_slice() {
+                return Ok(resource(matches.swap_remove(*index).0));
+            }
+        }
         if matches.len() != 1 {
             let mut names = matches
                 .iter()
@@ -265,7 +317,7 @@ impl ControlPlane {
                 .collect::<Vec<_>>();
             names.sort();
             return Err(Error::Invalid(format!(
-                "multiple Agents were applied from this directory ({}); specify --agent",
+                "multiple Agents were applied from this directory ({}); specify --agent or --variant",
                 names.join(", ")
             )));
         }

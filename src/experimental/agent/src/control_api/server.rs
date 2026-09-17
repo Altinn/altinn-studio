@@ -31,7 +31,11 @@ pub trait AgentApi {
     fn list(&self) -> LocalFuture<'_, Result<Vec<Agent>, Error>>;
 
     /// Resolves an Agent from its persisted source directory.
-    fn resolve_directory<'a>(&'a self, directory: &'a std::path::Path) -> LocalFuture<'a, Result<Agent, Error>>;
+    fn resolve_directory<'a>(
+        &'a self,
+        directory: &'a std::path::Path,
+        variant: Option<&'a str>,
+    ) -> LocalFuture<'a, Result<Agent, Error>>;
 
     /// Requests asynchronous deletion.
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
@@ -50,8 +54,12 @@ impl AgentApi for control_plane::ControlPlane {
         Box::pin(async move { Self::list(self).await })
     }
 
-    fn resolve_directory<'a>(&'a self, directory: &'a std::path::Path) -> LocalFuture<'a, Result<Agent, Error>> {
-        Box::pin(async move { Self::resolve_directory(self, directory).await })
+    fn resolve_directory<'a>(
+        &'a self,
+        directory: &'a std::path::Path,
+        variant: Option<&'a str>,
+    ) -> LocalFuture<'a, Result<Agent, Error>> {
+        Box::pin(async move { self.resolve_directory_variant(directory, variant).await })
     }
 
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
@@ -494,7 +502,12 @@ impl Server {
         let Ok(params) = serde_json::from_value::<DirectoryParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "directory is required");
         };
-        result_response(id, self.agents.resolve_directory(&params.directory).await)
+        result_response(
+            id,
+            self.agents
+                .resolve_directory(&params.directory, params.variant.as_deref())
+                .await,
+        )
     }
 
     async fn handle_delete(&self, id: u64, value: Value) -> Response {

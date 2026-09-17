@@ -217,11 +217,11 @@ async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent
     let mut seen = HashSet::new();
     let mut candidates = Vec::new();
     for (path, recorded) in paths {
-        let name = match tokio::fs::read(&path).await {
-            Ok(bytes) => manifest::decode(&bytes)
-                .map(|decoded| decoded.metadata.name)
-                .map_err(|error| error.to_string()),
-            Err(_) if !recorded => continue,
+        let resolved_path = path.clone();
+        let name = match tokio::task::spawn_blocking(move || manifest::resolve(&resolved_path)).await {
+            Ok(Ok(resolved)) => Ok(resolved.agent.metadata.name),
+            Ok(Err(error)) if recorded || path.exists() => Err(error.to_string()),
+            Ok(Err(_)) => continue,
             Err(error) => Err(error.to_string()),
         };
         let canonical = tokio::fs::canonicalize(&path).await.unwrap_or_else(|_| path.clone());
@@ -240,9 +240,11 @@ fn repository_root(directory: &Path) -> Option<&Path> {
     directory.ancestors().find(|ancestor| ancestor.join(".git").exists())
 }
 
-/// Lists manifests below `directory`, or below its git repository root, shallowest
-/// first, honoring ignore files and skipping hidden directories so build output and
-/// dependency trees are not walked.
+/// Lists manifest families below `directory`, or below its git repository root.
+///
+/// The walk honors ignore files for directories and finds complete `agent.yaml`
+/// manifests. Each family directory is then enumerated directly so checkout-local,
+/// ignored `agent.<variant>.yaml` siblings remain discoverable.
 fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
     let root = repository_root(directory).unwrap_or(directory);
     let mut found: Vec<PathBuf> = WalkBuilder::new(root)
@@ -252,9 +254,30 @@ fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
         .build()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_some_and(|kind| kind.is_file()) && entry.file_name() == MANIFEST_FILE)
-        .map(ignore::DirEntry::into_path)
+        .flat_map(|entry| {
+            let base = entry.into_path();
+            let Some(parent) = base.parent() else {
+                return vec![base];
+            };
+            let mut family = std::fs::read_dir(parent)
+                .into_iter()
+                .flatten()
+                .filter_map(Result::ok)
+                .map(|entry| entry.path())
+                .filter(|path| manifest::is_manifest_filename(path))
+                .collect::<Vec<_>>();
+            family.sort_by_key(|path| (path.file_name().is_none_or(|name| name != MANIFEST_FILE), path.clone()));
+            family
+        })
         .collect();
-    found.sort_by_key(|path| (path.components().count(), path.clone()));
+    found.sort_by_key(|path| {
+        (
+            path.components().count(),
+            path.parent().map(Path::to_path_buf),
+            path.file_name().is_none_or(|name| name != MANIFEST_FILE),
+            path.clone(),
+        )
+    });
     found
 }
 
@@ -505,6 +528,38 @@ mod tests {
             ]
         );
         assert_eq!(candidates[1].name.as_deref(), Ok("nested"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn discovery_includes_ignored_sibling_variants_and_their_resolution_errors() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let family = manifest_directory(root.path(), "family", &manifest_yaml("default"));
+        std::fs::write(family.join(".gitignore"), "agent.*.yaml\n").expect("family ignore file");
+        std::fs::write(
+            family.join("agent.mine.yaml"),
+            "apiVersion: agents.platform/v1alpha1\nkind: AgentVariant\nextends: agent.yaml\nmetadata:\n  name: mine\n",
+        )
+        .expect("local variant");
+        std::fs::write(
+            family.join("agent.broken.yaml"),
+            "apiVersion: agents.platform/v1alpha1\nkind: AgentVariant\nextends: missing.yaml\nmetadata:\n  name: broken\n",
+        )
+        .expect("broken local variant");
+
+        let candidates = manifest_candidates(Some(family.clone()), &[]).await;
+
+        assert_eq!(candidates.len(), 3);
+        assert_eq!(candidates[0].path, family.join(MANIFEST_FILE));
+        assert_eq!(candidates[0].name.as_deref(), Ok("default"));
+        assert_eq!(candidates[1].path, family.join("agent.broken.yaml"));
+        assert!(
+            candidates[1]
+                .name
+                .as_ref()
+                .is_err_and(|error| error.contains("extends must name"))
+        );
+        assert_eq!(candidates[2].path, family.join("agent.mine.yaml"));
+        assert_eq!(candidates[2].name.as_deref(), Ok("mine"));
     }
 
     #[tokio::test(flavor = "local")]
