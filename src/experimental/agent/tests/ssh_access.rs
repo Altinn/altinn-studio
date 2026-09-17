@@ -199,8 +199,9 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
     let expected_config = format!(
         "\nHost altinn-agent-worker\n    User agent\n    ProxyCommand {AGENTCTL} ssh-proxy agent/worker\n    HostKeyAlias agent-{id}\n    IdentityFile {identity}\n    UserKnownHostsFile {known_hosts}\n    IdentitiesOnly yes\n",
         id = record.id,
-        identity = ssh_home.identity_path(record.id).display(),
-        known_hosts = ssh_home.known_hosts_path().display(),
+        // The same renderer the config uses: on Windows the paths are quoted with escaped backslashes.
+        identity = ssh::render_path(&ssh_home.identity_path(record.id), None),
+        known_hosts = ssh::render_path(&ssh_home.known_hosts_path(), None),
     );
     assert!(fixture.config().ends_with(&expected_config), "{}", fixture.config());
     #[cfg(unix)]
