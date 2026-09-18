@@ -620,7 +620,7 @@ async fn latest_release(repository: &str) -> Result<String, Error> {
             .get(format!(
                 "https://api.github.com/repos/{repository}/releases?per_page=100&page={page}"
             ))
-            .header(reqwest::header::USER_AGENT, "Altinn-Agent-updater")
+            .header(reqwest::header::USER_AGENT, "agentctl-updater")
             .send()
             .await
             .map_err(|error| Error::Daemon(format!("resolve Agent release: {error}")))?
@@ -645,7 +645,7 @@ async fn latest_release(repository: &str) -> Result<String, Error> {
 async fn download(url: &str, path: &Path) -> Result<(), Error> {
     let bytes = http_client()?
         .get(url)
-        .header(reqwest::header::USER_AGENT, "Altinn-Agent-updater")
+        .header(reqwest::header::USER_AGENT, "agentctl-updater")
         .send()
         .await
         .map_err(|error| Error::Daemon(format!("download Agent package: {error}")))?

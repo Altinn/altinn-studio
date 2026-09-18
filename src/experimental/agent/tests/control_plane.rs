@@ -1979,11 +1979,11 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
     assert!(ssh_home.identity_path(id).is_file());
     let known_hosts = std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts");
     assert!(known_hosts.starts_with(&format!("agent-{id} ssh-ed25519 ")));
-    assert!(known_hosts.contains("\naltinn-agent-worker ssh-ed25519 "));
+    assert!(known_hosts.contains("\nagentctl-worker ssh-ed25519 "));
     assert!(
         std::fs::read_to_string(ssh_home.config_path())
             .expect("config")
-            .contains("Host altinn-agent-worker\n")
+            .contains("Host agentctl-worker\n")
     );
 
     control_plane.delete("worker").await.expect("delete request");

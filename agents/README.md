@@ -111,13 +111,13 @@ agentctl ssh agent/altinn-full -- uptime
 
 The Agent's SSH server listens only inside the Sandbox; `agentctl` generates an OpenSSH client configuration at
 `~/.agent/ssh/config` that reaches it through `agentctl ssh-proxy`, with the Agent's host key already trusted. Include
-that configuration from your own `~/.ssh/config` once, then use the alias `altinn-agent-<name>` with any OpenSSH
+that configuration from your own `~/.ssh/config` once, then use the alias `agentctl-<name>` with any OpenSSH
 client, including remote-development features of editors that read OpenSSH configuration:
 
 ```sh
 agentctl ssh-config install
-ssh altinn-agent-altinn-full
-sftp altinn-agent-altinn-full
+ssh agentctl-altinn-full
+sftp agentctl-altinn-full
 ```
 
 `agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths and proxy command for tools that want

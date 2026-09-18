@@ -214,7 +214,7 @@ fn run_directory(home: &Path) -> Result<PathBuf, Error> {
     for byte in &digest[..16] {
         let _ = write!(&mut id, "{byte:02x}");
     }
-    let path = PathBuf::from(format!("/tmp/altinn-agent-{id}"));
+    let path = PathBuf::from(format!("/tmp/microsandbox-{id}"));
     if !microsandbox::runtime::run_directory_fits(&path) {
         return Err(error::io(
             "select private Microsandbox runtime directory",
@@ -309,7 +309,7 @@ mod tests {
         for byte in &digest[..16] {
             write!(&mut id, "{byte:02x}").expect("writing to String cannot fail");
         }
-        let fallback = PathBuf::from(format!("/tmp/altinn-agent-{id}"));
+        let fallback = PathBuf::from(format!("/tmp/microsandbox-{id}"));
 
         std::os::unix::fs::symlink(root.path(), &fallback).expect("fallback symlink");
         assert!(super::run_directory(&home).is_err());
