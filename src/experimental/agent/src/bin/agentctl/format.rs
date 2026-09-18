@@ -1,5 +1,35 @@
 use agent::{Agent, ConditionStatus};
 
+/// Lists the declared access capabilities, or `-` when there are none.
+pub(crate) fn format_access(spec: &agent::Spec) -> String {
+    if spec.access.is_empty() {
+        return "-".into();
+    }
+    spec.access
+        .iter()
+        .map(|capability| match capability {
+            agent::AccessSpec::Ssh {} => "ssh",
+        })
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+/// Renders an SSH access descriptor as aligned `key: value` lines.
+pub(crate) fn ssh_access_lines(access: &agent::ssh::AccessInfo) -> Vec<String> {
+    vec![
+        format!("Type:        {}", access.kind),
+        format!("Agent:       {}", access.agent),
+        format!("Agent ID:    {}", access.agent_id),
+        format!("Alias:       {}", access.alias),
+        format!("User:        {}", access.user),
+        format!("Identity:    {}", access.identity_file.display()),
+        format!("Known hosts: {}", access.known_hosts_file.display()),
+        format!("Config:      {}", access.config_file.display()),
+        format!("Proxy:       {}", access.proxy_command),
+        format!("Connect:     ssh -F {} {}", access.config_file.display(), access.alias),
+    ]
+}
+
 pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
     let provider = agent
         .status
@@ -47,6 +77,7 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         format!("Source:     {source}"),
         format!("Secrets:    {secrets}"),
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),
+        format!("Access:     {}", format_access(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
         "Conditions:".to_owned(),
@@ -103,7 +134,8 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
 pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str {
     match state {
         agent::sessions::State::Starting => "Starting",
-        agent::sessions::State::Running => "Running",
+        agent::sessions::State::Working => "Working",
+        agent::sessions::State::WaitingForInput => "WaitingForInput",
         agent::sessions::State::Idle => "Idle",
         agent::sessions::State::Failed => "Failed",
     }
@@ -161,7 +193,11 @@ mod tests {
     #[test]
     fn session_state_output_does_not_depend_on_debug_names() {
         assert_eq!(session_state(agent::sessions::State::Starting), "Starting");
-        assert_eq!(session_state(agent::sessions::State::Running), "Running");
+        assert_eq!(session_state(agent::sessions::State::Working), "Working");
+        assert_eq!(
+            session_state(agent::sessions::State::WaitingForInput),
+            "WaitingForInput"
+        );
         assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
         assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
     }

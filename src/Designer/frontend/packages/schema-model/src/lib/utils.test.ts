@@ -3,6 +3,7 @@ import {
   createNodeBase,
   getUniqueNodePath,
   isDefinitionRoot,
+  isEmptyCombination,
   isNodeValidParent,
   replaceLastPointerSegment,
 } from './utils';
@@ -83,6 +84,16 @@ describe('utils', () => {
 
     it.each(testCases)('Returns %s when the node is %s', (expectedResult, caseKey) => {
       expect(isNodeValidParent(testData[caseKey])).toBe(expectedResult);
+    });
+  });
+
+  describe('isEmptyCombination', () => {
+    it('Returns true for a combination without children', () => {
+      expect(isEmptyCombination({ ...allOfNodeMock, children: [] })).toBe(true);
+    });
+
+    it('Returns false for a combination with children', () => {
+      expect(isEmptyCombination(allOfNodeMock)).toBe(false);
     });
   });
 

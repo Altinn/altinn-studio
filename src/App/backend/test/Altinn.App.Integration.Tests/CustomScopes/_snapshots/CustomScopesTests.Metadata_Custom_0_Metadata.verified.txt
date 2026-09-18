@@ -702,20 +702,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.read,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.read
-          ]
-        }
-      },
-      {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/signing,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,

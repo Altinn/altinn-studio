@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::{Error, control_plane::AgentRecord};
 
 mod execution;
+pub mod forward;
 pub mod microsandbox;
 pub mod platform;
 
@@ -115,6 +116,7 @@ pub trait Provider {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
         progress: crate::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
@@ -131,10 +133,12 @@ pub struct ProviderEnsureOutcome {
     pub runtime_restarted: bool,
 }
 
-/// Materialized Sandbox identity and relevant lifecycle transition.
+/// Materialized Sandbox and relevant lifecycle transition.
 pub struct EnsureOutcome {
     pub id: SandboxId,
     pub runtime_restarted: bool,
+    /// The running Sandbox, for Agent-level setup that follows platform setup.
+    pub sandbox: SandboxHandle,
 }
 
 /// Runtime-selectable setup for an operating system reported by a materialized Sandbox.
@@ -213,7 +217,8 @@ impl Service {
         progress: crate::progress::SandboxReporter,
     ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
-        let outcome = provider.ensure(record, progress).await?;
+        let environment = crate::environment::resolve(record).await?;
+        let outcome = provider.ensure(record, environment, progress).await?;
         let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self
@@ -229,6 +234,7 @@ impl Service {
         Ok(EnsureOutcome {
             id: sandbox.snapshot().id.clone(),
             runtime_restarted: outcome.runtime_restarted,
+            sandbox,
         })
     }
 

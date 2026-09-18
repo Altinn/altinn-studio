@@ -51,6 +51,10 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         {
             return await _authenticationTokenResolver.GetAccessToken(_serviceOwnerAuth, cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception e)
         {
             _logger.LogError(
@@ -72,7 +76,7 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
 
         try
         {
-            using HttpClient client = await GetAuthenticatedStorageClient();
+            using HttpClient client = await GetAuthenticatedStorageClient(cancellationToken);
             using StringContent payload = new(string.Empty);
             using HttpResponseMessage response = await client.PostAsync(
                 $"instances/{instanceIdentifier}/complete",
@@ -80,9 +84,13 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
                 cancellationToken
             );
 
-            await EnsureSuccessStatusCode(response);
+            await EnsureSuccessStatusCode(response, cancellationToken);
 
             _logger.LogInformation("Marked {InstanceId} as completed.", instanceIdentifier);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {
@@ -91,17 +99,17 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         }
     }
 
-    private static async Task EnsureSuccessStatusCode(HttpResponseMessage response)
+    private static async Task EnsureSuccessStatusCode(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         if (response.IsSuccessStatusCode)
             return;
 
-        string content = await response.Content.ReadAsStringAsync();
+        string content = await response.Content.ReadAsStringAsync(cancellationToken);
         string errorMessage = $"{(int)response.StatusCode} {response.ReasonPhrase}: {content}";
-        throw await PlatformHttpException.Create(response, errorMessage);
+        throw await PlatformHttpException.Create(response, errorMessage, cancellationToken: cancellationToken);
     }
 
-    private async Task<HttpClient> GetAuthenticatedStorageClient()
+    private async Task<HttpClient> GetAuthenticatedStorageClient(CancellationToken cancellationToken)
     {
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
 
@@ -112,7 +120,7 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             AuthorizationSchemes.Bearer,
-            await GetServiceOwnerToken()
+            await GetServiceOwnerToken(cancellationToken)
         );
         client.DefaultRequestHeaders.Add(
             General.PlatformAccessTokenHeaderName,

@@ -23,25 +23,33 @@ Never capture secret values. The placeholders in this Sandbox are inert, but the
 
 ## Recording
 
-A GIF only shows something when output appears over time. Script the demonstration so each command line is visible
-before its output, and give output time to be read. `agentctl` commands that wait, such as `apply --wait`, already
-produce movement.
+A GIF only shows something when output changes. Script CLI demonstrations so each command and its output can be read.
+For the TUI, record it directly and pause on focused fields, placeholders and picker states before typing or moving on.
 
 ```sh
-cat > demo.sh <<'DEMO'
-step() { printf '\033[1;34m$ %s\033[0m\n' "$*"; sleep 1; "$@"; sleep 2; }
-step agentctl apply -f agent.yaml --wait
-step agentctl get agents
-DEMO
-asciinema rec --window-size 120x36 --idle-time-limit 3 --command 'bash demo.sh' demo.cast
-agg --cols 120 --rows 36 --font-size 14 --theme monokai demo.cast demo.gif
+run=/home/agent/code/.artifacts/<task>/<run>
+mkdir -p "$run"
+cols=120 rows=36 cast="$run/demo.cast" gif="$run/demo.gif"
+render() {
+  agg --cols "$cols" --rows "$rows" --font-size 14 --theme dracula \
+    --font-family 'JetBrains Mono' "$@"
+}
+env -u NO_COLOR TERM=xterm-256color COLORTERM=truecolor \
+  asciinema rec --window-size "${cols}x${rows}" --idle-time-limit 2 \
+  --command 'agentctl tui' "$cast"
+render "$cast" "$gif"
+for position in 20 50 80; do
+  render --select "$position%" "$cast" "$run/frame-$position.gif"
+done
 ```
 
-For the TUI or another interactive flow omit `--command`, perform the steps in the recorded shell, and exit it. Keep
-recordings under 15 seconds of playback; `--idle-time-limit` collapses waits. `agg --help` lists speed and theme
-options. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
+Replace `agentctl tui` with `bash demo.sh` for a scripted CLI flow, or omit `--command` to record a shell. Keep the
+clip under 15 seconds; `--idle-time-limit` collapses waits. Explicitly overriding `NO_COLOR` and `TERM=dumb` preserves
+the real terminal styling. The image's JetBrains Mono font renders picker glyphs such as `◂` and `▸`.
 
-Look at the result before attaching it: `agg` prints the frame count, and a GIF with one frame shows nothing.
+Do not judge an animated GIF by its first frame. Inspect the three rendered stills with the image viewer. Confirm the
+cast header names `xterm-256color`, the states differ, and focus color, dim text, cursor, picker glyphs, alignment and
+clipping match the live terminal. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
 
 ## Attaching to the pull request
 

@@ -11,9 +11,14 @@ public interface IEventsClient
     /// <summary>
     /// Adds a new event to the events published by the Events component.
     /// </summary>
+    /// <param name="eventType">The type of the event</param>
+    /// <param name="instance">The instance the event relates to</param>
+    /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     Task<string> AddEvent(
         string eventType,
         Instance instance,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     );
 }

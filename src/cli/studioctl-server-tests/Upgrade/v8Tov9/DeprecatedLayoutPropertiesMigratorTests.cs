@@ -179,21 +179,23 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.Equal("""["dataModel","Animals.IsForeign"]""", Compact(queryParameters?["foreign"]));
     }
 
-    [Fact]
-    public async Task LeavesTheComponentAloneWhenTheQueryParameterNameIsAlreadyTaken()
+    [Theory]
+    [InlineData("Checkboxes", "queryParameters")]
+    [InlineData("PaymentDetails", "refetchDependencies")]
+    public async Task LeavesTheComponentAloneWhenTheExpressionNameIsAlreadyTaken(string type, string property)
     {
         _app.Write(
             "ui/Task_1/layouts/Side1.json",
-            """
+            $$"""
             {
               "data": {
                 "layout": [
                   {
                     "id": "colors",
-                    "type": "Checkboxes",
+                    "type": "{{type}}",
                     "optionsId": "colors",
                     "mapping": { "Animals.IsForeign": "foreign" },
-                    "queryParameters": { "foreign": "true" }
+                    "{{property}}": { "foreign": "true" }
                   }
                 ]
               }
@@ -210,11 +212,11 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
 
         var component = Component("ui/Task_1/layouts/Side1.json", 0);
         Assert.True(component.ContainsKey("mapping"));
-        Assert.Equal("true", Text(component["queryParameters"]?["foreign"]));
+        Assert.Equal("true", Text(component[property]?["foreign"]));
     }
 
     [Fact]
-    public async Task KeepsMappingOnComponentsWhereItStillMeansSomething()
+    public async Task ConvertsInstantiationAndPaymentMappingsIncludingLegacyButtons()
     {
         var before = """
             {
@@ -244,9 +246,85 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
 
         var result = await Migrate();
 
-        Assert.Equal(0, result.FilesChanged);
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(3, result.QueryParametersConverted);
         Assert.Empty(result.Warnings);
-        Assert.Equal(before, _app.Read("ui/Task_1/layouts/Side1.json"));
+        Assert.False(result.ManualActionRequired);
+        for (var index = 0; index < 3; index++)
+            Assert.False(Component("ui/Task_1/layouts/Side1.json", index).ContainsKey("mapping"));
+        Assert.Equal(
+            """["dataModel","Skjema.Name"]""",
+            Compact(Component("ui/Task_1/layouts/Side1.json", 0)["queryParameters"]?["name"])
+        );
+        Assert.Equal(
+            """["dataModel","Skjema.Amount"]""",
+            Compact(Component("ui/Task_1/layouts/Side1.json", 1)["refetchDependencies"]?["amount"])
+        );
+        Assert.False(Component("ui/Task_1/layouts/Side1.json", 1).ContainsKey("queryParameters"));
+        var button = Component("ui/Task_1/layouts/Side1.json", 2);
+        Assert.Equal("InstantiationButton", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.Equal("""["dataModel","Skjema.Name"]""", Compact(button["queryParameters"]?["name"]));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
+    }
+
+    [Theory]
+    [InlineData("save")]
+    [InlineData("submit")]
+    public async Task RemovesUnusedMappingOnOtherButtons(string mode)
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            $$"""
+            { "data": { "layout": [{ "id": "button", "type": "Button", "mode": "{{mode}}", "mapping": { "Name": "name" } }] } }
+            """
+        );
+        var result = await Migrate();
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(0, result.QueryParametersConverted);
+        var button = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.Equal("Button", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.False(button.ContainsKey("mapping"));
+        Assert.False(button.ContainsKey("queryParameters"));
+    }
+
+    [Fact]
+    public async Task ConvertsInstantiatingButtonWithoutMapping()
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            """
+            { "data": { "layout": [{ "id": "start", "type": "Button", "mode": "instantiate" }] } }
+            """
+        );
+        var result = await Migrate();
+        Assert.Equal(1, result.FilesChanged);
+        Assert.Equal(0, result.QueryParametersConverted);
+        var button = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.Equal("InstantiationButton", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.False(button.ContainsKey("queryParameters"));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
+    }
+
+    [Theory]
+    [InlineData("save")]
+    [InlineData("submit")]
+    public async Task RemovesModeWithoutMapping(string mode)
+    {
+        _app.Write(
+            "ui/Task_1/layouts/Side1.json",
+            $$"""
+            { "data": { "layout": [{ "id": "button", "type": "Button", "mode": "{{mode}}" }] } }
+            """
+        );
+        var result = await Migrate();
+        Assert.Equal(1, result.FilesChanged);
+        var button = Component("ui/Task_1/layouts/Side1.json", 0);
+        Assert.Equal("Button", Text(button["type"]));
+        Assert.False(button.ContainsKey("mode"));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
     }
 
     [Fact]
@@ -510,17 +588,19 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.DoesNotContain("\\u", written, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public async Task MigratesFilesWhilePreservingComments()
+    [Theory]
+    [InlineData("Dropdown")]
+    [InlineData("PaymentDetails")]
+    public async Task MigratesFilesWhilePreservingComments(string type)
     {
-        var before = """
+        var before = $$"""
             {
               "data": {
                 "layout": [
                   {
                     // The colours on offer depend on where the animal is from
                     "id": "colors",
-                    "type": "Dropdown",
+                    "type": "{{type}}",
                     "optionsId": "colors",
                     "mapping": { "Animals.IsForeign": "foreign" }
                   }
@@ -535,7 +615,7 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
         Assert.Equal(1, result.FilesChanged);
         var after = _app.Read("ui/Task_1/layouts/Side1.json");
         Assert.Contains("// The colours on offer depend on where the animal is from", after);
-        Assert.Contains("queryParameters", after);
+        Assert.Contains(type == "PaymentDetails" ? "refetchDependencies" : "queryParameters", after);
         Assert.False(result.ManualActionRequired);
     }
 

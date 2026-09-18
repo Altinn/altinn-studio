@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS apps (
     page_count INTEGER DEFAULT 0,
     component_count INTEGER DEFAULT 0,
     language_count INTEGER DEFAULT 0,
+    cs_file_count INTEGER DEFAULT 0,              -- C# files in the app's own code
+    implemented_interface_count INTEGER DEFAULT 0, -- Altinn interfaces the app implements
+    app_interface_count INTEGER DEFAULT 0,        -- interfaces the app declares itself
     scanned_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_apps_org ON apps(org);
@@ -127,6 +130,41 @@ CREATE TABLE IF NOT EXISTS text_references (
 CREATE INDEX IF NOT EXISTS idx_textref_app ON text_references(app_id);
 CREATE INDEX IF NOT EXISTS idx_textref_key ON text_references(key_id);
 
+-- The public interfaces the Altinn.App libraries expose. Refreshed from the
+-- bundled catalog on every scan, so it always describes the library version the
+-- running image was built from.
+CREATE TABLE IF NOT EXISTS interfaces (
+    name TEXT PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    namespace TEXT NOT NULL,
+    assembly TEXT NOT NULL,
+    area TEXT NOT NULL,                -- Features | Internal | EFormidling | Fiks | ...
+    group_name TEXT NOT NULL,          -- sub-namespace within the area
+    implementable_by_apps INTEGER DEFAULT 0,
+    is_obsolete INTEGER DEFAULT 0,
+    obsolete_message TEXT,
+    summary TEXT,
+    members TEXT,                      -- JSON array of member signatures
+    member_count INTEGER DEFAULT 0,
+    base_interfaces TEXT,              -- JSON array
+    source_path TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_interfaces_area ON interfaces(area);
+CREATE INDEX IF NOT EXISTS idx_interfaces_implementable ON interfaces(implementable_by_apps);
+
+CREATE TABLE IF NOT EXISTS app_interfaces (
+    app_id TEXT NOT NULL REFERENCES apps(app_id) ON DELETE CASCADE,
+    interface_name TEXT NOT NULL,
+    usage_kind TEXT NOT NULL,          -- implements | registers | injects
+    origin TEXT NOT NULL,              -- altinn | app | dotnet | unknown
+    class_name TEXT,                   -- the app type implementing it, when known
+    via TEXT,                          -- library base class the implementation came through
+    file_path TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_app_interfaces_app ON app_interfaces(app_id);
+CREATE INDEX IF NOT EXISTS idx_app_interfaces_name ON app_interfaces(interface_name);
+CREATE INDEX IF NOT EXISTS idx_app_interfaces_kind ON app_interfaces(usage_kind, origin);
+
 CREATE TABLE IF NOT EXISTS scan_runs (
     run_id INTEGER PRIMARY KEY AUTOINCREMENT,
     started_at TEXT NOT NULL,
@@ -157,6 +195,10 @@ def _migrate(conn: sqlite3.Connection) -> None:
         ("apps", "max_journey_length", "INTEGER DEFAULT 0"),
         ("apps", "complexity", "TEXT"),
         ("apps", "primary_journey", "TEXT"),
+        ("apps", "cs_file_count", "INTEGER DEFAULT 0"),
+        ("apps", "implemented_interface_count", "INTEGER DEFAULT 0"),
+        ("apps", "app_interface_count", "INTEGER DEFAULT 0"),
+        ("app_interfaces", "via", "TEXT"),
     ]
     for table, column, decl in additions:
         try:

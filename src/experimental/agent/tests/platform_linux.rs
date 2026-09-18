@@ -41,6 +41,25 @@ fn is_podman_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_git_presence_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/env" && args == &["git", "--version"]
+    )
+}
+
+fn is_git_config(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/env"
+                && args.first().map(String::as_str) == Some("git")
+                && args.get(1).map(String::as_str) == Some("config")
+                && args.get(2).map(String::as_str) == Some("--global")
+    )
+}
+
 fn is_systemd_readiness_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     matches!(
         spec.program(),
@@ -162,6 +181,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
+        defaults: agent::ModelSelection::default(),
     });
     let record = AgentRecord {
         id: agent_id,
@@ -177,7 +197,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
             is_claude_version,
             vec![
                 ExecutionEvent::Started { process_id: None },
-                ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+                ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
         );
@@ -207,6 +227,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let platform = Linux;
 
     platform.setup(&record, &sandbox).await.expect("first setup");
+    let first_pass_writes = backend.file_writes();
     let mutable_state = br#"{"theme":"light","projects":{"/home/agent/code/example":{"hasTrustDialogAccepted":true}}}"#;
     sandbox
         .write_file(
@@ -216,6 +237,21 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         .await
         .expect("write harness-owned state");
     platform.setup(&record, &sandbox).await.expect("second setup");
+
+    // Harnesses watch their configuration and skills live: a pass that changes nothing must not
+    // rewrite them. Only the home archive, consumed by tar and watched by nobody, is re-sent.
+    let second_pass_writes = backend
+        .file_writes()
+        .into_iter()
+        .skip(first_pass_writes.len() + 1)
+        .map(|path| path.as_str().to_owned())
+        .collect::<Vec<_>>();
+    assert_eq!(second_pass_writes, ["/tmp/agent-home.tar"]);
+    assert!(
+        first_pass_writes
+            .iter()
+            .any(|path| path.as_str() == "/home/agent/.claude/skills/evidence/SKILL.md")
+    );
 
     let preserved = read_file(&sandbox, "/home/agent/.claude/.claude.json").await;
     assert_eq!(preserved, mutable_state);
@@ -242,9 +278,25 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/hooks.json").await).expect("Codex hooks JSON");
     assert_eq!(
         codex_hooks["hooks"]["SessionStart"][0]["hooks"][0]["command"],
-        "node /home/agent/.codex/hooks/session-start.mjs"
+        "node /home/agent/.codex/hooks/activity-hook.mjs"
     );
     assert!(codex_hooks["hooks"]["SessionStart"][0].get("matcher").is_none());
+    for event in ["UserPromptSubmit", "Interrupt", "Stop", "PermissionRequest"] {
+        assert_eq!(
+            codex_hooks["hooks"][event][0]["hooks"][0]["command"], "node /home/agent/.codex/hooks/activity-hook.mjs",
+            "Codex registers {event}"
+        );
+    }
+    assert!(
+        codex_hooks["hooks"].get("Notification").is_none(),
+        "Codex has no Notification hook"
+    );
+    let hook_script = read_file(&sandbox, "/home/agent/.codex/hooks/activity-hook.mjs").await;
+    assert!(
+        String::from_utf8(hook_script)
+            .expect("UTF-8 hook")
+            .contains(r#""Stop":"turnCompleted""#)
+    );
 
     let executions = backend.execution_specs();
     let commands = executions
@@ -312,7 +364,7 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
             is_claude_version,
             vec![
                 ExecutionEvent::Started { process_id: None },
-                ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+                ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
         );
@@ -480,6 +532,188 @@ async fn linux_setup_accepts_any_installed_version_when_none_is_declared() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn linux_setup_converges_git_identity_after_home_sync() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    let record = AgentRecord {
+        id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    for _ in 0..2 {
+        backend.queue_execution_events_matching(
+            is_claude_version,
+            vec![
+                ExecutionEvent::Started { process_id: None },
+                ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
+                ExecutionEvent::Exited(ExitStatus { code: 0 }),
+            ],
+        );
+        backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+        backend.queue_execution_events_matching(is_git_presence_check, completed(0));
+    }
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let request = |name: &str, email: &str| {
+        EnsureSandboxRequest::new(record.sandbox_name().expect("Sandbox name"), spec.clone()).with_environment([
+            ("GIT_USER_NAME".into(), name.into()),
+            ("GIT_USER_EMAIL".into(), email.into()),
+        ])
+    };
+    let first = service
+        .ensure(&request("First User", "first@example.com"))
+        .await
+        .expect("first Sandbox");
+    Linux.setup(&record, &first).await.expect("first setup");
+    let second = service
+        .ensure(&request("Second User", "second@example.com"))
+        .await
+        .expect("updated Sandbox");
+    Linux.setup(&record, &second).await.expect("updated setup");
+
+    let executions = backend.execution_specs();
+    let git = executions.iter().filter(|spec| is_git_config(spec)).collect::<Vec<_>>();
+    assert_eq!(git.len(), 4);
+    let arguments = git
+        .iter()
+        .map(|spec| match spec.program() {
+            Program::Command { args, .. } => args.clone(),
+            Program::ImageEntrypoint => unreachable!(),
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        arguments,
+        [
+            ["git", "config", "--global", "user.name", "First User"],
+            ["git", "config", "--global", "user.email", "first@example.com"],
+            ["git", "config", "--global", "user.name", "Second User"],
+            ["git", "config", "--global", "user.email", "second@example.com"],
+        ]
+        .map(|args| args.map(str::to_owned).to_vec())
+    );
+    assert!(
+        git.iter()
+            .all(|spec| spec.environment().get("HOME").map(String::as_str) == Some("/home/agent"))
+    );
+    let first_tar = executions
+        .iter()
+        .position(|spec| matches!(spec.program(), Program::Command { executable, .. } if executable.as_str() == "/usr/bin/tar"))
+        .expect("home synchronization");
+    let first_git = executions.iter().position(is_git_config).expect("Git configuration");
+    assert!(
+        first_tar < first_git,
+        "Git identity must be applied after the home overlay"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn linux_setup_skips_git_identity_when_git_is_absent() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions").expect("instruction file");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    let record = AgentRecord {
+        id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    backend.queue_execution_events_matching(is_git_presence_check, completed(127));
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(
+            &EnsureSandboxRequest::new(record.sandbox_name().expect("Sandbox name"), spec).with_environment([
+                ("GIT_USER_NAME".into(), "Test User".into()),
+                ("GIT_USER_EMAIL".into(), "test@example.com".into()),
+            ]),
+        )
+        .await
+        .expect("Sandbox");
+
+    Linux.setup(&record, &sandbox).await.expect("setup without Git");
+
+    assert!(!backend.execution_specs().iter().any(is_git_config));
+}
+
+#[tokio::test(flavor = "local")]
+async fn linux_setup_rejects_partial_git_identity() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    resource.spec.instructions.clear();
+    let record = AgentRecord {
+        id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(
+            &EnsureSandboxRequest::new(record.sandbox_name().expect("Sandbox name"), spec)
+                .with_environment([("GIT_USER_NAME".into(), "Test User".into())]),
+        )
+        .await
+        .expect("Sandbox");
+
+    let error = Linux.setup(&record, &sandbox).await.expect_err("partial Git identity");
+
+    assert!(matches!(error, agent::Error::Invalid(message) if message.contains("must both be configured")));
+    assert!(!backend.execution_specs().iter().any(is_git_presence_check));
+    assert!(!backend.execution_specs().iter().any(is_git_config));
+}
+
+#[tokio::test(flavor = "local")]
 async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injection() {
     let directory = TempDir::new().expect("temporary directory");
     let home = directory.path().join("home");
@@ -563,7 +797,7 @@ async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
         is_claude_version,
         vec![
             ExecutionEvent::Started { process_id: None },
-            ExecutionEvent::Stdout("2.1.239 (Claude Code)\n".into()),
+            ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
             ExecutionEvent::Exited(ExitStatus { code: 0 }),
         ],
     );

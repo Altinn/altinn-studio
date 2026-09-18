@@ -72,6 +72,8 @@ and rerun the evidence that demonstrates the outcome. Benchmark and profile perf
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
 
+Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental`.
+
 ## Pull requests
 
 When asked to create or update a pull request:
@@ -89,6 +91,7 @@ When asked to create or update a pull request:
 - Treat clear contributor requests and questions as actionable. Implement or answer them in the original GitHub thread.
 - Evaluate automated review comments before acting; escalate conflicts, scope expansion, missing authority, or genuine
   ambiguity to Martin.
+- Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
 
 When posting multiline GitHub comments from a shell, pass the body through stdin or `--body-file`; do not embed literal
 `\n` escapes in ordinary double-quoted strings.

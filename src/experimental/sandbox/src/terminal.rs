@@ -112,13 +112,17 @@ impl StartTerminalExecutionRequest {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AttachTerminalRequest {
     spec: execution::ExecutionSpec,
+    detach_keys: Option<String>,
 }
 
 impl AttachTerminalRequest {
     /// Creates a terminal attachment request.
     #[must_use]
     pub const fn new(spec: execution::ExecutionSpec) -> Self {
-        Self { spec }
+        Self {
+            spec,
+            detach_keys: None,
+        }
     }
 
     /// Returns the desired command and process environment.
@@ -127,10 +131,25 @@ impl AttachTerminalRequest {
         &self.spec
     }
 
+    /// Overrides the Provider's default local detach key sequence.
+    ///
+    /// The value uses Docker-style syntax, such as `"ctrl-]"` or `"ctrl-b,d"`.
+    #[must_use]
+    pub fn with_detach_keys(mut self, keys: impl Into<String>) -> Self {
+        self.detach_keys = Some(keys.into());
+        self
+    }
+
+    /// Returns an explicit local detach key sequence, when configured.
+    #[must_use]
+    pub fn detach_keys(&self) -> Option<&str> {
+        self.detach_keys.as_deref()
+    }
+
     /// Decomposes the request for a Backend implementation.
     #[must_use]
-    pub fn into_spec(self) -> execution::ExecutionSpec {
-        self.spec
+    pub fn into_parts(self) -> (execution::ExecutionSpec, Option<String>) {
+        (self.spec, self.detach_keys)
     }
 }
 

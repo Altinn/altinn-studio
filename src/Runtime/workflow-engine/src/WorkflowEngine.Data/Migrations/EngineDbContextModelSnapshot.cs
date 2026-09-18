@@ -294,6 +294,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("error_history");
 
+                    b.Property<DateTimeOffset?>("ExecutionStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("execution_started_at");
+
                     b.Property<DateTimeOffset?>("FirstDeferredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("first_deferred_at");
@@ -429,6 +433,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("engine_trace_context");
+
+                    b.Property<DateTimeOffset?>("ExecutionStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("execution_started_at");
 
                     b.Property<DateTimeOffset?>("HeartbeatAt")
                         .HasColumnType("timestamp with time zone")

@@ -1001,7 +1001,7 @@ public class DataController : ControllerBase
                 refreshedInstance = await _instanceClient.GetInstance(
                     instance,
                     authenticationMethod: null,
-                    ct: cancellationToken
+                    cancellationToken: cancellationToken
                 );
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

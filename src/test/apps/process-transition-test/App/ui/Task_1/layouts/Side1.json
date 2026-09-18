@@ -66,24 +66,8 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "path",
-              "TransitionControl"
-            ],
-            "preCommit"
-          ],
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "path",
-              "TransitionControl"
-            ],
-            "postCommit"
-          ]
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
         ],
         "options": [
           {
@@ -124,24 +108,8 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "path",
-              "TransitionControl"
-            ],
-            "preCommit"
-          ],
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "path",
-              "TransitionControl"
-            ],
-            "postCommit"
-          ]
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
         ],
         "options": [
           {
@@ -178,24 +146,8 @@
         "preselectedOptionIndex": 0,
         "hidden": [
           "and",
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "path",
-              "TransitionControl"
-            ],
-            "preCommit"
-          ],
-          [
-            "notEquals",
-            [
-              "dataModel",
-              "path",
-              "TransitionControl"
-            ],
-            "postCommit"
-          ]
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "preCommit"],
+          ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"]
         ],
         "options": [
           {
@@ -223,44 +175,6 @@
       {
         "dataModelBindings": {
           "simpleBinding": {
-            "field": "advance",
-            "dataType": "TransitionControl"
-          }
-        },
-        "id": "advance",
-        "type": "Dropdown",
-        "preselectedOptionIndex": 0,
-        "hidden": [
-          "notEquals",
-          [
-            "dataModel",
-            "path",
-            "TransitionControl"
-          ],
-          "postCommit"
-        ],
-        "options": [
-          {
-            "value": "auto",
-            "label": "advance.auto"
-          },
-          {
-            "value": "park",
-            "label": "advance.park"
-          },
-          {
-            "value": "parkThenRelease",
-            "label": "advance.parkThenRelease"
-          }
-        ],
-        "textResourceBindings": {
-          "title": "advance.title",
-          "help": "advance.help"
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": {
             "field": "serviceView",
             "dataType": "TransitionControl"
           }
@@ -268,15 +182,7 @@
         "id": "serviceView",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
-        "hidden": [
-          "notEquals",
-          [
-            "dataModel",
-            "path",
-            "TransitionControl"
-          ],
-          "postCommit"
-        ],
+        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
         "options": [
           {
             "value": "default",
@@ -302,15 +208,7 @@
         "id": "deferrals",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
-        "hidden": [
-          "notEquals",
-          [
-            "dataModel",
-            "path",
-            "TransitionControl"
-          ],
-          "postCommit"
-        ],
+        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
         "options": [
           {
             "value": "0",
@@ -340,15 +238,7 @@
         "id": "deferDelayMs",
         "type": "Dropdown",
         "preselectedOptionIndex": 0,
-        "hidden": [
-          "notEquals",
-          [
-            "dataModel",
-            "path",
-            "TransitionControl"
-          ],
-          "postCommit"
-        ],
+        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
         "options": [
           {
             "value": "2000",

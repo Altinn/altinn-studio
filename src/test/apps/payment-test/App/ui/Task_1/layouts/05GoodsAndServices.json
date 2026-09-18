@@ -205,24 +205,31 @@
           "title": "Oversikt over betaling",
           "description": "Her er en oversikt over hva du skal betale for."
         },
-        "mapping": {
-          "GoodsAndServicesProperties.Inventory.InventoryProperties": "paymentDetails"
-        },
         "hidden": [
           "or",
-          ["equals",
           [
-            "dataModel",
-            "HF_HaveReadAndUnderstood"
+            "equals",
+            [
+              "dataModel",
+              "HF_HaveReadAndUnderstood"
+            ],
+            null
           ],
-          null],
-          ["equals",
           [
+            "equals",
+            [
+              "dataModel",
+              "HideFirstPaymentDetails"
+            ],
+            true
+          ]
+        ],
+        "refetchDependencies": {
+          "paymentDetails": [
             "dataModel",
-            "HideFirstPaymentDetails"
-          ],
-          true]
-        ]
+            "GoodsAndServicesProperties.Inventory.InventoryProperties"
+          ]
+        }
       },
       {
         "id": "niceClassificationNumber",

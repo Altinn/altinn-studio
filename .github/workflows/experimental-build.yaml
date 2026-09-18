@@ -86,6 +86,9 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh
+
       - name: Check dependencies
         run: make deps-check
 
@@ -123,6 +126,7 @@ jobs:
           sparse-checkout: |
             src/experimental
             src/ci/github-runner/coordinator
+            agents
 
       - name: Install native build dependencies
         if: runner.os == 'Linux'
@@ -154,3 +158,6 @@ jobs:
           -p agent
           -p sandbox-microsandbox
           --all-targets --all-features --locked
+
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh

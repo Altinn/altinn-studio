@@ -7,6 +7,13 @@ Simple release flow for a component.
 - `studioctl`: uses a Go builder registered by the releaser CLI.
 - `app`: uses a Go builder registered by the releaser CLI.
 - `fileanalyzers`: has no releaser builder; the GitHub workflow handles package build and publish.
+- `codelists`: has no releaser builder; the GitHub workflow handles package build and publish.
+
+## First release of a component
+
+`prepare` infers the next version from the component changelog, so a component whose changelog has no
+released section yet has nothing to infer from. Use the explicit escape hatch for the first release
+only: `go run . prepare -component <component> -kind prerelease -version 9.0.0-preview.1`.
 
 ## Builders
 

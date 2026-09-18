@@ -104,9 +104,77 @@ public class WorkflowEngineClientTests
             );
     }
 
-    [Fact]
-    public async Task GetCollection_UsesCollectionEndpoint()
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task GetWorkflow_ReadsDetailWithDependenciesAndHandlesStatus(HttpStatusCode status)
     {
+        Guid workflowId = Guid.NewGuid();
+        Guid parentId = Guid.NewGuid();
+        var detail = CreateWorkflowStatusResponse("continuation") with
+        {
+            DatabaseId = workflowId,
+            Dependencies = new Dictionary<Guid, PersistentItemStatus> { [parentId] = PersistentItemStatus.Processing },
+        };
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>(
+                (request, _) =>
+                {
+                    Assert.Equal(HttpMethod.Get, request.Method);
+                    Assert.Equal(
+                        $"http://workflow-engine/api/v1/ttd%2Fapp/workflows/{workflowId}",
+                        request.RequestUri!.ToString()
+                    );
+                    return Task.FromResult(
+                        status == HttpStatusCode.OK ? CreateJsonResponse(detail) : new HttpResponseMessage(status)
+                    );
+                }
+            );
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        if (status == HttpStatusCode.ServiceUnavailable)
+        {
+            var error = await Assert.ThrowsAsync<HttpRequestException>(() => client.GetWorkflow("ttd/app", workflowId));
+            Assert.Equal(status, error.StatusCode);
+            return;
+        }
+
+        var result = await client.GetWorkflow("ttd/app", workflowId);
+        if (status == HttpStatusCode.NotFound)
+        {
+            Assert.Null(result);
+            return;
+        }
+
+        Assert.NotNull(result);
+        Assert.Equal(workflowId, result.DatabaseId);
+        Assert.Equal(PersistentItemStatus.Processing, Assert.Single(result.Dependencies!).Value);
+        Assert.Equal(parentId, Assert.Single(result.Dependencies!).Key);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetCollection_UsesCollectionEndpoint(bool includesCurrentTime)
+    {
+        DateTimeOffset? currentTime = includesCurrentTime
+            ? new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero)
+            : null;
         var requestUris = new List<Uri?>();
 
         var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
@@ -139,6 +207,7 @@ public class WorkflowEngineClientTests
                                 ],
                                 CreatedAt = DateTimeOffset.UtcNow,
                                 UpdatedAt = DateTimeOffset.UtcNow,
+                                CurrentTime = currentTime,
                             }
                         )
                     );
@@ -160,6 +229,7 @@ public class WorkflowEngineClientTests
 
         Assert.NotNull(collection);
         Assert.Equal("process-next:abc:Task_1:2", collection.Key);
+        Assert.Equal(currentTime, collection.CurrentTime);
         Assert.Equal(
             "http://workflow-engine/api/v1/ttd%2Fapp/collections/process-next%3Aabc%3ATask_1%3A2",
             requestUris[0]!.ToString()
@@ -277,10 +347,12 @@ public class WorkflowEngineClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Returns<HttpRequestMessage, CancellationToken>(
-                async (request, ct) =>
+                async (request, cancellationToken) =>
                 {
                     capturedRequest = request;
-                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    capturedBody = request.Content is null
+                        ? null
+                        : await request.Content.ReadAsStringAsync(cancellationToken);
                     HttpResponseMessage response = CreateJsonResponse(
                         new MailboxResponse
                         {
@@ -479,10 +551,12 @@ public class WorkflowEngineClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .Returns<HttpRequestMessage, CancellationToken>(
-                async (request, ct) =>
+                async (request, cancellationToken) =>
                 {
                     capturedRequest = request;
-                    capturedBody = request.Content is null ? null : await request.Content.ReadAsStringAsync(ct);
+                    capturedBody = request.Content is null
+                        ? null
+                        : await request.Content.ReadAsStringAsync(cancellationToken);
                     HttpResponseMessage response = CreateJsonResponse(
                         new MailboxDeliveryResponse
                         {

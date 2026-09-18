@@ -540,7 +540,7 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
-                    It.Is<CancellationToken>(ct => ct == cts.Token)
+                    It.Is<CancellationToken>(cancellationToken => cancellationToken == cts.Token)
                 ),
             Times.AtLeastOnce
         );

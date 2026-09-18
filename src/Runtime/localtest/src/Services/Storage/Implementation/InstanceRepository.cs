@@ -304,7 +304,7 @@ namespace LocalTest.Services.Storage.Implementation
             int? expectedInstanceVersion = null,
             int? expectedProcessStateVersion = null)
         {
-            using var _ = await Lock(instance);
+            using var instanceLock = await Lock(instance);
             Guid instanceGuid = GetInstanceGuid(instance);
             bool bumpsProcessStateVersion = updateProperties.Contains(nameof(instance.Process));
 
@@ -317,27 +317,25 @@ namespace LocalTest.Services.Storage.Implementation
                 bumpProcessStateVersion: bumpsProcessStateVersion,
                 async () =>
                 {
-                    await EnsureIdleProcessStatus(instanceGuid, cancellationToken);
+                    (Instance current, _) = await GetOneWithoutLock(instanceGuid, false, cancellationToken);
+                    ProcessStatus currentProcessStatus = current?.Process?.Status ?? ProcessStatus.Idle;
+                    if (currentProcessStatus != ProcessStatus.Idle)
+                    {
+                        throw new ProcessStatusConflictException(currentProcessStatus);
+                    }
+
+                    // Data values may have changed without invalidating the caller's versions.
+                    if (!updateProperties.Contains(nameof(instance.DataValues)))
+                    {
+                        instance.DataValues = current?.DataValues;
+                    }
+
                     await WriteInstance(instance, cancellationToken);
                 },
                 cancellationToken);
 
             await PostProcess(instance, cancellationToken);
             return instance;
-        }
-
-        // Callers hand in an instance they have already mutated, so the guard has to read the
-        // persisted process status, as updateinstance_v4 reads it off the locked row.
-        private async Task EnsureIdleProcessStatus(
-            Guid instanceGuid,
-            CancellationToken cancellationToken)
-        {
-            (Instance current, _) = await GetOneWithoutLock(instanceGuid, false, cancellationToken);
-            ProcessStatus currentProcessStatus = current?.Process?.Status ?? ProcessStatus.Idle;
-            if (currentProcessStatus != ProcessStatus.Idle)
-            {
-                throw new ProcessStatusConflictException(currentProcessStatus);
-            }
         }
 
         internal async Task<T> RunWithInstanceLock<T>(Instance instance, Func<Task<T>> operation)
@@ -356,6 +354,51 @@ namespace LocalTest.Services.Storage.Implementation
             await WriteInstance(instance, cancellationToken);
             await PostProcess(instance, cancellationToken);
             return instance;
+        }
+
+        public async Task<(Instance Instance, InstanceVersionResult Versions)> UpdateDataValues(
+            Guid instanceGuid,
+            Dictionary<string, string> dataValues,
+            CancellationToken cancellationToken,
+            int? expectedInstanceVersion = null,
+            int? expectedProcessStateVersion = null)
+        {
+            string path = FindInstancePath(instanceGuid);
+            if (path is null)
+            {
+                throw new RepositoryException("Instance was not found.", System.Net.HttpStatusCode.NotFound);
+            }
+
+            using var instanceLock = await Lock(path);
+            (Instance instance, _) = await GetOneWithoutLock(instanceGuid, false, cancellationToken);
+            InstanceVersionResult versions = await InstanceVersionMetadataStore.Mutate(
+                _localPlatformSettings,
+                instanceGuid,
+                expectedInstanceVersion,
+                expectedProcessStateVersion,
+                bumpInstanceVersion: false,
+                bumpProcessStateVersion: false,
+                async () =>
+                {
+                    instance.DataValues ??= new Dictionary<string, string>();
+                    foreach (var (key, value) in dataValues)
+                    {
+                        if (string.IsNullOrEmpty(value))
+                        {
+                            instance.DataValues.Remove(key);
+                        }
+                        else
+                        {
+                            instance.DataValues[key] = value;
+                        }
+                    }
+
+                    await WriteInstance(instance, cancellationToken);
+                },
+                cancellationToken);
+
+            await PostProcess(instance, cancellationToken);
+            return (instance, versions);
         }
 
         public async Task<Instance> UpdateReadStatus(

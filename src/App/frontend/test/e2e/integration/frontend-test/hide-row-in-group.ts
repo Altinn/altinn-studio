@@ -147,8 +147,14 @@ describe('Hide row in group', () => {
       cy.get(appFrontend.group.currentValue).type(value);
       cy.get(appFrontend.group.saveMainGroup).click();
     });
+    cy.findByRole('button', { name: 'Rediger NOK 6' }).should('be.visible');
     cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', '');
     cy.get(appFrontend.group.hideRepeatingGroupRow).type('5');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 5');
+
+    // Wait for the row to be hidden before testing navigation past it.
+    cy.findByRole('button', { name: 'Rediger NOK 6' }).should('not.exist');
     cy.findByRole('button', { name: 'Rediger NOK 1' }).click();
     cy.get(appFrontend.group.saveAndNextMainGroup).click();
     cy.get(appFrontend.group.currentValue).should('have.value', 'NOK 2');

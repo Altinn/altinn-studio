@@ -1,9 +1,16 @@
 using System.IO;
+using System.Text.Json;
 using Altinn.App.Api.Extensions;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Extensions;
@@ -15,23 +22,7 @@ public sealed class WebHostBuilderExtensionsTests
     public WebHostBuilderExtensionsTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
-    public void AddRuntimeConfigFiles_Development_DoesNotAddRuntimeFiles()
-    {
-        using var tempDirectory = new TempDirectory(_outputHelper);
-        File.WriteAllText(Path.Join(tempDirectory.Path, "appsettings.json"), "{}");
-        IConfigurationBuilder configBuilder = new ConfigurationBuilder();
-
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Development),
-            tempDirectory.Path
-        );
-
-        Assert.Empty(configBuilder.Sources.OfType<JsonConfigurationSource>());
-    }
-
-    [Fact]
-    public void AddRuntimeConfigFiles_Production_AddsNonOverrideBeforeOverride()
+    public void AddRuntimeConfigFiles_AddsNonOverrideBeforeOverride()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
         File.WriteAllText(Path.Join(tempDirectory.Path, "30-config.json"), "{}");
@@ -40,11 +31,7 @@ public sealed class WebHostBuilderExtensionsTests
         File.WriteAllText(Path.Join(tempDirectory.Path, "40-settings.override.json"), "{}");
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
 
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, tempDirectory.Path, []);
 
         string[] jsonSourcePaths = configBuilder
             .Sources.OfType<JsonConfigurationSource>()
@@ -59,10 +46,10 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [Fact]
-    public void AddRuntimeConfigFiles_Production_SkipsFilesAlreadyInConfigurationSources()
+    public void AddRuntimeConfigFiles_SkipsFilesAlreadyInConfigurationSources()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
-        File.WriteAllText(Path.Join(tempDirectory.Path, "maskinporten-settings.json"), "{}");
+        File.WriteAllText(Path.Join(tempDirectory.Path, "platform-settings.json"), "{}");
         File.WriteAllText(Path.Join(tempDirectory.Path, "appsettings.json"), "{}");
         File.WriteAllText(Path.Join(tempDirectory.Path, "appsettings.override.json"), "{}");
 
@@ -70,16 +57,12 @@ public sealed class WebHostBuilderExtensionsTests
         using var fileProvider = new PhysicalFileProvider(tempDirectory.Path);
         configBuilder.AddJsonFile(
             provider: fileProvider,
-            path: "maskinporten-settings.json",
+            path: "platform-settings.json",
             optional: true,
             reloadOnChange: false
         );
 
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, tempDirectory.Path, []);
 
         string[] jsonSourcePaths = configBuilder
             .Sources.OfType<JsonConfigurationSource>()
@@ -88,7 +71,7 @@ public sealed class WebHostBuilderExtensionsTests
 
         Assert.Equal(
             1,
-            jsonSourcePaths.Count(path => string.Equals(path, "maskinporten-settings.json", StringComparison.Ordinal))
+            jsonSourcePaths.Count(path => string.Equals(path, "platform-settings.json", StringComparison.Ordinal))
         );
         Assert.Contains("appsettings.json", jsonSourcePaths);
         Assert.Contains("appsettings.override.json", jsonSourcePaths);
@@ -99,7 +82,7 @@ public sealed class WebHostBuilderExtensionsTests
     }
 
     [LinuxOnlyFact]
-    public async Task AddRuntimeConfigFiles_Production_ReloadsWhenKubernetesDataSymlinkChanges()
+    public async Task AddRuntimeConfigFiles_ReloadsWhenKubernetesDataSymlinkChanges()
     {
         using var tempDirectory = new TempDirectory(_outputHelper);
         const string fileName = "runtime-settings.json";
@@ -113,11 +96,7 @@ public sealed class WebHostBuilderExtensionsTests
         projectedVolume.CreateSymlinks(KubernetesProjectedVolume.InitialVersionDirectoryName, fileName);
 
         IConfigurationBuilder configBuilder = new ConfigurationBuilder();
-        WebHostBuilderExtensions.AddRuntimeConfigFiles(
-            configBuilder,
-            new TestHostEnvironment(Environments.Production),
-            tempDirectory.Path
-        );
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, tempDirectory.Path, []);
 
         var configuration = configBuilder.Build();
         using var configurationDisposable = configuration as IDisposable;
@@ -196,6 +175,51 @@ public sealed class WebHostBuilderExtensionsTests
         Assert.DoesNotContain("--random-host-port=false", startInfo.ArgumentList);
     }
 
+    /// <summary>
+    /// The <c>dotnet run</c> path: what <c>studioctl app env --json</c> prints, imported the way
+    /// <see cref="StudioctlLocalConfiguration"/> imports it, is all the provisioned secrets channel needs —
+    /// studioctl says where it put the secrets and what it called each file, exactly as the platform does for
+    /// a deployed app. The keys are spelled out because they are the wire contract with studioctl.
+    /// </summary>
+    [Fact]
+    public void ImportedStudioctlEnvironment_ReachesTheProvisionedSecretsChannel()
+    {
+        using var tempDirectory = new TempDirectory(_outputHelper);
+        bool parsed = StudioctlLocalConfiguration.TryParseEnvironmentJson(
+            $$"""
+            {
+              "GeneralSettings__HostName": "local.altinn.cloud",
+              "STUDIOCTL_APP_RUN": "1",
+              "RUNTIME_APP_SECRETS_DIR": {{JsonSerializer.Serialize(tempDirectory.Path)}},
+              "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME": "maskinporten-settings.json",
+              "RUNTIME_APP_SECRETS_APPCODES_FILENAME": "app-codes.json"
+            }
+            """,
+            out Dictionary<string, string?> values
+        );
+        Assert.True(parsed);
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(StudioctlLocalConfiguration.NormalizeConfigurationKeys(values))
+            .Build();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(configuration);
+        services.AddRuntimeEnvironment();
+        // The Maskinporten startup check logs, and a container built without a host has no logging of its own.
+        services.AddLogging();
+        services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
+        services.Configure<PlatformSettings>(_ => { });
+        services.AddMaskinportenSettings();
+        using ServiceProvider serviceProvider = services.BuildStrictServiceProvider();
+
+        var secrets = serviceProvider.GetRequiredService<ProvisionedSecrets>();
+        Assert.Equal(Path.GetFullPath(tempDirectory.Path), Path.GetFullPath(secrets.Directory));
+        Assert.Equal(
+            Path.GetFullPath(Path.Join(tempDirectory.Path, "maskinporten-settings.json")),
+            Path.GetFullPath(secrets.PathOf(ProvisionedSecretFiles.Maskinporten))
+        );
+    }
+
     [Fact]
     public void ShouldAdd_StudioctlAppRunSet_ReturnsFalse()
     {
@@ -231,6 +255,71 @@ public sealed class WebHostBuilderExtensionsTests
         public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
 
         public IFileProvider ContentRootFileProvider { get; set; } = new PhysicalFileProvider(AppContext.BaseDirectory);
+    }
+
+    [Fact]
+    public void AddRuntimeConfigFiles_NeverAddsAProvisionedSecretsFile()
+    {
+        // The files the libraries host are bound through the provisioned secrets channel. If the sweep of the
+        // secrets mount also loaded them, their sections would be back in the app's configuration - where a
+        // package binding one of those names by convention would pick them up. A hosted file is excluded by
+        // the name the platform gave it, which is the only name anything here knows.
+        using var tempDirectory = new TempDirectory(_outputHelper);
+        File.WriteAllText(Path.Join(tempDirectory.Path, "credentials-the-platform-named.json"), "{}");
+        File.WriteAllText(Path.Join(tempDirectory.Path, "Credentials-The-Platform-Named.override.json"), "{}");
+        File.WriteAllText(Path.Join(tempDirectory.Path, "platform-settings.json"), "{}");
+        IConfigurationBuilder configBuilder = new ConfigurationBuilder();
+
+        // The excluded names are resolved from the variables the platform sets, the way ConfigureAppWebHost
+        // resolves them: nothing here is told what a hosted file is called.
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([
+                new(ProvisionedSecrets.DirectoryKey, tempDirectory.Path),
+                new(ProvisionedSecretFiles.Maskinporten.FileNameKey, "credentials-the-platform-named.json"),
+            ])
+            .Build();
+        List<string> hostedFileNames = [];
+        foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
+        {
+            if (file.TryResolve(configuration, out ProvisionedSecretFile? resolved) && resolved.IsResolved)
+            {
+                hostedFileNames.Add(resolved.FileName);
+            }
+        }
+
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(
+            configBuilder,
+            configuration[ProvisionedSecrets.DirectoryKey],
+            hostedFileNames
+        );
+
+        string[] jsonSourcePaths = configBuilder
+            .Sources.OfType<JsonConfigurationSource>()
+            .Select(source => source.Path ?? string.Empty)
+            .ToArray();
+
+        Assert.DoesNotContain("credentials-the-platform-named.json", jsonSourcePaths);
+        Assert.Equal(
+            new[] { "platform-settings.json", "Credentials-The-Platform-Named.override.json" },
+            jsonSourcePaths
+        );
+    }
+
+    /// <summary>
+    /// Nothing said where the secrets are. That is a real problem, and the provisioned secrets startup check
+    /// is what reports it, naming the variable — this sweep simply has nothing to sweep.
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void AddRuntimeConfigFiles_AddsNothing_WhenNoSecretsDirectoryIsNamed(string? secretsDirectory)
+    {
+        IConfigurationBuilder configBuilder = new ConfigurationBuilder();
+
+        WebHostBuilderExtensions.AddRuntimeConfigFiles(configBuilder, secretsDirectory, []);
+
+        Assert.Empty(configBuilder.Sources.OfType<JsonConfigurationSource>());
     }
 
     private static void AssertUsesPollingFileProvider(JsonConfigurationSource source)

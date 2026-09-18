@@ -18,6 +18,7 @@ LOGIN_STEP_TIMEOUT_MS = 30_000
 ORG_PICKER_TIMEOUT_MS = 3_000
 CHECKOUT_TIMEOUT_MS = 120_000
 ERROR_SNIPPET_MAX_CHARS = 200
+NO_MARKER_PREFIX = "no render marker: "
 
 XSRF_COOKIE_NAME = "XSRF-TOKEN"
 XSRF_HEADER_NAME = "X-XSRF-TOKEN"
@@ -46,6 +47,12 @@ class PageRenderResult:
     page: str
     rendered: bool
     detail: str = ""
+    measured: bool = True
+
+    @property
+    def failed(self) -> bool:
+        """Rendering was attempted and the page did not come up."""
+        return self.measured and not self.rendered
 
 
 class PreviewCheckUnavailable(Exception):
@@ -236,8 +243,22 @@ def _check_pages(page, first_page_url: str, page_order: list[str]) -> list[PageR
             raise PreviewCheckUnavailable(
                 f"preview url {first_page_url!r} cannot select layouts; cannot check {len(page_order)} page(s)"
             )
-        results.append(_check_single_page(page, url, layout))
+        result = _check_single_page(page, url, layout)
+        if _is_bare_timeout(result):
+            result = _check_single_page(page, url, layout)
+            if _is_bare_timeout(result):
+                result = PageRenderResult(layout, False, result.detail, measured=False)
+        results.append(result)
     return results
+
+
+def _is_bare_timeout(result: PageRenderResult) -> bool:
+    """The page showed nothing at all, not even the error marker.
+
+    A broken app renders `error page:` or `uncaught error:`; this is the preview
+    failing to answer, which says nothing about the app.
+    """
+    return not result.rendered and result.detail.startswith(NO_MARKER_PREFIX)
 
 
 def _check_single_page(page, url: str, layout: str) -> PageRenderResult:
@@ -257,7 +278,7 @@ def _check_single_page(page, url: str, layout: str) -> PageRenderResult:
         )
     except Exception as error:
         detail = uncaught_errors[0] if uncaught_errors else str(error)
-        return PageRenderResult(layout, False, f"no render marker: {_snippet(detail)}")
+        return PageRenderResult(layout, False, f"{NO_MARKER_PREFIX}{_snippet(detail)}")
     finally:
         page.remove_listener("pageerror", on_page_error)
         page.remove_listener("console", on_console)

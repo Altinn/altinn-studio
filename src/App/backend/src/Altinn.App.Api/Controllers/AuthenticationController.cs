@@ -27,14 +27,15 @@ public class AuthenticationController : ControllerBase
     /// <summary>
     /// Refreshes the AltinnStudioRuntime JwtToken when not in AltinnStudio mode.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Ok result with updated token.</returns>
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Authorize]
     [HttpGet("{org}/{app}/api/[controller]/keepAlive")]
-    public async Task<IActionResult> KeepAlive()
+    public async Task<IActionResult> KeepAlive(CancellationToken cancellationToken)
     {
-        string token = await _authenticationClient.RefreshToken();
+        string token = await _authenticationClient.RefreshToken(cancellationToken);
 
         CookieOptions runtimeCookieSetting = new CookieOptions
         {

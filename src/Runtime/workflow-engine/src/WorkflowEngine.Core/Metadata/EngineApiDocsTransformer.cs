@@ -41,6 +41,11 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
         ["FailWorkflow"] = "fail",
         ["ListCollections"] = "list-collections",
         ["GetCollection"] = "get-collection",
+        ["ListNamespaceThrottles"] = "list-namespace-throttles",
+        ["GetNamespaceThrottle"] = "get-namespace-throttle",
+        ["TripNamespaceThrottle"] = "force-trip-throttle",
+        ["ClearNamespaceThrottle"] = "force-clear-throttle",
+
         ["MintMailbox"] = "mint-mailbox",
         ["GetMailbox"] = "get-mailbox",
         ["CloseMailbox"] = "close-mailbox",

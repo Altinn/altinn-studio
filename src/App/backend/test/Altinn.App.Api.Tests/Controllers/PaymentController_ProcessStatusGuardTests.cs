@@ -48,7 +48,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         "Task_1",
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(
@@ -95,7 +96,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         "Task_1",
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );
@@ -128,7 +130,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         historicalTaskId,
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     )
                 )
                 .ReturnsAsync(
@@ -169,7 +172,8 @@ public sealed class PaymentControllerProcessStatusGuardTests
                         It.IsAny<Instance>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         historicalTaskId,
-                        It.IsAny<string?>()
+                        It.IsAny<string?>(),
+                        It.IsAny<CancellationToken>()
                     ),
                 Times.Once
             );

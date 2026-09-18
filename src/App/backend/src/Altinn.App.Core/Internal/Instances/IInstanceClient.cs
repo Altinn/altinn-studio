@@ -21,7 +21,7 @@ public interface IInstanceClient
         int instanceOwnerPartyId,
         Guid instanceId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -36,7 +36,7 @@ public interface IInstanceClient
     Task<Instance> GetInstance(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -50,7 +50,7 @@ public interface IInstanceClient
     Task<List<Instance>> GetInstances(
         Dictionary<string, StringValues> queryParams,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -65,7 +65,7 @@ public interface IInstanceClient
     Task<Instance> UpdateProcess(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -80,7 +80,7 @@ public interface IInstanceClient
         Instance instance,
         List<InstanceEvent> events,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -96,14 +96,14 @@ public interface IInstanceClient
     /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="instanceTemplate">the instance template to create (must have instanceOwner with partyId, personNumber or organizationNumber set)</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The created instance</returns>
     Task<Instance> CreateInstance(
         string org,
         string app,
         Instance instanceTemplate,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -127,13 +127,13 @@ public interface IInstanceClient
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     Task<Instance> AddCompleteConfirmation(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -157,14 +157,14 @@ public interface IInstanceClient
     /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
     /// <param name="readStatus">The new instance read status.</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     Task<Instance> UpdateReadStatus(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         string readStatus,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -184,14 +184,14 @@ public interface IInstanceClient
     /// <param name="instanceGuid">The id of the instance to be updated.</param>
     /// <param name="substatus">The new substatus.</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     Task<Instance> UpdateSubstatus(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Substatus substatus,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -214,14 +214,14 @@ public interface IInstanceClient
     /// <param name="instanceGuid">The id of the instance to update presentation texts for.</param>
     /// <param name="presentationTexts">The presentation texts</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     Task<Instance> UpdatePresentationTexts(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         PresentationTexts presentationTexts,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -250,14 +250,14 @@ public interface IInstanceClient
     /// <param name="instanceGuid">The id of the instance to update data values for.</param>
     /// <param name="dataValues">The data values</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     Task<Instance> UpdateDataValues(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         DataValues dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -282,13 +282,13 @@ public interface IInstanceClient
     /// <param name="instance">The instance</param>
     /// <param name="dataValues">The data value (null unsets the value)</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     async Task<Instance> UpdateDataValues(
         Instance instance,
         Dictionary<string, string?> dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         var id = new InstanceIdentifier(instance);
@@ -297,7 +297,7 @@ public interface IInstanceClient
             id.InstanceGuid,
             new DataValues { Values = dataValues },
             authenticationMethod,
-            ct
+            cancellationToken
         );
     }
 
@@ -323,21 +323,21 @@ public interface IInstanceClient
     /// <param name="key">The key of the DataValues collection to be updated.</param>
     /// <param name="value">The data value (null unsets the value)</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the updated instance.</returns>
     async Task<Instance> UpdateDataValue(
         Instance instance,
         string key,
         string? value,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         return await UpdateDataValues(
             instance,
             new Dictionary<string, string?> { { key, value } },
             authenticationMethod,
-            ct
+            cancellationToken
         );
     }
 
@@ -361,14 +361,14 @@ public interface IInstanceClient
     /// <param name="instanceGuid">The id of the instance to delete.</param>
     /// <param name="hard">Boolean to indicate if instance should be hard deleted.</param>
     /// <param name="authenticationMethod">The AuthenticationMethod to use against storage</param>
-    /// <param name="ct">CancellationToken</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Returns the deleted instance.</returns>
     Task<Instance> DeleteInstance(
         int instanceOwnerPartyId,
         Guid instanceGuid,
         bool hard,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>

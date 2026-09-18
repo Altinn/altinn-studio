@@ -51,12 +51,14 @@ public class InstanceEventClient : IInstanceEventClient
         string[] eventTypes,
         string from,
         string to,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceId}/events";
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
         );
 
         char paramSeparator = '?';
@@ -77,11 +79,15 @@ public class InstanceEventClient : IInstanceEventClient
             apiUrl += $"{paramSeparator}from={from}&to={to}";
         }
 
-        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(
+            token,
+            apiUrl,
+            cancellationToken: cancellationToken
+        );
 
         if (response.IsSuccessStatusCode)
         {
-            string eventData = await response.Content.ReadAsStringAsync();
+            string eventData = await response.Content.ReadAsStringAsync(cancellationToken);
             InstanceEventList instanceEvents =
                 JsonConvert.DeserializeObject<InstanceEventList>(eventData)
                 ?? throw new JsonException("Could not deserialize InstanceEventList");
@@ -89,7 +95,7 @@ public class InstanceEventClient : IInstanceEventClient
             return instanceEvents.InstanceEvents;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -97,25 +103,28 @@ public class InstanceEventClient : IInstanceEventClient
         object dataToSerialize,
         string org,
         string app,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
         instanceEvent.Created = DateTime.UtcNow;
         string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
         );
 
         using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
-            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json")
+            new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"),
+            cancellationToken: cancellationToken
         );
 
         if (response.IsSuccessStatusCode)
         {
-            string eventData = await response.Content.ReadAsStringAsync();
+            string eventData = await response.Content.ReadAsStringAsync(cancellationToken);
             InstanceEvent result =
                 JsonConvert.DeserializeObject<InstanceEvent>(eventData)
                 ?? throw new Exception("Failed to deserialize instance event");
@@ -126,6 +135,6 @@ public class InstanceEventClient : IInstanceEventClient
             return id;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 }

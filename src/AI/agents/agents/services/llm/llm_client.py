@@ -36,12 +36,7 @@ def _is_claude_model(model_name: Optional[str]) -> bool:
 
 
 def _is_reasoning_model(model_name: Optional[str]) -> bool:
-    """Check if model is a reasoning model that uses internal reasoning tokens.
-
-    Reasoning models (o1, o3, gpt-5, etc.) allocate part of max_tokens to
-    internal chain-of-thought reasoning.  They need a much larger token budget
-    than non-reasoning models to leave room for actual output.
-    """
+    """Check if model is a reasoning model that uses internal reasoning tokens."""
     if not model_name:
         return False
     m = model_name.lower()
@@ -77,15 +72,7 @@ def _build_anthropic_user_content(
     user_prompt: str,
     attachments: Optional[List[AgentAttachment]],
 ) -> Any:
-    """Compose an Anthropic Messages-API `content` value.
-
-    Returns a bare string when there are no attachments — the API
-    accepts both shapes, and the string form keeps the trace input
-    readable.  When attachments are present, returns a list of content
-    blocks: text first, then each attachment converted via
-    `to_anthropic_blocks` (image/document/text fallback), spotlighted as
-    untrusted data.
-    """
+    """Compose an Anthropic Messages-API `content` value."""
     stripped = user_prompt.strip() if user_prompt else ""
     if not attachments:
         return stripped
@@ -101,14 +88,7 @@ class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
     def __init__(self, role: str = "default", max_tokens: Optional[int] = None):
-        """
-        Initialize LLM client with role-specific configuration
-        
-        Args:
-            role: Agent role (planner, actor, reviewer, verifier, default)
-            max_tokens: Maximum tokens for response. For reasoning models (gpt-5, o1, o3)
-                        this must be high enough to cover both reasoning + output tokens.
-        """
+        """Initialize LLM client with role-specific configuration  Args: role: Agent role (planner, actor, reviewer, verifier, default) max_tokens: Maximum tokens for response."""
         self.role = role
 
         # Select model and temperature based on role
@@ -212,15 +192,19 @@ class LLMClient:
                 "api_key": config.AZURE_API_KEY,
                 "api_version": config.AZURE_API_VERSION,
                 "deployment_name": model,
-                "max_tokens": self.max_tokens,
             }
-
+            # Reasoning models take the budget as `max_completion_tokens`.
             if self.is_reasoning_model:
                 # Reasoning models: use low effort to preserve tokens for output.
                 # They also don't support the temperature parameter.
-                llm_params["model_kwargs"] = {"reasoning_effort": "low"}
-            elif temperature is not None and temperature != 1.0:
-                llm_params["temperature"] = temperature
+                llm_params["model_kwargs"] = {
+                    "reasoning_effort": config.LLM_REASONING_EFFORT,
+                    "max_completion_tokens": self.max_tokens,
+                }
+            else:
+                llm_params["max_tokens"] = self.max_tokens
+                if temperature is not None and temperature != 1.0:
+                    llm_params["temperature"] = temperature
 
             if self.use_responses:
                 try:
@@ -244,12 +228,16 @@ class LLMClient:
             chat_kwargs = {
                 "api_key": config.OPENAI_API_KEY,
                 "model": model,
-                "max_tokens": self.max_tokens,
             }
             if self.is_reasoning_model:
-                chat_kwargs["model_kwargs"] = {"reasoning_effort": "low"}
-            elif temperature is not None:
-                chat_kwargs["temperature"] = temperature
+                chat_kwargs["model_kwargs"] = {
+                    "reasoning_effort": config.LLM_REASONING_EFFORT,
+                    "max_completion_tokens": self.max_tokens,
+                }
+            else:
+                chat_kwargs["max_tokens"] = self.max_tokens
+                if temperature is not None:
+                    chat_kwargs["temperature"] = temperature
             if self.use_responses:
                 try:
                     self.responses_client = OpenAIResponsesClient(api_key=config.OPENAI_API_KEY)
@@ -277,7 +265,7 @@ class LLMClient:
             )
 
         # Check if we should use Azure AI Foundry or direct Anthropic
-        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_API_KEY:
+        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY:
             # Azure AI Foundry - use Anthropic client with custom base_url
             log.info(
                 f"Using Anthropic via Azure AI Foundry for LLM operations "
@@ -285,7 +273,7 @@ class LLMClient:
                 f"temperature={temperature if temperature is not None else 'default'})"
             )
             self.anthropic_client = Anthropic(
-                api_key=config.AZURE_API_KEY,
+                api_key=config.AZURE_ANTHROPIC_API_KEY,
                 base_url=config.AZURE_ANTHROPIC_ENDPOINT,
                 timeout=600.0,  # 10 minutes for large patch synthesis tasks
             )
@@ -302,7 +290,9 @@ class LLMClient:
         else:
             raise ValueError(
                 "No API key configured for Anthropic/Claude. "
-                "Set AZURE_API_KEY + AZURE_ANTHROPIC_ENDPOINT (for Azure AI Foundry) or ANTHROPIC_API_KEY (for direct Anthropic)."
+                "Set AZURE_ANTHROPIC_ENDPOINT with AZURE_ANTHROPIC_API_KEY, which "
+                "falls back to AZURE_API_KEY when both endpoints are on one resource, "
+                "or ANTHROPIC_API_KEY for the direct Anthropic API."
             )
 
         self.use_anthropic = True
@@ -393,16 +383,7 @@ class LLMClient:
         timeout: int = 300,
         langfuse_prompt=None,
     ) -> str:
-        """
-        Make async LLM call with timeout
-
-        Args:
-            system_prompt: System prompt
-            user_prompt: User prompt
-            attachments: Optional list of attachments
-            timeout: Timeout in seconds (default: 300s / 5 minutes)
-            langfuse_prompt: Optional raw Langfuse prompt object for prompt-to-trace linking
-        """
+        """Make async LLM call with timeout"""
         if self.llm is None and not self.use_responses and not self.use_anthropic:
             raise ValueError("LLM not configured - please set OPENAI_API_KEY or configure Anthropic")
 
@@ -570,18 +551,7 @@ class LLMClient:
         conversation_history: Optional[List] = None,
         langfuse_prompt=None,
     ) -> str:
-        """
-        Synchronous call to LLM
-        
-        Args:
-            system_message: System prompt
-            user_message: User message (current question)
-            attachments: Optional attachments for vision models
-            conversation_history: Optional list of prior messages (dicts with 'role' and 'content')
-        
-        Returns:
-            Response text
-        """
+        """Synchronous call to LLM  Args: system_message: System prompt user_message: User message (current question) attachments: Optional attachments for vision models conversation_history: Optional list of prior messages (dicts with 'role' and 'content')  Returns: Response text"""
         with trace_generation(
             f"llm_call_{self.role}",
             model=self.model,
@@ -780,15 +750,7 @@ def _build_cache_key(role: str) -> Tuple[str, ...]:
 
 
 def get_llm_client(role: str = "default") -> LLMClient:
-    """
-    Get or create LLM client instance for specific role
-
-    Args:
-        role: Agent role (planner, tool_planner, reviewer, assistant, default)
-        
-    Returns:
-        LLMClient configured for the specified role
-    """
+    """Get or create LLM client instance for specific role"""
     key = _build_cache_key(role)
     cached = _client_keys.get(role)
     if cached == key and role in _clients:
@@ -799,20 +761,24 @@ def get_llm_client(role: str = "default") -> LLMClient:
     _client_keys[role] = key
     return client
 
+def build_intent_parse_message(goal: str, attachment_names: list[str] | None = None) -> str:
+    """The user message the safety gate sees, as a value so a dataset can send
+    exactly what production sends."""
+    message = f"Parse this goal: {goal}"
+    if attachment_names:
+        names = ", ".join(attachment_names)
+        message = f"{message}\n\nAttachment filenames (content not shown): {names}"
+    return message
+
+
 async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
-    """Parse user intent using LLM.
-
-    The security parser only screens the goal *string* for malicious
-    patterns — sending the attachment payload (a ~13k-token PDF) here
-    burns tokens for no signal.  We surface the filenames so prompt-
-    injection via filename is still in scope, but we drop the bytes.
-    """
-    system_prompt, lf_prompt = get_prompt_with_langfuse("intent_security")
-
-    user_prompt = f"Parse this goal: {goal}"
-    if attachments:
-        names = ", ".join(a.name for a in attachments)
-        user_prompt = f"{user_prompt}\n\nAttachment filenames (content not shown): {names}"
+    """Parse user intent using LLM."""
+    system_prompt, lf_prompt = get_prompt_with_langfuse(
+        "intent_check", local_path="intent_security"
+    )
+    user_prompt = build_intent_parse_message(
+        goal, [a.name for a in attachments] if attachments else None
+    )
 
     client = get_llm_client()
     response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)

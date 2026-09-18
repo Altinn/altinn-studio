@@ -5,6 +5,7 @@ apps that haven't changed since the last scan.
 """
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import re
@@ -12,11 +13,13 @@ import sqlite3
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import AsyncIterator, Iterable
+from typing import AsyncIterator, Iterable, Iterator
 
 from . import bpmn as _bpmn
+from . import csharp
 from .config import Settings
 from .db import get_conn, init_db
+from .interface_catalog import base_class_map, catalog_names, load_catalog
 
 
 PKG_VERSION_RE = re.compile(
@@ -299,7 +302,8 @@ def _delete_app(conn: sqlite3.Connection, app_id: str) -> None:
 
 
 def scan_app(conn: sqlite3.Connection, app_dir: Path, env: str,
-              force: bool = False) -> str:
+              force: bool = False, interface_names: frozenset[str] | None = None,
+              base_classes: dict | None = None) -> str:
     """Scan one app dir. Returns status: 'scanned' | 'skipped' | 'error'."""
     name = app_dir.name
     # name pattern: <org>-<env>-<app>
@@ -480,11 +484,66 @@ def scan_app(conn: sqlite3.Connection, app_dir: Path, env: str,
                         (name, key_id, binding_name, component_id),
                     )
 
+    # App code: which Altinn interfaces does this app implement, register or inject?
+    code = csharp.scan_app_code(
+        app_dir,
+        interface_names if interface_names is not None else catalog_names(),
+        base_classes if base_classes is not None else base_class_map(),
+    )
+    for usage in code["usages"]:
+        conn.execute(
+            """INSERT INTO app_interfaces
+                 (app_id, interface_name, usage_kind, origin, class_name, via, file_path)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (name, usage["interface_name"], usage["usage_kind"], usage["origin"],
+             usage["class_name"], usage.get("via", ""), usage["file_path"]),
+        )
+
     conn.execute(
-        "UPDATE apps SET page_count = ?, component_count = ? WHERE app_id = ?",
-        (total_pages, total_components, name),
+        """UPDATE apps SET page_count = ?, component_count = ?, cs_file_count = ?,
+               implemented_interface_count = ?, app_interface_count = ?
+           WHERE app_id = ?""",
+        (total_pages, total_components, code["cs_file_count"],
+         code["implemented_interface_count"], code["app_interface_count"], name),
     )
     return "scanned"
+
+
+def refresh_interface_catalog(conn: sqlite3.Connection) -> int:
+    """Load the bundled Altinn.App interface catalog into the database.
+
+    The catalog is static for a given image, so it is simply replaced on every
+    scan: that way an upgraded image brings a new library version's interfaces
+    with it without needing a migration.
+    """
+    catalog = load_catalog()
+    records = catalog.get("interfaces", [])
+    conn.execute("DELETE FROM interfaces")
+    for record in records:
+        conn.execute(
+            """INSERT INTO interfaces
+                 (name, full_name, namespace, assembly, area, group_name,
+                  implementable_by_apps, is_obsolete, obsolete_message, summary,
+                  members, member_count, base_interfaces, source_path)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                record.get("name", ""),
+                record.get("full_name", ""),
+                record.get("namespace", ""),
+                record.get("assembly", ""),
+                record.get("area", ""),
+                record.get("group", ""),
+                1 if record.get("implementable_by_apps") else 0,
+                1 if record.get("is_obsolete") else 0,
+                record.get("obsolete_message", ""),
+                record.get("summary", ""),
+                json.dumps(record.get("members", [])),
+                record.get("member_count", 0),
+                json.dumps(record.get("base_interfaces", [])),
+                record.get("source_path", ""),
+            ),
+        )
+    return len(records)
 
 
 def _detect_schema_drift(conn: sqlite3.Connection) -> tuple[bool, str]:
@@ -505,6 +564,12 @@ def _detect_schema_drift(conn: sqlite3.Connection) -> tuple[bool, str]:
     if text_keys_count == 0:
         return (True, f"text_keys is empty for {apps_count} scanned apps — schema upgrade detected")
 
+    interface_usage_count = conn.execute(
+        "SELECT COUNT(*) AS n FROM app_interfaces"
+    ).fetchone()["n"]
+    if interface_usage_count == 0:
+        return (True, f"app_interfaces is empty for {apps_count} scanned apps — schema upgrade detected")
+
     # Frontend version is set for every app by the new scanner (categorised
     # values like "(no Index.cshtml)" etc.), so NULL = not yet re-scanned.
     null_fe = conn.execute(
@@ -523,8 +588,8 @@ def _detect_schema_drift(conn: sqlite3.Connection) -> tuple[bool, str]:
     return (False, "")
 
 
-async def scan_all(settings: Settings, force: bool = False) -> AsyncIterator[dict]:
-    """Async generator that scans all apps, yielding progress events.
+def scan_all_blocking(settings: Settings, force: bool = False) -> Iterator[dict]:
+    """Scan all apps, yielding progress events. Blocking: run it on a worker thread.
 
     `force=True` ignores content_hash and re-scans every app. We also auto-force
     when we detect schema drift (new tables empty but apps populated).
@@ -538,7 +603,15 @@ async def scan_all(settings: Settings, force: bool = False) -> AsyncIterator[dic
     app_dirs = sorted([p for p in apps_dir.iterdir() if p.is_dir() and not p.name.startswith(".")])
     total = len(app_dirs)
 
+    interface_names = catalog_names()
+    base_classes = base_class_map()
+
     with get_conn(settings.db_path) as conn:
+        catalog_size = refresh_interface_catalog(conn)
+        if catalog_size:
+            yield {"kind": "info",
+                   "message": f"Interface catalog: {catalog_size} public Altinn.App interfaces",
+                   "total": total, "current": 0}
         if not force:
             drift, reason = _detect_schema_drift(conn)
             if drift:
@@ -566,7 +639,9 @@ async def scan_all(settings: Settings, force: bool = False) -> AsyncIterator[dic
 
         for idx, app_dir in enumerate(app_dirs, 1):
             try:
-                status = scan_app(conn, app_dir, settings.env, force=force)
+                status = scan_app(conn, app_dir, settings.env, force=force,
+                                  interface_names=interface_names,
+                                  base_classes=base_classes)
                 conn.commit()
             except Exception as exc:
                 conn.rollback()
@@ -593,3 +668,39 @@ async def scan_all(settings: Settings, force: bool = False) -> AsyncIterator[dic
 
     yield {"kind": "done", "message": f"Scanned {scanned}, skipped {skipped}, errors {errors}",
            "total": total, "current": total}
+
+
+async def scan_all(settings: Settings, force: bool = False) -> AsyncIterator[dict]:
+    """Run the scan on a worker thread, streaming its events as they arrive.
+
+    Scanning is CPU- and disk-bound from start to finish — hashing every file of
+    every app, then parsing what changed. Run inline it would hold the event loop
+    for the whole sweep, and the API (the dashboard included) would answer nothing
+    until the last app was done. On its own thread the scan is just another
+    producer, and SQLite's own connection stays inside that thread where it
+    belongs. Readers are unaffected: the database runs in WAL mode.
+    """
+    loop = asyncio.get_running_loop()
+    queue: asyncio.Queue = asyncio.Queue()
+    done = object()
+
+    def produce() -> None:
+        try:
+            for event in scan_all_blocking(settings, force):
+                loop.call_soon_threadsafe(queue.put_nowait, event)
+        except Exception as exc:  # surfaced to the caller as an error event
+            loop.call_soon_threadsafe(
+                queue.put_nowait, {"kind": "error", "message": str(exc)}
+            )
+        finally:
+            loop.call_soon_threadsafe(queue.put_nowait, done)
+
+    worker = loop.run_in_executor(None, produce)
+    try:
+        while True:
+            event = await queue.get()
+            if event is done:
+                break
+            yield event
+    finally:
+        await worker

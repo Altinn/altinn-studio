@@ -5,7 +5,6 @@ use std::{cell::RefCell, time::Instant, time::SystemTime};
 use base64::Engine as _;
 use sandbox::secret_store::{SecretMaterial, SecretReference, SecretStore as _};
 use serde::{Deserialize, Serialize};
-use tokio::sync::oneshot;
 use zeroize::Zeroizing;
 
 use crate::{Error, harness::ImportedAuthentication, persistence};
@@ -18,42 +17,12 @@ const REFRESH_AHEAD_SECONDS: i64 = 5 * 60;
 const TRANSIENT_FAILURE_COOLDOWN: std::time::Duration = std::time::Duration::from_secs(30);
 const REQUEST_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
-type RefreshWaiter = oneshot::Sender<Result<(), String>>;
-
-struct RefreshLeader<'a> {
-    waiters: &'a RefCell<Option<Vec<RefreshWaiter>>>,
-    finished: bool,
-}
-
-impl RefreshLeader<'_> {
-    fn finish(mut self, result: &Result<(), RefreshFailure>) {
-        let notification = match result {
-            Ok(()) => Ok(()),
-            Err(error) => Err(error.message().to_owned()),
-        };
-        self.finished = true;
-        for waiter in self.waiters.borrow_mut().take().unwrap_or_default() {
-            let _ = waiter.send(notification.clone());
-        }
-    }
-}
-
-impl Drop for RefreshLeader<'_> {
-    fn drop(&mut self) {
-        if !self.finished {
-            for waiter in self.waiters.borrow_mut().take().unwrap_or_default() {
-                let _ = waiter.send(Err("Codex token refresh was interrupted".into()));
-            }
-        }
-    }
-}
-
 /// Owns a `ChatGPT` OAuth grant used only by the Agent stack.
 pub(in crate::harness) struct Authentication {
     database: persistence::Database,
     client: reqwest::Client,
     refresh_url: String,
-    refresh_waiters: RefCell<Option<Vec<RefreshWaiter>>>,
+    refresh_lock: tokio::sync::Mutex<()>,
     refresh_failure: RefCell<Option<CachedRefreshFailure>>,
 }
 
@@ -64,7 +33,7 @@ impl Authentication {
             database,
             client: reqwest::Client::new(),
             refresh_url: REFRESH_URL.into(),
-            refresh_waiters: RefCell::new(None),
+            refresh_lock: tokio::sync::Mutex::new(()),
             refresh_failure: RefCell::new(None),
         }
     }
@@ -134,6 +103,7 @@ impl Authentication {
 
     #[allow(clippy::option_if_let_else)]
     async fn refresh_if_needed(&self) -> Result<(), Error> {
+        let _refresh = self.refresh_lock.lock().await;
         let metadata = self.metadata().await?;
         if matches!(metadata.kind, CredentialKind::Mediated)
             || metadata.expires_at > unix_time()?.saturating_add(REFRESH_AHEAD_SECONDS)
@@ -144,28 +114,6 @@ impl Authentication {
             return Err(error);
         }
 
-        let waiting = {
-            let mut active = self.refresh_waiters.borrow_mut();
-            if let Some(waiters) = active.as_mut() {
-                let (sender, receiver) = oneshot::channel();
-                waiters.push(sender);
-                Some(receiver)
-            } else {
-                *active = Some(Vec::new());
-                None
-            }
-        };
-        if let Some(receiver) = waiting {
-            return receiver
-                .await
-                .map_err(|_| Error::Invalid("Codex token refresh stopped unexpectedly".into()))?
-                .map_err(Error::Invalid);
-        }
-
-        let leader = RefreshLeader {
-            waiters: &self.refresh_waiters,
-            finished: false,
-        };
         let result = self.refresh(&metadata).await;
         match &result {
             Ok(()) => {
@@ -182,7 +130,6 @@ impl Authentication {
                 *self.refresh_failure.borrow_mut() = Some(cached);
             }
         }
-        leader.finish(&result);
         result.map_err(RefreshFailure::into_error)
     }
 
@@ -335,12 +282,6 @@ impl RefreshFailure {
 
     fn transient(message: impl Into<String>) -> Self {
         Self::Transient(message.into())
-    }
-
-    fn message(&self) -> &str {
-        match self {
-            Self::Permanent(message) | Self::Transient(message) => message,
-        }
     }
 
     fn into_error(self) -> Error {

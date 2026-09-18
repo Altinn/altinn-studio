@@ -13,18 +13,11 @@ use clap::Parser;
 use tokio::runtime::LocalRuntime;
 
 #[derive(Parser)]
-#[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent_version())]
+#[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
     /// Agent control-plane home.
     #[arg(long)]
     home: Option<PathBuf>,
-}
-
-const fn agent_version() -> &'static str {
-    match option_env!("AGENT_VERSION") {
-        Some(version) => version,
-        None => env!("CARGO_PKG_VERSION"),
-    }
 }
 
 fn main() -> ExitCode {
@@ -48,13 +41,43 @@ fn run() -> Result<(), Error> {
         .with_ansi(std::io::stderr().is_terminal())
         .init();
     let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
-    let _lock = home.acquire_lock()?;
+    let _lock = acquire_home_lock(&home)?;
     let database = persistence::Database::open(&home.path().join("agent.db"))?;
     let runtime = LocalRuntime::new()?;
     runtime.block_on(run_control_plane(home, database))
 }
 
+fn acquire_home_lock(home: &ControlPlaneHome) -> Result<agent::local::home::Lock, Error> {
+    let deadline = std::time::Instant::now() + Duration::from_secs(2);
+    loop {
+        match home.acquire_lock() {
+            Ok(lock) => return Ok(lock),
+            Err(Error::Io(error))
+                if error.kind() == std::io::ErrorKind::WouldBlock && std::time::Instant::now() < deadline =>
+            {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Err(error) => return Err(error),
+        }
+    }
+}
+
 type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
+
+/// Wires SSH access over the database-held host keys and the `agentctl`
+/// installed beside this daemon, which the generated client configuration
+/// dials Agents through.
+fn ssh_access(
+    home: &ControlPlaneHome,
+    database: &persistence::Database,
+    store: Rc<dyn agent::control_plane::AgentStore>,
+) -> Result<Rc<agent::ssh::Access>, Error> {
+    let agentd = std::env::current_exe()?;
+    let sibling = agentd.with_file_name(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
+    let agentctl = agent::ssh::stable_agentctl_path(&sibling, std::env::var_os("PATH").as_deref());
+    let host_keys: Rc<dyn agent::ssh::HostKeyStore> = Rc::new(database.clone());
+    Ok(Rc::new(agent::ssh::Access::new(home, agentctl, host_keys, store)))
+}
 
 /// Logs recoverable reconciliation errors for one durable resource kind.
 fn reconciliation_errors<Key: std::fmt::Display + 'static>(resource: &'static str) -> ErrorHandler<Key> {
@@ -84,7 +107,7 @@ async fn open_sandboxes(
         )
         .await?,
     );
-    let session_hook_url = microsandbox.platform_url("/v1/session/hooks/start")?;
+    let session_hook_url = microsandbox.platform_url("/v1/session/hooks")?;
     let provider: Rc<dyn agent::sandbox::Provider> = microsandbox;
     let platform: Rc<dyn agent::sandbox::PlatformAdapter> = Rc::new(agent::sandbox::platform::Linux);
     Ok((
@@ -101,18 +124,21 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let platform_api_port = platform_api_listener.local_addr()?.port();
     let (sandboxes, session_hook_url) =
         open_sandboxes(&home, &database, credentials.clone(), policy, platform_api_port).await?;
+    let session_reports: Rc<dyn agent::sessions::SessionReports> = store.clone();
     let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
+    let session_runtime: Rc<dyn agent::sessions::SessionRuntime> = Rc::new(agent::sessions::Tmux);
+    let agent_sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(store.clone(), sandboxes.clone()));
     let observers = agent::control_plane::Observers::new();
 
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
-        session_store.clone(),
+        session_reports,
         Rc::new(|error| tracing::error!(%error, "Platform API connection failed")),
     ));
     let session_reconciler: Rc<dyn agent::sessions::Reconcile<agent::sessions::SessionId>> =
         Rc::new(agent::sessions::Reconciler::new(
             session_store.clone(),
-            store.clone(),
-            sandboxes.clone(),
+            agent_sandboxes.clone(),
+            session_runtime.clone(),
             session_hook_url,
         ));
     let (session_controller, session_wakeup) = agent::sessions::Controller::new(
@@ -126,8 +152,12 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_wakeup.clone(),
         Rc::new(|error| tracing::error!(%error, "Session notification scan failed")),
     ));
-    let reconciler =
-        Rc::new(Reconciler::new(store.clone(), sandboxes, observers.clone()).with_session_notifier(session_notifier));
+    let ssh = ssh_access(&home, &database, store.clone())?;
+    let reconciler = Rc::new(
+        Reconciler::new(store.clone(), sandboxes.clone(), observers.clone())
+            .with_session_notifier(session_notifier)
+            .with_ssh_access(ssh.clone()),
+    );
     let (controller, wakeup) = Controller::new(
         store.clone(),
         reconciler,
@@ -137,12 +167,20 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
     let convergence = agent::control_plane::Convergence::new(wakeup, observers);
     let executions = Rc::new(ExecutionService::new(store.clone(), convergence.clone()));
-    let sessions = Rc::new(SessionService::new(session_store, store, convergence, session_wakeup));
+    let sessions = Rc::new(SessionService::new(
+        session_store,
+        agent_sandboxes,
+        session_runtime,
+        convergence,
+        session_wakeup,
+    ));
+    agent::upgrade::consume_pending_session_relaunch(&home, &sessions).await?;
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),
         executions,
         sessions,
+        ssh,
         Rc::new(|error| tracing::error!(%error, "Control API connection failed")),
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());
@@ -170,5 +208,8 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     controller_task.abort();
     session_controller_task.abort();
     platform_api_task.abort();
+    let _ = controller_task.await;
+    let _ = session_controller_task.await;
+    let _ = platform_api_task.await;
     result
 }
