@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import { EditButton, EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 
@@ -51,4 +51,34 @@ describe('EditButton', () => {
 
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
+});
+
+it('remounts the fallback when its component id changes', async () => {
+  function ChangingFallback() {
+    const [fallback, setFallback] = useState<string>();
+    return (
+      <>
+        <button onClick={() => setFallback((current) => (current ? undefined : 'TestInput'))}>Toggle fallback</button>
+        <EditButtonFirstVisibleAndEditable
+          ids={[]}
+          fallback={fallback}
+        />
+      </>
+    );
+  }
+  await renderWithInstanceAndLayout({
+    renderer: <ChangingFallback />,
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: { data: { layout: [{ id: 'TestInput', type: 'Input', textResourceBindings: {} }] } },
+          };
+        }),
+    },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Toggle fallback' }));
+  expect(screen.getAllByRole('button')).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Toggle fallback' }));
+  expect(screen.getAllByRole('button')).toHaveLength(1);
 });
