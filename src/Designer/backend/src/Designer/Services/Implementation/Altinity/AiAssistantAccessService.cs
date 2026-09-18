@@ -5,6 +5,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 
+// This is a small service now, but it will be extended with Gitea fork checking, where it will earn its keep.
 public class AiAssistantAccessService : IAiAssistantAccessService
 {
     /// <summary>

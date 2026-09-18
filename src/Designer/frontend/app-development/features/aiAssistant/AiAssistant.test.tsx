@@ -16,13 +16,15 @@ const app = 'test-app';
 describe('AiAssistant', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders a spinner while the access check is in flight', () => {
+  it('renders a spinner when loading', () => {
+    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();
 
     expect(screen.getByLabelText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('asks the backend whether the assistant is available for this repository', async () => {
+    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();
 
     await waitFor(() =>
@@ -31,43 +33,27 @@ describe('AiAssistant', () => {
   });
 
   it('renders the assistant when the developer has access', async () => {
-    renderAiAssistant({ hasAccess: true });
+    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: true });
+    renderAiAssistant();
 
     expect(await screen.findByText('assistant workspace')).toBeInTheDocument();
   });
 
   it('renders the beta message when the developer has no access', async () => {
+    jest.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();
 
     expect(await screen.findByText(textMock('ai_assistant.access_denied'))).toBeInTheDocument();
   });
 
-  it('denies access when the access check fails', async () => {
-    renderAiAssistant({ accessCheckFails: true });
-
-    expect(await screen.findByText(textMock('ai_assistant.access_denied'))).toBeInTheDocument();
-  });
-
-  it('does not start an assistant session when the developer has no access', async () => {
+  it('defaults to access denied during server error', async () => {
+    jest.mocked(queriesMock.canUseFeature).mockRejectedValue(createApiErrorMock(500));
     renderAiAssistant();
 
-    await waitFor(() => expect(screen.queryByText('assistant workspace')).not.toBeInTheDocument());
+    expect(await screen.findByText(textMock('ai_assistant.access_denied'))).toBeInTheDocument();
   });
 });
 
-type RenderOptions = {
-  hasAccess?: boolean;
-  accessCheckFails?: boolean;
-};
-
-const renderAiAssistant = ({ hasAccess = false, accessCheckFails = false }: RenderOptions = {}) => {
-  jest
-    .mocked(queriesMock.canUseFeature)
-    .mockImplementation(() =>
-      accessCheckFails
-        ? Promise.reject(createApiErrorMock(500))
-        : Promise.resolve({ canUseFeature: hasAccess }),
-    );
-
+const renderAiAssistant = () => {
   return renderWithProviders({}, undefined, {}, `/${org}/${app}`)(<AiAssistant />);
 };
