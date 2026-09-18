@@ -256,7 +256,7 @@ internal sealed class ProjectFileRewriter
         return _doc
             .Root?.Elements("ItemGroup")
             .Elements("PackageReference")
-            .Where(x => x.Attribute("Include")?.Value == packageName)
+            .Where(x => string.Equals(x.Attribute("Include")?.Value, packageName, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
