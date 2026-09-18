@@ -941,6 +941,10 @@ internal static class V8Tov9Upgrade
             messages.AddRange(converter.MigrationResult.Messages);
 
             var layoutSetsToKeep = converter.LayoutSetsRequiringManualWork.ToHashSet(StringComparer.Ordinal);
+            foreach (var issue in workspace.Conflicts)
+                layoutSetsToKeep.Add(LayoutSetNameFor(issue.FilePath));
+            foreach (var path in deprecatedResult.FilesRequiringManualWork)
+                layoutSetsToKeep.Add(LayoutSetNameFor(path));
             foreach (var path in workspace.ManualConversionFiles)
             {
                 var layoutsDirectory = Path.GetDirectoryName(path);
@@ -1225,9 +1229,9 @@ internal static class V8Tov9Upgrade
             if (layoutSetsRequiringManualWork.Count > 0 && File.Exists(Path.Combine(uiPath, "layout-sets.json")))
             {
                 UpgradeConsole.Todo(
-                    "Kept layout-sets.json and its folders because legacy rules still need manual work in: "
+                    "Kept layout-sets.json and its folders because layouts or legacy rules still need manual work in: "
                         + string.Join(", ", layoutSetsRequiringManualWork.Order(StringComparer.Ordinal))
-                        + ". Finish those rules before rerunning the upgrade."
+                        + ". Resolve the reported TODOs before rerunning the upgrade."
                 );
                 return ExitManualActionRequired;
             }

@@ -10,7 +10,10 @@ internal sealed record DeprecatedLayoutPropertiesMigrationResult(
     int SummaryBindingsConverted,
     bool ManualActionRequired,
     IReadOnlyList<string> Warnings
-);
+)
+{
+    public IReadOnlyList<string> FilesRequiringManualWork { get; init; } = [];
+}
 
 /// <summary>
 /// Rewrites the layout properties removed in v9:
@@ -86,6 +89,7 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         var queryParametersConverted = 0;
         var summaryBindingsConverted = 0;
         var manualActionRequired = false;
+        var filesRequiringManualWork = new List<string>();
         foreach (var document in workspace.Documents)
         {
             var root = document.Root.DeepClone();
@@ -93,6 +97,8 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             var fileName = Path.GetFileName(path);
             var changes = MigrateComponents(root, fileName);
             manualActionRequired |= changes.ManualActionRequired;
+            if (changes.ManualActionRequired)
+                filesRequiringManualWork.Add(path);
             if (!changes.Changed)
                 continue;
 
@@ -109,7 +115,10 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
             summaryBindingsConverted,
             manualActionRequired,
             _warnings
-        );
+        )
+        {
+            FilesRequiringManualWork = filesRequiringManualWork,
+        };
     }
 
     private ComponentChanges MigrateComponents(JsonNode node, string fileName)
