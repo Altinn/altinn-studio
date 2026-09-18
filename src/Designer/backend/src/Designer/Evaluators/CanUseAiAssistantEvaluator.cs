@@ -5,6 +5,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 
 namespace Altinn.Studio.Designer.Evaluators;
 
+
 public class CanUseAiAssistantEvaluator : ICanUseFeatureEvaluator
 {
     private readonly IAiAssistantAccessService _aiAssistantAccessService;
