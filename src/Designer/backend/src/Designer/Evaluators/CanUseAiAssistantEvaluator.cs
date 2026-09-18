@@ -18,6 +18,7 @@ public class CanUseAiAssistantEvaluator : ICanUseFeatureEvaluator
 
     public async Task<bool> CanUseFeatureAsync(string org, string app)
     {
-        return await _aiAssistantAccessService.HasAccessAsync(org);
+        string serviceOwner = await _aiAssistantAccessService.ResolveServiceOwnerAsync(org, app);
+        return serviceOwner is not null;
     }
 }

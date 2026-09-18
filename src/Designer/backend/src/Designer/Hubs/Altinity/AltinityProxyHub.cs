@@ -177,12 +177,13 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
 
-        await ValidateAssistantAccessAsync(org, developer);
+        string serviceOwner = await ResolveServiceOwnerAsync(org, app, developer);
 
         _logger.LogInformation(
-            "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
+            "Starting Altinity workflow for user: {Developer}, session: {SessionId}, service owner: {ServiceOwner}",
             developer,
-            sessionId
+            sessionId,
+            serviceOwner
         );
 
         if (!Guid.TryParse(sessionId, out Guid threadId))
@@ -203,12 +204,8 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
 
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
-        var agentResponse = await ForwardRequestToAltinityAgentAsync(
-            enrichedWithAttachments,
-            developer,
-            apiKey,
-            sessionId
-        );
+        var enrichedRequest = EnrichRequestWithRepoContext(enrichedWithAttachments, org, app, serviceOwner);
+        var agentResponse = await ForwardRequestToAltinityAgentAsync(enrichedRequest, developer, apiKey, sessionId);
 
         // Remove attachments from buffer only after successful forwarding
         _attachmentStore.RemoveAll(attachmentIds);
@@ -299,13 +296,21 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         return value;
     }
 
-    private async Task ValidateAssistantAccessAsync(string org, string developer)
+    private async Task<string> ResolveServiceOwnerAsync(string org, string app, string developer)
     {
-        if (!await _aiAssistantAccessService.HasAccessAsync(org))
+        string? serviceOwner = await _aiAssistantAccessService.ResolveServiceOwnerAsync(org, app);
+        if (serviceOwner is null)
         {
-            _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
+            _logger.LogWarning(
+                "User {Developer} was denied access to start workflow for {Org}/{App}",
+                developer,
+                org,
+                app
+            );
             throw new HubException("Access denied");
         }
+
+        return serviceOwner;
     }
 
     private void ValidateConnectionOwnsSession(string sessionId)
@@ -338,31 +343,18 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string sessionId
     )
     {
-        var enrichedRequest = EnrichRequestWithRepoUrl(request);
-        using var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
+        using var httpRequest = CreateAltinityHttpRequest(request, developer, apiKey, sessionId);
         var response = await SendRequestToAltinityAsync(httpRequest);
 
         return response;
     }
 
     /// <summary>
-    /// Enriches the workflow request with the repository URL built from org and app identifiers
+    /// Tells the agent which repository to clone and which service owner to bill.
+    /// The two differ when the developer edits a fork of a service owner's app.
     /// </summary>
-    /// <param name="request">The original workflow request</param>
-    /// <returns>Enriched request with repo_url field</returns>
-    private JsonElement EnrichRequestWithRepoUrl(JsonElement request)
+    private JsonElement EnrichRequestWithRepoContext(JsonElement request, string org, string app, string serviceOwner)
     {
-        if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))
-        {
-            return request;
-        }
-
-        string? org = orgElement.GetString();
-        string? app = appElement.GetString();
-
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
-
         string repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
 
         var requestDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText());
@@ -372,6 +364,8 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
 
         requestDict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
+        requestDict["repo_owner"] = JsonSerializer.SerializeToElement(org);
+        requestDict["org"] = JsonSerializer.SerializeToElement(serviceOwner);
 
         return JsonSerializer.SerializeToElement(requestDict);
     }

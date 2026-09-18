@@ -129,35 +129,11 @@ public class AltinityProxyHubTests
     }
 
     [Fact]
-    public async Task StartWorkflow_ThrowsHubException_WhenDeveloperHasNoAssistantAccess()
-    {
-        var threadId = Guid.NewGuid();
-        SetupThreadOwnership(threadId, TestOrg, TestApp);
-        SetupAssistantAccess(TestOrg, hasAccess: false);
-        var hub = CreateHub();
-        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
-
-        var request = JsonSerializer.SerializeToElement(
-            new
-            {
-                session_id = threadId.ToString(),
-                org = TestOrg,
-                app = TestApp,
-            }
-        );
-
-        var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
-
-        Assert.Contains("Access denied", exception.Message);
-        Assert.Empty(_agentHttpHandler.Requests);
-    }
-
-    [Fact]
     public async Task StartWorkflow_ThrowsHubException_WhenRequestContextDoesNotOwnThread()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        SetupAssistantAccess("other-org", hasAccess: true);
+        SetupAssistantAccess("other-org", "other-app", serviceOwner: "other-org");
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
@@ -188,19 +164,8 @@ public class AltinityProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        SetupAssistantAccess(TestOrg, hasAccess: true);
-        _apiKeyServiceMock
-            .Setup(a =>
-                a.CreateAsync(
-                    TestDeveloper,
-                    It.IsAny<string>(),
-                    It.IsAny<ApiKeyType>(),
-                    It.IsAny<DateTimeOffset>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(("test-api-key", new ApiKey()));
+        SetupAssistantAccess(TestOrg, TestApp, serviceOwner: TestOrg);
+        SetupApiKeyCreation();
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
@@ -228,9 +193,91 @@ public class AltinityProxyHubTests
         );
     }
 
-    private void SetupAssistantAccess(string org, bool hasAccess)
+    [Fact]
+    public async Task StartWorkflow_BillsTheParentOrg_WhenDeveloperEditsAFork()
     {
-        _aiAssistantAccessServiceMock.Setup(s => s.HasAccessAsync(org)).ReturnsAsync(hasAccess);
+        const string Fork = "kari";
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, Fork, TestApp);
+        SetupAssistantAccess(Fork, TestApp, serviceOwner: TestOrg);
+        SetupApiKeyCreation();
+        var hub = CreateHub();
+        await hub.RegisterSession(Fork, TestApp, threadId.ToString());
+
+        await hub.StartWorkflow(StartRequest(threadId, Fork, TestApp));
+
+        JsonElement forwarded = ReadForwardedStartRequest();
+        Assert.Equal(TestOrg, forwarded.GetProperty("org").GetString());
+        Assert.Equal(Fork, forwarded.GetProperty("repo_owner").GetString());
+        Assert.Equal($"http://test-repos/{Fork}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
+    }
+
+    [Fact]
+    public async Task StartWorkflow_BillsTheOrgItself_WhenRepositoryBelongsToAServiceOwner()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupAssistantAccess(TestOrg, TestApp, serviceOwner: TestOrg);
+        SetupApiKeyCreation();
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        await hub.StartWorkflow(StartRequest(threadId, TestOrg, TestApp));
+
+        JsonElement forwarded = ReadForwardedStartRequest();
+        Assert.Equal(TestOrg, forwarded.GetProperty("org").GetString());
+        Assert.Equal(TestOrg, forwarded.GetProperty("repo_owner").GetString());
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ThrowsHubException_WhenRepositoryHasNoServiceOwner()
+    {
+        const string Fork = "kari";
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, Fork, TestApp);
+        SetupAssistantAccess(Fork, TestApp, serviceOwner: null);
+        var hub = CreateHub();
+        await hub.RegisterSession(Fork, TestApp, threadId.ToString());
+
+        var exception = await Assert.ThrowsAsync<HubException>(() =>
+            hub.StartWorkflow(StartRequest(threadId, Fork, TestApp))
+        );
+
+        Assert.Contains("Access denied", exception.Message);
+        Assert.Empty(_agentHttpHandler.Requests);
+    }
+
+    private static JsonElement StartRequest(Guid threadId, string org, string app)
+    {
+        return JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org,
+                app,
+            }
+        );
+    }
+
+    private JsonElement ReadForwardedStartRequest()
+    {
+        return JsonSerializer.Deserialize<JsonElement>(Assert.Single(_agentHttpHandler.Bodies));
+    }
+
+    private void SetupApiKeyCreation()
+    {
+        _apiKeyServiceMock
+            .Setup(a =>
+                a.CreateAsync(
+                    TestDeveloper,
+                    It.IsAny<string>(),
+                    It.IsAny<ApiKeyType>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(("test-api-key", new ApiKey()));
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -262,6 +309,11 @@ public class AltinityProxyHubTests
         Assert.EndsWith($"/api/agent/cancel/{threadId}", cancelRequest.RequestUri!.ToString());
         // The agents service rejects cancellation without the caller's identity.
         Assert.Equal(TestDeveloper, Assert.Single(cancelRequest.Headers.GetValues("X-Developer")));
+    }
+
+    private void SetupAssistantAccess(string org, string app, string serviceOwner)
+    {
+        _aiAssistantAccessServiceMock.Setup(s => s.ResolveServiceOwnerAsync(org, app)).ReturnsAsync(serviceOwner);
     }
 
     private AltinityProxyHub CreateHub()
@@ -296,13 +348,18 @@ public class AltinityProxyHubTests
     {
         public List<HttpRequestMessage> Requests { get; } = new();
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        public List<string> Bodies { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
         )
         {
             Requests.Add(request);
-            return Task.FromResult(
+            Bodies.Add(
+                request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken)
+            );
+            return await Task.FromResult(
                 new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") }
             );
         }

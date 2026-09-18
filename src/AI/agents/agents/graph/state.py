@@ -132,6 +132,7 @@ class AgentState(BaseModel):
     developer: str
     experiment: Optional["ExperimentContext"] = None
     org: str
+    repo_owner: str = ""
     designer_api_key: Optional[str] = None  # Designer API key for git operations through Gitea proxy
     trace_id: Optional[str] = None  # Langfuse trace id, captured once at the root span
     # Hard permission gate: when False the loop runs read-only (write tools

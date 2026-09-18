@@ -79,7 +79,7 @@ class PreviewRenderCheckTool(WriteToolMixin):
             )
 
         app = ctx.extras.get("app_name")
-        if not app or not ctx.org:
+        if not app or not ctx.repo_owner:
             return ToolResult(
                 content=f"Preview render check cannot resolve the app's org/name. {_UNAVAILABLE_GUIDANCE}",
                 is_error=True,
@@ -102,7 +102,7 @@ class PreviewRenderCheckTool(WriteToolMixin):
                 render_check,
                 studio_base=config.PREVIEW_STUDIO_BASE_URL,
                 username=config.PREVIEW_STUDIO_USER,
-                org=ctx.org,
+                org=ctx.repo_owner,
                 app=app,
                 branch=branch,
                 page_order=page_order,

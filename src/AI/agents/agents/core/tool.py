@@ -37,6 +37,7 @@ class LoopContext:
     allow_app_changes: bool
     developer: str = ""
     org: str = ""
+    repo_owner: str = ""
     designer_api_key: str | None = None
     # When set, an escalatable permission denial asks the USER for
     # permission instead of flatly denying: the callable receives a

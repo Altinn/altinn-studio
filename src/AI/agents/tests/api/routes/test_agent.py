@@ -131,3 +131,46 @@ class TestPermissionGateDefaults:
         )
 
         assert state.allow_app_changes is False
+
+
+class TestRepoOwner:
+    """The billed org and the org owning the cloned repo differ on a fork."""
+
+    def test_defaults_the_repo_owner_to_the_billed_org(self):
+        from api.routes.agent import StartReq
+
+        request = StartReq(
+            session_id="sess-1",
+            goal="add a field",
+            repo_url="http://gitea/repo.git",
+            org="ttd",
+        )
+
+        assert request.repo_owner is None
+
+    def test_keeps_the_repo_owner_when_given(self):
+        from api.routes.agent import StartReq
+
+        request = StartReq(
+            session_id="sess-1",
+            goal="add a field",
+            repo_url="http://gitea/kari/my-app.git",
+            org="ssb",
+            repo_owner="kari",
+        )
+
+        assert request.repo_owner == "kari"
+
+    def test_state_falls_back_to_the_billed_org_when_repo_owner_is_absent(self, tmp_path):
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.AgentState") as state:
+            TestClient(app).post(START_PATH, json=_start_payload(), headers=_headers("kari"))
+
+        assert state.call_args.kwargs["repo_owner"] == "ttd"
+
+    def test_state_carries_the_repo_owner_of_a_fork(self, tmp_path):
+        payload = _start_payload() | {"org": "ssb", "repo_owner": "kari"}
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.AgentState") as state:
+            TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert state.call_args.kwargs["org"] == "ssb"
+        assert state.call_args.kwargs["repo_owner"] == "kari"

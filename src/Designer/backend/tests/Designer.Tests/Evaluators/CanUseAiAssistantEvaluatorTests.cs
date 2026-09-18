@@ -21,17 +21,17 @@ public class CanUseAiAssistantEvaluatorTests
     }
 
     [Fact]
-    public async Task CanUseFeatureAsync_ReturnsTrue_WhenDeveloperHasAssistantAccess()
+    public async Task CanUseFeatureAsync_ReturnsTrue_WhenRepositoryResolvesToAServiceOwner()
     {
-        _accessService.Setup(s => s.HasAccessAsync(Org)).ReturnsAsync(true);
+        _accessService.Setup(s => s.ResolveServiceOwnerAsync(Org, App)).ReturnsAsync("ttd");
 
         Assert.True(await CreateEvaluator().CanUseFeatureAsync(Org, App));
     }
 
     [Fact]
-    public async Task CanUseFeatureAsync_ReturnsFalse_WhenDeveloperHasNoAssistantAccess()
+    public async Task CanUseFeatureAsync_ReturnsFalse_WhenRepositoryHasNoServiceOwner()
     {
-        _accessService.Setup(s => s.HasAccessAsync(Org)).ReturnsAsync(false);
+        _accessService.Setup(s => s.ResolveServiceOwnerAsync(Org, App)).ReturnsAsync((string)null);
 
         Assert.False(await CreateEvaluator().CanUseFeatureAsync(Org, App));
     }

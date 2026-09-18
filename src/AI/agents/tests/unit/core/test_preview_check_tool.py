@@ -41,7 +41,8 @@ def _ctx(
         session_id="session-abcdef12",
         repo_path=str(tmp_path),
         allow_app_changes=allow_app_changes,
-        org="ttd",
+        org="ssb",
+        repo_owner="ttd",
     )
     if committed:
         ctx.extras["session_committed"] = True
@@ -118,7 +119,7 @@ class TestResults:
         assert "do NOT retry" in result.content
         assert result.metadata["unavailable"] is True
 
-    async def test_engine_receives_branch_org_and_pages(self, tmp_path, monkeypatch):
+    async def test_engine_receives_branch_repo_owner_and_pages(self, tmp_path, monkeypatch):
         seen = {}
 
         def capture(**kwargs):
@@ -128,6 +129,6 @@ class TestResults:
         monkeypatch.setattr(ENGINE_PATH, capture)
         await PreviewRenderCheckTool().run(_args(), _ctx(tmp_path))
         assert seen["branch"] == "altinity_session_abcdef12"
-        assert seen["org"] == "ttd"
+        assert seen["org"] == "ttd"  # repo owner, not the billed org
         assert seen["app"] == "test-app"
         assert seen["page_order"] == ["Side1", "Side2"]

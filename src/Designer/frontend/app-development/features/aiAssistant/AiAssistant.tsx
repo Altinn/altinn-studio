@@ -8,8 +8,9 @@ import { AssistantAccessDenied } from './components/AssistantAccessDenied';
 import { AssistantWorkspace } from './components/AssistantWorkspace';
 
 /**
- * During beta, access is restricted to selected service owners, and the backend
- * decides — see AiAssistantAccessService.
+ * During beta, access is restricted to selected service owners. A fork inherits
+ * access from the organization it was forked from, so only the backend can
+ * decide — see AiAssistantAccessService.
  *
  * The workspace mounts only once access is confirmed, so a denied developer
  * never opens a session against the agents service.

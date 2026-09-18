@@ -45,7 +45,12 @@ class StartReq(BaseModel):
     # Fail closed: write access is opt-in. A caller that omits the flag
     # gets a read-only (chat mode) session, never silent write access.
     allow_app_changes: bool = False
+    # The organization billed for this session. On a personal fork this is the
+    # fork's parent org, which differs from the org owning the cloned repo.
     org: str
+    # Owner of the repo in repo_url, used to build Studio URLs. Defaults to org
+    # so a Designer that predates fork support keeps working.
+    repo_owner: Optional[str] = None
     attachments: List[AttachmentUpload] = Field(default_factory=list)
     experiment: Optional[ExperimentContext] = None
 
@@ -131,6 +136,7 @@ async def start_agent(
             app_name=app_name,
             developer=developer,
             org=req.org,
+            repo_owner=req.repo_owner or req.org,
             allow_app_changes=req.allow_app_changes,
             attachments=saved_attachments,
             designer_api_key=designer_api_key,

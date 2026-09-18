@@ -5,6 +5,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import type { Repository } from 'app-shared/types/Repository';
 
 jest.mock('./components/AssistantWorkspace', () => ({
   AssistantWorkspace: () => <div>assistant workspace</div>,
@@ -42,6 +43,14 @@ describe('AiAssistant', () => {
     expect(await screen.findByText(textMock('ai_assistant.access_denied'))).toBeInTheDocument();
   });
 
+  it('renders the fork message when the repository is a fork', async () => {
+    renderAiAssistant({ isFork: true });
+
+    expect(
+      await screen.findByText(textMock('ai_assistant.access_denied_fork')),
+    ).toBeInTheDocument();
+  });
+
   it('denies access when the access check fails', async () => {
     renderAiAssistant({ accessCheckFails: true });
 
@@ -57,10 +66,15 @@ describe('AiAssistant', () => {
 
 type RenderOptions = {
   hasAccess?: boolean;
+  isFork?: boolean;
   accessCheckFails?: boolean;
 };
 
-const renderAiAssistant = ({ hasAccess = false, accessCheckFails = false }: RenderOptions = {}) => {
+const renderAiAssistant = ({
+  hasAccess = false,
+  isFork = false,
+  accessCheckFails = false,
+}: RenderOptions = {}) => {
   jest
     .mocked(queriesMock.canUseFeature)
     .mockImplementation(() =>
@@ -68,6 +82,9 @@ const renderAiAssistant = ({ hasAccess = false, accessCheckFails = false }: Rend
         ? Promise.reject(createApiErrorMock(500))
         : Promise.resolve({ canUseFeature: hasAccess }),
     );
+  jest
+    .mocked(queriesMock.getRepoMetadata)
+    .mockImplementation(() => Promise.resolve({ fork: isFork } as Repository));
 
   return renderWithProviders({}, undefined, {}, `/${org}/${app}`)(<AiAssistant />);
 };

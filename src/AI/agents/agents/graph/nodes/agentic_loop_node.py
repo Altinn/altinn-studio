@@ -222,6 +222,7 @@ async def handle(state: AgentState) -> AgentState:
         allow_app_changes=state.allow_app_changes,
         developer=state.developer,
         org=state.org,
+        repo_owner=state.repo_owner,
         designer_api_key=state.designer_api_key,
         permission_requester=(
             None
