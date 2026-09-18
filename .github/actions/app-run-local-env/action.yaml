@@ -71,6 +71,27 @@ runs:
         echo "Frontend server is ready on http://localhost:8080"
       shell: bash
 
+    # The app libraries require the platform to say where provisioned secrets live and what the files are
+    # called (RUNTIME_APP_SECRETS_DIR and the RUNTIME_APP_SECRETS_*_FILENAME variables). The studioctl on this
+    # branch does not set them yet, so this step does: one directory, shared by every test app, handed on
+    # through the environment `studioctl run` passes to the app. Nothing is written into it - no test app
+    # needs a Maskinporten client to start. The next PR in the stack deletes this step, because studioctl
+    # names the directory itself from then on.
+    - name: Name the test apps' secrets directory
+      if: ${{ inputs.run-localtest == 'true' && inputs.app-run-targets-json != '' }}
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+      with:
+        script: |
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const secretsDir = path.join(process.env.RUNNER_TEMP, 'app-secrets');
+          fs.mkdirSync(secretsDir, { recursive: true, mode: 0o700 });
+
+          core.exportVariable('RUNTIME_APP_SECRETS_DIR', secretsDir);
+          core.exportVariable('RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME', 'maskinporten-settings.json');
+          core.exportVariable('RUNTIME_APP_SECRETS_APPCODES_FILENAME', 'app-codes.json');
+
     - name: Start app processes
       if: ${{ inputs.run-localtest == 'true' && inputs.app-run-targets-json != '' }}
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
