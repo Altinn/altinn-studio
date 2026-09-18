@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { EditButton, EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
@@ -72,7 +73,18 @@ it('remounts the fallback when its component id changes', async () => {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = {
-            FormLayout: { data: { layout: [{ id: 'TestInput', type: 'Input', textResourceBindings: {} }] } },
+            FormLayout: {
+              data: {
+                layout: [
+                  {
+                    id: 'TestInput',
+                    type: 'Input',
+                    dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
+                    textResourceBindings: {},
+                  },
+                ],
+              },
+            },
           };
         }),
     },
