@@ -5,7 +5,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 interface MapRegionA11yProps {
   baseComponentId: string;
@@ -33,12 +33,7 @@ export function MapRegionA11y({ baseComponentId }: MapRegionA11yProps) {
   const map = useMap();
   const { langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'Map');
-  const resolvedTitle = useEvalExpression(
-    config.textResourceBindings?.title,
-    Expressions.Map.textResourceBindings.title,
-  );
-
-  const title = config.textResourceBindings?.title === undefined ? undefined : resolvedTitle;
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Map.textResourceBindings.title);
   const label = title ? langAsString(title) : undefined;
 
   const instructions = langAsString('map_component.ariaLabel');

@@ -12,13 +12,13 @@ import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import classes from 'src/layout/Number/Number.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'Number'>) => {
   const config = useComponentConfig(baseComponentId, 'Number');
   const value = useEvalExpression(config.value, Expressions.Number.value);
-  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Number.textResourceBindings.title);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Number.textResourceBindings.title);
 
   const direction = config.direction ?? 'horizontal';
   const currentLanguage = useCurrentLanguage();
@@ -29,7 +29,7 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     return null;
   }
   const numberFormatting = getMapToReactNumberConfig(resolvedFormatting, value.toString(), currentLanguage);
-  if (!(config.textResourceBindings?.title === undefined ? undefined : title)) {
+  if (!title) {
     return (
       <DisplayNumber
         value={value}
@@ -53,7 +53,7 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       <DisplayNumber
         value={value}
         iconUrl={config.icon}
-        iconAltText={langAsString(config.textResourceBindings?.title === undefined ? undefined : title)}
+        iconAltText={langAsString(title)}
         labelId={getLabelId(indexedId)}
         formatting={numberFormatting}
       />

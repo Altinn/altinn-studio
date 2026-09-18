@@ -30,7 +30,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {
@@ -42,18 +42,16 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const errors = validationsOfSeverity(validations, 'error');
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup');
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.RepeatingGroup.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.RepeatingGroup.textResourceBindings.title,
   );
 
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const title = summaryTitle || resolvedTitle;
   const tableIds = useTableComponentIds(baseComponentId);
   const hiddenColumns = useHiddenColumns(config.tableColumns);
   const columnSettings = Object.fromEntries(

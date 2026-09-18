@@ -21,7 +21,7 @@ import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type AwaitingCurrentUserSignaturePanelProps = {
   baseComponentId: string;
@@ -41,36 +41,28 @@ export function AwaitingCurrentUserSignaturePanel({
 
   const currentUserPartyId = useProfile()?.partyId;
   const config = useComponentConfig(baseComponentId, 'SigningActions');
-  const awaitingSignaturePanelTitle = useEvalExpression(
+  const awaitingSignaturePanelTitle = useEvalOptionalText(
     config.textResourceBindings?.awaitingSignaturePanelTitle,
     Expressions.SigningActions.textResourceBindings.awaitingSignaturePanelTitle,
   );
-  const resolvedCheckboxLabel = useEvalExpression(
+  const resolvedCheckboxLabel = useEvalOptionalText(
     config.textResourceBindings?.checkboxLabel,
     Expressions.SigningActions.textResourceBindings.checkboxLabel,
   );
-  const resolvedCheckboxDescription = useEvalExpression(
+  const checkboxDescription = useEvalOptionalText(
     config.textResourceBindings?.checkboxDescription,
     Expressions.SigningActions.textResourceBindings.checkboxDescription,
   );
-  const signingButton = useEvalExpression(
+  const signingButton = useEvalOptionalText(
     config.textResourceBindings?.signingButton,
     Expressions.SigningActions.textResourceBindings.signingButton,
   );
 
   const { langAsString } = useLanguage();
 
-  const title =
-    (config.textResourceBindings?.awaitingSignaturePanelTitle === undefined
-      ? undefined
-      : awaitingSignaturePanelTitle) ?? 'signing.awaiting_signature_panel_title';
-  const checkboxLabel =
-    (config.textResourceBindings?.checkboxLabel === undefined ? undefined : resolvedCheckboxLabel) ??
-    'signing.checkbox_label';
-  const checkboxDescription =
-    config.textResourceBindings?.checkboxDescription === undefined ? undefined : resolvedCheckboxDescription;
-  const signingButtonText =
-    (config.textResourceBindings?.signingButton === undefined ? undefined : signingButton) ?? 'signing.sign_button';
+  const title = awaitingSignaturePanelTitle ?? 'signing.awaiting_signature_panel_title';
+  const checkboxLabel = resolvedCheckboxLabel ?? 'signing.checkbox_label';
+  const signingButtonText = signingButton ?? 'signing.sign_button';
 
   const [confirmReadDocuments, setConfirmReadDocuments] = useState(false);
   const [onBehalfOf, setOnBehalfOf] = useState<string | null>(null);

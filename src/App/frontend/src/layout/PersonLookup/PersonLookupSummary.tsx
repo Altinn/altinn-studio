@@ -12,14 +12,14 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'PersonLookup');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'PersonLookup');
   const required = useEvalExpression(config.required, Expressions.PersonLookup.required);
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.PersonLookup.textResourceBindings.title,
   );
@@ -47,7 +47,7 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
           data-size='sm'
           level={2}
         >
-          <Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />
+          <Lang id={title} />
         </Heading>
         <div className={classes.personLookupComponent}>
           <div className={classes.personLookupComponentSsn}>

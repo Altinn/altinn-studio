@@ -6,12 +6,12 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { useParentCard } from 'src/layout/Cards/CardContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function AudioComponent({ baseComponentId }: PropsFromGenericComponent<'Audio'>) {
   const config = useComponentConfig(baseComponentId, 'Audio');
-  const altText = useEvalExpression(
+  const altText = useEvalOptionalText(
     config.textResourceBindings?.altText,
     Expressions.Audio.textResourceBindings.altText,
   );
@@ -25,7 +25,7 @@ export function AudioComponent({ baseComponentId }: PropsFromGenericComponent<'A
     <Audio
       componentId={componentId}
       src={config.audio?.src}
-      altText={config.textResourceBindings?.altText === undefined ? undefined : altText}
+      altText={altText}
       mediaHeight={mediaHeight}
       innerGrid={innerGrid}
     />

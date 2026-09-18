@@ -13,7 +13,7 @@ import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { CompExternal, ITextResourceBindingsExternal } from 'src/layout/layout';
@@ -79,9 +79,9 @@ export function LabelInner(props: LabelInnerProps) {
   const id = useIndexedId(overrideId ?? props.baseComponentId);
   const trb = (overriddenTrb ?? overrideItemProps?.textResourceBindings ?? config.textResourceBindings) as
     ITextResourceBindingsExternal | ExprResolved<TRBLabel>;
-  const title = useEvalExpression(trb && 'title' in trb ? trb.title : undefined, CommonExpressions.TRBLabel.title);
-  const help = useEvalExpression(trb && 'help' in trb ? trb.help : undefined, CommonExpressions.TRBLabel.help);
-  const description = useEvalExpression(
+  const title = useEvalOptionalText(trb && 'title' in trb ? trb.title : undefined, CommonExpressions.TRBLabel.title);
+  const help = useEvalOptionalText(trb && 'help' in trb ? trb.help : undefined, CommonExpressions.TRBLabel.help);
+  const description = useEvalOptionalText(
     trb && 'description' in trb ? trb.description : undefined,
     CommonExpressions.TRBLabel.description,
   );

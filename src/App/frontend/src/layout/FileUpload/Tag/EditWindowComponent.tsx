@@ -18,7 +18,7 @@ import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTable
 import classes from 'src/layout/FileUpload/Tag/EditWindowComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { optionFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
@@ -43,7 +43,7 @@ export function EditWindowComponent({
   isFetching,
 }: EditWindowProps): React.JSX.Element {
   const config = useComponentConfig(baseComponentId, 'FileUpload');
-  const tagTitle = useEvalExpression(
+  const tagTitle = useEvalOptionalText(
     config.textResourceBindings?.tagTitle,
     Expressions.FileUpload.textResourceBindings.tagTitle,
   );
@@ -163,12 +163,12 @@ export function EditWindowComponent({
         direction='column'
         className={classes.gap}
       >
-        {(config.textResourceBindings?.tagTitle === undefined ? undefined : tagTitle) && (
+        {tagTitle && (
           <label
             className={classes.label}
             htmlFor={`attachment-tag-dropdown-${uniqueId}`}
           >
-            <Lang id={config.textResourceBindings?.tagTitle === undefined ? undefined : tagTitle} />
+            <Lang id={tagTitle} />
           </label>
         )}
         {isLoading ? (
@@ -265,9 +265,9 @@ export function EditWindowComponent({
                   <Lang
                     id='form_filler.file_uploader_validation_error_no_chosen_tag'
                     params={[
-                      (config.textResourceBindings?.tagTitle === undefined ? undefined : tagTitle)
+                      tagTitle
                         ? {
-                            key: config.textResourceBindings?.tagTitle === undefined ? undefined : tagTitle,
+                            key: tagTitle,
                             makeLowerCase: true,
                           }
                         : 'tag',

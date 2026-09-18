@@ -11,19 +11,22 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'ButtonGroup'>) {
   const config = useComponentConfig(baseComponentId, 'ButtonGroup');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.ButtonGroup.textResourceBindings.title,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.ButtonGroup.textResourceBindings.description,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.ButtonGroup.textResourceBindings.help);
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.ButtonGroup.textResourceBindings.help,
+  );
 
   const canRender = useHasCapability('renderInButtonGroup');
   const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
@@ -36,9 +39,9 @@ export function ButtonGroupComponent({ baseComponentId, overrideDisplay }: Props
     <ButtonGroupLayout
       id={componentId}
       componentId={componentId}
-      title={showLabel ? (config.textResourceBindings?.title === undefined ? undefined : title) : undefined}
-      description={config.textResourceBindings?.description === undefined ? undefined : description}
-      help={config.textResourceBindings?.help === undefined ? undefined : help}
+      title={showLabel ? title : undefined}
+      description={description}
+      help={help}
       grid={config.grid?.labelGrid}
       innerGrid={innerGrid}
       validationGrid={validationGrid}

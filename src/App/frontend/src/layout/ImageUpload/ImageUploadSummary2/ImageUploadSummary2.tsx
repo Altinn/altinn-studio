@@ -10,18 +10,18 @@ import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
   const attachment = useUploaderSummaryData(targetBaseComponentId);
   const config = useComponentConfig(targetBaseComponentId, 'ImageUpload');
   const required = useEvalExpression(config.required, Expressions.ImageUpload.required);
-  const summaryTitle = useEvalExpression(
+  const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
     Expressions.ImageUpload.textResourceBindings.summaryTitle,
   );
-  const resolvedTitle = useEvalExpression(
+  const resolvedTitle = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.ImageUpload.textResourceBindings.title,
   );
@@ -29,9 +29,7 @@ export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
   const isCompact = useSummaryProp('isCompact');
   const { storedImage } = useImageFile(targetBaseComponentId);
   const isEmpty = attachment.length === 0;
-  const title =
-    (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
-    (config.textResourceBindings?.title === undefined ? undefined : resolvedTitle);
+  const title = summaryTitle || resolvedTitle;
   const emptyValueText = required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired;
   const contentLogic = isEmpty ? emptyValueText : SummaryContains.SomeUserContent;
   const imageElement = storedImage ? <ImageToDisplay targetBaseComponentId={targetBaseComponentId} /> : undefined;

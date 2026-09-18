@@ -24,7 +24,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface TableComponentProps extends PropsFromGenericComponent<'SimpleTable'> {
@@ -33,21 +33,24 @@ interface TableComponentProps extends PropsFromGenericComponent<'SimpleTable'> {
 
 export function SimpleTableComponent({ baseComponentId, dataModelBindings }: TableComponentProps) {
   const config = useComponentConfig(baseComponentId, 'SimpleTable');
-  const title = useEvalExpression(
+  const title = useEvalOptionalText(
     config.textResourceBindings?.title,
     Expressions.SimpleTable.textResourceBindings.title,
   );
-  const description = useEvalExpression(
+  const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.SimpleTable.textResourceBindings.description,
   );
-  const help = useEvalExpression(config.textResourceBindings?.help, Expressions.SimpleTable.textResourceBindings.help);
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.SimpleTable.textResourceBindings.help,
+  );
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const removeFromList = FormStore.data.useRemoveFromListCallback();
 
   const { elementAsString } = useLanguage();
-  const accessibleTitle = elementAsString(config.textResourceBindings?.title === undefined ? undefined : title);
+  const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
   const data = formData.tableData;
   const schemaLookup = FormStore.bootstrap.useSchemaLookup();
@@ -162,18 +165,14 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         actionButtonHeader={langAsString('general.action')}
         emptyText={langAsString('general.empty_table')}
         caption={
-          (config.textResourceBindings?.title === undefined ? undefined : title) && (
+          title && (
             <Caption
-              title={<Lang id={config.textResourceBindings?.title === undefined ? undefined : title} />}
-              description={
-                (config.textResourceBindings?.description === undefined ? undefined : description) && (
-                  <Lang id={config.textResourceBindings?.description === undefined ? undefined : description} />
-                )
-              }
+              title={<Lang id={title} />}
+              description={description && <Lang id={description} />}
               helpText={
-                (config.textResourceBindings?.help === undefined ? undefined : help)
+                help
                   ? {
-                      text: <Lang id={config.textResourceBindings?.help === undefined ? undefined : help} />,
+                      text: <Lang id={help} />,
                       accessibleTitle,
                     }
                   : undefined
