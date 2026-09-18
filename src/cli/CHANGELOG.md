@@ -30,6 +30,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade v9` converts primitive calculation rules without the previous shared-function parameter limit, preserves arithmetic grouping, missing-input guards, early returns and JavaScript rounding, and writes their results through the v9 data-model API. Package removal also recognizes package names regardless of letter case.
 - `studioctl app upgrade v9` now recommends the supported service-task results: success advances the process, while waiting for an external outcome uses pipeline polling or mailbox replies.
 - `studioctl app upgrade v9` preserves your C# files' indentation and line endings when simplifying generated type names.
 
