@@ -119,10 +119,15 @@ func (s *Service) BuildDotnetRunSpec(
 		port = "0"
 	}
 	baseURL := nativeAppBaseURL(port)
-	// Created here rather than at the point the app starts, so that `studioctl app env` - which builds this
-	// spec and prints it for an app started from an IDE - leaves behind the same directory `app run` would.
+	// Created and filled here rather than at the point the app starts, because `studioctl app env` only
+	// prints an environment - and that environment is how an app started from an IDE is configured, so the
+	// directory and the codes the app reads from it have to be in place by the time the spec is printed,
+	// not by the time `app run` would have launched something.
 	secretsDir, err := s.ensureAppSecretsDir(appPath)
 	if err != nil {
+		return DotnetRunSpec{}, err
+	}
+	if err := s.provisionAppSecrets(secretsDir); err != nil {
 		return DotnetRunSpec{}, err
 	}
 
@@ -225,6 +230,9 @@ func (s *Service) BuildDockerRunSpec(
 	if err != nil {
 		return DockerRunSpec{}, err
 	}
+	if err := s.provisionAppSecrets(secretsDir); err != nil {
+		return DockerRunSpec{}, err
+	}
 	keysDir := s.appKeysDirOrEmpty(appPath)
 	keysDirEnv := ""
 	if keysDir != "" {
@@ -277,11 +285,11 @@ func (s *Service) BuildDockerRunSpec(
 
 // PrepareDockerRun readies a spec for the runtime it is about to run on. The keys directory it mounts is
 // created first (a missing one is otherwise created by the runtime, on Linux as root, where everything else
-// under the studioctl home is the developer's; the secrets directory already exists, created when the spec
-// was built), and the container runs as the developer with the userns and SELinux handling the localtest
-// containers use: the mounted secrets are owner-only on the host, and a deployed app likewise runs as the
-// one user that can read its secret. The image's own user (uid 1000) could not read them on a Linux host
-// with another uid.
+// under the studioctl home is the developer's; the secrets directory is there already, created and
+// provisioned when the spec was built), and the container runs as the developer with the userns and SELinux
+// handling the localtest containers use: the mounted secrets are owner-only on the host, and a deployed app
+// likewise runs as the one user that can read its secret. The image's own user (uid 1000) could not read
+// them on a Linux host with another uid.
 func (s *Service) PrepareDockerRun(spec *DockerRunSpec, toolchain types.ContainerToolchain) error {
 	if spec.KeysDir != "" {
 		if err := os.MkdirAll(spec.KeysDir, osutil.DirPermOwnerOnly); err != nil {

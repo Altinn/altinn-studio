@@ -352,6 +352,7 @@ public class MaskinportenSettingsTest
             .AddInMemoryCollection([
                 new(ProvisionedSecrets.DirectoryKey, secretsDirectory),
                 new(ProvisionedSecretFiles.Maskinporten.FileNameKey, "maskinporten-settings.json"),
+                new(ProvisionedSecretFiles.AppCodes.FileNameKey, "app-codes.json"),
             ])
             .Build();
 }

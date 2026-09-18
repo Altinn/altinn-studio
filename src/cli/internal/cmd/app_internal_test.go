@@ -132,6 +132,11 @@ func TestRunEnvNamesAndCreatesTheSecretsDirectory(t *testing.T) {
 	if info, err := os.Stat(wantDir); err != nil || !info.IsDir() {
 		t.Fatalf("%s is not a directory: %v", wantDir, err)
 	}
+	// An app started from an IDE reads its callback verification codes from that directory at startup, so
+	// printing the environment has to leave them there too.
+	if _, err := os.Stat(filepath.Join(wantDir, "app-codes.json")); err != nil {
+		t.Fatalf("app codes were not provisioned into %s: %v", wantDir, err)
+	}
 }
 
 // Nowhere to place the directory is not something `app env` can print its way past: the app would be told

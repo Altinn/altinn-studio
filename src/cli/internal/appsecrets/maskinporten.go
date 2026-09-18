@@ -1,7 +1,8 @@
 // Package appsecrets provisions an app's secrets for a local run the way the operator does in a cluster: a
 // directory of files the app libraries read from a location the platform names, never from the app's own
-// configuration. The names studioctl hands the app are in provisioned.go; today the directory holds one file
-// studioctl writes, the app's Maskinporten client.
+// configuration. The names studioctl hands the app are in provisioned.go; the directory holds the app's
+// Maskinporten client, stored by the developer, and its callback verification codes, which studioctl
+// provisions for every local run.
 package appsecrets
 
 import (

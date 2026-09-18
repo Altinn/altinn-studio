@@ -72,6 +72,7 @@ public class MaskinportenClientIntegrationTests
     public async Task Host_DoesNotStart_WhenNoClientIsProvisionedOnThePlatform()
     {
         using var secretsDirectory = new TempDirectory();
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
         await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path, _platformHostName));
 
@@ -88,6 +89,7 @@ public class MaskinportenClientIntegrationTests
     public async Task Host_Starts_WhenNoClientIsStoredLocally()
     {
         using var secretsDirectory = new TempDirectory();
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
         await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
 
@@ -105,6 +107,7 @@ public class MaskinportenClientIntegrationTests
     {
         using var secretsDirectory = new TempDirectory();
         await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
         await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
 
@@ -116,10 +119,11 @@ public class MaskinportenClientIntegrationTests
     }
 
     /// <summary>
-    /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port, no
-    /// localtest probing, and the callback app code the workflow engine integration validates at startup.
-    /// The host name decides which platform the app believes it is on, and a test host is on localtest unless
-    /// it says otherwise.
+    /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port and no
+    /// localtest probing. The callback app code the workflow engine integration validates at startup is
+    /// provisioned as a file beside the client, because an <c>AppCodes</c> section is no longer read. The host
+    /// name decides which platform the app believes it is on, and a test host is on localtest unless it says
+    /// otherwise.
     /// </summary>
     /// <param name="secretsDirectory">The directory standing in for the platform's secrets mount.</param>
     /// <param name="hostName">The host name the app is served under.</param>
@@ -132,10 +136,6 @@ public class MaskinportenClientIntegrationTests
             new("urls", "http://127.0.0.1:0"),
             new("GeneralSettings:DisableLocaltestValidation", "true"),
             new("GeneralSettings:HostName", hostName),
-            new("AppCodes:WorkflowEngineCallback:0:Id", "test"),
-            new("AppCodes:WorkflowEngineCallback:0:Code", "test-workflow-engine-callback-secret-long-enough"),
-            new("AppCodes:WorkflowEngineCallback:0:IssuedAt", "2020-01-01T00:00:00Z"),
-            new("AppCodes:WorkflowEngineCallback:0:ExpiresAt", "2999-01-01T00:00:00Z"),
         ];
 
     private static Task WriteProvisionedClient(string secretsDirectory, string clientId) =>

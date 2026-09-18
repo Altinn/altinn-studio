@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -147,9 +148,14 @@ func TestBuildDotnetRunSpec_BindsNativeAppPort(t *testing.T) {
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
-		"AppCodes__WorkflowEngineCallback__0__Id=local-dev",
-		"AppCodes__WorkflowEngineCallback__0__Code=LOCAL-DEV-ONLY-workflow-engine-callback-secret",
 	})
+	// The app's callback verification codes are provisioned as a file, the way a deployed app gets them, and
+	// are not configuration the app run hands over.
+	for _, entry := range spec.Env {
+		if strings.HasPrefix(entry, "AppCodes__") {
+			t.Fatalf("env carries %q, want the app codes provisioned as a file instead", entry)
+		}
+	}
 	if spec.ProjectPath != projectPath {
 		t.Fatalf("ProjectPath = %q, want %q", spec.ProjectPath, projectPath)
 	}
@@ -463,6 +469,66 @@ func TestBuildDotnetRunSpec_NamesTheProvisionedSecrets(t *testing.T) {
 	assertEnvMissing(t, spec.Env, "ALTINN_KEYS_DIRECTORY")
 }
 
+func TestBuildDotnetRunSpec_ProvisionsTheDevelopmentAppCodes(t *testing.T) {
+	t.Parallel()
+
+	// The app reads its callback verification codes from the secrets directory at startup, so building the
+	// run - which is also what `studioctl app env` does for an app started with `dotnet run` - puts them there.
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	home := t.TempDir()
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	spec, err := service.BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+
+	assertAppCodesProvisioned(t, spec.SecretsDir)
+}
+
+// The app does not start without its callback verification codes, so failing to write them is a failure to
+// build the run - not something to carry on past and let the app discover.
+func TestBuildDotnetRunSpec_FailsWhenTheAppCodesCannotBeWritten(t *testing.T) {
+	t.Parallel()
+	if runtime.GOOS == "windows" {
+		// The atomic writer's Windows replace moves whatever is in the way aside, directory included, so the
+		// write succeeds there; only the Unix rename refuses a directory at the target.
+		t.Skip("a directory in the way of the app codes file is replaced on Windows")
+	}
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	home := t.TempDir()
+	// A directory where the app codes file belongs: nothing can replace it with a file.
+	blocked := filepath.Join(home, "apps", "ttd", "test-app", "secrets", "app-codes.json")
+	if err := os.MkdirAll(blocked, 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
+
+	_, err := service.BuildDotnetRunSpec(
+		t.Context(),
+		appPath,
+		nil,
+		nil,
+		defaultTopology(),
+		appsvc.DotnetRunOptions{},
+	)
+	if err == nil {
+		t.Fatal("BuildDotnetRunSpec() error = nil, want an error provisioning the app secrets")
+	}
+}
+
 func TestBuildDotnetRunSpec_OverridesInheritedProvisionedSecretsVariables(t *testing.T) {
 	t.Parallel()
 
@@ -572,8 +638,11 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 		t.Fatalf("SecretsDir = %q, want %q", spec.SecretsDir, want)
 	}
 	// The host side of the mount exists before the container does, so the runtime never creates it - on
-	// Linux as root, where everything else under the studioctl home is the developer's.
+	// Linux as root, where everything else under the studioctl home is the developer's - and the container
+	// reads its callback verification codes from the mounted directory, so they are in it already, exactly
+	// as for a native run.
 	assertIsDir(t, want)
+	assertAppCodesProvisioned(t, spec.SecretsDir)
 	wantKeys := filepath.Join(home, "apps", "ttd", "test-app", "keys")
 	if spec.KeysDir != wantKeys {
 		t.Fatalf("KeysDir = %q, want %q", spec.KeysDir, wantKeys)
@@ -668,5 +737,21 @@ func assertRunsAsTheDeveloper(t *testing.T, spec appsvc.DockerRunSpec, wantUsern
 	}
 	if spec.Config.UsernsMode != wantUserns {
 		t.Fatalf("UsernsMode = %q, want %q", spec.Config.UsernsMode, wantUserns)
+	}
+}
+
+// assertAppCodesProvisioned checks that the app's callback verification codes are in its secrets directory,
+// in the file the app libraries read them from.
+func assertAppCodesProvisioned(t *testing.T, secretsDir string) {
+	t.Helper()
+	if secretsDir == "" {
+		t.Fatal("no secrets directory, want one to provision the app codes into")
+	}
+	data, err := os.ReadFile(appsecrets.AppCodesPath(secretsDir))
+	if err != nil {
+		t.Fatalf("ReadFile(app codes) error = %v", err)
+	}
+	if !strings.Contains(string(data), `"WorkflowEngineCallback"`) {
+		t.Fatalf("app codes = %s, want a WorkflowEngineCallback code", data)
 	}
 }

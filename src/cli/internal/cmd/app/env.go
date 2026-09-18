@@ -60,11 +60,11 @@ func (e appEnv) addRunDefaults(
 	// as the platform names them for a deployed app - the same variables the operator's configuration map
 	// sets in every environment (infra/runtime/apps-config/base/apps-runtime-common-env.yaml), because
 	// studioctl is the platform for a local run. All three are set on every run: the app libraries require
-	// them and fall back to nothing, the directory exists by the time a spec is built, and studioctl writes
-	// into it whether or not the developer has stored anything there. The Maskinporten client stored with
-	// `studioctl app maskinporten set` lands under the name advertised here, and a client stored while the
-	// app runs is picked up without a restart. None of the three is taken from the inherited environment:
-	// the contract is studioctl's to state, not the shell's.
+	// them and fall back to nothing, and the directory is there by the time a spec is built, holding the
+	// callback verification codes studioctl provisions for every local run. The Maskinporten client stored
+	// with `studioctl app maskinporten set` lands under the name advertised here, and a client stored while
+	// the app runs is picked up without a restart. None of the three is taken from the inherited
+	// environment: the contract is studioctl's to state, not the shell's.
 	e.values[appsecrets.EnvSecretsDir] = secretsDir
 	e.values[appsecrets.EnvMaskinportenFileName] = appsecrets.MaskinportenFileName
 	e.values[appsecrets.EnvAppCodesFileName] = appsecrets.AppCodesFileName
@@ -94,15 +94,6 @@ func (e appEnv) addRunDefaults(
 	e.setDefault("PlatformSettings__ApiCorrespondenceEndpoint", endpoints.platform+"/correspondence/api/v1/")
 	e.setDefault("PlatformSettings__ApiAccessManagementEndpoint", endpoints.platform+"/accessmanagement/api/v1/")
 	e.setDefault("PlatformSettings__ApiWorkflowEngineEndpoint", endpoints.workflowEngine)
-
-	// Workflow engine callbacks are authenticated with an app-minted JWT signed by a
-	// WorkflowEngineCallback app-code. In the cloud the operator provisions these codes; locally we
-	// supply a single fixed dev code so the app can both sign (at enqueue) and validate (on callback).
-	// The app both mints and verifies the token, so this value never has to match anything else.
-	e.setDefault("AppCodes__WorkflowEngineCallback__0__Id", "local-dev")
-	e.setDefault("AppCodes__WorkflowEngineCallback__0__Code", "LOCAL-DEV-ONLY-workflow-engine-callback-secret")
-	e.setDefault("AppCodes__WorkflowEngineCallback__0__IssuedAt", "2020-01-01T00:00:00Z")
-	e.setDefault("AppCodes__WorkflowEngineCallback__0__ExpiresAt", "2999-01-01T00:00:00Z")
 }
 
 func (e appEnv) setDefault(key, value string) {
