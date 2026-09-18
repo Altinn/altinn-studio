@@ -1,4 +1,6 @@
 .surface {
+  /* Keep positioned content, including list markers, inside the scrollable panel. */
+  position: relative;
   min-width: 0;
   background-color: var(--ds-color-neutral-surface-default);
   border-left: 1px solid var(--ds-color-neutral-border-subtle);
