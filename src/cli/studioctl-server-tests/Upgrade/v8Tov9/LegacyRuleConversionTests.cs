@@ -35,6 +35,15 @@ public sealed class LegacyRuleConversionTests
     [InlineData("if (obj.a > 0) { var result = 12; } else { result = 7; } return result;", "{\"a\":1}", "12")]
     [InlineData("return obj.a || 7;", "{\"a\":0}", "7")]
     [InlineData("return obj.a && 7;", "{\"a\":2}", "7")]
+    [InlineData("return obj.missing < 1 ? 1 : 0;", "{\"a\":1}", "0")]
+    [InlineData("return obj.a < 1 ? 1 : 0;", "{\"a\":null}", "1")]
+    [InlineData("return obj.missing ? 1 : 0;", "{\"a\":1}", "0")]
+    [InlineData("return obj.missing == null ? 1 : 0;", "{\"a\":1}", "1")]
+    [InlineData("return obj.missing == undefined ? 1 : 0;", "{\"a\":1}", "1")]
+    [InlineData("return obj.missing + 'x';", "{\"a\":1}", "\"undefinedx\"")]
+    [InlineData("return obj.a + 'x';", "{\"a\":null}", "\"nullx\"")]
+    [InlineData("return obj.missing;", "{\"a\":1}", "null")]
+    [InlineData("var value; return value < 1 ? 1 : 0;", "{\"a\":1}", "0")]
     public async Task GeneratedProcessor_CompilesAndPreservesPrimitiveSemantics(
         string body,
         string inputs,
@@ -179,6 +188,13 @@ public sealed class LegacyRuleConversionTests
             Assert.Contains("missing", Assert.Single(result.FailedRules).Reason);
             Assert.DoesNotContain("JsNumber", Assert.IsType<string>(result.GeneratedCode));
         }
+    }
+
+    [Fact]
+    public async Task OmittedPropertyInSharedSum_RemainsNaNRatherThanZero()
+    {
+        var value = await Execute("return obj.a + obj.missing;", new() { ["a"] = 1d }, shared: true);
+        Assert.True(double.IsNaN(Assert.IsType<double>(value)));
     }
 
     [Fact]
