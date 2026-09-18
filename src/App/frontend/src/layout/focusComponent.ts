@@ -1,101 +1,121 @@
-import { useEffect, useSyncExternalStore } from 'react';
-import { useSearchParams } from 'react-router';
+import { useCallback, useEffect } from 'react';
+import { useLocation, useSearchParams } from 'react-router';
 import type React from 'react';
 
 import { SearchParams } from 'src/core/routing/types';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
-import { useQueryKey } from 'src/hooks/navigation';
 
 export type FocusComponentRequest = {
   nodeId: string;
   errorBinding: string | null;
 };
 
-const focusComponentListeners = new Set<() => void>();
-let currentFocusComponentRequest: FocusComponentRequest | undefined;
-let cleanupFocusComponentUrl: (() => void) | undefined;
+type FocusHandler = (binding: string | null) => boolean;
+type PendingFocusRequest = FocusComponentRequest & { onFinished?: () => void };
 
-export function setFocusComponentRequest(request: FocusComponentRequest | undefined) {
-  currentFocusComponentRequest = request;
-  for (const listener of focusComponentListeners) {
-    listener();
+const focusComponentHandlers = new Map<string, Set<FocusHandler>>();
+let pendingFocusRequest: PendingFocusRequest | undefined;
+
+function focusRegisteredComponent(request: FocusComponentRequest) {
+  for (const handler of focusComponentHandlers.get(request.nodeId) ?? []) {
+    if (handler(request.errorBinding)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function tryPendingFocusRequest(nodeId: string) {
+  const request = pendingFocusRequest;
+  if (request?.nodeId === nodeId && focusRegisteredComponent(request) && pendingFocusRequest === request) {
+    // Consume before URL cleanup can remount the target.
+    pendingFocusRequest = undefined;
+    request.onFinished?.();
   }
 }
 
-export function setFocusComponentUrlCleanup(cleanup: (() => void) | undefined) {
-  cleanupFocusComponentUrl = cleanup;
+export function setFocusComponentRequest(request: FocusComponentRequest | undefined, onFinished?: () => void) {
+  pendingFocusRequest = request ? { ...request, onFinished } : undefined;
+  if (request) {
+    tryPendingFocusRequest(request.nodeId);
+  }
 }
 
-export function useFocusComponentRequest(nodeId: string): FocusComponentRequest | undefined {
-  return useSyncExternalStore(
-    (listener) => {
-      focusComponentListeners.add(listener);
-      return () => focusComponentListeners.delete(listener);
-    },
-    () => (currentFocusComponentRequest?.nodeId === nodeId ? currentFocusComponentRequest : undefined),
-    () => undefined,
-  );
+export function cancelFocusComponentRequest() {
+  const previousRequest = pendingFocusRequest;
+  pendingFocusRequest = undefined;
+  previousRequest?.onFinished?.();
+}
+
+/** Tries direct focus, cancelling any older pending request. Returns false if navigation is needed. */
+export function tryFocusComponent(request: FocusComponentRequest) {
+  cancelFocusComponentRequest();
+  return focusRegisteredComponent(request);
 }
 
 export function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
-  const focusRequest = useFocusComponentRequest(nodeId);
-  const pathnameWas = window.location.pathname;
-
-  useEffect(() => {
-    const div = containerDivRef.current;
-    if (focusRequest && div) {
-      const animationFrame = requestAnimationFrame(() => {
-        div.scrollIntoView({ behavior: 'instant' });
-      });
-
-      try {
-        const field = findElementToFocus(div, focusRequest.errorBinding);
-        if (field) {
-          field.focus();
-        }
-      } finally {
-        if (pathnameWas === window.location.pathname) {
-          cleanupFocusComponentUrl?.();
-        }
+  const focus = useCallback(
+    (binding: string | null) => {
+      const div = containerDivRef.current;
+      const field = findElementToFocus(div, binding);
+      if (!div || !field?.isConnected) {
+        return false;
       }
 
-      return () => cancelAnimationFrame(animationFrame);
+      field.focus();
+      if (document.activeElement !== field) {
+        return false;
+      }
+      div.scrollIntoView({ behavior: 'instant' });
+      return true;
+    },
+    [containerDivRef],
+  );
+
+  const handleContainerMount = useCallback(() => {
+    // On the first mount, wait for child effects before focusing.
+    if (focusComponentHandlers.get(nodeId)?.has(focus)) {
+      tryPendingFocusRequest(nodeId);
     }
-  }, [containerDivRef, focusRequest, pathnameWas]);
+  }, [focus, nodeId]);
+
+  useEffect(() => {
+    const handlers = focusComponentHandlers.get(nodeId) ?? new Set<FocusHandler>();
+    handlers.add(focus);
+    focusComponentHandlers.set(nodeId, handlers);
+    tryPendingFocusRequest(nodeId);
+    return () => {
+      handlers.delete(focus);
+      if (handlers.size === 0) {
+        focusComponentHandlers.delete(nodeId);
+      }
+    };
+  }, [focus, nodeId]);
+
+  return handleContainerMount;
 }
 
 export function FocusComponentRequestFromUrl() {
-  const focusComponentId = useQueryKey(SearchParams.FocusComponentId);
-  const focusErrorBinding = useQueryKey(SearchParams.FocusErrorBinding);
+  const location = useLocation();
   const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const nodeId = params.get(SearchParams.FocusComponentId);
     setFocusComponentRequest(
-      focusComponentId
-        ? {
-            nodeId: focusComponentId,
-            errorBinding: focusErrorBinding,
-          }
-        : undefined,
+      nodeId ? { nodeId, errorBinding: params.get(SearchParams.FocusErrorBinding) } : undefined,
+      () => {
+        setSearchParams((currentParams) => {
+          const nextParams = new URLSearchParams(currentParams);
+          nextParams.delete(SearchParams.FocusComponentId);
+          nextParams.delete(SearchParams.FocusErrorBinding);
+          return nextParams;
+        }, replaceAndPreventResetOptions);
+      },
     );
-  }, [focusComponentId, focusErrorBinding]);
 
-  useEffect(() => {
-    setFocusComponentUrlCleanup(() => {
-      setSearchParams((params) => {
-        if (!params.has(SearchParams.FocusComponentId) && !params.has(SearchParams.FocusErrorBinding)) {
-          return params;
-        }
-
-        const nextParams = new URLSearchParams(params);
-        nextParams.delete(SearchParams.FocusComponentId);
-        nextParams.delete(SearchParams.FocusErrorBinding);
-        return nextParams;
-      }, replaceAndPreventResetOptions);
-    });
-
-    return () => setFocusComponentUrlCleanup(undefined);
-  }, [setSearchParams]);
+    return () => setFocusComponentRequest(undefined);
+  }, [location, setSearchParams]);
 
   return null;
 }
