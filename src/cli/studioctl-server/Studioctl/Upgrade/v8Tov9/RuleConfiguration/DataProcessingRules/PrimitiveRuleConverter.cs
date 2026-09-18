@@ -208,7 +208,8 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
             null => false,
             bool boolean => boolean,
             string text => text.Length != 0,
-            IConvertible => JsNumber(value) is var number && number != 0 && !double.IsNaN(number),
+            IConvertible convertible when convertible.GetTypeCode() is >= TypeCode.SByte and <= TypeCode.Decimal =>
+                JsNumber(value) is var number && number != 0 && !double.IsNaN(number),
             _ => true,
         };
         private static double JsNumber(object? value) => value switch
@@ -218,7 +219,9 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
             string text when string.IsNullOrWhiteSpace(text) => 0,
             string text => double.TryParse(text, System.Globalization.NumberStyles.Float,
                 System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : double.NaN,
-            _ => Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture),
+            IConvertible convertible when convertible.GetTypeCode() is >= TypeCode.SByte and <= TypeCode.Decimal =>
+                Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture),
+            _ => double.NaN,
         };
         private static object JsAdd(object? left, object? right) =>
             left is string || right is string ? JsString(left) + JsString(right) : JsNumber(left) + JsNumber(right);
