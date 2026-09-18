@@ -416,7 +416,7 @@ internal sealed class CSharpCodeGenerator
                 code.AppendLine();
 
                 // Try to convert the return expression
-                var converter = new StatementConverter(new Dictionary<string, string>(), "");
+                var converter = new StatementConverter();
 
                 // Mark the parameter variables as already declared to avoid redeclaration
                 converter.MarkVariablesAsDeclared(allPossibleKeys);
@@ -667,8 +667,7 @@ internal sealed class CSharpCodeGenerator
                         code.AppendLine();
 
                         // Try to convert to C#
-                        // Pass empty dictionaries so that input params are treated as local variables
-                        var converter = new StatementConverter(new Dictionary<string, string>(), "");
+                        var converter = new StatementConverter();
 
                         // Generate local variable declarations for input parameters
                         // This allows the function body to treat them as local variables
