@@ -319,6 +319,30 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(
+        """{"id":"lookup","type":"PersonLookup","dataModelBindings":{"person_lookup_ssn":"Old","ssn":"New"}}"""
+    )]
+    [InlineData("""{"id":"options","type":"Dropdown","mapping":{"Old":"key"},"queryParameters":{"key":"New"}}""")]
+    public async Task LayoutTodosPreserveLegacySourcesAndFoldersUntilResolved(string component)
+    {
+        WriteV9Project();
+        _app.Write(LayoutPath, "{\"data\":{\"layout\":[" + component + "]}}");
+        _app.Write("ui/Task_1/RuleConfiguration.json", "{}");
+        _app.Write("ui/Task_1/RuleHandler.js", "// Keep until manual work is complete");
+        _app.Write("ui/layout-sets.json", """{"sets":[{"id":"Task_1","tasks":["Task_2"],"dataType":"Main"}]}""");
+
+        for (var run = 0; run < 2; run++)
+        {
+            var result = await RunUpgrade();
+            Assert.Equal(3, result.ExitCode);
+            Assert.Equal("{}", _app.Read("ui/Task_1/RuleConfiguration.json"));
+            Assert.Equal("// Keep until manual work is complete", _app.Read("ui/Task_1/RuleHandler.js"));
+            Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "layout-sets.json")));
+            Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "Task_2")));
+        }
+    }
+
     [Fact]
     public async Task FailedLayoutMigrationPreservesAllLegacySources()
     {
