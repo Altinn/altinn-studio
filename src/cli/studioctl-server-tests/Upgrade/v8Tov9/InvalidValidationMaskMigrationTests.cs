@@ -45,6 +45,16 @@ public sealed class InvalidValidationMaskMigrationTests : IDisposable
         Assert.Equal(content.Replace("\"Schema\"", "\"Schema\", \"Invalid\""), migrated);
         await Migrate();
         Assert.Equal(migrated, _app.Read("ui/book/layouts/page.json"));
+
+        _app.Write("ui/book/layouts/page.json", content);
+        var workspace = await LayoutMigrationWorkspace.Load(_app.Root);
+        Assert.NotNull(workspace);
+        Assert.Equal(1, InvalidValidationMaskMigration.Apply(workspace).Changes);
+        Assert.Equal(0, InvalidValidationMaskMigration.Apply(workspace).Changes);
+        await workspace.Save();
+        Assert.True(
+            JsonNode.DeepEquals(JsonNode.Parse(migrated), JsonNode.Parse(_app.Read("ui/book/layouts/page.json")))
+        );
     }
 
     [Theory]
@@ -138,6 +148,11 @@ public sealed class InvalidValidationMaskMigrationTests : IDisposable
         );
 
         Assert.Contains(report.Steps, step => step.Name == "Invalid input validation lists");
-        Assert.Contains("\"Schema\", \"Invalid\"", _app.Read("ui/Task_1/layouts/page.json"), StringComparison.Ordinal);
+        Assert.True(
+            JsonNode.DeepEquals(
+                JsonNode.Parse("""{"data":{"layout":[{"showValidations":["Schema","Invalid"]}]}}"""),
+                JsonNode.Parse(_app.Read("ui/Task_1/layouts/page.json"))
+            )
+        );
     }
 }

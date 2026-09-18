@@ -783,6 +783,11 @@
         "Nullable": false
       },
       {
+        "Name": "currentTime",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "heads",
         "Kind": "array<object<CollectionHeadStatus>>",
         "Nullable": false

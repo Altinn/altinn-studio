@@ -116,8 +116,10 @@ fn decodes_the_minimal_manifest() {
 
 #[test]
 fn decodes_the_self_development_manifest() {
-    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
-    let agent = manifest::decode(bytes).expect("self-development manifest should decode");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev/agent.worktree.yaml");
+    let agent = manifest::resolve(&path)
+        .expect("self-development manifest should resolve")
+        .agent;
 
     assert_eq!(agent.metadata.name, "agent-dev-worktree");
     assert_eq!(agent.spec.sandbox.platform.architecture, None);
@@ -159,10 +161,16 @@ fn published_manifests_explicitly_select_git_identity() {
         return;
     }
 
-    for name in ["minimal", "full", "worktree"] {
-        let bytes = std::fs::read(manifests.join(name).join("agent.yaml"))
-            .expect("published Agent manifest should be readable");
-        let agent = manifest::decode(&bytes).expect("published Agent manifest should decode");
+    for path in [
+        manifests.join("minimal/agent.yaml"),
+        manifests.join("full/agent.yaml"),
+        manifests.join("full/agent.nested.yaml"),
+        manifests.join("full/agent.nested-build.yaml"),
+        manifests.join("full/agent.worktree.yaml"),
+    ] {
+        let agent = manifest::resolve(&path)
+            .expect("published Agent manifest should resolve")
+            .agent;
         let names = agent
             .spec
             .environment
@@ -265,32 +273,42 @@ fn rejects_environment_collisions_with_secrets_and_harness_owned_values() {
 
 #[test]
 fn self_development_mounts_the_host_checkout_instead_of_cloning() {
-    let bytes = include_bytes!("../examples/self-dev/worktree/agent.yaml");
-    let agent = manifest::decode(bytes).expect("self-development manifest should decode");
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev");
+    let agent = manifest::resolve(&directory.join("agent.worktree.yaml"))
+        .expect("self-development worktree variant should resolve")
+        .agent;
     let dockerfile = include_str!("../examples/self-dev/Dockerfile");
 
-    let mounts = agent.spec.sandbox.mounts;
-    assert_eq!(mounts.len(), 1);
+    let mounts = &agent.spec.sandbox.mounts;
+    assert_eq!(mounts.len(), 2);
     assert!(matches!(
         &mounts[0],
         manifest::MountSpec::Bind { source, target, read_only }
-            if source == std::path::Path::new("../../../../../..")
+            if source == std::path::Path::new("../../../../..")
                 && target.as_str() == "/home/agent/code/altinn-studio"
                 && !read_only
     ));
     assert!(!dockerfile.contains("gh repo clone"));
 
-    let checkout = manifest::decode(include_bytes!("../examples/self-dev/checkout/agent.yaml"))
-        .expect("checkout manifest should decode");
-    assert_eq!(checkout.metadata.name, "agent-dev");
-    assert!(checkout.spec.sandbox.mounts.is_empty());
-    assert_eq!(checkout.spec.environment, agent.spec.environment);
-    let nested = manifest::decode(include_bytes!("../examples/self-dev/nested/agent.yaml"))
-        .expect("nested manifest should decode");
+    let default = manifest::resolve(&directory.join("agent.yaml"))
+        .expect("default manifest should resolve")
+        .agent;
+    assert_eq!(default.metadata.name, "agent-dev");
+    assert_eq!(default.spec.sandbox.mounts.len(), 1);
+    assert_eq!(default.spec.environment, agent.spec.environment);
+    let nested = manifest::resolve(&directory.join("agent.nested.yaml"))
+        .expect("nested manifest should resolve")
+        .agent;
     assert_eq!(nested.metadata.name, "agent-dev-nested");
-    assert!(nested.spec.sandbox.mounts.is_empty());
+    assert_eq!(nested.spec.sandbox.mounts, default.spec.sandbox.mounts);
     assert_eq!(nested.spec.environment, agent.spec.environment);
-    assert!(nested.spec.sandbox.resources.memory() < agent.spec.sandbox.resources.memory());
+    assert!(nested.spec.sandbox.resources.memory() < default.spec.sandbox.resources.memory());
+    for resolved in [&default, &nested, &agent] {
+        assert!(matches!(
+            &resolved.spec.sandbox.image,
+            sandbox::image::ImageSource::Build { .. }
+        ));
+    }
 }
 
 #[test]
@@ -466,4 +484,184 @@ fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
     agent.spec.skills.pop();
     agent.validate().expect("one named skill is valid");
     assert_eq!(agent.spec.skills[0].name(), Some("evidence"));
+}
+
+#[test]
+fn harness_installations_declare_optional_model_and_effort_defaults() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: build
+      context: .
+      dockerfile: Dockerfile
+    platform:
+      os: linux
+    resources:
+      cpu: "1"
+      memory: "1Gi"
+      rootFilesystem:
+        capacity: "8Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+      defaults:
+        model: fable
+        effort: xhigh
+    - type: codex
+      auth: mediated
+      defaults:
+        model: gpt-5.4-codex
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest with harness defaults should decode");
+    let claude = &agent.spec.harnesses[0].defaults;
+    assert_eq!(claude.model_str(), Some("fable"));
+    assert_eq!(claude.effort_str(), Some("xhigh"));
+    let codex = &agent.spec.harnesses[1].defaults;
+    assert_eq!(codex.model_str(), Some("gpt-5.4-codex"));
+    assert_eq!(codex.effort_str(), None);
+
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert_eq!(value["spec"]["harnesses"][0]["defaults"]["model"], "fable");
+    assert_eq!(value["spec"]["harnesses"][0]["defaults"]["effort"], "xhigh");
+    assert!(value["spec"]["harnesses"][1]["defaults"].get("effort").is_none());
+    let plain = manifest::decode(include_bytes!("../examples/minimal/agent.yaml")).expect("minimal manifest");
+    let plain = serde_json::to_value(&plain).expect("Agent JSON");
+    assert_eq!(plain["spec"]["harnesses"][0]["defaults"]["model"], "fable");
+    assert!(plain["spec"]["harnesses"][0]["defaults"].get("effort").is_none());
+
+    for (field, valid, invalid) in [
+        ("model", "fable", "\"\""),
+        ("effort", "xhigh", "\"\""),
+        ("model", "fable", "\"gpt 5\""),
+        ("effort", "xhigh", "\"hi'gh\""),
+    ] {
+        let yaml = String::from_utf8_lossy(bytes).replace(
+            &format!("      {field}: {valid}\n"),
+            &format!("      {field}: {invalid}\n"),
+        );
+        let error = manifest::decode(yaml.as_bytes()).expect_err("invalid selections are rejected");
+        assert!(
+            error
+                .to_string()
+                .contains(&format!("{field} must be 1-128 ASCII letters")),
+            "{field} = {invalid}: {error}"
+        );
+    }
+}
+
+/// The `agents/` manifests declare the same default but live outside this crate,
+/// which the portable hosts build from a sparse checkout, so only the examples are
+/// guarded here.
+#[test]
+fn example_manifests_keep_claude_code_sessions_on_fable() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    for path in [
+        root.join("examples/minimal/agent.yaml"),
+        root.join("examples/self-dev/agent.yaml"),
+        root.join("examples/self-dev/agent.nested.yaml"),
+        root.join("examples/self-dev/agent.worktree.yaml"),
+    ] {
+        let agent = manifest::resolve(&path).expect("manifest should resolve").agent;
+        let claude = agent
+            .spec
+            .harness(Harness::ClaudeCode)
+            .expect("every example manifest installs Claude Code");
+        assert_eq!(claude.defaults.model_str(), Some("fable"));
+        assert_eq!(claude.defaults.effort_str(), None);
+    }
+}
+
+const ACCESS_MANIFEST_HEAD: &str = r#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: example.invalid/agent:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "1Gi"
+      rootFilesystem:
+        capacity: "4Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+"#;
+
+const ACCESS_MANIFEST_TAIL: &str = r"
+  network:
+    mode: mediated
+    allow: all
+";
+
+fn manifest_with_access(access: &str) -> Vec<u8> {
+    format!("{ACCESS_MANIFEST_HEAD}{access}{ACCESS_MANIFEST_TAIL}").into_bytes()
+}
+
+#[test]
+fn decodes_ssh_access_as_a_tagged_agent_capability() {
+    let agent = manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n")).expect("SSH access decodes");
+    assert_eq!(agent.spec.access, vec![agent::AccessSpec::Ssh {}]);
+    assert!(agent.spec.ssh_access());
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert_eq!(value["spec"]["access"], serde_json::json!([{"type": "ssh"}]));
+
+    let without = manifest::decode(&manifest_with_access("")).expect("omitted access decodes");
+    assert!(without.spec.access.is_empty());
+    assert!(!without.spec.ssh_access());
+    let value = serde_json::to_value(&without).expect("Agent JSON");
+    assert!(value["spec"].get("access").is_none(), "an empty list is not serialized");
+}
+
+#[test]
+fn rejects_unknown_duplicate_and_configured_access_capabilities() {
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n    - type: ssh\n")),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.access[1]")
+    ));
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n")),
+        Err(agent::Error::Yaml(_))
+    ));
+    assert!(
+        matches!(
+            manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n      port: 22\n")),
+            Err(agent::Error::Yaml(_))
+        ),
+        "SSH access exposes no tunables"
+    );
+    // `access` belongs to the Agent, not the Sandbox: nest it in the existing sandbox block.
+    let nested = format!("{ACCESS_MANIFEST_HEAD}{ACCESS_MANIFEST_TAIL}").replace(
+        "        mode: layered\n",
+        "        mode: layered\n    access:\n      - type: ssh\n",
+    );
+    assert!(
+        nested.contains("    access:"),
+        "fixture places access under spec.sandbox"
+    );
+    assert!(matches!(
+        manifest::decode(nested.as_bytes()),
+        Err(agent::Error::Yaml(_))
+    ));
 }

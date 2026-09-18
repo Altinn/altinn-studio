@@ -1,11 +1,16 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 internal static class InvalidValidationMaskMigration
 {
-    public static async Task<int> Migrate(string projectFolder)
+    public static Task<int> Migrate(string projectFolder) => Migrate(projectFolder, settingsOnly: false);
+
+    internal static Task<int> MigrateSettings(string projectFolder) => Migrate(projectFolder, settingsOnly: true);
+
+    private static async Task<int> Migrate(string projectFolder, bool settingsOnly)
     {
         var uiDirectory = Path.Combine(projectFolder, "App", "ui");
         if (!Directory.Exists(uiDirectory))
@@ -19,7 +24,10 @@ internal static class InvalidValidationMaskMigration
         var changedFiles = 0;
         foreach (var file in Directory.EnumerateFiles(uiDirectory, "*.json", SearchOption.AllDirectories))
         {
-            if (Path.GetFileName(file) != "Settings.json" && Path.GetFileName(Path.GetDirectoryName(file)) != "layouts")
+            if (
+                Path.GetFileName(file) != "Settings.json"
+                && (settingsOnly || Path.GetFileName(Path.GetDirectoryName(file)) != "layouts")
+            )
                 continue;
 
             var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(file));
@@ -36,6 +44,60 @@ internal static class InvalidValidationMaskMigration
             UpgradeConsole.Skip("No Schema validation lists require Invalid");
         return 0;
     }
+
+    internal static LayoutMutationResult Apply(LayoutMigrationWorkspace workspace) =>
+        workspace.Apply(node => AddInvalidMasks(node, null, null));
+
+    private static int AddInvalidMasks(JsonNode node, string? propertyName, string? parentProperty)
+    {
+        var changes = 0;
+        if (node is JsonObject obj)
+        {
+            foreach (var property in obj)
+            {
+                if (property.Value is not null)
+                    changes += AddInvalidMasks(property.Value, property.Key, propertyName);
+            }
+        }
+        else if (node is JsonArray array)
+        {
+            if (IsValidationList(propertyName, parentProperty))
+            {
+                var schemaIndex = -1;
+                var hasInvalid = false;
+                for (var index = 0; index < array.Count; index++)
+                {
+                    if (array[index] is not JsonValue value || !value.TryGetValue<string>(out var mask))
+                        continue;
+                    if (mask == "Schema" && schemaIndex < 0)
+                        schemaIndex = index;
+                    hasInvalid |= mask == "Invalid";
+                }
+                if (schemaIndex >= 0 && !hasInvalid)
+                {
+                    array.Insert(schemaIndex + 1, JsonValue.Create("Invalid"));
+                    changes++;
+                }
+            }
+            foreach (var child in array)
+            {
+                if (child is not null)
+                    changes += AddInvalidMasks(child, null, propertyName);
+            }
+        }
+        return changes;
+    }
+
+    private static bool IsValidationList(string? propertyName, string? parentProperty) =>
+        propertyName is "showValidations" or "validateOnSaveRow"
+        || propertyName == "show"
+            && parentProperty
+                is "validation"
+                    or "validationOnNavigation"
+                    or "validateOnNext"
+                    or "validateOnPrevious"
+                    or "validateOnForward"
+                    or "validateOnBackward";
 
     private static string AddInvalidMask(string content)
     {
@@ -86,16 +148,7 @@ internal static class InvalidValidationMaskMigration
         }
         else if (reader.TokenType == JsonTokenType.StartArray)
         {
-            var isValidationList =
-                propertyName is "showValidations" or "validateOnSaveRow"
-                || propertyName == "show"
-                    && parentProperty
-                        is "validation"
-                            or "validationOnNavigation"
-                            or "validateOnNext"
-                            or "validateOnPrevious"
-                            or "validateOnForward"
-                            or "validateOnBackward";
+            var isValidationList = IsValidationList(propertyName, parentProperty);
             int? schemaEnd = null;
             var hasInvalid = false;
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)

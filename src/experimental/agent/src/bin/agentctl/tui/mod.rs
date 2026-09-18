@@ -3,7 +3,7 @@ mod terminal;
 mod view;
 
 use std::{
-    collections::HashSet,
+    collections::HashMap,
     io::IsTerminal as _,
     path::{Path, PathBuf},
     process::ExitCode,
@@ -11,8 +11,8 @@ use std::{
 };
 
 use agent::{
-    Agent, Error, Harness, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    sessions::Session, sessions::SessionName,
+    Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
+    sessions::Session, sessions::SessionName, sessions::SessionRequest,
 };
 use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
 use futures_util::StreamExt as _;
@@ -103,8 +103,13 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                             spawn_discovery(discovered_tx.clone(), app.agents.clone());
                         }
                     }
-                    Action::CreateAgent { manifest, name, form } => {
-                        create(&mut app, &mut tui, client, manifest, name, form).await?;
+                    Action::CreateAgent {
+                        manifest,
+                        name,
+                        env_file,
+                        form,
+                    } => {
+                        create(&mut app, &mut tui, client, manifest, name, env_file, form).await?;
                     }
                     Action::CreateForward { agent, spec, replace } => {
                         if let Some(id) = replace {
@@ -197,6 +202,13 @@ fn spawn_discovery(outcomes: tokio::sync::mpsc::UnboundedSender<Vec<ManifestCand
 /// ignored directories; a recorded manifest that is unreadable stays listed so its
 /// error is visible.
 async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent]) -> Vec<ManifestCandidate> {
+    let agents = agents.to_vec();
+    tokio::task::spawn_blocking(move || manifest_candidates_blocking(current_directory.as_deref(), &agents))
+        .await
+        .unwrap_or_default()
+}
+
+fn manifest_candidates_blocking(current_directory: Option<&Path>, agents: &[Agent]) -> Vec<ManifestCandidate> {
     let mut recorded: Vec<PathBuf> = agents
         .iter()
         .filter_map(|agent| agent.status.provenance.as_ref())
@@ -204,31 +216,26 @@ async fn manifest_candidates(current_directory: Option<PathBuf>, agents: &[Agent
         .collect();
     recorded.sort();
     recorded.dedup();
-    let found = match current_directory {
-        Some(directory) => tokio::task::spawn_blocking(move || working_tree_manifests(&directory))
-            .await
-            .unwrap_or_default(),
-        None => Vec::new(),
-    };
+    let found = current_directory.map_or_else(Vec::new, working_tree_manifests);
     let paths = found
         .into_iter()
         .map(|path| (path, false))
         .chain(recorded.into_iter().map(|path| (path, true)));
-    let mut seen = HashSet::new();
-    let mut candidates = Vec::new();
+    let mut seen = HashMap::<PathBuf, usize>::new();
+    let mut candidates = Vec::<ManifestCandidate>::new();
     for (path, recorded) in paths {
-        let name = match tokio::fs::read(&path).await {
-            Ok(bytes) => manifest::decode(&bytes)
-                .map(|decoded| decoded.metadata.name)
-                .map_err(|error| error.to_string()),
-            Err(_) if !recorded => continue,
-            Err(error) => Err(error.to_string()),
-        };
-        let canonical = tokio::fs::canonicalize(&path).await.unwrap_or_else(|_| path.clone());
-        if !seen.insert(canonical) {
+        let canonical = std::fs::canonicalize(&path).unwrap_or_else(|_| path.clone());
+        if let Some(index) = seen.get(&canonical).copied() {
+            candidates[index].add_equivalent_path(path);
             continue;
         }
-        candidates.push(ManifestCandidate { path, name });
+        let name = match manifest::resolve(&path) {
+            Ok(resolved) => Ok(resolved.agent.metadata.name),
+            Err(error) if recorded || path.exists() => Err(error.to_string()),
+            Err(_) => continue,
+        };
+        seen.insert(canonical, candidates.len());
+        candidates.push(ManifestCandidate::new(path, name));
     }
     candidates
 }
@@ -240,9 +247,11 @@ fn repository_root(directory: &Path) -> Option<&Path> {
     directory.ancestors().find(|ancestor| ancestor.join(".git").exists())
 }
 
-/// Lists manifests below `directory`, or below its git repository root, shallowest
-/// first, honoring ignore files and skipping hidden directories so build output and
-/// dependency trees are not walked.
+/// Lists Agents and their variant manifests below `directory`, or below its git repository root.
+///
+/// The walk honors ignore files for directories and finds complete `agent.yaml`
+/// manifests. Each Agent directory is then enumerated directly so checkout-local,
+/// ignored `agent.<variant>.yaml` siblings remain discoverable.
 fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
     let root = repository_root(directory).unwrap_or(directory);
     let mut found: Vec<PathBuf> = WalkBuilder::new(root)
@@ -252,9 +261,30 @@ fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
         .build()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_some_and(|kind| kind.is_file()) && entry.file_name() == MANIFEST_FILE)
-        .map(ignore::DirEntry::into_path)
+        .flat_map(|entry| {
+            let base = entry.into_path();
+            let Some(parent) = base.parent() else {
+                return vec![base];
+            };
+            let mut manifests = std::fs::read_dir(parent)
+                .into_iter()
+                .flatten()
+                .filter_map(Result::ok)
+                .map(|entry| entry.path())
+                .filter(|path| manifest::is_manifest_filename(path))
+                .collect::<Vec<_>>();
+            manifests.sort_by_key(|path| (path.file_name().is_none_or(|name| name != MANIFEST_FILE), path.clone()));
+            manifests
+        })
         .collect();
-    found.sort_by_key(|path| (path.components().count(), path.clone()));
+    found.sort_by_key(|path| {
+        (
+            path.components().count(),
+            path.parent().map(Path::to_path_buf),
+            path.file_name().is_none_or(|name| name != MANIFEST_FILE),
+            path.clone(),
+        )
+    });
     found
 }
 
@@ -265,9 +295,10 @@ async fn create(
     client: &Client,
     manifest: PathBuf,
     name: String,
+    env_file: Option<PathBuf>,
     mut form: CreateForm,
 ) -> CommandResult<()> {
-    match create_agent(client, manifest, name).await {
+    match create_agent(client, manifest, name, env_file).await {
         Ok(applied) => {
             refresh(app, tui, client).await?;
             app.select_agent(&applied);
@@ -280,8 +311,13 @@ async fn create(
     Ok(())
 }
 
-async fn create_agent(client: &Client, manifest: PathBuf, name: String) -> Result<String, Error> {
-    let mut request = crate::read_apply_request(manifest, None).await?;
+async fn create_agent(
+    client: &Client,
+    manifest: PathBuf,
+    name: String,
+    env_file: Option<PathBuf>,
+) -> Result<String, Error> {
+    let mut request = crate::read_apply_request(manifest, env_file)?;
     request.agent.metadata.name = name;
     request.create_only = true;
     let applied = client.apply(request).await?;
@@ -333,12 +369,20 @@ async fn suspended(
 ) -> CommandResult<()> {
     tui.suspend()?;
     let result = match action {
-        Action::Attach { agent, session } => attach(home, client, &agent, session, None).await,
+        Action::Attach { agent, session } => attach(home, client, &agent, session, SessionRequest::default()).await,
         Action::CreateSession {
             agent,
             session,
             harness,
-        } => attach(home, client, &agent, session, Some(harness)).await,
+            model_selection,
+        } => {
+            let request = SessionRequest {
+                harness: Some(harness),
+                model_selection,
+                initial_prompt: None,
+            };
+            attach(home, client, &agent, session, request).await
+        }
         Action::Exec { agent } => exec(home, client, &agent).await,
         _ => Ok(()),
     };
@@ -354,18 +398,11 @@ async fn attach(
     client: &Client,
     agent: &str,
     session: SessionName,
-    harness: Option<Harness>,
+    request: SessionRequest,
 ) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client.ensure_session(
-            agent,
-            session,
-            harness,
-            None,
-            WaitPolicy::UntilReady,
-            Some(&mut wait.sink()),
-        ))
+        .until(client.ensure_session(agent, session, request, WaitPolicy::UntilReady, Some(&mut wait.sink())))
         .await?;
     agent::sessions::attach(home.path(), &target).await
 }
@@ -481,6 +518,32 @@ mod tests {
         assert_eq!(candidates[3].name.as_deref(), Ok("recorded"));
     }
 
+    #[cfg(unix)]
+    #[tokio::test(flavor = "local")]
+    async fn discovery_retains_equivalent_recorded_paths_for_picker_preselection() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let source = manifest_directory(root.path(), "source", &manifest_yaml("worker"));
+        let alias = root.path().join("alias");
+        std::os::unix::fs::symlink(&source, &alias).expect("manifest directory symlink");
+        let recorded_manifest = alias.join(MANIFEST_FILE);
+        let mut agent = recorded_agent("worker", Some(&alias));
+        agent
+            .status
+            .provenance
+            .as_mut()
+            .expect("recorded provenance")
+            .manifest_path = Some(recorded_manifest.clone());
+
+        let candidates = manifest_candidates(Some(source.clone()), &[agent]).await;
+        let form = CreateForm::new(candidates, Some(&recorded_manifest));
+
+        assert_eq!(form.agents.len(), 1);
+        assert_eq!(
+            form.candidate().map(|candidate| candidate.path.as_path()),
+            Some(source.join(MANIFEST_FILE).as_path())
+        );
+    }
+
     #[tokio::test(flavor = "local")]
     async fn discovery_walks_the_working_directory_tree_but_not_hidden_or_ignored_directories() {
         let root = tempfile::tempdir().expect("temporary directory");
@@ -504,6 +567,38 @@ mod tests {
             ]
         );
         assert_eq!(candidates[1].name.as_deref(), Ok("nested"));
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn discovery_includes_ignored_sibling_variants_and_their_resolution_errors() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let agent = manifest_directory(root.path(), "configured-agent", &manifest_yaml("default"));
+        std::fs::write(agent.join(".gitignore"), "agent.*.yaml\n").expect("Agent ignore file");
+        std::fs::write(
+            agent.join("agent.mine.yaml"),
+            "apiVersion: agents.platform/v1alpha1\nkind: AgentVariant\nextends: agent.yaml\nmetadata:\n  name: mine\n",
+        )
+        .expect("local variant");
+        std::fs::write(
+            agent.join("agent.broken.yaml"),
+            "apiVersion: agents.platform/v1alpha1\nkind: AgentVariant\nextends: missing.yaml\nmetadata:\n  name: broken\n",
+        )
+        .expect("broken local variant");
+
+        let candidates = manifest_candidates(Some(agent.clone()), &[]).await;
+
+        assert_eq!(candidates.len(), 3);
+        assert_eq!(candidates[0].path, agent.join(MANIFEST_FILE));
+        assert_eq!(candidates[0].name.as_deref(), Ok("default"));
+        assert_eq!(candidates[1].path, agent.join("agent.broken.yaml"));
+        assert!(
+            candidates[1]
+                .name
+                .as_ref()
+                .is_err_and(|error| error.contains("extends must name"))
+        );
+        assert_eq!(candidates[2].path, agent.join("agent.mine.yaml"));
+        assert_eq!(candidates[2].name.as_deref(), Ok("mine"));
     }
 
     #[tokio::test(flavor = "local")]

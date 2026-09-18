@@ -2,8 +2,6 @@ using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
-using Altinn.App.Core.Features.Maskinporten.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Clients.Fiks.Configuration;
@@ -43,20 +41,6 @@ internal abstract class FiksSetupBuilder(IServiceCollection services)
     protected FiksSetupBuilder ConfigureFiksArkiv(string configSectionPath)
     {
         services.ConfigureFiksArkiv(configSectionPath);
-        return this;
-    }
-
-    /// <inheritdoc cref="IFiksSetupBuilder{T}.WithMaskinportenConfig(System.Action{Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings})"/>
-    protected FiksSetupBuilder ConfigureMaskinporten(Action<MaskinportenSettings> configureOptions)
-    {
-        services.ConfigureMaskinportenClient(configureOptions);
-        return this;
-    }
-
-    /// <inheritdoc cref="IFiksSetupBuilder{T}.WithMaskinportenConfig(string)"/>
-    protected FiksSetupBuilder ConfigureMaskinporten(string configSectionPath)
-    {
-        services.ConfigureMaskinportenClient(configSectionPath);
         return this;
     }
 
@@ -100,14 +84,6 @@ internal sealed class FiksIOSetupBuilder(IServiceCollection services) : FiksSetu
     /// <inheritdoc />
     public IFiksIOSetupBuilder WithFiksIOConfig(string configSectionPath) =>
         (IFiksIOSetupBuilder)ConfigureFiksIO(configSectionPath);
-
-    /// <inheritdoc />
-    public IFiksIOSetupBuilder WithMaskinportenConfig(Action<MaskinportenSettings> configureOptions) =>
-        (IFiksIOSetupBuilder)ConfigureMaskinporten(configureOptions);
-
-    /// <inheritdoc />
-    public IFiksIOSetupBuilder WithMaskinportenConfig(string configSectionPath) =>
-        (IFiksIOSetupBuilder)ConfigureMaskinporten(configSectionPath);
 }
 
 /// <summary>
@@ -124,14 +100,6 @@ internal sealed class FiksArkivSetupBuilder(IServiceCollection services)
     /// <inheritdoc />
     public IFiksArkivSetupBuilder WithFiksIOConfig(Action<FiksIOSettings> configureOptions) =>
         (IFiksArkivSetupBuilder)ConfigureFiksIO(configureOptions);
-
-    /// <inheritdoc />
-    public IFiksArkivSetupBuilder WithMaskinportenConfig(Action<MaskinportenSettings> configureOptions) =>
-        (IFiksArkivSetupBuilder)ConfigureMaskinporten(configureOptions);
-
-    /// <inheritdoc />
-    public IFiksArkivSetupBuilder WithMaskinportenConfig(string configSectionPath) =>
-        (IFiksArkivSetupBuilder)ConfigureMaskinporten(configSectionPath);
 
     /// <inheritdoc />
     public IFiksArkivSetupBuilder WithFiksArkivConfig(Action<FiksArkivSettings> configureOptions) =>

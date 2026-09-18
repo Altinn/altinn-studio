@@ -17,8 +17,6 @@ namespace Altinn.App.Clients.Fiks.Configuration
         Microsoft.Extensions.DependencyInjection.IServiceCollection CompleteSetup();
         T WithFiksIOConfig(System.Action<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOSettings> configureOptions);
         T WithFiksIOConfig(string configSectionPath);
-        T WithMaskinportenConfig(System.Action<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings> configureOptions);
-        T WithMaskinportenConfig(string configSectionPath);
     }
 }
 namespace Altinn.App.Clients.Fiks.Constants

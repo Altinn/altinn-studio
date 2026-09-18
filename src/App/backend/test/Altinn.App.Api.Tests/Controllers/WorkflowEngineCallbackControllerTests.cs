@@ -419,10 +419,27 @@ public class WorkflowEngineCallbackControllerTests
         Guid stepId = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var executionReferenceTime = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
         var serviceTask = new CapturingServiceTask(stageMutation: true);
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(engine =>
+                engine.EnqueueProcessNext(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<Guid>(),
+                    "metadata-chain",
+                    It.IsAny<string>(),
+                    executionReferenceTime,
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
         await using ControllerSetup setup = CreateSetup(
             services =>
             {
                 services.Services.AddSingleton<IServiceTask>(serviceTask);
+                services.Services.AddSingleton(processEngine.Object);
                 services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
                     serviceProvider.GetRequiredService<AppImplementationFactory>(),
                     new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
@@ -446,7 +463,8 @@ public class WorkflowEngineCallbackControllerTests
             ExecuteServiceTask.Key,
             stepId,
             commandPayload,
-            executionReferenceTime
+            executionReferenceTime,
+            collectionKey: "metadata-chain"
         );
 
         var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
@@ -456,24 +474,25 @@ public class WorkflowEngineCallbackControllerTests
         var mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
+        Assert.Null(mutation.ProcessState);
         Assert.Single(mutation.CreateDataElements);
         Assert.Equal(
             stepId.ToString(),
             mutationRequest.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
         );
-        Assert.Equal(ProcessStatus.Idle, setup.DeserializeState(response.State!).Instance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(response.State!).Instance.Process?.Status);
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
-        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
         Assert.Equal("ServiceTask_1", storedInstance.Process?.CurrentTask?.ElementId);
+        processEngine.VerifyAll();
     }
 
     [Fact]
-    public async Task ExecuteCommand_AutoAdvanceServiceTask_SavesStagedDataBeforeEnqueueAndKeepsProcessing()
+    public async Task ExecuteCommand_SuccessfulServiceTask_SavesStagedDataBeforeEnqueueAndKeepsProcessing()
     {
         const string action = "approve";
         const string collectionKey = "service-task-chain";
-        var serviceTask = new AutoAdvanceServiceTask(action);
+        var serviceTask = new SuccessfulServiceTask(action);
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         ControllerSetup? setup = null;
         bool enqueueObservedSavedMutation = false;
@@ -534,14 +553,14 @@ public class WorkflowEngineCallbackControllerTests
                 instance.Process.CurrentTask = new ProcessElementInfo
                 {
                     ElementId = "ServiceTask_1",
-                    AltinnTaskType = AutoAdvanceServiceTask.ServiceTaskType,
+                    AltinnTaskType = SuccessfulServiceTask.ServiceTaskType,
                 };
             }
         );
         await using (setup)
         {
             string payload = CommandPayloadSerializer.Serialize(
-                new ExecuteServiceTaskPayload(AutoAdvanceServiceTask.ServiceTaskType, ItemIndex: 0)
+                new ExecuteServiceTaskPayload(SuccessfulServiceTask.ServiceTaskType, ItemIndex: 0)
             )!;
 
             IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload, collectionKey);
@@ -1161,7 +1180,7 @@ public class WorkflowEngineCallbackControllerTests
         public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
         {
             await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
-            return ServiceTaskResult.SuccessWithoutAutoAdvance();
+            return ServiceTaskResult.Success();
         }
     }
 
@@ -1186,13 +1205,13 @@ public class WorkflowEngineCallbackControllerTests
                 );
             }
 
-            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }
 
-    private sealed class AutoAdvanceServiceTask(string action) : IServiceTask
+    private sealed class SuccessfulServiceTask(string action) : IServiceTask
     {
-        public const string ServiceTaskType = "AutoAdvanceForCallbackTest";
+        public const string ServiceTaskType = "SuccessfulTaskForCallbackTest";
 
         public string Type => ServiceTaskType;
 
@@ -1201,7 +1220,7 @@ public class WorkflowEngineCallbackControllerTests
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
                 ContentType,
-                "auto-advance.json",
+                "service-task-output.json",
                 "{}"u8.ToArray()
             );
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));

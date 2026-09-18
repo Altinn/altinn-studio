@@ -304,8 +304,8 @@ function makeActions(
         state.data.models[dataType].lastSavedData = next;
 
         // When we've copied over changes into the current model from the backend, we should also debounce this
-        // immediately. Some selectors run on the debounced model (such as 'mapping', which should never run on the
-        // current model as it will re-fetch on every keystroke), but will save effects to the current model (such
+        // immediately. Some selectors, such as expressions, run on the debounced model
+        // to avoid refetching on every keystroke, but will save effects to the current model (such
         // as which stale options to remove). So if the backend only saves this to the current model but not the
         // debounced model, we'd run into unwanted states.
         if (backendChangesPatch.length > 0) {

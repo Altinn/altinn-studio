@@ -147,12 +147,18 @@ public class ExecuteServiceTaskTests
         );
     }
 
-    [Fact]
-    public async Task Execute_ResolvesServiceTaskAndCallsExecute_ReturnsSuccessWithAutoAdvance()
+    [Theory]
+    [InlineData(false, null)]
+    [InlineData(false, "reject")]
+    [InlineData(true, null)]
+    [InlineData(true, "reject")]
+    public async Task Execute_WhenServiceTaskSucceeds_ReturnsProcessContinuation(bool constructDirectly, string? action)
     {
         // Arrange
         var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("reject"))
+            Task.FromResult<ServiceTaskResult>(
+                constructDirectly ? new ServiceTaskSuccessResult { Action = action } : ServiceTaskResult.Success(action)
+            )
         );
         var command = CreateCommand(serviceTask);
         var context = CreateContext(CreateInstance(), "myServiceTask");
@@ -163,7 +169,8 @@ public class ExecuteServiceTaskTests
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
-        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
+        Assert.Equal(action, success.ProcessNextContinuation?.Action);
+        Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process?.Status);
         Assert.Equal(1, serviceTask.ExecuteCount);
     }
 
@@ -188,9 +195,7 @@ public class ExecuteServiceTaskTests
     {
         Guid stepId = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var executionReferenceTime = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance())
-        );
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
         var command = CreateCommand(serviceTask);
         Instance instance = CreateInstance();
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
@@ -205,28 +210,7 @@ public class ExecuteServiceTaskTests
         Assert.NotNull(serviceTask.Observed);
         Assert.Equal(stepId, serviceTask.Observed.StepId);
         Assert.Equal(executionReferenceTime, serviceTask.Observed.ExecutionReferenceTime);
-        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
-    }
-
-    [Fact]
-    public async Task Execute_WhenSuccessWithoutAutoAdvance_ReturnsFalseAutoAdvance()
-    {
-        // Arrange
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance())
-        );
-        var command = CreateCommand(serviceTask);
-        Instance instance = CreateInstance();
-        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
-        var context = CreateContext(instance, "myServiceTask", unitOfWork);
-
-        // Act
-        var result = await ((IWorkflowEngineCommand)command).Execute(context);
-
-        // Assert
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, unitOfWork.Instance.Process?.Status);
     }
 
     /// <summary>
@@ -264,10 +248,6 @@ public class ExecuteServiceTaskTests
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueResult), failed.ErrorMessage, StringComparison.Ordinal);
     }
-
-    [Fact]
-    public Task Execute_WhenServiceTaskConcludesWithoutAutoAdvance_ClearsProcessingAndStagesTheIdleStatus() =>
-        AssertNonAutoResultPauses(ServiceTaskResult.SuccessWithoutAutoAdvance());
 
     [Fact]
     public async Task Execute_WhenServiceTaskReturnsFailedResult_ReturnsFailedResult()
@@ -469,79 +449,6 @@ public class ExecuteServiceTaskTests
         // Assert
         var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
-    }
-
-    private static async Task AssertNonAutoResultPauses(ServiceTaskResult serviceTaskResult)
-    {
-        var serviceTask = new FakeServiceTask(_ => Task.FromResult(serviceTaskResult));
-        Instance instance = CreateInstance("ServiceTask_1");
-        StorageInstanceMutationRequest? capturedMutation = null;
-        var mutationClient = new Mock<IInstanceMutationClient>(MockBehavior.Strict);
-        mutationClient
-            .Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    1337,
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? _,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutation = mutation;
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = instance.Id,
-                            AppId = instance.AppId,
-                            Org = instance.Org,
-                            InstanceOwner = instance.InstanceOwner,
-                            Process = new ProcessState
-                            {
-                                Status = ProcessStatus.Idle,
-                                CurrentTask = instance.Process?.CurrentTask,
-                            },
-                            Data = [],
-                        },
-                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
-                    );
-                }
-            );
-        InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance, mutationClient.Object);
-        var command = CreateCommand(serviceTask);
-
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
-            CreateContext(instance, "myServiceTask", unitOfWork)
-        );
-
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Null(success.ProcessNextContinuation);
-        Assert.Null(success.ProcessNextContinuation?.Action);
-        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
-        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
-            unitOfWork.GetDataElementChanges(false),
-            Guid.NewGuid().ToString(),
-            CancellationToken.None
-        );
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        Assert.NotNull(capturedMutation);
-        Assert.Equal(ProcessStatus.Processing, capturedMutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, capturedMutation.ProcessState?.State?.Status);
-        Assert.Equal("ServiceTask_1", capturedMutation.ProcessState?.State?.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
-        mutationClient.VerifyAll();
     }
 
     private static InstanceDataUnitOfWork CreateUnitOfWork(

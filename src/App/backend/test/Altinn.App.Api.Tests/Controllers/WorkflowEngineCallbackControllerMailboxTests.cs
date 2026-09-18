@@ -527,7 +527,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             onMessage: (_, reply) =>
             {
                 seen = reply;
-                return ServiceTaskResult.SuccessWithoutAutoAdvance();
+                return ServiceTaskResult.Success();
             }
         );
 
@@ -545,7 +545,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             onClosed: (_, reason) =>
             {
                 seen = reason;
-                return ServiceTaskResult.SuccessWithoutAutoAdvance();
+                return ServiceTaskResult.Success();
             }
         );
 

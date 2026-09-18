@@ -63,6 +63,15 @@ public sealed record WorkflowCollectionDetailResponse
     public required IReadOnlyList<CollectionHeadStatus> Heads { get; init; }
 
     /// <summary>
+    /// Gets the engine clock time when this response was assembled. Compare with head creation
+    /// times to measure elapsed processing time without comparing clocks across services.
+    /// Nullable for compatibility with older engines; always populated by this engine.
+    /// </summary>
+    [JsonPropertyName("currentTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CurrentTime { get; init; }
+
+    /// <summary>
     /// Gets when the collection row was created.
     /// </summary>
     [JsonPropertyName("createdAt")]

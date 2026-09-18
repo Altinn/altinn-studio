@@ -33,6 +33,9 @@ spec:
     - type: claudeCode
       auth: mediated
       default: true
+      # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
+      defaults:
+        model: fable
     # - type: codex
     #   version: "0.149.1"
     #   auth: mediated
@@ -49,6 +52,8 @@ spec:
         - api.github.com
         - gist.github.com
         - uploads.github.com
+  access:
+    - type: ssh
   network:
     mode: mediated
     allow: all

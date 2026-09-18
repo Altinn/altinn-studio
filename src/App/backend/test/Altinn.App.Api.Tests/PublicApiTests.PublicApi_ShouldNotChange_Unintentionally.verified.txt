@@ -771,8 +771,6 @@ namespace Altinn.App.Api.Extensions
     {
         public static void AddAltinnAppControllersWithViews(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static void AddAltinnAppServices(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration config, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env) { }
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureMaskinportenClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings> configureOptions) { }
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureMaskinportenClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string configSectionPath) { }
     }
     public static class WebApplicationBuilderExtensions
     {

@@ -64,14 +64,14 @@ The component also supports the [common component properties](../common-properti
   </div>
 </details>
 
-<details class="card adocs-expand adocs-expand-small component-property" id="mapping">
+<details class="card adocs-expand adocs-expand-small component-property" id="refetchdependencies">
   <summary class="component-property-summary">
     <span class="component-property-chevron" aria-hidden="true"></span>
-    <span class="component-property-name" title="mapping">mapping</span>
+    <span class="component-property-name" title="refetchDependencies">refetchDependencies</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
       <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.</div></div>
 </details>

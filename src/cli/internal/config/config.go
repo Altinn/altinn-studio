@@ -3,15 +3,12 @@
 package config
 
 import (
-	_ "embed"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -26,9 +23,6 @@ func IsTruthyEnv(value string) bool {
 func IsCI() bool {
 	return IsTruthyEnv(os.Getenv(EnvCI))
 }
-
-//go:embed config.yaml
-var embeddedConfig []byte
 
 const (
 	// EnvCI is the common CI marker used by GitHub Actions and other CI systems.
@@ -82,8 +76,8 @@ type Config struct {
 	LogDir    string       // Directory for log files
 	DataDir   string       // Directory for container volumes
 	BinDir    string       // Directory for binaries and installed payloads
-	Images    ImagesConfig // Container image configuration
 	Version   Version      // Build version (embedded at build time)
+	Images    ImagesConfig // Container image configuration
 	Verbose   bool         // Verbose output (-v)
 }
 
@@ -107,13 +101,7 @@ func New(flags Flags, version string) (*Config, error) {
 		return nil, fmt.Errorf("resolve socket dir: %w", err)
 	}
 
-	// Load optional user overrides with embedded defaults fallback.
-	persisted, err := Load(home)
-	if err != nil {
-		return nil, fmt.Errorf("load config: %w", err)
-	}
-
-	return newResolvedConfig(flags, version, home, socketDir, persisted.Images, true)
+	return newResolvedConfig(flags, version, home, socketDir, DefaultImages(), true)
 }
 
 // NewDoctorFallback creates a minimal config for running doctor when normal config init fails.
@@ -128,12 +116,7 @@ func NewDoctorFallback(flags Flags, version string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("resolve fallback socket dir: %w", err)
 	}
-	defaults, err := LoadDefaults()
-	if err != nil {
-		return nil, fmt.Errorf("load embedded defaults: %w", err)
-	}
-
-	return newResolvedConfig(flags, version, home, socketDir, defaults.Images, false)
+	return newResolvedConfig(flags, version, home, socketDir, DefaultImages(), false)
 }
 
 func newResolvedConfig(
@@ -245,6 +228,26 @@ func (c *Config) AppLogDir(appID string) string {
 	return filepath.Join(c.AppLogsDir(), appID)
 }
 
+// ErrInvalidAppID is returned when an app id cannot name a directory safely.
+var ErrInvalidAppID = errors.New("invalid app id")
+
+// AppSecretsDir returns the directory studioctl provisions one app's secrets into for local runs - what
+// /mnt/app-secrets is to a deployed app. It lives under the home directory alongside the credentials file
+// rather than under the data directory, whose contents are container volumes that env down may discard.
+func (c *Config) AppSecretsDir(appID string) (string, error) {
+	return c.appDir(appID, "secrets")
+}
+
+// AppKeysDir returns the directory a containerized local run persists its data-protection keys in - what
+// the /mnt/keys volume is to a deployed app. A native run keeps using the developer's own home directory.
+func (c *Config) AppKeysDir(appID string) (string, error) {
+	return c.appDir(appID, "keys")
+}
+
+func isSafePathSegment(segment string) bool {
+	return segment != "" && segment != "." && segment != ".." && !strings.ContainsAny(segment, `/\`)
+}
+
 // StudioctlServerBinaryPath returns the path to the studioctl server binary.
 // On Windows, the .exe suffix is automatically appended.
 func (c *Config) StudioctlServerBinaryPath() string {
@@ -273,11 +276,6 @@ func (c *Config) BoundTopologyConfigPath() string {
 // BoundTopologyBaseConfigPath returns the path to the generated base topology.
 func (c *Config) BoundTopologyBaseConfigPath() string {
 	return filepath.Join(c.BoundTopologyConfigDir(), envtopology.BoundTopologyBaseConfigFileName)
-}
-
-// persistedConfigPath returns the path to the optional user override file.
-func persistedConfigPath(homeDir string) string {
-	return filepath.Join(homeDir, "config.yaml")
 }
 
 // CredentialsPath returns the path to the credentials file.
@@ -314,140 +312,13 @@ func (c *Config) ensureDirectories() error {
 	return nil
 }
 
-// ImageSpec defines an image reference with repository and tag.
-type ImageSpec struct {
-	Image string `yaml:"image"`
-	Tag   string `yaml:"tag"`
-}
-
-// Ref returns the full image reference (image:tag).
-func (s ImageSpec) Ref() string {
-	if s.Tag == "" {
-		return s.Image + ":latest"
+// appDir places one app's state under the home directory. The id's two parts are two path segments, so
+// distinct ids never share a directory (flattening org/app with a separator would make a/b-c and a-b/c the
+// same), and a part that could escape the tree is refused.
+func (c *Config) appDir(appID, kind string) (string, error) {
+	org, app, ok := strings.Cut(appID, "/")
+	if !ok || !isSafePathSegment(org) || !isSafePathSegment(app) {
+		return "", fmt.Errorf("%w: %q", ErrInvalidAppID, appID)
 	}
-	return s.Image + ":" + s.Tag
-}
-
-// CoreImages holds image configuration for core studioctl containers.
-type CoreImages struct {
-	Localtest        ImageSpec `yaml:"localtest"`
-	PDF3             ImageSpec `yaml:"pdf3"`
-	WorkflowEngineDb ImageSpec `yaml:"workflow-engine-db"` //nolint:tagliatelle // kebab-case for YAML consistency
-	WorkflowEngine   ImageSpec `yaml:"workflow-engine"`    //nolint:tagliatelle // kebab-case for YAML consistency
-	PgAdmin          ImageSpec `yaml:"pgadmin"`
-}
-
-// MonitoringImages holds image configuration for monitoring stack containers.
-type MonitoringImages struct {
-	Tempo         ImageSpec `yaml:"tempo"`
-	Mimir         ImageSpec `yaml:"mimir"`
-	Loki          ImageSpec `yaml:"loki"`
-	OtelCollector ImageSpec `yaml:"otel-collector"` //nolint:tagliatelle // kebab-case for YAML consistency
-	Grafana       ImageSpec `yaml:"grafana"`
-}
-
-// ImagesConfig holds all image configuration grouped by purpose.
-type ImagesConfig struct {
-	Core       CoreImages       `yaml:"core"`
-	Monitoring MonitoringImages `yaml:"monitoring"`
-}
-
-// PersistedConfig is the root structure for the optional user override file.
-type PersistedConfig struct {
-	Images ImagesConfig `yaml:"images"`
-}
-
-// loadEmbedded returns the embedded default configuration.
-func loadEmbedded() (PersistedConfig, error) {
-	var cfg PersistedConfig
-	if err := yaml.Unmarshal(embeddedConfig, &cfg); err != nil {
-		return PersistedConfig{}, fmt.Errorf("parse embedded config: %w", err)
-	}
-
-	return cfg, nil
-}
-
-// LoadDefaults loads only the embedded default configuration.
-// Unlike Load, it ignores user config files on disk.
-func LoadDefaults() (PersistedConfig, error) {
-	return loadEmbedded()
-}
-
-// loadFromFile loads configuration from a YAML file.
-func loadFromFile(path string) (PersistedConfig, error) {
-	data, err := os.ReadFile(path) //nolint:gosec // path is from trusted config
-	if err != nil {
-		return PersistedConfig{}, fmt.Errorf("read config file: %w", err)
-	}
-	var cfg PersistedConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return PersistedConfig{}, fmt.Errorf("parse config file: %w", err)
-	}
-	return cfg, nil
-}
-
-// Load loads configuration from the home directory with embedded defaults fallback.
-// Non-empty user values override defaults.
-func Load(homeDir string) (PersistedConfig, error) {
-	defaults, err := loadEmbedded()
-	if err != nil {
-		return PersistedConfig{}, err
-	}
-
-	userCfg, err := loadFromFile(persistedConfigPath(homeDir))
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return defaults, nil
-		}
-		return PersistedConfig{}, fmt.Errorf("load user config: %w", err)
-	}
-
-	return merge(defaults, userCfg), nil
-}
-
-// mergeImageSpec merges Image and Tag fields independently.
-// Non-empty user values override defaults for each field.
-func mergeImageSpec(defaults, user ImageSpec) ImageSpec {
-	result := defaults
-	if user.Image != "" {
-		result.Image = user.Image
-	}
-	if user.Tag != "" {
-		result.Tag = user.Tag
-	}
-	return result
-}
-
-// merge combines defaults with user overrides.
-// Non-empty user values override defaults.
-func merge(defaults, user PersistedConfig) PersistedConfig {
-	result := defaults
-
-	// Core images
-	result.Images.Core.Localtest = mergeImageSpec(defaults.Images.Core.Localtest, user.Images.Core.Localtest)
-	result.Images.Core.PDF3 = mergeImageSpec(defaults.Images.Core.PDF3, user.Images.Core.PDF3)
-	result.Images.Core.WorkflowEngineDb = mergeImageSpec(
-		defaults.Images.Core.WorkflowEngineDb,
-		user.Images.Core.WorkflowEngineDb,
-	)
-	result.Images.Core.WorkflowEngine = mergeImageSpec(
-		defaults.Images.Core.WorkflowEngine,
-		user.Images.Core.WorkflowEngine,
-	)
-	result.Images.Core.PgAdmin = mergeImageSpec(defaults.Images.Core.PgAdmin, user.Images.Core.PgAdmin)
-
-	// Monitoring images
-	result.Images.Monitoring.Tempo = mergeImageSpec(defaults.Images.Monitoring.Tempo, user.Images.Monitoring.Tempo)
-	result.Images.Monitoring.Mimir = mergeImageSpec(defaults.Images.Monitoring.Mimir, user.Images.Monitoring.Mimir)
-	result.Images.Monitoring.Loki = mergeImageSpec(defaults.Images.Monitoring.Loki, user.Images.Monitoring.Loki)
-	result.Images.Monitoring.OtelCollector = mergeImageSpec(
-		defaults.Images.Monitoring.OtelCollector,
-		user.Images.Monitoring.OtelCollector,
-	)
-	result.Images.Monitoring.Grafana = mergeImageSpec(
-		defaults.Images.Monitoring.Grafana,
-		user.Images.Monitoring.Grafana,
-	)
-
-	return result
+	return filepath.Join(c.Home, "apps", org, app, kind), nil
 }

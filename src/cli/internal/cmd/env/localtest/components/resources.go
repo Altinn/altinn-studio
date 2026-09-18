@@ -1,9 +1,12 @@
 package components
 
 import (
+	"strings"
+
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 
 	"altinn.studio/devenv/pkg/container/types"
@@ -157,11 +160,20 @@ func resourceEnabledRef(enabled bool) *bool {
 	return new(false)
 }
 
+// disabledImagePrefix marks the placeholder reference given to a component that is not part
+// of this run. It is never pulled, and never names a build anything ran.
+const disabledImagePrefix = "disabled.local/"
+
 func imageRef(ref, name string, enabled bool) string {
 	if enabled {
 		return ref
 	}
-	return "disabled.local/" + name + ":disabled"
+	return disabledImagePrefix + name + ":disabled"
+}
+
+// IsDisabledImageRef reports whether a reference is the placeholder for a disabled component.
+func IsDisabledImageRef(ref string) bool {
+	return strings.HasPrefix(ref, disabledImagePrefix)
 }
 
 func newContainerResource(
@@ -187,7 +199,7 @@ func newContainerResource(
 		Networks:    []resource.ResourceRef{network},
 		DependsOn:   containerDependencyRefs(spec.Dependencies),
 		Ports:       spec.Ports,
-		Volumes:     relabelBindMounts(spec.Volumes, relabelBinds),
+		Volumes:     RelabelBindMounts(spec.Volumes, relabelBinds),
 		Env:         toEnvSlice(spec.Environment),
 		Labels:      nil,
 		Command:     spec.Command,
@@ -206,7 +218,23 @@ func newContainerResource(
 	}
 }
 
-func relabelBindMounts(volumes []types.VolumeMount, relabel bool) []types.VolumeMount {
+// RuntimeUser decides how a container that reads or writes the developer's files runs on the detected
+// toolchain: as the developer's uid:gid (empty on Windows, which has no uids and where Docker Desktop's file
+// sharing makes mounts readable anyway), with podman keeping that uid inside the container, and with bind
+// mounts relabelled where SELinux enforces. The localtest containers and an app container run the same way.
+func RuntimeUser(toolchain types.ContainerToolchain) (user, usernsMode string, relabelBinds bool) {
+	if runtime.GOOS != osutil.OSWindows {
+		user = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	}
+	if toolchain.Platform == types.PlatformPodman {
+		usernsMode = "keep-id"
+		relabelBinds = toolchain.SELinux
+	}
+	return user, usernsMode, relabelBinds
+}
+
+// RelabelBindMounts marks bind mounts shared for SELinux when the runtime needs it.
+func RelabelBindMounts(volumes []types.VolumeMount, relabel bool) []types.VolumeMount {
 	if len(volumes) == 0 {
 		return nil
 	}

@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::{Error, control_plane::AgentRecord};
 
 mod execution;
+pub mod forward;
 pub mod microsandbox;
 pub mod platform;
 
@@ -132,10 +133,12 @@ pub struct ProviderEnsureOutcome {
     pub runtime_restarted: bool,
 }
 
-/// Materialized Sandbox identity and relevant lifecycle transition.
+/// Materialized Sandbox and relevant lifecycle transition.
 pub struct EnsureOutcome {
     pub id: SandboxId,
     pub runtime_restarted: bool,
+    /// The running Sandbox, for Agent-level setup that follows platform setup.
+    pub sandbox: SandboxHandle,
 }
 
 /// Runtime-selectable setup for an operating system reported by a materialized Sandbox.
@@ -231,6 +234,7 @@ impl Service {
         Ok(EnsureOutcome {
             id: sandbox.snapshot().id.clone(),
             runtime_restarted: outcome.runtime_restarted,
+            sandbox,
         })
     }
 

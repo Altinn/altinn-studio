@@ -9,12 +9,14 @@ RUN apt-get update \
         build-essential \
         ca-certificates \
         curl \
+        fonts-jetbrains-mono \
         fonts-liberation \
         git \
         jq \
         libicu-dev \
         libkrb5-dev \
         libssl-dev \
+        openssh-server \
         pkg-config \
         procps \
         ripgrep \
@@ -103,8 +105,8 @@ RUN case "${TARGETARCH}" in \
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
     && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-# Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF
-# with a system font (Liberation Mono from fonts-liberation above is in its default family list).
+# Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF.
+# JetBrains Mono includes the picker glyphs used by the terminal UI.
 # Both are static single binaries published per architecture without checksum files, so the
 # digests are pinned here and must move together with the version.
 ARG ASCIINEMA_VERSION=3.2.1
@@ -133,9 +135,11 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
-ARG CODEX_VERSION=0.153.4
+ARG CODEX_VERSION=0.154.0
 ARG CLAUDE_CODE_VERSION=2.1.268
 
+# OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
+# Password and keyboard authentication remain disabled by the platform-owned SSH policy.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
     fi; \
@@ -143,6 +147,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && usermod --login agent --home /home/agent --move-home ubuntu \
+    && passwd --delete agent \
     && groupmod --new-name agent ubuntu \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
@@ -152,6 +157,12 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
+
+# agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
+# ssh.service and socket-activated ssh.socket would listen on every interface with package-generated
+# host keys, so the image only disables those conflicting entry points.
+RUN systemctl mask ssh.service ssh.socket \
+    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 COPY --chown=agent:agent --chmod=0600 common/claude-state.json /home/agent/.claude/.claude.json
 
 # Microsandbox Executions and harnesses inherit init.scope. Keep the kernel pid

@@ -2,10 +2,14 @@ $ErrorActionPreference = "Stop"
 
 $Repository = if ($env:AGENT_GITHUB_REPOSITORY) { $env:AGENT_GITHUB_REPOSITORY } else { "Altinn/altinn-studio" }
 $Version = $env:AGENT_VERSION
+$InstallMode = if ($env:AGENT_INSTALL_MODE) { $env:AGENT_INSTALL_MODE } else { "managed" }
 $InstallRoot = if ($env:AGENT_INSTALL_ROOT) { $env:AGENT_INSTALL_ROOT } else { Join-Path $env:LOCALAPPDATA "Agent" }
 $BinDirectory = if ($env:AGENT_INSTALL_DIR) { $env:AGENT_INSTALL_DIR } else { Join-Path $InstallRoot "bin" }
 $AgentHome = if ($env:AGENT_HOME) { $env:AGENT_HOME } else { Join-Path $env:USERPROFILE ".agent" }
 $LocalArchive = $env:AGENT_LOCAL_ARCHIVE
+if ($InstallMode -notin @("managed", "standalone")) {
+    throw 'AGENT_INSTALL_MODE must be "managed" or "standalone"'
+}
 $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
 $BinDirectory = [IO.Path]::GetFullPath($BinDirectory)
 $AgentHome = [IO.Path]::GetFullPath($AgentHome)
@@ -33,7 +37,7 @@ function Invoke-Completion($Journal) {
     if ($LASTEXITCODE -ne 0) { throw "Target Agent updater exited with code $LASTEXITCODE" }
 }
 
-if (Test-Path $JournalPath -PathType Leaf) {
+if ($InstallMode -eq "managed" -and (Test-Path $JournalPath -PathType Leaf)) {
     $Journal = Get-Content $JournalPath -Raw | ConvertFrom-Json
     if ($Journal.phase -ne "complete") {
         Invoke-Completion $Journal
@@ -61,13 +65,13 @@ $Platform = switch ($Architecture) {
     "Arm64" { "windows-aarch64" }
     default { throw "Unsupported Windows architecture: $Architecture" }
 }
-$Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("altinn-agent-install-" + [guid]::NewGuid())
+$Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("agentctl-install-" + [guid]::NewGuid())
 $SourceRelease = Join-Path $Temporary "release"
 New-Item -ItemType Directory -Path $Temporary | Out-Null
 try {
     $ReleasesDirectory = Join-Path $InstallRoot "releases"
     $Target = Join-Path $ReleasesDirectory "$Version-$Platform"
-    if (-not (Test-Path $Target -PathType Container)) {
+    if ($InstallMode -eq "standalone" -or -not (Test-Path $Target -PathType Container)) {
         if ($LocalArchive) {
             $Archive = Split-Path $LocalArchive -Leaf
             Copy-Item $LocalArchive (Join-Path $Temporary $Archive)
@@ -89,6 +93,13 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Failed to extract Agent archive" }
         } finally {
             Pop-Location
+        }
+        if ($InstallMode -eq "standalone") {
+            New-Item -ItemType Directory -Force -Path $BinDirectory | Out-Null
+            Copy-Item -Force (Join-Path $SourceRelease "agentctl.exe") (Join-Path $BinDirectory "agentctl.exe")
+            Copy-Item -Force (Join-Path $SourceRelease "agentd.exe") (Join-Path $BinDirectory "agentd.exe")
+            Write-Host "Installed standalone agentctl and agentd to $BinDirectory"
+            exit 0
         }
         & (Join-Path $SourceRelease "agentctl.exe") --home $AgentHome self __publish-release `
             --install-root $InstallRoot --bin-directory $BinDirectory `

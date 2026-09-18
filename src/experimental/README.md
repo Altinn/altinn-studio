@@ -16,7 +16,8 @@ The main goals are:
 ## Development
 
 Run `make help` from this directory for the supported development commands. `make user-install` builds, packages and
-installs `agentctl` and `agentd` for the current user.
+installs `agentctl` and `agentd` for the current user. On Windows without Make, run `.\make-user-install.ps1` for the
+same build, package and installation flow.
 
 Maintainers updating the Microsandbox or libkrunfw forks should follow the
 [downstream maintenance runbook](MICROSANDBOX.md).
@@ -73,9 +74,14 @@ incarnation, and a reused Agent name never inherits resources from a deleted inc
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
-immutably to one of its Agent's declared harness installations. Detaching leaves a Session running. An inactive,
-unattached Session becomes Idle and is relaunched on the next ensure or attach, resuming the harness conversation when
-its native state still exists. Repeated unexpected harness exits use bounded backoff.
+immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
+resolved at creation: the caller's explicit choice, else the installation's manifest `defaults`, else nothing, leaving
+the harness's own defaults. Both values are provider-owned identifiers the platform validates but does not interpret.
+The selection is recorded with the Session, shown by `agentctl get sessions`, and applied on every launch including
+resume, so a later manifest change affects only new Sessions and a model change made inside the harness lasts until
+the next relaunch. Detaching leaves a Session running. An inactive, unattached Session becomes Idle and is relaunched
+on the next ensure or attach, resuming the harness conversation when its native state still exists. Repeated
+unexpected harness exits use bounded backoff.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
@@ -96,6 +102,9 @@ with the consequence that those files are reapplied on every Agent pass.
 
 `spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
 A declared `version` is verified against the image at setup; omit it when the image owns the version, so image bumps need no manifest change.
+Each installation may declare `defaults` with a `model` and an `effort` level for its new Sessions, in the harness's
+own vocabulary. The published manifests select `model: fable` for Claude Code because a mediated token cannot list
+Fable in the `/model` picker.
 `spec.instructions` names one harness-neutral Agent instruction file. Every declared Harness Adapter installs that source
 at its global instruction location: `~/.claude/CLAUDE.md` for Claude Code and `~/.codex/AGENTS.md` for Codex.
 Repository-local instruction files continue to be discovered by the harness itself.
@@ -103,6 +112,18 @@ Repository-local instruction files continue to be discovered by the harness itse
 Harness Adapters own authentication, version verification, managed configuration, hooks, native conversation IDs and
 launch arguments. The current adapters support Claude Code and Codex CLI. Harness-owned mutable state is seeded by the
 image or the user and is not used as a trusted bootstrap marker.
+
+## SSH access
+
+`spec.access: [{type: ssh}]` gives the Agent's user OpenSSH access to the Sandbox as the platform-owned user `agent`:
+`agentctl ssh <agent> [-- command]` opens it, `agentctl ssh-config install` makes the alias `agentctl-<name>`
+available to plain `ssh`, `sftp` and editors that read OpenSSH configuration, and
+`agentctl ssh-info <agent> -o json` describes the connection for other tools. The server listens only inside the
+Sandbox and is reached through `agentctl ssh-proxy`; the image must provide OpenSSH, systemd and a usable `agent`
+account, while `agentd` installs the isolated server policy and unit. `agent` has passwordless `sudo`, so an SSH
+login shares the Sandbox's one trust boundary with Sessions. SSH shells, remote commands and editor servers inherit
+the same image, Agent and mediated trust environment as Sandbox Executions; terminal- and Session-specific variables
+remain local to their process.
 
 ## Secrets and network policy
 

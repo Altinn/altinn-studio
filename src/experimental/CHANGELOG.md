@@ -12,8 +12,45 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.4] - 2026-09-18
+
+### Added
+
+- The release installers accept `AGENT_INSTALL_MODE=standalone` to verify and copy only `agentctl` and `agentd` into
+  `AGENT_INSTALL_DIR`. This supports immutable images and CI jobs without creating self-update state, migrating Agent
+  data, starting the daemon, or changing `PATH`.
+- Agent manifests support chained `AgentVariant` files named `agent.<variant>.yaml`. Select them with `--variant` or the TUI, which also supports ignored local variants and an environment file.
+- SSH access to Agents. Declare `spec.access: [{type: ssh}]`, then `agentctl ssh <agent> [-- command]` opens a shell or runs a command in the Sandbox as `agent`. `agentctl ssh-config install` lets plain `ssh`, `sftp` and editors reach the Agent as `agentctl-<name>`, and `agentctl ssh-info <agent> -o json` prints the connection details. The Altinn Agent images and the examples declare it; an Agent created from an older image must be deleted and re-applied.
+- Windows contributors can run `.\make-user-install.ps1` to build, package and install a local Agent without Make.
+
 ### Changed
 
+- `agentctl apply` defaults to `./agent.yaml`. The self-development and Altinn Agents provide nested and worktree variants; Altinn also provides nested-build variants.
+
+### Fixed
+
+- SSH shells, remote commands and editor terminals now inherit the same Agent tool, configured environment and
+  mediated certificate settings as Sessions and `agentctl exec`.
+- Concurrent network requests from an Agent no longer intermittently fail with DNS, HTTP or TLS errors, especially on Windows hosts.
+- Deleting an Agent no longer logs a panic when its Sandbox has an active network-control connection.
+- The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.
+- On Windows, detaching from a Session with `Ctrl-b d` returns control to the terminal UI without dropping the next key press.
+- Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex and Claude Code keep their conversations in that history; Claude Code no longer uses its fullscreen renderer, which could corrupt the display when scrolling in tmux. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
+- Agent setup now writes Sandbox files only when their contents changed, and replaces them atomically. Codex no longer reports missing skill frontmatter after each reconciliation pass.
+
+### Security
+
+- Applying an Agent rejects bind mounts containing `.env` files, case-insensitively and regardless of ignore rules.
+
+## [0.1.0-preview.3] - 2026-09-17
+
+### Added
+
+- `agentctl create` and `agentctl attach` accept `--model` and `--effort`, and the terminal UI's new-session form has the same fields, to choose the model and effort level a Session's harness launches with. Values are the harness's own, for example `fable` and `high` for Claude Code. `spec.harnesses[].defaults` declares per-installation defaults. The choice is fixed for the Session, applied on every relaunch and resume, and shown by `agentctl get sessions`.
+
+### Changed
+
+- Claude Code Sessions launch on the `fable` alias only when the manifest declares it; the `agents/` manifests and the examples do, and your own manifests need `defaults: { model: fable }` on the Claude Code installation to keep it for new Sessions. Sessions created earlier keep launching on `fable`.
 - The Sandbox runtime (microsandbox) was updated. Linux hosts with older system libraries, such as Ubuntu 22.04, can now install it, and a Sandbox that fails to start reports the runtime's own error instead of a bare timeout.
 - Agent instructions now tell Claude Code and Codex not to add `Co-Authored-By` or similar AI-attribution trailers to commits and pull requests.
 - The Altinn Agent images run on Norwegian local time (Europe/Oslo) instead of UTC, so `date`, file timestamps and log output inside an Agent match the clock where the work is reviewed. An existing Agent keeps the image it was created with; delete and re-apply it to pick this up.
@@ -24,6 +61,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Linkerd could not start inside a kind cluster running in a Sandbox because the Sandbox kernel lacked the iptables owner match its proxy-init needs. The match is now built in.
 - Building the Agent images, or the minimal and worktree examples, failed with a certificate error where the network inspects TLS, such as inside another Agent. The npm, Yarn, Corepack and Playwright downloads now trust the Agent's certificate bundle while the image is built.
 - Test suites and dev servers inside an Agent could fail to start with `user limit (128) on inotify instances reached` before running anything, because the guest kept the kernel's desktop-sized file-watcher limits. The Agent images now raise them to the values the self-hosted CI runners already use.
+- Logging a nested Agent into Claude failed with an empty credential. Claude Code hides `CLAUDE_CODE_OAUTH_TOKEN` from the commands it runs, so the documented `agentctl claude login --from-stdin` step had nothing to read. An Agent now also carries its Claude credential as `AGENT_CLAUDE_ACCESS_TOKEN`, matching `AGENT_CODEX_ACCESS_TOKEN`, and the self-development instructions use it.
 
 ## [0.1.0-preview.2] - 2026-09-15
 

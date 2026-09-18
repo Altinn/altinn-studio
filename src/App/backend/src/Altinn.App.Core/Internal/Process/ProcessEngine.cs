@@ -743,7 +743,7 @@ internal class ProcessEngine : IProcessEngine
     /// <summary>
     /// Core BPMN transition logic. Computes the ProcessStateChange for moving from the current task
     /// to the next element. Does NOT mutate instance.Process.
-    /// Used by both the normal process-next flow and auto-advance.
+    /// Used for transitions requested by a user and transitions following a successful service task.
     /// </summary>
     private async Task<ProcessStateChange> ComputeNextTransition(
         IInstanceDataAccessor dataAccessor,

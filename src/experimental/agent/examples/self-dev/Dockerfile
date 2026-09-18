@@ -18,6 +18,7 @@ RUN apt-get update \
         ca-certificates \
         clang \
         curl \
+        fonts-jetbrains-mono \
         fonts-liberation \
         git \
         iproute2 \
@@ -27,6 +28,7 @@ RUN apt-get update \
         lldb \
         linux-perf \
         nftables \
+        openssh-server \
         pkg-config \
         podman \
         podman-docker \
@@ -106,21 +108,27 @@ RUN NODE_OPTIONS=--use-openssl-ca npm install --global "@openai/codex@${CODEX_VE
     && codex --version
 
 # A nested Microsandbox runtime needs /dev/kvm; tmpfiles.conf hands the device to the kvm group.
+# OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
+# Password and keyboard authentication remain disabled by the platform-owned SSH policy.
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --login agent --home /home/agent --move-home ubuntu \
+    && passwd --delete agent \
     && groupmod --new-name agent ubuntu \
     && usermod --append --groups kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
-    && install -d -m 0755 -o agent -g agent /home/agent/.claude /home/agent/code \
+    && install -d -m 0755 -o agent -g agent /home/agent/code \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
 
 COPY tmpfiles.conf /usr/lib/tmpfiles.d/agent-dev.conf
-COPY --chown=agent:agent --chmod=0600 claude-state.json /home/agent/.claude/.claude.json
-
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
+
+# agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
+# ssh.service and socket are masked so the image cannot expose its package-generated host keys.
+RUN systemctl mask ssh.service ssh.socket \
+    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
 # All guest Executions inherit init.scope, whose default task limit is too low
 # for concurrent harnesses. The kernel pid limit remains the Sandbox boundary.
@@ -139,8 +147,8 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && systemctl mask serial-getty@hvc0.service \
     && systemctl enable agent-workspace-init.service
 
-# The checkout is a bind mount shared with the host. Keep Cargo's registry and build output on the
-# Sandbox root filesystem so host and Sandbox builds do not invalidate each other.
+# Keep Cargo's registry and build output on the Sandbox root filesystem so a worktree mount does
+# not share target state with the host and a fresh checkout keeps reusable artifacts outside Git.
 ENV CARGO_HOME=/home/agent/.cargo
 ENV CARGO_TARGET_DIR=/home/agent/.cache/cargo-target
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}

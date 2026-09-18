@@ -23,12 +23,11 @@ public class MaskinportenTelemetryTest
         {
             {
                 "Maskinporten.GetAccessToken",
-                static (sink, request) => sink.Object.StartGetAccessTokenActivity("default", "client-id", request)
+                static (sink, request) => sink.Object.StartGetAccessTokenActivity("client-id", request)
             },
             {
                 "Maskinporten.GetAltinnExchangedAccessToken",
-                static (sink, request) =>
-                    sink.Object.StartGetAltinnExchangedAccessTokenActivity("default", "client-id", request)
+                static (sink, request) => sink.Object.StartGetAltinnExchangedAccessTokenActivity("client-id", request)
             },
         };
 
@@ -51,7 +50,6 @@ public class MaskinportenTelemetryTest
         // Assert
         var captured = Assert.Single(sink.CapturedActivities);
         Assert.Equal(expectedName, captured.OperationName);
-        Assert.Equal("default", captured.GetTagItem("maskinporten.variant"));
         Assert.Equal("client-id", captured.GetTagItem("maskinporten.client_id"));
         Assert.Equal("scope1 scope2", captured.GetTagItem("maskinporten.scopes"));
         Assert.Equal("991825827", captured.GetTagItem("maskinporten.consumer_org"));

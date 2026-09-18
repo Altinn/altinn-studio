@@ -98,22 +98,33 @@ Look at the result before attaching it: read the PNG, or the contact sheet `medi
 ## Terminal
 
 Record the demonstrated commands, not the whole coding session. A GIF only shows something when output appears over
-time: a single command whose output lands at once renders as one static frame. Script the demonstration so the viewer
-sees each command line before its output and give the output time to be read.
+time. Script CLI demonstrations so each command and its output can be read. For a TUI, record the program directly
+and pause on focused fields, placeholders and picker states before typing or moving on.
 
 ```sh
-cat > demo.sh <<'DEMO'
-step() { printf '\033[1;34m$ %s\033[0m\n' "$*"; sleep 1; "$@"; sleep 2; }
-step studioctl app run --help
-step studioctl app list
-DEMO
-asciinema rec --window-size 100x30 --idle-time-limit 3 --command 'bash demo.sh' terminal.cast
-agg --cols 100 --rows 30 --font-size 14 --theme monokai terminal.cast terminal.gif
-media-preview terminal.gif                                # check that the frames differ
+run=/home/agent/code/.artifacts/<task>/<run>
+mkdir -p "$run"
+cols=120 rows=36 cast="$run/terminal.cast" gif="$run/terminal.gif"
+render() {
+  agg --cols "$cols" --rows "$rows" --font-size 14 --theme dracula \
+    --font-family 'JetBrains Mono' "$@"
+}
+env -u NO_COLOR TERM=xterm-256color COLORTERM=truecolor \
+  asciinema rec --window-size "${cols}x${rows}" --idle-time-limit 2 \
+  --command 'agentctl tui' "$cast"
+render "$cast" "$gif"
+for position in 20 50 80; do
+  render --select "$position%" "$cast" "$run/frame-$position.gif"
+done
 ```
 
-For an interactive demonstration omit `--command`, perform the steps, and exit the shell. `agg --help` lists speed,
-theme and font options; Liberation Mono is installed and covers Norwegian characters.
+Replace `agentctl tui` with `bash demo.sh` for a scripted CLI flow, or omit `--command` to record a shell. Keep the
+clip under 15 seconds; `--idle-time-limit` collapses waits. Explicitly overriding `NO_COLOR` and `TERM=dumb` preserves
+the real terminal styling. The image's JetBrains Mono font renders picker glyphs such as `◂` and `▸`.
+
+Do not judge an animated GIF by its first frame. Inspect its contact sheet with `media-preview` and the three rendered
+stills. Confirm the cast header names `xterm-256color`, the states differ, and focus color, dim text, cursor, picker
+glyphs, alignment and clipping match the live terminal. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
 
 ## Attaching to the pull request
 

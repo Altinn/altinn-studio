@@ -339,7 +339,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     ? new WorkflowStepProgress(completed, total)
                     : null,
                 StartedAt: activeHead.CreatedAt,
-                WaitingReason: activeHead.WaitingReason
+                WaitingReason: activeHead.WaitingReason,
+                CurrentTime: collection.CurrentTime
             );
         }
 
@@ -733,7 +734,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     /// <summary>
     /// Scopes collection workflows to the chain started by <paramref name="sinceWorkflowId"/>: that
-    /// workflow and everything created after it (e.g. auto-advance dependents). The collection is
+    /// workflow and everything created after it (e.g. service-task continuations). The collection is
     /// shared by every transition of the instance, so older workflows - completed earlier
     /// transitions, or terminally failed workflows a reject superseded - must not influence the
     /// current wait's failure reporting. The anchor itself is matched by id and other workflows by a
@@ -743,7 +744,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// Fire-and-forget side-effects workflows are excluded from every path: they are invisible to
     /// the collection heads frontier and must not extend the wait or be classified as transition
     /// failures. Exclusion cannot rely on the timestamp filter alone - a same-batch side-effects
-    /// workflow shares the anchor's timestamp, but a dependent auto-advance batch's side-effects
+    /// workflow shares the anchor's timestamp, but a dependent batch's side-effects
     /// workflow is strictly newer and would otherwise leak into the chain.
     /// </summary>
     internal static IReadOnlyList<WorkflowStatusResponse> ScopeToCurrentChain(

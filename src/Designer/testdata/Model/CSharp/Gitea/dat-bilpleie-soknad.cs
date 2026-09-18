@@ -139,6 +139,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("Organisasjonsform")]
     public string Organisasjonsform { get; set; }
 
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallAnsatte", Order = 5)]
     [JsonProperty("AntallAnsatte")]
@@ -210,6 +211,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializeKunAnsvarligSkalArbeide() => KunAnsvarligSkalArbeide.HasValue;
 
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallAnsatteEgenUtfylt", Order = 3)]
     [JsonProperty("AntallAnsatteEgenUtfylt")]
@@ -218,6 +220,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializeAntallAnsatteEgenUtfylt() => AntallAnsatteEgenUtfylt.HasValue;
 
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(0,Double.MaxValue)]
     [XmlElement("AntallHMSKort", Order = 4)]
     [JsonProperty("AntallHMSKort")]
@@ -285,6 +288,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializeHarAMU() => HarAMU.HasValue;
 
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("BHTorgnr", Order = 14)]
     [JsonProperty("BHTorgnr")]
