@@ -112,7 +112,7 @@ func (c *AppCommand) runMaskinportenShow(ctx context.Context, args []string) err
 	result, err := c.service.ShowMaskinportenClient(appPath)
 	if errors.Is(err, appsecrets.ErrNoMaskinportenClient) {
 		return fmt.Errorf(
-			"%w; store one with '%s app maskinporten set --file <client.json>', or paste it on standard input",
+			"%w; store one with '%s app maskinporten set'",
 			err,
 			osutil.CurrentBin(),
 		)
