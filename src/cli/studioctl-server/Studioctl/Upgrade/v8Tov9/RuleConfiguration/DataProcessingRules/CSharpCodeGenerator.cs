@@ -143,6 +143,8 @@ internal sealed class CSharpCodeGenerator
                     || !rule.OutParams.ContainsKey("outParam0")
                 )
                     return null;
+                if (_typeResolver != null && ConfiguredPaths(rule).Any(path => _typeResolver.ResolveType(path) == null))
+                    return null;
                 if (functions.ContainsKey(rule.SelectedFunction))
                     continue;
                 var function = _jsParser.GetDataProcessingFunction(rule.SelectedFunction);
@@ -212,6 +214,9 @@ internal sealed class CSharpCodeGenerator
             SuccessfulConversions = _rules.Count,
         };
     }
+
+    private static IEnumerable<string> ConfiguredPaths(DataProcessingRule rule) =>
+        (rule.InputParams?.Values.AsEnumerable() ?? []).Concat(rule.OutParams?.Values.AsEnumerable() ?? []);
 
     private void GenerateUsingStatements(IndentedStringBuilder code)
     {
@@ -533,6 +538,12 @@ internal sealed class CSharpCodeGenerator
 
             try
             {
+                if (_typeResolver != null)
+                {
+                    foreach (var path in ConfiguredPaths(rule))
+                        if (_typeResolver.ResolveType(path) == null)
+                            throw new InvalidOperationException($"Failed to resolve type for path '{path}'.");
+                }
                 if (jsFunction != null)
                 {
                     // Check if this function is shared
