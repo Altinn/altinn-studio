@@ -118,6 +118,18 @@ public sealed class LegacyRuleConversionTests
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public async Task NonNumericModelValues_AreTruthyAndDoNotThrowOnNumericCoercion()
+    {
+        // These are raw model values, not JavaScript Date instances created by rule code.
+        foreach (var value in new object[] { DateTime.UnixEpoch, Guid.Empty, new object() })
+        {
+            Assert.Equal(1d, await Execute("return obj.a ? 1 : 0;", new() { ["a"] = value }));
+            var number = Assert.IsType<double>(await Execute("return +obj.a;", new() { ["a"] = value }));
+            Assert.True(double.IsNaN(number));
+        }
+    }
+
     [Theory]
     [InlineData("missing", "result", false)]
     [InlineData("a", "missing", false)]
