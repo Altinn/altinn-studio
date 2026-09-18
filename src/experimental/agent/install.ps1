@@ -65,7 +65,7 @@ $Platform = switch ($Architecture) {
     "Arm64" { "windows-aarch64" }
     default { throw "Unsupported Windows architecture: $Architecture" }
 }
-$Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("altinn-agent-install-" + [guid]::NewGuid())
+$Temporary = Join-Path ([System.IO.Path]::GetTempPath()) ("agentctl-install-" + [guid]::NewGuid())
 $SourceRelease = Join-Path $Temporary "release"
 New-Item -ItemType Directory -Path $Temporary | Out-Null
 try {

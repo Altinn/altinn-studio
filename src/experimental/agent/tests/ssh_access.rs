@@ -190,14 +190,11 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
     let host_public = String::from_utf8(host_public).expect("UTF-8 public key");
     assert_eq!(
         fixture.known_hosts(),
-        format!(
-            "agent-{id} {host_public}altinn-agent-worker {host_public}",
-            id = record.id
-        ),
+        format!("agent-{id} {host_public}agentctl-worker {host_public}", id = record.id),
         "known_hosts is pre-seeded under the incarnation alias and, for clients without HostKeyAlias, the Host alias"
     );
     let expected_config = format!(
-        "\nHost altinn-agent-worker\n    User agent\n    ProxyCommand {AGENTCTL} ssh-proxy agent/worker\n    HostKeyAlias agent-{id}\n    IdentityFile {identity}\n    UserKnownHostsFile {known_hosts}\n    IdentitiesOnly yes\n",
+        "\nHost agentctl-worker\n    User agent\n    ProxyCommand {AGENTCTL} ssh-proxy agent/worker\n    HostKeyAlias agent-{id}\n    IdentityFile {identity}\n    UserKnownHostsFile {known_hosts}\n    IdentitiesOnly yes\n",
         id = record.id,
         // The same renderer the config uses: on Windows the paths are quoted with escaped backslashes.
         identity = ssh::render_path(&ssh_home.identity_path(record.id), None),
@@ -213,7 +210,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         assert_eq!(mode(ssh_home.root()), 0o700);
     }
     let info = fixture.access.describe("worker").await.expect("descriptor");
-    assert_eq!(info.alias, "altinn-agent-worker");
+    assert_eq!(info.alias, "agentctl-worker");
     assert_eq!(info.identity_file, ssh_home.identity_path(record.id));
     assert_eq!(info.proxy_command, format!("{AGENTCTL} ssh-proxy agent/worker"));
 
@@ -472,7 +469,7 @@ async fn deletion_removes_host_material_and_config_lists_only_active_ssh_agents(
         .filter_map(|line| line.strip_prefix("Host "))
         .map(str::to_owned)
         .collect::<Vec<_>>();
-    assert_eq!(aliases, ["altinn-agent-reviewer", "altinn-agent-worker"]);
+    assert_eq!(aliases, ["agentctl-reviewer", "agentctl-worker"]);
 
     assert!(matches!(
         fixture.access.describe("plain").await,
@@ -511,7 +508,7 @@ async fn descriptor_json_is_the_documented_shape() {
     assert_eq!(value["type"], "ssh");
     assert_eq!(value["agent"], "worker");
     assert_eq!(value["agentId"], "38f41de4-6ff7-4679-ae46-678bc61e4dcb");
-    assert_eq!(value["alias"], "altinn-agent-worker");
+    assert_eq!(value["alias"], "agentctl-worker");
     assert_eq!(value["user"], "agent");
     assert_eq!(value["proxyCommand"], format!("{AGENTCTL} ssh-proxy agent/worker"));
     let decoded: ssh::AccessInfo = serde_json::from_value(value).expect("round trip");

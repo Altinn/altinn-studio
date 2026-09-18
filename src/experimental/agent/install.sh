@@ -77,7 +77,7 @@ case "$(uname -s)-$(uname -m)" in
   *) echo "Unsupported Agent host: $(uname -s) $(uname -m)" >&2; exit 1 ;;
 esac
 
-temporary="$(mktemp -d -t altinn-agent-install.XXXXXXXX)"
+temporary="$(mktemp -d -t agentctl-install.XXXXXXXX)"
 source_release="${temporary}/release"
 trap 'rm -rf "${temporary}"' EXIT HUP INT TERM
 

@@ -50,7 +50,7 @@ pub const ACCESS_TYPE: &str = "ssh";
 /// Returns the OpenSSH `Host` alias for an Agent name.
 #[must_use]
 pub fn alias(agent: &str) -> String {
-    format!("altinn-agent-{agent}")
+    format!("agentctl-{agent}")
 }
 
 /// Returns the `HostKeyAlias` keying `known_hosts` by the stable incarnation.

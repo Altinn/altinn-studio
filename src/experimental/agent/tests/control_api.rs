@@ -39,7 +39,7 @@ impl SshAccessApi for FakeSshAccess {
                 kind: "ssh".into(),
                 agent: name.into(),
                 agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
-                alias: "altinn-agent-worker".into(),
+                alias: "agentctl-worker".into(),
                 user: "agent".into(),
                 identity_file: "/home/me/.agent/ssh/38f41de4-6ff7-4679-ae46-678bc61e4dcb/id_ed25519".into(),
                 known_hosts_file: "/home/me/.agent/ssh/known_hosts".into(),
