@@ -35,7 +35,9 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
                     "layout": [
                       { "id": "target", "type": "Header" },
                       { "id": "navigation", "type": "NavigationButtons", "showBackButton": true },
-                      { "id": "organization", "type": "OrganisationLookup", "dataModelBindings": { "organisation_lookup_orgnr": "Party.OrgNumber" } }
+                      { "id": "organization", "type": "OrganisationLookup", "dataModelBindings": { "organisation_lookup_orgnr": "Party.OrgNumber" } },
+                      { "id": "payment", "type": "PaymentDetails", "mapping": { "Order.Total": "total" } },
+                      { "id": "start", "type": "Button", "mode": "instantiate", "mapping": { "Party.Name": "name" } }
                     ]
                   }
                 }
@@ -93,6 +95,11 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
         Assert.Contains("MANUAL_CONVERSION_REQUIRED", firstText, StringComparison.Ordinal);
         Assert.Contains("_conversionFailureInfo", firstText, StringComparison.Ordinal);
         Assert.Contains("// Keep the app developer's explanation: æøå", firstText);
+        Assert.Contains("\"refetchDependencies\"", firstText);
+        Assert.Contains("\"queryParameters\"", firstText);
+        Assert.Contains("\"type\": \"InstantiationButton\"", firstText);
+        Assert.DoesNotContain("\"mapping\"", firstText);
+        Assert.DoesNotContain("\"mode\"", firstText);
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "RuleConfiguration.json")));
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "RuleHandler.js")));
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "layout-sets.json")));
@@ -262,6 +269,118 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
     }
 
     private sealed record UpgradeRun(int ExitCode, IReadOnlyList<UpgradeMessage> Messages, string Error);
+
+    [Theory]
+    [InlineData("instantiate", "InstantiationButton")]
+    [InlineData("submit", "Button")]
+    [InlineData("save", "Button")]
+    public async Task ButtonOnlyChangesAreReportedAsApplied(string mode, string expectedType)
+    {
+        WriteV9Project();
+        _app.Write(LayoutPath, $$$"""{"data":{"layout":[{"id":"button","type":"Button","mode":"{{{mode}}}"}]}}""");
+
+        var first = await RunUpgrade();
+
+        Assert.Equal(0, first.ExitCode);
+        Assert.Contains(
+            first.Messages,
+            message => message.Status == UpgradeMessageStatus.Ok && message.Text.Contains("Applied v9 layout changes")
+        );
+        Assert.DoesNotContain(first.Messages, message => message.Text == "No v9 layout changes found");
+        Assert.Equal(
+            expectedType,
+            JsonNode.Parse(_app.Read(LayoutPath))?["data"]?["layout"]?[0]?["type"]?.GetValue<string>()
+        );
+        var firstBytes = _app.ReadBytes(LayoutPath);
+        var second = await RunUpgrade();
+        Assert.Equal(0, second.ExitCode);
+        Assert.Equal(firstBytes, _app.ReadBytes(LayoutPath));
+        Assert.Contains(
+            second.Messages,
+            message => message.Status == UpgradeMessageStatus.Skip && message.Text == "No v9 layout changes found"
+        );
+    }
+
+    [Fact]
+    public async Task NewMainJobsShareThePipelineAndRemainStableOnV9Rerun()
+    {
+        WriteV9Project();
+        _app.Write("App.csproj", _app.Read("App.csproj").Replace("9.0.0", "8.8.0", StringComparison.Ordinal));
+        var layout =
+            """
+                { "data": { "layout": [
+                  // New main migrations must retain this comment: æøå
+                  { "id": "payment", "type": "PaymentDetails", "mapping": { "Order.Total": "total" } },
+                  { "id": "start", "type": "Button", "mode": "instantiate", "mapping": { "Party.Name": "name" } },
+                  { "id": "upload", "type": "FileUploadWithTag", "mapping": { "Party.Kind": "kind" } }
+                ] } }
+                """.ReplaceLineEndings("\r\n") + "\r\n";
+        _app.WriteBytes(LayoutPath, Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(layout)).ToArray());
+        _app.Write(
+            "logic/OrderCalculator.cs",
+            """
+            using System;
+            using System.Threading.Tasks;
+            using Altinn.App.Core.Features.Payment;
+            using Altinn.App.Core.Features.Payment.Models;
+            using Altinn.Platform.Storage.Interface.Models;
+            public class OrderCalculator : IOrderDetailsCalculator
+            {
+                public Task<OrderDetails> CalculateOrderDetails(Instance instance, string language) => throw new NotImplementedException();
+            }
+            """
+        );
+        _app.Write(
+            "logic/Texts.cs",
+            """
+            using Altinn.App.Core.Internal.Texts;
+            public class Texts
+            {
+                private IText _texts;
+                public object Read() => _texts.GetText("org", "app", "nb");
+            }
+            """
+        );
+        _app.CommitEverything();
+
+        var first = await RunUpgrade();
+
+        Assert.Equal(0, first.ExitCode);
+        var firstLayout = _app.ReadBytes(LayoutPath);
+        Assert.True(firstLayout.AsSpan().StartsWith(Encoding.UTF8.GetPreamble()));
+        var text = Encoding.UTF8.GetString(firstLayout);
+        Assert.Contains("// New main migrations must retain this comment: æøå", text);
+        Assert.EndsWith("\r\n", text);
+        Assert.DoesNotContain("\n", text.Replace("\r\n", "", StringComparison.Ordinal));
+        var components = JsonNode
+            .Parse(
+                text.TrimStart('\uFEFF'),
+                documentOptions: new System.Text.Json.JsonDocumentOptions
+                {
+                    CommentHandling = System.Text.Json.JsonCommentHandling.Skip,
+                }
+            )
+            ?["data"]?["layout"];
+        Assert.NotNull(components);
+        Assert.Equal("Order.Total", components[0]?["refetchDependencies"]?["total"]?[1]?.GetValue<string>());
+        Assert.Equal("InstantiationButton", components[1]?["type"]?.GetValue<string>());
+        Assert.Equal("Party.Name", components[1]?["queryParameters"]?["name"]?[1]?.GetValue<string>());
+        Assert.Equal("FileUpload", components[2]?["type"]?.GetValue<string>());
+        Assert.Equal("Party.Kind", components[2]?["queryParameters"]?["kind"]?[1]?.GetValue<string>());
+        var calculator = _app.Read("logic/OrderCalculator.cs");
+        var texts = _app.Read("logic/Texts.cs");
+        Assert.Contains("CancellationToken cancellationToken", calculator);
+        Assert.Contains("IAppResources", texts);
+        Assert.Contains("GetTexts", texts);
+
+        _app.Write("App.csproj", _app.Read("App.csproj").Replace("8.8.0", "9.0.0", StringComparison.Ordinal));
+        var second = await RunUpgrade();
+
+        Assert.Equal(0, second.ExitCode);
+        Assert.Equal(firstLayout, _app.ReadBytes(LayoutPath));
+        Assert.Equal(calculator, _app.Read("logic/OrderCalculator.cs"));
+        Assert.Equal(texts, _app.Read("logic/Texts.cs"));
+    }
 
     [Theory]
     [InlineData("PersonLookup", "person_lookup_ssn", "ssn")]
