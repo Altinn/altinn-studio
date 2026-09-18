@@ -181,6 +181,21 @@ public sealed class LegacyRuleConversionTests
         }
     }
 
+    [Fact]
+    public void BareParameterAssignment_IsRejectedByPrimitiveConverter()
+    {
+        using var app = new TempAppFolder();
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var ruleHandlerObject = { calculate: function(obj) { obj = obj.a; return obj; } };"
+            )
+        );
+        parser.Parse();
+        var function = parser.GetDataProcessingFunction("calculate") ?? throw new InvalidOperationException();
+        Assert.Throws<NotSupportedException>(() => new PrimitiveRuleConverter("obj").Convert(function.FunctionAst!));
+    }
+
     private static async Task<object?> Execute(string body, Dictionary<string, object?> inputs, bool shared = false)
     {
         using var app = new TempAppFolder();
