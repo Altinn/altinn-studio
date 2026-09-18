@@ -189,7 +189,7 @@ internal sealed class CSharpCodeGenerator
                 $"var result = {functions[(rule.SelectedFunction ?? throw new InvalidOperationException("Validated function is missing."))].Method}(obj);"
             );
             code.AppendLine(
-                $"wrapper.Set({PrimitiveRuleConverter.Quote((rule.OutParams ?? throw new InvalidOperationException("Validated output is missing."))["outParam0"])}, ExpressionValue.FromObject(result));"
+                $"wrapper.Set({PrimitiveRuleConverter.Quote((rule.OutParams ?? throw new InvalidOperationException("Validated output is missing."))["outParam0"])}, ExpressionValue.FromObject(result is JsUndefined ? null : result));"
             );
             code.AppendLine("return Task.CompletedTask;");
             code.CloseBrace();

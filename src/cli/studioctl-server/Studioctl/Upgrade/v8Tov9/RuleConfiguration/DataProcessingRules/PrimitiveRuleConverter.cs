@@ -18,7 +18,7 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
         foreach (var statement in body.Body)
             CollectLocals(statement, 0);
         foreach (var local in _locals.Values)
-            code.AppendLine($"object? {local} = null;");
+            code.AppendLine($"object? {local} = Undefined;");
         foreach (var statement in body.Body)
             Statement(statement, code);
         // JS functions may fall through without a return.
@@ -125,6 +125,7 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
                     .ToString("R", CultureInfo.InvariantCulture) + "d",
                 _ => throw new NotSupportedException("Non-primitive literal."),
             },
+            Identifier { Name: "undefined" } => "Undefined",
             Identifier id when id.Name == parameterName => "obj",
             Identifier id when _locals.ContainsKey(id.Name) => Local(id.Name),
             MemberExpression { Object: Identifier obj, Property: Identifier key, Computed: false }
@@ -199,12 +200,15 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
 
     // Included in the generated app, rather than adding a runtime dependency on studioctl.
     internal const string Runtime = """
-        private static object? JsGet(Dictionary<string, object?> obj, string key) => obj.GetValueOrDefault(key);
+        private sealed class JsUndefined { }
+        private static readonly object Undefined = new JsUndefined();
+        private static object? JsGet(Dictionary<string, object?> obj, string key) =>
+            obj.TryGetValue(key, out var value) ? value : Undefined;
         private static object? JsAnd(object? left, Func<object?> right) => JsTruthy(left) ? right() : left;
         private static object? JsOr(object? left, Func<object?> right) => JsTruthy(left) ? left : right();
         private static bool JsTruthy(object? value) => value switch
         {
-            null => false,
+            null or JsUndefined => false,
             bool boolean => boolean,
             string text => text.Length != 0,
             IConvertible convertible when convertible.GetTypeCode() is >= TypeCode.SByte and <= TypeCode.Decimal =>
@@ -226,12 +230,14 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
             left is string || right is string ? JsString(left) + JsString(right) : JsNumber(left) + JsNumber(right);
         private static string JsString(object? value) => value switch
         {
+            JsUndefined => "undefined",
             null => "null",
             bool boolean => boolean ? "true" : "false",
             _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
         };
         private static bool JsEquals(object? left, object? right) =>
-            left == null || right == null ? left == null && right == null :
+            left is null or JsUndefined || right is null or JsUndefined ?
+                left is null or JsUndefined && right is null or JsUndefined :
             left is string a && right is string b ? a == b : JsNumber(left) == JsNumber(right);
         private static double JsCompare(object? left, object? right)
         {
