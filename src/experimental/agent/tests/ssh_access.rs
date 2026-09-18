@@ -59,6 +59,26 @@ fn is_environment_snapshot(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/env", &["-0"])
 }
 
+fn is_runtime_directory_install(spec: &ExecutionSpec) -> bool {
+    is_command(
+        spec,
+        "/usr/bin/sudo",
+        &[
+            "-n",
+            "/usr/bin/install",
+            "-d",
+            "-m",
+            "0755",
+            "-o",
+            "root",
+            "-g",
+            "root",
+            "/var/lib/agent/ssh",
+            "/run/sshd",
+        ],
+    )
+}
+
 fn is_systemd_running_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-d", "/run/systemd/system"])
 }
@@ -118,6 +138,22 @@ fn assert_service_reconciled_idempotently(backend: &memory::Provider) {
     assert_eq!(
         count_sudo(backend, &["-n", "/usr/bin/systemctl", "start", "agent-ssh.service"]),
         1
+    );
+}
+
+fn assert_runtime_created_before_policy(backend: &memory::Provider) {
+    let executions = backend.execution_specs();
+    let runtime_directory = executions
+        .iter()
+        .position(is_runtime_directory_install)
+        .expect("OpenSSH runtime directory install");
+    let policy_validation = executions
+        .iter()
+        .position(is_environment_policy_check)
+        .expect("effective-policy validation");
+    assert!(
+        runtime_directory < policy_validation,
+        "OpenSSH's runtime directory exists before policy validation"
     );
 }
 
@@ -236,6 +272,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
     }
 
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("first pass"));
+    assert_runtime_created_before_policy(&fixture.backend);
     let host_key = read_guest_file(&sandbox, "/var/lib/agent/ssh/ssh_host_ed25519_key")
         .await
         .expect("host key in guest");

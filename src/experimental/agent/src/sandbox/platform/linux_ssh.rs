@@ -27,6 +27,8 @@ pub(crate) const HOST_KEY_PUBLIC: &str = "/var/lib/agent/ssh/ssh_host_ed25519_ke
 pub(crate) const AUTHORIZED_KEYS: &str = "/var/lib/agent/ssh/authorized_keys";
 /// Platform-owned policy passed to every server invocation.
 pub(crate) const SERVER_CONFIG: &str = "/var/lib/agent/ssh/sshd_config";
+/// OpenSSH privilege-separation directory, needed even when only evaluating policy.
+const SERVER_RUNTIME_DIRECTORY: &str = "/run/sshd";
 /// Directory OpenSSH reads the Agent user's login environment from.
 const USER_SSH_DIRECTORY: &str = "/home/agent/.ssh";
 /// Effective Sandbox environment inherited by every new SSH shell or command.
@@ -97,6 +99,9 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
             "-g",
             "root",
             STATE_DIRECTORY,
+            // systemd normally creates this for the service, but `sshd -T`
+            // needs it before the service can be validated or started.
+            SERVER_RUNTIME_DIRECTORY,
         ],
     )
     .await?;

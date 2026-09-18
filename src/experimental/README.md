@@ -120,10 +120,10 @@ image or the user and is not used as a trusted bootstrap marker.
 available to plain `ssh`, `sftp` and editors that read OpenSSH configuration, and
 `agentctl ssh-info <agent> -o json` describes the connection for other tools. The server listens only inside the
 Sandbox and is reached through `agentctl ssh-proxy`; the image must provide OpenSSH, systemd and a usable `agent`
-account, while `agentd` installs the isolated server policy and unit. `agent` has passwordless `sudo`, so an SSH login shares the
-Sandbox's one trust boundary with Sessions. SSH shells, remote commands and editor servers inherit the same image,
-Agent and mediated trust environment as Sandbox Executions; terminal- and Session-specific variables remain local to
-their process.
+account, while `agentd` installs the isolated server policy and unit. `agent` has passwordless `sudo`, so an SSH
+login shares the Sandbox's one trust boundary with Sessions. SSH shells, remote commands and editor servers inherit
+the same image, Agent and mediated trust environment as Sandbox Executions; terminal- and Session-specific variables
+remain local to their process.
 
 ## Secrets and network policy
 
