@@ -27,7 +27,10 @@ X11Forwarding no
 PermitTunnel no
 AllowTcpForwarding yes
 GatewayPorts no
-PermitUserEnvironment no
+# agentd owns ~/.ssh/environment and refreshes it from the environment inherited by Sandbox
+# Executions, so SSH shells, remote commands and editor servers see the same tool and trust setup.
+# The Agent user has passwordless sudo, so this does not create a new privilege boundary.
+PermitUserEnvironment yes
 
 AcceptEnv LANG LC_*
 PrintMotd no

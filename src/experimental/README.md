@@ -121,7 +121,9 @@ available to plain `ssh`, `sftp` and editors that read OpenSSH configuration, an
 `agentctl ssh-info <agent> -o json` describes the connection for other tools. The server listens only inside the
 Sandbox and is reached through `agentctl ssh-proxy`; the image must ship OpenSSH with the platform's `agent-ssh`
 unit under systemd, as the published images do. `agent` has passwordless `sudo`, so an SSH login shares the
-Sandbox's one trust boundary with Sessions.
+Sandbox's one trust boundary with Sessions. SSH shells, remote commands and editor servers inherit the same image,
+Agent and mediated trust environment as Sandbox Executions; terminal- and Session-specific variables remain local to
+their process.
 
 ## Secrets and network policy
 

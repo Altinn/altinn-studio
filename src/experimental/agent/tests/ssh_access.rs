@@ -39,6 +39,18 @@ fn is_unit_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-f", "/etc/systemd/system/agent-ssh.service"])
 }
 
+fn is_environment_policy_check(spec: &ExecutionSpec) -> bool {
+    is_command(
+        spec,
+        "/usr/bin/grep",
+        &["-Fx", "PermitUserEnvironment yes", "/etc/agent/sshd_config"],
+    )
+}
+
+fn is_environment_snapshot(spec: &ExecutionSpec) -> bool {
+    is_command(spec, "/usr/bin/env", &["-0"])
+}
+
 fn is_systemd_running_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-d", "/run/systemd/system"])
 }
@@ -62,6 +74,14 @@ fn exited(code: i32) -> Vec<ExecutionEvent> {
     ]
 }
 
+fn environment(contents: &'static [u8]) -> Vec<ExecutionEvent> {
+    vec![
+        ExecutionEvent::Started { process_id: None },
+        ExecutionEvent::Stdout(contents.into()),
+        ExecutionEvent::Exited(ExitStatus { code: 0 }),
+    ]
+}
+
 fn count_sudo(backend: &memory::Provider, expected: &[&str]) -> usize {
     backend
         .execution_specs()
@@ -75,6 +95,16 @@ async fn read_guest_file(sandbox: &SandboxHandle, path: &str) -> Option<Vec<u8>>
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes).await.expect("guest file bytes");
     Some(bytes)
+}
+
+async fn assert_guest_environment(sandbox: &SandboxHandle) {
+    assert_eq!(
+        read_guest_file(sandbox, "/home/agent/.ssh/environment").await,
+        Some(
+            b"CONTAINER_HOST=unix:///run/podman/podman.sock\nGIT_USER_NAME=Agent #1 \"Reviewer\"\nLANG=C.UTF-8\nNODE_EXTRA_CA_CERTS=/.msb/tls/ca.pem\nPATH=/home/agent/.cargo/bin:/usr/local/go/bin:/usr/bin\n"
+                .to_vec()
+        )
+    );
 }
 
 fn record(name: &str, id: &str, ssh: bool) -> AgentRecord {
@@ -165,6 +195,12 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         fixture
             .backend
             .queue_execution_events_matching(is_server_check, exited(0));
+        fixture.backend.queue_execution_events_matching(
+            is_environment_snapshot,
+            environment(
+                b"PATH=/home/agent/.cargo/bin:/usr/local/go/bin:/usr/bin\0NODE_EXTRA_CA_CERTS=/.msb/tls/ca.pem\0GIT_USER_NAME=Agent #1 \"Reviewer\"\0TERM=dumb\0HOME=/image-home\0",
+            ),
+        );
     }
 
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("first pass"));
@@ -186,6 +222,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
     assert!(client_private.starts_with("-----BEGIN OPENSSH PRIVATE KEY-----"));
     assert_ne!(host_key, client_private.as_bytes(), "host and client keys differ");
     assert_eq!(authorized, client_public.as_bytes());
+    assert_guest_environment(&sandbox).await;
     assert!(client_public.starts_with("ssh-ed25519 AAAA"));
     let host_public = String::from_utf8(host_public).expect("UTF-8 public key");
     assert_eq!(
@@ -244,6 +281,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         "/var/lib/agent/ssh/ssh_host_ed25519_key",
         "/var/lib/agent/ssh/ssh_host_ed25519_key.pub",
         "/var/lib/agent/ssh/authorized_keys",
+        "/home/agent/.ssh/environment",
     ];
     for path in guest_files {
         let contents = read_guest_file(&sandbox, path).await.expect("guest file");
@@ -309,6 +347,28 @@ async fn an_image_without_the_unit_or_systemd_fails_permanently() {
         );
         assert!(!fixture.keys.contains(record.id));
     }
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_image_that_blocks_the_managed_environment_fails_permanently() {
+    let fixture = Fixture::new();
+    let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+    fixture.store(&record, 0).await;
+    let sandbox = fixture.sandbox(&record).await;
+    fixture
+        .backend
+        .queue_execution_events_matching(is_environment_policy_check, exited(1));
+
+    let error = fixture
+        .access
+        .reconcile(&record, &sandbox)
+        .await
+        .expect_err("environment policy");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("platform-owned login environment")),
+        "{error}"
+    );
+    assert!(!fixture.keys.contains(record.id));
 }
 
 #[tokio::test(flavor = "local")]
@@ -558,6 +618,7 @@ fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
     assert_eq!(single("X11Forwarding"), "no");
     assert_eq!(single("PermitTunnel"), "no");
     assert_eq!(single("AllowTcpForwarding"), "yes");
+    assert_eq!(single("PermitUserEnvironment"), "yes");
     assert_eq!(single("Subsystem"), "sftp internal-sftp");
     assert_eq!(single("HostKey"), "/var/lib/agent/ssh/ssh_host_ed25519_key");
     assert_eq!(single("AuthorizedKeysFile"), "/var/lib/agent/ssh/authorized_keys");

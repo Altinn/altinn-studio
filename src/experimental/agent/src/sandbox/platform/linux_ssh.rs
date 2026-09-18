@@ -2,10 +2,12 @@
 //!
 //! The image installs `openssh-server`, a hardened `sshd_config` and the
 //! `agent-ssh.service` unit, which only starts once the host key exists. This
-//! module writes that key, the client's `authorized_keys` and enables the unit,
-//! or removes all of it when access is withdrawn. Everything lives under
-//! `/var/lib/agent/ssh`, on the persistent root filesystem: `/run` is a tmpfs
-//! and setup does not rerun on a guest reboot.
+//! module writes that key, the client's `authorized_keys`, the SSH login
+//! environment and enables the unit, or removes all of it when access is
+//! withdrawn. Server state lives under `/var/lib/agent/ssh`; the login
+//! environment uses OpenSSH's standard per-user file in `/home/agent/.ssh`.
+
+use std::collections::BTreeMap;
 
 use ::sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
 
@@ -24,6 +26,10 @@ pub(crate) const HOST_KEY: &str = "/var/lib/agent/ssh/ssh_host_ed25519_key";
 pub(crate) const HOST_KEY_PUBLIC: &str = "/var/lib/agent/ssh/ssh_host_ed25519_key.pub";
 /// Keys allowed to log in as the guest user.
 pub(crate) const AUTHORIZED_KEYS: &str = "/var/lib/agent/ssh/authorized_keys";
+/// Directory OpenSSH reads the Agent user's login environment from.
+const USER_SSH_DIRECTORY: &str = "/home/agent/.ssh";
+/// Effective Sandbox environment inherited by every new SSH shell or command.
+pub(crate) const USER_ENVIRONMENT: &str = "/home/agent/.ssh/environment";
 /// The server executable the image must provide.
 pub(crate) const SERVER: &str = "/usr/sbin/sshd";
 /// The image-owned unit running the server on the guest loopback.
@@ -36,6 +42,8 @@ pub(crate) const UNIT_FILE: &str = "/etc/systemd/system/agent-ssh.service";
 const SYSTEMCTL: &str = "/usr/bin/systemctl";
 /// Present exactly when systemd is the running init; the marker systemd documents for this purpose.
 const SYSTEMD_RUNNING: &str = "/run/systemd/system";
+const ENVIRONMENT_PROGRAM: &str = "/usr/bin/env";
+const MAX_ENVIRONMENT_ENTRIES: usize = 1000;
 
 /// Confirms the image satisfies the whole SSH access contract: the server, the
 /// platform's policy and unit, and systemd as the running init to start it.
@@ -65,6 +73,17 @@ pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> 
             return Err(Error::Invalid(crate::ssh::image_contract_missing(what)));
         }
     }
+    let policy = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/grep"),
+            ["-Fx".into(), "PermitUserEnvironment yes".into(), SERVER_CONFIG.into()],
+        ))
+        .await?;
+    if !policy.status.success() {
+        return Err(Error::Invalid(crate::ssh::image_contract_missing(
+            "/etc/agent/sshd_config does not enable the platform-owned login environment",
+        )));
+    }
     Ok(())
 }
 
@@ -77,6 +96,7 @@ pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> 
 ///
 /// Returns an error when a file cannot be written or a setup command fails.
 pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &GuestMaterial) -> Result<(), Error> {
+    let environment = capture_login_environment(sandbox).await?;
     wait_for_systemd(sandbox).await?;
     run_checked(
         sandbox,
@@ -95,6 +115,23 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
         ],
     )
     .await?;
+    run_checked(
+        sandbox,
+        "/usr/bin/sudo",
+        [
+            "-n",
+            "/usr/bin/install",
+            "-d",
+            "-m",
+            "0700",
+            "-o",
+            super::linux::USER,
+            "-g",
+            super::linux::USER,
+            USER_SSH_DIRECTORY,
+        ],
+    )
+    .await?;
     write_if_changed(sandbox, HOST_KEY, &material.host_private_key).await?;
     write_if_changed(
         sandbox,
@@ -103,6 +140,7 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
     )
     .await?;
     write_if_changed(sandbox, AUTHORIZED_KEYS, material.authorized_keys.as_bytes()).await?;
+    write_if_changed(sandbox, USER_ENVIRONMENT, &environment).await?;
     // sshd refuses a host key readable by anyone but root, and StrictModes
     // requires authorized_keys and its directory to be owned by root or the
     // user and writable by no one else.
@@ -116,6 +154,7 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
             HOST_KEY,
             HOST_KEY_PUBLIC,
             AUTHORIZED_KEYS,
+            USER_ENVIRONMENT,
         ],
     )
     .await?;
@@ -123,7 +162,14 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
     run_checked(
         sandbox,
         "/usr/bin/sudo",
-        ["-n", "/bin/chmod", "0644", HOST_KEY_PUBLIC, AUTHORIZED_KEYS],
+        [
+            "-n",
+            "/bin/chmod",
+            "0644",
+            HOST_KEY_PUBLIC,
+            AUTHORIZED_KEYS,
+            USER_ENVIRONMENT,
+        ],
     )
     .await?;
     run_checked(
@@ -146,10 +192,15 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
 /// Returns an error when the state cannot be inspected, the server cannot be
 /// stopped, or the state cannot be removed.
 pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), Error> {
-    if !path_exists(sandbox, "-e", STATE_DIRECTORY).await? {
+    let state_exists = path_exists(sandbox, "-e", STATE_DIRECTORY).await?;
+    let environment_exists = path_exists(sandbox, "-e", USER_ENVIRONMENT).await?;
+    if !state_exists && !environment_exists {
         return Ok(());
     }
-    if path_exists(sandbox, "-x", SYSTEMCTL).await? && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await? {
+    if state_exists
+        && path_exists(sandbox, "-x", SYSTEMCTL).await?
+        && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await?
+    {
         wait_for_systemd(sandbox).await?;
         let args = ["-n", SYSTEMCTL, "disable", "--now", UNIT];
         let output = sandbox
@@ -169,7 +220,95 @@ pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), E
             )));
         }
     }
-    run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-rf", STATE_DIRECTORY]).await
+    if state_exists {
+        run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-rf", STATE_DIRECTORY]).await?;
+    }
+    if environment_exists {
+        run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-f", USER_ENVIRONMENT]).await?;
+    }
+    Ok(())
+}
+
+/// Captures the environment an ordinary Sandbox Execution inherits and renders
+/// it in OpenSSH's `~/.ssh/environment` format. SSH supplies identity and
+/// terminal variables itself; platform defaults fill the only values added by
+/// `agentctl exec` and Session launch rather than the Sandbox runtime.
+async fn capture_login_environment(sandbox: &SandboxHandle) -> Result<Vec<u8>, Error> {
+    let output = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new(ENVIRONMENT_PROGRAM),
+            ["-0".into()],
+        ))
+        .await?;
+    if !output.status.success() {
+        return Err(Error::SandboxSetup(format!(
+            "command `{ENVIRONMENT_PROGRAM} -0` exited with code {}: {}",
+            output.status.code,
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    let mut environment = parse_environment(&output.stdout)?;
+    environment.insert("LANG".into(), super::linux::UTF8_LOCALE.into());
+    environment.insert("CONTAINER_HOST".into(), super::linux::CONTAINER_HOST.into());
+    render_environment(&environment)
+}
+
+fn parse_environment(bytes: &[u8]) -> Result<BTreeMap<String, String>, Error> {
+    let mut environment = BTreeMap::new();
+    for entry in bytes.split(|byte| *byte == 0).filter(|entry| !entry.is_empty()) {
+        let text = std::str::from_utf8(entry)
+            .map_err(|_| Error::Invalid("the Sandbox environment contains a non-UTF-8 value".into()))?;
+        let (name, value) = text
+            .split_once('=')
+            .ok_or_else(|| Error::Invalid(format!("the Sandbox environment contains an invalid entry {text:?}")))?;
+        if !portable_name(name) {
+            return Err(Error::Invalid(format!(
+                "the Sandbox environment contains an invalid variable name {name:?}"
+            )));
+        }
+        if !ssh_supplies(name) {
+            environment.insert(name.into(), value.into());
+        }
+    }
+    Ok(environment)
+}
+
+fn render_environment(environment: &BTreeMap<String, String>) -> Result<Vec<u8>, Error> {
+    if environment.len() > MAX_ENVIRONMENT_ENTRIES {
+        return Err(Error::Invalid(format!(
+            "the Sandbox environment has {} entries; OpenSSH accepts at most {MAX_ENVIRONMENT_ENTRIES}",
+            environment.len()
+        )));
+    }
+    let mut rendered = String::new();
+    for (name, value) in environment {
+        if value.contains(['\n', '\r']) {
+            return Err(Error::Invalid(format!(
+                "Sandbox environment variable {name:?} contains a line break that OpenSSH cannot represent"
+            )));
+        }
+        rendered.push_str(name);
+        rendered.push('=');
+        rendered.push_str(value);
+        rendered.push('\n');
+    }
+    Ok(rendered.into_bytes())
+}
+
+fn portable_name(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .enumerate()
+            .all(|(index, byte)| byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit()))
+}
+
+fn ssh_supplies(name: &str) -> bool {
+    matches!(
+        name,
+        "HOME" | "LOGNAME" | "PWD" | "SHELL" | "SHLVL" | "TERM" | "USER" | "_"
+    ) || name.starts_with("SSH_")
+        || name.starts_with("AGENT_SESSION_")
 }
 
 /// Recognizes systemd's report that a unit file does not exist.
@@ -191,5 +330,39 @@ async fn path_exists(sandbox: &SandboxHandle, test: &str, path: &str) -> Result<
         code => Err(Error::SandboxSetup(format!(
             "presence check `test {test} {path}` exited with code {code}"
         ))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn ssh_environment_preserves_values_and_excludes_process_local_state() {
+        let parsed = super::parse_environment(
+            b"PATH=/usr/local/bin:/usr/bin\0GIT_USER_NAME=Agent #1 \"reviewer\"\0EMPTY=\0TERM=dumb\0HOME=/image-home\0AGENT_SESSION_ID=session\0",
+        )
+        .expect("environment");
+        assert_eq!(
+            parsed,
+            BTreeMap::from([
+                ("EMPTY".into(), String::new()),
+                ("GIT_USER_NAME".into(), "Agent #1 \"reviewer\"".into()),
+                ("PATH".into(), "/usr/local/bin:/usr/bin".into()),
+            ])
+        );
+        assert_eq!(
+            super::render_environment(&parsed).expect("rendered"),
+            b"EMPTY=\nGIT_USER_NAME=Agent #1 \"reviewer\"\nPATH=/usr/local/bin:/usr/bin\n"
+        );
+    }
+
+    #[test]
+    fn ssh_environment_rejects_values_openssh_cannot_represent() {
+        let environment = BTreeMap::from([("MULTILINE".into(), "one\ntwo".into())]);
+        let error = super::render_environment(&environment).expect_err("line break");
+        assert!(error.to_string().contains("line break"), "{error}");
     }
 }
