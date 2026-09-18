@@ -1,7 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces.Altinity;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
@@ -13,13 +15,16 @@ public class AiAssistantAccessService : IAiAssistantAccessService
     /// </summary>
     private static readonly string[] s_allowedServiceOwners = ["ttd", "nfk", "ssb", "dat", "brg", "staf", "ikta"];
 
-    private readonly IGiteaClient _giteaClient;
-    private readonly IUserOrganizationService _userOrganizationService;
+    /// <summary>
+    /// Gitea team a service owner adds developers to in order to grant them the assistant.
+    /// </summary>
+    private const string AssistantTeamName = "AiAssistant";
 
-    public AiAssistantAccessService(IGiteaClient giteaClient, IUserOrganizationService userOrganizationService)
+    private readonly IGiteaClient _giteaClient;
+
+    public AiAssistantAccessService(IGiteaClient giteaClient)
     {
         _giteaClient = giteaClient;
-        _userOrganizationService = userOrganizationService;
     }
 
     public async Task<string?> ResolveServiceOwnerAsync(string org, string app)
@@ -30,8 +35,8 @@ public class AiAssistantAccessService : IAiAssistantAccessService
             return null;
         }
 
-        bool isMember = await _userOrganizationService.UserIsMemberOfOrganization(serviceOwner);
-        return isMember ? serviceOwner : null;
+        bool isTeamMember = await IsMemberOfAssistantTeamAsync(serviceOwner);
+        return isTeamMember ? serviceOwner : null;
     }
 
     private async Task<string?> FindServiceOwnerAsync(string org, string app)
@@ -59,6 +64,18 @@ public class AiAssistantAccessService : IAiAssistantAccessService
 
         string parentOwner = repository.Parent.Owner.Login;
         return IsAllowedServiceOwner(parentOwner) ? parentOwner : null;
+    }
+
+    private async Task<bool> IsMemberOfAssistantTeamAsync(string serviceOwner)
+    {
+        List<Team> teams = await _giteaClient.GetTeams();
+        return teams.Any(team => IsAssistantTeamOf(team, serviceOwner));
+    }
+
+    private static bool IsAssistantTeamOf(Team team, string org)
+    {
+        return string.Equals(team.Organization?.Username, org, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(team.Name, AssistantTeamName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsAllowedServiceOwner(string? org)

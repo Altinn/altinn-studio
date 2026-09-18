@@ -105,6 +105,7 @@ xml
 yml
 
 # Identifiers and placeholders quoted verbatim in UI text
+aiassistant # the Gitea team that grants the Studio assistant
 applicationmetadata
 componentref
 deletionstrategy

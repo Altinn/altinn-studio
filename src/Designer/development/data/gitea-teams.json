@@ -130,5 +130,11 @@
     "permission": "write",
     "description": "Administrer publiserte apper i TT02",
     "includes_all_repositories": true
+  },
+  {
+    "name": "AiAssistant",
+    "permission": "read",
+    "description": "Developers allowed to use the Studio assistant",
+    "includes_all_repositories": true
   }
 ]
