@@ -1,18 +1,20 @@
 import type { ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
-import { StudioPageSpinner } from '@studio/components';
+import { Trans, useTranslation } from 'react-i18next';
+import {
+  StudioAlert,
+  StudioCenter,
+  StudioLink,
+  StudioPageSpinner,
+  StudioParagraph,
+} from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { useCanUseFeatureQuery } from '../../hooks/queries/useCanUseFeatureQuery';
-import { AssistantAccessDenied } from './components/AssistantAccessDenied';
 import { AssistantWorkspace } from './components/AssistantWorkspace';
 
 /**
- * During beta, access is restricted to selected service owners, and the backend
- * decides — see AiAssistantAccessService.
- *
- * The workspace mounts only once access is confirmed, so a denied developer
- * never opens a session against the agents service.
+ * During beta, access is restricted to selected service owners.
+ * Allowlist is set by AiAssistantAccessService in the backend.
  */
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
@@ -24,7 +26,18 @@ function AiAssistant(): ReactElement {
   }
 
   if (!data?.canUseFeature) {
-    return <AssistantAccessDenied />;
+    return (
+      <StudioCenter>
+        <StudioAlert>
+          <StudioParagraph>
+            <Trans
+              i18nKey='ai_assistant.access_denied'
+              components={{ a: <StudioLink href='/info/contact'> </StudioLink> }}
+            />
+          </StudioParagraph>
+        </StudioAlert>
+      </StudioCenter>
+    );
   }
 
   return <AssistantWorkspace />;

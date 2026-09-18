@@ -9,7 +9,7 @@ namespace Designer.Tests.Evaluators;
 
 public class CanUseAiAssistantEvaluatorTests
 {
-    private const string Org = "kari";
+    private const string Org = "ttd";
     private const string App = "test-app";
 
     private readonly Mock<IAiAssistantAccessService> _accessService = new();
