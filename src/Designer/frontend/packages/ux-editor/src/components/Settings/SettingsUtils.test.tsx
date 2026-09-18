@@ -15,6 +15,8 @@ import {
   SealCheckmarkIcon,
   TasklistIcon,
 } from '@studio/icons';
+import { bpmnTaskTypes } from 'app-shared/types/BpmnTaskType';
+import nb from '../../../../../language/src/nb.json';
 
 const layoutSetsMock = [
   { id: 'task1', dataType: null, type: '', taskType: 'data' },
@@ -33,6 +35,15 @@ describe('taskNavigationType', () => {
     expect(taskNavigationType('confirmation')).toBe('ux_editor.task_table_type.confirmation');
     expect(taskNavigationType(undefined)).toBe('ux_editor.task_table_type.unknown');
   });
+
+  // The key is built from the task type, so a new task type or a deleted translation fails here
+  // rather than surfacing as a raw key in the task navigation table.
+  it.each([...bpmnTaskTypes, TaskType.Receipt, undefined])(
+    'has a name in nb.json for the task type %p',
+    (taskType) => {
+      expect(nb).toHaveProperty([taskNavigationType(taskType)]);
+    },
+  );
 });
 
 describe('getTaskIcon', () => {

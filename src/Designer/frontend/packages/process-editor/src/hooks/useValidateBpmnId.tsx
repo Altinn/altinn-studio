@@ -1,4 +1,4 @@
-import { useTaskIds } from './useTaskIds';
+import { StudioModeler } from '../utils/bpmnModeler/StudioModeler';
 import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
@@ -7,7 +7,9 @@ import { StringUtils } from '@studio/pure-functions';
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
+  const otherElementIds = new StudioModeler()
+    .getAllElementIds()
+    .filter((id) => id !== bpmnDetails.id);
   const validateBpmnTaskId = (newId: string): string => {
     const errorMessages = {
       unique: t('process_editor.validation_error.id_not_unique'),
@@ -24,8 +26,8 @@ export const useValidateBpmnTaskId = () => {
     const validationRules = [
       {
         name: 'unique',
-        condition: otherTaskIds.some((taskId) =>
-          StringUtils.areCaseInsensitiveEqual(taskId, newId),
+        condition: otherElementIds.some((elementId) =>
+          StringUtils.areCaseInsensitiveEqual(elementId, newId),
         ),
       },
       { name: 'required', condition: newId.length === 0 },

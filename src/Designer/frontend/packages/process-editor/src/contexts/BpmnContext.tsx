@@ -1,17 +1,12 @@
 import type { MutableRefObject } from 'react';
 import React, { createContext, useContext, useRef, useState } from 'react';
-import { supportsProcessEditor } from '../utils/processEditorUtils';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { BpmnDetails } from '../types/BpmnDetails';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export type BpmnContextProps = {
   bpmnXml: string;
   modelerRef?: MutableRefObject<Modeler>;
   getUpdatedXml: () => Promise<string>;
-  isEditAllowed: boolean;
-  appVersion: AppVersion;
   bpmnDetails: BpmnDetails;
   setBpmnDetails: React.Dispatch<React.SetStateAction<BpmnDetails>>;
   isInitialized: boolean;
@@ -24,20 +19,11 @@ export const BpmnContext = createContext<Partial<BpmnContextProps>>(undefined);
 export type BpmnContextProviderProps = {
   children: React.ReactNode;
   bpmnXml: string | undefined | null;
-  appVersion: AppVersion;
 };
-export const BpmnContextProvider = ({
-  bpmnXml,
-  children,
-  appVersion,
-}: Partial<BpmnContextProviderProps>) => {
+export const BpmnContextProvider = ({ bpmnXml, children }: Partial<BpmnContextProviderProps>) => {
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [initialBpmnXml] = useState<string>(bpmnXml);
-
-  const isEditAllowed =
-    supportsProcessEditor(appVersion?.backendVersion ?? '') ||
-    shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck);
 
   const modelerRef = useRef<Modeler | null>(null);
 
@@ -59,8 +45,6 @@ export const BpmnContextProvider = ({
         bpmnXml,
         modelerRef,
         getUpdatedXml,
-        isEditAllowed,
-        appVersion,
         bpmnDetails,
         setBpmnDetails,
         isInitialized,

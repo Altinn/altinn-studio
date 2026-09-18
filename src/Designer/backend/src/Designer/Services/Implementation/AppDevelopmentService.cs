@@ -13,6 +13,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -368,14 +369,6 @@ public class AppDevelopmentService : IAppDevelopmentService
         throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
     }
 
-    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
-    {
-        return definitions
-                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
-                ?.ExtensionElements?.TaskExtension?.TaskType
-            ?? string.Empty;
-    }
-
     public async Task<LayoutSetsModel> GetLayoutSetsExtended(
         AltinnRepoEditingContext altinnRepoEditingContext,
         CancellationToken cancellationToken
@@ -403,7 +396,7 @@ public class AppDevelopmentService : IAppDevelopmentService
             string taskId = set.Tasks?[0];
             if (taskId != null)
             {
-                string taskType = TaskTypeFromDefinitions(definitions, taskId);
+                string taskType = definitions.Process.TaskTypeOf(taskId) ?? string.Empty;
                 layoutSetModel.Task = new TaskModel { Id = taskId, Type = taskType };
             }
             layoutSetsModel.Sets.Add(layoutSetModel);

@@ -204,7 +204,8 @@ export const PRECAUTIONARY_EXCLUDES = [
 
 /**
  * Where language files live, by shape. The coverage check runs these over
- * `git ls-files`; anything matched must be registered or in OUT_OF_SCOPE.
+ * every file the repository tracks; anything matched must be registered or
+ * in OUT_OF_SCOPE.
  * Inline triplets (constants.js, applicationmetadata.json outside these
  * patterns) cannot be found by glob — they are registry-maintained by hand.
  */

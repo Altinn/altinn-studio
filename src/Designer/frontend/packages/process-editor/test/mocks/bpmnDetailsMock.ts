@@ -6,12 +6,15 @@ import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 export const mockBpmnId: string = 'testTaskId';
 export const mockBpmnName: string = 'testTaskName';
 
+const taskExtensionType: string = 'altinn:TaskExtension';
+
 export const mockBpmnElementForDataTask: ModdleElement = {
   id: 'testElementId',
   businessObject: {
     extensionElements: {
       values: [
         {
+          $type: taskExtensionType,
           actions: {
             action: [
               {
@@ -43,6 +46,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 actions: confirmationActions,
               },
             ],
@@ -55,6 +59,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 actions: signingActions,
                 signatureConfig: {
                   signatureDataType: 'signatureInformation-1234',
@@ -71,6 +76,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 actions: paymentActions,
                 paymentConfig: {
                   paymentDataType: 'paymentInformation-1234',
@@ -87,6 +93,7 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           extensionElements: {
             values: [
               {
+                $type: taskExtensionType,
                 taskType: 'pdf',
                 pdfConfig: {},
               },
@@ -141,5 +148,47 @@ export const paymentActions = {
         action: 'confirm',
       },
     ],
+  },
+};
+
+export const mockSigneeStatesDataTypeId: string = 'signees-states-1234';
+export const mockSigningPdfDataTypeId: string = 'signatures-pdf-1234';
+
+export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [
+        {
+          $type: taskExtensionType,
+          actions: signingActions,
+          signatureConfig: {
+            signatureDataType: 'signatureInformation-1234',
+            dataTypesToSign: [],
+            signeeStatesDataTypeId: mockSigneeStatesDataTypeId,
+            signeeProviderId: '',
+            signingPdfDataType: mockSigningPdfDataTypeId,
+          },
+        },
+      ],
+    },
+  },
+};
+
+/** A signing task that generates a pdf without being user controlled. */
+export const mockBpmnElementForSigningTaskWithPdf: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [
+        {
+          $type: taskExtensionType,
+          actions: signingActions,
+          signatureConfig: {
+            signatureDataType: 'signatureInformation-1234',
+            dataTypesToSign: [],
+            signingPdfDataType: mockSigningPdfDataTypeId,
+          },
+        },
+      ],
+    },
   },
 };

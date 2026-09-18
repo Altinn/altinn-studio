@@ -1,390 +1,130 @@
-import type { AppVersion } from 'app-shared/types/AppVersion';
-import SupportedPaletteProviderModule from './SupportedPaletteProvider';
+import BpmnModdle from 'bpmn-moddle';
+import { SupportedPaletteProvider } from './SupportedPaletteProvider';
+import { altinnCustomTasks } from '../extensions/altinnCustomTasks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const SupportedPaletteProvider = SupportedPaletteProviderModule.supportedPaletteProvider[1] as any;
+jest.mock('app-shared/utils/generateRandomId', () => {
+  let counter = 0;
+  return { generateRandomId: () => String(++counter) };
+});
 
-const mockAppLibVersion = '8.9.0';
-const mockFrontendVersion = '4.25.2';
-const mockAppVersion: AppVersion = {
-  backendVersion: mockAppLibVersion,
-  frontendVersion: mockFrontendVersion,
-};
+const taskTypes = [
+  ['data', 'data', 'bpmn:Task'],
+  ['feedback', 'feedback', 'bpmn:Task'],
+  ['signing', 'signing', 'bpmn:Task'],
+  ['user-controlled-signing', 'signing', 'bpmn:Task'],
+  ['confirmation', 'confirmation', 'bpmn:Task'],
+  ['payment', 'payment', 'bpmn:Task'],
+  ['pdf', 'pdf', 'bpmn:ServiceTask'],
+  ['eformidling', 'eFormidling', 'bpmn:ServiceTask'],
+  ['subform-pdf', 'subformPdf', 'bpmn:ServiceTask'],
+  ['fiks-arkiv', 'fiksArkiv', 'bpmn:ServiceTask'],
+  ['custom-service', '', 'bpmn:ServiceTask'],
+];
 
 describe('SupportedPaletteProvider', () => {
-  let provider: any;
-  let mockBpmnFactory: any;
-  let mockCreate: any;
-  let mockElementFactory: any;
-  let mockPalette: any;
-  let mockModeling: any;
+  it('keeps supported BPMN entries and translates their labels', () => {
+    const { provider } = createProvider();
+    const result = provider.getPaletteEntries()({
+      'create.task': {},
+      'create.subprocess-expanded': {},
+      'create.start-event': { className: 'bpmn-icon-start-event-none' },
+      'create.end-event': {},
+      'create.exclusive-gateway': {},
+    });
 
-  beforeEach(() => {
-    mockBpmnFactory = {
-      create: jest.fn((type, props) => ({
-        $type: type,
-        ...props,
-      })),
-    };
+    expect(result['create.task']).toBeUndefined();
+    expect(result['create.subprocess-expanded']).toBeUndefined();
+    expect(result['create.start-event']).toEqual({
+      title: textMock('process_editor.palette_create_start_event'),
+      className: 'bpmn-icon-start-event-none',
+    });
+    expect(result['create.end-event'].title).toBe(
+      textMock('process_editor.palette_create_end_event'),
+    );
+    expect(result['create.exclusive-gateway']).toEqual({
+      title: textMock('process_editor.palette_create_exclusive_gateway'),
+      className: 'bpmn-icon-gateway-xor',
+    });
+    expect(Object.keys(result)).toHaveLength(taskTypes.length + 3);
+  });
 
-    mockCreate = {
-      start: jest.fn(),
-    };
+  it.each(taskTypes)(
+    'creates a configured %s task for both click and drag',
+    async (id, taskType, type) => {
+      const { provider, start, moddle } = createProvider();
+      const entry = provider.getPaletteEntries()({})[`create.altinn-${id}-task`];
 
-    mockElementFactory = {
-      createShape: jest.fn((config) => ({
-        type: config.type,
-        businessObject: config.businessObject,
-      })),
-    };
+      for (const action of ['click', 'dragstart']) {
+        const event = {};
+        entry.action[action](event);
+        const [receivedEvent, shape] = start.mock.lastCall;
+        expect(receivedEvent).toBe(event);
+        expect(shape.type).toBe(type);
+        const extension = shape.businessObject.extensionElements.values[0];
+        expect(extension.taskType).toBe(taskType);
+        // The configuration must belong to the shape handed to bpmn-js, not an unattached mock object.
+        const { xml } = await moddle.toXML(shape.businessObject);
+        expect(xml).toContain('<altinn:taskExtension>');
+        if (taskType) expect(xml).toContain(`<altinn:taskType>${taskType}</altinn:taskType>`);
+      }
+    },
+  );
 
-    mockPalette = {
-      registerProvider: jest.fn(),
-    };
+  it.each([
+    ['pdf', 'pdfConfig'],
+    ['eformidling', 'eFormidlingConfig'],
+    ['subform-pdf', 'subformPdfConfig'],
+  ])('seeds the %s configuration on each new task', (id, property) => {
+    const { provider, start } = createProvider();
+    const entry = provider.getPaletteEntries()({})[`create.altinn-${id}-task`];
+    entry.action.click({});
+    entry.action.click({});
+    const first = start.mock.calls[0][1].businessObject.extensionElements.values[0][property];
+    const second = start.mock.calls[1][1].businessObject.extensionElements.values[0][property];
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+    expect(first).not.toBe(second);
+  });
 
-    mockModeling = {
-      updateProperties: jest.fn(),
-    };
+  it('seeds signing actions and the delegated signing data types', () => {
+    const { provider, start } = createProvider();
+    provider.getPaletteEntries()({})['create.altinn-user-controlled-signing-task'].action.click({});
+    const extension = start.mock.lastCall[1].businessObject.extensionElements.values[0];
+    expect(extension.actions.action.map(({ action }) => action)).toEqual(['sign', 'reject']);
+    expect(extension.signatureConfig).toMatchObject({
+      signatureDataType: expect.stringMatching(/^user-controlled-signatures-/),
+      signeeStatesDataTypeId: expect.stringMatching(/^signees-states-/),
+      signingPdfDataType: expect.stringMatching(/^signatures-pdf-/),
+      signeeProviderId: '',
+      runDefaultValidator: { value: true },
+    });
+  });
 
-    provider = new SupportedPaletteProvider(
-      mockBpmnFactory,
-      mockCreate,
-      mockElementFactory,
-      mockPalette,
-      mockModeling,
-      mockAppVersion,
+  it('seeds payment actions and distinct data types for each new payment task', () => {
+    const { provider, start } = createProvider();
+    const entry = provider.getPaletteEntries()({})['create.altinn-payment-task'];
+    entry.action.click({});
+    entry.action.click({});
+    const first = start.mock.calls[0][1].businessObject.extensionElements.values[0];
+    const second = start.mock.calls[1][1].businessObject.extensionElements.values[0];
+    expect(first.actions.action.map(({ action }) => action)).toEqual(['pay', 'reject', 'confirm']);
+    expect(first.paymentConfig.paymentDataType).not.toBe(second.paymentConfig.paymentDataType);
+    expect(first.paymentConfig.paymentReceiptPdfDataType).not.toBe(
+      second.paymentConfig.paymentReceiptPdfDataType,
     );
   });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('constructor', () => {
-    it('should register provider with palette', () => {
-      expect(mockPalette.registerProvider).toHaveBeenCalledWith(provider);
-    });
-
-    it('should store dependencies', () => {
-      expect(provider.bpmnFactory).toBe(mockBpmnFactory);
-      expect(provider.create).toBe(mockCreate);
-      expect(provider.elementFactory).toBe(mockElementFactory);
-      expect(provider.modeling).toBe(mockModeling);
-      expect(provider.appVersion).toBe(mockAppVersion);
-    });
-  });
-
-  describe('getPaletteEntries', () => {
-    it('should return custom entries including PDF service task', () => {
-      const mockEntries = {
-        'create.task': {},
-        'create.subprocess-expanded': {},
-      };
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      expect(result['create.altinn-pdf-task']).toBeDefined();
-      expect(result['create.altinn-pdf-task'].group).toBe('activity');
-      expect(result['create.altinn-pdf-task'].className).toBe(
-        'bpmn-icon-task-generic bpmn-icon-pdf-task',
-      );
-      expect(result['create.altinn-pdf-task'].title).toBe(
-        textMock('process_editor.palette_create_pdf_service_task'),
-      );
-      expect(result['create.altinn-pdf-task'].action.click).toBeDefined();
-      expect(result['create.altinn-pdf-task'].action.dragstart).toBeDefined();
-    });
-
-    it('should remove unsupported entries from palette', () => {
-      const mockEntries = {
-        'create.task': {},
-        'create.subprocess-expanded': {},
-        'create.exclusive-gateway': {},
-      };
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      expect(result['create.task']).toBeUndefined();
-      expect(result['create.subprocess-expanded']).toBeUndefined();
-      expect(result['create.exclusive-gateway']).toBeDefined();
-    });
-
-    it('should include all custom Altinn task types', () => {
-      const mockEntries = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      expect(result['create.altinn-data-task']).toBeDefined();
-      expect(result['create.altinn-feedback-task']).toBeDefined();
-      expect(result['create.altinn-signing-task']).toBeDefined();
-      expect(result['create.altinn-user-controlled-signing-task']).toBeDefined();
-      expect(result['create.altinn-confirmation-task']).toBeDefined();
-      expect(result['create.altinn-payment-task']).toBeDefined();
-      expect(result['create.altinn-pdf-task']).toBeDefined();
-    });
-  });
-
-  describe('PDF service task creation', () => {
-    it('should create ServiceTask with pdf taskType', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockBpmnFactory.create).toHaveBeenCalledWith('bpmn:ServiceTask', {
-        name: 'Altinn pdf task',
-      });
-    });
-
-    it('should create shape with ServiceTask type', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockElementFactory.createShape).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'bpmn:ServiceTask',
-        }),
-      );
-    });
-
-    it('should create TaskExtension with pdf taskType and PdfConfig', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockBpmnFactory.create).toHaveBeenCalledWith('altinn:TaskExtension', {
-        taskType: 'pdf',
-        pdfConfig: expect.objectContaining({
-          $type: 'altinn:PdfConfig',
-        }),
-      });
-    });
-
-    it('should create PdfConfig', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockBpmnFactory.create).toHaveBeenCalledWith('altinn:PdfConfig');
-    });
-
-    it('should update properties with extension elements', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockModeling.updateProperties).toHaveBeenCalled();
-      const updateCall = mockModeling.updateProperties.mock.calls[0];
-      expect(updateCall[1].extensionElements).toBeDefined();
-      expect(updateCall[1].extensionElements.$type).toBe('bpmn:ExtensionElements');
-    });
-
-    it('should start creation with task and event', () => {
-      const mockEntries = {};
-      const mockEvent = { x: 100, y: 200 };
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockCreate.start).toHaveBeenCalledWith(mockEvent, expect.any(Object));
-    });
-
-    it('should handle dragstart action for PDF service task', () => {
-      const mockEntries = {};
-      const mockEvent = { x: 150, y: 250 };
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.dragstart(mockEvent);
-
-      expect(mockCreate.start).toHaveBeenCalledWith(mockEvent, expect.any(Object));
-    });
-  });
-
-  describe('_deleteUnsupportedEntries', () => {
-    it('should delete entries that are not in supportedEntries list', () => {
-      const entries = {
-        'create.task': {},
-        'create.subprocess-expanded': {},
-        'create.exclusive-gateway': {},
-        'create.start-event': {},
-        'create.end-event': {},
-      };
-
-      provider._deleteUnsupportedEntries(entries);
-
-      expect(entries['create.task']).toBeUndefined();
-      expect(entries['create.subprocess-expanded']).toBeUndefined();
-      expect(entries['create.exclusive-gateway']).toBeDefined();
-      expect(entries['create.start-event']).toBeDefined();
-      expect(entries['create.end-event']).toBeDefined();
-    });
-  });
-
-  describe('_getUnsupportedEntries', () => {
-    it('should return list of unsupported entries', () => {
-      const entries = {
-        'create.task': {},
-        'create.exclusive-gateway': {},
-        'create.start-event': {},
-      };
-
-      const unsupported = provider._getUnsupportedEntries(entries);
-
-      expect(unsupported).toContain('create.task');
-      expect(unsupported).not.toContain('create.exclusive-gateway');
-      expect(unsupported).not.toContain('create.start-event');
-    });
-  });
-
-  describe('_isUnsupportedEntry', () => {
-    it('should return true for unsupported entries', () => {
-      expect(provider._isUnsupportedEntry('create.task')).toBe(true);
-      expect(provider._isUnsupportedEntry('create.subprocess-expanded')).toBe(true);
-    });
-
-    it('should return false for supported entries', () => {
-      expect(provider._isUnsupportedEntry('create.exclusive-gateway')).toBe(false);
-      expect(provider._isUnsupportedEntry('create.start-event')).toBe(false);
-      expect(provider._isUnsupportedEntry('create.end-event')).toBe(false);
-    });
-  });
-
-  describe('comparison with other task types', () => {
-    it('should create PDF service task as ServiceTask while other tasks are Task type', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-data-task'].action.click(mockEvent);
-      const dataTaskCall = mockElementFactory.createShape.mock.calls[0];
-
-      mockElementFactory.createShape.mockClear();
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-      const pdfTaskCall = mockElementFactory.createShape.mock.calls[0];
-
-      expect(dataTaskCall[0].type).toBe('bpmn:Task');
-      expect(pdfTaskCall[0].type).toBe('bpmn:ServiceTask');
-    });
-
-    it('should create PDF task with PdfConfig while payment task has PaymentConfig', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-payment-task'].action.click(mockEvent);
-      const paymentConfigCalls = mockBpmnFactory.create.mock.calls.filter(
-        (call) => call[0] === 'altinn:PaymentConfig',
-      );
-
-      mockBpmnFactory.create.mockClear();
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-      const pdfConfigCalls = mockBpmnFactory.create.mock.calls.filter(
-        (call) => call[0] === 'altinn:PdfConfig',
-      );
-
-      expect(paymentConfigCalls.length).toBeGreaterThan(0);
-      expect(pdfConfigCalls.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('PDF service task version validation', () => {
-    it('should show alert and not create task when appLibVersion is below minimum', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
-      const providerWithOldAppLibVersion = new SupportedPaletteProvider(
-        mockBpmnFactory,
-        mockCreate,
-        mockElementFactory,
-        { registerProvider: jest.fn() },
-        mockModeling,
-        { backendVersion: '8.0.0', frontendVersion: mockFrontendVersion },
-      );
-
-      const paletteEntries = providerWithOldAppLibVersion.getPaletteEntries();
-      const result = paletteEntries({});
-
-      result['create.altinn-pdf-task'].action.click({});
-
-      expect(alertSpy).toHaveBeenCalledWith(
-        textMock('process_editor.palette_pdf_service_task_version_error', {
-          version: '8.9.0',
-        }),
-      );
-      expect(mockCreate.start).not.toHaveBeenCalled();
-
-      alertSpy.mockRestore();
-    });
-
-    it('should show alert and not create task when frontendVersion is below minimum', () => {
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
-
-      const providerWithOldFrontendVersion = new SupportedPaletteProvider(
-        mockBpmnFactory,
-        mockCreate,
-        mockElementFactory,
-        { registerProvider: jest.fn() },
-        mockModeling,
-        { backendVersion: mockAppLibVersion, frontendVersion: '4.0.0' },
-      );
-
-      const paletteEntries = providerWithOldFrontendVersion.getPaletteEntries();
-      const result = paletteEntries({});
-
-      result['create.altinn-pdf-task'].action.click({});
-
-      expect(alertSpy).toHaveBeenCalledWith(
-        textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
-          version: '4.25.2',
-        }),
-      );
-      expect(mockCreate.start).not.toHaveBeenCalled();
-
-      alertSpy.mockRestore();
-    });
-
-    it('should create task when both versions meet requirements', () => {
-      const mockEntries = {};
-      const mockEvent = {};
-
-      const paletteEntries = provider.getPaletteEntries();
-      const result = paletteEntries(mockEntries);
-
-      result['create.altinn-pdf-task'].action.click(mockEvent);
-
-      expect(mockCreate.start).toHaveBeenCalled();
-    });
-  });
 });
+
+function createProvider() {
+  const moddle = new BpmnModdle({ altinn: altinnCustomTasks });
+  const start = jest.fn();
+  const palette = { registerProvider: jest.fn() };
+  const provider = new SupportedPaletteProvider(
+    moddle,
+    { start },
+    { createShape: (shape: object) => shape },
+    palette,
+  );
+  return { provider, start, moddle };
+}

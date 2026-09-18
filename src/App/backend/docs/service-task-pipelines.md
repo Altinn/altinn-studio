@@ -31,6 +31,24 @@ The builder validates eagerly: a null delegate, invalid options, a mailbox handl
 handle answered twice, or a mailbox left unanswered at the terminal all throw from the composing call and
 fail **app startup**, not a callback days later.
 
+App startup also checks the other side of the same invariant, in `process.bpmn`. Every task there must
+carry a non-blank `<altinn:taskType>`, and that type must name something the app resolves: one of the
+built-in types (`data`, `confirmation`, `feedback`, `signing`, `payment`, `pdf`, `subformPdf`,
+`eFormidling`), a built-in you enabled with its own call (`fiksArkiv`, from `services.AddFiksArkiv()`), or
+an `IServiceTask` / `IPipelineServiceTask` / `IProcessTask` your app registered. A type that resolves to
+nothing would otherwise deploy quietly and strand the first instance to reach it — no work is scheduled,
+the process comes to rest on the task, and the advance that follows fails with an unexplained internal
+error — so the app refuses to start instead, naming every offending task, the type it declares, and the
+types that are registered.
+
+Two things about that check are worth knowing:
+
+- **Only the task type is read.** Whether a task is drawn as a `<bpmn:task>` or a `<bpmn:serviceTask>`
+  makes no difference, here or at runtime — a `<bpmn:serviceTask>` typed `data` is an ordinary data task,
+  and a `<bpmn:task>` typed `archive` is your `archive` service task.
+- **The type is matched exactly, including case.** `<altinn:taskType>PDF</altinn:taskType>` does not reach
+  a task whose `Type` is `pdf`.
+
 ## Stages: durability and idempotency
 
 Each stage runs as its own workflow-engine step, with its own retry budget, timeout, wait budget and

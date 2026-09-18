@@ -29,6 +29,7 @@ COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designe
 COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
+COPY src/Designer/frontend/packages/process-editor-v8/package.json ./src/Designer/frontend/packages/process-editor-v8/
 COPY src/Designer/frontend/packages/schema-editor/package.json ./src/Designer/frontend/packages/schema-editor/
 COPY src/Designer/frontend/packages/schema-model/package.json ./src/Designer/frontend/packages/schema-model/
 COPY src/Designer/frontend/packages/shared/package.json ./src/Designer/frontend/packages/shared/

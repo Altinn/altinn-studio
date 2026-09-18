@@ -10,6 +10,7 @@ import { StudioField } from '../StudioField';
 import { StudioLabel } from '../StudioLabel';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioValidationMessage } from '../StudioValidationMessage';
+import { useCommitPendingClear } from './useCommitPendingClear';
 import classes from './StudioSuggestion.module.css';
 
 export type StudioSuggestionProps = SuggestionProps &
@@ -23,7 +24,10 @@ export type StudioSuggestionProps = SuggestionProps &
   };
 
 function StudioSuggestion(
-  {
+  props: StudioSuggestionProps,
+  ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
+): ReactElement {
+  const {
     required,
     tagText,
     label,
@@ -34,10 +38,16 @@ function StudioSuggestion(
     error,
     placeholder,
     ...rest
-  }: StudioSuggestionProps,
-  ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
-): ReactElement {
+  } = props;
   const inputId = useId();
+  // Only a single select has a pending clear: a multiple select keeps its values as chips, and its
+  // input is empty whenever the user is not typing.
+  const singleSelectProps = props.multiple === true ? undefined : props;
+  const commitPendingClear = useCommitPendingClear({
+    hasSelection: Boolean(singleSelectProps?.selected),
+    onClear: () => singleSelectProps?.onSelectedChange?.(null),
+  });
+
   return (
     <StudioField className={className}>
       <StudioLabelWrapper required={required} tagText={tagText}>
@@ -46,7 +56,17 @@ function StudioSuggestion(
       {description && (
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
-      <Suggestion {...rest}>
+      <Suggestion
+        {...rest}
+        onBlur={(event) => {
+          rest.onBlur?.(event);
+          commitPendingClear.onBlur(event);
+        }}
+        onMouseDown={(event) => {
+          rest.onMouseDown?.(event);
+          commitPendingClear.onMouseDown();
+        }}
+      >
         <Suggestion.Input
           aria-label={label}
           id={inputId}

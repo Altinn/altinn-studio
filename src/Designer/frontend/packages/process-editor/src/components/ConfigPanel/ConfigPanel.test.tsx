@@ -76,6 +76,17 @@ describe('ConfigPanel', () => {
     expect(editTaskIdButton).toBeInTheDocument();
   });
 
+  it('should render the gateway config panel if bpmn type is ExclusiveGateway', () => {
+    renderConfigPanel({
+      bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.ExclusiveGateway },
+    });
+    expect(
+      screen.getByRole('textbox', {
+        name: textMock('process_editor.configuration_panel_gateway_connected_data_type_label'),
+      }),
+    ).toBeInTheDocument();
+  });
+
   it.each([
     {
       task: BpmnTypeEnum.Process,

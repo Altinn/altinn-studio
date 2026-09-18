@@ -1,157 +1,131 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ConfigSequenceFlow } from './ConfigSequenceFlow';
-import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
-import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
-import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
+import BpmnModdle from 'bpmn-moddle';
+import type Modeler from 'bpmn-js/lib/Modeler';
+import type { Connection } from 'bpmn-js/lib/model/Types';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
-import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
-import type { Element } from 'bpmn-js/lib/model/Types';
-
-jest.mock('../../../utils/bpmnModeler/BpmnExpressionModeler');
+import { BpmnTypeEnum } from '../../../enum/BpmnTypeEnum';
+import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 
 describe('ConfigSequenceFlow', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(jest.restoreAllMocks);
 
-  it('should render title for sequence flow configuration', () => {
-    renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
-    });
+  it('adds and removes a condition in the BPMN', async () => {
+    const user = userEvent.setup();
+    const { flow, moddle } = renderConfigSequenceFlow();
+    await user.click(getAddRuleButton());
 
-    expect(
-      screen.getByText(textMock('process_editor.sequence_flow_configuration_panel_title')),
-    ).toBeInTheDocument();
+    expect(JSON.parse(flow.businessObject.conditionExpression.body)).toEqual([
+      'equals',
+      ['gatewayAction'],
+      'reject',
+    ]);
+    expect((await moddle.toXML(flow.businessObject)).xml).toContain('bpmn:conditionExpression');
+
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    await user.click(screen.getByRole('button', { name: textMock('general.edit') }));
+    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
+    expect(flow.businessObject.conditionExpression).toBeUndefined();
+    expect(getAddRuleButton()).toBeInTheDocument();
   });
 
-  it('should hide add expression button', async () => {
+  it('preserves custom action names and saves manual edits without renaming the flow', async () => {
     const user = userEvent.setup();
+    const body = '["equals",["gatewayAction"],"archiveConfirmed"]';
+    const { flow } = renderConfigSequenceFlow(body);
+    await user.click(screen.getByRole('tab', { name: textMock('expression.manual') }));
+    const input = screen.getByRole('textbox', { name: textMock('expression') });
+    expect(JSON.parse((input as HTMLTextAreaElement).value)).toEqual(JSON.parse(body));
+    expect(flow.businessObject.conditionExpression.body).toBe(body);
 
-    renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
-    });
-
-    const addNewExpressionButton = screen.getByRole('button', {
-      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
-    });
-
-    await user.click(addNewExpressionButton);
-    expect(addNewExpressionButton).not.toBeInTheDocument();
+    await user.clear(input);
+    const edited = '["equals",["gatewayAction"],"anotherAction"]';
+    await user.paste(edited);
+    expect(JSON.parse(flow.businessObject.conditionExpression.body)).toEqual(JSON.parse(edited));
+    expect(flow.businessObject.name).toBe('Existing branch name');
   });
 
-  it('should display expression editor after add expression button is clicked', async () => {
+  it('refreshes the expression after a model change such as undo', async () => {
     const user = userEvent.setup();
-
-    renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
-    });
-
-    const addNewExpressionButton = screen.getByRole('button', {
-      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
-    });
-
-    await user.click(addNewExpressionButton);
-
-    const simplifiedEditor = screen.getByRole('tab', {
-      name: textMock('expression.simplified'),
-    });
-    expect(simplifiedEditor).toBeInTheDocument();
-  });
-
-  it('should save the default expression when add expression button is clicked', async () => {
-    const user = userEvent.setup();
-
-    const createExpressionElementMock = jest.fn();
-    const addChildElementToParentMock = jest.fn();
-    (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
-      createExpressionElement: createExpressionElementMock,
-      addChildElementToParent: addChildElementToParentMock,
-    }));
-
-    renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
-    });
-
-    const addNewExpressionButton = screen.getByRole('button', {
-      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
-    });
-
-    await user.click(addNewExpressionButton);
-
-    expect(createExpressionElementMock).toHaveBeenCalledWith(
-      JSON.stringify(['equals', ['gatewayAction'], 'reject']),
+    const { flow, notifyChange } = renderConfigSequenceFlow(
+      '["equals",["gatewayAction"],"reject"]',
     );
-    expect(addChildElementToParentMock).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('tab', { name: textMock('expression.manual') }));
+    const restored = '["notEquals",["gatewayAction"],"reject"]';
+    act(() => {
+      flow.businessObject.conditionExpression.body = restored;
+      notifyChange();
+    });
+    expect(JSON.parse((screen.getByRole('textbox') as HTMLTextAreaElement).value)).toEqual(
+      JSON.parse(restored),
+    );
   });
 
-  it('should save the expression when the save button is clicked', async () => {
-    const user = userEvent.setup();
-    renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
-    });
-
-    const addNewExpressionButton = screen.getByRole('button', {
-      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
-    });
-
-    await user.click(addNewExpressionButton);
-
-    const editButton = screen.getByRole('button', {
-      name: textMock('general.edit'),
-    });
-
-    await user.click(editButton);
-
-    const saveButton = screen.getByRole('button', { name: textMock('expression.saveAndClose') });
-
-    expect(saveButton).toBeInTheDocument();
-    await user.click(saveButton);
+  it('displays malformed JSON without discarding or replacing it', () => {
+    const body = '["equals",';
+    const { flow } = renderConfigSequenceFlow(body);
+    expect(screen.getByRole('textbox')).toHaveValue(body);
+    expect(screen.getByText(textMock('expression.invalidExpression'))).toBeInTheDocument();
+    expect(flow.businessObject.conditionExpression.body).toBe(body);
   });
 
-  it('should delete the expression when the delete button is clicked', async () => {
-    window.confirm = jest.fn(() => true);
-
-    const updateElementPropertiesMock = jest.fn();
-    (BpmnExpressionModeler as jest.Mock).mockImplementation(() => ({
-      updateElementProperties: updateElementPropertiesMock,
-      createExpressionElement: jest.fn(),
-      addChildElementToParent: jest.fn(),
-    }));
-
-    const user = userEvent.setup();
-
-    renderConfigSequenceFlow({
-      bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },
-    });
-
-    const addNewExpressionButton = screen.getByRole('button', {
-      name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
-    });
-
-    await user.click(addNewExpressionButton);
-
-    const editButton = screen.getByRole('button', {
-      name: textMock('general.edit'),
-    });
-
-    await user.click(editButton);
-
-    const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-    await user.click(deleteButton);
-
-    await waitFor(() => expect(updateElementPropertiesMock).toHaveBeenCalledTimes(1));
-    expect(updateElementPropertiesMock).toHaveBeenCalledTimes(1);
+  it('preserves a boolean false condition instead of treating it as an absent rule', () => {
+    const { flow } = renderConfigSequenceFlow('false');
+    expect(
+      screen.queryByRole('button', {
+        name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+      }),
+    ).not.toBeInTheDocument();
+    expect(flow.businessObject.conditionExpression.body).toBe('false');
   });
 });
 
-const renderConfigSequenceFlow = (rootContextProps: Partial<BpmnContextProps> = {}) => {
-  return render(
-    <BpmnContext.Provider value={{ ...rootContextProps }}>
-      <BpmnApiContextProvider>
-        <BpmnConfigPanelFormContextProvider>
-          <ConfigSequenceFlow />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnApiContextProvider>
-    </BpmnContext.Provider>,
-  );
-};
+function getAddRuleButton() {
+  return screen.getByRole('button', {
+    name: textMock('process_editor.sequence_flow_configuration_add_new_rule'),
+  });
+}
+
+function renderConfigSequenceFlow(body?: string) {
+  const moddle = new BpmnModdle();
+  const flow = {
+    id: 'Flow_1',
+    type: BpmnTypeEnum.SequenceFlow,
+    businessObject: moddle.create('bpmn:SequenceFlow', {
+      id: 'Flow_1',
+      name: 'Existing branch name',
+      conditionExpression:
+        body === undefined ? undefined : moddle.create('bpmn:FormalExpression', { body }),
+    }),
+  } as Connection;
+  const listeners = new Set<() => void>();
+  const notifyChange = () => listeners.forEach((listener) => listener());
+  const services = {
+    bpmnFactory: moddle,
+    modeling: {
+      updateProperties: (_element, properties) => {
+        Object.assign(flow.businessObject, properties);
+        notifyChange();
+      },
+    },
+  };
+  const modeler = {
+    get: (name: string) => services[name],
+    on: (_event: string, listener: () => void) => listeners.add(listener),
+    off: (_event: string, listener: () => void) => listeners.delete(listener),
+  } as unknown as Modeler;
+  renderWithProviders(<ConfigSequenceFlow />, {
+    bpmnContextProps: {
+      modelerRef: { current: modeler },
+      bpmnDetails: {
+        ...mockBpmnDetails,
+        id: flow.id,
+        type: BpmnTypeEnum.SequenceFlow,
+        element: flow,
+      },
+    },
+  });
+  return { flow, moddle, notifyChange };
+}

@@ -93,7 +93,8 @@ internal static class ServiceCollectionExtensions
         services.AddHostedService<WorkflowStepOptionsValidator>();
 
         // Fail fast at startup on invalid service-task pipelines (throwing/null Define, replaced
-        // forwarding default).
+        // forwarding default) and on a task in the process definition whose altinn:taskType is blank
+        // or resolves to no registered implementation.
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }

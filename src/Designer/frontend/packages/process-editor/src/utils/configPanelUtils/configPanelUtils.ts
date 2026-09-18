@@ -1,5 +1,6 @@
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { TaskUtils } from '../taskUtils';
 
 /**
  * Returns the title to show in the config panel when a task is selected.
@@ -7,8 +8,11 @@ import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
  * @returns the correct title key.
  *
  */
-export const getConfigTitleKey = (taskType: BpmnTaskType) => {
-  return `process_editor.configuration_panel_${taskType ?? 'missing'}_task`;
+export const getConfigTitleKey = (taskType: BpmnTaskType): string => {
+  if (!hasTaskType(taskType)) return 'process_editor.configuration_panel_missing_task';
+  if (!TaskUtils.isBuiltInTaskType(taskType))
+    return 'process_editor.configuration_panel_custom_service_task';
+  return `process_editor.configuration_panel_${taskType}_task`;
 };
 
 /**
@@ -16,9 +20,16 @@ export const getConfigTitleKey = (taskType: BpmnTaskType) => {
  * @param taskType the task type of the bpmn
  * @returns the correct helptext key
  */
-export const getConfigTitleHelpTextKey = (taskType: BpmnTaskType) => {
+export const getConfigTitleHelpTextKey = (taskType: BpmnTaskType): string => {
+  if (!hasTaskType(taskType)) return 'process_editor.configuration_panel_header_help_text_missing';
+  if (!TaskUtils.isBuiltInTaskType(taskType))
+    return 'process_editor.configuration_panel_header_help_text_custom_service_task';
   return `process_editor.configuration_panel_header_help_text_${taskType}`;
 };
+
+/** An empty task type is what the palette writes for a service task not yet named. */
+const hasTaskType = (taskType: BpmnTaskType): boolean =>
+  taskType !== null && taskType !== undefined;
 
 /**
  * Returns either error message based on the invalid character or undefined if no invalid characters are found.

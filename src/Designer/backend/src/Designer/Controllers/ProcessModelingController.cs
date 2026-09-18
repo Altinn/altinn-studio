@@ -91,6 +91,9 @@ public class ProcessModelingController : ControllerBase
             );
         }
 
+        // Published last so that handlers reading the saved process see the other files in their settled state.
+        await _mediator.Publish(new ProcessDefinitionSavedEvent { EditingContext = editingContext }, cancellationToken);
+
         return Accepted();
     }
 
@@ -128,7 +131,8 @@ public class ProcessModelingController : ControllerBase
         [FromRoute] string dataTypeId,
         [FromQuery] string taskId,
         CancellationToken cancellationToken,
-        [FromBody] List<string>? allowedContributors
+        [FromBody] List<string>? allowedContributors,
+        [FromQuery] List<string>? allowedContentTypes = null
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -138,6 +142,7 @@ public class ProcessModelingController : ControllerBase
             dataTypeId,
             taskId,
             allowedContributors,
+            allowedContentTypes,
             cancellationToken
         );
         return Ok();

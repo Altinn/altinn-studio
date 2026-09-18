@@ -287,7 +287,8 @@ services:
       POSTGRES_USER: designer_admin
       POSTGRES_DB: designerdb
     ports:
-      - '5432:5432'
+      # Host side only; set STUDIO_DB_PORT when 5432 is already taken, e.g. by a running localtest stack.
+      - '${STUDIO_DB_PORT:-5432}:5432'
     volumes:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data

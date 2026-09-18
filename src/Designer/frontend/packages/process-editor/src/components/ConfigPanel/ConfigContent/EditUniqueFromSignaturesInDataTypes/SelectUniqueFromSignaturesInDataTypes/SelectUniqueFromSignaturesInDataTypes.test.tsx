@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -16,14 +16,12 @@ import {
   createMock,
   updateModdlePropertiesMock,
 } from '../../../../../../test/mocks/bpmnModelerMock';
-import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import {
   getMockBpmnElementForTask,
   mockBpmnDetails,
 } from '../../../../../../test/mocks/bpmnDetailsMock';
 
-jest.useFakeTimers({ advanceTimers: true });
-createMock.mockImplementation(() => []);
+createMock.mockImplementation((_, properties) => properties);
 
 const existingDataTypes = [
   { id: 'dataType1', name: 'Name 1' },
@@ -40,7 +38,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 1',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType1' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType1' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -49,7 +53,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 2',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType2' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType2' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -58,7 +68,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 3',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType3' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType3' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -68,7 +84,7 @@ jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: jest.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -91,20 +107,23 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
   it('saves the new selection', async () => {
     const user = userEvent.setup();
 
-    renderSelectDataTypes(existingDataTypesProps);
+    const { unmount } = renderSelectDataTypes(existingDataTypesProps);
 
     const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
     });
     await user.click(suggestionInput);
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await user.click(
       screen.getByRole('option', { name: signingTasks[0].businessObject.name, hidden: true }),
     );
 
-    await waitFor(() => expect(createMock).toHaveBeenCalled());
-    expect(updateModdlePropertiesMock).toHaveBeenCalled();
+    unmount();
+    expect(updateModdlePropertiesMock).toHaveBeenCalledWith(
+      element,
+      element.businessObject.extensionElements.values[0].signatureConfig,
+      { uniqueFromSignaturesInDataTypes: { dataTypes: [{ dataType: 'dataType1' }] } },
+    );
   });
 
   it('calls onClose when clicking the close button', async () => {

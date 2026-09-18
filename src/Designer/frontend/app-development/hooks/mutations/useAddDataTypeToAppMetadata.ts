@@ -5,13 +5,26 @@ type AddDataTypeToAppMetadataMutation = {
   dataTypeId: string;
   taskId: string;
   allowedContributors?: Array<string>;
+  allowedContentTypes?: Array<string>;
 };
 
 export const useAddDataTypeToAppMetadata = (org: string, app: string) => {
   const { addDataTypeToAppMetadata } = useServicesContext();
 
   return useMutation({
-    mutationFn: ({ dataTypeId, taskId, allowedContributors }: AddDataTypeToAppMetadataMutation) =>
-      addDataTypeToAppMetadata(org, app, dataTypeId, taskId, allowedContributors),
+    mutationFn: ({
+      dataTypeId,
+      taskId,
+      allowedContributors,
+      allowedContentTypes,
+    }: AddDataTypeToAppMetadataMutation) =>
+      addDataTypeToAppMetadata(
+        org,
+        app,
+        dataTypeId,
+        taskId,
+        allowedContributors,
+        allowedContentTypes,
+      ),
   });
 };

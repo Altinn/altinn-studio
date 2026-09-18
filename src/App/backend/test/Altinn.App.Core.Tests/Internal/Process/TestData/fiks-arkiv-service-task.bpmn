@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A built-in task type an app opts into with a builder call rather than by writing an
+     implementation: drawn in Studio from the palette, with AddFiksArkiv() not (yet) called. -->
+<bpmn:definitions id="Altinn_FiksArkivServiceTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="FiksArkivServiceTaskProcess" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Fill in">
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:serviceTask id="Task_Arkiv" name="Fiks Arkiv">
+      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>fiksArkiv</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_Arkiv" />
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_Arkiv" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

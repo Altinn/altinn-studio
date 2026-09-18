@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -16,14 +16,12 @@ import {
   createMock,
   updateModdlePropertiesMock,
 } from '../../../../../../test/mocks/bpmnModelerMock';
-import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import {
   getMockBpmnElementForTask,
   mockBpmnDetails,
 } from '../../../../../../test/mocks/bpmnDetailsMock';
 
-jest.useFakeTimers({ advanceTimers: true });
-createMock.mockImplementation((_, data) => data.dataType);
+createMock.mockImplementation((_, data) => data);
 
 const defaultSelectDataTypeProps: SelectDataTypesToSignProps = {
   onClose: jest.fn(),
@@ -35,7 +33,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 1',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType1' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType1' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -44,7 +48,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 2',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType2' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType2' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -54,7 +64,7 @@ jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: jest.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -93,11 +103,13 @@ describe('SelectDataTypesToSign', () => {
     });
     await user.click(suggestionInput);
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await user.click(screen.getByRole('option', { name: availableDataTypeIds[2], hidden: true }));
 
-    await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
-    expect(updateModdlePropertiesMock).toHaveBeenCalledTimes(1);
+    expect(updateModdlePropertiesMock).toHaveBeenCalledWith(
+      element,
+      element.businessObject.extensionElements.values[0].signatureConfig,
+      { dataTypesToSign: { dataTypes: [{ dataType: availableDataTypeIds[2] }] } },
+    );
   });
 
   it('calls onClose when clicking the close button', async () => {

@@ -38,7 +38,6 @@
  *   --ci    a skipped check fails the run (implied by $CI)
  */
 
-import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -49,6 +48,7 @@ import {
   NORWEGIAN_SIGNAL_WORDS,
   REPO_ROOT,
   applyValueFix,
+  changedFiles,
   classifyFindings,
   compileKeyDeclarations,
   compileSuppressions,
@@ -316,7 +316,7 @@ function checkCoverage({ registry, root }) {
 
   for (const path of registered) {
     if (!tracked.includes(path)) {
-      findings.push(finding(path, undefined, 'registered in registry.mjs but not tracked by git'));
+      findings.push(finding(path, undefined, 'registered in registry.mjs but not tracked'));
     }
   }
 
@@ -674,13 +674,13 @@ async function checkNorwegian({
 
 /**
  * Fast feedback for the inner dev loop and the pre-commit hook: only the
- * given files (default: everything changed relative to HEAD, plus staged and
- * untracked), only the checks that can run instantly. The Norwegian pass
- * runs offline-only — it never fetches dictionaries here.
+ * given files (default: everything changed since the last commit, staged or
+ * not, plus new files), only the checks that can run instantly. The
+ * Norwegian pass runs offline-only — it never fetches dictionaries here.
  */
 async function checkQuick(ctx, fileArgs) {
   const root = ctx.root;
-  const files = (fileArgs.length > 0 ? fileArgs : gitChangedFiles(root))
+  const files = (fileArgs.length > 0 ? fileArgs : changedFiles(root))
     .map((f) => f.replace(/^\.\//, ''))
     .filter((f) => existsSync(join(root, f)));
   if (files.length === 0) {
@@ -749,23 +749,6 @@ async function checkQuick(ctx, fileArgs) {
       `${files.length} file(s), ${norwegian + data + pattern} classified, ${suppressedCount} suppressed` +
       (affected.length > 0 ? `, ${affected.length} language group(s)` : ''),
   };
-}
-
-function gitChangedFiles(root) {
-  const out = new Set();
-  for (const args of [
-    ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'],
-    ['ls-files', '-o', '--exclude-standard'],
-  ]) {
-    const res = spawnSync('git', args, {
-      cwd: root,
-      encoding: 'utf8',
-      maxBuffer: 16 * 1024 * 1024,
-    });
-    if (res.status !== 0) throw new HarnessError(`git ${args[0]} failed: ${res.stderr}`);
-    for (const f of res.stdout.split('\n').filter(Boolean)) out.add(f);
-  }
-  return [...out];
 }
 
 // -------------------------------------------------------------- self-test ---

@@ -54,16 +54,16 @@ describe('CustomReceiptContent', () => {
     });
 
     expect(
-      screen.queryByRole('textbox', {
-        name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      screen.queryByRole('button', {
+        name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
       }),
     ).not.toBeInTheDocument();
 
     await user.click(addButton);
 
     expect(
-      screen.getByRole('textbox', {
-        name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
       }),
     ).toBeInTheDocument();
   });
@@ -100,10 +100,10 @@ describe('CustomReceiptContent', () => {
       existingCustomReceiptLayoutSetId: 'testId',
     });
 
-    const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_delete_button'),
     });
-    expect(toggleableTextfieldButton).toBeInTheDocument();
+    expect(deleteButton).toBeInTheDocument();
   });
 });
 

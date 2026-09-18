@@ -17,6 +17,7 @@ bankid
 buypass
 commfides
 digdir
+eformidling
 entraid
 figma
 gitea

@@ -14,7 +14,6 @@ import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 
 const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets[0].id;
 const mockAllDataModelIds: string[] = [
@@ -26,9 +25,6 @@ const nameFieldLabel = textMock(
   'process_editor.configuration_panel_custom_receipt_textfield_label',
 );
 
-const legacyVersion: AppVersion = { backendVersion: '8.9.0', frontendVersion: '4.25.2' };
-const v9Version: AppVersion = { backendVersion: '9.0.0', frontendVersion: '4.25.2' };
-
 const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
   existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
@@ -38,20 +34,15 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 describe('CustomReceipt', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the editable name field for apps older than v9', () => {
-    renderCustomReceipt({ appVersion: legacyVersion });
-    expect(screen.getByRole('button', { name: nameFieldLabel })).toBeInTheDocument();
-  });
-
-  it('does not render the name field from v9, where the name is fixed to the task name', () => {
-    renderCustomReceipt({ appVersion: v9Version });
+  it('does not render a name field, because the name is fixed to the task name', () => {
+    renderCustomReceipt();
     expect(screen.queryByRole('button', { name: nameFieldLabel })).not.toBeInTheDocument();
   });
 
   it('calls "deleteLayoutSet" when clicking the delete button', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    renderCustomReceipt({ appVersion: v9Version });
+    renderCustomReceipt();
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_delete_button'),
@@ -66,7 +57,7 @@ describe('CustomReceipt', () => {
 
   it('calls "mutateDataTypes" when the data model id is changed', async () => {
     const user = userEvent.setup();
-    renderCustomReceipt({ appVersion: v9Version });
+    renderCustomReceipt();
 
     const propertyButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_model', {
@@ -79,6 +70,8 @@ describe('CustomReceipt', () => {
       name: /process_editor\.configuration_panel_set_data_model_label/,
     });
     const newOption: string = mockAllDataModelIds[1];
+    await user.click(combobox);
+    await user.clear(combobox);
     await user.type(combobox, newOption);
     const option = await screen.findByRole('option', { name: newOption, hidden: true });
     await user.click(option);
@@ -92,22 +85,16 @@ describe('CustomReceipt', () => {
 });
 
 type RenderProps = {
-  appVersion: AppVersion;
   bpmnApiContextProps: Partial<BpmnApiContextProps>;
 };
 
-const renderCustomReceipt = ({ appVersion, bpmnApiContextProps }: Partial<RenderProps> = {}) => {
+const renderCustomReceipt = ({ bpmnApiContextProps }: Partial<RenderProps> = {}) => {
   const queryClient = createQueryClientMock();
   return render(
     <TestAppRouter>
       <ServicesContextProvider {...queriesMock} client={queryClient}>
         <BpmnApiContext.Provider value={{ ...defaultBpmnApiContextProps, ...bpmnApiContextProps }}>
-          <BpmnContext.Provider
-            value={{
-              ...mockBpmnContextValue,
-              appVersion: appVersion ?? mockBpmnContextValue.appVersion,
-            }}
-          >
+          <BpmnContext.Provider value={mockBpmnContextValue}>
             <BpmnConfigPanelFormContextProvider>
               <CustomReceipt />
             </BpmnConfigPanelFormContextProvider>

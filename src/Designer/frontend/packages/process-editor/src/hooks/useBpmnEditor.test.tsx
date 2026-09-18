@@ -22,15 +22,8 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 
-// Test data:
-const appVersion: AppVersion = {
-  backendVersion: '8.0.0',
-  frontendVersion: '4.0.0',
-};
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
-  appVersion,
   bpmnXml: undefined,
 };
 const layoutSetId = 'someLayoutSetId';
@@ -76,7 +69,6 @@ const element: TaskEvent['element'] = {
 };
 const xml = '<testxml></testxml>';
 
-// Mocks:
 jest.mock('bpmn-js/lib/Modeler', () => jest.fn().mockImplementation(bpmnModelerImplementation));
 
 function bpmnModelerImplementation(): BpmnModeler {
@@ -123,6 +115,7 @@ type EventMap = {
   ['shape.added']: (taskEvent: TaskEvent) => void;
   ['shape.remove']: (taskEvent: TaskEvent) => void;
   ['selection.changed']: (selectionChangedEvent: SelectionChangedEvent) => void;
+  ['elements.changed']: (event: { elements: TaskEvent['element'][] }) => void;
 };
 
 describe('useBpmnEditor', () => {
@@ -184,6 +177,35 @@ describe('useBpmnEditor', () => {
     const { result } = await setupWithBpmnContext();
     act(() => eventListeners.triggerEvent('selection.changed', selectionChangedEvent));
     expect(result.current.bpmnContext.bpmnDetails).toBe(null);
+  });
+
+  it('refreshes the selected task after an edit or undo without requiring another selection', async () => {
+    const selectedElement = {
+      ...element,
+      businessObject: {
+        ...businessObject,
+        extensionElements: { values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }] },
+      },
+    };
+    const { result } = await setupWithBpmnContext();
+    act(() =>
+      eventListeners.triggerEvent('selection.changed', {
+        oldSelection: [],
+        newSelection: [selectedElement],
+      }),
+    );
+
+    for (const updatedTaskType of ['pdf', 'data']) {
+      act(() => {
+        selectedElement.businessObject.extensionElements.values[0].taskType = updatedTaskType;
+        selectedElement.businessObject.name = `${updatedTaskType} task`;
+        eventListeners.triggerEvent('elements.changed', { elements: [selectedElement] });
+      });
+      expect(result.current.bpmnContext.bpmnDetails).toMatchObject({
+        taskType: updatedTaskType,
+        name: `${updatedTaskType} task`,
+      });
+    }
   });
 
   it('Calls only the most recent saveBpmn function when the "commandStack.changed" event is triggered', async () => {

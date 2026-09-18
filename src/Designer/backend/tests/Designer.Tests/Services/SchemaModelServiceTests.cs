@@ -229,6 +229,53 @@ public class SchemaModelServiceTests
         }
     }
 
+    [Theory]
+    [InlineData("task")]
+    [InlineData("serviceTask")]
+    public async Task UpdateSchema_RecreatedV9DataType_RestoresTaskFromUiFolder(string elementName)
+    {
+        const string org = "ttd";
+        const string developer = "testUser";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+        _appVersionServiceMock.Setup(service => service.IsV9App(editingContext)).Returns(true);
+
+        await TestDataHelper.CopyRepositoryForTest(org, "hvem-er-hvem", developer, targetRepository);
+        try
+        {
+            var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+            await repository.WriteTextByRelativePathAsync(
+                "App/config/process/process.bpmn",
+                $"""
+                <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+                  <bpmn:process id="Process_1">
+                    <bpmn:{elementName} id="Task_1" />
+                  </bpmn:process>
+                </bpmn:definitions>
+                """,
+                true
+            );
+            await repository.WriteTextByRelativePathAsync(
+                "App/ui/Task_1/Settings.json",
+                """{"defaultDataType":"restored-model"}""",
+                true
+            );
+
+            await _schemaModelService.UpdateSchema(
+                editingContext,
+                "App/models/restored-model.schema.json",
+                """{"properties":{"rootType1":{"$ref":"#/definitions/rootType"}},"definitions":{"rootType":{"properties":{"keyword":{"type":"string"}}}}}"""
+            );
+
+            var metadata = await repository.GetApplicationMetadata();
+            Assert.Equal("Task_1", Assert.Single(metadata.DataTypes, type => type.Id == "restored-model").TaskId);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
     [Fact]
     public async Task UpdateSchema_ModelMetadataExistForModelInRepo_ShouldDeleteModelMetadata()
     {
