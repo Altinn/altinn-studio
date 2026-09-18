@@ -1,0 +1,7 @@
+{
+  "default": { "name": "Ukjent rom", "kapasitet": 0 },
+  "entries": {
+    "R101": { "name": "Møterom 101", "kapasitet": 12 },
+    "R202": { "name": "Møterom 202", "kapasitet": 40 }
+  }
+}
