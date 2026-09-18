@@ -912,17 +912,14 @@ internal static class V8Tov9Upgrade
                 return new RuleMigrationOutcome(ExitSuccess, new HashSet<string>(StringComparer.Ordinal));
             }
 
-            var mutationResults = new[]
-            {
-                OrganizationLookupLayoutMigration.Apply(workspace),
-                CamelCaseLayoutPropertyMigration.Apply(workspace),
-                DatepickerTimeStampMigrator.Apply(workspace),
-                HeadingLayoutMigration.Apply(workspace),
-                FileUploadWithTagLayoutMigration.Apply(workspace),
-                DatepickerFormatMigration.Apply(workspace),
-                GridXlMigration.Apply(workspace),
-                ShowBackButtonMigrator.Apply(workspace),
-            };
+            OrganizationLookupLayoutMigration.Apply(workspace);
+            CamelCaseLayoutPropertyMigration.Apply(workspace);
+            DatepickerTimeStampMigrator.Apply(workspace);
+            HeadingLayoutMigration.Apply(workspace);
+            FileUploadWithTagLayoutMigration.Apply(workspace);
+            DatepickerFormatMigration.Apply(workspace);
+            GridXlMigration.Apply(workspace);
+            ShowBackButtonMigrator.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
             foreach (var issue in workspace.Conflicts)
@@ -966,10 +963,6 @@ internal static class V8Tov9Upgrade
 
             await workspace.Save();
 
-            var structuralChanges =
-                mutationResults.Sum(static result => result.Changes)
-                + deprecatedResult.QueryParametersConverted
-                + deprecatedResult.SummaryBindingsConverted;
             var changedFiles = workspace.Documents.Count(static document => document.IsModified);
             if (changedFiles > 0)
             {
@@ -983,7 +976,7 @@ internal static class V8Tov9Upgrade
             foreach (var message in messages)
                 UpgradeConsole.Message(message.Status, message.Text);
 
-            if (structuralChanges == 0 && stats.TotalRules == 0 && messages.Count == 0)
+            if (changedFiles == 0 && stats.TotalRules == 0 && messages.Count == 0)
                 UpgradeConsole.Skip("No v9 layout changes found");
 
             var exitCode = messages.Any(static message => message.Status == UpgradeMessageStatus.Todo)
