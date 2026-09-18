@@ -74,7 +74,6 @@ internal sealed class PrimitiveRuleConverter(string parameterName)
                     throw new NotSupportedException("Compound assignment is not supported.");
                 var target = assignment.Left switch
                 {
-                    Identifier id when id.Name == parameterName => "obj",
                     Identifier id when _locals.ContainsKey(id.Name) => Local(id.Name),
                     MemberExpression { Object: Identifier obj, Property: Identifier key, Computed: false }
                         when obj.Name == parameterName => $"obj[{Quote(key.Name)}]",
