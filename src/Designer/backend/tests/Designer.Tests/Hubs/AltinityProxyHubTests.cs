@@ -32,7 +32,7 @@ public class AltinityProxyHubTests
 
     private readonly Mock<IChatService> _chatServiceMock = new();
     private readonly Mock<IAltinityWebSocketService> _webSocketServiceMock = new();
-    private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
+    private readonly Mock<IAiAssistantAccessService> _aiAssistantAccessServiceMock = new();
     private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
 
     [Fact]
@@ -129,11 +129,35 @@ public class AltinityProxyHubTests
     }
 
     [Fact]
+    public async Task StartWorkflow_ThrowsHubException_WhenDeveloperHasNoAssistantAccess()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupAssistantAccess(TestOrg, hasAccess: false);
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestOrg,
+                app = TestApp,
+            }
+        );
+
+        var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
+
+        Assert.Contains("Access denied", exception.Message);
+        Assert.Empty(_agentHttpHandler.Requests);
+    }
+
+    [Fact]
     public async Task StartWorkflow_ThrowsHubException_WhenRequestContextDoesNotOwnThread()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization("other-org")).ReturnsAsync(true);
+        SetupAssistantAccess("other-org", hasAccess: true);
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
@@ -164,7 +188,7 @@ public class AltinityProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(TestOrg)).ReturnsAsync(true);
+        SetupAssistantAccess(TestOrg, hasAccess: true);
         _apiKeyServiceMock
             .Setup(a =>
                 a.CreateAsync(
@@ -202,6 +226,11 @@ public class AltinityProxyHubTests
                 ),
             Times.Exactly(2)
         );
+    }
+
+    private void SetupAssistantAccess(string org, bool hasAccess)
+    {
+        _aiAssistantAccessServiceMock.Setup(s => s.HasAccessAsync(org)).ReturnsAsync(hasAccess);
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -250,7 +279,7 @@ public class AltinityProxyHubTests
             Options.Create(new AltinitySettings { AgentUrl = "http://test-path" }),
             Options.Create(new ServiceRepositorySettings { RepositoryBaseURL = "http://test-repos" }),
             _webSocketServiceMock.Object,
-            _userOrganizationServiceMock.Object,
+            _aiAssistantAccessServiceMock.Object,
             new AltinityAttachmentBuffer(),
             _apiKeyServiceMock.Object,
             _chatServiceMock.Object

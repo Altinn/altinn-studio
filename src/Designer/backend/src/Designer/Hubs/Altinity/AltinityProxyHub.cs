@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
-using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.Altinity;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -26,7 +25,7 @@ namespace Altinn.Studio.Designer.Hubs.Altinity;
 /// <summary>
 /// SignalR Hub for proxying Altinity agent communication with user authentication
 /// </summary>
-[Authorize(Policy = AltinnPolicy.MustHaveAiAssistantPermission)]
+[Authorize]
 public class AltinityProxyHub : Hub<IAltinityClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -37,7 +36,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly IAltinityWebSocketService _webSocketService;
     private readonly AltinityAttachmentBuffer _attachmentStore;
     private readonly IApiKeyService _apiKeyService;
-    private readonly IUserOrganizationService _userOrganizationService;
+    private readonly IAiAssistantAccessService _aiAssistantAccessService;
     private readonly IChatService _chatService;
 
     private static readonly ConcurrentDictionary<string, HashSet<string>> s_connectionToSessionIds = new();
@@ -49,7 +48,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         IOptions<AltinitySettings> altinitySettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAltinityWebSocketService webSocketService,
-        IUserOrganizationService userOrganizationService,
+        IAiAssistantAccessService aiAssistantAccessService,
         AltinityAttachmentBuffer attachmentStore,
         IApiKeyService apiKeyService,
         IChatService chatService
@@ -61,7 +60,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _altinitySettings = altinitySettings.Value;
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
-        _userOrganizationService = userOrganizationService;
+        _aiAssistantAccessService = aiAssistantAccessService;
         _attachmentStore = attachmentStore;
         _apiKeyService = apiKeyService;
         _chatService = chatService;
@@ -168,13 +167,6 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateConnectionOwnsSession(sessionId);
-        await ValidateOrgMembershipAsync(request, developer);
-
-        _logger.LogInformation(
-            "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
-            developer,
-            sessionId
-        );
 
         // Re-register session on the agents WS before starting. The editing context is
         // rebuilt from the start request, so re-verify thread ownership against it —
@@ -184,6 +176,14 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         string app = ExtractRequiredString(request, "app");
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
+
+        await ValidateAssistantAccessAsync(org, developer);
+
+        _logger.LogInformation(
+            "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
+            developer,
+            sessionId
+        );
 
         if (!Guid.TryParse(sessionId, out Guid threadId))
         {
@@ -299,16 +299,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         return value;
     }
 
-    private async Task ValidateOrgMembershipAsync(JsonElement request, string developer)
+    private async Task ValidateAssistantAccessAsync(string org, string developer)
     {
-        string? org = request.TryGetProperty("org", out var orgElement) ? orgElement.GetString() : null;
-
-        if (string.IsNullOrWhiteSpace(org))
-        {
-            throw new HubException("Missing org in request");
-        }
-
-        if (!await _userOrganizationService.UserIsMemberOfOrganization(org))
+        if (!await _aiAssistantAccessService.HasAccessAsync(org))
         {
             _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
             throw new HubException("Access denied");
