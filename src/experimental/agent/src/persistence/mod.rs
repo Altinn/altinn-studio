@@ -255,6 +255,28 @@ impl crate::sessions::SessionStore for Database {
         Box::pin(async move { self.request(|response| Command::ActivateSession { id, response }).await })
     }
 
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a crate::sessions::SessionName,
+    ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::MarkSessionDeleting {
+                agent: agent.into(),
+                name: name.clone(),
+                response,
+            })
+            .await
+        })
+    }
+
+    fn finalize_session_deletion(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::FinalizeSessionDeletion { id, response })
+                .await
+        })
+    }
+
     fn session_attach_target(
         &self,
         id: crate::sessions::SessionId,
@@ -547,6 +569,15 @@ enum Command {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<u64, Error>>,
     },
+    MarkSessionDeleting {
+        agent: String,
+        name: crate::sessions::SessionName,
+        response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
+    },
+    FinalizeSessionDeletion {
+        id: crate::sessions::SessionId,
+        response: oneshot::Sender<Result<(), Error>>,
+    },
     GetAttachTarget {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<crate::sessions::AttachTarget, Error>>,
@@ -601,6 +632,8 @@ impl Command {
             | Self::EnsureSession { .. }
             | Self::UpdateSessionLifecycle { .. }
             | Self::ActivateSession { .. }
+            | Self::MarkSessionDeleting { .. }
+            | Self::FinalizeSessionDeletion { .. }
             | Self::ClearSessionReport { .. }
             | Self::RecordSessionStartForLaunch { .. }
             | Self::ApplySessionActivityForLaunch { .. }
@@ -818,6 +851,12 @@ fn execute_session(connection: &mut Connection, command: Command) {
         }
         Command::ActivateSession { id, response } => {
             let _ = response.send(sessions::activate(connection, id));
+        }
+        Command::MarkSessionDeleting { agent, name, response } => {
+            let _ = response.send(sessions::mark_deleting(connection, &agent, &name));
+        }
+        Command::FinalizeSessionDeletion { id, response } => {
+            let _ = response.send(sessions::finalize_deletion(connection, id));
         }
         Command::GetAttachTarget { id, response } => {
             let _ = response.send(sessions::attach_target(connection, id));

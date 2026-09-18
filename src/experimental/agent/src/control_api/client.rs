@@ -9,10 +9,10 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
-    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, ProgressParams,
-    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams,
+    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
+    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -346,6 +346,26 @@ impl Client {
             },
         )
         .await
+    }
+
+    /// Requests release of one Session: its harness is stopped and the Session
+    /// is removed, freeing its name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing, or the release pass fails.
+    pub async fn delete_session(&self, agent: &str, name: sessions::SessionName) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_DELETE,
+                SessionParams {
+                    agent: agent.into(),
+                    name,
+                    harness: None,
+                },
+            )
+            .await?;
+        Ok(())
     }
 
     /// Lists tracked Sessions, optionally scoped to one Agent.

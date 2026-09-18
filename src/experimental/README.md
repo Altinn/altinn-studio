@@ -91,7 +91,10 @@ The selection is recorded with the Session, shown by `agentctl get sessions`, an
 resume, so a later manifest change affects only new Sessions and a model change made inside the harness lasts until
 the next relaunch. Detaching leaves a Session running. An inactive, unattached Session becomes Idle and is relaunched
 on the next ensure or attach, resuming the harness conversation when its native state still exists. Repeated
-unexpected harness exits use bounded backoff.
+unexpected harness exits use bounded backoff. Deleting one Session records the request, hides the Session from
+name lookups and listings, and leaves the Session controller to stop its harness before the Session is removed, so a
+Sandbox that cannot be reached yet delays the deletion instead of leaving a harness running untracked. The name is
+free for a new Session once that completes, and deleting an Agent still takes its Sessions with it.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.

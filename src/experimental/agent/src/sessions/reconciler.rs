@@ -53,6 +53,44 @@ impl Reconciler {
         }
     }
 
+    /// Stops the harness of a Session marked for release and then removes it.
+    ///
+    /// A Sandbox that is gone, unmaterialized or stopped took the harness
+    /// process with it, so there is nothing left to stop; anything else is an
+    /// error, and the Session stays marked until a later pass can release it.
+    async fn release(&self, session: &Session) -> Result<(), Error> {
+        if let Some(sandbox) = self.release_sandbox(session).await? {
+            self.runtime.stop(session, &sandbox).await?;
+        }
+        self.sessions.finalize_session_deletion(session.id).await
+    }
+
+    /// The Sandbox still holding this Session's harness, if one does.
+    async fn release_sandbox(&self, session: &Session) -> Result<Option<::sandbox::SandboxHandle>, Error> {
+        let agent = match self.sandboxes.agent(session.agent_id).await {
+            Ok(agent) => agent,
+            Err(Error::NotFound) => return Ok(None),
+            Err(error) => return Err(error),
+        };
+        if agent.agent.metadata.deletion_timestamp.is_some()
+            || !matches!(
+                agent.agent.status.sandbox,
+                Some(crate::sandbox::Assignment::Materialized { .. })
+            )
+        {
+            return Ok(None);
+        }
+        let sandbox = match self.sandboxes.open(&agent).await {
+            Ok(sandbox) => sandbox,
+            Err(Error::Sandbox(error)) if error.is_not_found() => return Ok(None),
+            Err(error) => return Err(error),
+        };
+        if sandbox.snapshot().state == ::sandbox::SandboxState::Stopped {
+            return Ok(None);
+        }
+        Ok(Some(sandbox))
+    }
+
     async fn converge(&self, session: &Session) -> Result<Lifecycle, Error> {
         if session.status.lifecycle.state == LifecycleState::Idle
             && session.activation_generation == session.observed_activation_generation
@@ -228,6 +266,9 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                 Err(Error::NotFound) => return Ok(()),
                 Err(error) => return Err(error),
             };
+            if session.is_deleting() {
+                return self.release(&session).await;
+            }
             match self.converge(&session).await {
                 Ok(lifecycle) => {
                     self.sessions

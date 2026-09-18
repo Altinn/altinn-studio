@@ -119,6 +119,13 @@ agentctl attach session/work
 
 Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
 
+Delete one Session when its work is done. The harness is stopped and its conversation is discarded, and the name
+becomes available again:
+
+```sh
+agentctl delete session/work
+```
+
 A new Session launches with the model and effort level declared by its harness installation's manifest `defaults`;
 the published manifests select Claude Code's `fable` alias. Choose differently for one Session, in the harness's own
 vocabulary; the choice is fixed for that Session:

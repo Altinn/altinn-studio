@@ -267,6 +267,7 @@ struct FakeRuntime {
     fail_observe_once: Cell<bool>,
     attached: Cell<bool>,
     stop_calls: Cell<usize>,
+    fail_stop_once: Cell<bool>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
     fail_transcript: Cell<bool>,
@@ -289,6 +290,7 @@ impl Default for FakeRuntime {
             fail_observe_once: Cell::new(false),
             attached: Cell::new(false),
             stop_calls: Cell::new(0),
+            fail_stop_once: Cell::new(false),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
             fail_transcript: Cell::new(false),
@@ -373,6 +375,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<(), Error>> {
         self.stop_calls.set(self.stop_calls.get() + 1);
+        if self.fail_stop_once.replace(false) {
+            return Box::pin(async { Err(Error::Session("injected stop failure".into())) });
+        }
         self.present.set(false);
         Box::pin(async { Ok(()) })
     }
@@ -2667,4 +2672,143 @@ async fn queued_deliveries_do_not_expire_and_remain_serialized() {
     second.await.expect("task").expect("second delivery");
     assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first", "second"]);
     harness.finish();
+}
+
+/// A Session marked for deletion is released by the Session controller: the
+/// harness is stopped first, and only a successful stop removes the Session.
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_stops_its_harness_before_the_session_is_removed() {
+    const TOKEN: &str = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    database
+        .mark_session_deleting("worker", &name)
+        .await
+        .expect("mark deleting");
+
+    runtime.fail_stop_once.set(true);
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect_err("a harness that cannot be stopped fails the release");
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("the Session survives a failed release")
+            .is_deleting(),
+        "the request survives so a later pass retries it"
+    );
+
+    reconciler.reconcile(session.id).await.expect("release");
+    assert_eq!(runtime.stop_calls.get(), 2);
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    assert!(database.list_all_sessions().await.expect("sessions").is_empty());
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect("reconciling a removed Session is a no-op");
+    assert_eq!(runtime.stop_calls.get(), 2);
+}
+
+/// Nothing is left to stop when the Sandbox that held the harness is gone, so
+/// the Session is removed without touching a Sandbox.
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_whose_sandbox_is_gone_still_removes_it() {
+    const TOKEN: &str = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let owner = database.get(session.agent_id).await.expect("Agent record");
+    database
+        .update_status(session.agent_id, owner.agent.metadata.generation, Status::default())
+        .await
+        .expect("Agent without a materialized Sandbox");
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+
+    database
+        .mark_session_deleting("worker", &SessionName::new("s1").expect("name"))
+        .await
+        .expect("mark deleting");
+    reconciler.reconcile(session.id).await.expect("release");
+
+    assert_eq!(runtime.stop_calls.get(), 0);
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+}
+
+/// `delete` hides the Session immediately and returns once the controller has
+/// released it, and the operations that address a Session by name stop finding it.
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_through_the_service_releases_it_and_hides_it_at_once() {
+    const TOKEN: &str = "abababab-abab-4bab-8bab-abababababab";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes));
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            sandboxes.clone(),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = agent::sessions::Service::new(
+        session_store.clone(),
+        sandboxes,
+        runtime.clone(),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        session_wakeup,
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    assert_eq!(service.list(None).await.expect("sessions").len(), 1);
+    service.delete("worker", &name).await.expect("delete Session");
+
+    assert_eq!(runtime.stop_calls.get(), 1, "the harness is stopped, not left running");
+    assert!(matches!(service.get("worker", &name).await, Err(Error::NotFound)));
+    assert!(service.list(None).await.expect("sessions").is_empty());
+    assert!(matches!(
+        service.turns("worker", &name, None).await,
+        Err(Error::NotFound)
+    ));
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    assert!(matches!(service.delete("worker", &name).await, Err(Error::NotFound)));
+
+    agent_task.abort();
+    session_task.abort();
 }

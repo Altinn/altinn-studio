@@ -258,6 +258,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.creating += 1;
                 spawn_create(home, inputs.clone(), agent, spec, replace);
             }
+            Action::DeleteSession { agent, session } => {
+                if let Err(error) = client.delete_session(&agent, session).await {
+                    app.error = Some(error.to_string());
+                }
+            }
             Action::DeleteForward { id } => forwards.remove(id),
             Action::Prompt(form) => {
                 app.prompting += 1;
