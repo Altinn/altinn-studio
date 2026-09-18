@@ -209,7 +209,8 @@ public sealed class LegacyRuleConversionTests
         );
         parser.Parse();
         var function = parser.GetDataProcessingFunction("calculate") ?? throw new InvalidOperationException();
-        Assert.Throws<NotSupportedException>(() => new PrimitiveRuleConverter("obj").Convert(function.FunctionAst!));
+        var ast = Assert.IsAssignableFrom<Acornima.Ast.IFunction>(function.FunctionAst);
+        Assert.Throws<NotSupportedException>(() => new PrimitiveRuleConverter("obj").Convert(ast));
     }
 
     private static async Task<object?> Execute(string body, Dictionary<string, object?> inputs, bool shared = false)
