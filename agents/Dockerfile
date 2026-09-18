@@ -136,7 +136,7 @@ RUN case "${TARGETARCH}" in \
     && agg --version
 
 ARG CODEX_VERSION=0.154.0
-ARG CLAUDE_CODE_VERSION=2.1.268
+ARG CLAUDE_CODE_VERSION=2.1.272
 
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
