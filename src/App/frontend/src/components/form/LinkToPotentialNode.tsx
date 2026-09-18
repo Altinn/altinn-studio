@@ -4,7 +4,7 @@ import type { LinkProps } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 
 type Props = LinkProps & { children?: React.ReactNode };
@@ -22,7 +22,7 @@ export const LinkToPotentialNode = (props: Props) => {
 
   const componentId = new URLSearchParams(searchParams).get(SearchParams.FocusComponentId);
   const { baseComponentId } = splitDashedKey(componentId ?? '');
-  const component = useExternalItem(baseComponentId);
+  const component = useComponentConfig(baseComponentId);
 
   const isHidden = useIsHidden(componentId ?? undefined);
   const shouldShowLink = componentId && !isHidden;

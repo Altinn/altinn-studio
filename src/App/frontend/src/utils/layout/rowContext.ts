@@ -1,6 +1,6 @@
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import type { CompExternal, CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';
+import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 export type RowContext = {
   groupBinding: IDataModelReference;
@@ -98,20 +98,6 @@ export function getIndexedDataModelBindings<T extends CompTypes = CompTypes>(
       clone[key] = getIndexedDataModelReference(target, rowContexts);
     }
   }
-
-  return clone;
-}
-
-export function getRuntimeIntermediateItem<T extends CompTypes>(
-  component: CompExternal<T>,
-  rowContexts: RowContext[],
-): CompIntermediate<T> {
-  const clone = { ...component } as CompIntermediate<T>;
-  if ('dataModelBindings' in clone && clone.dataModelBindings !== undefined) {
-    clone.dataModelBindings = getIndexedDataModelBindings(clone.dataModelBindings, rowContexts);
-  }
-
-  clone.id = applyRowContextToComponentId(clone.id, rowContexts);
 
   return clone;
 }

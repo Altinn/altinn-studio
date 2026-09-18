@@ -8,15 +8,15 @@ import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/S
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import classes from 'src/layout/Tabs/TabsSummary.module.css';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const TabsSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-  const { tabs } = useExternalItem(targetBaseComponentId, 'Tabs');
+  const config = useComponentConfig(targetBaseComponentId, 'Tabs');
   const canRender = useHasCapability('renderInTabs');
 
-  if (!tabs || tabs.length === 0) {
+  if (!config.tabs || config.tabs.length === 0) {
     return null;
   }
 
@@ -29,7 +29,7 @@ export const TabsSummary = ({ targetBaseComponentId }: Summary2Props) => {
         className={classes.summaryContent}
         data-testid='summary-tabs-component'
       >
-        {tabs.map((tab, index) => (
+        {config.tabs.map((tab, index) => (
           <div key={index}>
             {index != 0 && (
               <hr

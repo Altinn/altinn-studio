@@ -3,7 +3,7 @@ import React from 'react';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import classes from 'src/layout/Map/MapComponent.module.css';
 import { DefaultMapLayers } from 'src/layout/Map/utils';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
 interface MapAttributionProps {
   baseComponentId: string;
@@ -19,7 +19,7 @@ interface MapAttributionProps {
  * required by the OpenStreetMap/Kartverket licenses) with working links.
  */
 export function MapAttribution({ baseComponentId }: MapAttributionProps) {
-  const customLayers = useExternalItem(baseComponentId, 'Map').layers;
+  const customLayers = useComponentConfig(baseComponentId, 'Map').layers;
   const layers = customLayers ?? DefaultMapLayers;
 
   // Collect unique, non-empty attributions in layer order (mirrors how Leaflet dedupes them)

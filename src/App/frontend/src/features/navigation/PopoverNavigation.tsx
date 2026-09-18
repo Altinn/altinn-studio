@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { useBrowserWidth, useIsMobile } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { Button } from '@digdir/designsystemet-react';
 
-import { ExprVal } from 'src/features/expressions/types';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
@@ -30,11 +30,7 @@ export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
 
 function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
   const { navigationTitle: navigationTitleExpr } = usePageSettings();
-  const navigationTitle = useEvalExpression(navigationTitleExpr, {
-    returnType: ExprVal.String,
-    defaultValue: 'navigation.form_pages',
-    errorIntroText: 'Invalid expression for navigationTitle in Settings.json',
-  });
+  const navigationTitle = useEvalExpression(navigationTitleExpr, CommonExpressions.IPagesSettings.navigationTitle);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

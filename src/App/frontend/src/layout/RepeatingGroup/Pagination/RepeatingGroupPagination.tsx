@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { ConditionalWrapper, useIsMobile, useIsMobileOrTablet } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
@@ -16,7 +17,8 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 interface RepeatingGroupPaginationProps {
   inTable?: boolean;
@@ -40,7 +42,15 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const pagesWithErrors = usePagesWithErrors(rowsPerPage, baseComponentId);
   const isTablet = useIsMobileOrTablet();
   const isMobile = useIsMobile();
-  const textResourceBindings = useItemWhenType(baseComponentId, 'RepeatingGroup').textResourceBindings || {};
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+  const paginationNextButton = useEvalExpression(
+    config.textResourceBindings?.paginationNextButton,
+    Expressions.RepeatingGroup.textResourceBindings.paginationNextButton,
+  );
+  const paginationBackButton = useEvalExpression(
+    config.textResourceBindings?.paginationBackButton,
+    Expressions.RepeatingGroup.textResourceBindings.paginationBackButton,
+  );
   const indexedId = useIndexedId(baseComponentId);
   const getScrollPosition = useCallback(
     () => document.querySelector(`[data-pagination-id="${indexedId}"]`)?.getClientRects().item(0)?.y,
@@ -78,8 +88,12 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
       )}
     >
       <PaginationComponent
-        nextTextKey={textResourceBindings?.paginationNextButton ?? 'general.next'}
-        backTextKey={textResourceBindings?.paginationBackButton ?? 'general.back'}
+        nextTextKey={
+          config.textResourceBindings?.paginationNextButton === undefined ? 'general.next' : paginationNextButton
+        }
+        backTextKey={
+          config.textResourceBindings?.paginationBackButton === undefined ? 'general.back' : paginationBackButton
+        }
         data-pagination-id={indexedId}
         className={classes.pagination}
         currentPage={currentPage + 1}

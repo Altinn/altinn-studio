@@ -13,8 +13,9 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onGroupCloseValidation';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import type { CompInternal } from 'src/layout/layout';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import type { ExprResolved } from 'src/features/expressions/types';
+import type { CompExternal } from 'src/layout/layout';
 import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGroup/utils';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -125,7 +126,7 @@ type PaginationState =
  */
 function producePaginationState(
   currentPage: number | undefined,
-  pagination: CompInternal<'RepeatingGroup'>['pagination'],
+  pagination: ExprResolved<CompExternal<'RepeatingGroup'>>['pagination'],
   visibleRows: BaseRow[],
 ): PaginationState {
   if (typeof currentPage !== 'number' || !pagination) {
@@ -189,7 +190,7 @@ interface NewStoreProps {
   baseComponentId: string;
   getRows: () => RepGroupRowWithButtons[];
   editMode: IGroupEditProperties['mode'];
-  pagination: CompInternal<'RepeatingGroup'>['pagination'];
+  pagination: ExprResolved<CompExternal<'RepeatingGroup'>>['pagination'];
 }
 
 function newStore({ baseComponentId, getRows, editMode, pagination }: NewStoreProps) {
@@ -340,7 +341,7 @@ interface Props {
 }
 
 export function RepeatingGroupProvider({ baseComponentId, children }: PropsWithChildren<Props>) {
-  const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+  const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const pagination = component.pagination;
   const editMode = component.edit?.mode;
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
@@ -364,17 +365,17 @@ export const useRepeatingGroupComponentId = () => ZStore.useSelector((state) => 
 function useMaybeValidateRow() {
   const store = ZStore.useStore();
   const baseComponentId = useRepeatingGroupComponentId();
-  const { validateOnSaveRow } = useExternalItem(baseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const onGroupCloseValidation = useOnGroupCloseValidation();
   const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
 
   return () => {
     const { editingAll, editingId, editingNone } = store.getState();
     const row = produceStateFromRows(getRows() ?? []).editableRows.find((row) => row.uuid === editingId);
-    if (!validateOnSaveRow || editingAll || editingNone || editingId === undefined || !row) {
+    if (!config.validateOnSaveRow || editingAll || editingNone || editingId === undefined || !row) {
       return Promise.resolve(false);
     }
-    return onGroupCloseValidation(baseComponentId, row, validateOnSaveRow);
+    return onGroupCloseValidation(baseComponentId, row, config.validateOnSaveRow);
   };
 }
 
@@ -385,9 +386,9 @@ export const useRepeatingGroupRowState = () => {
 
 export const useRepeatingGroupPagination = () => {
   const nodeState = useRepeatingGroupRowState();
-  const { pagination } = useExternalItem(useRepeatingGroupComponentId(), 'RepeatingGroup');
+  const config = useComponentConfig(useRepeatingGroupComponentId(), 'RepeatingGroup');
   const currentPage = ZStore.useSelector((state) => state.currentPage);
-  return producePaginationState(currentPage, pagination, nodeState.visibleRows);
+  return producePaginationState(currentPage, config.pagination, nodeState.visibleRows);
 };
 
 export function useRepeatingGroupSelector<T>(selector: (state: Store) => T): T {
@@ -486,11 +487,11 @@ export const RepGroupContext = {
     const rawChangePage = ZStore.useStaticSelector((state) => state.changePage);
     const maybeValidateRow = useMaybeValidateRow();
 
-    const { pagination } = useExternalItem(baseComponentId, 'RepeatingGroup');
+    const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const getRows = RepGroupHooks.useGetFreshRowsWithButtons(baseComponentId);
     const getState = () => produceStateFromRows(getRows() ?? []);
     const getPaginationState = () =>
-      producePaginationState(store.getState().currentPage, pagination, getState().visibleRows);
+      producePaginationState(store.getState().currentPage, config.pagination, getState().visibleRows);
 
     return async (row: BaseRow) => {
       if (await maybeValidateRow()) {

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
@@ -13,10 +14,10 @@ import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden, useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { ITextResourceBindings } from 'src/layout/layout';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export function SummaryGroupComponent({
@@ -25,7 +26,18 @@ export function SummaryGroupComponent({
   targetBaseComponentId,
   overrides,
 }: SummaryRendererProps) {
-  const targetItem = useItemWhenType(targetBaseComponentId, 'Group');
+  const config = useComponentConfig(targetBaseComponentId, 'Group');
+  const componentId = useIndexedId(targetBaseComponentId);
+  const summaryAccessibleTitle = useEvalExpression(
+    config.textResourceBindings?.summaryAccessibleTitle,
+    Expressions.Group.textResourceBindings.summaryAccessibleTitle,
+  );
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Group.textResourceBindings.summaryTitle,
+  );
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Group.textResourceBindings.title);
+
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { langAsString } = useLanguage();
@@ -40,22 +52,35 @@ export function SummaryGroupComponent({
   const groupValidations = useDeepValidationsForNode(targetBaseComponentId);
   const groupHasErrors = hasValidationErrors(groupValidations);
 
-  const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
   const summaryAccessibleTitleTrb =
-    textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
-  const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
-  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+    config.textResourceBindings &&
+    'summaryAccessibleTitle' in config.textResourceBindings &&
+    config.textResourceBindings.summaryAccessibleTitle !== undefined
+      ? summaryAccessibleTitle
+      : undefined;
+  const summaryTitleTrb =
+    config.textResourceBindings &&
+    'summaryTitle' in config.textResourceBindings &&
+    config.textResourceBindings.summaryTitle !== undefined
+      ? summaryTitle
+      : undefined;
+  const titleTrb =
+    config.textResourceBindings &&
+    'title' in config.textResourceBindings &&
+    config.textResourceBindings.title !== undefined
+      ? title
+      : undefined;
   const ariaLabel = langAsString(summaryAccessibleTitleTrb ?? summaryTitleTrb ?? titleTrb);
-  const isHidden = useIsHiddenMulti(targetItem.children);
-  const children = targetItem.children.filter((id) => !inExcludedChildren(id) && !isHidden[id]);
+  const isHidden = useIsHiddenMulti(config.children);
+  const children = config.children.filter((id) => !inExcludedChildren(id) && !isHidden[id]);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
   const largeGroup = overrides?.largeGroup ?? false;
   if (largeGroup) {
     return (
       <GroupComponent
-        key={`summary-${targetItem.id}`}
-        id={`summary-${targetItem.id}`}
+        key={`summary-${componentId}`}
+        id={`summary-${componentId}`}
         baseComponentId={targetBaseComponentId}
         isSummary={true}
         renderLayoutComponent={(id) => (

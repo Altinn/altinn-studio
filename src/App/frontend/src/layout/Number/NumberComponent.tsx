@@ -1,37 +1,35 @@
 import React from 'react';
 
 import { DisplayNumber, getLabelId } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import classes from 'src/layout/Number/Number.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'Number'>) => {
-  const {
-    textResourceBindings,
-    value,
-    icon,
-    direction: _direction,
-    formatting,
-  } = useItemWhenType(baseComponentId, 'Number');
-  const direction = _direction ?? 'horizontal';
+  const config = useComponentConfig(baseComponentId, 'Number');
+  const value = useEvalExpression(config.value, Expressions.Number.value);
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Number.textResourceBindings.title);
+
+  const direction = config.direction ?? 'horizontal';
   const currentLanguage = useCurrentLanguage();
   const { langAsString } = useLanguage();
   const indexedId = useIndexedId(baseComponentId);
-
+  const resolvedFormatting = useResolvedFormatting(config.formatting);
   if (isNaN(value)) {
     return null;
   }
-
-  const numberFormatting = getMapToReactNumberConfig(formatting, value.toString(), currentLanguage);
-
-  if (!textResourceBindings?.title) {
+  const numberFormatting = getMapToReactNumberConfig(resolvedFormatting, value.toString(), currentLanguage);
+  if (!(config.textResourceBindings?.title === undefined ? undefined : title)) {
     return (
       <DisplayNumber
         value={value}
@@ -39,7 +37,6 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       />
     );
   }
-
   return (
     <ComponentStructureWrapper
       baseComponentId={baseComponentId}
@@ -55,8 +52,8 @@ export const NumberComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     >
       <DisplayNumber
         value={value}
-        iconUrl={icon}
-        iconAltText={langAsString(textResourceBindings.title)}
+        iconUrl={config.icon}
+        iconAltText={langAsString(config.textResourceBindings?.title === undefined ? undefined : title)}
         labelId={getLabelId(indexedId)}
         formatting={numberFormatting}
       />

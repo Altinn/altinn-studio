@@ -9,14 +9,14 @@ import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useIsHidden } from 'src/utils/layout/hidden';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
 type Row = Record<string, unknown>;
 
 interface Props {
-  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  baseComponentId: string;
   parent: RuntimeNodeParent;
   options: IOptionInternal[];
 }
@@ -24,13 +24,14 @@ interface Props {
 /**
  * This effect is responsible for setting the label/display value in the data model.
  */
-export function EffectStoreLabelInGroup({ item, parent, options }: Props) {
+export function EffectStoreLabelInGroup({ baseComponentId, parent, options }: Props) {
   const isHidden = useIsHidden(parent.baseId);
   const { langAsString } = useLanguage();
   const setLeafValue = FormStore.data.useSetLeafValue();
   const formDataSelector = FormStore.data.useCurrentSelector();
 
-  const bindings = item.dataModelBindings as IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
+  const bindings = useDataModelBindingsFor(baseComponentId) as
+    IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
 
   const groupBinding = bindings.group;
   const groupRows = FormStore.data.useDebouncedPick(groupBinding) as Row[];

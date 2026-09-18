@@ -6,7 +6,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation } from 'src/features/validation';
 
@@ -44,7 +44,7 @@ function AllComponentValidationsFor({ baseComponentId }: { baseComponentId: stri
 
 export function ComponentValidations({ validations, baseComponentId }: Props) {
   const indexedId = useIndexedId(baseComponentId);
-  const config = useExternalItem(baseComponentId);
+  const config = useComponentConfig(baseComponentId);
   const inputMaxLength = config.type === 'Input' || config.type === 'TextArea' ? config.maxLength : undefined;
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 

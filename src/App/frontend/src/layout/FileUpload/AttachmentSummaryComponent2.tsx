@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { useIsMobileOrTablet } from '@app/form-component';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/label/Label';
@@ -13,13 +14,31 @@ import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
   const attachments = useUploaderSummaryData(targetBaseComponentId);
-  const component = useItemWhenType<'FileUpload'>(targetBaseComponentId, (t) => t === 'FileUpload');
-  const hasTag = fileUploadHasTag(component);
+  const config = useComponentConfig<'FileUpload'>(targetBaseComponentId, (t) => t === 'FileUpload');
+  const summaryTitle = useEvalExpression(
+    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
+      ? config.textResourceBindings.summaryTitle
+      : undefined,
+    CommonExpressions.TRBSummarizable.summaryTitle,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+
+  const minNumberOfAttachments = useEvalExpression(
+    config.minNumberOfAttachments,
+    Expressions.FileUpload.minNumberOfAttachments,
+  );
+  const hasTag = fileUploadHasTag(config);
   const { options, isFetching } = useOptionsFor(targetBaseComponentId, 'single');
   const mobileView = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();
@@ -33,7 +52,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
     return attachment.data.tags && attachment.data.tags?.length > 0;
   });
   const isEmpty = filteredAttachments.length === 0;
-  const required = component.minNumberOfAttachments > 0;
+  const required = minNumberOfAttachments > 0;
 
   return (
     <SummaryFlex
@@ -49,7 +68,9 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
       <div className={classes.summaryHeader}>
         <Label
           textResourceBindings={{
-            title: component.textResourceBindings?.summaryTitle || component.textResourceBindings?.title,
+            title:
+              (config.textResourceBindings?.summaryTitle === undefined ? undefined : summaryTitle) ||
+              (config.textResourceBindings?.title === undefined ? undefined : title),
           }}
           baseComponentId={targetBaseComponentId}
           overrideId={`attachment-summary2-${targetBaseComponentId}`}
