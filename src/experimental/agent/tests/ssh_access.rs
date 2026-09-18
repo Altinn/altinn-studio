@@ -2,7 +2,7 @@
 
 mod support;
 
-use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
+use std::{path::PathBuf, rc::Rc};
 
 use agent::{
     AccessSpec, AgentId, Error, FailureKind, ReconcileFailure,
@@ -35,8 +35,48 @@ fn is_server_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-x", "/usr/sbin/sshd"])
 }
 
-fn is_unit_check(spec: &ExecutionSpec) -> bool {
-    is_command(spec, "/usr/bin/test", &["-f", "/etc/systemd/system/agent-ssh.service"])
+fn is_systemctl_check(spec: &ExecutionSpec) -> bool {
+    is_command(spec, "/usr/bin/test", &["-x", "/usr/bin/systemctl"])
+}
+
+fn is_environment_policy_check(spec: &ExecutionSpec) -> bool {
+    is_command(
+        spec,
+        "/usr/bin/sudo",
+        &[
+            "-n",
+            "/usr/sbin/sshd",
+            "-T",
+            "-f",
+            "/var/lib/agent/ssh/sshd_config",
+            "-C",
+            "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+        ],
+    )
+}
+
+fn is_environment_snapshot(spec: &ExecutionSpec) -> bool {
+    is_command(spec, "/usr/bin/env", &["-0"])
+}
+
+fn is_runtime_directory_install(spec: &ExecutionSpec) -> bool {
+    is_command(
+        spec,
+        "/usr/bin/sudo",
+        &[
+            "-n",
+            "/usr/bin/install",
+            "-d",
+            "-m",
+            "0755",
+            "-o",
+            "root",
+            "-g",
+            "root",
+            "/var/lib/agent/ssh",
+            "/run/sshd",
+        ],
+    )
 }
 
 fn is_systemd_running_check(spec: &ExecutionSpec) -> bool {
@@ -62,6 +102,22 @@ fn exited(code: i32) -> Vec<ExecutionEvent> {
     ]
 }
 
+fn environment(contents: &'static [u8]) -> Vec<ExecutionEvent> {
+    vec![
+        ExecutionEvent::Started { process_id: None },
+        ExecutionEvent::Stdout(contents.into()),
+        ExecutionEvent::Exited(ExitStatus { code: 0 }),
+    ]
+}
+
+fn valid_environment_policy() -> Vec<ExecutionEvent> {
+    environment(b"permituserenvironment yes\nusepam no\n")
+}
+
+fn queue_valid_environment_policy(backend: &memory::Provider) {
+    backend.queue_execution_events_matching(is_environment_policy_check, valid_environment_policy());
+}
+
 fn count_sudo(backend: &memory::Provider, expected: &[&str]) -> usize {
     backend
         .execution_specs()
@@ -70,11 +126,52 @@ fn count_sudo(backend: &memory::Provider, expected: &[&str]) -> usize {
         .count()
 }
 
+fn assert_service_reconciled_idempotently(backend: &memory::Provider) {
+    assert_eq!(
+        count_sudo(backend, &["-n", "/usr/bin/systemctl", "enable", "agent-ssh.service"]),
+        2
+    );
+    assert_eq!(
+        count_sudo(backend, &["-n", "/usr/bin/systemctl", "restart", "agent-ssh.service"]),
+        1
+    );
+    assert_eq!(
+        count_sudo(backend, &["-n", "/usr/bin/systemctl", "start", "agent-ssh.service"]),
+        1
+    );
+}
+
+fn assert_runtime_created_before_policy(backend: &memory::Provider) {
+    let executions = backend.execution_specs();
+    let runtime_directory = executions
+        .iter()
+        .position(is_runtime_directory_install)
+        .expect("OpenSSH runtime directory install");
+    let policy_validation = executions
+        .iter()
+        .position(is_environment_policy_check)
+        .expect("effective-policy validation");
+    assert!(
+        runtime_directory < policy_validation,
+        "OpenSSH's runtime directory exists before policy validation"
+    );
+}
+
 async fn read_guest_file(sandbox: &SandboxHandle, path: &str) -> Option<Vec<u8>> {
     let mut reader = sandbox.read_file(&SandboxPath::new(path)).await.ok()?;
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes).await.expect("guest file bytes");
     Some(bytes)
+}
+
+async fn assert_guest_environment(sandbox: &SandboxHandle) {
+    assert_eq!(
+        read_guest_file(sandbox, "/home/agent/.ssh/environment").await,
+        Some(
+            b"CONTAINER_HOST=unix:///run/podman/podman.sock\nGIT_USER_NAME=Agent #1 \"Reviewer\"\nLANG=C.UTF-8\nNODE_EXTRA_CA_CERTS=/.msb/tls/ca.pem\nPATH=/home/agent/.cargo/bin:/usr/local/go/bin:/usr/bin\n"
+                .to_vec()
+        )
+    );
 }
 
 fn record(name: &str, id: &str, ssh: bool) -> AgentRecord {
@@ -165,9 +262,17 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         fixture
             .backend
             .queue_execution_events_matching(is_server_check, exited(0));
+        queue_valid_environment_policy(&fixture.backend);
+        fixture.backend.queue_execution_events_matching(
+            is_environment_snapshot,
+            environment(
+                b"PATH=/home/agent/.cargo/bin:/usr/local/go/bin:/usr/bin\0NODE_EXTRA_CA_CERTS=/.msb/tls/ca.pem\0GIT_USER_NAME=Agent #1 \"Reviewer\"\0TERM=dumb\0HOME=/image-home\0",
+            ),
+        );
     }
 
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("first pass"));
+    assert_runtime_created_before_policy(&fixture.backend);
     let host_key = read_guest_file(&sandbox, "/var/lib/agent/ssh/ssh_host_ed25519_key")
         .await
         .expect("host key in guest");
@@ -186,6 +291,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
     assert!(client_private.starts_with("-----BEGIN OPENSSH PRIVATE KEY-----"));
     assert_ne!(host_key, client_private.as_bytes(), "host and client keys differ");
     assert_eq!(authorized, client_public.as_bytes());
+    assert_guest_environment(&sandbox).await;
     assert!(client_public.starts_with("ssh-ed25519 AAAA"));
     let host_public = String::from_utf8(host_public).expect("UTF-8 public key");
     assert_eq!(
@@ -226,13 +332,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         "the incarnation keeps its client key"
     );
     assert_eq!(fixture.known_hosts().lines().count(), 2);
-    assert_eq!(
-        count_sudo(
-            &fixture.backend,
-            &["-n", "/usr/bin/systemctl", "enable", "--now", "agent-ssh.service"]
-        ),
-        2
-    );
+    assert_service_reconciled_idempotently(&fixture.backend);
     assert_eq!(
         count_sudo(
             &fixture.backend,
@@ -244,6 +344,9 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         "/var/lib/agent/ssh/ssh_host_ed25519_key",
         "/var/lib/agent/ssh/ssh_host_ed25519_key.pub",
         "/var/lib/agent/ssh/authorized_keys",
+        "/var/lib/agent/ssh/sshd_config",
+        "/etc/systemd/system/agent-ssh.service",
+        "/home/agent/.ssh/environment",
     ];
     for path in guest_files {
         let contents = read_guest_file(&sandbox, path).await.expect("guest file");
@@ -284,12 +387,9 @@ async fn an_image_without_a_server_fails_permanently_before_any_key_exists() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn an_image_without_the_unit_or_systemd_fails_permanently() {
+async fn an_image_without_systemd_support_fails_permanently() {
     for (predicate, expected) in [
-        (
-            is_unit_check as fn(&ExecutionSpec) -> bool,
-            "agent-ssh.service unit is missing",
-        ),
+        (is_systemctl_check as fn(&ExecutionSpec) -> bool, "systemctl is missing"),
         (is_systemd_running_check, "systemd is not the running init"),
     ] {
         let fixture = Fixture::new();
@@ -312,11 +412,58 @@ async fn an_image_without_the_unit_or_systemd_fails_permanently() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn an_image_that_blocks_the_managed_environment_fails_permanently() {
+    for response in [environment(b"permituserenvironment yes\nusepam yes\n"), exited(1)] {
+        let fixture = Fixture::new();
+        let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+        fixture.store(&record, 0).await;
+        let sandbox = fixture.sandbox(&record).await;
+        fixture
+            .backend
+            .queue_execution_events_matching(is_environment_policy_check, response);
+
+        let error = fixture
+            .access
+            .reconcile(&record, &sandbox)
+            .await
+            .expect_err("environment policy");
+        assert!(
+            matches!(&error, Error::Invalid(message) if message.contains("cannot provide SSH access")),
+            "{error}"
+        );
+        assert!(
+            fixture.keys.contains(record.id),
+            "the real host key is retained for retry"
+        );
+        assert!(
+            read_guest_file(&sandbox, "/var/lib/agent/ssh/ssh_host_ed25519_key")
+                .await
+                .is_some(),
+            "the effective policy is evaluated with the real host key"
+        );
+        assert!(
+            read_guest_file(&sandbox, "/var/lib/agent/ssh/authorized_keys")
+                .await
+                .is_none(),
+            "login state is not installed before the policy passes"
+        );
+        assert_eq!(
+            count_sudo(
+                &fixture.backend,
+                &["-n", "/usr/bin/systemctl", "enable", "agent-ssh.service"]
+            ),
+            0
+        );
+    }
+}
+
+#[tokio::test(flavor = "local")]
 async fn a_failed_server_stop_keeps_the_state_for_the_next_pass() {
     let fixture = Fixture::new();
     let mut record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
     fixture.store(&record, 0).await;
     let sandbox = fixture.sandbox(&record).await;
+    queue_valid_environment_policy(&fixture.backend);
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
 
     let known_hosts_before = fixture.known_hosts();
@@ -406,6 +553,7 @@ async fn withdrawing_access_removes_guest_and_host_state() {
     fixture
         .backend
         .queue_execution_events_matching(is_server_check, exited(0));
+    queue_valid_environment_policy(&fixture.backend);
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
 
     record.agent.spec.access.clear();
@@ -461,6 +609,7 @@ async fn deletion_removes_host_material_and_config_lists_only_active_ssh_agents(
     fixture
         .backend
         .queue_execution_events_matching(is_server_check, exited(0));
+    queue_valid_environment_policy(&fixture.backend);
     assert!(fixture.access.reconcile(&worker, &sandbox).await.expect("grant"));
 
     let aliases = fixture
@@ -519,71 +668,31 @@ fn repository_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..")
 }
 
-fn sshd_directives(text: &str) -> BTreeMap<String, Vec<String>> {
-    let mut directives = BTreeMap::<String, Vec<String>>::new();
-    for line in text.lines().map(str::trim) {
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let (key, value) = line.split_once(char::is_whitespace).expect("directive with a value");
-        directives
-            .entry(key.to_owned())
-            .or_default()
-            .push(value.trim().to_owned());
-    }
-    directives
-}
-
 #[test]
-fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
+fn images_supply_ssh_prerequisites_without_owning_platform_policy() {
     let root = repository_root();
     let published = root.join("agents/common");
     let self_dev = root.join("src/experimental/agent/examples/self-dev");
 
-    let config = std::fs::read_to_string(published.join("sshd_config")).expect("sshd_config");
-    let directives = sshd_directives(&config);
-    let single = |key: &str| {
-        let values = directives.get(key).unwrap_or_else(|| panic!("{key} is set"));
-        assert_eq!(values.len(), 1, "{key} is set once");
-        values[0].as_str()
-    };
-    assert_eq!(single("ListenAddress"), "127.0.0.1");
-    assert_eq!(single("Port"), ssh::GUEST_PORT.to_string());
-    assert_eq!(single("PubkeyAuthentication"), "yes");
-    assert_eq!(single("PasswordAuthentication"), "no");
-    assert_eq!(single("KbdInteractiveAuthentication"), "no");
-    assert_eq!(single("PermitRootLogin"), "no");
-    assert_eq!(single("AllowUsers"), ssh::GUEST_USER);
-    assert_eq!(single("AllowAgentForwarding"), "no");
-    assert_eq!(single("X11Forwarding"), "no");
-    assert_eq!(single("PermitTunnel"), "no");
-    assert_eq!(single("AllowTcpForwarding"), "yes");
-    assert_eq!(single("Subsystem"), "sftp internal-sftp");
-    assert_eq!(single("HostKey"), "/var/lib/agent/ssh/ssh_host_ed25519_key");
-    assert_eq!(single("AuthorizedKeysFile"), "/var/lib/agent/ssh/authorized_keys");
-    assert!(
-        !directives.contains_key("Include"),
-        "the policy is not overridable by drop-ins"
-    );
-
-    let unit = std::fs::read_to_string(published.join("ssh.service")).expect("ssh.service");
-    assert!(unit.contains("ConditionPathExists=/var/lib/agent/ssh/ssh_host_ed25519_key"));
-    assert!(unit.contains("ExecStart=/usr/sbin/sshd -D -e -f /etc/agent/sshd_config"));
-    assert!(unit.contains("WantedBy=multi-user.target"));
-    let tmpfiles = std::fs::read_to_string(published.join("ssh-tmpfiles.conf")).expect("tmpfiles");
-    assert!(tmpfiles.lines().any(|line| line.starts_with("d /run/sshd ")));
-
     let dockerfile = std::fs::read_to_string(root.join("agents/Dockerfile")).expect("Dockerfile");
     let base_stage = dockerfile.split("FROM base AS minimal").next().expect("base stage");
     assert!(base_stage.contains("openssh-server"));
-    assert!(base_stage.contains("COPY common/ssh.service /etc/systemd/system/agent-ssh.service"));
+    assert!(base_stage.contains("passwd --delete agent"));
     assert!(base_stage.contains("systemctl mask ssh.service ssh.socket"));
+    assert!(!base_stage.contains("sshd_config"));
+    assert!(!published.join("sshd_config").exists());
+    assert!(!published.join("ssh.service").exists());
+    assert!(!published.join("ssh-tmpfiles.conf").exists());
+
     let self_dev_dockerfile = std::fs::read_to_string(self_dev.join("Dockerfile")).expect("self-dev Dockerfile");
-    assert!(self_dev_dockerfile.contains("COPY ssh.service /etc/systemd/system/agent-ssh.service"));
+    assert!(self_dev_dockerfile.contains("openssh-server"));
+    assert!(self_dev_dockerfile.contains("passwd --delete agent"));
     assert!(self_dev_dockerfile.contains("systemctl mask ssh.service ssh.socket"));
-    let self_dev_config = std::fs::read_to_string(self_dev.join("sshd_config")).expect("self-dev sshd_config");
-    assert!(self_dev_config.contains("ListenAddress 127.0.0.1"));
-    assert!(self_dev_config.contains("PasswordAuthentication no"));
+    assert!(!self_dev_dockerfile.contains("sshd_config"));
+    assert!(!self_dev.join("sshd_config").exists());
+    assert!(!self_dev.join("ssh.service").exists());
+    assert!(!self_dev.join("ssh-tmpfiles.conf").exists());
+
     for manifest in [
         "agents/full/agent.yaml",
         "agents/full/agent.nested.yaml",

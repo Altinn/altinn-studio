@@ -1898,6 +1898,23 @@ fn is_ssh_server_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_ssh_policy_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo"
+                && args == &[
+                    "-n",
+                    "/usr/sbin/sshd",
+                    "-T",
+                    "-f",
+                    "/var/lib/agent/ssh/sshd_config",
+                    "-C",
+                    "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+                ]
+    )
+}
+
 fn exited(code: i32) -> Vec<sandbox::execution::ExecutionEvent> {
     vec![
         sandbox::execution::ExecutionEvent::Started { process_id: None },
@@ -1959,6 +1976,14 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
 
     // A server is present: the Agent is Ready and SshReady is reported alongside SandboxReady.
     backend.queue_execution_events_matching(is_ssh_server_check, exited(0));
+    backend.queue_execution_events_matching(
+        is_ssh_policy_check,
+        vec![
+            sandbox::execution::ExecutionEvent::Started { process_id: None },
+            sandbox::execution::ExecutionEvent::Stdout(b"permituserenvironment yes\nusepam no\n".as_slice().into()),
+            sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code: 0 }),
+        ],
+    );
     reconciler.reconcile(id).await.expect("reconcile with a server");
     let status = store.get(id).await.expect("record").agent.status;
     assert!(status.is_ready());

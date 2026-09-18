@@ -27,6 +27,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- SSH shells, remote commands and editor terminals now inherit the same Agent tool, configured environment and
+  mediated certificate settings as Sessions and `agentctl exec`.
 - Concurrent network requests from an Agent no longer intermittently fail with DNS, HTTP or TLS errors, especially on Windows hosts.
 - Deleting an Agent no longer logs a panic when its Sandbox has an active network-control connection.
 - The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.

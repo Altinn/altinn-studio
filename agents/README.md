@@ -123,7 +123,8 @@ sftp agentctl-altinn-full
 `agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths and proxy command for tools that want
 them directly. The `agent` user has passwordless `sudo`, so an SSH login is as powerful as a Session; the server's
 hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an image whose init is systemd, as the
-published images are. An Agent created from an image older than this feature reports that its image cannot provide
+published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the loopback-only server
+policy and systemd unit. An Agent created from an image older than this feature reports that its image cannot provide
 SSH access; delete it and re-apply to pick up the current image.
 
 Delete the Agent and its Sandbox:

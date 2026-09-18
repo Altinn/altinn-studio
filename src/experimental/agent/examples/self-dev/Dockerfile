@@ -108,8 +108,11 @@ RUN NODE_OPTIONS=--use-openssl-ca npm install --global "@openai/codex@${CODEX_VE
     && codex --version
 
 # A nested Microsandbox runtime needs /dev/kvm; tmpfiles.conf hands the device to the kvm group.
+# OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
+# Password and keyboard authentication remain disabled by the platform-owned SSH policy.
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --login agent --home /home/agent --move-home ubuntu \
+    && passwd --delete agent \
     && groupmod --new-name agent ubuntu \
     && usermod --append --groups kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
@@ -122,18 +125,10 @@ COPY tmpfiles.conf /usr/lib/tmpfiles.d/agent-dev.conf
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
 
-# SSH access, as in agents/Dockerfile: the image owns sshd, its policy and the unit; agentd writes
-# the per-Agent host key and authorized_keys under /var/lib/agent/ssh. The distribution's own
-# ssh.service and ssh.socket are masked so nothing listens beyond the guest loopback.
-COPY sshd_config /etc/agent/sshd_config
-COPY ssh.service /etc/systemd/system/agent-ssh.service
-COPY ssh-tmpfiles.conf /usr/lib/tmpfiles.d/agent-ssh.conf
+# agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
+# ssh.service and socket are masked so the image cannot expose its package-generated host keys.
 RUN systemctl mask ssh.service ssh.socket \
-    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
-    && install -d -m 0755 /run/sshd \
-    && ssh-keygen -q -t ed25519 -N '' -f /tmp/build-host-key \
-    && /usr/sbin/sshd -t -f /etc/agent/sshd_config -o HostKey=/tmp/build-host-key \
-    && rm -f /tmp/build-host-key /tmp/build-host-key.pub
+    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
 # All guest Executions inherit init.scope, whose default task limit is too low
 # for concurrent harnesses. The kernel pid limit remains the Sandbox boundary.
