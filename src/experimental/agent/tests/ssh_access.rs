@@ -614,6 +614,7 @@ fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
     assert_eq!(single("KbdInteractiveAuthentication"), "no");
     assert_eq!(single("PermitRootLogin"), "no");
     assert_eq!(single("AllowUsers"), ssh::GUEST_USER);
+    assert_eq!(single("UsePAM"), "no");
     assert_eq!(single("AllowAgentForwarding"), "no");
     assert_eq!(single("X11Forwarding"), "no");
     assert_eq!(single("PermitTunnel"), "no");
@@ -637,9 +638,11 @@ fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
     let dockerfile = std::fs::read_to_string(root.join("agents/Dockerfile")).expect("Dockerfile");
     let base_stage = dockerfile.split("FROM base AS minimal").next().expect("base stage");
     assert!(base_stage.contains("openssh-server"));
+    assert!(base_stage.contains("passwd --delete agent"));
     assert!(base_stage.contains("COPY common/ssh.service /etc/systemd/system/agent-ssh.service"));
     assert!(base_stage.contains("systemctl mask ssh.service ssh.socket"));
     let self_dev_dockerfile = std::fs::read_to_string(self_dev.join("Dockerfile")).expect("self-dev Dockerfile");
+    assert!(self_dev_dockerfile.contains("passwd --delete agent"));
     assert!(self_dev_dockerfile.contains("COPY ssh.service /etc/systemd/system/agent-ssh.service"));
     assert!(self_dev_dockerfile.contains("systemctl mask ssh.service ssh.socket"));
     let self_dev_config = std::fs::read_to_string(self_dev.join("sshd_config")).expect("self-dev sshd_config");

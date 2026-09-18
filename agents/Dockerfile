@@ -138,6 +138,8 @@ RUN case "${TARGETARCH}" in \
 ARG CODEX_VERSION=0.154.0
 ARG CLAUDE_CODE_VERSION=2.1.268
 
+# OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
+# Password and keyboard authentication remain disabled by the platform-owned sshd_config.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
     fi; \
@@ -145,6 +147,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
     && usermod --login agent --home /home/agent --move-home ubuntu \
+    && passwd --delete agent \
     && groupmod --new-name agent ubuntu \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \

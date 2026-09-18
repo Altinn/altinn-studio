@@ -108,8 +108,11 @@ RUN NODE_OPTIONS=--use-openssl-ca npm install --global "@openai/codex@${CODEX_VE
     && codex --version
 
 # A nested Microsandbox runtime needs /dev/kvm; tmpfiles.conf hands the device to the kvm group.
+# OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
+# Password and keyboard authentication remain disabled by the platform-owned sshd_config.
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --login agent --home /home/agent --move-home ubuntu \
+    && passwd --delete agent \
     && groupmod --new-name agent ubuntu \
     && usermod --append --groups kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \

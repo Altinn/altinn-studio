@@ -20,7 +20,9 @@ KbdInteractiveAuthentication no
 PermitRootLogin no
 AllowUsers agent
 StrictModes yes
-UsePAM yes
+# PAM runs after OpenSSH reads ~/.ssh/environment and Ubuntu's pam_env replaces PATH with its
+# system default. The dedicated Agent user does not need PAM authentication or session setup.
+UsePAM no
 
 AllowAgentForwarding no
 X11Forwarding no

@@ -73,16 +73,18 @@ pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> 
             return Err(Error::Invalid(crate::ssh::image_contract_missing(what)));
         }
     }
-    let policy = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/grep"),
-            ["-Fx".into(), "PermitUserEnvironment yes".into(), SERVER_CONFIG.into()],
-        ))
-        .await?;
-    if !policy.status.success() {
-        return Err(Error::Invalid(crate::ssh::image_contract_missing(
-            "/etc/agent/sshd_config does not enable the platform-owned login environment",
-        )));
+    for directive in ["PermitUserEnvironment yes", "UsePAM no"] {
+        let policy = sandbox
+            .run_execution(ExecutionSpec::command(
+                SandboxPath::new("/usr/bin/grep"),
+                ["-Fx".into(), directive.into(), SERVER_CONFIG.into()],
+            ))
+            .await?;
+        if !policy.status.success() {
+            return Err(Error::Invalid(crate::ssh::image_contract_missing(&format!(
+                "/etc/agent/sshd_config must set {directive:?} for the platform-owned login environment"
+            ))));
+        }
     }
     Ok(())
 }
