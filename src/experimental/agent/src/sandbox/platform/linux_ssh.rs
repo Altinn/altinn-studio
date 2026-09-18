@@ -45,8 +45,9 @@ const SYSTEMD_RUNNING: &str = "/run/systemd/system";
 const ENVIRONMENT_PROGRAM: &str = "/usr/bin/env";
 const MAX_ENVIRONMENT_ENTRIES: usize = 1000;
 
-/// Confirms the image satisfies the whole SSH access contract: the server, the
-/// platform's policy and unit, and systemd as the running init to start it.
+/// Confirms the image has the server, platform-owned configuration and unit,
+/// and systemd as the running init to start it. The effective OpenSSH policy
+/// is checked once the real host key has been installed.
 ///
 /// systemd is one init system among several a Sandbox could boot; nothing here
 /// assumes it beyond checking for it, and an image without it cannot run the
@@ -73,19 +74,6 @@ pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> 
             return Err(Error::Invalid(crate::ssh::image_contract_missing(what)));
         }
     }
-    for directive in ["PermitUserEnvironment yes", "UsePAM no"] {
-        let policy = sandbox
-            .run_execution(ExecutionSpec::command(
-                SandboxPath::new("/usr/bin/grep"),
-                ["-Fx".into(), directive.into(), SERVER_CONFIG.into()],
-            ))
-            .await?;
-        if !policy.status.success() {
-            return Err(Error::Invalid(crate::ssh::image_contract_missing(&format!(
-                "/etc/agent/sshd_config must set {directive:?} for the platform-owned login environment"
-            ))));
-        }
-    }
     Ok(())
 }
 
@@ -98,7 +86,6 @@ pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> 
 ///
 /// Returns an error when a file cannot be written or a setup command fails.
 pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &GuestMaterial) -> Result<(), Error> {
-    let environment = capture_login_environment(sandbox).await?;
     wait_for_systemd(sandbox).await?;
     run_checked(
         sandbox,
@@ -117,6 +104,24 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
         ],
     )
     .await?;
+    write_if_changed(sandbox, HOST_KEY, &material.host_private_key).await?;
+    write_if_changed(
+        sandbox,
+        HOST_KEY_PUBLIC,
+        format!("{}\n", material.host_public_key).as_bytes(),
+    )
+    .await?;
+    run_checked(
+        sandbox,
+        "/usr/bin/sudo",
+        ["-n", "/bin/chown", "root:root", HOST_KEY, HOST_KEY_PUBLIC],
+    )
+    .await?;
+    run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0600", HOST_KEY]).await?;
+    run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0644", HOST_KEY_PUBLIC]).await?;
+    verify_effective_policy(sandbox).await?;
+
+    let environment = capture_login_environment(sandbox).await?;
     run_checked(
         sandbox,
         "/usr/bin/sudo",
@@ -134,44 +139,20 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
         ],
     )
     .await?;
-    write_if_changed(sandbox, HOST_KEY, &material.host_private_key).await?;
-    write_if_changed(
-        sandbox,
-        HOST_KEY_PUBLIC,
-        format!("{}\n", material.host_public_key).as_bytes(),
-    )
-    .await?;
     write_if_changed(sandbox, AUTHORIZED_KEYS, material.authorized_keys.as_bytes()).await?;
     write_if_changed(sandbox, USER_ENVIRONMENT, &environment).await?;
-    // sshd refuses a host key readable by anyone but root, and StrictModes
-    // requires authorized_keys and its directory to be owned by root or the
-    // user and writable by no one else.
+    // StrictModes requires authorized_keys and its directory to be owned by
+    // root or the user and writable by no one else.
     run_checked(
         sandbox,
         "/usr/bin/sudo",
-        [
-            "-n",
-            "/bin/chown",
-            "root:root",
-            HOST_KEY,
-            HOST_KEY_PUBLIC,
-            AUTHORIZED_KEYS,
-            USER_ENVIRONMENT,
-        ],
+        ["-n", "/bin/chown", "root:root", AUTHORIZED_KEYS, USER_ENVIRONMENT],
     )
     .await?;
-    run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0600", HOST_KEY]).await?;
     run_checked(
         sandbox,
         "/usr/bin/sudo",
-        [
-            "-n",
-            "/bin/chmod",
-            "0644",
-            HOST_KEY_PUBLIC,
-            AUTHORIZED_KEYS,
-            USER_ENVIRONMENT,
-        ],
+        ["-n", "/bin/chmod", "0644", AUTHORIZED_KEYS, USER_ENVIRONMENT],
     )
     .await?;
     run_checked(
@@ -180,6 +161,54 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
         ["-n", "/usr/bin/systemctl", "enable", "--now", UNIT],
     )
     .await
+}
+
+/// Asks OpenSSH for the policy it will apply to the Agent's loopback connection.
+///
+/// The actual host key is installed before this check because `sshd -T` refuses
+/// to evaluate a configuration without at least one readable host key. Login
+/// state and the service are installed only after the effective policy passes.
+async fn verify_effective_policy(sandbox: &SandboxHandle) -> Result<(), Error> {
+    let connection = format!(
+        "user={},host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport={}",
+        super::linux::USER,
+        crate::ssh::GUEST_PORT
+    );
+    let args = [
+        "-n".to_owned(),
+        SERVER.to_owned(),
+        "-T".to_owned(),
+        "-f".to_owned(),
+        SERVER_CONFIG.to_owned(),
+        "-C".to_owned(),
+        connection,
+    ];
+    let output = sandbox
+        .run_execution(ExecutionSpec::command(SandboxPath::new("/usr/bin/sudo"), args))
+        .await?;
+    if !output.status.success() {
+        return Err(Error::Invalid(crate::ssh::image_contract_missing(&format!(
+            "{SERVER} could not evaluate {SERVER_CONFIG}: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ))));
+    }
+
+    let policy = String::from_utf8_lossy(&output.stdout);
+    for (name, value, directive) in [
+        ("permituserenvironment", "yes", "PermitUserEnvironment yes"),
+        ("usepam", "no", "UsePAM no"),
+    ] {
+        let effective = policy.lines().find_map(|line| {
+            let (key, value) = line.trim().split_once(char::is_whitespace)?;
+            key.eq_ignore_ascii_case(name).then_some(value.trim())
+        });
+        if effective != Some(value) {
+            return Err(Error::Invalid(crate::ssh::image_contract_missing(&format!(
+                "{SERVER_CONFIG} must effectively set {directive:?} for the platform-owned login environment"
+            ))));
+        }
+    }
+    Ok(())
 }
 
 /// Stops and disables the server and removes its state, when any exists.

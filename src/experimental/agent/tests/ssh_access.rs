@@ -42,8 +42,16 @@ fn is_unit_check(spec: &ExecutionSpec) -> bool {
 fn is_environment_policy_check(spec: &ExecutionSpec) -> bool {
     is_command(
         spec,
-        "/usr/bin/grep",
-        &["-Fx", "PermitUserEnvironment yes", "/etc/agent/sshd_config"],
+        "/usr/bin/sudo",
+        &[
+            "-n",
+            "/usr/sbin/sshd",
+            "-T",
+            "-f",
+            "/etc/agent/sshd_config",
+            "-C",
+            "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+        ],
     )
 }
 
@@ -80,6 +88,14 @@ fn environment(contents: &'static [u8]) -> Vec<ExecutionEvent> {
         ExecutionEvent::Stdout(contents.into()),
         ExecutionEvent::Exited(ExitStatus { code: 0 }),
     ]
+}
+
+fn valid_environment_policy() -> Vec<ExecutionEvent> {
+    environment(b"permituserenvironment yes\nusepam no\n")
+}
+
+fn queue_valid_environment_policy(backend: &memory::Provider) {
+    backend.queue_execution_events_matching(is_environment_policy_check, valid_environment_policy());
 }
 
 fn count_sudo(backend: &memory::Provider, expected: &[&str]) -> usize {
@@ -195,6 +211,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         fixture
             .backend
             .queue_execution_events_matching(is_server_check, exited(0));
+        queue_valid_environment_policy(&fixture.backend);
         fixture.backend.queue_execution_events_matching(
             is_environment_snapshot,
             environment(
@@ -351,24 +368,48 @@ async fn an_image_without_the_unit_or_systemd_fails_permanently() {
 
 #[tokio::test(flavor = "local")]
 async fn an_image_that_blocks_the_managed_environment_fails_permanently() {
-    let fixture = Fixture::new();
-    let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
-    fixture.store(&record, 0).await;
-    let sandbox = fixture.sandbox(&record).await;
-    fixture
-        .backend
-        .queue_execution_events_matching(is_environment_policy_check, exited(1));
+    for response in [environment(b"permituserenvironment yes\nusepam yes\n"), exited(1)] {
+        let fixture = Fixture::new();
+        let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+        fixture.store(&record, 0).await;
+        let sandbox = fixture.sandbox(&record).await;
+        fixture
+            .backend
+            .queue_execution_events_matching(is_environment_policy_check, response);
 
-    let error = fixture
-        .access
-        .reconcile(&record, &sandbox)
-        .await
-        .expect_err("environment policy");
-    assert!(
-        matches!(&error, Error::Invalid(message) if message.contains("platform-owned login environment")),
-        "{error}"
-    );
-    assert!(!fixture.keys.contains(record.id));
+        let error = fixture
+            .access
+            .reconcile(&record, &sandbox)
+            .await
+            .expect_err("environment policy");
+        assert!(
+            matches!(&error, Error::Invalid(message) if message.contains("cannot provide SSH access")),
+            "{error}"
+        );
+        assert!(
+            fixture.keys.contains(record.id),
+            "the real host key is retained for retry"
+        );
+        assert!(
+            read_guest_file(&sandbox, "/var/lib/agent/ssh/ssh_host_ed25519_key")
+                .await
+                .is_some(),
+            "the effective policy is evaluated with the real host key"
+        );
+        assert!(
+            read_guest_file(&sandbox, "/var/lib/agent/ssh/authorized_keys")
+                .await
+                .is_none(),
+            "login state is not installed before the policy passes"
+        );
+        assert_eq!(
+            count_sudo(
+                &fixture.backend,
+                &["-n", "/usr/bin/systemctl", "enable", "--now", "agent-ssh.service"]
+            ),
+            0
+        );
+    }
 }
 
 #[tokio::test(flavor = "local")]
@@ -377,6 +418,7 @@ async fn a_failed_server_stop_keeps_the_state_for_the_next_pass() {
     let mut record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
     fixture.store(&record, 0).await;
     let sandbox = fixture.sandbox(&record).await;
+    queue_valid_environment_policy(&fixture.backend);
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
 
     let known_hosts_before = fixture.known_hosts();
@@ -466,6 +508,7 @@ async fn withdrawing_access_removes_guest_and_host_state() {
     fixture
         .backend
         .queue_execution_events_matching(is_server_check, exited(0));
+    queue_valid_environment_policy(&fixture.backend);
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
 
     record.agent.spec.access.clear();
@@ -521,6 +564,7 @@ async fn deletion_removes_host_material_and_config_lists_only_active_ssh_agents(
     fixture
         .backend
         .queue_execution_events_matching(is_server_check, exited(0));
+    queue_valid_environment_policy(&fixture.backend);
     assert!(fixture.access.reconcile(&worker, &sandbox).await.expect("grant"));
 
     let aliases = fixture
