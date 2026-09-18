@@ -1903,9 +1903,15 @@ fn is_ssh_policy_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
         spec.program(),
         sandbox::execution::Program::Command { executable, args }
             if executable.as_str() == "/usr/bin/sudo"
-                && args.first().map(String::as_str) == Some("-n")
-                && args.get(1).map(String::as_str) == Some("/usr/sbin/sshd")
-                && args.get(2).map(String::as_str) == Some("-T")
+                && args == &[
+                    "-n",
+                    "/usr/sbin/sshd",
+                    "-T",
+                    "-f",
+                    "/var/lib/agent/ssh/sshd_config",
+                    "-C",
+                    "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+                ]
     )
 }
 

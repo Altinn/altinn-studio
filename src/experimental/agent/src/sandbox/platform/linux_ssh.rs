@@ -1,11 +1,10 @@
 //! OpenSSH server state written into Linux Sandboxes for SSH access.
 //!
-//! The image installs `openssh-server`, a hardened `sshd_config` and the
-//! `agent-ssh.service` unit, which only starts once the host key exists. This
-//! module writes that key, the client's `authorized_keys`, the SSH login
-//! environment and enables the unit, or removes all of it when access is
-//! withdrawn. Server state lives under `/var/lib/agent/ssh`; the login
-//! environment uses OpenSSH's standard per-user file in `/home/agent/.ssh`.
+//! The image provides OpenSSH, systemd and the platform user. This module owns
+//! the complete server policy, unit, keys, client authorization and SSH login
+//! environment, or removes all of it when access is withdrawn. Server state
+//! lives under `/var/lib/agent/ssh`; the login environment uses OpenSSH's
+//! standard per-user file in `/home/agent/.ssh`.
 
 use std::collections::BTreeMap;
 
@@ -26,17 +25,17 @@ pub(crate) const HOST_KEY: &str = "/var/lib/agent/ssh/ssh_host_ed25519_key";
 pub(crate) const HOST_KEY_PUBLIC: &str = "/var/lib/agent/ssh/ssh_host_ed25519_key.pub";
 /// Keys allowed to log in as the guest user.
 pub(crate) const AUTHORIZED_KEYS: &str = "/var/lib/agent/ssh/authorized_keys";
+/// Platform-owned policy passed to every server invocation.
+pub(crate) const SERVER_CONFIG: &str = "/var/lib/agent/ssh/sshd_config";
 /// Directory OpenSSH reads the Agent user's login environment from.
 const USER_SSH_DIRECTORY: &str = "/home/agent/.ssh";
 /// Effective Sandbox environment inherited by every new SSH shell or command.
 pub(crate) const USER_ENVIRONMENT: &str = "/home/agent/.ssh/environment";
 /// The server executable the image must provide.
 pub(crate) const SERVER: &str = "/usr/sbin/sshd";
-/// The image-owned unit running the server on the guest loopback.
+/// The platform-owned unit running the server on the guest loopback.
 pub(crate) const UNIT: &str = "agent-ssh.service";
-/// The image-owned server policy the unit runs with.
-pub(crate) const SERVER_CONFIG: &str = "/etc/agent/sshd_config";
-/// Where the image installs the unit.
+/// Where the platform installs the unit.
 pub(crate) const UNIT_FILE: &str = "/etc/systemd/system/agent-ssh.service";
 /// `systemctl`, the only supported guest service manager today.
 const SYSTEMCTL: &str = "/usr/bin/systemctl";
@@ -45,13 +44,12 @@ const SYSTEMD_RUNNING: &str = "/run/systemd/system";
 const ENVIRONMENT_PROGRAM: &str = "/usr/bin/env";
 const MAX_ENVIRONMENT_ENTRIES: usize = 1000;
 
-/// Confirms the image has the server, platform-owned configuration and unit,
-/// and systemd as the running init to start it. The effective OpenSSH policy
-/// is checked once the real host key has been installed.
+/// Confirms the image has the server and systemd runtime needed by the
+/// platform-owned configuration and unit.
 ///
 /// systemd is one init system among several a Sandbox could boot; nothing here
 /// assumes it beyond checking for it, and an image without it cannot run the
-/// unit it would otherwise have to ship.
+/// platform-managed unit.
 ///
 /// # Errors
 ///
@@ -60,8 +58,6 @@ const MAX_ENVIRONMENT_ENTRIES: usize = 1000;
 pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> {
     let contract = [
         ("-x", SERVER, "/usr/sbin/sshd is missing"),
-        ("-f", SERVER_CONFIG, "/etc/agent/sshd_config is missing"),
-        ("-f", UNIT_FILE, "the agent-ssh.service unit is missing"),
         ("-x", SYSTEMCTL, "systemctl is missing"),
         (
             "-d",
@@ -79,8 +75,8 @@ pub(crate) async fn verify_server(sandbox: &SandboxHandle) -> Result<(), Error> 
 
 /// Writes the host key and `authorized_keys`, then enables and starts the server.
 ///
-/// Idempotent: the files are rewritten with identical content on every pass and
-/// `systemctl enable --now` leaves a running unit alone.
+/// Idempotent: unchanged files are not rewritten and a running server is only
+/// restarted when its host key, policy or unit changes.
 ///
 /// # Errors
 ///
@@ -104,21 +100,36 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
         ],
     )
     .await?;
-    write_if_changed(sandbox, HOST_KEY, &material.host_private_key).await?;
+    let host_key_changed = write_if_changed(sandbox, HOST_KEY, &material.host_private_key).await?;
     write_if_changed(
         sandbox,
         HOST_KEY_PUBLIC,
         format!("{}\n", material.host_public_key).as_bytes(),
     )
     .await?;
+    let config_changed = write_if_changed(sandbox, SERVER_CONFIG, render_server_config().as_bytes()).await?;
+    let unit_changed = write_if_changed(sandbox, UNIT_FILE, render_unit().as_bytes()).await?;
     run_checked(
         sandbox,
         "/usr/bin/sudo",
-        ["-n", "/bin/chown", "root:root", HOST_KEY, HOST_KEY_PUBLIC],
+        [
+            "-n",
+            "/bin/chown",
+            "root:root",
+            HOST_KEY,
+            HOST_KEY_PUBLIC,
+            SERVER_CONFIG,
+            UNIT_FILE,
+        ],
     )
     .await?;
     run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0600", HOST_KEY]).await?;
-    run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0644", HOST_KEY_PUBLIC]).await?;
+    run_checked(
+        sandbox,
+        "/usr/bin/sudo",
+        ["-n", "/bin/chmod", "0644", HOST_KEY_PUBLIC, SERVER_CONFIG, UNIT_FILE],
+    )
+    .await?;
     verify_effective_policy(sandbox).await?;
 
     let environment = capture_login_environment(sandbox).await?;
@@ -155,12 +166,74 @@ pub(crate) async fn install_server_state(sandbox: &SandboxHandle, material: &Gue
         ["-n", "/bin/chmod", "0644", AUTHORIZED_KEYS, USER_ENVIRONMENT],
     )
     .await?;
-    run_checked(
-        sandbox,
-        "/usr/bin/sudo",
-        ["-n", "/usr/bin/systemctl", "enable", "--now", UNIT],
+    // A prior pass can fail after writing the unit but before systemd reloads
+    // it, so convergence cannot depend only on whether this pass changed it.
+    run_checked(sandbox, "/usr/bin/sudo", ["-n", SYSTEMCTL, "daemon-reload"]).await?;
+    run_checked(sandbox, "/usr/bin/sudo", ["-n", SYSTEMCTL, "enable", UNIT]).await?;
+    let action = if host_key_changed || config_changed || unit_changed {
+        "restart"
+    } else {
+        "start"
+    };
+    run_checked(sandbox, "/usr/bin/sudo", ["-n", SYSTEMCTL, action, UNIT]).await
+}
+
+fn render_server_config() -> String {
+    format!(
+        "# Managed by agentd; changes are replaced during reconciliation.\n\
+         AddressFamily inet\n\
+         ListenAddress 127.0.0.1\n\
+         Port {}\n\
+         \n\
+         HostKey {HOST_KEY}\n\
+         AuthorizedKeysFile {AUTHORIZED_KEYS}\n\
+         PidFile /run/agent-sshd.pid\n\
+         \n\
+         AllowUsers {}\n\
+         PubkeyAuthentication yes\n\
+         PasswordAuthentication no\n\
+         KbdInteractiveAuthentication no\n\
+         PermitEmptyPasswords no\n\
+         PermitRootLogin no\n\
+         StrictModes yes\n\
+         UsePAM no\n\
+         PermitUserEnvironment yes\n\
+         \n\
+         AllowAgentForwarding no\n\
+         AllowTcpForwarding yes\n\
+         GatewayPorts no\n\
+         X11Forwarding no\n\
+         PermitTunnel no\n\
+         \n\
+         AcceptEnv LANG LC_*\n\
+         PrintMotd no\n\
+         LogLevel INFO\n\
+         Subsystem sftp internal-sftp\n",
+        crate::ssh::GUEST_PORT,
+        super::linux::USER
     )
-    .await
+}
+
+fn render_unit() -> String {
+    format!(
+        "[Unit]\n\
+         Description=OpenSSH server for Agent access on the guest loopback\n\
+         Documentation=https://github.com/Altinn/altinn-studio/tree/main/src/experimental\n\
+         ConditionPathExists={HOST_KEY}\n\
+         After=network.target\n\
+         \n\
+         [Service]\n\
+         RuntimeDirectory=sshd\n\
+         RuntimeDirectoryMode=0755\n\
+         ExecStartPre={SERVER} -t -f {SERVER_CONFIG}\n\
+         ExecStart={SERVER} -D -e -f {SERVER_CONFIG}\n\
+         ExecReload=/bin/kill -HUP $MAINPID\n\
+         Restart=on-failure\n\
+         RestartPreventExitStatus=255\n\
+         \n\
+         [Install]\n\
+         WantedBy=multi-user.target\n"
+    )
 }
 
 /// Asks OpenSSH for the policy it will apply to the Agent's loopback connection.
@@ -204,7 +277,7 @@ async fn verify_effective_policy(sandbox: &SandboxHandle) -> Result<(), Error> {
         });
         if effective != Some(value) {
             return Err(Error::Invalid(crate::ssh::image_contract_missing(&format!(
-                "{SERVER_CONFIG} must effectively set {directive:?} for the platform-owned login environment"
+                "the platform-owned SSH policy did not effectively set {directive:?}"
             ))));
         }
     }
@@ -240,8 +313,8 @@ pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), E
                 args.map(str::to_owned),
             ))
             .await?;
-        // An image that never shipped the unit has nothing to stop; every other
-        // failure means the server may still be running.
+        // A failed setup may not have loaded the unit yet; every other failure
+        // means the server may still be running.
         if !output.status.success() && !unit_is_missing(&output) {
             return Err(Error::SandboxSetup(format!(
                 "command `/usr/bin/sudo {}` exited with code {}: {}",
@@ -252,7 +325,11 @@ pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), E
         }
     }
     if state_exists {
+        run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-f", UNIT_FILE]).await?;
         run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-rf", STATE_DIRECTORY]).await?;
+        if path_exists(sandbox, "-x", SYSTEMCTL).await? && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await? {
+            run_checked(sandbox, "/usr/bin/sudo", ["-n", SYSTEMCTL, "daemon-reload"]).await?;
+        }
     }
     if environment_exists {
         run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-f", USER_ENVIRONMENT]).await?;
@@ -369,6 +446,64 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use std::collections::BTreeMap;
+
+    fn directives(text: &str) -> BTreeMap<&str, Vec<&str>> {
+        let mut directives = BTreeMap::<&str, Vec<&str>>::new();
+        for line in text.lines().map(str::trim) {
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            let Some((key, value)) = line.split_once(char::is_whitespace) else {
+                continue;
+            };
+            directives.entry(key).or_default().push(value.trim());
+        }
+        directives
+    }
+
+    #[test]
+    fn platform_owned_server_policy_is_complete_and_not_extensible() {
+        let config = super::render_server_config();
+        let directives = directives(&config);
+        let single = |key: &str| {
+            let values = directives.get(key).unwrap_or_else(|| panic!("{key} is set"));
+            assert_eq!(values.len(), 1, "{key} is set once");
+            values[0]
+        };
+
+        assert_eq!(single("ListenAddress"), "127.0.0.1");
+        assert_eq!(single("Port"), crate::ssh::GUEST_PORT.to_string());
+        assert_eq!(single("HostKey"), super::HOST_KEY);
+        assert_eq!(single("AuthorizedKeysFile"), super::AUTHORIZED_KEYS);
+        assert_eq!(single("AllowUsers"), super::super::linux::USER);
+        assert_eq!(single("PubkeyAuthentication"), "yes");
+        assert_eq!(single("PasswordAuthentication"), "no");
+        assert_eq!(single("KbdInteractiveAuthentication"), "no");
+        assert_eq!(single("PermitEmptyPasswords"), "no");
+        assert_eq!(single("PermitRootLogin"), "no");
+        assert_eq!(single("UsePAM"), "no");
+        assert_eq!(single("PermitUserEnvironment"), "yes");
+        assert_eq!(single("AllowAgentForwarding"), "no");
+        assert_eq!(single("AllowTcpForwarding"), "yes");
+        assert_eq!(single("GatewayPorts"), "no");
+        assert_eq!(single("X11Forwarding"), "no");
+        assert_eq!(single("PermitTunnel"), "no");
+        assert_eq!(single("Subsystem"), "sftp internal-sftp");
+        assert!(!directives.contains_key("Include"));
+    }
+
+    #[test]
+    fn platform_owned_unit_runs_only_the_platform_policy() {
+        let unit = super::render_unit();
+        assert!(unit.contains(&format!("ConditionPathExists={}", super::HOST_KEY)));
+        assert!(unit.contains(&format!(
+            "ExecStart={} -D -e -f {}",
+            super::SERVER,
+            super::SERVER_CONFIG
+        )));
+        assert!(unit.contains("RuntimeDirectory=sshd"));
+        assert!(unit.contains("WantedBy=multi-user.target"));
+    }
 
     #[test]
     fn ssh_environment_preserves_values_and_excludes_process_local_state() {

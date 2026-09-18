@@ -2,7 +2,7 @@
 
 mod support;
 
-use std::{collections::BTreeMap, path::PathBuf, rc::Rc};
+use std::{path::PathBuf, rc::Rc};
 
 use agent::{
     AccessSpec, AgentId, Error, FailureKind, ReconcileFailure,
@@ -35,8 +35,8 @@ fn is_server_check(spec: &ExecutionSpec) -> bool {
     is_command(spec, "/usr/bin/test", &["-x", "/usr/sbin/sshd"])
 }
 
-fn is_unit_check(spec: &ExecutionSpec) -> bool {
-    is_command(spec, "/usr/bin/test", &["-f", "/etc/systemd/system/agent-ssh.service"])
+fn is_systemctl_check(spec: &ExecutionSpec) -> bool {
+    is_command(spec, "/usr/bin/test", &["-x", "/usr/bin/systemctl"])
 }
 
 fn is_environment_policy_check(spec: &ExecutionSpec) -> bool {
@@ -48,7 +48,7 @@ fn is_environment_policy_check(spec: &ExecutionSpec) -> bool {
             "/usr/sbin/sshd",
             "-T",
             "-f",
-            "/etc/agent/sshd_config",
+            "/var/lib/agent/ssh/sshd_config",
             "-C",
             "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
         ],
@@ -104,6 +104,21 @@ fn count_sudo(backend: &memory::Provider, expected: &[&str]) -> usize {
         .iter()
         .filter(|spec| is_command(spec, "/usr/bin/sudo", expected))
         .count()
+}
+
+fn assert_service_reconciled_idempotently(backend: &memory::Provider) {
+    assert_eq!(
+        count_sudo(backend, &["-n", "/usr/bin/systemctl", "enable", "agent-ssh.service"]),
+        2
+    );
+    assert_eq!(
+        count_sudo(backend, &["-n", "/usr/bin/systemctl", "restart", "agent-ssh.service"]),
+        1
+    );
+    assert_eq!(
+        count_sudo(backend, &["-n", "/usr/bin/systemctl", "start", "agent-ssh.service"]),
+        1
+    );
 }
 
 async fn read_guest_file(sandbox: &SandboxHandle, path: &str) -> Option<Vec<u8>> {
@@ -280,13 +295,7 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         "the incarnation keeps its client key"
     );
     assert_eq!(fixture.known_hosts().lines().count(), 2);
-    assert_eq!(
-        count_sudo(
-            &fixture.backend,
-            &["-n", "/usr/bin/systemctl", "enable", "--now", "agent-ssh.service"]
-        ),
-        2
-    );
+    assert_service_reconciled_idempotently(&fixture.backend);
     assert_eq!(
         count_sudo(
             &fixture.backend,
@@ -298,6 +307,8 @@ async fn access_is_idempotent_and_only_public_material_enters_the_guest() {
         "/var/lib/agent/ssh/ssh_host_ed25519_key",
         "/var/lib/agent/ssh/ssh_host_ed25519_key.pub",
         "/var/lib/agent/ssh/authorized_keys",
+        "/var/lib/agent/ssh/sshd_config",
+        "/etc/systemd/system/agent-ssh.service",
         "/home/agent/.ssh/environment",
     ];
     for path in guest_files {
@@ -339,12 +350,9 @@ async fn an_image_without_a_server_fails_permanently_before_any_key_exists() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn an_image_without_the_unit_or_systemd_fails_permanently() {
+async fn an_image_without_systemd_support_fails_permanently() {
     for (predicate, expected) in [
-        (
-            is_unit_check as fn(&ExecutionSpec) -> bool,
-            "agent-ssh.service unit is missing",
-        ),
+        (is_systemctl_check as fn(&ExecutionSpec) -> bool, "systemctl is missing"),
         (is_systemd_running_check, "systemd is not the running init"),
     ] {
         let fixture = Fixture::new();
@@ -405,7 +413,7 @@ async fn an_image_that_blocks_the_managed_environment_fails_permanently() {
         assert_eq!(
             count_sudo(
                 &fixture.backend,
-                &["-n", "/usr/bin/systemctl", "enable", "--now", "agent-ssh.service"]
+                &["-n", "/usr/bin/systemctl", "enable", "agent-ssh.service"]
             ),
             0
         );
@@ -623,75 +631,31 @@ fn repository_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../..")
 }
 
-fn sshd_directives(text: &str) -> BTreeMap<String, Vec<String>> {
-    let mut directives = BTreeMap::<String, Vec<String>>::new();
-    for line in text.lines().map(str::trim) {
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let (key, value) = line.split_once(char::is_whitespace).expect("directive with a value");
-        directives
-            .entry(key.to_owned())
-            .or_default()
-            .push(value.trim().to_owned());
-    }
-    directives
-}
-
 #[test]
-fn image_sshd_policy_is_hardened_and_owned_by_each_image() {
+fn images_supply_ssh_prerequisites_without_owning_platform_policy() {
     let root = repository_root();
     let published = root.join("agents/common");
     let self_dev = root.join("src/experimental/agent/examples/self-dev");
-
-    let config = std::fs::read_to_string(published.join("sshd_config")).expect("sshd_config");
-    let directives = sshd_directives(&config);
-    let single = |key: &str| {
-        let values = directives.get(key).unwrap_or_else(|| panic!("{key} is set"));
-        assert_eq!(values.len(), 1, "{key} is set once");
-        values[0].as_str()
-    };
-    assert_eq!(single("ListenAddress"), "127.0.0.1");
-    assert_eq!(single("Port"), ssh::GUEST_PORT.to_string());
-    assert_eq!(single("PubkeyAuthentication"), "yes");
-    assert_eq!(single("PasswordAuthentication"), "no");
-    assert_eq!(single("KbdInteractiveAuthentication"), "no");
-    assert_eq!(single("PermitRootLogin"), "no");
-    assert_eq!(single("AllowUsers"), ssh::GUEST_USER);
-    assert_eq!(single("UsePAM"), "no");
-    assert_eq!(single("AllowAgentForwarding"), "no");
-    assert_eq!(single("X11Forwarding"), "no");
-    assert_eq!(single("PermitTunnel"), "no");
-    assert_eq!(single("AllowTcpForwarding"), "yes");
-    assert_eq!(single("PermitUserEnvironment"), "yes");
-    assert_eq!(single("Subsystem"), "sftp internal-sftp");
-    assert_eq!(single("HostKey"), "/var/lib/agent/ssh/ssh_host_ed25519_key");
-    assert_eq!(single("AuthorizedKeysFile"), "/var/lib/agent/ssh/authorized_keys");
-    assert!(
-        !directives.contains_key("Include"),
-        "the policy is not overridable by drop-ins"
-    );
-
-    let unit = std::fs::read_to_string(published.join("ssh.service")).expect("ssh.service");
-    assert!(unit.contains("ConditionPathExists=/var/lib/agent/ssh/ssh_host_ed25519_key"));
-    assert!(unit.contains("ExecStart=/usr/sbin/sshd -D -e -f /etc/agent/sshd_config"));
-    assert!(unit.contains("WantedBy=multi-user.target"));
-    let tmpfiles = std::fs::read_to_string(published.join("ssh-tmpfiles.conf")).expect("tmpfiles");
-    assert!(tmpfiles.lines().any(|line| line.starts_with("d /run/sshd ")));
 
     let dockerfile = std::fs::read_to_string(root.join("agents/Dockerfile")).expect("Dockerfile");
     let base_stage = dockerfile.split("FROM base AS minimal").next().expect("base stage");
     assert!(base_stage.contains("openssh-server"));
     assert!(base_stage.contains("passwd --delete agent"));
-    assert!(base_stage.contains("COPY common/ssh.service /etc/systemd/system/agent-ssh.service"));
     assert!(base_stage.contains("systemctl mask ssh.service ssh.socket"));
+    assert!(!base_stage.contains("sshd_config"));
+    assert!(!published.join("sshd_config").exists());
+    assert!(!published.join("ssh.service").exists());
+    assert!(!published.join("ssh-tmpfiles.conf").exists());
+
     let self_dev_dockerfile = std::fs::read_to_string(self_dev.join("Dockerfile")).expect("self-dev Dockerfile");
+    assert!(self_dev_dockerfile.contains("openssh-server"));
     assert!(self_dev_dockerfile.contains("passwd --delete agent"));
-    assert!(self_dev_dockerfile.contains("COPY ssh.service /etc/systemd/system/agent-ssh.service"));
     assert!(self_dev_dockerfile.contains("systemctl mask ssh.service ssh.socket"));
-    let self_dev_config = std::fs::read_to_string(self_dev.join("sshd_config")).expect("self-dev sshd_config");
-    assert!(self_dev_config.contains("ListenAddress 127.0.0.1"));
-    assert!(self_dev_config.contains("PasswordAuthentication no"));
+    assert!(!self_dev_dockerfile.contains("sshd_config"));
+    assert!(!self_dev.join("sshd_config").exists());
+    assert!(!self_dev.join("ssh.service").exists());
+    assert!(!self_dev.join("ssh-tmpfiles.conf").exists());
+
     for manifest in [
         "agents/full/agent.yaml",
         "agents/full/agent.nested.yaml",

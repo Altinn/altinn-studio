@@ -139,7 +139,7 @@ ARG CODEX_VERSION=0.154.0
 ARG CLAUDE_CODE_VERSION=2.1.268
 
 # OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
-# Password and keyboard authentication remain disabled by the platform-owned sshd_config.
+# Password and keyboard authentication remain disabled by the platform-owned SSH policy.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
     fi; \
@@ -158,19 +158,11 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
 
-# SSH access: the image owns the server, its policy and the unit; agentd writes the per-Agent host
-# key and authorized_keys under /var/lib/agent/ssh at setup, and the unit stays inert without them.
-# The distribution's own ssh.service and socket-activated ssh.socket would listen on every
-# interface with the package's generated host keys, so both are masked and those keys removed.
-COPY common/sshd_config /etc/agent/sshd_config
-COPY common/ssh.service /etc/systemd/system/agent-ssh.service
-COPY common/ssh-tmpfiles.conf /usr/lib/tmpfiles.d/agent-ssh.conf
+# agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
+# ssh.service and socket-activated ssh.socket would listen on every interface with package-generated
+# host keys, so the image only disables those conflicting entry points.
 RUN systemctl mask ssh.service ssh.socket \
-    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
-    && install -d -m 0755 /run/sshd \
-    && ssh-keygen -q -t ed25519 -N '' -f /tmp/build-host-key \
-    && /usr/sbin/sshd -t -f /etc/agent/sshd_config -o HostKey=/tmp/build-host-key \
-    && rm -f /tmp/build-host-key /tmp/build-host-key.pub
+    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 COPY --chown=agent:agent --chmod=0600 common/claude-state.json /home/agent/.claude/.claude.json
 
 # Microsandbox Executions and harnesses inherit init.scope. Keep the kernel pid
