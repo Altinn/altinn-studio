@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.6] - 2026-09-18
+
 ### Added
 
 - Two new build-time checks on the `presentationFields` and `dataFields` entries in `applicationmetadata.json`. `ALTINNAPP0900` (error): two entries in the same collection may not share an `id` when they also name the same `dataTypeId`. An entry's `id` is the key its value is stored under on the instance — `presentationTexts` for presentation fields, `dataValues` for data fields — and the entries for one data type are computed together into a map that cannot hold the same key twice, so such a pair takes the app down rather than storing either value: every instantiation and every save of that data type fails. The build now stops on it and points at the second entry's `id`, naming both paths. Reusing an `id` across _different_ data types is untouched — it resolves to whichever data type was saved last, which apps use deliberately to feed one presentation slot from whichever model an instance carries. `ALTINNAPP0901` (error): an entry whose `dataTypeId` is not one of the app's declared `dataTypes` is never computed, so its value never reaches the instance and the field simply stays empty. The build now stops on it — if your app has such an entry it will fail to build until you point it at one of the app's data types or remove it. Both checks read the file the way the app backend does, so entries spelled `Id`/`Path`/`DataTypeId` are checked too.
