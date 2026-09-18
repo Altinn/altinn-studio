@@ -22,6 +22,7 @@ const person1: ContactPoint = {
   name: 'Test 1',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [
     { id: 'm1', methodType: 'email', value: 'test@example.com' },
     { id: 'm2', methodType: 'sms', value: '12345678' },
@@ -33,6 +34,7 @@ const person2: ContactPoint = {
   name: 'Test 2',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm3', methodType: 'email', value: 'bob@example.com' }],
 };
 
