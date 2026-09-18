@@ -35,6 +35,7 @@ export function EditButtonFirstVisibleAndEditable({
   if (!target) {
     return (
       <FallbackEditButton
+        key={fallback}
         fallback={fallback}
         {...rest}
       />
@@ -42,6 +43,7 @@ export function EditButtonFirstVisibleAndEditable({
   }
   return (
     <CandidateEditButton
+      key={target}
       targetBaseComponentId={target}
       remaining={remaining}
       fallback={fallback}
