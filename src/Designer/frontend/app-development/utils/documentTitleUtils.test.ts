@@ -1,7 +1,7 @@
 import { buildDocumentTitle } from './documentTitleUtils';
 
 describe('documentTitleUtils', () => {
-  test('buildDocumentTitle', () => {
+  describe('buildDocumentTitle', () => {
     it.each([
       ['my-app', 'my-app – Altinn Studio'],
       ['', 'Altinn Studio'],
