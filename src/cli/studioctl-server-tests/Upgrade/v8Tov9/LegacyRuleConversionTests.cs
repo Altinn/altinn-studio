@@ -118,6 +118,57 @@ public sealed class LegacyRuleConversionTests
         Assert.Equal(expected, actual);
     }
 
+    [Theory]
+    [InlineData("missing", "result", false)]
+    [InlineData("a", "missing", false)]
+    [InlineData("a", "result", true)]
+    public void ModelPaths_AreValidatedBeforePrimitiveGeneration(string inputPath, string outputPath, bool valid)
+    {
+        using var app = new TempAppFolder();
+        app.Write(
+            "App/models/Root.cs",
+            "namespace TestModels { public class Root { public double a { get; set; } public double result { get; set; } } }"
+        );
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var ruleHandlerObject = { calculate: function(obj) { return obj.a + 1; } };"
+            )
+        );
+        parser.Parse();
+        var model = new DataModelInfo
+        {
+            DataType = "model",
+            ClassName = "Root",
+            Namespace = "TestModels",
+            FullClassRef = "TestModels.Root",
+        };
+        var resolver = new DataModelTypeResolver(Path.Combine(app.Root, "App"));
+        Assert.True(resolver.LoadDataModelType(model));
+        Assert.NotNull(resolver.ResolveType("a"));
+        Assert.NotNull(resolver.ResolveType("result"));
+        var rule = new DataProcessingRule
+        {
+            SelectedFunction = "calculate",
+            InputParams = new() { ["a"] = inputPath },
+            OutParams = new() { ["outParam0"] = outputPath },
+        };
+        var result = new CSharpCodeGenerator("form", model, new() { ["first"] = rule }, parser, resolver).Generate();
+        if (valid)
+        {
+            Assert.Equal(1, result.SuccessfulConversions);
+            Assert.Equal(0, result.FailedConversions);
+            Assert.Contains("JsNumber", Assert.IsType<string>(result.GeneratedCode));
+        }
+        else
+        {
+            Assert.Equal(0, result.SuccessfulConversions);
+            Assert.Equal(1, result.FailedConversions);
+            Assert.Contains("missing", Assert.Single(result.FailedRules).Reason);
+            Assert.DoesNotContain("JsNumber", Assert.IsType<string>(result.GeneratedCode));
+        }
+    }
+
     private static async Task<object?> Execute(string body, Dictionary<string, object?> inputs, bool shared = false)
     {
         using var app = new TempAppFolder();
