@@ -591,7 +591,7 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
     [Theory]
     [InlineData("Dropdown")]
     [InlineData("PaymentDetails")]
-    public async Task LeavesFilesWithCommentsForTheDeveloper(string type)
+    public async Task MigratesFilesWhilePreservingComments(string type)
     {
         var before = $$"""
             {
@@ -612,17 +612,11 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
 
         var result = await Migrate();
 
-        Assert.Equal(0, result.FilesChanged);
-        Assert.Equal(before, _app.Read("ui/Task_1/layouts/Side1.json"));
-        Assert.True(result.ManualActionRequired);
-        var warning = Assert.Single(result.Warnings);
-        Assert.Contains("comments", warning, StringComparison.Ordinal);
-        Assert.Contains(
-            "`queryParameters` (`refetchDependencies` for `PaymentDetails`)",
-            warning,
-            StringComparison.Ordinal
-        );
-        Assert.Contains("`bindingToShowInSummary` to `summaryBinding`", warning, StringComparison.Ordinal);
+        Assert.Equal(1, result.FilesChanged);
+        var after = _app.Read("ui/Task_1/layouts/Side1.json");
+        Assert.Contains("// The colours on offer depend on where the animal is from", after);
+        Assert.Contains(type == "PaymentDetails" ? "refetchDependencies" : "queryParameters", after);
+        Assert.False(result.ManualActionRequired);
     }
 
     [Fact]
