@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.26] - 2026-09-18
+
 ### Added
 
 - `studioctl app upgrade v9` now adds the new `cancellationToken` parameter to your app's own `IPaymentProcessor` implementations (`StartPayment`, `TerminatePayment` and `GetPaymentStatus`) and `IOrderDetailsCalculator` implementations (`CalculateOrderDetails`), so they satisfy the v9 interfaces again. Each change is listed, with a reminder to forward the token to the calls the implementation makes. Existing uses of the `cancellationToken` name, shared interface signatures, partial methods, delegate uses and ambiguous matches are reported as TODOs for manual updating.
