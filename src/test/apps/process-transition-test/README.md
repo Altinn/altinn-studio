@@ -37,7 +37,7 @@ path and are hidden while `path` is `none`; `serviceView` further applies only t
 - **Durable yield (deferral):** `postCommit` + `deferrals: 3` → submit Task_1. The service task
   answers "not ready yet" three times; the workflow sits in the engine's non-terminal `Waiting`
   status between checks, holding no worker and no lease, then settles and advances on its own.
-  On the default view the frontend shows the advancing view («Vi jobber med skjemaet ditt»)
+  On the default view the frontend shows the standard form loading skeleton
   while the workflow is processing. With `serviceView: layout`, the app's own waiting page
   renders instead. Both survive a refresh and follow the process to Task_2 when it succeeds.
 - **Why is it waiting?** while a deferral is parked, the task's own reason (this app passes one on

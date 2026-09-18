@@ -45,10 +45,8 @@ const appFrontend = new AppFrontend();
  *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
  *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
  *
- * UI strings (src/common/ts nb.ts, keys process_workflow.*):
- *   processing  = spinner + "Vi jobber med skjemaet ditt" (deliberately never names the target
- *                 task and never shows engine step counts - internal progress means nothing to
- *                 the user)
+ * UI states:
+ *   processing  = the standard form loader, followed by a safe-to-leave message after eight seconds
  *   failed      = heading "Noe gikk galt" + contact-support blurb + safe details expander
  *                 ("Vis detaljer om feilen"); deliberately NO Retry affordance and NO polling — the
  *                 engine already exhausted its retry budget, so the page is static until a refresh.
@@ -71,6 +69,7 @@ type Levers = {
 // submits with "Send inn". Named here so an app-side rename breaks in one visible place.
 const task1AdvanceButton = 'Gå til Task 2';
 const task2SubmitButton = 'Send inn';
+const workflowLoader = () => cy.get('[data-loading][data-reason="workflow-processing"]');
 
 // The levers are Dropdowns whose option labels are the descriptive nb.json strings; dsSelect/have.value
 // match on that visible label. Defaults (preselectedOptionIndex 0): none / no delay / 1 attempt /
@@ -217,15 +216,15 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
-  it('processing (pre-commit): reload during the delay shows the advancing UI, then converges on Task_2', () => {
+  it('processing (pre-commit): reload during the delay shows the loader, then converges on Task_2', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'preCommit', delayMs: 8000 });
 
     submitAndReloadDuringTransition();
 
     // Committed task is still Task_1 during the pre-commit delay, so the reloaded session renders the
-    // live "advancing" state and the task's advance action is suppressed.
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 15000 }).should('be.visible');
+    // standard loader and suppresses the task's advance action.
+    workflowLoader().should('be.visible');
     cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
@@ -235,6 +234,37 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
+  });
+
+  it('processing (pre-commit): the submitting session moves from the button spinner to the loader', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'preCommit', delayMs: 15000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('button', { name: task1AdvanceButton }).should('be.disabled').find('[data-loading]').should('exist');
+
+    workflowLoader().should('be.visible');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
+    cy.contains('Dette tar uvanlig lang tid', { timeout: 10000 }).should('be.visible');
+    cy.visualTesting('process-next:long-running');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+  });
+
+  it('processing (post-commit): the submitting session keeps the loader until Task_2 is ready', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', delayMs: 15000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    workflowLoader().should('be.visible');
+    cy.findByRole('button', { name: task1AdvanceButton }).should('not.exist');
+    cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
   it('failed (pre-commit): a terminal failure shows the static error page and stays put', () => {
@@ -326,9 +356,9 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
     // The user sees an in-flight transition, not a settled one: a deferring step is still working, so
-    // the frontend shows the ordinary advancing view — not the parked service-task view — and offers
+    // the frontend shows the standard loader while the workflow is processing and offers
     // no recovery affordances.
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    workflowLoader().should('be.visible');
     cy.contains('Vi behandler forespørselen din').should('not.exist');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('not.exist');
@@ -339,22 +369,21 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
-  it('deferral: a pending task reports processing and renders the advancing view', () => {
-    // A deferring step has not concluded: the workflow remains processing until the engine's
-    // next check confirms success, and the default view reflects that pending work.
+  it('deferral: a deferring task reports processing and renders the loader', () => {
+    // A deferring task remains processing and uses the workflow loader with its delayed notice.
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', deferrals: 3, deferDelayMs: 5000 });
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' });
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    workflowLoader().should('be.visible');
     cy.contains('Vi behandler forespørselen din').should('not.exist');
 
     // And it recovers to a normal Task_2 rather than staying stuck.
     cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
   });
 
-  it('deferral: a reload during the wait lands back on the advancing view, not an error page', () => {
+  it('deferral: a reload during the wait lands back on the loader, not an error page', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', deferrals: 3, deferDelayMs: 5000 });
 
@@ -363,7 +392,7 @@ describe('Live workflow status (real engine)', () => {
     // The wait is server truth held in the engine, not session state, so a reloaded session sees
     // the same in-flight transition and keeps following it to completion.
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then(() => cy.reload());
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    workflowLoader().should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
     cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
@@ -384,7 +413,7 @@ describe('Live workflow status (real engine)', () => {
     });
     cy.findByRole('button', { name: task1AdvanceButton }).click();
 
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    workflowLoader().should('be.visible');
 
     // Budget expiry takes the full 30s, plus the final check and the engine's write-back.
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 90000 }).should('be.visible');
@@ -416,7 +445,7 @@ describe('Live workflow status (real engine)', () => {
     // A custom layout renders throughout the wait, including after reloading the instance.
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
     cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 30000 }).should('be.visible');
-    cy.contains('Vi jobber med skjemaet ditt').should('not.exist');
+    workflowLoader().should('not.exist');
     cy.contains('Vi behandler forespørselen din').should('not.exist');
 
     cy.reload();
@@ -453,7 +482,7 @@ describe('Live workflow status (real engine)', () => {
 
     // A transient (retryable) failure keeps the transition in `processing` (the engine auto-retries
     // with backoff); it is NOT the terminal failed state, so the failed error page never shows.
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 15000 }).should('be.visible');
+    workflowLoader().should('be.visible');
     cy.findByRole('heading', { name: 'Noe gikk galt' }).should('not.exist');
 
     // Attempt 2 (after the auto-retry + engine backoff) succeeds and commits Task_2 out-of-band; the
@@ -479,10 +508,10 @@ describe('Live workflow status (real engine)', () => {
     );
 
     // Committed currentTask is already Task_Service (not idle/receipt), yet the post-commit step is
-    // still in flight -> the advancing UI shows on the committed service task and no form UI leaks
+    // still in flight -> the loader shows on the committed service task and no form UI leaks
     // through. This is exactly what a legacy IProcessEnd (which runs on the process-END transition)
     // could NOT surface.
-    cy.contains('Vi jobber med skjemaet ditt', { timeout: 20000 }).should('be.visible');
+    workflowLoader().should('be.visible');
     cy.findByRole('button', { name: task2SubmitButton }).should('not.exist');
 
     // Once the service task succeeds, the process advances to Task_2 and the status settles. The page is

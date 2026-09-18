@@ -12,9 +12,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// parked between automatic retry attempts (a previous attempt failed), letting a waiting UI say
 /// "a step is being retried" instead of an unexplained long wait; progress is how far through the
 /// transition's engine steps execution has come. <see cref="StartedAt"/> (also processing-only) is
-/// when the transition was enqueued, on the engine's clock - it lets a client that reconnects
-/// mid-transition (page refresh, second session) anchor "how long has this been running" to server
-/// truth instead of its own page load.
+/// when the transition was enqueued. Together with <see cref="CurrentTime"/>, sampled on the same
+/// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
+/// client and server clocks.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
@@ -23,7 +23,8 @@ internal sealed record WorkflowTaskStatus(
     bool Retrying = false,
     WorkflowStepProgress? Progress = null,
     DateTimeOffset? StartedAt = null,
-    string? WaitingReason = null
+    string? WaitingReason = null,
+    DateTimeOffset? CurrentTime = null
 )
 {
     /// <summary>
@@ -42,6 +43,7 @@ internal sealed record WorkflowTaskStatus(
                 ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
                 : null,
             StartedAt = StartedAt,
+            CurrentTime = CurrentTime,
             Failure = Failure is { } failure
                 ? new AppProcessWorkflowFailure
                 {

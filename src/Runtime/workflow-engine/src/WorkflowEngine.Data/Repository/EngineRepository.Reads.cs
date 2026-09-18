@@ -107,6 +107,7 @@ internal sealed partial class EngineRepository
                 Key = entity.Key,
                 Namespace = entity.Namespace,
                 Heads = headStatuses,
+                CurrentTime = timeProvider.GetUtcNow(),
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt,
             };
