@@ -62,7 +62,7 @@ func TestRunEnvPrintsHarnessEnvironment(t *testing.T) {
 	t.Parallel()
 
 	appRoot := writeEnvCommandApp(t)
-	command, out := newEnvCommand()
+	command, out := newEnvCommand(t)
 
 	if err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"}); err != nil {
 		t.Fatalf("runEnv() error = %v", err)
@@ -88,7 +88,7 @@ func TestRunEnvPrintsTextByDefault(t *testing.T) {
 	t.Parallel()
 
 	appRoot := writeEnvCommandApp(t)
-	command, out := newEnvCommand()
+	command, out := newEnvCommand(t)
 
 	if err := command.runEnv(t.Context(), []string{"-p", appRoot}); err != nil {
 		t.Fatalf("runEnv() error = %v", err)
@@ -103,11 +103,59 @@ func TestRunEnvPrintsTextByDefault(t *testing.T) {
 	}
 }
 
+// `studioctl app env` is what an app started from an IDE is configured from, so it has to leave behind
+// exactly what `app run` would: the secrets directory, and the three variables naming it and its files.
+func TestRunEnvNamesAndCreatesTheSecretsDirectory(t *testing.T) {
+	t.Parallel()
+
+	appRoot := writeEnvCommandApp(t)
+	home := t.TempDir()
+	var out bytes.Buffer
+	command := &AppCommand{
+		out:     ui.NewOutput(&out, io.Discard, false),
+		service: appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")}),
+	}
+
+	if err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"}); err != nil {
+		t.Fatalf("runEnv() error = %v", err)
+	}
+
+	var got map[string]string
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	wantDir := filepath.Join(home, "apps", "ttd", "test-app", "secrets")
+	assertEnvCommandValue(t, got, "RUNTIME_APP_SECRETS_DIR", wantDir)
+	assertEnvCommandValue(t, got, "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME", "maskinporten-settings.json")
+	assertEnvCommandValue(t, got, "RUNTIME_APP_SECRETS_APPCODES_FILENAME", "app-codes.json")
+	if info, err := os.Stat(wantDir); err != nil || !info.IsDir() {
+		t.Fatalf("%s is not a directory: %v", wantDir, err)
+	}
+}
+
+// Nowhere to place the directory is not something `app env` can print its way past: the app would be told
+// about a directory that is not there.
+func TestRunEnvFailsWhenTheSecretsDirectoryCannotBePlaced(t *testing.T) {
+	t.Parallel()
+
+	appRoot := writeEnvCommandApp(t)
+	command, _ := newEnvCommandWithoutHome()
+
+	err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"})
+	if err == nil {
+		t.Fatal("runEnv() error = nil, want an error")
+	}
+	if !strings.Contains(err.Error(), "build app environment") {
+		t.Fatalf("runEnv() error = %v, want it to say the environment could not be built", err)
+	}
+}
+
 func TestRunEnvCanUseStableHostPort(t *testing.T) {
 	t.Parallel()
 
 	appRoot := writeEnvCommandApp(t)
-	command, out := newEnvCommand()
+	command, out := newEnvCommand(t)
 
 	if err := command.runEnv(
 		t.Context(),
@@ -339,7 +387,20 @@ func TestResolveCloneEnvironment(t *testing.T) {
 	}
 }
 
-func newEnvCommand() (*AppCommand, *bytes.Buffer) {
+// newEnvCommand builds the command with a studioctl home, because `app env` names the app's secrets
+// directory and creates it: without somewhere to place it, the command fails rather than print an
+// environment the app cannot use. newEnvCommandWithoutHome is that case.
+func newEnvCommand(t *testing.T) (*AppCommand, *bytes.Buffer) {
+	t.Helper()
+
+	var out bytes.Buffer
+	return &AppCommand{
+		out:     ui.NewOutput(&out, io.Discard, false),
+		service: appsvc.NewService(&config.Config{Home: t.TempDir(), Version: config.NewVersion("test-version")}),
+	}, &out
+}
+
+func newEnvCommandWithoutHome() (*AppCommand, *bytes.Buffer) {
 	var out bytes.Buffer
 	return &AppCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),

@@ -115,6 +115,7 @@ func (c *AppCommand) Usage() string {
 		"  clone     Clone an app repository from Altinn Studio",
 		"  env       Print app environment for local development",
 		"  logs      Stream app logs",
+		"  maskinporten  Store the Maskinporten client the app uses for local runs",
 		"  ps        List running apps",
 		"  run       Run app locally",
 		"  stop      Stop running apps",
@@ -144,6 +145,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runEnv(ctx, subArgs)
 	case appLogsSubcommand:
 		return c.logs.run(ctx, subArgs)
+	case appMaskinportenSubcommand:
+		return c.runMaskinporten(ctx, subArgs)
 	case "ps":
 		return c.ps.RunWithCommandPath(ctx, subArgs, "app ps")
 	case "run":

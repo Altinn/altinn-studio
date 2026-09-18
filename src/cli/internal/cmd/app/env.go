@@ -4,21 +4,31 @@ import (
 	"sort"
 	"strings"
 
+	"altinn.studio/studioctl/internal/appsecrets"
 	"altinn.studio/studioctl/internal/envtopology"
 )
+
+// EnvKeysDirectory is the environment variable the app libraries read their data-protection keys
+// directory from.
+const EnvKeysDirectory = "ALTINN_KEYS_DIRECTORY"
 
 type appEnv struct {
 	values map[string]string
 }
 
+// newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
+// secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
+// the data-protection keys go.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,
 	topology envtopology.Local,
 	appFrontendAssetBaseUrl string,
+	secretsDir string,
+	keysDir string,
 ) []string {
 	env := newAppEnv(current)
-	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl)
+	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir)
 	return env.entries()
 }
 
@@ -36,10 +46,34 @@ func newAppEnv(current []string) appEnv {
 	return appEnv{values: values}
 }
 
-func (e appEnv) addRunDefaults(kestrelURL string, topology envtopology.Local, appFrontendAssetBaseUrl string) {
+func (e appEnv) addRunDefaults(
+	kestrelURL string,
+	topology envtopology.Local,
+	appFrontendAssetBaseUrl string,
+	secretsDir string,
+	keysDir string,
+) {
 	endpoints := newAppEndpointConfig(topology)
 
 	e.values["STUDIOCTL_APP_RUN"] = "1"
+	// Where the app's secrets are and what every file in that directory is called, named for the app exactly
+	// as the platform names them for a deployed app - the same variables the operator's configuration map
+	// sets in every environment (infra/runtime/apps-config/base/apps-runtime-common-env.yaml), because
+	// studioctl is the platform for a local run. All three are set on every run: the app libraries require
+	// them and fall back to nothing, the directory exists by the time a spec is built, and studioctl writes
+	// into it whether or not the developer has stored anything there. The Maskinporten client stored with
+	// `studioctl app maskinporten set` lands under the name advertised here, and a client stored while the
+	// app runs is picked up without a restart. None of the three is taken from the inherited environment:
+	// the contract is studioctl's to state, not the shell's.
+	e.values[appsecrets.EnvSecretsDir] = secretsDir
+	e.values[appsecrets.EnvMaskinportenFileName] = appsecrets.MaskinportenFileName
+	e.values[appsecrets.EnvAppCodesFileName] = appsecrets.AppCodesFileName
+	// Where the app persists its data-protection keys, which is the one part a run can leave unsaid: a
+	// native run keeps the app libraries' default, the developer's own home directory, and only a container
+	// run is told a directory, the one studioctl mounts for it, as the platform tells a deployed app.
+	if keysDir != "" {
+		e.values[EnvKeysDirectory] = keysDir
+	}
 	e.setDefault("ASPNETCORE_ENVIRONMENT", "Development")
 	e.setDefault("Kestrel__EndPoints__Http__Url", kestrelURL)
 	if appFrontendAssetBaseUrl != "" {

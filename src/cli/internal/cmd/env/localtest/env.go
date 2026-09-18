@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -102,17 +101,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeUser := ""
-	// Keep empty on Windows because os.Getuid/getgid are unsupported there.
-	if runtime.GOOS != osutil.OSWindows {
-		runtimeUser = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
-	}
-	runtimeUsernsMode := ""
-	relabelBinds := false
-	if toolchain.Platform == containertypes.PlatformPodman {
-		runtimeUsernsMode = "keep-id"
-		relabelBinds = toolchain.SELinux
-	}
+	runtimeUser, runtimeUsernsMode, relabelBinds := components.RuntimeUser(toolchain)
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
