@@ -182,6 +182,9 @@ mod tests {
 
     use super::*;
 
+    // Crossterm deliberately routes these commands through WinAPI on Windows,
+    // so only ANSI terminals write their bytes into this in-memory output.
+    #[cfg(not(windows))]
     #[test]
     fn screen_activation_enables_mouse_capture_after_entering_the_alternate_screen() {
         let mut output = Vec::new();
@@ -196,6 +199,7 @@ mod tests {
         assert!(mouse < pointer);
     }
 
+    #[cfg(not(windows))]
     #[test]
     fn screen_cleanup_disables_mouse_capture_before_leaving_the_alternate_screen() {
         let mut output = Vec::new();

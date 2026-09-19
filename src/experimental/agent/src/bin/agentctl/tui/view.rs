@@ -350,6 +350,7 @@ fn map_hint_targets_matching(area: Rect, hints: &[(&str, &str)], hit_map: &mut H
 fn hint_action(key: &str) -> Option<MouseAction> {
     let (code, modifiers) = match key {
         "enter" => (crossterm::event::KeyCode::Enter, crossterm::event::KeyModifiers::NONE),
+        "tab" => (crossterm::event::KeyCode::Tab, crossterm::event::KeyModifiers::NONE),
         "esc" => (crossterm::event::KeyCode::Esc, crossterm::event::KeyModifiers::NONE),
         "ctrl-d" => (
             crossterm::event::KeyCode::Char('d'),
@@ -1103,6 +1104,13 @@ mod tests {
             target
                 == &HitTarget::Action(MouseAction::Key(
                     crossterm::event::KeyCode::Enter,
+                    crossterm::event::KeyModifiers::NONE,
+                ))
+        }));
+        assert!(forward.clicks.iter().any(|(_, target)| {
+            target
+                == &HitTarget::Action(MouseAction::Key(
+                    crossterm::event::KeyCode::Tab,
                     crossterm::event::KeyModifiers::NONE,
                 ))
         }));
