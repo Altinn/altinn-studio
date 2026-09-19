@@ -47,11 +47,16 @@ type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Erro
 #[derive(Default)]
 struct MouseInput {
     last_row: Option<(RowTarget, Instant)>,
+    position: Option<(u16, u16)>,
 }
 
 impl MouseInput {
     const fn reset(&mut self) {
         self.last_row = None;
+    }
+
+    const fn position(&self) -> Option<(u16, u16)> {
+        self.position
     }
 
     fn double_click(&mut self, row: RowTarget, now: Instant) -> bool {
@@ -67,6 +72,7 @@ impl MouseInput {
     }
 
     fn action(&mut self, event: MouseEvent, hit_map: &HitMap, app: &mut App, now: Instant) -> Action {
+        self.position = Some((event.column, event.row));
         if !event.modifiers.is_empty() {
             self.reset();
             return Action::None;
@@ -135,6 +141,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         app.open_queued_create();
         app.set_forwards(forwards.entries());
         let hit_map = tui.draw(&app)?;
+        tui.set_pointer_for(&hit_map, mouse.position())?;
         let input = tokio::select! {
             event = events.next() => Input::Event(event),
             _ = tick.tick() => Input::Tick,
@@ -795,6 +802,7 @@ mod tests {
             ),
             Action::OpenCreate
         );
+        assert_eq!(mouse.position(), Some((0, 10)));
         for input in [
             event(MouseEventKind::Down(MouseButton::Right), KeyModifiers::NONE),
             event(MouseEventKind::Moved, KeyModifiers::NONE),

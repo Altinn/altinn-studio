@@ -86,6 +86,10 @@ impl HitMap {
             .find_map(|(area, target)| area.contains(position).then(|| target.clone()))
     }
 
+    pub(crate) fn clickable_at(&self, column: u16, row: u16) -> bool {
+        self.click_at(column, row).is_some()
+    }
+
     pub(crate) fn wheel_at(&self, column: u16, row: u16) -> Option<WheelTarget> {
         let position = Position::new(column, row);
         self.frame.contains(position).then_some(())?;
