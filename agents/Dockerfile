@@ -190,6 +190,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 # writable after the home directory is mounted and synchronized by the Agent platform. A pristine
 # image has no legacy data to migrate; seed the migrations belonging to this pinned release so the
 # installer does not require the container runtime that is intentionally absent from minimal.
+# TODO: Remove common/studioctl-migrations.json when STUDIOCTL_VERSION includes fresh-install baseline migrations.
 COPY --chown=agent:agent --chmod=0644 common/studioctl-migrations.json /home/agent/.config/altinn-studio/migrations.json
 RUN curl -fsSL \
         "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
