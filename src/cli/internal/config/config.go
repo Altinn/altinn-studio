@@ -263,6 +263,11 @@ func (c *Config) StudioctlServerInstallDir() string {
 	return filepath.Join(c.BinDir, StudioctlServerName)
 }
 
+// AgentSkillsDir returns the directory containing the Agent Skills distributed with studioctl.
+func (c *Config) AgentSkillsDir() string {
+	return filepath.Join(c.Home, "agent", "skills")
+}
+
 // BoundTopologyConfigDir returns the directory containing generated bound topology files.
 func (c *Config) BoundTopologyConfigDir() string {
 	return filepath.Join(c.DataDir, envtopology.BoundTopologyConfigDirName)
