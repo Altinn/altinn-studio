@@ -102,6 +102,15 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
             }
         );
         assert_inputs_exist(&nested_build, &directory);
+        assert_eq!(
+            default
+                .spec
+                .skills
+                .iter()
+                .filter_map(|skill| skill.name())
+                .collect::<Vec<_>>(),
+            ["altinn-studio-apps", "pr-evidence"]
+        );
 
         let mut comparable_build = nested_build.clone();
         comparable_build.metadata.name = nested.metadata.name.clone();
