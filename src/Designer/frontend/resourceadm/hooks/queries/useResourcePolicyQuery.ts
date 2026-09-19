@@ -27,6 +27,7 @@ export const useResourcePolicyQuery = (
       rules: data.rules ?? [],
       requiredAuthenticationLevelEndUser: data.requiredAuthenticationLevelEndUser ?? '3',
       requiredAuthenticationLevelOrg: data.requiredAuthenticationLevelOrg ?? '3',
+      requiredAuthenticationLevelSystemUser: data.requiredAuthenticationLevelSystemUser,
     }),
   });
 };
