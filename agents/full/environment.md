@@ -1,6 +1,6 @@
 ## This computer
 
-.NET, Node.js with Yarn, Go, Rust, the GitHub CLI, Podman with `docker` and `/run/docker.sock` as compatibility
+.NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, Podman with `docker` and `/run/docker.sock` as compatibility
 surfaces, kind, kubectl, Helm and Flux.
 
 Pull request evidence: `asciinema` and `agg` for terminal recordings; `playwright-cli` with Chromium (open it with

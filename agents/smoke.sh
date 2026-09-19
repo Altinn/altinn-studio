@@ -28,9 +28,32 @@ echo "## versions"
 gh --version | head -1
 asciinema --version
 agg --version
+nvim --version | head -1
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
 test -z "$foreign" || fail "entries under /home/agent not owned by agent:"$'\n'"$foreign"
+
+echo "## editor"
+nvim --headless \
+    "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    +quit
+for specification in \
+    example.cs:cs \
+    example.js:javascript \
+    example.jsx:javascriptreact \
+    example.ts:typescript \
+    example.tsx:typescriptreact \
+    example.csproj:xml \
+    example.json:json \
+    example.xml:xml; do
+    filename="${specification%:*}"
+    expected="${specification#*:}"
+    touch "$filename"
+    nvim --headless "$filename" \
+        "+lua assert(vim.bo.filetype == '$expected', vim.bo.filetype); assert(vim.bo.syntax == '$expected', vim.bo.syntax)" \
+        +quit
+    echo "$filename: $expected syntax"
+done
 
 echo "## timezone"
 # Norwegian local time is Europe/Oslo the year round, so assert the zone rather than an offset.

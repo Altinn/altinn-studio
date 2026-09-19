@@ -27,6 +27,7 @@ RUN apt-get update \
         libssl-dev \
         lldb \
         linux-perf \
+        neovim \
         nftables \
         openssh-server \
         pkg-config \
@@ -40,12 +41,19 @@ RUN apt-get update \
         systemd \
         tmux \
     && rm -rf /var/lib/apt/lists/* \
+    && nvim --version \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
     && CARGO_HOME=/usr/local/cargo cargo install cargo-machete --version "${CARGO_MACHETE_VERSION}" --locked \
     && rm -rf /usr/local/cargo/registry /usr/local/cargo/git \
     && chmod -R a+rX /usr/local/cargo /usr/local/rustup
+
+COPY nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
+
+RUN nvim --headless \
+    "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    +quit
 
 ARG TARGETARCH
 ARG GH_VERSION=2.100.0

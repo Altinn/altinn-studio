@@ -1,5 +1,6 @@
 *
 !Dockerfile
+!nvim-sysinit.vim
 !ssh.service
 !ssh-tmpfiles.conf
 !sshd_config
