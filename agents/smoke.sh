@@ -26,6 +26,7 @@ finish() {
 
 echo "## versions"
 gh --version | head -1
+gh stack --version
 asciinema --version
 agg --version
 nvim --version | head -1
