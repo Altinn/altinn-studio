@@ -20,10 +20,10 @@ repositories belong under the Agent-owned `/home/agent/code/apps/` directory; mo
 `src/test/apps/`. Studio credentials are not built into the image, so use `studioctl auth status` and
 `studioctl auth login` for the environment you need.
 
-The manifests install studioctl's canonical `altinn-studio-apps` skill, which guides coding agents through checkout,
-startup, app execution, diagnostics, browser verification and cleanup. The repository exposes the same source to
-Codex and Claude Code sessions started directly in an `altinn-studio` checkout on another host. The skill treats the
-installed command's `studioctl <command> --help` output as the version-specific command reference.
+The manifests install studioctl's canonical `altinn-studio-app-development` skill, which guides coding agents
+through checkout, startup, app execution, diagnostics, browser verification and cleanup. The repository exposes the
+same source to Codex and Claude Code sessions started directly in an `altinn-studio` checkout on another host. The
+skill treats the installed command's `studioctl <command> --help` output as the version-specific command reference.
 
 Use the full image for an end-to-end local app loop: it includes Podman and Chromium, and prepares the LocalTest
 hostnames at boot. The minimal image still provides `studioctl` for authentication, repository and app work, but it

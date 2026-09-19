@@ -109,7 +109,7 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
                 .iter()
                 .filter_map(|skill| skill.name())
                 .collect::<Vec<_>>(),
-            ["altinn-studio-apps", "pr-evidence"]
+            ["altinn-studio-app-development", "pr-evidence"]
         );
 
         let mut comparable_build = nested_build.clone();
