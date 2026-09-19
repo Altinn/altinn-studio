@@ -17,6 +17,7 @@ import {
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import { cancelFocusComponentRequest, tryFocusComponent } from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
@@ -482,9 +483,15 @@ export function useNavigateToComponent() {
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
     const targetPage = layoutLookups.componentToPage[baseComponentId];
+    const errorBindingKey = options?.error?.['bindingKey'] ?? null;
+    if (targetPage === currentPageId && tryFocusComponent({ nodeId: indexedId, errorBinding: errorBindingKey })) {
+      return;
+    }
+
+    cancelFocusComponentRequest();
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set(SearchParams.FocusComponentId, indexedId);
-    const errorBindingKey = options?.error?.['bindingKey'];
+    newSearchParams.delete(SearchParams.FocusErrorBinding);
     if (errorBindingKey) {
       newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
     }
