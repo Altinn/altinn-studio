@@ -3,6 +3,7 @@ package skills
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -13,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -57,6 +59,7 @@ var (
 	errInvalidSkillMetadata     = errors.New("invalid Agent Skill metadata")
 	errMissingFrontmatter       = errors.New("missing YAML frontmatter")
 	errUnterminatedFrontmatter  = errors.New("unterminated YAML frontmatter")
+	errOverlappingSkillPaths    = errors.New("agent skill source and target paths overlap")
 	errTargetHarnessConflict    = errors.New("--target cannot be combined with --harness")
 	errUnsupportedSkillFileType = errors.New("unsupported file type in Agent Skill")
 )
@@ -247,6 +250,9 @@ func (s *Service) Install(opts InstallOptions) ([]InstallResult, error) {
 
 	plans := make([]installPlan, 0, len(targets))
 	for _, target := range targets {
+		if err := ensureSeparateTrees(skill.Path, target.Path); err != nil {
+			return nil, err
+		}
 		status, err := inspectTarget(target.Path, skill.Name, digest)
 		if err != nil {
 			return nil, err
@@ -553,26 +559,8 @@ func installManagedSkill(plan installPlan, skillName, version string) error {
 		}
 		return nil
 	}
-	return replaceManagedDir(staging, plan.target.Path)
-}
-
-func replaceManagedDir(staging, target string) error {
-	backup, err := os.MkdirTemp(filepath.Dir(target), "."+filepath.Base(target)+".backup-*")
-	if err != nil {
-		return fmt.Errorf("reserve Agent Skill backup path: %w", err)
-	}
-	if err := os.Remove(backup); err != nil {
-		return fmt.Errorf("prepare Agent Skill backup path: %w", err)
-	}
-	if err := os.Rename(target, backup); err != nil {
-		return fmt.Errorf("back up existing Agent Skill %q: %w", target, err)
-	}
-	if err := os.Rename(staging, target); err != nil {
-		restoreErr := os.Rename(backup, target)
-		return errors.Join(fmt.Errorf("replace Agent Skill %q: %w", target, err), restoreErr)
-	}
-	if err := os.RemoveAll(backup); err != nil {
-		return fmt.Errorf("remove Agent Skill backup %q: %w", backup, err)
+	if err := osutil.ReplacePath(staging, plan.target.Path); err != nil {
+		return fmt.Errorf("replace Agent Skill %q: %w", plan.target.Path, err)
 	}
 	return nil
 }
@@ -624,6 +612,9 @@ func copySkillFile(source, target string, mode os.FileMode) (err error) {
 	if _, err := io.Copy(output, input); err != nil {
 		return fmt.Errorf("copy Agent Skill file: %w", err)
 	}
+	if err := output.Chmod(mode); err != nil {
+		return fmt.Errorf("preserve Agent Skill file mode: %w", err)
+	}
 	return nil
 }
 
@@ -633,40 +624,144 @@ func hashDir(root string) (string, error) {
 		if entryErr != nil {
 			return fmt.Errorf("walk Agent Skill directory: %w", entryErr)
 		}
-		if entry.IsDir() {
-			return nil
-		}
-		rel, err := filepath.Rel(root, path)
-		if err != nil {
-			return fmt.Errorf("resolve Agent Skill relative path: %w", err)
-		}
-		if filepath.Base(rel) == managedMetadataFileName {
-			return nil
-		}
-		if !entry.Type().IsRegular() {
-			return fmt.Errorf("%w at %q", errUnsupportedSkillFileType, path)
-		}
-		if _, writeErr := io.WriteString(hash, filepath.ToSlash(rel)+"\x00"); writeErr != nil {
-			return fmt.Errorf("hash Agent Skill path: %w", writeErr)
-		}
-		file, err := os.Open(path) //nolint:gosec // Paths are constrained to the walked skill directory.
-		if err != nil {
-			return fmt.Errorf("open Agent Skill file for hashing: %w", err)
-		}
-		_, copyErr := io.Copy(hash, file)
-		closeErr := file.Close()
-		if copyErr != nil || closeErr != nil {
-			return errors.Join(copyErr, closeErr)
-		}
-		if _, writeErr := io.WriteString(hash, "\x00"); writeErr != nil {
-			return fmt.Errorf("hash Agent Skill delimiter: %w", writeErr)
-		}
-		return nil
+		return hashDirEntry(hash, root, path, entry)
 	})
 	if walkErr != nil {
 		return "", fmt.Errorf("hash Agent Skill directory: %w", walkErr)
 	}
 	return "sha256:" + hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func hashDirEntry(writer io.Writer, root, path string, entry fs.DirEntry) error {
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return fmt.Errorf("resolve Agent Skill relative path: %w", err)
+	}
+	if rel == managedMetadataFileName {
+		return nil
+	}
+	if !entry.IsDir() && !entry.Type().IsRegular() {
+		return fmt.Errorf("%w at %q", errUnsupportedSkillFileType, path)
+	}
+	entryType := byte('f')
+	if entry.IsDir() {
+		entryType = 'd'
+	}
+	if fieldErr := writeHashField(writer, []byte{entryType}); fieldErr != nil {
+		return fmt.Errorf("hash Agent Skill entry type: %w", fieldErr)
+	}
+	if fieldErr := writeHashField(writer, []byte(filepath.ToSlash(rel))); fieldErr != nil {
+		return fmt.Errorf("hash Agent Skill path: %w", fieldErr)
+	}
+	if entry.IsDir() {
+		return nil
+	}
+
+	info, err := entry.Info()
+	if err != nil {
+		return fmt.Errorf("read Agent Skill file info: %w", err)
+	}
+	var mode [4]byte
+	binary.BigEndian.PutUint32(mode[:], uint32(info.Mode().Perm()))
+	if fieldErr := writeHashField(writer, mode[:]); fieldErr != nil {
+		return fmt.Errorf("hash Agent Skill file mode: %w", fieldErr)
+	}
+	if fieldErr := writeHashField(writer, []byte(strconv.FormatInt(info.Size(), 10))); fieldErr != nil {
+		return fmt.Errorf("hash Agent Skill file size: %w", fieldErr)
+	}
+	file, err := os.Open(path) //nolint:gosec // Paths are constrained to the walked skill directory.
+	if err != nil {
+		return fmt.Errorf("open Agent Skill file for hashing: %w", err)
+	}
+	_, copyErr := io.Copy(writer, file)
+	closeErr := file.Close()
+	if copyErr != nil || closeErr != nil {
+		return errors.Join(copyErr, closeErr)
+	}
+	return nil
+}
+
+func writeHashField(writer io.Writer, value []byte) error {
+	var size [8]byte
+	binary.BigEndian.PutUint64(size[:], uint64(len(value)))
+	if _, err := writer.Write(size[:]); err != nil {
+		return fmt.Errorf("write field size: %w", err)
+	}
+	_, err := writer.Write(value)
+	if err != nil {
+		return fmt.Errorf("write field value: %w", err)
+	}
+	return nil
+}
+
+func ensureSeparateTrees(source, target string) error {
+	resolvedSource, err := resolvePath(source)
+	if err != nil {
+		return fmt.Errorf("resolve Agent Skill source path: %w", err)
+	}
+	resolvedTarget, err := resolvePath(target)
+	if err != nil {
+		return fmt.Errorf("resolve Agent Skill target path: %w", err)
+	}
+	overlaps, err := pathsOverlap(resolvedSource, resolvedTarget)
+	if err != nil {
+		return fmt.Errorf("compare Agent Skill source and target paths: %w", err)
+	}
+	if overlaps {
+		return fmt.Errorf(
+			"%w: source %q and target %q must be separate",
+			errOverlappingSkillPaths,
+			resolvedSource,
+			resolvedTarget,
+		)
+	}
+	return nil
+}
+
+func resolvePath(path string) (string, error) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("make path absolute: %w", err)
+	}
+	resolved, err := filepath.EvalSymlinks(absPath)
+	if err == nil {
+		return resolved, nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return "", fmt.Errorf("evaluate symbolic links: %w", err)
+	}
+	parent := filepath.Dir(absPath)
+	if parent == absPath {
+		return absPath, nil
+	}
+	resolvedParent, err := resolvePath(parent)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(resolvedParent, filepath.Base(absPath)), nil
+}
+
+func pathsOverlap(first, second string) (bool, error) {
+	firstContainsSecond, err := pathContains(first, second)
+	if err != nil {
+		return false, err
+	}
+	secondContainsFirst, err := pathContains(second, first)
+	if err != nil {
+		return false, err
+	}
+	return firstContainsSecond || secondContainsFirst, nil
+}
+
+func pathContains(parent, child string) (bool, error) {
+	if !strings.EqualFold(filepath.VolumeName(parent), filepath.VolumeName(child)) {
+		return false, nil
+	}
+	rel, err := filepath.Rel(parent, child)
+	if err != nil {
+		return false, fmt.Errorf("make child path relative: %w", err)
+	}
+	return rel == "." || rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)), nil
 }
 
 func isSafeName(name string) bool {

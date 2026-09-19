@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"altinn.studio/studioctl/internal/config"
@@ -126,6 +127,140 @@ func TestInstallRefusesUnmanagedTarget(t *testing.T) {
 		t.Fatalf("Install() error = %v, want ErrUnmanagedTarget", err)
 	}
 	assertFileContent(t, filepath.Join(targetRoot, testSkillName, "SKILL.md"), "user-owned")
+}
+
+func TestInstallRefusesTargetOverlappingSource(t *testing.T) {
+	t.Parallel()
+
+	t.Run("same directory", func(t *testing.T) {
+		t.Parallel()
+
+		service, source := newTestService(t)
+		writeTestSkill(t, source, "source")
+		assertOverlappingTargetRejected(t, service, source)
+	})
+	t.Run("nested directory", func(t *testing.T) {
+		t.Parallel()
+
+		service, source := newTestService(t)
+		writeTestSkill(t, source, "source")
+		assertOverlappingTargetRejected(t, service, filepath.Join(source, testSkillName))
+	})
+}
+
+func TestInstallRefusesSymlinkedTargetInsideSource(t *testing.T) {
+	t.Parallel()
+
+	service, source := newTestService(t)
+	writeTestSkill(t, source, "source")
+	skillSource := filepath.Join(source, testSkillName)
+	targetRoot := filepath.Join(t.TempDir(), "skills")
+	if err := os.Symlink(skillSource, targetRoot); err != nil {
+		t.Skipf("create test symlink: %v", err)
+	}
+
+	_, err := service.Install(InstallOptions{Name: testSkillName, TargetDir: targetRoot})
+	if !errors.Is(err, errOverlappingSkillPaths) {
+		t.Fatalf("Install() error = %v, want errOverlappingSkillPaths", err)
+	}
+}
+
+func TestEnsureSeparateTreesRefusesSourceInsideTarget(t *testing.T) {
+	t.Parallel()
+
+	target := t.TempDir()
+	source := filepath.Join(target, "source")
+	if err := os.Mkdir(source, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureSeparateTrees(source, target); !errors.Is(err, errOverlappingSkillPaths) {
+		t.Fatalf("ensureSeparateTrees() error = %v, want errOverlappingSkillPaths", err)
+	}
+}
+
+func TestInstallDetectsEmptyDirectoryModification(t *testing.T) {
+	t.Parallel()
+
+	service, source := newTestService(t)
+	writeTestSkill(t, source, "source")
+	targetRoot := filepath.Join(t.TempDir(), "skills")
+	options := InstallOptions{Name: testSkillName, TargetDir: targetRoot}
+	if _, err := service.Install(options); err != nil {
+		t.Fatalf("initial Install() error = %v", err)
+	}
+	if err := os.Mkdir(filepath.Join(targetRoot, testSkillName, "user-directory"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := service.Install(options)
+	if !errors.Is(err, ErrModifiedTarget) {
+		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
+	}
+}
+
+func TestInstallDetectsNestedManagementFilenameModification(t *testing.T) {
+	t.Parallel()
+
+	service, source := newTestService(t)
+	writeTestSkill(t, source, "source")
+	nestedMetadata := filepath.Join("references", managedMetadataFileName)
+	writeFile(t, filepath.Join(source, testSkillName, nestedMetadata), "source content")
+	targetRoot := filepath.Join(t.TempDir(), "skills")
+	options := InstallOptions{Name: testSkillName, TargetDir: targetRoot}
+	if _, err := service.Install(options); err != nil {
+		t.Fatalf("initial Install() error = %v", err)
+	}
+	writeFile(t, filepath.Join(targetRoot, testSkillName, nestedMetadata), "user edit")
+
+	_, err := service.Install(options)
+	if !errors.Is(err, ErrModifiedTarget) {
+		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
+	}
+}
+
+func TestInstallPreservesAndProtectsExecutableMode(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows does not expose POSIX executable mode bits")
+	}
+	t.Parallel()
+
+	service, source := newTestService(t)
+	writeTestSkill(t, source, "source")
+	scriptRel := filepath.Join("scripts", "verify.sh")
+	scriptSource := filepath.Join(source, testSkillName, scriptRel)
+	writeFile(t, scriptSource, "#!/bin/sh\n")
+	if err := os.Chmod(scriptSource, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	targetRoot := filepath.Join(t.TempDir(), "skills")
+	options := InstallOptions{Name: testSkillName, TargetDir: targetRoot}
+	if _, err := service.Install(options); err != nil {
+		t.Fatalf("initial Install() error = %v", err)
+	}
+	targetScript := filepath.Join(targetRoot, testSkillName, scriptRel)
+	info, err := os.Stat(targetScript)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0o755 {
+		t.Fatalf("installed script mode = %o, want 755", info.Mode().Perm())
+	}
+	if chmodErr := os.Chmod(targetScript, 0o644); chmodErr != nil {
+		t.Fatal(chmodErr)
+	}
+
+	_, err = service.Install(options)
+	if !errors.Is(err, ErrModifiedTarget) {
+		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
+	}
+}
+
+func assertOverlappingTargetRejected(t *testing.T, service *Service, targetRoot string) {
+	t.Helper()
+	_, err := service.Install(InstallOptions{Name: testSkillName, TargetDir: targetRoot})
+	if !errors.Is(err, errOverlappingSkillPaths) {
+		t.Fatalf("Install() error = %v, want errOverlappingSkillPaths", err)
+	}
 }
 
 func TestInstallRepoScopeUsesRepositoryRoot(t *testing.T) {

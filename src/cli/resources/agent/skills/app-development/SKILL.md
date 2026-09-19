@@ -60,10 +60,12 @@ From the app checkout:
    browser checks or other work; use foreground mode when live output is the task.
 4. Use `studioctl app ps`, `studioctl app logs`, and `studioctl env logs` to identify startup or runtime failures.
 
-The local app is normally served at `http://local.altinn.cloud:8000`. Do not report it healthy based only on a
-started process: load it in a browser when browser testing is available, inspect the page and console, and exercise
-the changed behavior. Use the `playwright-cli` skill when installed. Use repository-provided test users and fixtures,
-and never capture personal data or secrets.
+Use the exact app URL printed by `studioctl run`; the bare `http://local.altinn.cloud:8000` address is the LocalTest
+landing page, while an app URL includes its organization and repository path. For automation, run
+`studioctl run --detach --json` and read the `url` field instead of constructing or parsing a URL. Do not report the
+app healthy based only on a started process: load it in a browser when browser testing is available, inspect the page
+and console, and exercise the changed behavior. Use the `playwright-cli` skill when installed. Use repository-provided
+test users and fixtures, and never capture personal data or secrets.
 
 ## Iterate and verify
 

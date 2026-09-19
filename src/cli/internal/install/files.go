@@ -7,14 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	"altinn.studio/studioctl/internal/osutil"
-)
-
-const (
-	windowsReplaceRetryDelay   = 100 * time.Millisecond
-	windowsReplaceRetryTimeout = 5 * time.Second
 )
 
 var (
@@ -154,7 +148,7 @@ func atomicCopyFile(src, dst string) (string, error) {
 	if err := closeWithError(tmpFile, "close destination temp file", nil); err != nil {
 		return "", cleanupTempFile(tmpPath, err)
 	}
-	if err := replacePath(tmpPath, absTarget); err != nil {
+	if err := osutil.ReplacePathAtomic(tmpPath, absTarget); err != nil {
 		return "", cleanupTempFile(tmpPath, err)
 	}
 
@@ -202,97 +196,11 @@ func installDir(srcDir, targetDir string, validate func(string) error) error {
 			return cleanupTempDir(stagingDir, err)
 		}
 	}
-	if err := replacePath(stagingDir, absTarget); err != nil {
+	if err := osutil.ReplacePath(stagingDir, absTarget); err != nil {
 		return cleanupTempDir(stagingDir, err)
 	}
 
 	return nil
-}
-
-func replacePath(src, dst string) error {
-	if runtime.GOOS == osutil.OSWindows {
-		return retryReplacePathWindows(src, dst)
-	}
-	return replacePathOnce(src, dst)
-}
-
-func retryReplacePathWindows(src, dst string) error {
-	deadline := time.Now().Add(windowsReplaceRetryTimeout)
-	for {
-		err := replacePathOnce(src, dst)
-		if err == nil {
-			return nil
-		}
-		if !isRetryableWindowsReplaceError(err) || time.Now().After(deadline) {
-			return err
-		}
-		time.Sleep(windowsReplaceRetryDelay)
-	}
-}
-
-func replacePathOnce(src, dst string) error {
-	initialRenameErr := os.Rename(src, dst)
-	if initialRenameErr == nil {
-		return nil
-	}
-
-	renameErr := fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, initialRenameErr)
-
-	backupPath, err := reserveBackupPath(dst)
-	if err != nil {
-		return errors.Join(renameErr, err)
-	}
-
-	moveToBackupErr := os.Rename(dst, backupPath)
-	if moveToBackupErr != nil {
-		if errors.Is(moveToBackupErr, os.ErrNotExist) {
-			return renameErr
-		}
-		return errors.Join(
-			renameErr,
-			fmt.Errorf(
-				"replace destination: move existing destination %q to backup %q: %w",
-				dst,
-				backupPath,
-				moveToBackupErr,
-			),
-		)
-	}
-
-	if err := os.Rename(src, dst); err != nil {
-		restoreErr := os.Rename(backupPath, dst)
-		if restoreErr != nil {
-			return errors.Join(
-				fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err),
-				fmt.Errorf("replace destination: restore backup %q to %q: %w", backupPath, dst, restoreErr),
-			)
-		}
-		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err)
-	}
-
-	if removeErr := os.RemoveAll(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
-		return fmt.Errorf("replace destination: remove backup %q: %w", backupPath, removeErr)
-	}
-
-	return nil
-}
-
-func reserveBackupPath(dst string) (string, error) {
-	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
-	if err != nil {
-		return "", fmt.Errorf("replace destination: create backup temp file: %w", err)
-	}
-	backupPath := backup.Name()
-
-	if err := closeWithError(backup, "close backup temp file", nil); err != nil {
-		return "", cleanupTempFile(backupPath, err)
-	}
-
-	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return "", fmt.Errorf("replace destination: prepare backup path %q: %w", backupPath, err)
-	}
-
-	return backupPath, nil
 }
 
 func writeFile(path, content string) error {
