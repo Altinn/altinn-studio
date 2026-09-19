@@ -12,12 +12,15 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
-## [0.1.0-preview.4] - 2026-09-18
-
 ### Added
 
 - Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
   high-contrast `desert` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
+
+## [0.1.0-preview.4] - 2026-09-18
+
+### Added
+
 - The release installers accept `AGENT_INSTALL_MODE=standalone` to verify and copy only `agentctl` and `agentd` into
   `AGENT_INSTALL_DIR`. This supports immutable images and CI jobs without creating self-update state, migrating Agent
   data, starting the daemon, or changing `PATH`.
