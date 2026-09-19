@@ -43,6 +43,13 @@ fn command_failed(name: &str, output: Option<&Value>) -> bool {
         .any(|code| code != 0)
 }
 
+fn is_command_tool(name: &str) -> bool {
+    matches!(
+        name,
+        "exec" | "exec_command" | "shell" | "shell_command" | "write_stdin"
+    )
+}
+
 /// Parses Codex rollout JSONL into ordered turns.
 ///
 /// # Errors
@@ -89,8 +96,10 @@ struct Builder {
     answered: bool,
     /// Location of each recorded tool call by `call_id`.
     tool_calls: HashMap<String, (usize, usize, usize)>,
-    /// The command tool call awaiting Codex's native `CommandExecution` event.
-    pending_command: Option<(usize, usize, usize)>,
+    /// Failure observed in native `CommandExecution` records since the last
+    /// command tool output. Those records have no tool `call_id`; the following
+    /// output supplies it and identifies the exact recorded tool call.
+    pending_command_failed: Option<bool>,
 }
 
 impl Builder {
@@ -116,11 +125,8 @@ impl Builder {
                 Some("item_completed")
                     if payload.pointer("/item/type").and_then(Value::as_str) == Some("CommandExecution") =>
                 {
-                    if payload.pointer("/item/status").and_then(Value::as_str) == Some("failed") {
-                        self.mark_pending_command_failed();
-                    } else {
-                        self.pending_command = None;
-                    }
+                    let failed = payload.pointer("/item/status").and_then(Value::as_str) == Some("failed");
+                    self.pending_command_failed = Some(self.pending_command_failed.unwrap_or(false) || failed);
                 }
                 _ => {}
             },
@@ -135,7 +141,7 @@ impl Builder {
             self.turns.push(Turn::default());
         }
         self.answered = false;
-        self.pending_command = None;
+        self.pending_command_failed = None;
     }
 
     fn push_item(&mut self, payload: &Value) {
@@ -177,16 +183,19 @@ impl Builder {
                 if let Some(call_id) = payload.get("call_id").and_then(Value::as_str) {
                     self.tool_calls.insert(call_id.to_owned(), location);
                 }
-                if matches!(
-                    name,
-                    "exec" | "exec_command" | "shell" | "shell_command" | "write_stdin"
-                ) {
-                    self.pending_command = Some(location);
-                }
             }
             Some("function_call_output" | "custom_tool_call_output") => {
+                let native_failed = self.pending_command_failed.unwrap_or(false);
+                let mut consumed_native_result = false;
                 if let Some(Part::ToolCall { name, failed }) = self.tool_part(payload) {
                     *failed |= command_failed(name, payload.get("output"));
+                    if is_command_tool(name) {
+                        *failed |= native_failed;
+                        consumed_native_result = true;
+                    }
+                }
+                if consumed_native_result {
+                    self.pending_command_failed = None;
                 }
             }
             _ => {}
@@ -201,20 +210,6 @@ impl Builder {
 
     fn mark_tool_failed(&mut self, payload: &Value) {
         if let Some(Part::ToolCall { failed, .. }) = self.tool_part(payload) {
-            *failed = true;
-        }
-    }
-
-    fn mark_pending_command_failed(&mut self) {
-        let Some((turn, message, part)) = self.pending_command.take() else {
-            return;
-        };
-        if let Some(Part::ToolCall { failed, .. }) = self
-            .turns
-            .get_mut(turn)
-            .and_then(|turn| turn.messages.get_mut(message))
-            .and_then(|message| message.parts.get_mut(part))
-        {
             *failed = true;
         }
     }
@@ -395,20 +390,48 @@ mod tests {
     }
 
     #[test]
-    fn native_command_execution_events_mark_exec_failures() {
+    fn native_command_results_wait_for_the_outputs_call_id() {
         let lines = [
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"a", "name":"exec"}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"b", "name":"exec"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-unrelated-a", "status":"failed", "exit_code":1}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"a", "output":[]}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-unrelated-b", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"b", "output":[]}}),
             serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"c", "name":"exec"}}),
-            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "status":"failed", "exit_code":1}}}),
-            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"c", "output":[{"type":"input_text", "text":"Script completed\nOutput:\n"}]}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-unrelated-c1", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-unrelated-c2", "status":"failed", "exit_code":7}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"c", "output":[]}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"d", "name":"exec"}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"e", "name":"exec"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-unrelated-e", "status":"failed", "exit_code":2}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"e", "output":[]}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-unrelated-d", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"d", "output":[]}}),
         ];
         let transcript = lines.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
 
         let turns = parse(transcript.as_bytes()).expect("parse");
+        let tools = turns[0]
+            .messages
+            .iter()
+            .flat_map(|message| &message.parts)
+            .filter_map(|part| match part {
+                Part::ToolCall { name, failed } => Some((name.as_str(), *failed)),
+                Part::Text { .. } => None,
+            })
+            .collect::<Vec<_>>();
 
-        assert!(matches!(
-            &turns[0].messages[0].parts[0],
-            Part::ToolCall { name, failed } if name == "exec" && *failed
-        ));
+        assert_eq!(
+            tools,
+            [
+                ("exec", true),
+                ("exec", false),
+                ("exec", true),
+                ("exec", false),
+                ("exec", true),
+            ]
+        );
     }
 
     #[test]
