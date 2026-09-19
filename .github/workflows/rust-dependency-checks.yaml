@@ -2,6 +2,7 @@ name: Rust - dependency checks
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'Cargo.toml'
       - 'Cargo.lock'
@@ -19,6 +20,7 @@ permissions:
 
 jobs:
   check:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Advisories and sources
     runs-on: self-hosted-ubuntu
     timeout-minutes: 10
