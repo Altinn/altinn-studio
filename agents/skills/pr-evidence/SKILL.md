@@ -101,6 +101,10 @@ Record the demonstrated commands, not the whole coding session. A GIF only shows
 time. Script CLI demonstrations so each command and its output can be read. For a TUI, record the program directly
 and pause on focused fields, placeholders and picker states before typing or moving on.
 
+Record the behavior shipped by the tested revision. Evidence automation may navigate, provide input, change buffers
+or control timing, but it does not change themes, colors, layout or other presentation merely to improve the capture.
+Document any unavoidable evidence-only behavior or presentation override in `capture.md`.
+
 ```sh
 run=/home/agent/code/.artifacts/<task>/<run>
 mkdir -p "$run"
@@ -119,12 +123,15 @@ done
 ```
 
 Replace `agentctl tui` with `bash demo.sh` for a scripted CLI flow, or omit `--command` to record a shell. Keep the
-clip under 15 seconds; `--idle-time-limit` collapses waits. Explicitly overriding `NO_COLOR` and `TERM=dumb` preserves
-the real terminal styling. The image's JetBrains Mono font renders picker glyphs such as `◂` and `▸`.
+clip under 15 seconds; `--idle-time-limit` collapses waits. Unsetting `NO_COLOR` and replacing an inherited `TERM=dumb`
+preserves real terminal styling. When the recorded command starts a container, explicitly forward the capabilities,
+for example with `podman run -e TERM -e COLORTERM ...`; setting them for asciinema does not guarantee they cross the
+container boundary. The image's JetBrains Mono font renders picker glyphs such as `◂` and `▸`.
 
 Do not judge an animated GIF by its first frame. Inspect its contact sheet with `media-preview` and the three rendered
-stills. Confirm the cast header names `xterm-256color`, the states differ, and focus color, dim text, cursor, picker
-glyphs, alignment and clipping match the live terminal. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
+stills. Confirm the recorded command receives the intended `TERM` and `COLORTERM` values; asciinema v3 may omit them
+from the cast header. Check that the states differ and that focus color, dim text, cursor, picker glyphs, alignment and
+clipping match the live terminal. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
 
 ## Attaching to the pull request
 
