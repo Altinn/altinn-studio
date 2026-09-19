@@ -158,6 +158,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
+COPY common/nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
 
 # agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
 # ssh.service and socket-activated ssh.socket would listen on every interface with package-generated
@@ -188,6 +189,9 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && claude --version \
     && codex --version \
     && nvim --version \
+    && nvim --headless \
+        "+lua assert(vim.g.colors_name == 'desert'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+        +quit \
     && test "$(readlink /etc/localtime)" = /usr/share/zoneinfo/Europe/Oslo
 
 ENV DISABLE_AUTOUPDATER=1

@@ -49,6 +49,12 @@ RUN apt-get update \
     && rm -rf /usr/local/cargo/registry /usr/local/cargo/git \
     && chmod -R a+rX /usr/local/cargo /usr/local/rustup
 
+COPY nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
+
+RUN nvim --headless \
+    "+lua assert(vim.g.colors_name == 'desert'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    +quit
+
 ARG TARGETARCH
 ARG GH_VERSION=2.100.0
 ARG ASCIINEMA_VERSION=3.2.1

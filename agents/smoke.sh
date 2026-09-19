@@ -34,6 +34,9 @@ foreign="$(find /home/agent ! -user agent)"
 test -z "$foreign" || fail "entries under /home/agent not owned by agent:"$'\n'"$foreign"
 
 echo "## editor"
+nvim --headless \
+    "+lua assert(vim.g.colors_name == 'desert'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    +quit
 for specification in \
     example.cs:cs \
     example.js:javascript \
