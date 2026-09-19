@@ -61,7 +61,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
         'ispinned: true' \
         'path: /home/agent/.local/share/gh/extensions/gh-stack/gh-stack' \
         >/home/agent/.local/share/gh/extensions/gh-stack/manifest.yml \
-    && chown agent:agent /home/agent/.local/share/gh/extensions/gh-stack/manifest.yml \
+    && chown -R agent:agent /home/agent/.local \
     && rm -f /tmp/gh-stack
 
 ENV DISABLE_AUTOUPDATER=1
