@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	agentskills "altinn.studio/studioctl/internal/cmd/agent/skills"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -12,12 +13,12 @@ const releaseNotesFileName = "release-notes.md"
 
 // ResourcesArchiveOptions describes the inputs needed to create a resources archive.
 type ResourcesArchiveOptions struct {
-	GOOS           string
-	GOARCH         string
-	OutputDir      string
-	ServerDir      string
-	LocaltestDir   string
-	AgentSkillsDir string
+	GOOS         string
+	GOARCH       string
+	OutputDir    string
+	ServerDir    string
+	LocaltestDir string
+	ResourcesDir string
 }
 
 // CreateResourcesArchive creates a studioctl resources archive for a target platform.
@@ -37,31 +38,38 @@ func CreateResourcesArchive(opts ResourcesArchiveOptions) (path string, err erro
 		}
 	}()
 
-	if err := os.MkdirAll(stagingDir, osutil.DirPermDefault); err != nil {
-		return "", fmt.Errorf("create resources staging dir: %w", err)
+	if mkdirErr := os.MkdirAll(stagingDir, osutil.DirPermDefault); mkdirErr != nil {
+		return "", fmt.Errorf("create resources staging dir: %w", mkdirErr)
 	}
 
 	archivePath := filepath.Join(opts.OutputDir, archiveName)
-	if err := copyDir(opts.ServerDir, filepath.Join(stagingDir, resourcesServerDir)); err != nil {
-		return "", fmt.Errorf("stage %s: %w", resourcesServerDir, err)
+	if copyErr := copyDir(opts.ResourcesDir, stagingDir); copyErr != nil {
+		return "", fmt.Errorf("stage resources: %w", copyErr)
 	}
-	if err := stageLocaltestResources(
+	if canonicalizeErr := agentskills.CanonicalizeResourceDirs(
+		filepath.Join(stagingDir, filepath.FromSlash(resourcesAgentSkillsDir)),
+	); canonicalizeErr != nil {
+		return "", fmt.Errorf("stage Agent Skills: %w", canonicalizeErr)
+	}
+	if copyErr := copyDir(opts.ServerDir, filepath.Join(stagingDir, resourcesServerDir)); copyErr != nil {
+		return "", fmt.Errorf("stage %s: %w", resourcesServerDir, copyErr)
+	}
+	if stageErr := stageLocaltestResources(
 		opts.LocaltestDir,
 		filepath.Join(stagingDir, resourcesLocaltestDir),
-	); err != nil {
-		return "", err
+	); stageErr != nil {
+		return "", stageErr
 	}
-	if err := copyDir(opts.AgentSkillsDir, filepath.Join(stagingDir, resourcesAgentSkillsDir)); err != nil {
-		return "", fmt.Errorf("stage Agent Skills: %w", err)
+	entries, err := os.ReadDir(stagingDir)
+	if err != nil {
+		return "", fmt.Errorf("list staged resources: %w", err)
 	}
-	if err := createTarGz(
-		archivePath,
-		stagingDir,
-		resourcesServerDir,
-		resourcesLocaltestDir,
-		resourcesAgentDir,
-	); err != nil {
-		return "", fmt.Errorf("create resources archive: %w", err)
+	archiveEntries := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		archiveEntries = append(archiveEntries, entry.Name())
+	}
+	if archiveErr := createTarGz(archivePath, stagingDir, archiveEntries...); archiveErr != nil {
+		return "", fmt.Errorf("create resources archive: %w", archiveErr)
 	}
 	return archivePath, nil
 }

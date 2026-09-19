@@ -24,16 +24,17 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 
 	serverDir := filepath.Join(dir, "published-"+resourcesServerDir)
 	writeTestFile(t, filepath.Join(serverDir, config.StudioctlServerBinaryName), "binary")
-	agentSkillsDir := filepath.Join(dir, "agent-skills")
-	writeTestFile(t, filepath.Join(agentSkillsDir, "altinn-studio-app-development", "SKILL.md"), "skill")
+	resourcesDir := filepath.Join(dir, "resources")
+	writeTestFile(t, filepath.Join(resourcesDir, "agent", "skills", "app-development", "SKILL.md"), testSkill)
+	writeTestFile(t, filepath.Join(resourcesDir, "other", "resource.txt"), "other")
 
 	archivePath, err := CreateResourcesArchive(ResourcesArchiveOptions{
-		GOOS:           osutil.OSLinux,
-		GOARCH:         "amd64",
-		OutputDir:      outputDir,
-		ServerDir:      serverDir,
-		LocaltestDir:   localtestDir,
-		AgentSkillsDir: agentSkillsDir,
+		GOOS:         osutil.OSLinux,
+		GOARCH:       "amd64",
+		OutputDir:    outputDir,
+		ServerDir:    serverDir,
+		LocaltestDir: localtestDir,
+		ResourcesDir: resourcesDir,
 	})
 	if err != nil {
 		t.Fatalf("CreateResourcesArchive() error = %v", err)
@@ -52,8 +53,10 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 	assertFileContent(
 		t,
 		filepath.Join(extractDir, "agent", "skills", "altinn-studio-app-development", "SKILL.md"),
-		"skill",
+		testSkill,
 	)
+	assertNoFile(t, filepath.Join(extractDir, "agent", "skills", "app-development", "SKILL.md"))
+	assertFileContent(t, filepath.Join(extractDir, "other", "resource.txt"), "other")
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "ignored.txt"))
 	// Testdata ships inside the localtest image, not in the resources archive.
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "testdata", "apps", "app.json"))
@@ -77,16 +80,16 @@ func TestInstallBundleResourcesInstallsAgentSkills(t *testing.T) {
 			t.Fatal(chmodErr)
 		}
 	}
-	agentSkillsDir := filepath.Join(dir, "agent-skills")
-	writeTestFile(t, filepath.Join(agentSkillsDir, "altinn-studio-app-development", "SKILL.md"), "skill")
+	resourcesDir := filepath.Join(dir, "resources")
+	writeTestFile(t, filepath.Join(resourcesDir, "agent", "skills", "app-development", "SKILL.md"), testSkill)
 
 	archivePath, err := CreateResourcesArchive(ResourcesArchiveOptions{
-		GOOS:           runtime.GOOS,
-		GOARCH:         runtime.GOARCH,
-		OutputDir:      filepath.Join(dir, "dist"),
-		ServerDir:      serverDir,
-		LocaltestDir:   localtestDir,
-		AgentSkillsDir: agentSkillsDir,
+		GOOS:         runtime.GOOS,
+		GOARCH:       runtime.GOARCH,
+		OutputDir:    filepath.Join(dir, "dist"),
+		ServerDir:    serverDir,
+		LocaltestDir: localtestDir,
+		ResourcesDir: resourcesDir,
 	})
 	if err != nil {
 		t.Fatalf("CreateResourcesArchive() error = %v", err)
@@ -95,8 +98,10 @@ func TestInstallBundleResourcesInstallsAgentSkills(t *testing.T) {
 	if err := NewService(cfg).InstallBundleResources(context.Background(), bundle); err != nil {
 		t.Fatalf("InstallBundleResources() error = %v", err)
 	}
-	assertFileContent(t, filepath.Join(cfg.AgentSkillsDir(), "altinn-studio-app-development", "SKILL.md"), "skill")
+	assertFileContent(t, filepath.Join(cfg.AgentSkillsDir(), "altinn-studio-app-development", "SKILL.md"), testSkill)
 }
+
+const testSkill = "---\nname: altinn-studio-app-development\ndescription: Develop Altinn Studio apps\n---\n"
 
 func TestRemoveObsoleteTestdataDir(t *testing.T) {
 	t.Parallel()

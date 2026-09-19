@@ -1,5 +1,5 @@
 //nolint:testpackage // Tests exercise managed-install failure states through package-private test hooks.
-package agentskills
+package skills
 
 import (
 	"errors"
@@ -25,7 +25,7 @@ func TestListAndPath(t *testing.T) {
 	if len(skills) != 1 {
 		t.Fatalf("List() returned %d skills, want 1", len(skills))
 	}
-	if skills[0].Name != testSkillName || skills[0].Description != "Develop Altinn apps" {
+	if skills[0].Name != testSkillName || skills[0].Description != "Develop Altinn Studio apps" {
 		t.Fatalf("List() skill = %#v", skills[0])
 	}
 
@@ -35,6 +35,28 @@ func TestListAndPath(t *testing.T) {
 	}
 	if path != filepath.Join(source, testSkillName) {
 		t.Fatalf("Path() = %q, want %q", path, filepath.Join(source, testSkillName))
+	}
+}
+
+func TestCanonicalizeResourceDirsUsesFrontmatterName(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	source := filepath.Join(root, "app-development")
+	writeFile(
+		t,
+		filepath.Join(source, "SKILL.md"),
+		"---\nname: "+testSkillName+"\ndescription: Develop Altinn Studio apps\n---\n",
+	)
+
+	if err := CanonicalizeResourceDirs(root); err != nil {
+		t.Fatalf("CanonicalizeResourceDirs() error = %v", err)
+	}
+	if _, err := os.Stat(source); !os.IsNotExist(err) {
+		t.Fatalf("source directory still exists: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, testSkillName, "SKILL.md")); err != nil {
+		t.Fatalf("canonical skill missing: %v", err)
 	}
 }
 
@@ -196,7 +218,7 @@ func newTestService(t *testing.T) (*Service, string) {
 
 func writeTestSkill(t *testing.T, root, reference string) {
 	t.Helper()
-	skill := "---\nname: " + testSkillName + "\ndescription: Develop Altinn apps\n---\n\n# Test skill\n"
+	skill := "---\nname: " + testSkillName + "\ndescription: Develop Altinn Studio apps\n---\n\n# Test skill\n"
 	writeFile(t, filepath.Join(root, testSkillName, "SKILL.md"), skill)
 	writeFile(t, filepath.Join(root, testSkillName, "reference.txt"), reference)
 }

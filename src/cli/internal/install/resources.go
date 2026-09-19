@@ -17,7 +17,6 @@ const (
 	resourcesServerDir            = config.StudioctlServerResourcesDirName
 	resourcesLocaltestDir         = "localtest"
 	resourcesInfraDir             = "infra"
-	resourcesAgentDir             = "agent"
 	resourcesAgentSkillsDir       = "agent/skills"
 
 	// obsoleteTestdataDirName is the host testdata directory installed by earlier versions,

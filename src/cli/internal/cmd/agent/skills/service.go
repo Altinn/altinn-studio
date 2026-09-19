@@ -1,5 +1,5 @@
-// Package agentskills manages Agent Skills distributed with studioctl.
-package agentskills
+// Package skills manages Agent Skills distributed with studioctl.
+package skills
 
 import (
 	"crypto/sha256"
@@ -109,6 +109,11 @@ type installPlan struct {
 	digest string
 }
 
+type resourceRename struct {
+	source string
+	target string
+}
+
 // Service manages the canonical Agent Skills installed with studioctl.
 type Service struct {
 	cfg     *config.Config
@@ -121,6 +126,66 @@ func NewService(cfg *config.Config) *Service {
 		cfg:     cfg,
 		homeDir: os.UserHomeDir,
 	}
+}
+
+// CanonicalizeResourceDirs renames authored skill directories to their frontmatter names before distribution.
+func CanonicalizeResourceDirs(root string) error {
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return fmt.Errorf("resolve Agent Skill resources: %w", err)
+	}
+	entries, err := os.ReadDir(absRoot)
+	if err != nil {
+		return fmt.Errorf("read Agent Skill resources: %w", err)
+	}
+
+	names := make(map[string]string, len(entries))
+	renames := make([]resourceRename, 0, len(entries))
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		skill, err := readSkill(filepath.Join(absRoot, entry.Name()))
+		if err != nil {
+			return err
+		}
+		if !isSafeName(skill.Name) {
+			return fmt.Errorf("%w: unsafe frontmatter name %q", errInvalidSkillMetadata, skill.Name)
+		}
+		if previous, exists := names[skill.Name]; exists {
+			return fmt.Errorf(
+				"%w: directories %q and %q declare the same name %q",
+				errInvalidSkillMetadata,
+				previous,
+				entry.Name(),
+				skill.Name,
+			)
+		}
+		names[skill.Name] = entry.Name()
+
+		target := filepath.Join(absRoot, skill.Name)
+		if filepath.Clean(skill.Path) != filepath.Clean(target) {
+			renames = append(renames, resourceRename{source: skill.Path, target: target})
+		}
+	}
+
+	for _, rename := range renames {
+		if _, err := os.Lstat(rename.target); err == nil {
+			return fmt.Errorf(
+				"%w: canonical resource directory already exists at %q",
+				errInvalidSkillMetadata,
+				rename.target,
+			)
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("inspect canonical Agent Skill resource %q: %w", rename.target, err)
+		}
+	}
+	for _, rename := range renames {
+		if err := os.Rename(rename.source, rename.target); err != nil {
+			return fmt.Errorf("canonicalize Agent Skill resource directory: %w", err)
+		}
+	}
+	return nil
 }
 
 // List returns every Agent Skill distributed with this studioctl installation.

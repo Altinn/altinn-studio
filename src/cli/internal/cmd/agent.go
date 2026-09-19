@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"altinn.studio/studioctl/internal/agentskills"
+	agentskills "altinn.studio/studioctl/internal/cmd/agent/skills"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
