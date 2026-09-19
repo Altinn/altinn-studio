@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -107,6 +109,50 @@ func TestInstalledSelfCommandArgsIncludesConfigFlags(t *testing.T) {
 	}
 	if strings.Join(got, "\x00") != strings.Join(want, "\x00") {
 		t.Fatalf("installedSelfCommandArgs() = %#v, want %#v", got, want)
+	}
+}
+
+func TestShouldBaselineMigrations(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		state    string
+		baseline bool
+	}{
+		{name: "empty initialized home", state: "", baseline: true},
+		{name: "installed resources", state: "bin/studioctl-server/studioctl-server", baseline: false},
+		{name: "legacy state without migration file", state: "data/AltinnPlatformLocal/instance.json", baseline: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			home := t.TempDir()
+			for _, dir := range []string{"bin", "data", "logs"} {
+				if err := os.Mkdir(filepath.Join(home, dir), 0o755); err != nil {
+					t.Fatalf("create initialized home directory: %v", err)
+				}
+			}
+			if tc.state != "" {
+				path := filepath.Join(home, tc.state)
+				if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+					t.Fatalf("create state directory: %v", err)
+				}
+				if err := os.WriteFile(path, []byte("state"), 0o600); err != nil {
+					t.Fatalf("write state: %v", err)
+				}
+			}
+
+			baseline, err := shouldBaselineMigrations(home)
+			if err != nil {
+				t.Fatalf("shouldBaselineMigrations() error = %v", err)
+			}
+			if baseline != tc.baseline {
+				t.Fatalf("shouldBaselineMigrations() = %v, want %v", baseline, tc.baseline)
+			}
+		})
 	}
 }
 
