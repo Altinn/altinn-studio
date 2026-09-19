@@ -1,0 +1,30 @@
+diff --git a/dist/u-combobox.cjs b/dist/u-combobox.cjs
+index 74f0fb85c79e4ccbc37d0e22f6fa2b31cc7e7e2c..42606d6c1f613b2abc737557a4fc68daa39b88f1 100644
+--- a/dist/u-combobox.cjs
++++ b/dist/u-combobox.cjs
+@@ -596,7 +596,9 @@ if (isBrowser() && !window.customElements.get("u-combobox")) {
+       const prevValue = this.value;
+       (_a2 = descriptor == null ? void 0 : descriptor.set) == null ? void 0 : _a2.call(this, nextValue);
+       if (prevValue !== nextValue && (parent == null ? void 0 : parent._control) === this)
+-        this.dispatchEvent(new CustomEvent(PROGRAMMATIC, { bubbles: true }));
++        // Temporary fix until an upstream release preserves the datalist search value.
++        // Let synchronous selection handling finish before caching programmatic writes.
++        queueMicrotask(() => this.dispatchEvent(new CustomEvent(PROGRAMMATIC, { bubbles: true })));
+     }
+   }));
+ }
+diff --git a/dist/u-combobox.js b/dist/u-combobox.js
+index 1846f76e6ebf63f7a3efc4b0cd8fdeb99eb7cf20..2367349832250287fbe6db5f3411ca16a655dcc1 100644
+--- a/dist/u-combobox.js
++++ b/dist/u-combobox.js
+@@ -594,7 +594,9 @@ if (isBrowser() && !window.customElements.get("u-combobox")) {
+       const prevValue = this.value;
+       (_a2 = descriptor == null ? void 0 : descriptor.set) == null ? void 0 : _a2.call(this, nextValue);
+       if (prevValue !== nextValue && (parent == null ? void 0 : parent._control) === this)
+-        this.dispatchEvent(new CustomEvent(PROGRAMMATIC, { bubbles: true }));
++        // Temporary fix until an upstream release preserves the datalist search value.
++        // Let synchronous selection handling finish before caching programmatic writes.
++        queueMicrotask(() => this.dispatchEvent(new CustomEvent(PROGRAMMATIC, { bubbles: true })));
+     }
+   }));
+ }
