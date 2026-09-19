@@ -109,6 +109,16 @@ func TestUpdateCheckCachePath(t *testing.T) {
 	}
 }
 
+func TestAgentSkillsDir(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: filepath.Join("some", "home")}
+	want := filepath.Join("some", "home", "agent", "skills")
+	if got := cfg.AgentSkillsDir(); got != want {
+		t.Errorf("AgentSkillsDir() = %q, want %q", got, want)
+	}
+}
+
 func TestNewWithCustomHome(t *testing.T) {
 	t.Parallel()
 

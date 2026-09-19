@@ -161,52 +161,52 @@ func atomicCopyFile(src, dst string) (string, error) {
 	return absTarget, nil
 }
 
-func installDir(srcDir, targetDir string, validate func(string) error) (string, error) {
+func installDir(srcDir, targetDir string, validate func(string) error) error {
 	if srcDir == "" {
-		return "", errSourceRequired
+		return errSourceRequired
 	}
 	if targetDir == "" {
-		return "", errTargetRequired
+		return errTargetRequired
 	}
 
 	absSource, err := filepath.Abs(srcDir)
 	if err != nil {
-		return "", fmt.Errorf("resolve source directory: %w", err)
+		return fmt.Errorf("resolve source directory: %w", err)
 	}
 	absTarget, err := filepath.Abs(targetDir)
 	if err != nil {
-		return "", fmt.Errorf("resolve target directory: %w", err)
+		return fmt.Errorf("resolve target directory: %w", err)
 	}
 	if mkdirErr := os.MkdirAll(filepath.Dir(absTarget), osutil.DirPermDefault); mkdirErr != nil {
-		return "", fmt.Errorf("create target parent directory: %w", mkdirErr)
+		return fmt.Errorf("create target parent directory: %w", mkdirErr)
 	}
 
 	info, err := os.Stat(absSource)
 	if err != nil {
-		return "", fmt.Errorf("stat source directory: %w", err)
+		return fmt.Errorf("stat source directory: %w", err)
 	}
 	if !info.IsDir() {
-		return "", fmt.Errorf("%w: %s", errSourceNotDirectory, absSource)
+		return fmt.Errorf("%w: %s", errSourceNotDirectory, absSource)
 	}
 
 	stagingDir, err := os.MkdirTemp(filepath.Dir(absTarget), "."+filepath.Base(absTarget)+".tmp-*")
 	if err != nil {
-		return "", fmt.Errorf("create staging directory: %w", err)
+		return fmt.Errorf("create staging directory: %w", err)
 	}
 
 	if err := copyDir(absSource, stagingDir); err != nil {
-		return "", cleanupTempDir(stagingDir, fmt.Errorf("copy payload directory: %w", err))
+		return cleanupTempDir(stagingDir, fmt.Errorf("copy payload directory: %w", err))
 	}
 	if validate != nil {
 		if err := validate(stagingDir); err != nil {
-			return "", cleanupTempDir(stagingDir, err)
+			return cleanupTempDir(stagingDir, err)
 		}
 	}
 	if err := replacePath(stagingDir, absTarget); err != nil {
-		return "", cleanupTempDir(stagingDir, err)
+		return cleanupTempDir(stagingDir, err)
 	}
 
-	return absTarget, nil
+	return nil
 }
 
 func replacePath(src, dst string) error {
