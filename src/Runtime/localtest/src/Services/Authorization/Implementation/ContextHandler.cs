@@ -12,7 +12,7 @@ using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
+using Altinn.Register.Contracts.V1;
 using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Interface.Models;
 using LocalTest.Services.Authorization.Interface;

@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text.Json;
 using Authorization.Interface.Models;
 using LocalTest.Configuration;
+using LocalTest.Helpers;
 using LocalTest.Models;
 using LocalTest.Services.Tenor.Models;
 using Microsoft.Extensions.Options;
@@ -140,6 +142,7 @@ public class TenorDataRepository
             Orgs = brreg.Select(b => new AppTestOrg
             {
                 PartyId = b.PartyId,
+                PartyUuid = GuidHelpers.FromInt(b.PartyId),
                 ParentPartyId = null,
                 OrgNumber = b.Organisasjonsnummer,
                 Name = b.Navn,
