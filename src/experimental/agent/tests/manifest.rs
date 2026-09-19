@@ -483,16 +483,19 @@ fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
     let mut agent = support::agent("worker");
     agent.spec.skills = vec![agent::SkillSpec {
         source: PathBuf::from("skills/.."),
+        name: None,
     }];
     let error = agent.validate().expect_err("a source ending in .. has no skill name");
-    assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("spec.skills[0].source")));
+    assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("spec.skills[0]")));
 
     agent.spec.skills = vec![
         agent::SkillSpec {
             source: PathBuf::from("skills/evidence"),
+            name: None,
         },
         agent::SkillSpec {
             source: PathBuf::from("../shared/evidence/"),
+            name: None,
         },
     ];
     let error = agent
@@ -505,6 +508,10 @@ fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
     agent.spec.skills.pop();
     agent.validate().expect("one named skill is valid");
     assert_eq!(agent.spec.skills[0].name(), Some("evidence"));
+
+    agent.spec.skills[0].name = Some("installed-evidence".into());
+    agent.validate().expect("an explicit skill name is valid");
+    assert_eq!(agent.spec.skills[0].name(), Some("installed-evidence"));
 }
 
 #[test]

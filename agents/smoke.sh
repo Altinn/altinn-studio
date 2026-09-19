@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke-tests the pull request evidence tooling inside a freshly built Agent image.
+# Smoke-tests the shared developer and pull request evidence tooling inside a freshly built Agent image.
 #
 #   docker run --rm --init --ipc=host --security-opt seccomp=unconfined --entrypoint bash \
 #     -v "$PWD/agents/smoke.sh:/smoke.sh:ro" <image> /smoke.sh <minimal|full> [KEEP_DIR]
@@ -30,6 +30,7 @@ gh stack --version
 asciinema --version
 agg --version
 nvim --version | head -1
+studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
 test -z "$foreign" || fail "entries under /home/agent not owned by agent:"$'\n'"$foreign"
@@ -56,6 +57,20 @@ for specification in \
     echo "$filename: $expected syntax"
 done
 
+echo "## app development"
+test -d /home/agent/code/apps || fail "/home/agent/code/apps is missing"
+test "$(stat -c %U:%G /home/agent/code/apps)" = agent:agent \
+    || fail "/home/agent/code/apps is not owned by agent"
+test -x /home/agent/.config/altinn-studio/bin/studioctl-server/studioctl-server \
+    || fail "studioctl-server resource is missing"
+test -f /home/agent/.config/altinn-studio/data/infra/otel-collector.yaml \
+    || fail "local development resources are missing"
+doctor="$(studioctl doctor --json)"
+jq -e '.cli.version | startswith("v")' <<<"$doctor" >/dev/null \
+    || fail "studioctl doctor did not report a CLI version"
+jq -e '.disk.checks[] | select(.id == "appmgr_binary" and .level == "ok")' <<<"$doctor" >/dev/null \
+    || fail "studioctl doctor did not find studioctl-server"
+
 echo "## timezone"
 # Norwegian local time is Europe/Oslo the year round, so assert the zone rather than an offset.
 # Node resolves it through ICU rather than glibc, so both are checked.
@@ -81,6 +96,13 @@ test "${frames:-0}" -ge 4 || fail "cast has $frames timed events; the fixture sh
 echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 
 [ "$variant" = full ] || finish
+
+echo "## local development hosts"
+systemctl is-enabled agent-full-hosts-init.service >/dev/null \
+    || fail "the full-image hosts service is not enabled"
+grep -qxF 'ExecStart=/home/agent/.local/bin/studioctl env hosts add' \
+    /etc/systemd/system/agent-full-hosts-init.service \
+    || fail "the full-image hosts service does not prepare studioctl hostnames"
 
 echo "## playwright"
 browsers=(/opt/ms-playwright/chromium-*)

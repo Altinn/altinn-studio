@@ -145,6 +145,8 @@ RUN case "${TARGETARCH}" in \
 
 ARG CODEX_VERSION=0.154.0
 ARG CLAUDE_CODE_VERSION=2.1.268
+ARG STUDIOCTL_VERSION=v0.1.0-preview.26
+ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
 # OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
 # Password and keyboard authentication remain disabled by the platform-owned SSH policy.
@@ -160,7 +162,14 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
     && install -d -m 0755 -o agent -g agent \
-        /home/agent/.claude /home/agent/.local/share/gh/extensions/gh-stack /home/agent/code \
+        /home/agent/.claude \
+        /home/agent/.config \
+        /home/agent/.config/altinn-studio \
+        /home/agent/.local \
+        /home/agent/.local/bin \
+        /home/agent/.local/share/gh/extensions/gh-stack \
+        /home/agent/code \
+        /home/agent/code/apps \
     && install -m 0755 -o agent -g agent \
         /tmp/gh-stack /home/agent/.local/share/gh/extensions/gh-stack/gh-stack \
     && printf '%s\n' \
@@ -175,6 +184,31 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && rm -f /tmp/gh-stack \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
+
+# The released installer verifies the studioctl binary and its matching resource archive against
+# the release checksum file. Run it as the Agent user so self-updates and runtime state remain
+# writable after the home directory is mounted and synchronized by the Agent platform. A pristine
+# image has no legacy data to migrate; seed the migrations belonging to this pinned release so the
+# installer does not require the container runtime that is intentionally absent from minimal.
+# TODO: Remove common/studioctl-migrations.json when STUDIOCTL_VERSION includes fresh-install baseline migrations.
+COPY --chown=agent:agent --chmod=0644 common/studioctl-migrations.json /home/agent/.config/altinn-studio/migrations.json
+RUN curl -fsSL \
+        "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
+        -o /tmp/studioctl-install.sh \
+    && echo "${STUDIOCTL_INSTALL_SCRIPT_SHA256}  /tmp/studioctl-install.sh" | sha256sum -c - \
+    && sudo --user=agent env \
+        HOME=/home/agent \
+        PATH=/home/agent/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+        /bin/sh /tmp/studioctl-install.sh \
+            --version "${STUDIOCTL_VERSION}" \
+            --install-dir /home/agent/.local/bin \
+    && rm -f /tmp/studioctl-install.sh \
+    && test "$(/home/agent/.local/bin/studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
+    && test -x /home/agent/.config/altinn-studio/bin/studioctl-server/studioctl-server \
+    && test -f /home/agent/.config/altinn-studio/data/infra/otel-collector.yaml \
+    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
+        echo "studioctl installation left files under /home/agent not owned by agent" >&2; exit 1; \
+    fi
 
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init

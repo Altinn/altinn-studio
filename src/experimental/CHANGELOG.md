@@ -19,6 +19,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Agent images include the `gh stack` extension for creating and managing stacked pull requests.
 - The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
   actions while retaining all keyboard controls.
+- Agent Skill entries may declare an installed `name` separately from their source directory.
+- Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
+  app checkouts. Full images also prepare LocalTest hostnames for browser testing.
 
 ### Changed
 
