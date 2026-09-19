@@ -1,6 +1,6 @@
 ---
 name: altinn-studio-app-development
-description: Develop and test Altinn Studio apps with studioctl and LocalTest. Use when cloning, building, running, debugging, or browser-testing an Altinn Studio app, or when changing the Altinn Studio app runtime, frontend, or local development services.
+description: Build, change, run, and test Altinn Studio apps. Use for app configuration, data models, layouts, texts, process flows, authorization, backend logic, and local testing with studioctl and localtest.
 ---
 
 # Develop Altinn Studio apps
@@ -8,102 +8,111 @@ description: Develop and test Altinn Studio apps with studioctl and LocalTest. U
 Use `studioctl` as the entry point for local Altinn Studio app development. The installed command's help is authoritative;
 inspect `studioctl --help` and the relevant `studioctl <command> --help` before relying on flags or behavior.
 
-## Discover the environment
+## App anatomy
 
-Start by locating the repository and available capabilities rather than assuming a particular agent or host layout:
+An Altinn Studio app is a .NET ASP.NET Core application.
+Since Altinn Studio is a low-code platform, lots of features/capabilities are built around configuration.
+Most behavior lives in `App/`; the repository root holds the solution, container build, and deployment configuration:
 
-```sh
-git rev-parse --show-toplevel 2>/dev/null || pwd
-command -v studioctl
-studioctl version
-studioctl doctor --json
+```text
+<app-root>/
+|-- App/
+|   |-- App.csproj                    Backend project and Altinn.App package versions
+|   |-- Program.cs                    Service registration and app startup
+|   |-- config/
+|   |   |-- applicationmetadata.json App identity, data types, and allowed parties
+|   |   |-- process/process.bpmn      Tasks, events, and transitions
+|   |   |-- authorization/policy.xml  Authorization rules
+|   |   `-- texts/resource.<lang>.json User-facing texts by language
+|   |-- models/                       Data-model schemas and generated C# types
+|   |-- ui/                           Layout sets, pages, components, and UI settings
+|   |-- options/                      Static option lists, when present
+|   |-- logic/, services/, Actions/   Custom backend behavior, when present
+|   `-- wwwroot/                      App-specific static assets, when present
+|-- deployment/                       Helm values and deployment configuration
+|-- Dockerfile
+`-- App.sln
 ```
 
-- An external app may be in any user-selected directory. In a published Altinn Studio Agent, keep external app
-  checkouts beneath `/home/agent/code/apps/` unless the user specifies another location.
-- The Altinn Studio monorepo contains test apps under `src/test/apps/`; keep those in place.
-- Full published Agents include a container runtime and Chromium. Minimal Agents do not support local environment or
-  browser testing. On other hosts, use `studioctl doctor` and tool discovery to determine what is available.
-- Read the closest `AGENTS.md` files before changing a repository. In the monorepo, also read the relevant area
-  guidance for `src/App`, `src/Runtime`, `src/Designer`, or `src/test`.
+The shape varies by app version and enabled features. Follow the identifiers that connect files:
 
-If `studioctl` is missing outside a published Agent, follow the current installation instructions in
-`src/cli/README.md` when working in the monorepo, or the official Altinn Studio documentation. Do not silently install
-software on a user's host.
+- Task IDs in `config/process/process.bpmn` select the UI for each process task. Newer apps commonly use matching
+  `ui/<task-id>/` directories; older apps map tasks through `ui/layout-sets.json`.
+- Data-type IDs in `config/applicationmetadata.json` connect tasks, models, and UI settings. Layout components bind
+  fields from the selected model.
+- `ui/<layout-set>/Settings.json` defines page order and settings. Files in `layouts/` define pages and components.
+- Text keys used by layouts, validation, or code resolve through `config/texts/resource.<lang>.json`. Keep supported
+  languages aligned when changing user-facing text.
+- `Program.cs` registers custom C# implementations. Apps usually group them under `logic/`, `services/`, or similar.
+
+Read the closest `AGENTS.md`, then inspect the relevant slice of this graph.
 
 ## Get an app
 
-Check authentication without exposing stored credentials:
+You may be directed to an existing checkout, if not, use studioctl to checkout an app.
+Relevant commands:
 
 ```sh
 studioctl auth status --json
+studioctl auth login
+studioctl apps search --json "<query>"
+studioctl app clone <org>/<repo> [destination]
 ```
 
-Use `studioctl auth login --help` if login is required. Interactive login is preferred for people. Automation may
-read an existing Studio API key from standard input, but never print, copy, commit, or persist a key outside the
-credential store.
+Ask the user to log in if `auth status` reports no valid login. Search when no specific repository was given; select
+from `apps[]` using `appId` or `cloneUrl`. `--env` accepts `prod`, `dev`, `staging`, or `local` and defaults to `prod`;
+Altinn Studio platform developers may use `dev` or `staging`.
 
-When asked to clone an app, inspect `studioctl app clone --help`, create the selected parent directory, and clone by
-`org/repo` or Studio repository URL. Do not invent an organization, repository, environment, or destination. Reuse
-an existing checkout when the user has already supplied one.
+## Making changes
 
-## Start and run
+- Keep task IDs, data-type IDs, model bindings, page references, and text keys consistent across definitions and uses.
+- Use the `$schema` declared by JSON files when present. Preserve the app's existing version and conventions instead
+  of copying structures from a different template version.
+- Treat generated models and schemas as one unit. Find the repository's generation path before editing output.
+- Put backend behavior behind the Altinn.App extension points already used by the app and register implementations in
+  `Program.cs`; follow the app's existing organization.
 
-From the app checkout:
+## Run and test
 
-1. Inspect `studioctl env hosts status`. If required hostnames are missing, explain that `studioctl env hosts add`
-   changes the system hosts file and run it with the host's normal privilege mechanism when authorized. Published
-   full Agents prepare these entries at boot.
-2. Run `studioctl env up`. Use `studioctl env status` to confirm the services and record their image/build information
-   when investigating a defect.
-3. Inspect `studioctl run --help`, then run the app. Prefer `studioctl run --detach` when the same session must perform
-   browser checks or other work; use foreground mode when live output is the task.
-4. Use `studioctl app ps`, `studioctl app logs`, and `studioctl env logs` to identify startup or runtime failures.
+From the app root:
 
-Use the exact app URL printed by `studioctl run`; the bare `http://local.altinn.cloud:8000` address is the LocalTest
-landing page, while an app URL includes its organization and repository path. For automation, run
-`studioctl run --detach --json` and read the `url` field instead of constructing or parsing a URL. Do not report the
-app healthy based only on a started process: load it in a browser when browser testing is available, inspect the page
-and console, and exercise the changed behavior. Use the `playwright-cli` skill when installed. Use repository-provided
-test users and fixtures, and never capture personal data or secrets.
+```sh
+studioctl env up
+studioctl env status --json
+studioctl run --detach --json
+studioctl app ps --json
+```
 
-## Iterate and verify
+For investigating failures, use `studioctl app logs` and `studioctl env logs`.
+`studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities).
 
-- Changes to app configuration and layout JSON normally reload through the running development setup. Verify the
-  behavior rather than assuming a reload occurred.
-- Restart the app after backend C# changes unless the running command explicitly confirms that it is watching them.
-- Create a fresh test instance when existing instance data or process state could hide the effect of a change.
-- Run the closest app or monorepo formatting, build, and test targets in addition to browser verification.
-- For a user-visible pull request, capture focused evidence with the `pr-evidence` skill when it is available.
+If local hostnames do not resolve, inspect `studioctl env hosts status`. `studioctl env hosts add` changes the system
+hosts file, so explain that effect before running it with the host's normal privilege mechanism.
 
-For machine-readable automation, prefer a command's documented `--json` output over parsing human-readable text.
-Treat a nonzero exit status as a failure even when useful diagnostics were printed.
+Open the `url` from the `run` result; `logPath` identifies its log file. `app ps` reports status in `running` and
+`apps[]`, but does not return the app URL. The `http://local.altinn.cloud:8000` root page contains the login form,
+not the app.
 
-## Work on platform code
+### Test changes to Altinn Studio itself
 
-When the app is testing changes from the Altinn Studio monorepo, distinguish the two independent development modes:
+This is mostly for internal Altinn Studio/platform developers, not service owner app developers.
+Mostly used within the `Altinn/altinn-studio` monorepo.
+Useful when testing changes to e.g. localtest, pdf3, frontend, workflow-engine-app or other
+Altinn Studio platform components.
 
-- Run `STUDIOCTL_INTERNAL_DEV=true studioctl env up` from inside the monorepo to build supported LocalTest/runtime
-  service images from the current checkout. Read `src/cli/README.md` and `studioctl env up --help` first.
-- Run `studioctl run --dev-frontend` while the app frontend development server is running to serve frontend assets
-  from the current checkout. Read `src/App/frontend/AGENTS.md` and the command help first.
+- `STUDIOCTL_INTERNAL_DEV=true studioctl env up` builds supported LocalTest/runtime service images from the current
+  monorepo checkout.
+- `studioctl env up --dev-workflow-engine` routes the workflow-engine component to a host process, normally at
+  `http://localhost:9090`.
+- `studioctl run --dev-frontend` serves frontend assets from the current monorepo checkout while the app frontend
+  development server is running.
 
-Do not enable either mode for ordinary app-only work. They make startup slower and test different source than the
-released environment.
-
-## Diagnose and clean up
-
-On failure, capture `studioctl doctor --json`, environment status, app status, and the narrowest relevant logs before
-changing configuration. Preserve the first useful error and distinguish app compilation failures from container,
-LocalTest, networking, and browser failures.
-
-Stop only resources started for the task:
+## Stop
 
 ```sh
 studioctl app stop
 studioctl env down
 ```
 
-Inspect each command's help for selecting a specific app or stopping all apps. Do not run destructive reset,
-credential removal, broad process termination, or deletion commands unless the user explicitly requests them and
-the exact target has been verified.
+Do not reset state, remove credentials, delete files, or broadly terminate processes unless requested and precisely
+targeted.
