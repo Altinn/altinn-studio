@@ -19,6 +19,11 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
   actions while retaining all keyboard controls.
 
+### Changed
+
+- New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
+  harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
+
 ## [0.1.0-preview.4] - 2026-09-18
 
 ### Added
