@@ -25,9 +25,9 @@ use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
 use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
-use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction};
+use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, RowTarget};
 use terminal::Tui;
-use view::{HitMap, HitTarget, RowTarget, WheelTarget};
+use view::{HitMap, HitTarget, WheelTarget};
 
 const REFRESH_INTERVAL: Duration = Duration::from_secs(2);
 const DOUBLE_CLICK_INTERVAL: Duration = Duration::from_millis(500);
@@ -90,15 +90,9 @@ impl MouseInput {
                     }
                     HitTarget::Row(row) => {
                         if self.double_click(row, now) {
-                            match row {
-                                RowTarget::Tree(index) => app.on_mouse(MouseAction::PrimaryTree(index)),
-                                RowTarget::Forward(index) => app.on_mouse(MouseAction::PrimaryForward(index)),
-                            }
+                            app.on_mouse(MouseAction::Primary(row))
                         } else {
-                            match row {
-                                RowTarget::Tree(index) => app.on_mouse(MouseAction::SelectTree(index)),
-                                RowTarget::Forward(index) => app.on_mouse(MouseAction::SelectForward(index)),
-                            }
+                            app.on_mouse(MouseAction::Select(row))
                         }
                     }
                 }

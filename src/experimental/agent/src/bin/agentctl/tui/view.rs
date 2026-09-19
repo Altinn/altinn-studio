@@ -8,7 +8,8 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CREATE_AGENT_HINTS, CreateField, ForwardField, Modal, MouseAction, Row, SessionField, Tone, View,
+    App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
+    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row, RowTarget, SessionField, Tone, View,
 };
 
 const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
@@ -17,18 +18,21 @@ const CREATE_AGENT_FIELD_ROWS: usize = 4;
 const CREATE_FIELD_LABEL_WIDTH: usize = 10;
 const CREATE_PICKER_VALUE_WIDTH: usize = 18;
 const CREATE_PICKER_DETAIL_OFFSET: usize = CREATE_FIELD_LABEL_WIDTH + 2 + CREATE_PICKER_VALUE_WIDTH + 2 + 8;
-const ERROR_HINTS: [(&str, &str); 2] = [("r", "retry"), ("q", "quit")];
+const ERROR_HINTS: [Hint; 2] = [
+    Hint::key("r", "retry", crossterm::event::KeyCode::Char('r')),
+    Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
+];
+const GLOBAL_HINTS: [Hint; 4] = [
+    Hint::display("j/k", "move"),
+    Hint::key("r", "refresh", crossterm::event::KeyCode::Char('r')),
+    Hint::key("F", "forwards", crossterm::event::KeyCode::Char('F')),
+    Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
+];
 
 #[derive(Default)]
 pub(crate) struct ViewState {
     tree: ListState,
     forwards: ListState,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum RowTarget {
-    Tree(usize),
-    Forward(usize),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -115,12 +119,12 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     } else {
         render_tree(frame, body, app, state, &mut hit_map);
     }
-    render_footer(frame, footer, app);
-    map_footer_targets(footer, app, &mut hit_map);
     if let Some(modal) = &app.modal {
         hit_map.clear();
-        map_footer_targets(footer, app, &mut hit_map);
+        render_footer(frame, footer, app, &mut hit_map);
         render_modal(frame, body, modal, &mut hit_map);
+    } else {
+        render_footer(frame, footer, app, &mut hit_map);
     }
     hit_map
 }
@@ -275,98 +279,92 @@ fn render_error(frame: &mut Frame, area: Rect, error: &str, hit_map: &mut HitMap
     let hint_y = last_error_row.saturating_add(2);
     if hint_y < area.bottom() {
         let hints = Rect::new(area.x, hint_y, area.width, 1);
-        frame.render_widget(Line::from("r retry · q quit").style(Style::new().fg(Color::Red)), hints);
-        map_hint_targets(hints, &ERROR_HINTS, hit_map);
+        render_hint_line(frame, hints, &ERROR_HINTS, Color::Red, Color::Red, hit_map, |_| true);
     }
 }
 
-fn render_footer(frame: &mut Frame, area: Rect, app: &App) {
+fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
     let [contextual, global] = Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
-    let mut spans = Vec::new();
-    for (index, (key, description)) in app.hints().into_iter().enumerate() {
-        if index > 0 {
-            spans.push(Span::styled(" · ", Style::new().fg(Color::DarkGray)));
-        }
-        spans.push(Span::styled(key, Style::new().fg(Color::Cyan)));
-        spans.push(Span::raw(" "));
-        spans.push(Span::styled(description, Style::new().fg(Color::DarkGray)));
-    }
-    frame.render_widget(Line::from(spans), contextual);
-    frame.render_widget(
-        Line::from(Span::styled(
-            "j/k move · r refresh · F forwards · q quit",
-            Style::new().fg(Color::DarkGray),
-        )),
+    render_hint_line(
+        frame,
+        contextual,
+        app.hints(),
+        Color::Cyan,
+        Color::DarkGray,
+        hit_map,
+        |_| app.error.is_none(),
+    );
+    render_hint_line(
+        frame,
         global,
+        &GLOBAL_HINTS,
+        Color::DarkGray,
+        Color::DarkGray,
+        hit_map,
+        |hint| {
+            if app.modal.is_some() || app.detail.is_some() || app.view == View::Forwards {
+                false
+            } else if app.error.is_some() {
+                matches!(hint.label, "r" | "q")
+            } else {
+                true
+            }
+        },
     );
 }
 
-fn map_footer_targets(area: Rect, app: &App, hit_map: &mut HitMap) {
-    let [contextual, global] = Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
-    if app.modal.is_some() {
-        map_hint_targets(contextual, &app.hints(), hit_map);
-        return;
-    }
-    if app.error.is_some() {
-        map_hint_targets_matching(
-            global,
-            &[("j/k", "move"), ("r", "refresh"), ("F", "forwards"), ("q", "quit")],
-            hit_map,
-            |key| matches!(key, "r" | "q"),
-        );
-        return;
-    }
-    map_hint_targets(contextual, &app.hints(), hit_map);
-    if app.detail.is_some() || app.view == View::Forwards {
-        return;
-    }
-    let hints = [("j/k", "move"), ("r", "refresh"), ("F", "forwards"), ("q", "quit")];
-    map_hint_targets(global, &hints, hit_map);
-}
-
-fn map_hint_targets(area: Rect, hints: &[(&str, &str)], hit_map: &mut HitMap) {
-    map_hint_targets_matching(area, hints, hit_map, |_| true);
-}
-
-fn map_hint_targets_matching(area: Rect, hints: &[(&str, &str)], hit_map: &mut HitMap, include: impl Fn(&str) -> bool) {
+fn render_hint_line(
+    frame: &mut Frame,
+    area: Rect,
+    hints: &[Hint],
+    key_color: Color,
+    description_color: Color,
+    hit_map: &mut HitMap,
+    clickable: impl Fn(&Hint) -> bool,
+) {
+    let mut spans = Vec::new();
     let mut x = area.x;
-    for (index, (key, description)) in hints.iter().enumerate() {
+    for (index, hint) in hints.iter().enumerate() {
         if index > 0 {
+            spans.push(Span::styled(" · ", Style::new().fg(description_color)));
             x = x.saturating_add(3);
         }
-        let width = u16::try_from(Line::from(format!("{key} {description}")).width()).unwrap_or(u16::MAX);
-        if include(key)
-            && let Some(action) = hint_action(key)
+        spans.push(Span::styled(hint.label, Style::new().fg(key_color)));
+        spans.push(Span::raw(" "));
+        spans.push(Span::styled(hint.description, Style::new().fg(description_color)));
+        let width = hint_width(hint);
+        if clickable(hint)
+            && let Some((code, modifiers)) = hint.key
         {
             hit_map.click(
                 Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
-                HitTarget::Action(action),
+                HitTarget::Action(MouseAction::Key(code, modifiers)),
+            );
+        }
+        x = x.saturating_add(width);
+    }
+    frame.render_widget(Line::from(spans), area);
+}
+
+fn map_hint_targets(area: Rect, hints: &[Hint], hit_map: &mut HitMap) {
+    let mut x = area.x;
+    for (index, hint) in hints.iter().enumerate() {
+        if index > 0 {
+            x = x.saturating_add(3);
+        }
+        let width = hint_width(hint);
+        if let Some((code, modifiers)) = hint.key {
+            hit_map.click(
+                Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
+                HitTarget::Action(MouseAction::Key(code, modifiers)),
             );
         }
         x = x.saturating_add(width);
     }
 }
 
-fn hint_action(key: &str) -> Option<MouseAction> {
-    let (code, modifiers) = match key {
-        "enter" => (crossterm::event::KeyCode::Enter, crossterm::event::KeyModifiers::NONE),
-        "tab" => (crossterm::event::KeyCode::Tab, crossterm::event::KeyModifiers::NONE),
-        "esc" => (crossterm::event::KeyCode::Esc, crossterm::event::KeyModifiers::NONE),
-        "ctrl-d" => (
-            crossterm::event::KeyCode::Char('d'),
-            crossterm::event::KeyModifiers::CONTROL,
-        ),
-        "F" => (
-            crossterm::event::KeyCode::Char('F'),
-            crossterm::event::KeyModifiers::NONE,
-        ),
-        "r" | "q" | "s" | "y" | "n" | "c" | "e" | "f" | "d" | "z" => (
-            crossterm::event::KeyCode::Char(key.chars().next()?),
-            crossterm::event::KeyModifiers::NONE,
-        ),
-        _ => return None,
-    };
-    Some(MouseAction::Key(code, modifiers))
+fn hint_width(hint: &Hint) -> u16 {
+    u16::try_from(Line::from(format!("{} {}", hint.label, hint.description)).width()).unwrap_or(u16::MAX)
 }
 
 fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitMap) {
@@ -379,10 +377,10 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
                     Style::new().fg(Color::DarkGray),
                 )),
                 Line::default(),
-                hint_line(&[("y", "confirm"), ("n", "cancel")]),
+                hint_line(&CONFIRM_DELETE_HINTS),
             ];
             let target = popup(frame, area, " delete ", Color::Red, lines);
-            map_hint_targets(line_area(target, 3), &[("y", "confirm"), ("n", "cancel")], hit_map);
+            map_hint_targets(line_area(target, 3), &CONFIRM_DELETE_HINTS, hit_map);
         }
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
@@ -403,9 +401,8 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
                 lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
             }
             lines.push(Line::default());
-            let hints = [("enter", "forward"), ("tab", "field"), ("esc", "cancel")];
             let hint_row = lines.len();
-            lines.push(hint_line(&hints));
+            lines.push(hint_line(&PORT_FORWARD_HINTS));
             let title = if form.replace.is_some() {
                 " edit forward "
             } else {
@@ -422,7 +419,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
                     HitTarget::Action(MouseAction::FocusForwardField(field)),
                 );
             }
-            map_hint_targets(line_area(target, hint_row), &hints, hit_map);
+            map_hint_targets(line_area(target, hint_row), &PORT_FORWARD_HINTS, hit_map);
         }
     }
 }
@@ -462,7 +459,7 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
     }
     lines.push(Line::default());
     let hint_row = lines.len();
-    lines.push(hint_line(&super::app::NEW_SESSION_HINTS));
+    lines.push(hint_line(&NEW_SESSION_HINTS));
     let target = popup(frame, area, " new session ", Color::Cyan, lines);
     for (row, field) in [
         (1, SessionField::Name),
@@ -487,7 +484,7 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
         );
         x = x.saturating_add(width);
     }
-    map_hint_targets(line_area(target, hint_row), &super::app::NEW_SESSION_HINTS, hit_map);
+    map_hint_targets(line_area(target, hint_row), &NEW_SESSION_HINTS, hit_map);
 }
 
 /// What an empty selection field resolves to: the manifest default or the harness's own.
@@ -789,15 +786,15 @@ fn form_field(label: &str, value: &str, selected: bool) -> Line<'static> {
     Line::from(spans)
 }
 
-fn hint_line(hints: &[(&'static str, &'static str)]) -> Line<'static> {
+fn hint_line(hints: &[Hint]) -> Line<'static> {
     let mut spans = Vec::new();
-    for (index, (key, description)) in hints.iter().enumerate() {
+    for (index, hint) in hints.iter().enumerate() {
         if index > 0 {
             spans.push(Span::styled(" · ", Style::new().fg(Color::DarkGray)));
         }
-        spans.push(Span::styled(*key, Style::new().fg(Color::Cyan)));
+        spans.push(Span::styled(hint.label, Style::new().fg(Color::Cyan)));
         spans.push(Span::raw(" "));
-        spans.push(Span::styled(*description, Style::new().fg(Color::DarkGray)));
+        spans.push(Span::styled(hint.description, Style::new().fg(Color::DarkGray)));
     }
     Line::from(spans)
 }
