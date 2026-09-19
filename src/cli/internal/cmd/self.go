@@ -6,8 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	iofs "io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -16,6 +18,7 @@ import (
 	selfcmd "altinn.studio/studioctl/internal/cmd/self"
 	"altinn.studio/studioctl/internal/config"
 	installpkg "altinn.studio/studioctl/internal/install"
+	"altinn.studio/studioctl/internal/migrations"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -246,11 +249,40 @@ func (c *SelfCommand) performInstall(
 	})
 }
 
+// shouldBaselineMigrations reports whether config initialization created a pristine home.
+// Existing releases may predate migrations.json, but every completed install leaves files behind.
+func shouldBaselineMigrations(home string) (bool, error) {
+	root, err := filepath.EvalSymlinks(home)
+	if err != nil {
+		return false, fmt.Errorf("resolve studioctl home %q: %w", home, err)
+	}
+	hasState := false
+	err = filepath.WalkDir(root, func(path string, entry iofs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == root || entry.IsDir() {
+			return nil
+		}
+		hasState = true
+		return iofs.SkipAll
+	})
+	if err != nil {
+		return false, fmt.Errorf("inspect studioctl home %q: %w", home, err)
+	}
+	return !hasState, nil
+}
+
 func (c *SelfCommand) applyBundle(
 	ctx context.Context,
 	bundle installpkg.Bundle,
 	opts applyBundleOptions,
 ) error {
+	baselineMigrations, err := shouldBaselineMigrations(c.cfg.Home)
+	if err != nil {
+		return err
+	}
+
 	state, err := c.transition.Prepare(ctx)
 	if err != nil {
 		return fmt.Errorf("prepare self operation: %w", err)
@@ -286,7 +318,7 @@ func (c *SelfCommand) applyBundle(
 	if err != nil {
 		return fmt.Errorf("install binary: %w", err)
 	}
-	if err := c.runInstalledCompleteInstall(ctx, installedPath); err != nil {
+	if err := c.runInstalledCompleteInstall(ctx, installedPath, baselineMigrations); err != nil {
 		return fmt.Errorf("complete install: %w", err)
 	}
 	restoreOnFailure = false
@@ -428,8 +460,15 @@ func normalizeCompareVersion(v string) string {
 	return strings.TrimPrefix(v, "v")
 }
 
-func (c *SelfCommand) runInstalledCompleteInstall(ctx context.Context, studioctlPath string) error {
+func (c *SelfCommand) runInstalledCompleteInstall(
+	ctx context.Context,
+	studioctlPath string,
+	baselineMigrations bool,
+) error {
 	args := c.installedSelfCommandArgs(selfCompleteInstallSubcmd)
+	if baselineMigrations {
+		args = append(args, "--baseline-migrations")
+	}
 	c.out.Verbosef("Completing installation with: %s %v", studioctlPath, args)
 
 	// The child's output is only surfaced on failure, so check here and warn from this process.
@@ -476,8 +515,19 @@ func (c *SelfCommand) warnRemovedTestdataDir(dir string) {
 }
 
 func (c *SelfCommand) runCompleteInstall(ctx context.Context, args []string) error {
-	if len(args) != 0 {
-		return fmt.Errorf("%w: %s", ErrInvalidFlagValue, strings.Join(args, " "))
+	fs := flag.NewFlagSet("self "+selfCompleteInstallSubcmd, flag.ContinueOnError)
+	var baselineMigrations bool
+	fs.BoolVar(&baselineMigrations, "baseline-migrations", false, "record bundled migrations without running them")
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("parsing flags: %w", err)
+	}
+	if fs.NArg() != 0 {
+		return fmt.Errorf("%w: %s", ErrInvalidFlagValue, strings.Join(fs.Args(), " "))
+	}
+	if baselineMigrations {
+		if err := migrations.Baseline(c.cfg); err != nil {
+			return fmt.Errorf("baseline migrations: %w", err)
+		}
 	}
 	bundle := installpkg.Bundle{
 		Version:              c.cfg.Version.String(),
@@ -492,6 +542,9 @@ func (c *SelfCommand) runCompleteInstall(ctx context.Context, args []string) err
 	// swallows our output on success and warns itself instead.
 	if hadObsoleteTestdata {
 		c.warnRemovedTestdataDir(obsoleteTestdataDir)
+	}
+	if baselineMigrations {
+		return nil
 	}
 	if err := c.transition.RunMigrations(ctx); err != nil {
 		return fmt.Errorf("run migrations: %w", err)
