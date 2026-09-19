@@ -4,7 +4,7 @@ import { EditBinding, type EditBindingProps } from './EditBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';

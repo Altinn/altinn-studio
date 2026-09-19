@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import { EditOptions } from './EditOptions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

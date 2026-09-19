@@ -1,5 +1,5 @@
-import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import type { SerializedComponent, SerializedFormLayout } from '../types/SerializedComponent';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
@@ -16,45 +16,37 @@ export const component3_1_2Id = 'component3_1_2';
 export const component3_1_3Id = 'component3_1_3';
 export const component3_1_4Id = 'component3_1_4';
 
-const externalComponent1: ExternalComponent = {
+const externalComponent1: SerializedComponent = {
   id: component1Id,
   type: ComponentType.Paragraph,
 };
 const internalComponent1: FormComponent = {
   id: component1Id,
-  itemType: 'COMPONENT',
-  pageIndex: null,
   type: ComponentType.Paragraph,
 };
 
-const externalComponent2: ExternalComponent = {
+const externalComponent2: SerializedComponent = {
   id: component2Id,
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
 };
 const internalComponent2: FormComponent = {
   id: component2Id,
-  itemType: 'COMPONENT',
-  pageIndex: null,
-  propertyPath: 'definitions/inputComponent',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
 };
 
-const externalComponent3: ExternalComponent = {
+const externalComponent3: SerializedComponent = {
   id: component3Id,
   type: ComponentType.Group,
   children: [component3_1Id, component3_2Id],
 };
 const internalComponent3: FormContainer = {
   id: component3Id,
-  itemType: 'CONTAINER',
   type: ComponentType.Group,
-  pageIndex: null,
-  propertyPath: 'definitions/groupComponent',
 };
 
-const externalComponent3_1: ExternalComponent = {
+const externalComponent3_1: SerializedComponent = {
   id: component3_1Id,
   children: [
     '0:' + component3_1_1Id,
@@ -69,72 +61,58 @@ const externalComponent3_1: ExternalComponent = {
 const internalComponent3_1: FormContainer<ComponentType.RepeatingGroup> = {
   edit: { multiPage: true },
   id: component3_1Id,
-  itemType: 'CONTAINER',
   type: ComponentType.RepeatingGroup,
   dataModelBindings: { group: { field: 'some-path', dataType: '' } },
-  pageIndex: null,
-  propertyPath: 'definitions/repeatingGroupComponent',
 };
 
-const externalComponent3_1_1: ExternalComponent = {
+const externalComponent3_1_1: SerializedComponent = {
   id: component3_1_1Id,
   type: ComponentType.Paragraph,
 };
 const internalComponent3_1_1: FormComponent = {
   id: component3_1_1Id,
   type: ComponentType.Paragraph,
-  itemType: 'COMPONENT',
-  pageIndex: 0,
 };
 
-const externalComponent3_1_2: ExternalComponent = {
+const externalComponent3_1_2: SerializedComponent = {
   id: component3_1_2Id,
   type: ComponentType.ButtonGroup,
+  children: [],
 };
 const internalComponent3_1_2: FormContainer = {
   id: component3_1_2Id,
-  itemType: 'CONTAINER',
   type: ComponentType.ButtonGroup,
-  pageIndex: 0,
-  propertyPath: 'definitions/buttonGroupComponent',
 };
 
-const externalComponent3_1_3: ExternalComponent = {
+const externalComponent3_1_3: SerializedComponent = {
   id: component3_1_3Id,
   type: ComponentType.Accordion,
   children: [],
 };
 const internalComponent3_1_3: FormContainer = {
   id: component3_1_3Id,
-  itemType: 'CONTAINER',
   type: ComponentType.Accordion,
-  pageIndex: 1,
-  propertyPath: 'definitions/accordionComponent',
 };
 
-const externalComponent3_1_4: ExternalComponent = {
+const externalComponent3_1_4: SerializedComponent = {
   id: component3_1_4Id,
   type: ComponentType.Paragraph,
 };
 const internalComponent3_1_4: FormComponent = {
   id: component3_1_4Id,
-  itemType: 'COMPONENT',
-  pageIndex: 1,
   type: ComponentType.Paragraph,
 };
 
-const externalComponent3_2: ExternalComponent = {
+const externalComponent3_2: SerializedComponent = {
   id: component3_2Id,
   type: ComponentType.Paragraph,
 };
 const internalComponent3_2: FormComponent = {
   id: component3_2Id,
   type: ComponentType.Paragraph,
-  itemType: 'COMPONENT',
-  pageIndex: null,
 };
 
-export const externalLayoutWithMultiPageGroup: ExternalFormLayout = {
+export const externalLayoutWithMultiPageGroup: SerializedFormLayout = {
   $schema: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
   data: {
     layout: [
@@ -156,9 +134,7 @@ export const externalLayoutWithMultiPageGroup: ExternalFormLayout = {
 const baseContainer: FormContainer = {
   id: BASE_CONTAINER_ID,
   index: 0,
-  itemType: 'CONTAINER',
   type: undefined,
-  pageIndex: null,
 };
 
 export const internalLayoutWithMultiPageGroup: IInternalLayout = {
@@ -182,6 +158,12 @@ export const internalLayoutWithMultiPageGroup: IInternalLayout = {
     [component3_1Id]: [component3_1_1Id, component3_1_2Id, component3_1_3Id, component3_1_4Id],
     [component3_1_2Id]: [],
     [component3_1_3Id]: [],
+  },
+  pageIndexes: {
+    [component3_1_1Id]: 0,
+    [component3_1_2Id]: 0,
+    [component3_1_3Id]: 1,
+    [component3_1_4Id]: 1,
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,

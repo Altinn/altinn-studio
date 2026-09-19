@@ -1,34 +1,23 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResourceBindings, IOption, IDataModelBindingsKeyValueExplicit } from './global';
-import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { SimpleComponentType } from './SimpleComponentType';
-import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
-import type { BooleanExpression } from '@studio/components';
+import type { ComponentConfig } from './ComponentConfig';
+import type { ComponentBase } from '@app/layout-contract/generated/common.generated';
 
-export interface FormComponentBase<T extends ComponentType = ComponentType> {
-  id: string;
+export type FormComponentBase<T extends ComponentType = ComponentType> = Pick<
+  ComponentBase,
+  'id' | 'hidden' | 'grid'
+> & {
   component?: string;
-  itemType: 'COMPONENT';
   type: T;
   name?: string;
   size?: string;
   options?: IOption[];
-  pageIndex?: number;
   dataModelBindings?: IDataModelBindingsKeyValueExplicit;
   textResourceBindings?: ITextResourceBindings;
-  customType?: string;
-  codeListId?: string;
-  triggerValidation?: boolean;
-  handleUpdateElement?: (component: FormComponent) => void;
-  handleDeleteElement?: () => void;
-  handleUpdateFormData?: (formData: any) => void;
-  handleUpdateDataModel?: (dataModelBinding: string) => void;
   disabled?: boolean;
-  hidden?: BooleanExpression;
-  grid?: GridSizes;
-  [id: string]: any;
-  propertyPath?: string;
-}
+  customProperties?: Record<string, unknown>;
+};
 
 export type FormImageComponent = FormComponent<ComponentType.Image>;
 export type FormCheckboxesComponent = FormComponent<ComponentType.Checkboxes>;
@@ -41,7 +30,7 @@ export type FormAttachmentListComponent = FormComponent<ComponentType.Attachment
 
 export type FormComponent<T extends SimpleComponentType = SimpleComponentType> = {
   [componentType in ComponentType]: FormComponentBase<componentType> &
-    ComponentSpecificConfig<componentType>;
+    ComponentConfig<componentType>;
 }[T];
 
 export type SelectionComponentType =

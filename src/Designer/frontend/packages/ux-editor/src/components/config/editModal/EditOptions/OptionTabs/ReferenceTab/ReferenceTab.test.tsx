@@ -3,7 +3,7 @@ import type { RenderResult } from '@testing-library/react';
 import { ReferenceTab } from './ReferenceTab';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormComponent, SelectionComponentType } from '../../../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';

@@ -156,7 +156,7 @@ describe('Preview', () => {
     expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 
-  it('points the iframe at the browser-router url for v9 apps', async () => {
+  it('points the iframe at the browser-router url for current apps', async () => {
     render({
       queries: {
         getAppVersion: jest

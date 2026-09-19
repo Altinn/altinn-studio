@@ -1,6 +1,6 @@
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { Summary2TargetConfig } from '@altinn/ux-editor/types/Summary2Config';
 import { Summary2Target } from '../../../config/componentSpecificContent/Summary2/Summary2Target/Summary2Target';
 
 export type SummaryMainConfigProps = {

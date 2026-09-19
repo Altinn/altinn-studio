@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { EditImage } from '../../../config/editModal/EditImage';
 import type { FormItem } from '../../../../types/FormItem';
 import classes from './ImageMainConfig.module.css';

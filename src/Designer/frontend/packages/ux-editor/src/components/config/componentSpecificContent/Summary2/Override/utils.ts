@@ -1,7 +1,7 @@
 import {
   type Summary2OverrideConfig,
   type OverrideDisplayType,
-} from 'app-shared/types/ComponentSpecificConfig';
+} from '@altinn/ux-editor/types/Summary2Config';
 
 type SelectedTypeProps = {
   componentId: string;
