@@ -159,7 +159,7 @@ func (c *AgentCommand) runSkillsInstall(args []string) error {
 	fs := flag.NewFlagSet("agent skills install", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	scope := fs.String("scope", agentskills.ScopeUser, "Installation scope: user or repo")
-	harness := fs.String("harness", "", "Harness: codex, claude, or all (auto-detected by default)")
+	harness := fs.String("harness", "", "Harness: codex or claude (auto-detected by default)")
 	target := fs.String("target", "", "Explicit skills directory")
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -221,7 +221,7 @@ func (c *AgentCommand) skillsInstallUsage() string {
 		"",
 		"Options:",
 		"  --scope user|repo              Install for the current user (default) or Git repository",
-		"  --harness codex|claude|all     Select a harness instead of auto-detecting installed harnesses",
+		"  --harness codex|claude         Select a harness instead of auto-detecting installed harnesses",
 		"  --target DIR                    Install into an explicit skills directory (exclusive)",
 		"  -h, --help                      Show this help",
 		"",

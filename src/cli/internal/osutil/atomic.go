@@ -6,12 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
-)
-
-const (
-	windowsReplaceRetryDelay   = 100 * time.Millisecond
-	windowsReplaceRetryTimeout = 5 * time.Second
 )
 
 // AtomicWriteOptions configures WriteFileAtomic.
@@ -67,101 +61,21 @@ func WriteFileAtomic(path string, data []byte, opts AtomicWriteOptions) (retErr 
 			return fmt.Errorf("secure %q: %w", tmpPath, err)
 		}
 	}
-	if err := ReplacePathAtomic(tmpPath, path); err != nil {
+	if err := commitAtomicWrite(tmpPath, path); err != nil {
 		return err
 	}
 	cleanup = false
 	return SyncDirIfSupported(dir)
 }
 
-// ReplacePathAtomic moves src onto dst in one step. On Windows a rename onto an existing file can be
-// refused, so the target is moved aside first. Transient Windows file-locking errors are retried.
-func ReplacePathAtomic(src, dst string) error {
-	if runtime.GOOS != OSWindows {
-		if err := os.Rename(src, dst); err != nil {
-			return fmt.Errorf("rename %q to %q: %w", src, dst, err)
-		}
-		return nil
-	}
-	return ReplacePath(src, dst)
-}
-
-// ReplacePath moves src onto dst, moving an existing target aside first when a direct rename cannot replace it.
-// Transient Windows file-locking errors are retried.
-func ReplacePath(src, dst string) error {
+func commitAtomicWrite(src, dst string) error {
 	if runtime.GOOS == OSWindows {
-		return retryOperation(
-			func() error { return replacePathOnce(src, dst) },
-			isRetryableReplaceError,
-			windowsReplaceRetryDelay,
-			windowsReplaceRetryTimeout,
-		)
+		return ReplacePath(src, dst)
 	}
-	return replacePathOnce(src, dst)
-}
-
-func replacePathOnce(src, dst string) error {
-	renameErr := os.Rename(src, dst)
-	if renameErr == nil {
-		return nil
-	}
-	wrappedRenameErr := fmt.Errorf("rename %q to %q: %w", src, dst, renameErr)
-
-	backupPath, err := reserveReplaceBackupPath(dst)
-	if err != nil {
-		return errors.Join(wrappedRenameErr, err)
-	}
-
-	if moveErr := os.Rename(dst, backupPath); moveErr != nil {
-		if errors.Is(moveErr, os.ErrNotExist) {
-			return wrappedRenameErr
-		}
-		return errors.Join(wrappedRenameErr, fmt.Errorf("rename %q to %q: %w", dst, backupPath, moveErr))
-	}
-	if moveErr := os.Rename(src, dst); moveErr != nil {
-		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", src, dst, moveErr)
-		if restoreErr := os.Rename(backupPath, dst); restoreErr != nil {
-			return errors.Join(wrappedMoveErr, fmt.Errorf("rename %q to %q: %w", backupPath, dst, restoreErr))
-		}
-		return wrappedMoveErr
-	}
-	if removeErr := os.RemoveAll(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
-		return fmt.Errorf("remove backup %q: %w", backupPath, removeErr)
+	if err := os.Rename(src, dst); err != nil {
+		return fmt.Errorf("rename %q to %q: %w", src, dst, err)
 	}
 	return nil
-}
-
-// reserveReplaceBackupPath finds a free path next to dst for dst to be moved aside to.
-func reserveReplaceBackupPath(dst string) (string, error) {
-	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
-	if err != nil {
-		return "", fmt.Errorf("reserve backup path for %q: %w", dst, err)
-	}
-	backupPath := backup.Name()
-	if closeErr := backup.Close(); closeErr != nil {
-		removeErr := RemoveIfExists(backupPath)
-		return "", errors.Join(fmt.Errorf("close %q: %w", backupPath, closeErr), removeErr)
-	}
-	if removeErr := RemoveIfExists(backupPath); removeErr != nil {
-		return "", removeErr
-	}
-	return backupPath, nil
-}
-
-func retryOperation(
-	operation func() error,
-	retryable func(error) bool,
-	delay time.Duration,
-	timeout time.Duration,
-) error {
-	deadline := time.Now().Add(timeout)
-	for {
-		err := operation()
-		if err == nil || !retryable(err) || time.Now().After(deadline) {
-			return err
-		}
-		time.Sleep(delay)
-	}
 }
 
 // RemoveIfExists removes path, treating a path that is already gone as done.

@@ -28,8 +28,6 @@ const (
 	HarnessCodex = "codex"
 	// HarnessClaude installs skills for Claude Code.
 	HarnessClaude = "claude"
-	// HarnessAll installs skills for every supported harness.
-	HarnessAll = "all"
 
 	// ScopeUser installs skills in harness user directories.
 	ScopeUser = "user"
@@ -415,11 +413,9 @@ func (s *Service) resolveHarnesses(requested, root string) ([]string, error) {
 		switch requested {
 		case HarnessCodex, HarnessClaude:
 			return []string{requested}, nil
-		case HarnessAll:
-			return []string{HarnessCodex, HarnessClaude}, nil
 		default:
 			return nil, fmt.Errorf(
-				"%w: %q (supported: codex, claude, all)",
+				"%w: %q (supported: codex, claude)",
 				ErrInvalidHarness,
 				requested,
 			)
@@ -433,7 +429,7 @@ func (s *Service) resolveHarnesses(requested, root string) ([]string, error) {
 		}
 	}
 	if len(harnesses) == 0 {
-		return nil, fmt.Errorf("%w; pass --harness codex, claude, or all", ErrNoHarnessDetected)
+		return nil, fmt.Errorf("%w; pass --harness codex or claude", ErrNoHarnessDetected)
 	}
 	return harnesses, nil
 }

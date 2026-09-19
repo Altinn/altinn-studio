@@ -73,7 +73,7 @@ func TestAgentSkillsInstallHelpDocumentsSafeTargets(t *testing.T) {
 	if err := command.Run(t.Context(), []string{"skills", "install", "--help"}); err != nil {
 		t.Fatalf("skills install --help error = %v", err)
 	}
-	for _, want := range []string{"--scope user|repo", "--harness codex|claude|all", "--target DIR", "only when"} {
+	for _, want := range []string{"--scope user|repo", "--harness codex|claude", "--target DIR", "only when"} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Errorf("help output does not contain %q:\n%s", want, stdout.String())
 		}

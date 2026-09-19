@@ -310,17 +310,19 @@ func TestInstallAutoDetectsHarnessDirectories(t *testing.T) {
 	)
 }
 
-func TestInstallAllValidatesEveryTargetBeforeWriting(t *testing.T) {
-	t.Parallel()
-
+func TestInstallAutoDetectionValidatesEveryTargetBeforeWriting(t *testing.T) {
 	service, source := newTestService(t)
 	writeTestSkill(t, source, "source")
 	userHome := t.TempDir()
 	service.homeDir = func() (string, error) { return userHome, nil }
+	t.Setenv("PATH", "")
+	if err := os.MkdirAll(filepath.Join(userHome, ".agents"), 0o755); err != nil {
+		t.Fatal(err)
+	}
 	unmanaged := filepath.Join(userHome, ".claude", "skills", testSkillName, "SKILL.md")
 	writeFile(t, unmanaged, "user-owned")
 
-	_, err := service.Install(InstallOptions{Name: testSkillName, Harness: HarnessAll})
+	_, err := service.Install(InstallOptions{Name: testSkillName})
 	if !errors.Is(err, ErrUnmanagedTarget) {
 		t.Fatalf("Install() error = %v, want ErrUnmanagedTarget", err)
 	}

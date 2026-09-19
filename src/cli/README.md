@@ -91,7 +91,7 @@ commands. Install it for the coding-agent harnesses detected on your machine:
 studioctl agent skills install altinn-studio-app-development
 ```
 
-Use `--scope repo` for repository-local discovery, select `--harness codex|claude|all`, or use `--target DIR` for a
+Use `--scope repo` for repository-local discovery, select `--harness codex|claude`, or use `--target DIR` for a
 different harness. `studioctl agent skills list` shows the packaged skills, and `studioctl agent skills path
 altinn-studio-app-development` prints the canonical installed source. studioctl will update copies it manages, but refuses to
 replace a user-created or locally edited skill.

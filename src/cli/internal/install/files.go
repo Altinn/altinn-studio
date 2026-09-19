@@ -148,7 +148,7 @@ func atomicCopyFile(src, dst string) (string, error) {
 	if err := closeWithError(tmpFile, "close destination temp file", nil); err != nil {
 		return "", cleanupTempFile(tmpPath, err)
 	}
-	if err := osutil.ReplacePathAtomic(tmpPath, absTarget); err != nil {
+	if err := osutil.ReplacePath(tmpPath, absTarget); err != nil {
 		return "", cleanupTempFile(tmpPath, err)
 	}
 
