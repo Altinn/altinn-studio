@@ -1,0 +1,12 @@
+{
+  "applied": [
+    "001-remove-legacy-network-metadata",
+    "002-remove-legacy-topology-files",
+    "003-reset-localtest-data",
+    "004-remove-legacy-resource-markers",
+    "005-remove-legacy-app-manager-files",
+    "006-remove-studio-credentials",
+    "007-reset-workflow-engine-data",
+    "008-remove-image-config-file"
+  ]
+}
