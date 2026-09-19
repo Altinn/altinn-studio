@@ -40,6 +40,7 @@ for specification in \
     example.jsx:javascriptreact \
     example.ts:typescript \
     example.tsx:typescriptreact \
+    example.csproj:xml \
     example.json:json \
     example.xml:xml; do
     filename="${specification%:*}"
