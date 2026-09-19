@@ -16,6 +16,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
   `habamax` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
+- The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
+  actions while retaining all keyboard controls.
 
 ## [0.1.0-preview.4] - 2026-09-18
 

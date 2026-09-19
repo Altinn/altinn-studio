@@ -1,8 +1,9 @@
-use std::io::Stdout;
+use std::io::{Stdout, Write};
 
 use agent::Error;
 use crossterm::{
     cursor::Show,
+    event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
@@ -12,6 +13,7 @@ use super::view;
 
 pub(crate) struct Tui {
     terminal: Terminal<CrosstermBackend<Stdout>>,
+    view_state: view::ViewState,
     active: bool,
 }
 
@@ -19,20 +21,33 @@ impl Tui {
     pub(crate) fn enter() -> Result<Self, Error> {
         install_panic_hook();
         activate()?;
-        let terminal = Terminal::new(CrosstermBackend::new(std::io::stdout())).map_err(Error::from)?;
-        Ok(Self { terminal, active: true })
+        let terminal = match Terminal::new(CrosstermBackend::new(std::io::stdout())) {
+            Ok(terminal) => terminal,
+            Err(error) => {
+                let _ = deactivate();
+                return Err(Error::from(error));
+            }
+        };
+        Ok(Self {
+            terminal,
+            view_state: view::ViewState::default(),
+            active: true,
+        })
     }
 
-    pub(crate) fn draw(&mut self, app: &App) -> Result<(), Error> {
+    pub(crate) fn draw(&mut self, app: &App) -> Result<view::HitMap, Error> {
+        let mut hit_map = None;
+        let view_state = &mut self.view_state;
         self.terminal
-            .draw(|frame| view::render(frame, app))
+            .draw(|frame| hit_map = Some(view::render(frame, app, view_state)))
             .map_err(Error::from)?;
-        Ok(())
+        Ok(hit_map.unwrap_or_default())
     }
 
     pub(crate) fn suspend(&mut self) -> Result<(), Error> {
+        deactivate()?;
         self.active = false;
-        deactivate()
+        Ok(())
     }
 
     pub(crate) fn resume(&mut self) -> Result<(), Error> {
@@ -58,12 +73,26 @@ impl Drop for Tui {
 
 fn activate() -> Result<(), Error> {
     enable_raw_mode()?;
-    crossterm::execute!(std::io::stdout(), EnterAlternateScreen).map_err(Error::from)
+    if let Err(error) = enter_screen(&mut std::io::stdout()) {
+        let _ = deactivate();
+        return Err(Error::from(error));
+    }
+    Ok(())
 }
 
 fn deactivate() -> Result<(), Error> {
-    disable_raw_mode()?;
-    crossterm::execute!(std::io::stdout(), LeaveAlternateScreen, Show).map_err(Error::from)
+    let screen = leave_screen(&mut std::io::stdout());
+    let raw = disable_raw_mode();
+    screen?;
+    raw.map_err(Error::from)
+}
+
+fn enter_screen(output: &mut impl Write) -> std::io::Result<()> {
+    crossterm::execute!(output, EnterAlternateScreen, EnableMouseCapture)
+}
+
+fn leave_screen(output: &mut impl Write) -> std::io::Result<()> {
+    crossterm::execute!(output, DisableMouseCapture, LeaveAlternateScreen, Show)
 }
 
 fn install_panic_hook() {
@@ -72,4 +101,35 @@ fn install_panic_hook() {
         let _ = deactivate();
         previous(info);
     }));
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    #[test]
+    fn screen_activation_enables_mouse_capture_after_entering_the_alternate_screen() {
+        let mut output = Vec::new();
+
+        enter_screen(&mut output).expect("screen activation");
+
+        let output = String::from_utf8(output).expect("terminal commands are UTF-8");
+        let alternate = output.find("?1049h").expect("enter alternate screen");
+        let mouse = output.find("?1000h").expect("enable mouse capture");
+        assert!(alternate < mouse);
+    }
+
+    #[test]
+    fn screen_cleanup_disables_mouse_capture_before_leaving_the_alternate_screen() {
+        let mut output = Vec::new();
+
+        leave_screen(&mut output).expect("screen cleanup");
+
+        let output = String::from_utf8(output).expect("terminal commands are UTF-8");
+        let mouse = output.find("?1006l").expect("disable mouse capture");
+        let alternate = output.find("?1049l").expect("leave alternate screen");
+        assert!(mouse < alternate);
+    }
 }

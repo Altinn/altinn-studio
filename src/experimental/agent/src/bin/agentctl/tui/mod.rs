@@ -7,14 +7,16 @@ use std::{
     io::IsTerminal as _,
     path::{Path, PathBuf},
     process::ExitCode,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
     sessions::Session, sessions::SessionName, sessions::SessionRequest,
 };
-use crossterm::event::{Event, EventStream, KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::event::{
+    Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
+};
 use futures_util::StreamExt as _;
 use ignore::WalkBuilder;
 use sandbox::terminal::TerminalAttachOutcome;
@@ -23,10 +25,12 @@ use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
 use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
-use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal};
+use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction};
 use terminal::Tui;
+use view::{HitMap, HitTarget, RowTarget, WheelTarget};
 
 const REFRESH_INTERVAL: Duration = Duration::from_secs(2);
+const DOUBLE_CLICK_INTERVAL: Duration = Duration::from_millis(500);
 /// Deepest directory level below the working directory searched for manifests.
 const DISCOVERY_DEPTH: usize = 8;
 
@@ -40,6 +44,79 @@ enum Input {
 /// Completion of one background forward creation.
 type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Error>);
 
+#[derive(Default)]
+struct MouseInput {
+    last_row: Option<(RowTarget, Instant)>,
+}
+
+impl MouseInput {
+    const fn reset(&mut self) {
+        self.last_row = None;
+    }
+
+    fn double_click(&mut self, row: RowTarget, now: Instant) -> bool {
+        let double = self
+            .last_row
+            .is_some_and(|(previous, at)| previous == row && now.duration_since(at) <= DOUBLE_CLICK_INTERVAL);
+        if double {
+            self.reset();
+        } else {
+            self.last_row = Some((row, now));
+        }
+        double
+    }
+
+    fn action(&mut self, event: MouseEvent, hit_map: &HitMap, app: &mut App, now: Instant) -> Action {
+        if !event.modifiers.is_empty() {
+            self.reset();
+            return Action::None;
+        }
+        match event.kind {
+            MouseEventKind::Down(MouseButton::Left) => {
+                let Some(target) = hit_map.click_at(event.column, event.row) else {
+                    self.reset();
+                    return Action::None;
+                };
+                match target {
+                    HitTarget::Action(action) => {
+                        self.reset();
+                        app.on_mouse(action)
+                    }
+                    HitTarget::Row(row) => {
+                        if self.double_click(row, now) {
+                            match row {
+                                RowTarget::Tree(index) => app.on_mouse(MouseAction::PrimaryTree(index)),
+                                RowTarget::Forward(index) => app.on_mouse(MouseAction::PrimaryForward(index)),
+                            }
+                        } else {
+                            match row {
+                                RowTarget::Tree(index) => app.on_mouse(MouseAction::SelectTree(index)),
+                                RowTarget::Forward(index) => app.on_mouse(MouseAction::SelectForward(index)),
+                            }
+                        }
+                    }
+                }
+            }
+            MouseEventKind::ScrollUp | MouseEventKind::ScrollDown => {
+                self.reset();
+                let delta = if event.kind == MouseEventKind::ScrollUp { -1 } else { 1 };
+                match hit_map.wheel_at(event.column, event.row) {
+                    Some(WheelTarget::Tree) => app.on_mouse(MouseAction::MoveTree(delta)),
+                    Some(WheelTarget::Forwards) => app.on_mouse(MouseAction::MoveForward(delta)),
+                    Some(WheelTarget::Detail) => app.on_mouse(MouseAction::ScrollDetail(delta)),
+                    None => Action::None,
+                }
+            }
+            MouseEventKind::Down(_) | MouseEventKind::ScrollLeft | MouseEventKind::ScrollRight => {
+                self.reset();
+                Action::None
+            }
+            MouseEventKind::Up(_) | MouseEventKind::Drag(_) | MouseEventKind::Moved => Action::None,
+        }
+    }
+}
+
+#[allow(clippy::too_many_lines)]
 pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
     if !std::io::stdin().is_terminal() || !std::io::stdout().is_terminal() {
         return Err(Error::Invalid("tui requires an interactive local terminal".into()).into());
@@ -50,27 +127,38 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let (discovered_tx, mut discovered_rx) = tokio::sync::mpsc::unbounded_channel::<Vec<ManifestCandidate>>();
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
+    let mut mouse = MouseInput::default();
     let mut tick = tokio::time::interval_at(tokio::time::Instant::now() + REFRESH_INTERVAL, REFRESH_INTERVAL);
     tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     refresh(&mut app, &mut tui, client).await?;
     loop {
         app.open_queued_create();
         app.set_forwards(forwards.entries());
-        tui.draw(&app)?;
+        let hit_map = tui.draw(&app)?;
         let input = tokio::select! {
             event = events.next() => Input::Event(event),
             _ = tick.tick() => Input::Tick,
             Some(outcome) = created_rx.recv() => Input::ForwardCreated(outcome),
             Some(candidates) = discovered_rx.recv() => Input::ManifestsDiscovered(candidates),
         };
-        match input {
+        let action = match input {
             Input::Tick => {
+                mouse.reset();
                 if app.idle() {
                     refresh(&mut app, &mut tui, client).await?;
                 }
+                continue;
             }
-            Input::ForwardCreated(outcome) => forward_created(&mut app, &mut forwards, outcome),
-            Input::ManifestsDiscovered(candidates) => app.manifests_discovered(candidates),
+            Input::ForwardCreated(outcome) => {
+                mouse.reset();
+                forward_created(&mut app, &mut forwards, outcome);
+                continue;
+            }
+            Input::ManifestsDiscovered(candidates) => {
+                mouse.reset();
+                app.manifests_discovered(candidates);
+                continue;
+            }
             Input::Event(None) => {
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
@@ -80,54 +168,60 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 return Err(Error::from(error).into());
             }
             Input::Event(Some(Ok(Event::Key(key)))) if key.kind == KeyEventKind::Press => {
+                mouse.reset();
                 if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
                     tui.restore()?;
                     return Ok(ExitCode::SUCCESS);
                 }
-                match app.on_key(key) {
-                    Action::None => {}
-                    Action::Quit => {
-                        tui.restore()?;
-                        return Ok(ExitCode::SUCCESS);
-                    }
-                    Action::Refresh => refresh(&mut app, &mut tui, client).await?,
-                    Action::Delete { agent } => {
-                        if let Err(error) = client.delete(&agent).await {
-                            app.error = Some(error.to_string());
-                        }
-                        refresh(&mut app, &mut tui, client).await?;
-                    }
-                    Action::OpenCreate => {
-                        if !app.discovering {
-                            app.discovering = true;
-                            spawn_discovery(discovered_tx.clone(), app.agents.clone());
-                        }
-                    }
-                    Action::CreateAgent {
-                        manifest,
-                        name,
-                        env_file,
-                        form,
-                    } => {
-                        create(&mut app, &mut tui, client, manifest, name, env_file, form).await?;
-                    }
-                    Action::CreateForward { agent, spec, replace } => {
-                        if let Some(id) = replace {
-                            forwards.remove(id);
-                        }
-                        app.creating += 1;
-                        spawn_create(home, created_tx.clone(), agent, spec, replace);
-                    }
-                    Action::DeleteForward { id } => forwards.remove(id),
-                    action => {
-                        drop(events);
-                        suspended(&mut app, &mut tui, home, client, action).await?;
-                        events = EventStream::new();
-                        refresh(&mut app, &mut tui, client).await?;
-                    }
+                app.on_key(key)
+            }
+            Input::Event(Some(Ok(Event::Mouse(event)))) => mouse.action(event, &hit_map, &mut app, Instant::now()),
+            Input::Event(Some(Ok(_))) => {
+                mouse.reset();
+                continue;
+            }
+        };
+        match action {
+            Action::None => {}
+            Action::Quit => {
+                tui.restore()?;
+                return Ok(ExitCode::SUCCESS);
+            }
+            Action::Refresh => refresh(&mut app, &mut tui, client).await?,
+            Action::Delete { agent } => {
+                if let Err(error) = client.delete(&agent).await {
+                    app.error = Some(error.to_string());
+                }
+                refresh(&mut app, &mut tui, client).await?;
+            }
+            Action::OpenCreate => {
+                if !app.discovering {
+                    app.discovering = true;
+                    spawn_discovery(discovered_tx.clone(), app.agents.clone());
                 }
             }
-            Input::Event(Some(Ok(_))) => {}
+            Action::CreateAgent {
+                manifest,
+                name,
+                env_file,
+                form,
+            } => {
+                create(&mut app, &mut tui, client, manifest, name, env_file, form).await?;
+            }
+            Action::CreateForward { agent, spec, replace } => {
+                if let Some(id) = replace {
+                    forwards.remove(id);
+                }
+                app.creating += 1;
+                spawn_create(home, created_tx.clone(), agent, spec, replace);
+            }
+            Action::DeleteForward { id } => forwards.remove(id),
+            action => {
+                drop(events);
+                suspended(&mut app, &mut tui, home, client, action).await?;
+                events = EventStream::new();
+                refresh(&mut app, &mut tui, client).await?;
+            }
         }
     }
 }
@@ -343,7 +437,7 @@ fn forward_created(app: &mut App, forwards: &mut ActiveForwards, outcome: Create
 
 async fn refresh(app: &mut App, tui: &mut Tui, client: &Client) -> CommandResult<()> {
     app.loading = true;
-    tui.draw(app)?;
+    let _ = tui.draw(app)?;
     let result = fetch(client).await;
     app.loading = false;
     match result {
@@ -657,5 +751,90 @@ mod tests {
 
         assert!(manifest_candidates(Some(cwd), &[]).await.is_empty());
         assert!(manifest_candidates(None, &[]).await.is_empty());
+    }
+
+    #[test]
+    fn row_primary_actions_require_two_clicks_on_the_same_row_in_time() {
+        let mut mouse = MouseInput::default();
+        let start = Instant::now();
+
+        assert!(!mouse.double_click(RowTarget::Tree(2), start));
+        assert!(!mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(100)));
+        assert!(!mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(700)));
+        assert!(mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(800)));
+        assert!(!mouse.double_click(RowTarget::Forward(3), start + Duration::from_millis(850)));
+    }
+
+    #[test]
+    fn mouse_uses_clickable_hints_and_ignores_unsupported_input() {
+        use ratatui::{Terminal, backend::TestBackend};
+
+        let mut app = App::new();
+        let mut state = view::ViewState::default();
+        let mut hit_map = None;
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+        terminal
+            .draw(|frame| hit_map = Some(view::render(frame, &app, &mut state)))
+            .expect("draw");
+        let hit_map = hit_map.expect("hit map");
+        let mut mouse = MouseInput::default();
+        let now = Instant::now();
+        let event = |kind, modifiers| MouseEvent {
+            kind,
+            column: 0,
+            row: 10,
+            modifiers,
+        };
+
+        assert_eq!(
+            mouse.action(
+                event(MouseEventKind::Down(MouseButton::Left), KeyModifiers::NONE),
+                &hit_map,
+                &mut app,
+                now,
+            ),
+            Action::OpenCreate
+        );
+        for input in [
+            event(MouseEventKind::Down(MouseButton::Right), KeyModifiers::NONE),
+            event(MouseEventKind::Moved, KeyModifiers::NONE),
+            event(MouseEventKind::Drag(MouseButton::Left), KeyModifiers::NONE),
+            event(MouseEventKind::ScrollLeft, KeyModifiers::NONE),
+            event(MouseEventKind::Down(MouseButton::Left), KeyModifiers::SHIFT),
+        ] {
+            assert_eq!(mouse.action(input, &hit_map, &mut app, now), Action::None);
+        }
+    }
+
+    #[test]
+    fn wheel_scrolls_details_only_inside_the_rendered_content() {
+        use ratatui::{Terminal, backend::TestBackend};
+
+        let mut app = App::new();
+        app.detail = Some(app::Detail {
+            title: "detail".into(),
+            lines: vec!["one".into(), "two".into(), "three".into()],
+            scroll: 0,
+        });
+        let mut state = view::ViewState::default();
+        let mut hit_map = None;
+        let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
+        terminal
+            .draw(|frame| hit_map = Some(view::render(frame, &app, &mut state)))
+            .expect("draw");
+        let hit_map = hit_map.expect("hit map");
+        let mut mouse = MouseInput::default();
+        let now = Instant::now();
+        let wheel = |column, row| MouseEvent {
+            kind: MouseEventKind::ScrollDown,
+            column,
+            row,
+            modifiers: KeyModifiers::NONE,
+        };
+
+        assert_eq!(mouse.action(wheel(1, 2), &hit_map, &mut app, now), Action::None);
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(1));
+        assert_eq!(mouse.action(wheel(0, 1), &hit_map, &mut app, now), Action::None);
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(1));
     }
 }

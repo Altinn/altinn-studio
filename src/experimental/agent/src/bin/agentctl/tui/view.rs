@@ -1,13 +1,15 @@
 use ratatui::{
     Frame,
-    layout::{Constraint, Layout, Rect},
+    layout::{Constraint, Layout, Margin, Position, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Clear, List, ListItem, ListState, Paragraph, Wrap},
 };
 
 use super::MANIFEST_FILE;
-use super::app::{App, CREATE_AGENT_HINTS, ForwardField, Modal, Tone};
+use super::app::{
+    App, CREATE_AGENT_HINTS, CreateField, ForwardField, Modal, MouseAction, Row, SessionField, Tone, View,
+};
 
 const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
 const CREATE_AGENT_POPUP_HEIGHT: u16 = 8;
@@ -16,23 +18,106 @@ const CREATE_FIELD_LABEL_WIDTH: usize = 10;
 const CREATE_PICKER_VALUE_WIDTH: usize = 18;
 const CREATE_PICKER_DETAIL_OFFSET: usize = CREATE_FIELD_LABEL_WIDTH + 2 + CREATE_PICKER_VALUE_WIDTH + 2 + 8;
 
-pub(crate) fn render(frame: &mut Frame, app: &App) {
+#[derive(Default)]
+pub(crate) struct ViewState {
+    tree: ListState,
+    forwards: ListState,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum RowTarget {
+    Tree(usize),
+    Forward(usize),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum WheelTarget {
+    Tree,
+    Forwards,
+    Detail,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) enum HitTarget {
+    Row(RowTarget),
+    Action(MouseAction),
+}
+
+#[derive(Default)]
+pub(crate) struct HitMap {
+    frame: Rect,
+    clicks: Vec<(Rect, HitTarget)>,
+    wheels: Vec<(Rect, WheelTarget)>,
+}
+
+impl HitMap {
+    fn new(frame: Rect) -> Self {
+        Self {
+            frame,
+            ..Self::default()
+        }
+    }
+
+    fn clear(&mut self) {
+        self.clicks.clear();
+        self.wheels.clear();
+    }
+
+    fn click(&mut self, area: Rect, target: HitTarget) {
+        let area = area.intersection(self.frame);
+        if !area.is_empty() {
+            self.clicks.push((area, target));
+        }
+    }
+
+    fn wheel(&mut self, area: Rect, target: WheelTarget) {
+        let area = area.intersection(self.frame);
+        if !area.is_empty() {
+            self.wheels.push((area, target));
+        }
+    }
+
+    pub(crate) fn click_at(&self, column: u16, row: u16) -> Option<HitTarget> {
+        let position = Position::new(column, row);
+        self.frame.contains(position).then_some(())?;
+        self.clicks
+            .iter()
+            .rev()
+            .find_map(|(area, target)| area.contains(position).then(|| target.clone()))
+    }
+
+    pub(crate) fn wheel_at(&self, column: u16, row: u16) -> Option<WheelTarget> {
+        let position = Position::new(column, row);
+        self.frame.contains(position).then_some(())?;
+        self.wheels
+            .iter()
+            .rev()
+            .find_map(|(area, target)| area.contains(position).then_some(*target))
+    }
+}
+
+pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> HitMap {
+    let mut hit_map = HitMap::new(frame.area());
     let [header, body, footer] =
         Layout::vertical([Constraint::Length(1), Constraint::Min(0), Constraint::Length(2)]).areas(frame.area());
     render_header(frame, header, app);
     if let Some(detail) = &app.detail {
-        render_detail(frame, body, detail);
+        render_detail(frame, body, detail, &mut hit_map);
     } else if let Some(error) = &app.error {
         render_error(frame, body, error);
-    } else if app.view == super::app::View::Forwards {
-        render_forwards(frame, body, app);
+    } else if app.view == View::Forwards {
+        render_forwards(frame, body, app, state, &mut hit_map);
     } else {
-        render_tree(frame, body, app);
+        render_tree(frame, body, app, state, &mut hit_map);
     }
     render_footer(frame, footer, app);
+    map_footer_targets(footer, app, &mut hit_map);
     if let Some(modal) = &app.modal {
-        render_modal(frame, body, modal);
+        hit_map.clear();
+        map_footer_targets(footer, app, &mut hit_map);
+        render_modal(frame, body, modal, &mut hit_map);
     }
+    hit_map
 }
 
 fn render_header(frame: &mut Frame, area: Rect, app: &App) {
@@ -60,7 +145,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     frame.render_widget(Line::from(spans), area);
 }
 
-fn render_tree(frame: &mut Frame, area: Rect, app: &App) {
+fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
     let rows = app.render_rows();
     if rows.is_empty() {
         let placeholder = if app.loaded { "(no agents)" } else { "loading…" };
@@ -97,12 +182,29 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App) {
         })
         .collect::<Vec<_>>();
     let list = List::new(items).highlight_style(Style::new().add_modifier(Modifier::REVERSED));
-    let mut state = ListState::default().with_selected(Some(app.selected));
-    frame.render_stateful_widget(list, area, &mut state);
+    state.tree.select(Some(app.selected));
+    frame.render_stateful_widget(list, area, &mut state.tree);
+    hit_map.wheel(area, WheelTarget::Tree);
+    for visible in 0..usize::from(area.height) {
+        let index = state.tree.offset().saturating_add(visible);
+        let Some(row) = app.rows.get(index) else {
+            break;
+        };
+        let y = area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
+        let row_area = Rect::new(area.x, y, area.width, 1);
+        hit_map.click(row_area, HitTarget::Row(RowTarget::Tree(index)));
+        if matches!(row, Row::Agent(_)) {
+            hit_map.click(
+                Rect::new(area.x, y, area.width.min(2), 1),
+                HitTarget::Action(MouseAction::FoldTree(index)),
+            );
+        }
+    }
 }
 
-fn render_forwards(frame: &mut Frame, area: Rect, app: &App) {
+fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
     let block = Block::bordered().title(" port-forwards ");
+    let inner = block.inner(area);
     if app.forwards.is_empty() {
         frame.render_widget(
             Paragraph::new("(no port forwards — press f on an agent to create one)")
@@ -131,15 +233,29 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App) {
     let list = List::new(items)
         .block(block)
         .highlight_style(Style::new().add_modifier(Modifier::REVERSED));
-    let mut state = ListState::default().with_selected(Some(app.forward_selected));
-    frame.render_stateful_widget(list, area, &mut state);
+    state.forwards.select(Some(app.forward_selected));
+    frame.render_stateful_widget(list, area, &mut state.forwards);
+    hit_map.wheel(inner, WheelTarget::Forwards);
+    for visible in 0..usize::from(inner.height) {
+        let index = state.forwards.offset().saturating_add(visible);
+        if index >= app.forwards.len() {
+            break;
+        }
+        let y = inner.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
+        hit_map.click(
+            Rect::new(inner.x, y, inner.width, 1),
+            HitTarget::Row(RowTarget::Forward(index)),
+        );
+    }
 }
 
-fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail) {
+fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail, hit_map: &mut HitMap) {
     let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
+    let inner = block.inner(area);
     let scroll = u16::try_from(detail.scroll).unwrap_or(u16::MAX);
     let paragraph = Paragraph::new(detail.lines.join("\n")).block(block).scroll((scroll, 0));
     frame.render_widget(paragraph, area);
+    hit_map.wheel(inner, WheelTarget::Detail);
 }
 
 fn render_error(frame: &mut Frame, area: Rect, error: &str) {
@@ -170,7 +286,74 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App) {
     );
 }
 
-fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal) {
+fn map_footer_targets(area: Rect, app: &App, hit_map: &mut HitMap) {
+    let [contextual, global] = Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
+    if app.modal.is_some() {
+        map_hint_targets(contextual, &app.hints(), hit_map);
+        return;
+    }
+    if app.error.is_some() {
+        map_hint_targets_matching(
+            global,
+            &[("j/k", "move"), ("r", "refresh"), ("F", "forwards"), ("q", "quit")],
+            hit_map,
+            |key| matches!(key, "r" | "q"),
+        );
+        return;
+    }
+    map_hint_targets(contextual, &app.hints(), hit_map);
+    if app.detail.is_some() || app.view == View::Forwards {
+        return;
+    }
+    let hints = [("j/k", "move"), ("r", "refresh"), ("F", "forwards"), ("q", "quit")];
+    map_hint_targets(global, &hints, hit_map);
+}
+
+fn map_hint_targets(area: Rect, hints: &[(&str, &str)], hit_map: &mut HitMap) {
+    map_hint_targets_matching(area, hints, hit_map, |_| true);
+}
+
+fn map_hint_targets_matching(area: Rect, hints: &[(&str, &str)], hit_map: &mut HitMap, include: impl Fn(&str) -> bool) {
+    let mut x = area.x;
+    for (index, (key, description)) in hints.iter().enumerate() {
+        if index > 0 {
+            x = x.saturating_add(3);
+        }
+        let width = u16::try_from(Line::from(format!("{key} {description}")).width()).unwrap_or(u16::MAX);
+        if include(key)
+            && let Some(action) = hint_action(key)
+        {
+            hit_map.click(
+                Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
+                HitTarget::Action(action),
+            );
+        }
+        x = x.saturating_add(width);
+    }
+}
+
+fn hint_action(key: &str) -> Option<MouseAction> {
+    let (code, modifiers) = match key {
+        "enter" => (crossterm::event::KeyCode::Enter, crossterm::event::KeyModifiers::NONE),
+        "esc" => (crossterm::event::KeyCode::Esc, crossterm::event::KeyModifiers::NONE),
+        "ctrl-d" => (
+            crossterm::event::KeyCode::Char('d'),
+            crossterm::event::KeyModifiers::CONTROL,
+        ),
+        "F" => (
+            crossterm::event::KeyCode::Char('F'),
+            crossterm::event::KeyModifiers::NONE,
+        ),
+        "r" | "q" | "s" | "y" | "n" | "c" | "e" | "f" | "d" | "z" => (
+            crossterm::event::KeyCode::Char(key.chars().next()?),
+            crossterm::event::KeyModifiers::NONE,
+        ),
+        _ => return None,
+    };
+    Some(MouseAction::Key(code, modifiers))
+}
+
+fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitMap) {
     match modal {
         Modal::ConfirmDelete { agent, sessions } => {
             let lines = vec![
@@ -182,10 +365,11 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal) {
                 Line::default(),
                 hint_line(&[("y", "confirm"), ("n", "cancel")]),
             ];
-            popup(frame, area, " delete ", Color::Red, lines);
+            let target = popup(frame, area, " delete ", Color::Red, lines);
+            map_hint_targets(line_area(target, 3), &[("y", "confirm"), ("n", "cancel")], hit_map);
         }
-        Modal::NewSession(form) => render_new_session(frame, area, form),
-        Modal::CreateAgent(form) => render_create_agent(frame, area, form),
+        Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
+        Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => {
             let mut lines = vec![
                 Line::from(format!("Agent:         {}", form.agent)),
@@ -203,20 +387,31 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal) {
                 lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
             }
             lines.push(Line::default());
-            lines.push(hint_line(&[("enter", "forward"), ("tab", "field"), ("esc", "cancel")]));
+            let hints = [("enter", "forward"), ("tab", "field"), ("esc", "cancel")];
+            let hint_row = lines.len();
+            lines.push(hint_line(&hints));
             let title = if form.replace.is_some() {
                 " edit forward "
             } else {
                 " port forward "
             };
-            popup(frame, area, title, Color::Cyan, lines);
+            let target = popup(frame, area, title, Color::Cyan, lines);
+            for (row, field) in [
+                (1, ForwardField::Address),
+                (2, ForwardField::LocalPort),
+                (3, ForwardField::GuestPort),
+            ] {
+                hit_map.click(
+                    line_area(target, row),
+                    HitTarget::Action(MouseAction::FocusForwardField(field)),
+                );
+            }
+            map_hint_targets(line_area(target, hint_row), &hints, hit_map);
         }
     }
 }
 
-fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionForm) {
-    use super::app::SessionField;
-
+fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionForm, hit_map: &mut HitMap) {
     let mut harness_spans = vec![Span::raw("Harness: ")];
     for (index, installation) in form.harnesses.iter().enumerate() {
         if index > 0 {
@@ -250,8 +445,33 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
         lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
     }
     lines.push(Line::default());
+    let hint_row = lines.len();
     lines.push(hint_line(&super::app::NEW_SESSION_HINTS));
-    popup(frame, area, " new session ", Color::Cyan, lines);
+    let target = popup(frame, area, " new session ", Color::Cyan, lines);
+    for (row, field) in [
+        (1, SessionField::Name),
+        (2, SessionField::Model),
+        (3, SessionField::Effort),
+    ] {
+        hit_map.click(
+            line_area(target, row),
+            HitTarget::Action(MouseAction::FocusSessionField(field)),
+        );
+    }
+    let harness_area = line_area(target, 4);
+    let mut x = harness_area.x.saturating_add(9);
+    for (index, installation) in form.harnesses.iter().enumerate() {
+        if index > 0 {
+            x = x.saturating_add(2);
+        }
+        let width = u16::try_from(Line::from(installation.kind.as_str()).width()).unwrap_or(u16::MAX);
+        hit_map.click(
+            Rect::new(x, harness_area.y, width.min(harness_area.right().saturating_sub(x)), 1),
+            HitTarget::Action(MouseAction::SelectHarness(index)),
+        );
+        x = x.saturating_add(width);
+    }
+    map_hint_targets(line_area(target, hint_row), &super::app::NEW_SESSION_HINTS, hit_map);
 }
 
 /// What an empty selection field resolves to: the manifest default or the harness's own.
@@ -277,7 +497,7 @@ fn field_line(label: &str, value: &str, focused: bool, empty_hint: Option<String
     Line::from(spans)
 }
 
-fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm) {
+fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm, hit_map: &mut HitMap) {
     let popup_width = CREATE_AGENT_POPUP_WIDTH.min(area.width);
     let detail_width = usize::from(popup_width)
         .saturating_sub(2)
@@ -308,7 +528,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
         lines.push(Line::default());
     }
     lines.push(hint_line(&CREATE_AGENT_HINTS));
-    popup_sized(
+    let target = popup_sized(
         frame,
         area,
         " create agent ",
@@ -317,6 +537,41 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
         popup_width,
         CREATE_AGENT_POPUP_HEIGHT,
     );
+    if form.candidate().is_some() {
+        let label_width = u16::try_from(CREATE_FIELD_LABEL_WIDTH).unwrap_or(u16::MAX);
+        let value_width = u16::try_from(CREATE_PICKER_VALUE_WIDTH).unwrap_or(u16::MAX);
+        for (row, field) in [
+            (0, CreateField::Agent),
+            (1, CreateField::Variant),
+            (2, CreateField::Name),
+            (3, CreateField::EnvironmentFile),
+        ] {
+            hit_map.click(
+                line_area(target, row),
+                HitTarget::Action(MouseAction::FocusCreateField(field)),
+            );
+        }
+        for (row, field) in [(0, CreateField::Agent), (1, CreateField::Variant)] {
+            let line = line_area(target, row);
+            hit_map.click(
+                Rect::new(line.x.saturating_add(label_width), line.y, 2, 1),
+                HitTarget::Action(MouseAction::SelectCreate { field, delta: -1 }),
+            );
+            hit_map.click(
+                Rect::new(
+                    line.x
+                        .saturating_add(label_width)
+                        .saturating_add(2)
+                        .saturating_add(value_width),
+                    line.y,
+                    2,
+                    1,
+                ),
+                HitTarget::Action(MouseAction::SelectCreate { field, delta: 1 }),
+            );
+        }
+    }
+    map_hint_targets(line_area(target, 5), &CREATE_AGENT_HINTS, hit_map);
 }
 
 fn picker_lines(
@@ -531,7 +786,7 @@ fn hint_line(hints: &[(&'static str, &'static str)]) -> Line<'static> {
     Line::from(spans)
 }
 
-fn popup(frame: &mut Frame, area: Rect, title: &str, border: Color, lines: Vec<Line<'_>>) {
+fn popup(frame: &mut Frame, area: Rect, title: &str, border: Color, lines: Vec<Line<'_>>) -> Rect {
     let height = u16::try_from(lines.len()).unwrap_or(u16::MAX).saturating_add(2);
     let content = lines
         .iter()
@@ -541,7 +796,7 @@ fn popup(frame: &mut Frame, area: Rect, title: &str, border: Color, lines: Vec<L
         .unwrap_or(u16::MAX)
         .saturating_add(2);
     let width = (area.width / 2).max(content).min(area.width);
-    popup_sized(frame, area, title, border, lines, width, height);
+    popup_sized(frame, area, title, border, lines, width, height)
 }
 
 fn popup_sized(
@@ -552,13 +807,24 @@ fn popup_sized(
     lines: Vec<Line<'_>>,
     width: u16,
     height: u16,
-) {
+) -> Rect {
     let target = centered_rect(area, width.min(area.width), height.min(area.height));
     frame.render_widget(Clear, target);
     let block = Block::bordered()
         .title(title.to_owned())
         .border_style(Style::new().fg(border));
     frame.render_widget(Paragraph::new(lines).block(block), target);
+    target
+}
+
+fn line_area(popup: Rect, line: usize) -> Rect {
+    let inner = popup.inner(Margin::new(1, 1));
+    let y = inner.y.saturating_add(u16::try_from(line).unwrap_or(u16::MAX));
+    if y >= inner.bottom() {
+        Rect::default()
+    } else {
+        Rect::new(inner.x, y, inner.width, 1)
+    }
 }
 
 fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {
@@ -602,6 +868,60 @@ mod tests {
         text
     }
 
+    fn draw(terminal: &mut Terminal<TestBackend>, app: &App) -> HitMap {
+        let mut state = ViewState::default();
+        draw_with_state(terminal, app, &mut state)
+    }
+
+    fn draw_with_state(terminal: &mut Terminal<TestBackend>, app: &App, state: &mut ViewState) -> HitMap {
+        let mut hit_map = None;
+        terminal
+            .draw(|frame| hit_map = Some(render(frame, app, state)))
+            .expect("test draw");
+        hit_map.expect("renderer returns a hit map")
+    }
+
+    fn tree_app(count: usize) -> App {
+        let agents = (0..count)
+            .map(|index| {
+                let yaml = format!(
+                    "apiVersion: agents.platform/v1alpha1\n\
+                     kind: Agent\n\
+                     metadata:\n\
+                     \x20 name: agent-{index:02}\n\
+                     spec:\n\
+                     \x20 sandbox:\n\
+                     \x20   image:\n\
+                     \x20     type: build\n\
+                     \x20     context: .\n\
+                     \x20     dockerfile: Dockerfile\n\
+                     \x20   platform:\n\
+                     \x20     os: linux\n\
+                     \x20   resources:\n\
+                     \x20     cpu: \"1\"\n\
+                     \x20     memory: \"1Gi\"\n\
+                     \x20     rootFilesystem:\n\
+                     \x20       capacity: \"8Gi\"\n\
+                     \x20       mode: layered\n\
+                     \x20 home:\n\
+                     \x20   source: home\n\
+                     \x20 harnesses:\n\
+                     \x20   - type: claudeCode\n\
+                     \x20     version: \"1.0.0\"\n\
+                     \x20     auth: mediated\n\
+                     \x20 secrets: []\n\
+                     \x20 network:\n\
+                     \x20   mode: mediated\n\
+                     \x20   allow: all\n"
+                );
+                agent::manifest::decode(yaml.as_bytes()).expect("test manifest")
+            })
+            .collect();
+        let mut app = App::new();
+        app.apply_snapshot(agents, Vec::new());
+        app
+    }
+
     fn create_modal_geometry(text: &str) -> (String, usize, usize) {
         let top = text
             .lines()
@@ -625,12 +945,131 @@ mod tests {
     fn frame_shows_header_counts_tree_and_hints() {
         let app = App::new();
         let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
-        terminal.draw(|frame| render(frame, &app)).expect("first draw");
+        draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("agentctl"));
         assert!(text.contains("0 agents · 0 sessions · 0 running"));
         assert!(text.contains("loading…"));
         assert!(text.contains("j/k move · r refresh · F forwards · q quit"));
+    }
+
+    #[test]
+    fn tree_hit_map_uses_the_rendered_offset_and_updates_after_resize() {
+        let mut app = tree_app(10);
+        app.selected = 9;
+        let mut state = ViewState::default();
+        let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
+
+        let compact = draw_with_state(&mut terminal, &app, &mut state);
+        assert_eq!(state.tree.offset(), 5);
+        assert_eq!(compact.click_at(10, 1), Some(HitTarget::Row(RowTarget::Tree(5))));
+        assert_eq!(compact.click_at(10, 5), Some(HitTarget::Row(RowTarget::Tree(9))));
+        assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
+        assert_eq!(compact.click_at(40, 1), None, "right edge is out of bounds");
+
+        terminal.resize(Rect::new(0, 0, 40, 12)).expect("terminal resize");
+        let resized = draw_with_state(&mut terminal, &app, &mut state);
+        assert_eq!(state.tree.offset(), 5, "the viewport remains stable when it still fits");
+        assert_eq!(resized.click_at(10, 1), Some(HitTarget::Row(RowTarget::Tree(5))));
+        assert_eq!(
+            resized.click_at(10, 6),
+            None,
+            "the resized map has no stale footer target"
+        );
+    }
+
+    #[test]
+    fn forward_hit_map_excludes_its_border_and_tracks_scrolling() {
+        let mut app = App::new();
+        app.view = View::Forwards;
+        app.forwards = (0..10)
+            .map(|id| super::super::app::ForwardEntry {
+                id,
+                agent: format!("agent-{id}"),
+                local: format!("127.0.0.1:{}", 8000 + id),
+                guest_port: 80,
+                status: None,
+            })
+            .collect();
+        app.forward_selected = 7;
+        let mut state = ViewState::default();
+        let mut terminal = Terminal::new(TestBackend::new(60, 8)).expect("test terminal");
+
+        let hit_map = draw_with_state(&mut terminal, &app, &mut state);
+
+        assert_eq!(state.forwards.offset(), 5);
+        assert_eq!(hit_map.click_at(1, 2), Some(HitTarget::Row(RowTarget::Forward(5))));
+        assert_eq!(hit_map.wheel_at(1, 2), Some(WheelTarget::Forwards));
+        assert_eq!(hit_map.click_at(0, 2), None, "left border is inert");
+        assert_eq!(hit_map.click_at(1, 1), None, "top border is inert");
+    }
+
+    #[test]
+    fn modal_hit_map_blocks_the_underlying_list_and_exposes_confirmation() {
+        let mut app = tree_app(3);
+        app.modal = Some(Modal::ConfirmDelete {
+            agent: "agent-00".into(),
+            sessions: 0,
+        });
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+
+        let hit_map = draw(&mut terminal, &app);
+
+        assert_eq!(hit_map.click_at(0, 1), None, "modal prevents click-through");
+        let confirmation = HitTarget::Action(MouseAction::Key(
+            crossterm::event::KeyCode::Char('y'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let area = hit_map
+            .clicks
+            .iter()
+            .find_map(|(area, target)| (target == &confirmation).then_some(*area))
+            .expect("confirmation control");
+        assert_eq!(hit_map.click_at(area.x, area.y), Some(confirmation));
+    }
+
+    #[test]
+    fn modal_hit_maps_expose_form_fields_and_choices() {
+        let mut app = tree_app(1);
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char('n'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
+
+        let session = draw(&mut terminal, &app);
+        assert!(
+            session.clicks.iter().any(|(_, target)| {
+                target == &HitTarget::Action(MouseAction::FocusSessionField(SessionField::Model))
+            })
+        );
+        assert!(
+            session
+                .clicks
+                .iter()
+                .any(|(_, target)| { target == &HitTarget::Action(MouseAction::SelectHarness(0)) })
+        );
+
+        app.modal = Some(Modal::PortForward(super::super::app::ForwardForm {
+            agent: "agent-00".into(),
+            address: "127.0.0.1".into(),
+            local: String::new(),
+            guest: "8080".into(),
+            field: ForwardField::GuestPort,
+            error: None,
+            replace: None,
+        }));
+        let forward = draw(&mut terminal, &app);
+        assert!(forward.clicks.iter().any(|(_, target)| {
+            target == &HitTarget::Action(MouseAction::FocusForwardField(ForwardField::Address))
+        }));
+        assert!(forward.clicks.iter().any(|(_, target)| {
+            target
+                == &HitTarget::Action(MouseAction::Key(
+                    crossterm::event::KeyCode::Enter,
+                    crossterm::event::KeyModifiers::NONE,
+                ))
+        }));
     }
 
     #[test]
@@ -653,7 +1092,7 @@ mod tests {
             None,
         )));
         let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
-        terminal.draw(|frame| render(frame, &app)).expect("modal draw");
+        let hit_map = draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("create agent"));
         assert!(text.contains("Agent:    ◂ full"));
@@ -681,6 +1120,26 @@ mod tests {
         assert_eq!(value_column, text_column(variant_line, "default"));
         assert_eq!(value_column, text_column(name_line, "full"));
         assert_eq!(value_column, text_column(env_line, "default"));
+        assert!(
+            hit_map
+                .clicks
+                .iter()
+                .any(|(_, target)| { target == &HitTarget::Action(MouseAction::FocusCreateField(CreateField::Name)) })
+        );
+        assert!(hit_map.clicks.iter().any(|(_, target)| {
+            target
+                == &HitTarget::Action(MouseAction::SelectCreate {
+                    field: CreateField::Agent,
+                    delta: 1,
+                })
+        }));
+        assert!(hit_map.clicks.iter().any(|(_, target)| {
+            target
+                == &HitTarget::Action(MouseAction::Key(
+                    crossterm::event::KeyCode::Enter,
+                    crossterm::event::KeyModifiers::NONE,
+                ))
+        }));
 
         let Some(Modal::CreateAgent(form)) = &mut app.modal else {
             panic!("expected the CreateAgent modal");
@@ -689,7 +1148,7 @@ mod tests {
         form.variant = 0;
         form.field = CreateField::Name;
         form.name = "copy".into();
-        terminal.draw(|frame| render(frame, &app)).expect("error draw");
+        draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("Agent:    ◂ broken"));
         assert!(text.contains("Variant:  ◂ default"));
@@ -713,7 +1172,7 @@ mod tests {
             None,
         )));
         let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
-        terminal.draw(|frame| render(frame, &app)).expect("modal draw");
+        draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
         let agent_line = agent_line.replace('\\', "/");
@@ -757,7 +1216,7 @@ mod tests {
         let mut app = App::new();
         app.discovering = true;
         let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
-        terminal.draw(|frame| render(frame, &app)).expect("draw");
+        draw(&mut terminal, &app);
         assert!(buffer_text(&terminal).contains("scanning manifests…"));
     }
 
@@ -768,7 +1227,7 @@ mod tests {
         let mut app = App::new();
         app.modal = Some(Modal::CreateAgent(CreateForm::new(Vec::new(), None)));
         let mut terminal = Terminal::new(TestBackend::new(80, 14)).expect("test terminal");
-        terminal.draw(|frame| render(frame, &app)).expect("empty draw");
+        draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("No agent manifests found."));
         assert!(text.contains("agentctl apply"));

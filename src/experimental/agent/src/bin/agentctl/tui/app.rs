@@ -585,6 +585,29 @@ pub(crate) enum ForwardField {
     GuestPort,
 }
 
+/// A semantic interaction emitted by the renderer's hit map.
+///
+/// Mouse input uses these instead of terminal coordinates so layout remains
+/// entirely owned by the renderer. Keyboard-shaped controls deliberately flow
+/// back through `on_key` to keep both input methods equivalent.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum MouseAction {
+    Key(KeyCode, KeyModifiers),
+    SelectTree(usize),
+    PrimaryTree(usize),
+    FoldTree(usize),
+    MoveTree(isize),
+    SelectForward(usize),
+    PrimaryForward(usize),
+    MoveForward(isize),
+    ScrollDetail(isize),
+    FocusSessionField(SessionField),
+    SelectHarness(usize),
+    FocusCreateField(CreateField),
+    SelectCreate { field: CreateField, delta: isize },
+    FocusForwardField(ForwardField),
+}
+
 impl ForwardField {
     const fn next(self) -> Self {
         match self {
@@ -757,6 +780,95 @@ impl App {
             return self.forwards_key(key);
         }
         self.main_key(key)
+    }
+
+    pub(crate) fn on_mouse(&mut self, action: MouseAction) -> Action {
+        match action {
+            MouseAction::Key(code, modifiers) => self.on_key(KeyEvent::new(code, modifiers)),
+            MouseAction::SelectTree(index) => {
+                if index < self.rows.len() {
+                    self.selected = index;
+                }
+                Action::None
+            }
+            MouseAction::PrimaryTree(index) => {
+                if index >= self.rows.len() {
+                    return Action::None;
+                }
+                self.selected = index;
+                self.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+            }
+            MouseAction::FoldTree(index) => {
+                if index >= self.rows.len() || !matches!(self.rows[index], Row::Agent(_)) {
+                    return Action::None;
+                }
+                self.selected = index;
+                self.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+            }
+            MouseAction::MoveTree(delta) => {
+                self.move_selection_clamped(delta);
+                Action::None
+            }
+            MouseAction::SelectForward(index) => {
+                if index < self.forwards.len() {
+                    self.forward_selected = index;
+                }
+                Action::None
+            }
+            MouseAction::PrimaryForward(index) => {
+                if index >= self.forwards.len() {
+                    return Action::None;
+                }
+                self.forward_selected = index;
+                self.on_key(KeyEvent::new(KeyCode::Char('e'), KeyModifiers::NONE))
+            }
+            MouseAction::MoveForward(delta) => {
+                self.move_forward_selection_clamped(delta);
+                Action::None
+            }
+            MouseAction::ScrollDetail(delta) => {
+                let Some(detail) = self.detail.as_mut() else {
+                    return Action::None;
+                };
+                let limit = detail.lines.len().saturating_sub(1);
+                detail.scroll = offset_clamped(detail.scroll, limit, delta);
+                Action::None
+            }
+            MouseAction::FocusSessionField(field) => {
+                if let Some(Modal::NewSession(form)) = &mut self.modal {
+                    form.field = field;
+                }
+                Action::None
+            }
+            MouseAction::SelectHarness(index) => {
+                if let Some(Modal::NewSession(form)) = &mut self.modal
+                    && index < form.harnesses.len()
+                {
+                    form.harness = index;
+                }
+                Action::None
+            }
+            MouseAction::FocusCreateField(field) => {
+                if let Some(Modal::CreateAgent(form)) = &mut self.modal {
+                    form.field = field;
+                    form.error = None;
+                }
+                Action::None
+            }
+            MouseAction::SelectCreate { field, delta } => {
+                if let Some(Modal::CreateAgent(form)) = &mut self.modal {
+                    form.field = field;
+                    form.select(delta);
+                }
+                Action::None
+            }
+            MouseAction::FocusForwardField(field) => {
+                if let Some(Modal::PortForward(form)) = &mut self.modal {
+                    form.field = field;
+                }
+                Action::None
+            }
+        }
     }
 
     fn main_key(&mut self, key: KeyEvent) -> Action {
@@ -1040,6 +1152,12 @@ impl App {
         self.forward_selected = usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default();
     }
 
+    fn move_forward_selection_clamped(&mut self, delta: isize) {
+        if !self.forwards.is_empty() {
+            self.forward_selected = offset_clamped(self.forward_selected, self.forwards.len() - 1, delta);
+        }
+    }
+
     /// Replaces the forward display list, keeping the selection in range.
     pub(crate) fn set_forwards(&mut self, forwards: Vec<ForwardEntry>) {
         self.forwards = forwards;
@@ -1054,6 +1172,12 @@ impl App {
         let current = isize::try_from(self.selected).unwrap_or_default();
         let next = (current + delta).rem_euclid(isize::try_from(length).unwrap_or(1));
         self.selected = usize::try_from(next).unwrap_or_default();
+    }
+
+    fn move_selection_clamped(&mut self, delta: isize) {
+        if !self.rows.is_empty() {
+            self.selected = offset_clamped(self.selected, self.rows.len() - 1, delta);
+        }
     }
 
     fn group_agent(&self, group: usize) -> Option<&Agent> {
@@ -1172,6 +1296,14 @@ impl App {
             ],
             None => vec![("c", "new agent")],
         }
+    }
+}
+
+fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
+    if delta.is_negative() {
+        current.saturating_sub(delta.unsigned_abs())
+    } else {
+        current.saturating_add(delta.unsigned_abs()).min(limit)
     }
 }
 
@@ -1403,6 +1535,105 @@ mod tests {
                 agent: "builder".into(),
                 session: SessionName::new("b1").expect("valid name"),
             }
+        );
+    }
+
+    #[test]
+    fn mouse_row_selection_is_separate_from_primary_actions() {
+        let mut app = populated();
+
+        assert_eq!(app.on_mouse(MouseAction::SelectTree(4)), Action::None);
+        assert_eq!(app.selected, 4);
+        assert_eq!(
+            app.on_mouse(MouseAction::PrimaryTree(4)),
+            Action::Attach {
+                agent: "worker".into(),
+                session: SessionName::new("s2").expect("valid Session name"),
+            }
+        );
+
+        assert_eq!(app.rows.len(), 5);
+        assert_eq!(app.on_mouse(MouseAction::FoldTree(0)), Action::None);
+        assert_eq!(app.rows.len(), 4);
+    }
+
+    #[test]
+    fn mouse_wheel_selection_and_detail_scrolling_clamp_at_the_ends() {
+        let mut app = populated();
+        app.selected = app.rows.len() - 1;
+
+        app.on_mouse(MouseAction::MoveTree(1));
+        assert_eq!(app.selected, app.rows.len() - 1);
+        app.on_mouse(MouseAction::MoveTree(-100));
+        assert_eq!(app.selected, 0);
+
+        app.detail = Some(Detail {
+            title: "detail".into(),
+            lines: vec!["one".into(), "two".into(), "three".into()],
+            scroll: 0,
+        });
+        app.on_mouse(MouseAction::ScrollDetail(100));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(2));
+        app.on_mouse(MouseAction::ScrollDetail(-100));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(0));
+    }
+
+    #[test]
+    fn clickable_actions_keep_confirmation_and_terminal_action_semantics() {
+        let mut app = populated();
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('e'), KeyModifiers::NONE)),
+            Action::Exec {
+                agent: "builder".into()
+            }
+        );
+
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('d'), KeyModifiers::NONE)),
+            Action::None
+        );
+        assert!(matches!(app.modal, Some(Modal::ConfirmDelete { .. })));
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('y'), KeyModifiers::NONE)),
+            Action::Delete {
+                agent: "builder".into()
+            }
+        );
+    }
+
+    #[test]
+    fn mouse_forward_actions_select_edit_and_delete_the_target() {
+        let mut app = App::new();
+        app.view = View::Forwards;
+        app.set_forwards(vec![
+            ForwardEntry {
+                id: 10,
+                agent: "first".into(),
+                local: "127.0.0.1:8000".into(),
+                guest_port: 80,
+                status: None,
+            },
+            ForwardEntry {
+                id: 20,
+                agent: "second".into(),
+                local: "127.0.0.1:9000".into(),
+                guest_port: 90,
+                status: None,
+            },
+        ]);
+
+        assert_eq!(app.on_mouse(MouseAction::SelectForward(1)), Action::None);
+        assert_eq!(app.forward_selected, 1);
+        assert_eq!(app.on_mouse(MouseAction::PrimaryForward(1)), Action::None);
+        assert!(matches!(
+            app.modal,
+            Some(Modal::PortForward(ForwardForm { replace: Some(20), .. }))
+        ));
+
+        app.modal = None;
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('d'), KeyModifiers::CONTROL)),
+            Action::DeleteForward { id: 20 }
         );
     }
 
