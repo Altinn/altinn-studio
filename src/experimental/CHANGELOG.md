@@ -28,6 +28,11 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
 
+### Fixed
+
+- Chromium in a full Altinn Agent trusts the same host-mediated certificate authorities as command-line tools, so
+  browser tests can load HTTPS dependencies without disabling certificate verification.
+
 ## [0.1.0-preview.4] - 2026-09-18
 
 ### Added

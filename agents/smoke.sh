@@ -111,6 +111,24 @@ cli_playwright="$(node -p "require('/usr/local/lib/node_modules/@playwright/cli/
 global_playwright="$(node -p "require('playwright/package.json').version")"
 test "$cli_playwright" = "$global_playwright" \
     || fail "playwright-cli depends on playwright $cli_playwright but $global_playwright is installed"
+systemctl is-enabled agent-browser-ca-init.service >/dev/null \
+    || fail "the Chromium CA initialization service is not enabled"
+
+openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+    -subj '/CN=Agent smoke CA' \
+    -addext 'basicConstraints=critical,CA:TRUE' \
+    -addext 'keyUsage=critical,keyCertSign,cRLSign' \
+    -keyout ca-key.pem -out ca.pem >/dev/null 2>&1
+openssl req -newkey rsa:2048 -nodes \
+    -subj '/CN=localhost' \
+    -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' \
+    -addext 'extendedKeyUsage=serverAuth' \
+    -keyout fixture-key.pem -out fixture.csr >/dev/null 2>&1
+openssl x509 -req -days 1 -in fixture.csr \
+    -CA ca.pem -CAkey ca-key.pem -CAcreateserial -copy_extensions copy \
+    -out fixture.pem >/dev/null 2>&1
+AGENT_BROWSER_CA_BUNDLE="$work/ca.pem" /usr/local/libexec/agent-browser-ca-init
+AGENT_BROWSER_CA_BUNDLE="$work/ca.pem" /usr/local/libexec/agent-browser-ca-init
 
 cat > fixture.html <<'HTML'
 <!doctype html><meta charset="utf-8"><title>smoke</title>
@@ -120,14 +138,15 @@ cat > fixture.html <<'HTML'
 <p id="o">Ikke sendt</p>
 HTML
 
-# playwright-cli blocks file: URLs, so the fixture is served over loopback.
-node -e 'require("http").createServer((q,r)=>{r.setHeader("content-type","text/html; charset=utf-8");r.end(require("fs").readFileSync(process.argv[1]))}).listen(8321,"127.0.0.1")' fixture.html &
+# The locally signed HTTPS fixture proves Chromium trusts the Agent-managed CA without disabling
+# certificate verification. playwright-cli blocks file: URLs, so it is served over loopback.
+node -e 'const fs=require("fs");require("https").createServer({key:fs.readFileSync(process.argv[2]),cert:fs.readFileSync(process.argv[3])},(q,r)=>{r.setHeader("content-type","text/html; charset=utf-8");r.end(fs.readFileSync(process.argv[1]))}).listen(8321,"127.0.0.1")' fixture.html fixture-key.pem fixture.pem &
 server=$!
 trap 'kill "$server" 2>/dev/null' EXIT
 sleep 1
 
 export PLAYWRIGHT_CLI_SESSION=smoke
-playwright-cli open --browser chromium http://127.0.0.1:8321/
+playwright-cli open --browser chromium https://localhost:8321/
 playwright-cli resize 1280 720
 playwright-cli screenshot --filename=before.png
 playwright-cli video-start browser.webm

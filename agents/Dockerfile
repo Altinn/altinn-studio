@@ -287,6 +287,7 @@ RUN apt-get update \
         ffmpeg \
         iproute2 \
         libcap-ng-dev \
+        libnss3-tools \
         lldb \
         linux-perf \
         nftables \
@@ -398,9 +399,12 @@ ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 COPY common/full-tmpfiles.conf /usr/lib/tmpfiles.d/agent-full.conf
 COPY common/full-hosts-init.service /etc/systemd/system/agent-full-hosts-init.service
+COPY common/browser-ca-init.service /etc/systemd/system/agent-browser-ca-init.service
+COPY --chmod=0755 common/browser-ca-init.sh /usr/local/libexec/agent-browser-ca-init
 
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --append --groups kvm agent \
+    && systemctl enable agent-browser-ca-init.service \
     && systemctl enable agent-full-hosts-init.service
 
 USER agent
