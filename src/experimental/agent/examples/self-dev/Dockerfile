@@ -52,7 +52,7 @@ RUN apt-get update \
 COPY nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
 
 RUN nvim --headless \
-    "+lua assert(vim.g.colors_name == 'desert'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
     +quit
 
 ARG TARGETARCH

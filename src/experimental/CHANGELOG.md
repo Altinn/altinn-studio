@@ -15,7 +15,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Added
 
 - Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
-  high-contrast `desert` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
+  `habamax` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
 
 ## [0.1.0-preview.4] - 2026-09-18
 

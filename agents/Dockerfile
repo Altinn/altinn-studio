@@ -190,7 +190,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && codex --version \
     && nvim --version \
     && nvim --headless \
-        "+lua assert(vim.g.colors_name == 'desert'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+        "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
         +quit \
     && test "$(readlink /etc/localtime)" = /usr/share/zoneinfo/Europe/Oslo
 
