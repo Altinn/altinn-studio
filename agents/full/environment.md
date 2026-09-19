@@ -1,7 +1,10 @@
 ## This computer
 
-.NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, Podman with `docker` and `/run/docker.sock` as compatibility
-surfaces, kind, kubectl, Helm and Flux.
+.NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest
+resources.
+External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest hostnames are prepared at boot.
+
+Podman with `docker` and `/run/docker.sock` as compatibility surfaces, kind, kubectl, Helm and Flux.
 
 Pull request evidence: `asciinema` and `agg` for terminal recordings; `playwright-cli` with Chromium (open it with
 `--browser chromium`), `ffmpeg`, and the `video-to-gif` and `media-preview` helpers for browser captures.
