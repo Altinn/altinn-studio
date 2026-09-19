@@ -74,12 +74,27 @@ and all, is accepted as input.
 - `studioctl app run`: run app locally
 - `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
 - `studioctl app maskinporten`: store the Maskinporten client the app uses for local runs (`set`, `show`, `remove`)
+- `studioctl agent skills`: list, locate, and install Agent Skills distributed with studioctl
 - `studioctl env up`: start localtest
 - `studioctl env down`: stop localtest
 - `studioctl env status`: show runtime/container status
 - `studioctl env logs`: stream logs from localtest containers
 - `studioctl run`: alias for `studioctl app run`
 - `studioctl doctor`: diagnose prerequisites and environment issues
+
+## Agent Skills
+
+studioctl distributes an `altinn-studio-apps` skill with the same release as its app-development commands. Install
+it for the coding-agent harnesses detected on your machine:
+
+```sh
+studioctl agent skills install altinn-studio-apps
+```
+
+Use `--scope repo` for repository-local discovery, select `--harness codex|claude|all`, or use `--target DIR` for a
+different harness. `studioctl agent skills list` shows the packaged skills, and `studioctl agent skills path
+altinn-studio-apps` prints the canonical installed source. studioctl will update copies it manages, but refuses to
+replace a user-created or locally edited skill.
 
 ## Which images the environment runs
 

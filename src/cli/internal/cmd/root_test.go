@@ -232,6 +232,11 @@ func TestCLI_Run(t *testing.T) {
 			args:     []string{"apps", "search", "--help"},
 			wantCode: 0,
 		},
+		{
+			name:     "agent skills install command exists",
+			args:     []string{"agent", "skills", "install", "--help"},
+			wantCode: 0,
+		},
 	}
 
 	for _, tt := range tests {
