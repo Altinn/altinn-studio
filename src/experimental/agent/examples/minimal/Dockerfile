@@ -30,7 +30,7 @@ RUN case "${TARGETARCH}" in \
     && rm -rf /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" \
     && gh --version
 
-ARG CLAUDE_CODE_VERSION=2.1.266
+ARG CLAUDE_CODE_VERSION=2.1.267
 
 # Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \

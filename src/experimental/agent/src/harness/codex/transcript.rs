@@ -89,6 +89,8 @@ struct Builder {
     answered: bool,
     /// Location of each recorded tool call by `call_id`.
     tool_calls: HashMap<String, (usize, usize, usize)>,
+    /// The command tool call awaiting Codex's native `CommandExecution` event.
+    pending_command: Option<(usize, usize, usize)>,
 }
 
 impl Builder {
@@ -111,6 +113,15 @@ impl Builder {
                 {
                     self.mark_tool_failed(payload);
                 }
+                Some("item_completed")
+                    if payload.pointer("/item/type").and_then(Value::as_str) == Some("CommandExecution") =>
+                {
+                    if payload.pointer("/item/status").and_then(Value::as_str) == Some("failed") {
+                        self.mark_pending_command_failed();
+                    } else {
+                        self.pending_command = None;
+                    }
+                }
                 _ => {}
             },
             Some("response_item") => self.push_item(payload),
@@ -124,6 +135,7 @@ impl Builder {
             self.turns.push(Turn::default());
         }
         self.answered = false;
+        self.pending_command = None;
     }
 
     fn push_item(&mut self, payload: &Value) {
@@ -165,6 +177,12 @@ impl Builder {
                 if let Some(call_id) = payload.get("call_id").and_then(Value::as_str) {
                     self.tool_calls.insert(call_id.to_owned(), location);
                 }
+                if matches!(
+                    name,
+                    "exec" | "exec_command" | "shell" | "shell_command" | "write_stdin"
+                ) {
+                    self.pending_command = Some(location);
+                }
             }
             Some("function_call_output" | "custom_tool_call_output") => {
                 if let Some(Part::ToolCall { name, failed }) = self.tool_part(payload) {
@@ -183,6 +201,20 @@ impl Builder {
 
     fn mark_tool_failed(&mut self, payload: &Value) {
         if let Some(Part::ToolCall { failed, .. }) = self.tool_part(payload) {
+            *failed = true;
+        }
+    }
+
+    fn mark_pending_command_failed(&mut self) {
+        let Some((turn, message, part)) = self.pending_command.take() else {
+            return;
+        };
+        if let Some(Part::ToolCall { failed, .. }) = self
+            .turns
+            .get_mut(turn)
+            .and_then(|turn| turn.messages.get_mut(message))
+            .and_then(|message| message.parts.get_mut(part))
+        {
             *failed = true;
         }
     }
@@ -360,6 +392,23 @@ mod tests {
                 "{name}: {transcript}"
             );
         }
+    }
+
+    #[test]
+    fn native_command_execution_events_mark_exec_failures() {
+        let lines = [
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"c", "name":"exec"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "status":"failed", "exit_code":1}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"c", "output":[{"type":"input_text", "text":"Script completed\nOutput:\n"}]}}),
+        ];
+        let transcript = lines.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
+
+        let turns = parse(transcript.as_bytes()).expect("parse");
+
+        assert!(matches!(
+            &turns[0].messages[0].parts[0],
+            Part::ToolCall { name, failed } if name == "exec" && *failed
+        ));
     }
 
     #[test]
