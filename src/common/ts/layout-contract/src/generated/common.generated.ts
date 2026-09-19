@@ -7,7 +7,14 @@ import { RepeatingGroupSummaryOverridesWithRef } from '@app/layout-contract/gene
 import { SubformSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Subform/config.generated';
 
 export type AllowedValidationMasks = (
-  'Schema' | 'Component' | 'Expression' | 'CustomBackend' | 'Required' | 'AllExceptRequired' | 'All'
+  | 'Schema'
+  | 'Invalid'
+  | 'Component'
+  | 'Expression'
+  | 'CustomBackend'
+  | 'Required'
+  | 'AllExceptRequired'
+  | 'All'
 )[];
 
 export type AnySummaryOverride =
@@ -636,4 +643,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 71c6510643a851a366dbed504787dba8fbe38db891055012517439b835d2bd68
+// Source hash: 4aec611f1e51c53bdb6ad5ac33e3fb4f944419ac2552ed336ee10a10e04296ac
