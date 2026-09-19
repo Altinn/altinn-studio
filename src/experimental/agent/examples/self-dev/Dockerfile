@@ -27,6 +27,7 @@ RUN apt-get update \
         libssl-dev \
         lldb \
         linux-perf \
+        neovim \
         nftables \
         openssh-server \
         pkg-config \
@@ -40,6 +41,7 @@ RUN apt-get update \
         systemd \
         tmux \
     && rm -rf /var/lib/apt/lists/* \
+    && nvim --version \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \

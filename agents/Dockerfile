@@ -16,6 +16,7 @@ RUN apt-get update \
         libicu-dev \
         libkrb5-dev \
         libssl-dev \
+        neovim \
         openssh-server \
         pkg-config \
         procps \
@@ -186,6 +187,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && yarn --version \
     && claude --version \
     && codex --version \
+    && nvim --version \
     && test "$(readlink /etc/localtime)" = /usr/share/zoneinfo/Europe/Oslo
 
 ENV DISABLE_AUTOUPDATER=1
