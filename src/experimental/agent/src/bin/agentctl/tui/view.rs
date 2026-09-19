@@ -17,6 +17,7 @@ const CREATE_AGENT_FIELD_ROWS: usize = 4;
 const CREATE_FIELD_LABEL_WIDTH: usize = 10;
 const CREATE_PICKER_VALUE_WIDTH: usize = 18;
 const CREATE_PICKER_DETAIL_OFFSET: usize = CREATE_FIELD_LABEL_WIDTH + 2 + CREATE_PICKER_VALUE_WIDTH + 2 + 8;
+const ERROR_HINTS: [(&str, &str); 2] = [("r", "retry"), ("q", "quit")];
 
 #[derive(Default)]
 pub(crate) struct ViewState {
@@ -108,7 +109,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     if let Some(detail) = &app.detail {
         render_detail(frame, body, detail, &mut hit_map);
     } else if let Some(error) = &app.error {
-        render_error(frame, body, error);
+        render_error(frame, body, error, &mut hit_map);
     } else if app.view == View::Forwards {
         render_forwards(frame, body, app, state, &mut hit_map);
     } else {
@@ -262,11 +263,21 @@ fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail, hit
     hit_map.wheel(inner, WheelTarget::Detail);
 }
 
-fn render_error(frame: &mut Frame, area: Rect, error: &str) {
-    let paragraph = Paragraph::new(format!("{error}\n\nr retry · q quit"))
+fn render_error(frame: &mut Frame, area: Rect, error: &str, hit_map: &mut HitMap) {
+    let paragraph = Paragraph::new(error)
         .style(Style::new().fg(Color::Red))
         .wrap(Wrap { trim: false });
     frame.render_widget(paragraph, area);
+    let last_error_row = (area.y..area.bottom())
+        .rev()
+        .find(|&y| (area.x..area.right()).any(|x| !frame.buffer_mut()[(x, y)].symbol().trim().is_empty()))
+        .unwrap_or(area.y);
+    let hint_y = last_error_row.saturating_add(2);
+    if hint_y < area.bottom() {
+        let hints = Rect::new(area.x, hint_y, area.width, 1);
+        frame.render_widget(Line::from("r retry · q quit").style(Style::new().fg(Color::Red)), hints);
+        map_hint_targets(hints, &ERROR_HINTS, hit_map);
+    }
 }
 
 fn render_footer(frame: &mut Frame, area: Rect, app: &App) {
@@ -1006,6 +1017,27 @@ mod tests {
         assert_eq!(hit_map.wheel_at(1, 2), Some(WheelTarget::Forwards));
         assert_eq!(hit_map.click_at(0, 2), None, "left border is inert");
         assert_eq!(hit_map.click_at(1, 1), None, "top border is inert");
+    }
+
+    #[test]
+    fn error_body_hints_are_clickable_where_they_are_rendered() {
+        let mut app = App::new();
+        app.error = Some("request failed because".into());
+        let mut terminal = Terminal::new(TestBackend::new(20, 8)).expect("test terminal");
+
+        let hit_map = draw(&mut terminal, &app);
+        let retry = HitTarget::Action(MouseAction::Key(
+            crossterm::event::KeyCode::Char('r'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let quit = HitTarget::Action(MouseAction::Key(
+            crossterm::event::KeyCode::Char('q'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+
+        assert_eq!(hit_map.click_at(0, 4), Some(retry));
+        assert_eq!(hit_map.click_at(10, 4), Some(quit));
+        assert_eq!(hit_map.click_at(8, 4), None, "separator is inert");
     }
 
     #[test]
