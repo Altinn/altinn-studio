@@ -82,20 +82,6 @@ and all, is accepted as input.
 - `studioctl run`: alias for `studioctl app run`
 - `studioctl doctor`: diagnose prerequisites and environment issues
 
-## Agent Skills
-
-studioctl distributes an `altinn-studio-app-development` skill with the same release as its app-development
-commands. Install it for the coding-agent harnesses detected on your machine:
-
-```sh
-studioctl agent skills install altinn-studio-app-development
-```
-
-Use `--scope repo` for repository-local discovery, select `--harness codex|claude`, or use `--target DIR` for a
-different harness. `studioctl agent skills list` shows the packaged skills, and `studioctl agent skills path
-altinn-studio-app-development` prints the canonical installed source. studioctl will update copies it manages, but refuses to
-replace a user-created or locally edited skill.
-
 ## Which images the environment runs
 
 `studioctl env up` keeps the local environment close to the real thing: the newest localtest

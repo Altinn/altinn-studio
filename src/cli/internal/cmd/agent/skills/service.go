@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -33,9 +32,6 @@ const (
 	ScopeUser = "user"
 	// ScopeRepo installs skills in the current repository.
 	ScopeRepo = "repo"
-
-	managedMetadataFileName = ".studioctl-skill.json"
-	metadataSchemaVersion   = 1
 )
 
 var (
@@ -48,12 +44,7 @@ var (
 	// ErrNoHarnessDetected indicates that automatic harness detection found no supported harness.
 	ErrNoHarnessDetected = errors.New("no supported agent harness detected")
 	// ErrRepoNotFound indicates that repository scope was requested outside a Git repository.
-	ErrRepoNotFound = errors.New("git repository not found")
-	// ErrUnmanagedTarget indicates that installing would replace a directory studioctl does not own.
-	ErrUnmanagedTarget = errors.New("refusing to replace an unmanaged Agent Skill")
-	// ErrModifiedTarget indicates that a studioctl-managed skill has local changes.
-	ErrModifiedTarget = errors.New("refusing to replace a modified Agent Skill")
-
+	ErrRepoNotFound             = errors.New("git repository not found")
 	errInvalidSkillMetadata     = errors.New("invalid Agent Skill metadata")
 	errMissingFrontmatter       = errors.New("missing YAML frontmatter")
 	errUnterminatedFrontmatter  = errors.New("unterminated YAML frontmatter")
@@ -84,7 +75,7 @@ type InstallStatus string
 const (
 	// InstallStatusInstalled indicates a new installation.
 	InstallStatusInstalled InstallStatus = "installed"
-	// InstallStatusUpdated indicates replacement of an older managed installation.
+	// InstallStatusUpdated indicates replacement of an existing installation.
 	InstallStatusUpdated InstallStatus = "updated"
 	// InstallStatusUnchanged indicates the installed skill already matches the source.
 	InstallStatusUnchanged InstallStatus = "unchanged"
@@ -97,17 +88,9 @@ type InstallResult struct {
 	Status  InstallStatus
 }
 
-type managedMetadata struct {
-	Name          string `json:"name"`
-	SourceDigest  string `json:"sourceDigest"`
-	SourceVersion string `json:"sourceVersion"`
-	SchemaVersion int    `json:"schemaVersion"`
-}
-
 type installPlan struct {
 	target InstallResult
 	source string
-	digest string
 }
 
 type resourceRename struct {
@@ -251,18 +234,18 @@ func (s *Service) Install(opts InstallOptions) ([]InstallResult, error) {
 		if err := ensureSeparateTrees(skill.Path, target.Path); err != nil {
 			return nil, err
 		}
-		status, err := inspectTarget(target.Path, skill.Name, digest)
+		status, err := inspectTarget(target.Path, digest)
 		if err != nil {
 			return nil, err
 		}
 		target.Status = status
-		plans = append(plans, installPlan{target: target, source: skill.Path, digest: digest})
+		plans = append(plans, installPlan{target: target, source: skill.Path})
 	}
 
 	results := make([]InstallResult, 0, len(plans))
 	for _, plan := range plans {
 		if plan.target.Status != InstallStatusUnchanged {
-			if err := installManagedSkill(plan, skill.Name, s.cfg.Version.String()); err != nil {
+			if err := installSkill(plan); err != nil {
 				return nil, err
 			}
 		}
@@ -474,7 +457,7 @@ func findRepoRoot(start string) (string, error) {
 	}
 }
 
-func inspectTarget(targetPath, skillName, sourceDigest string) (InstallStatus, error) {
+func inspectTarget(targetPath, sourceDigest string) (InstallStatus, error) {
 	info, err := os.Lstat(targetPath)
 	if errors.Is(err, os.ErrNotExist) {
 		return InstallStatusInstalled, nil
@@ -482,40 +465,19 @@ func inspectTarget(targetPath, skillName, sourceDigest string) (InstallStatus, e
 	if err != nil {
 		return "", fmt.Errorf("inspect Agent Skill target %q: %w", targetPath, err)
 	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return "", fmt.Errorf("%w at %q", ErrUnmanagedTarget, targetPath)
-	}
-
-	metadataPath := filepath.Join(targetPath, managedMetadataFileName)
-	content, err := os.ReadFile(metadataPath) //nolint:gosec // Target is a resolved skill installation directory.
-	if errors.Is(err, os.ErrNotExist) {
-		return "", fmt.Errorf("%w at %q", ErrUnmanagedTarget, targetPath)
-	}
-	if err != nil {
-		return "", fmt.Errorf("read managed Agent Skill metadata %q: %w", metadataPath, err)
-	}
-	var metadata managedMetadata
-	if jsonErr := json.Unmarshal(content, &metadata); jsonErr != nil {
-		return "", fmt.Errorf("%w at %q: invalid management metadata", ErrUnmanagedTarget, targetPath)
-	}
-	if metadata.SchemaVersion != metadataSchemaVersion || metadata.Name != skillName || metadata.SourceDigest == "" {
-		return "", fmt.Errorf("%w at %q: unexpected management metadata", ErrUnmanagedTarget, targetPath)
-	}
-
-	currentDigest, err := hashDir(targetPath)
-	if err != nil {
-		return "", fmt.Errorf("hash installed Agent Skill %q: %w", targetPath, err)
-	}
-	if currentDigest != metadata.SourceDigest {
-		return "", fmt.Errorf("%w at %q", ErrModifiedTarget, targetPath)
-	}
-	if currentDigest == sourceDigest {
-		return InstallStatusUnchanged, nil
+	if info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
+		currentDigest, hashErr := hashDir(targetPath)
+		if hashErr == nil && currentDigest == sourceDigest {
+			return InstallStatusUnchanged, nil
+		}
+		if hashErr != nil && !errors.Is(hashErr, errUnsupportedSkillFileType) {
+			return "", fmt.Errorf("hash installed Agent Skill %q: %w", targetPath, hashErr)
+		}
 	}
 	return InstallStatusUpdated, nil
 }
 
-func installManagedSkill(plan installPlan, skillName, version string) error {
+func installSkill(plan installPlan) error {
 	parent := filepath.Dir(plan.target.Path)
 	if err := os.MkdirAll(parent, osutil.DirPermDefault); err != nil {
 		return fmt.Errorf("create Agent Skill target directory: %w", err)
@@ -529,24 +491,6 @@ func installManagedSkill(plan installPlan, skillName, version string) error {
 
 	if copyErr := copySkillDir(plan.source, staging); copyErr != nil {
 		return fmt.Errorf("stage Agent Skill: %w", copyErr)
-	}
-	metadata := managedMetadata{
-		Name:          skillName,
-		SourceDigest:  plan.digest,
-		SourceVersion: version,
-		SchemaVersion: metadataSchemaVersion,
-	}
-	metadataContent, err := json.MarshalIndent(metadata, "", "  ")
-	if err != nil {
-		return fmt.Errorf("encode Agent Skill management metadata: %w", err)
-	}
-	metadataContent = append(metadataContent, '\n')
-	if err := os.WriteFile(
-		filepath.Join(staging, managedMetadataFileName),
-		metadataContent,
-		osutil.FilePermDefault,
-	); err != nil {
-		return fmt.Errorf("write Agent Skill management metadata: %w", err)
 	}
 
 	if plan.target.Status == InstallStatusInstalled {
@@ -632,9 +576,6 @@ func hashDirEntry(writer io.Writer, root, path string, entry fs.DirEntry) error 
 	rel, err := filepath.Rel(root, path)
 	if err != nil {
 		return fmt.Errorf("resolve Agent Skill relative path: %w", err)
-	}
-	if rel == managedMetadataFileName {
-		return nil
 	}
 	if !entry.IsDir() && !entry.Type().IsRegular() {
 		return fmt.Errorf("%w at %q", errUnsupportedSkillFileType, path)

@@ -217,7 +217,7 @@ func (c *AgentCommand) skillsInstallUsage() string {
 		fmt.Sprintf("Usage: %s agent skills install [options] <name>", osutil.CurrentBin()),
 		"",
 		"Install a studioctl Agent Skill into a coding-agent harness discovery directory.",
-		"Existing directories are replaced only when they were installed by studioctl and have not been modified.",
+		"Existing content at the skill path is replaced when it differs from the packaged skill.",
 		"",
 		"Options:",
 		"  --scope user|repo              Install for the current user (default) or Git repository",

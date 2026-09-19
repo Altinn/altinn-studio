@@ -1,4 +1,4 @@
-//nolint:testpackage // Tests exercise managed-install failure states through package-private test hooks.
+//nolint:testpackage // Tests exercise installation behavior through package-private test helpers.
 package skills
 
 import (
@@ -61,7 +61,7 @@ func TestCanonicalizeResourceDirsUsesFrontmatterName(t *testing.T) {
 	}
 }
 
-func TestInstallExplicitTargetIsManagedAndIdempotent(t *testing.T) {
+func TestInstallExplicitTargetIsIdempotent(t *testing.T) {
 	t.Parallel()
 
 	service, source := newTestService(t)
@@ -75,9 +75,6 @@ func TestInstallExplicitTargetIsManagedAndIdempotent(t *testing.T) {
 	}
 	assertSingleResult(t, results, InstallStatusInstalled, filepath.Join(targetRoot, testSkillName))
 	assertFileContent(t, filepath.Join(targetRoot, testSkillName, "reference.txt"), "first")
-	if _, statErr := os.Stat(filepath.Join(targetRoot, testSkillName, managedMetadataFileName)); statErr != nil {
-		t.Fatalf("managed metadata missing: %v", statErr)
-	}
 
 	results, err = service.Install(options)
 	if err != nil {
@@ -86,7 +83,7 @@ func TestInstallExplicitTargetIsManagedAndIdempotent(t *testing.T) {
 	assertSingleResult(t, results, InstallStatusUnchanged, filepath.Join(targetRoot, testSkillName))
 }
 
-func TestInstallUpdatesOnlyUnmodifiedManagedSkill(t *testing.T) {
+func TestInstallSynchronizesDriftedSkill(t *testing.T) {
 	t.Parallel()
 
 	service, source := newTestService(t)
@@ -107,14 +104,15 @@ func TestInstallUpdatesOnlyUnmodifiedManagedSkill(t *testing.T) {
 
 	writeFile(t, filepath.Join(targetRoot, testSkillName, "reference.txt"), "user edit")
 	writeTestSkill(t, source, "third")
-	_, err = service.Install(options)
-	if !errors.Is(err, ErrModifiedTarget) {
-		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
+	results, err = service.Install(options)
+	if err != nil {
+		t.Fatalf("synchronize Install() error = %v", err)
 	}
-	assertFileContent(t, filepath.Join(targetRoot, testSkillName, "reference.txt"), "user edit")
+	assertSingleResult(t, results, InstallStatusUpdated, filepath.Join(targetRoot, testSkillName))
+	assertFileContent(t, filepath.Join(targetRoot, testSkillName, "reference.txt"), "third")
 }
 
-func TestInstallRefusesUnmanagedTarget(t *testing.T) {
+func TestInstallReplacesExistingTarget(t *testing.T) {
 	t.Parallel()
 
 	service, source := newTestService(t)
@@ -122,11 +120,12 @@ func TestInstallRefusesUnmanagedTarget(t *testing.T) {
 	targetRoot := filepath.Join(t.TempDir(), "skills")
 	writeFile(t, filepath.Join(targetRoot, testSkillName, "SKILL.md"), "user-owned")
 
-	_, err := service.Install(InstallOptions{Name: testSkillName, TargetDir: targetRoot})
-	if !errors.Is(err, ErrUnmanagedTarget) {
-		t.Fatalf("Install() error = %v, want ErrUnmanagedTarget", err)
+	results, err := service.Install(InstallOptions{Name: testSkillName, TargetDir: targetRoot})
+	if err != nil {
+		t.Fatalf("Install() error = %v", err)
 	}
-	assertFileContent(t, filepath.Join(targetRoot, testSkillName, "SKILL.md"), "user-owned")
+	assertSingleResult(t, results, InstallStatusUpdated, filepath.Join(targetRoot, testSkillName))
+	assertFileContent(t, filepath.Join(targetRoot, testSkillName, "reference.txt"), "source")
 }
 
 func TestInstallRefusesTargetOverlappingSource(t *testing.T) {
@@ -178,7 +177,7 @@ func TestEnsureSeparateTreesRefusesSourceInsideTarget(t *testing.T) {
 	}
 }
 
-func TestInstallDetectsEmptyDirectoryModification(t *testing.T) {
+func TestInstallRemovesExtraDirectory(t *testing.T) {
 	t.Parallel()
 
 	service, source := newTestService(t)
@@ -192,33 +191,17 @@ func TestInstallDetectsEmptyDirectoryModification(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := service.Install(options)
-	if !errors.Is(err, ErrModifiedTarget) {
-		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
+	results, err := service.Install(options)
+	if err != nil {
+		t.Fatalf("synchronize Install() error = %v", err)
+	}
+	assertSingleResult(t, results, InstallStatusUpdated, filepath.Join(targetRoot, testSkillName))
+	if _, err := os.Stat(filepath.Join(targetRoot, testSkillName, "user-directory")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("extra directory still exists: %v", err)
 	}
 }
 
-func TestInstallDetectsNestedManagementFilenameModification(t *testing.T) {
-	t.Parallel()
-
-	service, source := newTestService(t)
-	writeTestSkill(t, source, "source")
-	nestedMetadata := filepath.Join("references", managedMetadataFileName)
-	writeFile(t, filepath.Join(source, testSkillName, nestedMetadata), "source content")
-	targetRoot := filepath.Join(t.TempDir(), "skills")
-	options := InstallOptions{Name: testSkillName, TargetDir: targetRoot}
-	if _, err := service.Install(options); err != nil {
-		t.Fatalf("initial Install() error = %v", err)
-	}
-	writeFile(t, filepath.Join(targetRoot, testSkillName, nestedMetadata), "user edit")
-
-	_, err := service.Install(options)
-	if !errors.Is(err, ErrModifiedTarget) {
-		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
-	}
-}
-
-func TestInstallPreservesAndProtectsExecutableMode(t *testing.T) {
+func TestInstallSynchronizesExecutableMode(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Windows does not expose POSIX executable mode bits")
 	}
@@ -249,9 +232,17 @@ func TestInstallPreservesAndProtectsExecutableMode(t *testing.T) {
 		t.Fatal(chmodErr)
 	}
 
-	_, err = service.Install(options)
-	if !errors.Is(err, ErrModifiedTarget) {
-		t.Fatalf("modified Install() error = %v, want ErrModifiedTarget", err)
+	results, err := service.Install(options)
+	if err != nil {
+		t.Fatalf("synchronize Install() error = %v", err)
+	}
+	assertSingleResult(t, results, InstallStatusUpdated, filepath.Join(targetRoot, testSkillName))
+	info, err = os.Stat(targetScript)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0o755 {
+		t.Fatalf("synchronized script mode = %o, want 755", info.Mode().Perm())
 	}
 }
 
@@ -310,7 +301,7 @@ func TestInstallAutoDetectsHarnessDirectories(t *testing.T) {
 	)
 }
 
-func TestInstallAutoDetectionValidatesEveryTargetBeforeWriting(t *testing.T) {
+func TestInstallAutoDetectionSynchronizesEveryTarget(t *testing.T) {
 	service, source := newTestService(t)
 	writeTestSkill(t, source, "source")
 	userHome := t.TempDir()
@@ -319,16 +310,20 @@ func TestInstallAutoDetectionValidatesEveryTargetBeforeWriting(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(userHome, ".agents"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	unmanaged := filepath.Join(userHome, ".claude", "skills", testSkillName, "SKILL.md")
-	writeFile(t, unmanaged, "user-owned")
+	existing := filepath.Join(userHome, ".claude", "skills", testSkillName, "SKILL.md")
+	writeFile(t, existing, "outdated")
 
-	_, err := service.Install(InstallOptions{Name: testSkillName})
-	if !errors.Is(err, ErrUnmanagedTarget) {
-		t.Fatalf("Install() error = %v, want ErrUnmanagedTarget", err)
+	results, err := service.Install(InstallOptions{Name: testSkillName})
+	if err != nil {
+		t.Fatalf("Install() error = %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(userHome, ".agents", "skills", testSkillName)); !os.IsNotExist(err) {
-		t.Fatalf("Codex target was written before validation completed: %v", err)
+	if len(results) != 2 {
+		t.Fatalf("Install() returned %d results, want 2", len(results))
 	}
+	assertResult(t, results[0], HarnessCodex, InstallStatusInstalled)
+	assertResult(t, results[1], HarnessClaude, InstallStatusUpdated)
+	assertFileContent(t, filepath.Join(userHome, ".agents", "skills", testSkillName, "reference.txt"), "source")
+	assertFileContent(t, filepath.Join(userHome, ".claude", "skills", testSkillName, "reference.txt"), "source")
 }
 
 func TestInstallWithoutDetectedHarnessExplainsOverride(t *testing.T) {
@@ -388,5 +383,12 @@ func assertSingleResult(t *testing.T, results []InstallResult, status InstallSta
 	}
 	if results[0].Status != status || results[0].Path != path {
 		t.Fatalf("Install() result = %#v, want status %q and path %q", results[0], status, path)
+	}
+}
+
+func assertResult(t *testing.T, result InstallResult, harness string, status InstallStatus) {
+	t.Helper()
+	if result.Harness != harness || result.Status != status {
+		t.Fatalf("Install() result = %#v, want harness %q and status %q", result, harness, status)
 	}
 }
