@@ -81,7 +81,13 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await EnqueueWithCollection(repo, "my-collection", [wf]);
 
         // Assert
-        var collections = await repo.GetCollections("test-ns", TestContext.Current.CancellationToken);
+        var collections = (
+            await repo.GetCollections(
+                "test-ns",
+                pageSize: 100,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).Collections;
         var collection = Assert.Single(collections);
         Assert.Equal("my-collection", collection.Key);
         Assert.Single(collection.Heads);
@@ -214,7 +220,9 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata, ns: ns, labels: labels);
 
         // Assert
-        var collections = await repo.GetCollections(ns, TestContext.Current.CancellationToken);
+        var collections = (
+            await repo.GetCollections(ns, pageSize: 100, cancellationToken: TestContext.Current.CancellationToken)
+        ).Collections;
         Assert.Empty(collections);
     }
 
@@ -431,12 +439,47 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await EnqueueWithCollection(repo, "col-2", [CreateWorkflowRequest("b")]);
 
         // Act
-        var collections = await repo.GetCollections("test-ns", TestContext.Current.CancellationToken);
+        var collections = (
+            await repo.GetCollections(
+                "test-ns",
+                pageSize: 100,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).Collections;
 
         // Assert
         Assert.Equal(2, collections.Count);
         Assert.Contains(collections, c => c.Key == "col-1");
         Assert.Contains(collections, c => c.Key == "col-2");
+    }
+
+    [Fact]
+    public async Task GetCollections_CollectionWithNoWorkflowsLeft_ReportsNoCountsRatherThanZeroes()
+    {
+        // Retention hard-deletes settled workflows but the collection row outlives them. An
+        // all-zero rollup would be indistinguishable from "everything settled cleanly", so the
+        // engine reports no counts at all and the caller can say "no data" instead of "healthy".
+        var repo = fixture.CreateRepository();
+        await EnqueueWithCollection(repo, "pruned", [CreateWorkflowRequest("a")]);
+
+        await using (var context = fixture.CreateDbContext())
+        {
+            await context
+                .Workflows.Where(w => w.CollectionKey == "pruned")
+                .ExecuteDeleteAsync(TestContext.Current.CancellationToken);
+        }
+
+        var collections = (
+            await repo.GetCollections(
+                "test-ns",
+                pageSize: 100,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).Collections;
+
+        var collection = Assert.Single(collections);
+        Assert.Equal("pruned", collection.Key);
+        Assert.Null(collection.WorkflowCounts);
     }
 
     [Fact]
@@ -448,8 +491,12 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         await EnqueueWithCollection(repo, "shared-key", [CreateWorkflowRequest("b")], ns: "ns-2");
 
         // Act
-        var ns1Collections = await repo.GetCollections("ns-1", TestContext.Current.CancellationToken);
-        var ns2Collections = await repo.GetCollections("ns-2", TestContext.Current.CancellationToken);
+        var ns1Collections = (
+            await repo.GetCollections("ns-1", pageSize: 100, cancellationToken: TestContext.Current.CancellationToken)
+        ).Collections;
+        var ns2Collections = (
+            await repo.GetCollections("ns-2", pageSize: 100, cancellationToken: TestContext.Current.CancellationToken)
+        ).Collections;
 
         // Assert — each namespace sees only its own collection
         Assert.Single(ns1Collections);
