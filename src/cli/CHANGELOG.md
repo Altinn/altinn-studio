@@ -9,6 +9,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl agent skills` now distributes an Altinn Studio app-development skill and installs it for Codex,
+  Claude Code, repository-local harnesses, or an explicit skills directory. Installations are updated only when
+  studioctl created them and their contents have not been edited.
+
 ### Changed
 
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
