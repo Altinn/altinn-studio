@@ -1,11 +1,11 @@
 ---
-name: altinn-studio-apps
-description: Develop and test Altinn Studio apps with studioctl and LocalTest. Use when cloning, building, running, debugging, or browser-testing an Altinn app, or when changing the Altinn Studio app runtime, frontend, or local development services.
+name: altinn-studio-app-development
+description: Develop and test Altinn Studio apps with studioctl and LocalTest. Use when cloning, building, running, debugging, or browser-testing an Altinn Studio app, or when changing the Altinn Studio app runtime, frontend, or local development services.
 ---
 
 # Develop Altinn Studio apps
 
-Use `studioctl` as the entry point for local Altinn app development. The installed command's help is authoritative;
+Use `studioctl` as the entry point for local Altinn Studio app development. The installed command's help is authoritative;
 inspect `studioctl --help` and the relevant `studioctl <command> --help` before relying on flags or behavior.
 
 ## Discover the environment

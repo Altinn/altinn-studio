@@ -10,7 +10,7 @@ import (
 	"altinn.studio/studioctl/internal/config"
 )
 
-const testSkillName = "altinn-studio-apps"
+const testSkillName = "altinn-studio-app-development"
 
 func TestListAndPath(t *testing.T) {
 	t.Parallel()

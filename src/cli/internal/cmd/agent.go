@@ -226,13 +226,13 @@ func (c *AgentCommand) skillsInstallUsage() string {
 		"  -h, --help                      Show this help",
 		"",
 		"Examples:",
-		fmt.Sprintf("  %s agent skills install altinn-studio-apps", osutil.CurrentBin()),
+		fmt.Sprintf("  %s agent skills install altinn-studio-app-development", osutil.CurrentBin()),
 		fmt.Sprintf(
-			"  %s agent skills install --scope repo --harness codex altinn-studio-apps",
+			"  %s agent skills install --scope repo --harness codex altinn-studio-app-development",
 			osutil.CurrentBin(),
 		),
 		fmt.Sprintf(
-			"  %s agent skills install --target ./my-harness/skills altinn-studio-apps",
+			"  %s agent skills install --target ./my-harness/skills altinn-studio-app-development",
 			osutil.CurrentBin(),
 		),
 	)

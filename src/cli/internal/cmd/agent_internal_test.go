@@ -17,13 +17,13 @@ func TestAgentSkillsCommands(t *testing.T) {
 
 	home := t.TempDir()
 	cfg := &config.Config{Home: home, Version: config.NewVersion("v1.2.3")}
-	skillDir := filepath.Join(cfg.AgentSkillsDir(), "altinn-studio-apps")
+	skillDir := filepath.Join(cfg.AgentSkillsDir(), "altinn-studio-app-development")
 	if err := os.MkdirAll(skillDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(
 		filepath.Join(skillDir, "SKILL.md"),
-		[]byte("---\nname: altinn-studio-apps\ndescription: Develop Altinn apps\n---\n"),
+		[]byte("---\nname: altinn-studio-app-development\ndescription: Develop Altinn Studio apps\n---\n"),
 		0o644,
 	); err != nil {
 		t.Fatal(err)
@@ -37,12 +37,12 @@ func TestAgentSkillsCommands(t *testing.T) {
 		t.Fatalf("skills list error = %v", err)
 	}
 	got := stdout.String()
-	if !strings.Contains(got, "altinn-studio-apps") || !strings.Contains(got, "Develop Altinn apps") {
+	if !strings.Contains(got, "altinn-studio-app-development") || !strings.Contains(got, "Develop Altinn Studio apps") {
 		t.Fatalf("skills list output = %q", got)
 	}
 
 	stdout.Reset()
-	if err := command.Run(t.Context(), []string{"skills", "path", "altinn-studio-apps"}); err != nil {
+	if err := command.Run(t.Context(), []string{"skills", "path", "altinn-studio-app-development"}); err != nil {
 		t.Fatalf("skills path error = %v", err)
 	}
 	if got := strings.TrimSpace(stdout.String()); got != skillDir {
@@ -52,14 +52,14 @@ func TestAgentSkillsCommands(t *testing.T) {
 	stdout.Reset()
 	target := filepath.Join(t.TempDir(), "skills")
 	if err := command.Run(t.Context(), []string{
-		"skills", "install", "--target", target, "altinn-studio-apps",
+		"skills", "install", "--target", target, "altinn-studio-app-development",
 	}); err != nil {
 		t.Fatalf("skills install error = %v", err)
 	}
 	if got := stdout.String(); !strings.Contains(got, "Installed custom skill") {
 		t.Fatalf("skills install output = %q", got)
 	}
-	if _, err := os.Stat(filepath.Join(target, "altinn-studio-apps", "SKILL.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(target, "altinn-studio-app-development", "SKILL.md")); err != nil {
 		t.Fatalf("installed skill missing: %v", err)
 	}
 }
@@ -86,7 +86,7 @@ func TestAgentSkillsInstallRejectsAmbiguousTargetFlags(t *testing.T) {
 	cfg := &config.Config{Home: t.TempDir(), Version: config.NewVersion("v1.2.3")}
 	command := NewAgentCommand(cfg, ui.NewOutput(&bytes.Buffer{}, &bytes.Buffer{}, false))
 	err := command.Run(t.Context(), []string{
-		"skills", "install", "--target", "somewhere", "--scope", "repo", "altinn-studio-apps",
+		"skills", "install", "--target", "somewhere", "--scope", "repo", "altinn-studio-app-development",
 	})
 	if !errors.Is(err, ErrInvalidFlagValue) {
 		t.Fatalf("skills install error = %v, want ErrInvalidFlagValue", err)

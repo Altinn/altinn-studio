@@ -84,16 +84,16 @@ and all, is accepted as input.
 
 ## Agent Skills
 
-studioctl distributes an `altinn-studio-apps` skill with the same release as its app-development commands. Install
-it for the coding-agent harnesses detected on your machine:
+studioctl distributes an `altinn-studio-app-development` skill with the same release as its app-development
+commands. Install it for the coding-agent harnesses detected on your machine:
 
 ```sh
-studioctl agent skills install altinn-studio-apps
+studioctl agent skills install altinn-studio-app-development
 ```
 
 Use `--scope repo` for repository-local discovery, select `--harness codex|claude|all`, or use `--target DIR` for a
 different harness. `studioctl agent skills list` shows the packaged skills, and `studioctl agent skills path
-altinn-studio-apps` prints the canonical installed source. studioctl will update copies it manages, but refuses to
+altinn-studio-app-development` prints the canonical installed source. studioctl will update copies it manages, but refuses to
 replace a user-created or locally edited skill.
 
 ## Which images the environment runs
