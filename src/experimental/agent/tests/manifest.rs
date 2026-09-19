@@ -115,6 +115,27 @@ fn decodes_the_minimal_manifest() {
 }
 
 #[test]
+fn minimal_manifest_declares_the_installed_claude_code_version() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/minimal");
+    let dockerfile = std::fs::read_to_string(root.join("Dockerfile")).expect("minimal Dockerfile");
+    let installed = dockerfile
+        .lines()
+        .find_map(|line| line.strip_prefix("ARG CLAUDE_CODE_VERSION="))
+        .expect("minimal Dockerfile pins Claude Code");
+    let agent = manifest::resolve(&root.join("agent.yaml"))
+        .expect("minimal manifest should resolve")
+        .agent;
+    let declared = agent
+        .spec
+        .harness(Harness::ClaudeCode)
+        .expect("minimal manifest installs Claude Code")
+        .version
+        .as_deref();
+
+    assert_eq!(declared, Some(installed));
+}
+
+#[test]
 fn decodes_the_self_development_manifest() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev/agent.worktree.yaml");
     let agent = manifest::resolve(&path)
