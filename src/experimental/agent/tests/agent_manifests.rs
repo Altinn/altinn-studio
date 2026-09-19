@@ -138,6 +138,33 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
 }
 
 #[test]
+fn agent_images_install_the_pinned_gh_stack_extension() {
+    let root = repository_root();
+    for dockerfile in [
+        root.join("agents/Dockerfile"),
+        root.join("src/experimental/agent/examples/minimal/Dockerfile"),
+        root.join("src/experimental/agent/examples/self-dev/Dockerfile"),
+    ] {
+        let text = std::fs::read_to_string(&dockerfile).expect("Agent Dockerfile");
+        assert!(
+            text.contains("ARG GH_STACK_VERSION="),
+            "{} pins gh-stack",
+            dockerfile.display()
+        );
+        assert!(
+            text.contains("github/gh-stack/releases/download/v${GH_STACK_VERSION}"),
+            "{} downloads gh-stack from its official releases",
+            dockerfile.display()
+        );
+        assert!(
+            text.contains("/home/agent/.local/share/gh/extensions/gh-stack/gh-stack"),
+            "{} installs gh-stack for the agent user",
+            dockerfile.display()
+        );
+    }
+}
+
+#[test]
 fn every_agent_ignores_local_variants() {
     let root = repository_root();
     for directory in [
