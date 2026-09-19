@@ -23,7 +23,7 @@ internal static class WorkflowEngineClientRegistration
             )
             .ValidateOnStart();
 
-        // No resilience handler on purpose: resume/abandon are mutations, and a blanket retry
+        // No resilience handler on purpose: resume, nudge and fail are mutations, and a blanket retry
         // would replay them. The engine is one hop away; failures surface as the distinct
         // "engine unavailable" envelope and the caller decides whether to retry.
         services.AddHttpClient(

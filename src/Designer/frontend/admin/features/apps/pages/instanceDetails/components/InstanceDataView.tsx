@@ -38,15 +38,28 @@ import {
 } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 import { useInstanceDeletionMutation } from 'admin/features/apps/hooks/mutations/useInstanceDeletionMutation';
+import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
+import { useNow } from 'admin/features/apps/hooks/useNow';
+import { WorkflowHealthCell } from 'admin/features/apps/pages/instances/components/WorkflowHealthColumn';
+import { deriveInstanceHealth, isActiveWorkflow } from 'admin/features/apps/utils/workflowTriage';
+import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
+
+/**
+ * The two Storage-backed cards of the instance page. They are separate sections so the page can
+ * put the workflow engine's card between them: the instance's facts first, then where its
+ * process stands, and the data elements — the longest card — last.
+ */
+export type InstanceDataViewSection = 'info' | 'dataElements';
 
 type InstanceDataViewProps = {
   org: string;
   environment: string;
   app: string;
   id: string;
+  section: InstanceDataViewSection;
 };
 
-export const InstanceDataView = ({ org, environment, app, id }: InstanceDataViewProps) => {
+export const InstanceDataView = ({ org, environment, app, id, section }: InstanceDataViewProps) => {
   const { t } = useTranslation();
 
   const { data, status } = useReduceQueries(
@@ -68,6 +81,7 @@ export const InstanceDataView = ({ org, environment, app, id }: InstanceDataView
           org={org}
           environment={environment}
           app={app}
+          section={section}
           instance={instanceDetails}
           appMetadata={appMetadata}
           processMetadata={processMetadata}
@@ -81,6 +95,7 @@ type InstanceDataViewWithDataProps = {
   org: string;
   environment: string;
   app: string;
+  section: InstanceDataViewSection;
   instance: SimpleInstanceDetails;
   appMetadata: ApplicationMetadata;
   processMetadata: ProcessTaskMetadata[];
@@ -90,6 +105,7 @@ const InstanceDataViewWithData = ({
   org,
   environment,
   app,
+  section,
   instance,
   appMetadata,
   processMetadata,
@@ -108,57 +124,8 @@ const InstanceDataViewWithData = ({
     }
   };
 
-  return (
-    <>
-      <StudioCard>
-        <div className={classes['card-header']}>
-          <StudioHeading data-size='sm'>{t('admin.instances.info.title')}</StudioHeading>
-          <StudioButton
-            onClick={handleDelete}
-            data-color='danger'
-            icon={<StudioDeleteIcon />}
-            disabled={!!instance.softDeletedAt || isDeletionPending}
-          >
-            {t('general.delete')}
-          </StudioButton>
-        </div>
-        <div className={classes['info-wrapper']}>
-          <LabelValue label={t('admin.environment')}>
-            {t('admin.environment.name', { environment })}
-          </LabelValue>
-          <LabelValue label={t('admin.app')}>{app}</LabelValue>
-          {(instance.currentTaskName || instance.currentTaskId) && (
-            <LabelValue label={t('admin.instances.process_task')}>
-              {instance.currentTaskName ?? instance.currentTaskId}
-            </LabelValue>
-          )}
-          <LabelValue label={t('admin.instances.status')}>
-            {<InstanceStatus instance={instance} />}
-          </LabelValue>
-          <LabelValue label={t('admin.instances.created')}>
-            {formatDateAndTime(instance.createdAt)}
-          </LabelValue>
-          {instance.archivedAt && (
-            <LabelValue label={t('admin.instances.status.completed')}>
-              {formatDateAndTime(instance.archivedAt)}
-            </LabelValue>
-          )}
-          {instance.confirmedAt && (
-            <LabelValue label={t('admin.instances.status.confirmed')}>
-              {formatDateAndTime(instance.confirmedAt)}
-            </LabelValue>
-          )}
-          {instance.softDeletedAt && (
-            <LabelValue label={t('admin.instances.status.deleted')}>
-              {formatDateAndTime(instance.softDeletedAt)}
-            </LabelValue>
-          )}
-          <LabelValue label={t('admin.instances.last_changed')}>
-            {formatDateAndTime(instance.lastChangedAt)}
-          </LabelValue>
-        </div>
-      </StudioCard>
-
+  if (section === 'dataElements') {
+    return (
       <StudioCard className={classes.cardFix}>
         <StudioHeading data-size='sm'>{t('admin.instances.data_elements')}</StudioHeading>
         <div className={classes['data-elements']}>
@@ -169,8 +136,97 @@ const InstanceDataViewWithData = ({
           />
         </div>
       </StudioCard>
-    </>
+    );
+  }
+
+  return (
+    <StudioCard>
+      <div className={classes['card-header']}>
+        <StudioHeading data-size='sm'>{t('admin.instances.info.title')}</StudioHeading>
+        <StudioButton
+          onClick={handleDelete}
+          data-color='danger'
+          icon={<StudioDeleteIcon />}
+          disabled={!!instance.softDeletedAt || isDeletionPending}
+        >
+          {t('general.delete')}
+        </StudioButton>
+      </div>
+      <div className={classes['info-wrapper']}>
+        <LabelValue label={t('admin.environment')}>
+          {t('admin.environment.name', { environment })}
+        </LabelValue>
+        <LabelValue label={t('admin.app')}>{app}</LabelValue>
+        {(instance.currentTaskName || instance.currentTaskId) && (
+          <LabelValue label={t('admin.instances.process_task')}>
+            {instance.currentTaskName ?? instance.currentTaskId}
+          </LabelValue>
+        )}
+        <LabelValue label={t('admin.instances.status')}>
+          {<InstanceStatus instance={instance} />}
+        </LabelValue>
+        <LabelValue label={t('admin.workflows.health')}>
+          <InstanceWorkflowHealth
+            org={org}
+            environment={environment}
+            app={app}
+            instanceId={instance.id}
+          />
+        </LabelValue>
+        <LabelValue label={t('admin.instances.created')}>
+          {formatDateAndTime(instance.createdAt)}
+        </LabelValue>
+        {instance.archivedAt && (
+          <LabelValue label={t('admin.instances.status.completed')}>
+            {formatDateAndTime(instance.archivedAt)}
+          </LabelValue>
+        )}
+        {instance.confirmedAt && (
+          <LabelValue label={t('admin.instances.status.confirmed')}>
+            {formatDateAndTime(instance.confirmedAt)}
+          </LabelValue>
+        )}
+        {instance.softDeletedAt && (
+          <LabelValue label={t('admin.instances.status.deleted')}>
+            {formatDateAndTime(instance.softDeletedAt)}
+          </LabelValue>
+        )}
+        <LabelValue label={t('admin.instances.last_changed')}>
+          {formatDateAndTime(instance.lastChangedAt)}
+        </LabelValue>
+      </div>
+    </StudioCard>
   );
+};
+
+type InstanceWorkflowHealthProps = {
+  org: string;
+  environment: string;
+  app: string;
+  instanceId: string;
+};
+
+/**
+ * The instance's traffic light, beside the flags Storage keeps on it: those say whether the
+ * instance is read or archived, not whether its processing needs attention. The verdict is the
+ * same one the instance list gives, drawn from the workflows the card further down shows.
+ */
+const InstanceWorkflowHealth = ({
+  org,
+  environment,
+  app,
+  instanceId,
+}: InstanceWorkflowHealthProps) => {
+  const { data: workflows, isPending } = useInstanceWorkflowsQuery(
+    org,
+    environment,
+    app,
+    extractInstanceGuid(instanceId),
+  );
+  const now = useNow((workflows ?? []).some(isActiveWorkflow));
+  const health = workflows ? deriveInstanceHealth(workflows, now) : undefined;
+
+  return <WorkflowHealthCell health={health} isPending={isPending} />;
 };
 
 const DataElementGroups = ({

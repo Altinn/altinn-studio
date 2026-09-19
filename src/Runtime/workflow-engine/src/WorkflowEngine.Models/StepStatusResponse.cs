@@ -113,7 +113,7 @@ public sealed record StepStatusResponse
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<ErrorEntry>? ErrorHistory { get; init; }
 
-    internal static StepStatusResponse FromStep(Step step) =>
+    internal static StepStatusResponse FromStep(Step step, bool includeState = true) =>
         new()
         {
             DatabaseId = step.DatabaseId,
@@ -128,7 +128,7 @@ public sealed record StepStatusResponse
             DeferCount = step.DeferCount,
             FirstDeferredAt = step.FirstDeferredAt,
             LastDeferReason = step.LastDeferReason,
-            StateOut = step.StateOut,
+            StateOut = includeState ? step.StateOut : null,
             RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,
         };

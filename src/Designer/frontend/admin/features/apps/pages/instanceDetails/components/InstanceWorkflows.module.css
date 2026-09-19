@@ -1,0 +1,237 @@
+.description {
+  margin-bottom: var(--ds-size-4);
+}
+
+.workflows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  align-items: flex-start;
+}
+
+.workflows > *:not(button) {
+  width: 100%;
+}
+
+/* The rows stack edge to edge, with no gap of their own: the design system draws a single rule
+   between two disclosures that touch, so each row gets the same room above its text as below it.
+   The rows are also what the row layout measures itself against: it is the card's width, not the
+   window's, that decides whether the columns fit on one line. */
+.rows {
+  width: 100%;
+  container-type: inline-size;
+}
+
+/* The row as plain columns, so everything lines up from one row to the next: status, name, the
+   step dots, the step it is at, the failed attempts, a spinner with the countdown while in
+   flight, and the date at the far edge. */
+.summary {
+  display: grid;
+  grid-template-columns: 10rem 22rem 14rem minmax(0, 1fr) 3rem auto auto;
+  grid-template-areas: 'status name dots step attempts live date';
+  align-items: start;
+  justify-items: start;
+  column-gap: var(--ds-size-3);
+  row-gap: var(--ds-size-2);
+  width: 100%;
+}
+
+.summaryStatus {
+  grid-area: status;
+  display: flex;
+}
+
+/* Stretched over its column, so a long name is cut short with an ellipsis rather than run over
+   the dots. */
+.summaryName {
+  grid-area: name;
+  justify-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  min-width: 0;
+}
+
+/* The name gives way, with its ellipsis; the tag beside it keeps its width. */
+.summaryName > :not(.summaryOperation) {
+  flex-shrink: 0;
+}
+
+/* The dots, the step, the attempts and the spinner are one group, so a narrow card can give them a
+   line of their own. On a wide card the group itself is invisible: its four cells sit in the
+   row's own columns. */
+.summaryProgress {
+  display: contents;
+}
+
+.summaryDots {
+  grid-area: dots;
+}
+
+.summaryStep,
+.summaryDate {
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+/* Stretched over its column, so what does not fit is cut short there rather than drawn across
+   the columns after it. */
+.summaryStep {
+  grid-area: step;
+  justify-self: stretch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summaryAttempts {
+  grid-area: attempts;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 1.5rem;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The spinner and, beside it, the countdown to the next attempt or the running time. */
+.summaryLive {
+  grid-area: live;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  white-space: nowrap;
+  font-size: var(--ds-font-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.summaryDate {
+  grid-area: date;
+  white-space: nowrap;
+}
+
+.attempts {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+}
+
+/* A card too narrow for all seven columns gets two lines: status, name and date on the first, and
+   under the name the progress, read left to right and wrapping if it must. */
+@container (max-width: 84rem) {
+  .summary {
+    grid-template-columns: 10rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'status name date'
+      '. progress progress';
+  }
+
+  .summaryProgress {
+    grid-area: progress;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--ds-size-3);
+    row-gap: var(--ds-size-1);
+    min-width: 0;
+  }
+
+  /* The chevron on the first line, not floating between the two. */
+  .rows .summaryBar {
+    align-items: start;
+  }
+}
+
+/* A change just came in: one soft blink over the row, then nothing. */
+.summaryChanged {
+  animation: changed 1.6s ease-out 1;
+  border-radius: var(--ds-border-radius-sm);
+}
+
+@keyframes changed {
+  from {
+    background: color-mix(in srgb, var(--ds-color-info-base-default) 25%, transparent);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summaryChanged {
+    animation: none;
+  }
+}
+
+.summaryOperation {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-size-3);
+}
+
+.details > .steps {
+  align-self: stretch;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  overflow-x: auto;
+}
+
+/* Every cell of a step row starts at its top-left corner, so a tall error cell does not float the
+   step's name and status down to its middle. */
+.steps td {
+  vertical-align: top;
+}
+
+/* A step with details continues on the next row, so no rule between the two. The design system
+   draws the rule from this variable, which the cells inherit. */
+.stepRowWithDetails {
+  --dsc-table-border-width: 0;
+}
+
+.stepDetailsCell {
+  padding-top: 0;
+}
+
+.stepDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-size-2);
+}
+
+/* The earlier attempts, folded under their count; flush with the text above, no card chrome. */
+.earlierErrors {
+  --dsc-details-padding: var(--ds-size-2) 0;
+
+  align-self: stretch;
+  border: 0;
+}
+
+.earlierErrorsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  margin-inline: 0;
+}
+
+/* Free text from the engine, shown as it came: not translated, not part of the sentence. */
+.engineText {
+  font-family: 'Courier New', monospace;
+  font-size: inherit;
+  overflow-wrap: anywhere;
+}

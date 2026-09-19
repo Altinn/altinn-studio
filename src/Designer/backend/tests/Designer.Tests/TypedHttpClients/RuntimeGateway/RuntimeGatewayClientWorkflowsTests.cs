@@ -35,6 +35,7 @@ public class RuntimeGatewayClientWorkflowsTests
     private readonly Mock<IEnvironmentsService> _environmentsServiceMock = new();
     private readonly RuntimeGatewayClient _client;
     private HttpRequestMessage _capturedRequest;
+    private string _capturedBody;
 
     public RuntimeGatewayClientWorkflowsTests()
     {
@@ -45,7 +46,14 @@ public class RuntimeGatewayClientWorkflowsTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .Callback<HttpRequestMessage, CancellationToken>((request, _) => _capturedRequest = request)
+            .Callback<HttpRequestMessage, CancellationToken>(
+                (request, _) =>
+                {
+                    _capturedRequest = request;
+                    // Read now: the client disposes the request, body included, once it has been sent.
+                    _capturedBody = request.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+                }
+            )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") });
 
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
@@ -94,7 +102,10 @@ public class RuntimeGatewayClientWorkflowsTests
         );
 
         Assert.DoesNotContain("//runtime", _capturedRequest.RequestUri.AbsoluteUri, StringComparison.Ordinal);
-        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/0f8fad5b-d9cb-469f-a165-70867728950e");
+        AssertRequest(
+            HttpMethod.Get,
+            $"{WorkflowsBasePath}/workflows/0f8fad5b-d9cb-469f-a165-70867728950e?includeState=false"
+        );
     }
 
     [Fact]
@@ -195,7 +206,7 @@ public class RuntimeGatewayClientWorkflowsTests
             $"{WorkflowsBasePath}/workflows"
                 + "?collectionKey=0f8fad5b-d9cb-469f-a165-70867728950e"
                 + "&status=Failed&status=AwaitingRetry&label=step%3Apdf&label=kind%3Ahead"
-                + "&isHead=true&cursor=c1&pageSize=10"
+                + "&isHead=true&cursor=c1&pageSize=10&includeState=false"
         );
     }
 
@@ -212,7 +223,7 @@ public class RuntimeGatewayClientWorkflowsTests
             CancellationToken.None
         );
 
-        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/{workflowId}");
+        AssertRequest(HttpMethod.Get, $"{WorkflowsBasePath}/workflows/{workflowId}?includeState=false");
     }
 
     [Theory]
@@ -238,11 +249,11 @@ public class RuntimeGatewayClientWorkflowsTests
     }
 
     [Fact]
-    public async Task AbandonWorkflowAsync_PostsToAbandon()
+    public async Task NudgeWorkflowAsync_PostsToNudge()
     {
         var workflowId = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e");
 
-        using var response = await _client.AbandonWorkflowAsync(
+        using var response = await _client.NudgeWorkflowAsync(
             Org,
             App,
             s_environment,
@@ -250,7 +261,30 @@ public class RuntimeGatewayClientWorkflowsTests
             CancellationToken.None
         );
 
-        AssertRequest(HttpMethod.Post, $"{WorkflowsBasePath}/workflows/{workflowId}/abandon");
+        AssertRequest(HttpMethod.Post, $"{WorkflowsBasePath}/workflows/{workflowId}/nudge");
+        Assert.Null(_capturedBody);
+    }
+
+    [Fact]
+    public async Task FailWorkflowAsync_PostsTheReasonAsJson()
+    {
+        var workflowId = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e");
+
+        using var response = await _client.FailWorkflowAsync(
+            Org,
+            App,
+            s_environment,
+            workflowId,
+            "Failed by Studio user testUser from Altinn Studio",
+            CancellationToken.None
+        );
+
+        AssertRequest(HttpMethod.Post, $"{WorkflowsBasePath}/workflows/{workflowId}/fail");
+        Assert.Equal("application/json", _capturedRequest.Content.Headers.ContentType.MediaType);
+        Assert.Equal( /*lang=json,strict*/
+            """{"reason":"Failed by Studio user testUser from Altinn Studio"}""",
+            _capturedBody
+        );
     }
 
     [Fact]
@@ -301,7 +335,7 @@ public class RuntimeGatewayClientWorkflowsTests
             .ThrowsAsync(registryFailure);
 
         var exception = await Assert.ThrowsAsync<EnvironmentsRegistryUnavailableException>(() =>
-            _client.AbandonWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
+            _client.NudgeWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
         );
 
         Assert.Same(registryFailure, exception.InnerException);
@@ -316,7 +350,7 @@ public class RuntimeGatewayClientWorkflowsTests
             .ThrowsAsync(new KeyNotFoundException("Environment 'at23' not found."));
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-            _client.AbandonWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
+            _client.NudgeWorkflowAsync(Org, App, s_environment, Guid.NewGuid(), CancellationToken.None)
         );
 
         Assert.Null(_capturedRequest);

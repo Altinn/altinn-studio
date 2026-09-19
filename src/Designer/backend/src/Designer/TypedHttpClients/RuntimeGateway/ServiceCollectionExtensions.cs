@@ -84,7 +84,7 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        // Resume and abandon are mutations the engine commits. A retry after a timeout replays a
+        // Resume, nudge and fail are mutations the engine commits. A retry after a timeout replays a
         // call the far side may already have completed, and the operator and the audit trail then
         // see a failure for what succeeded. Only the reads retry, and once: the admin UI polls, so
         // its next request is the retry the standard three would otherwise pile up.
