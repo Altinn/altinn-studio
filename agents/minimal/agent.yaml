@@ -28,7 +28,8 @@ spec:
     - source: ../instructions.md
     - source: environment.md
   skills:
-    - source: ../../src/cli/resources/agent/skills/altinn-studio-app-development
+    - source: ../../src/cli/resources/agent/skills/app-development
+      name: altinn-studio-app-development
     - source: ../skills/pr-evidence
   harnesses:
     - type: claudeCode
