@@ -33,6 +33,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- Agent Sessions set `XDG_RUNTIME_DIR`, so `skopeo`, `buildah` and other tools that expect a user runtime
+  directory run instead of failing with a permission error on a path they cannot read.
+- `podman run --init` works in full Agents; the `catatonit` binary the flag needs was missing from the image.
 - Chromium in a full Altinn Agent trusts the same host-mediated certificate authorities as command-line tools, so
   browser tests can load HTTPS dependencies without disabling certificate verification.
 

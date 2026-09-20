@@ -126,6 +126,23 @@ AGENT_STUDIOCTL_AUTH_STUDIOCTL="$auth_test/studioctl" \
 test ! -s "$auth_capture" \
     || fail "the studioctl authentication service ran without configured environments"
 
+echo "## runtime directory"
+# Nothing in a Sandbox creates a per-user runtime directory, and without one the containers tools
+# resolve their credentials under a root-owned path and fail with a permission error rather than
+# running unauthenticated. Both the image's directory and the tmpfiles rule that recreates it in a
+# booted Agent are checked, because only the second one survives systemd mounting /run.
+test "${XDG_RUNTIME_DIR:-}" = /run/user/1000 \
+    || fail "XDG_RUNTIME_DIR is ${XDG_RUNTIME_DIR:-unset}, expected /run/user/1000"
+test -d "$XDG_RUNTIME_DIR" || fail "$XDG_RUNTIME_DIR does not exist"
+test "$(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR")" = "agent:agent 700" \
+    || fail "$XDG_RUNTIME_DIR is $(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR"), expected agent:agent 700"
+sudo -n rm -rf "$XDG_RUNTIME_DIR"
+sudo -n systemd-tmpfiles --create /usr/lib/tmpfiles.d/agent.conf
+test "$(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR")" = "agent:agent 700" \
+    || fail "the tmpfiles rule does not recreate $XDG_RUNTIME_DIR for a booted Agent"
+touch "$XDG_RUNTIME_DIR/probe" && rm -f "$XDG_RUNTIME_DIR/probe"
+echo "$XDG_RUNTIME_DIR: $(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR"), writable"
+
 echo "## timezone"
 # Norwegian local time is Europe/Oslo the year round, so assert the zone rather than an offset.
 # Node resolves it through ICU rather than glibc, so both are checked.
@@ -158,6 +175,11 @@ systemctl is-enabled agent-full-hosts-init.service >/dev/null \
 grep -qxF 'ExecStart=/home/agent/.local/bin/studioctl env hosts add' \
     /etc/systemd/system/agent-full-hosts-init.service \
     || fail "the full-image hosts service does not prepare studioctl hostnames"
+
+echo "## container tooling"
+# `podman run --init` looks this up by name; without it the flag fails instead of running.
+command -v catatonit >/dev/null || fail "catatonit is missing, so podman run --init cannot work"
+echo "catatonit: $(command -v catatonit)"
 
 echo "## playwright"
 browsers=(/opt/ms-playwright/chromium-*)

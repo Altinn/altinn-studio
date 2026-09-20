@@ -210,6 +210,15 @@ RUN curl -fsSL \
         echo "studioctl installation left files under /home/agent not owned by agent" >&2; exit 1; \
     fi
 
+# Nothing creates a per-user runtime directory here: systemd-logind owns that job and a Session is
+# a tmux process rather than a login. Without one, XDG_RUNTIME_DIR is unset and the containers
+# tools fall back to /run/containers/$UID, which rootful Podman owns and the Agent user cannot
+# traverse, so skopeo and buildah fail with a permission error instead of running unauthenticated.
+# The directory is created both here, for an image run without an init, and by tmpfiles for a
+# booted Agent, whose /run is a fresh tmpfs.
+COPY common/tmpfiles.conf /usr/lib/tmpfiles.d/agent.conf
+RUN install -d -m 0700 -o agent -g agent /run/user/1000
+
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
 COPY common/studioctl-auth-init.service /etc/systemd/system/agent-studioctl-auth-init.service
@@ -245,6 +254,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && yarn --version \
     && claude --version \
     && codex --version \
+    && test "$(id -u agent)" = 1000 \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
@@ -258,6 +268,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
 ENV HOME=/home/agent
 ENV PATH=/home/agent/.local/bin:${PATH}
+ENV XDG_RUNTIME_DIR=/run/user/1000
 
 FROM base AS minimal
 
@@ -287,6 +298,7 @@ ENV PATH=/home/agent/.cargo/bin:${PATH}
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
+        catatonit \
         clang \
         ffmpeg \
         iproute2 \
