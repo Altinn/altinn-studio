@@ -169,6 +169,16 @@ async fn granting_access_enables_the_units_the_image_declared() {
 
     assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
 
+    assert_eq!(
+        fixture
+            .access
+            .describe("worker")
+            .await
+            .expect("described")
+            .web_guest_port,
+        Some(6080),
+        "a granted Agent reports the viewer port its image declared"
+    );
     assert!(
         fixture.backend.execution_specs().iter().any(is_enable),
         "the units named by the image are enabled, and no unit file is written"
@@ -180,6 +190,47 @@ async fn granting_access_enables_the_units_the_image_declared() {
             .iter()
             .any(|spec| command(spec).is_some_and(|(executable, _)| executable == "/bin/chmod")),
         "the units belong to the image, so nothing here installs or chmods one"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_image_offering_no_browser_viewer_is_granted_and_described_without_one() {
+    let fixture = Fixture::new();
+    let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+    fixture.store(&record, 0).await;
+    let sandbox = fixture.sandbox(&record).await;
+    for path in ["/usr/bin/systemctl", "/usr/bin/ss"] {
+        fixture
+            .backend
+            .queue_execution_events_matching(is_test(path, "-x"), exited(0));
+    }
+    fixture
+        .backend
+        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
+    fixture
+        .backend
+        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
+    fixture
+        .backend
+        .queue_execution_events_matching(is_descriptor_read, output(b"units=agent-vnc.socket\nport=5900\n"));
+    fixture.backend.queue_execution_events_matching(
+        is_listener_check(5900),
+        output(b"LISTEN 0 0 127.0.0.1:5900 0.0.0.0:*\n"),
+    );
+
+    assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
+    assert!(
+        !fixture
+            .backend
+            .execution_specs()
+            .iter()
+            .any(|spec| is_listener_check(6080)(spec)),
+        "a port the image never promised is not checked"
+    );
+    let info = fixture.access.describe("worker").await.expect("declared access");
+    assert_eq!(
+        info.web_guest_port, None,
+        "the descriptor reports the absence rather than a port that serves nothing"
     );
 }
 
@@ -372,7 +423,10 @@ async fn describing_an_agent_without_declared_access_names_the_remedy() {
     let info = fixture.access.describe("viewer").await.expect("declared access");
     assert_eq!(info.kind, "vnc");
     assert_eq!(info.guest_port, 5900);
-    assert_eq!(info.web_guest_port, 6080);
+    assert_eq!(
+        info.web_guest_port, None,
+        "which ports the image offers is observed, so it is unknown until a pass has looked"
+    );
     assert_eq!(
         info.forward_command,
         format!("{AGENTCTL} port-forward agent/viewer 5900")

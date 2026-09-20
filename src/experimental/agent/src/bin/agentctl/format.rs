@@ -38,10 +38,12 @@ pub(crate) fn vnc_access_lines(access: &agent::vnc::AccessInfo) -> Vec<String> {
         format!("Agent:       {}", access.agent),
         format!("Agent ID:    {}", access.agent_id),
         format!("Guest port:  {}", access.guest_port),
-        format!("Web port:    {}", access.web_guest_port),
+        access.web_guest_port.map_or_else(
+            || "Web port:    - (this image serves no browser viewer)".to_owned(),
+            |port| format!("Web port:    {port}  (agentctl vnc --web {})", access.agent),
+        ),
         format!("Forward:     {}", access.forward_command),
         format!("Connect:     agentctl vnc {}", access.agent),
-        format!("In browser:  agentctl vnc --web {}", access.agent),
     ]
 }
 

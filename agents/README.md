@@ -210,7 +210,8 @@ vncviewer 127.0.0.1:5900
 Both hold the forward open until interrupted. `--port` picks a different local port, and
 `agentctl vnc-info agent/altinn-desktop -o json` prints the ports for tooling that wants them
 directly. Which viewer the browser gets, and at what URL, is the image's to decide: `--web`
-forwards the port and opens its root. The forward carries an unauthenticated RFB stream, which is safe for the same
+forwards the port and opens its root, and an image that carries no browser viewer is reported as
+such rather than forwarded to a port that serves nothing. The forward carries an unauthenticated RFB stream, which is safe for the same
 reason the Agent's other loopback ports are: it never leaves the Sandbox except through the
 forward you just opened. You share the Agent's keyboard and pointer, so agree with it about who is
 driving before you start clicking.
