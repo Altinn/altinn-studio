@@ -111,7 +111,17 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
                 .collect::<Vec<_>>(),
             ["altinn-studio-app-development", "pr-evidence"]
         );
-        assert_eq!(default.spec.secrets.len(), 4);
+        assert_eq!(default.spec.secrets.len(), 5);
+        let azure_devops_pat = default
+            .spec
+            .secrets
+            .iter()
+            .find(|secret| secret.environment == "AZURE_DEVOPS_PAT")
+            .expect("Azure DevOps PAT is declared as a mediated secret");
+        assert_eq!(azure_devops_pat.source(), "AZURE_DEVOPS_PAT");
+        assert!(azure_devops_pat.optional);
+        assert_eq!(azure_devops_pat.allowed_hosts, ["dev.azure.com"]);
+        assert_eq!(azure_devops_pat.inert_value(), "$AGENT_SECRET_AZURE_DEVOPS_PAT");
         for (environment, host) in [
             ("STUDIO_PROD_API_KEY", "altinn.studio"),
             ("STUDIO_STAGING_API_KEY", "staging.altinn.studio"),

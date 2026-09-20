@@ -21,6 +21,7 @@ Other relevant repositories include:
 - `Altinn/app-frontend-react`: app v4 frontend code (matches v8)
 - `Altinn/app-localtest`: old localtest repo, soon to be archived
 - `Altinn/altinn-studio-charts`: Helm chart currently used for app deployment, see src/App/azure-pipelines/deploy-app.yaml in altinn-studio
+- `brreg/altinn-studio-ops/altinn-studio-infra`: Azure DevOps repository for Altinn Studio infrastructure
 - `Altinn/altinn-storage`: Storage platform service
 - `Altinn/altinn-file-scan`
 - `Altinn/altinn-receipt`
@@ -47,7 +48,12 @@ Sessions start in `/home/agent/code`. Image startup makes one non-destructive at
 checkout by deleting it or performing a destructive reset.
 
 Keep repositories beneath `/home/agent/code` and application checkouts beneath `/home/agent/code/apps`. Use
-`gh repo clone OWNER/REPOSITORY` to clone other relevant repositories as needed.
+`gh repo clone OWNER/REPOSITORY` to clone other relevant GitHub repositories as needed. When `AZURE_DEVOPS_PAT` is
+configured, plain Git authenticates to `dev.azure.com`; clone the infrastructure repository with:
+
+```sh
+git clone https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra /home/agent/code/altinn-studio-infra
+```
 
 Do task work in a dedicated Git worktree under `/home/agent/code/.worktrees/`, with one worktree per task. Keep primary
 checkouts clean for synchronizing remotes and creating, inspecting, or removing worktrees. Start new Altinn Studio
