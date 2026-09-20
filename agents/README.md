@@ -38,7 +38,9 @@ Open a new PowerShell window so the updated user `PATH` takes effect, then authe
 agentctl claude login
 ```
 
-## GitHub token
+## Host credentials
+
+### GitHub token
 
 Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
 for the repositories the Agent will use. Grant `Contents: Read and write` and
@@ -47,11 +49,25 @@ write` only when the Agent must change workflow files. Gists are an account perm
 repository one, so add `Gists: Read and write` when the Agent must create or push them.
 Organization approval may be required.
 
-Copy the chosen Agent's `.env.sample` to `.env`, set the sample Git identity, and set `GITHUB_TOKEN`. The selected
-Git identity enters the Sandbox in plaintext and configures the Sandbox user's global Git settings. The token remains
-on the host and is substituted only for authorized GitHub requests, including attachment uploads to
-`uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained
-token prefix, which `gh` needs before it will attach files.
+Copy the chosen Agent's `.env.sample` to `.env`, set the sample Git identity, and set the GitHub and Altinn Studio
+credential variables. The selected Git identity enters the Sandbox in plaintext and configures the Sandbox user's
+global Git settings. The GitHub token remains on the host and is substituted only for authorized requests, including
+attachment uploads to `uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the
+fine-grained token prefix, which `gh` needs before it will attach files.
+
+### Altinn Studio API keys
+
+Set any of `STUDIO_PROD_API_KEY`, `STUDIO_STAGING_API_KEY`, and `STUDIO_DEV_API_KEY` to an existing Designer API key
+for the user the Agent should use in that environment. At boot, the Agent imports and validates every configured key
+with `studioctl`; missing or empty keys are ignored. Like the GitHub token, the API keys remain on the host: the
+Sandbox and its persisted `studioctl` credentials contain only inert placeholders, and each key can be substituted
+only in requests to its matching Studio host.
+
+After the Agent is Ready, verify the configured logins from a Session or over SSH:
+
+```sh
+studioctl auth status --json
+```
 
 From the repository root, configure and start an Agent:
 

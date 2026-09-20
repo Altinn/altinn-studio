@@ -212,6 +212,8 @@ RUN curl -fsSL \
 
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
+COPY common/studioctl-auth-init.service /etc/systemd/system/agent-studioctl-auth-init.service
+COPY --chmod=0755 common/studioctl-auth-init.sh /usr/local/libexec/agent-studioctl-auth-init
 COPY common/nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
 
 # agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
@@ -235,6 +237,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
         >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
+    && systemctl enable agent-studioctl-auth-init.service \
     && systemctl enable agent-workspace-init.service \
     && dotnet --version \
     && go version \
