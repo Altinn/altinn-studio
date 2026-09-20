@@ -107,11 +107,15 @@ RUN case "${TARGETARCH}" in \
     && rm -rf /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" \
     && gh --version
 
-# Route GitHub credentials through the gh CLI so plain git commands authenticate with the
-# host-mediated token. Written system-wide, below any user configuration, because the home
-# directory is resynchronized from the host on every sandbox setup.
+# Route GitHub and Azure DevOps credentials through helpers so plain git commands authenticate
+# with host-mediated tokens. Written system-wide, below any user configuration, because the home
+# directory is resynchronized from the host on every sandbox setup. The Azure DevOps helper emits
+# only the inert guest placeholder; the mediated network replaces it inside Basic authentication.
+COPY --chmod=0755 common/bin/azure-devops-git-credential /usr/local/bin/
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
-    && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
+    && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential' \
+    && git config --system credential.https://dev.azure.com.helper \
+        '!/usr/local/bin/azure-devops-git-credential'
 
 # Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF.
 # JetBrains Mono includes the picker glyphs used by the terminal UI.

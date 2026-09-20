@@ -49,11 +49,23 @@ write` only when the Agent must change workflow files. Gists are an account perm
 repository one, so add `Gists: Read and write` when the Agent must create or push them.
 Organization approval may be required.
 
-Copy the chosen Agent's `.env.sample` to `.env`, set the sample Git identity, and set the GitHub and Altinn Studio
-credential variables. The selected Git identity enters the Sandbox in plaintext and configures the Sandbox user's
-global Git settings. The GitHub token remains on the host and is substituted only for authorized requests, including
-attachment uploads to `uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the
-fine-grained token prefix, which `gh` needs before it will attach files.
+Copy the chosen Agent's `.env.sample` to `.env`, set the sample Git identity, and set the credential variables the
+Agent needs. The selected Git identity enters the Sandbox in plaintext and configures the Sandbox user's global Git
+settings. The GitHub token remains on the host and is substituted only for authorized requests, including attachment
+uploads to `uploads.github.com`. Inside the Agent the variable holds an inert placeholder with the fine-grained token
+prefix, which `gh` needs before it will attach files.
+
+### Azure DevOps personal access token
+
+Create a PAT in the [`brreg` Azure DevOps organization](https://dev.azure.com/brreg/_usersSettings/tokens):
+
+1. Select **New Token**, give it a recognizable name, select the `brreg` organization, and choose a short expiration.
+2. Select **Custom defined**, then grant **Code: Read** to clone and fetch. Grant **Code: Read & write** only if the
+   Agent must push branches.
+3. Create and immediately copy the token; Azure DevOps does not show it again.
+
+Set `AZURE_DEVOPS_PAT` in the chosen Agent's `.env`. The PAT remains on the host. The Sandbox receives an inert
+placeholder, and network mediation substitutes the PAT only in requests to `dev.azure.com`.
 
 ### Altinn Studio API keys
 

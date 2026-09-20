@@ -14,6 +14,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Added
 
+- Altinn Agents can authenticate ordinary HTTPS Git commands to Azure DevOps with an optional host-mediated personal
+  access token, including cloning the `altinn-studio-infra` repository without exposing the token in the Sandbox.
 - Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
   `habamax` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
 - Agent images include the `gh stack` extension for creating and managing stacked pull requests.
