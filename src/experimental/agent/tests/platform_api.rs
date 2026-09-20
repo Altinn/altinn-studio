@@ -28,6 +28,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         }],
     );
     AgentRecord {

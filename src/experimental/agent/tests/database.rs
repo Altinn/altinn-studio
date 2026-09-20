@@ -48,6 +48,9 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: Some(
+                time::OffsetDateTime::from_unix_timestamp(1_750_000_000).expect("condition timestamp"),
+            ),
         }],
     );
     ready

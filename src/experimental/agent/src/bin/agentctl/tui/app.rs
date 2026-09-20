@@ -167,6 +167,15 @@ pub(crate) struct App {
     pub(crate) prompting: Option<TreeRowId>,
     pub(crate) filter: String,
     pub(crate) provisioning: HashMap<String, Provisioning>,
+    local_provisioning: HashSet<String>,
+    fleet_provisioning: HashSet<String>,
+    condition_seen: HashMap<String, ConditionSeen>,
+    pub(crate) progress_error: Option<String>,
+}
+
+struct ConditionSeen {
+    signature: String,
+    at: Instant,
 }
 
 /// Display state of one process-owned port forward.
@@ -1237,6 +1246,10 @@ impl Provisioning {
         self.result == ProvisioningResult::Following
     }
 
+    const fn has_failure(&self) -> bool {
+        self.failure.is_some()
+    }
+
     fn phase(&self, phase: Phase) -> Option<&ProvisioningPhase> {
         self.phases.iter().find(|entry| entry.phase == phase)
     }
@@ -1449,6 +1462,10 @@ impl App {
             prompting: None,
             filter: String::new(),
             provisioning: HashMap::new(),
+            local_provisioning: HashSet::new(),
+            fleet_provisioning: HashSet::new(),
+            condition_seen: HashMap::new(),
+            progress_error: None,
         }
     }
 
@@ -1473,6 +1490,25 @@ impl App {
                 .reverse()
                 .then_with(|| left.metadata.name.cmp(&right.metadata.name))
         });
+        self.observe_agent_conditions(&agents);
+        for agent in &agents {
+            let name = &agent.metadata.name;
+            if agent.status.is_ready() {
+                if let Some(progress) = self.provisioning.get_mut(name) {
+                    progress.finish(Ok(()));
+                }
+            } else if agent.status.ready_condition().is_some_and(|condition| {
+                condition.status != ConditionStatus::True
+                    && (condition.reason.contains("Failed") || condition.reason.contains("Error"))
+            }) && self
+                .provisioning
+                .get(name)
+                .is_some_and(|progress| !progress.has_failure())
+            {
+                self.provisioning.remove(name);
+                self.fleet_provisioning.remove(name);
+            }
+        }
         self.agents = agents;
         self.sessions = sessions;
         self.loaded = true;
@@ -1624,6 +1660,7 @@ impl App {
     }
 
     pub(crate) fn begin_provisioning(&mut self, agent: String) {
+        self.local_provisioning.insert(agent.clone());
         self.provisioning.insert(agent, Provisioning::new());
     }
 
@@ -1649,15 +1686,74 @@ impl App {
             .entry(agent.into())
             .or_insert_with(Provisioning::new)
             .finish(result);
+        self.local_provisioning.remove(agent);
     }
 
     pub(crate) fn provisioning_rejected(&mut self, agent: &str, mut form: CreateForm, error: String) {
         self.provisioning.remove(agent);
+        self.local_provisioning.remove(agent);
         form.error = Some(error);
         if self.modal.is_none() && self.detail.is_none() {
             self.modal = Some(Modal::CreateAgent(form));
         } else {
             self.error = form.error;
+        }
+    }
+
+    pub(crate) fn fleet_progress_snapshot(&mut self, events: Vec<agent::progress::FleetEvent>) {
+        for agent in std::mem::take(&mut self.fleet_provisioning) {
+            if !self.local_provisioning.contains(&agent) {
+                self.provisioning.remove(&agent);
+            }
+        }
+        let now = Instant::now();
+        for event in events {
+            self.fleet_progress_event_at(event, now);
+        }
+        self.progress_error = None;
+    }
+
+    pub(crate) fn fleet_progress_event(&mut self, event: agent::progress::FleetEvent) {
+        self.fleet_progress_event_at(event, Instant::now());
+    }
+
+    fn fleet_progress_event_at(&mut self, event: agent::progress::FleetEvent, now: Instant) {
+        if self.local_provisioning.contains(&event.agent) {
+            return;
+        }
+        self.fleet_provisioning.insert(event.agent.clone());
+        self.provisioning
+            .entry(event.agent)
+            .or_insert_with(Provisioning::new)
+            .event(event.event, now);
+    }
+
+    pub(crate) fn progress_disconnected(&mut self, error: String) {
+        self.progress_error = Some(error);
+    }
+
+    fn observe_agent_conditions(&mut self, agents: &[Agent]) {
+        let names = agents
+            .iter()
+            .map(|agent| agent.metadata.name.as_str())
+            .collect::<HashSet<_>>();
+        self.condition_seen.retain(|name, _| names.contains(name.as_str()));
+        for agent in agents {
+            let Some(condition) = agent.status.ready_condition() else {
+                continue;
+            };
+            let signature = format!("{:?}\0{}\0{}", condition.status, condition.reason, condition.message);
+            let seen = self
+                .condition_seen
+                .entry(agent.metadata.name.clone())
+                .or_insert_with(|| ConditionSeen {
+                    signature: signature.clone(),
+                    at: Instant::now(),
+                });
+            if seen.signature != signature {
+                seen.signature = signature;
+                seen.at = Instant::now();
+            }
         }
     }
 
@@ -2345,6 +2441,24 @@ impl App {
                         || agent_presentation(agent),
                         |progress| progress.presentation(Instant::now()),
                     );
+                    let active_for = self
+                        .provisioning
+                        .contains_key(&agent.metadata.name)
+                        .then(String::new)
+                        .unwrap_or_else(|| {
+                            agent.status.ready_condition().map_or_else(String::new, |condition| {
+                                condition.last_transition_time.map_or_else(
+                                    || {
+                                        self.condition_seen
+                                            .get(&agent.metadata.name)
+                                            .map_or_else(String::new, |seen| {
+                                                format!("~{}", compact_elapsed(seen.at.elapsed()))
+                                            })
+                                    },
+                                    format::format_age,
+                                )
+                            })
+                        });
                     let forwards = self
                         .forwards
                         .iter()
@@ -2361,7 +2475,7 @@ impl App {
                         )
                     };
                     let ports = forwards.join(" ");
-                    let detail = [message.as_str(), summary.as_str(), ports.as_str()]
+                    let detail = [active_for.as_str(), message.as_str(), summary.as_str(), ports.as_str()]
                         .into_iter()
                         .filter(|part| !part.is_empty())
                         .collect::<Vec<_>>()
@@ -2371,7 +2485,7 @@ impl App {
                         control,
                         name: agent.metadata.name.clone(),
                         state,
-                        active_for: String::new(),
+                        active_for,
                         harness: String::new(),
                         model: String::new(),
                         age: String::new(),
@@ -2687,6 +2801,7 @@ mod tests {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         });
         agent
     }
@@ -3187,6 +3302,57 @@ mod tests {
                 .lines(now)
                 .join("\n")
                 .contains("Change the Agent manifest before retrying")
+        );
+    }
+
+    #[test]
+    fn fleet_progress_snapshot_replaces_streamed_state_but_preserves_local_follow() {
+        let event = |agent: &str, phase| agent::progress::FleetEvent {
+            agent: agent.into(),
+            event: ProgressEvent::PhaseStarted {
+                phase,
+                message: phase_label(phase).into(),
+            },
+        };
+        let mut app = populated();
+        app.fleet_progress_snapshot(vec![event("builder", Phase::ImagePrepare)]);
+        assert!(app.provisioning.contains_key("builder"));
+        assert!(app.progress_error.is_none());
+
+        app.fleet_progress_snapshot(vec![event("worker", Phase::SandboxStart)]);
+        assert!(!app.provisioning.contains_key("builder"));
+        assert!(app.provisioning.contains_key("worker"));
+
+        app.begin_provisioning("builder".into());
+        app.fleet_progress_snapshot(Vec::new());
+        assert!(
+            app.provisioning.contains_key("builder"),
+            "a local ensure owns its independent stream"
+        );
+        assert!(!app.provisioning.contains_key("worker"));
+    }
+
+    #[test]
+    fn agent_condition_age_uses_persisted_time_or_marks_first_seen_as_approximate() {
+        let mut persisted = ready_agent("persisted");
+        persisted.status.conditions[0].last_transition_time =
+            Some(time::OffsetDateTime::now_utc() - time::Duration::minutes(5));
+        let legacy = ready_agent("legacy");
+        let mut app = App::new();
+        app.apply_snapshot(vec![persisted, legacy], Vec::new());
+
+        let rows = app.render_rows();
+        let persisted = rows.iter().find(|row| row.name == "persisted").expect("persisted row");
+        let legacy = rows.iter().find(|row| row.name == "legacy").expect("legacy row");
+        assert!(
+            persisted.detail.starts_with("5m ·"),
+            "persisted transition clock: {}",
+            persisted.detail
+        );
+        assert!(
+            legacy.detail.starts_with("~0s ·"),
+            "legacy clock is explicitly approximate: {}",
+            legacy.detail
         );
     }
 
@@ -3800,6 +3966,7 @@ mod tests {
             status: ConditionStatus::False,
             reason: "SandboxReconcileFailed".into(),
             message: "COPY failed: dist was not found".into(),
+            last_transition_time: None,
         });
         let mut app = App::new();
         app.apply_snapshot(vec![broken], Vec::new());

@@ -1,4 +1,4 @@
-use std::{cell::Cell, rc::Rc, time::Duration};
+use std::{cell::Cell, collections::HashSet, rc::Rc, time::Duration};
 
 use sandbox::LocalFuture;
 use serde::Serialize;
@@ -6,17 +6,25 @@ use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio::sync::Notify;
 
-use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::Reporter, sessions};
+use crate::{
+    Agent, Error, control_plane,
+    control_plane::WaitPolicy,
+    harness,
+    progress::{FleetEvent, FleetReceive, Hub, Reporter},
+    sessions,
+};
 
 use super::outbox::Outbox;
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification,
-    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_PROGRESS_EVENT, METHOD_PROGRESS_FLEET_EVENT, METHOD_PROGRESS_RESYNC, METHOD_PROGRESS_SNAPSHOT,
+    METHOD_PROGRESS_SUBSCRIBE, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams,
+    Notification, PROTOCOL_VERSION, ProgressSnapshot, ProgressSubscribeParams, ReadMessage, Request, Response,
+    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -302,6 +310,7 @@ pub struct Server {
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     ssh: Rc<dyn SshAccessApi>,
+    progress: Hub,
     on_error: ErrorHandler,
     lifecycle: Lifecycle,
 }
@@ -315,6 +324,7 @@ impl Server {
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         ssh: Rc<dyn SshAccessApi>,
+        progress: Hub,
         on_error: ErrorHandler,
     ) -> Self {
         Self {
@@ -323,6 +333,7 @@ impl Server {
             executions,
             sessions,
             ssh,
+            progress,
             on_error,
             lifecycle: Lifecycle::default(),
         }
@@ -379,6 +390,9 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
+            if request.method == METHOD_PROGRESS_SUBSCRIBE {
+                return self.serve_progress_subscription(request, stream.get_mut()).await;
+            }
             let outbox = Outbox::new();
             let mut response = std::pin::pin!(self.handle(request, outbox.reporter()));
             let response = loop {
@@ -389,6 +403,59 @@ impl Server {
             };
             flush(&outbox, stream.get_mut()).await?;
             write_response(stream.get_mut(), &response).await?;
+        }
+    }
+
+    async fn serve_progress_subscription<W>(&self, request: Request, writer: &mut W) -> Result<(), Error>
+    where
+        W: AsyncWrite + Unpin,
+    {
+        if request.jsonrpc != JSON_RPC_VERSION {
+            write_response(
+                writer,
+                &error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request"),
+            )
+            .await?;
+            return Ok(());
+        }
+        let Ok(params) = serde_json::from_value::<ProgressSubscribeParams>(request.params) else {
+            write_response(
+                writer,
+                &error_response(
+                    request.id,
+                    CODE_INVALID_PARAMS,
+                    "invalid progress subscription parameters",
+                ),
+            )
+            .await?;
+            return Ok(());
+        };
+        let filter = params.agents.into_iter().collect::<HashSet<_>>();
+        let mut subscription = self.progress.subscribe_all();
+        write_response(
+            writer,
+            &result_response(request.id, Ok(serde_json::json!({ "lossy": true }))),
+        )
+        .await?;
+        write_progress_snapshot(writer, filter_progress(subscription.snapshot(), &filter)).await?;
+        loop {
+            let received = tokio::select! {
+                received = subscription.receive() => received,
+                () = self.shutdown_requested() => return Ok(()),
+            };
+            match received {
+                FleetReceive::Event(event) if progress_matches(&event, &filter) => {
+                    write_json_notification(writer, METHOD_PROGRESS_FLEET_EVENT, &event).await?;
+                }
+                FleetReceive::Event(_) => {}
+                FleetReceive::Lagged => {
+                    write_json_notification(writer, METHOD_PROGRESS_RESYNC, &serde_json::json!({})).await?;
+                    write_progress_snapshot(writer, filter_progress(subscription.snapshot(), &filter)).await?;
+                }
+                FleetReceive::Closed => {
+                    return Err(Error::Daemon("Agent progress telemetry stopped".into()));
+                }
+            }
         }
     }
 
@@ -686,10 +753,33 @@ async fn write_notification<W: AsyncWrite + Unpin>(
     writer: &mut W,
     event: &crate::progress::Event,
 ) -> Result<(), Error> {
+    write_json_notification(writer, METHOD_PROGRESS_EVENT, event).await
+}
+
+async fn write_progress_snapshot<W: AsyncWrite + Unpin>(writer: &mut W, events: Vec<FleetEvent>) -> Result<(), Error> {
+    write_json_notification(writer, METHOD_PROGRESS_SNAPSHOT, &ProgressSnapshot { events }).await
+}
+
+fn filter_progress(events: Vec<FleetEvent>, filter: &HashSet<String>) -> Vec<FleetEvent> {
+    events
+        .into_iter()
+        .filter(|event| progress_matches(event, filter))
+        .collect()
+}
+
+fn progress_matches(event: &FleetEvent, filter: &HashSet<String>) -> bool {
+    filter.is_empty() || filter.contains(&event.agent)
+}
+
+async fn write_json_notification<W: AsyncWrite + Unpin, T: Serialize>(
+    writer: &mut W,
+    method: &str,
+    params: &T,
+) -> Result<(), Error> {
     let notification = Notification {
         jsonrpc: JSON_RPC_VERSION.into(),
-        method: METHOD_PROGRESS_EVENT.into(),
-        params: serde_json::to_value(event)?,
+        method: method.into(),
+        params: serde_json::to_value(params)?,
     };
     let mut bytes = serde_json::to_vec(&notification)?;
     bytes.push(b'\n');

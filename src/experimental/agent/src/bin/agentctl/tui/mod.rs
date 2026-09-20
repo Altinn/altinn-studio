@@ -13,8 +13,15 @@ use std::{
 };
 
 use agent::{
-    Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    progress::Event as ProgressEvent, sessions::Session, sessions::SessionName, sessions::SessionRequest,
+    Agent, Error,
+    control_api::{Client, ProgressUpdate},
+    control_plane::WaitPolicy,
+    local::home::ControlPlaneHome,
+    manifest,
+    progress::Event as ProgressEvent,
+    sessions::Session,
+    sessions::SessionName,
+    sessions::SessionRequest,
     sessions::Turn,
 };
 use crossterm::event::{
@@ -48,6 +55,7 @@ enum Input {
     TranscriptLoaded(TranscriptOutcome),
     PromptSent(PromptOutcome),
     AgentCreate(AgentCreateUpdate),
+    FleetProgress(Result<ProgressUpdate, String>),
 }
 
 /// Completion of one background forward creation.
@@ -161,12 +169,15 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let (transcript_tx, mut transcript_rx) = tokio::sync::mpsc::unbounded_channel::<TranscriptOutcome>();
     let (prompt_tx, mut prompt_rx) = tokio::sync::mpsc::unbounded_channel::<PromptOutcome>();
     let (agent_create_tx, mut agent_create_rx) = tokio::sync::mpsc::unbounded_channel::<AgentCreateUpdate>();
+    let (fleet_progress_tx, mut fleet_progress_rx) =
+        tokio::sync::mpsc::unbounded_channel::<Result<ProgressUpdate, String>>();
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
     let mut tick = tokio::time::interval_at(tokio::time::Instant::now() + REFRESH_INTERVAL, REFRESH_INTERVAL);
     tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+    spawn_fleet_progress(home.socket_path(), fleet_progress_tx);
     loop {
         app.open_queued_create();
         app.set_forwards(forwards.entries());
@@ -184,6 +195,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Some(outcome) = transcript_rx.recv() => Input::TranscriptLoaded(outcome),
             Some(outcome) = prompt_rx.recv() => Input::PromptSent(outcome),
             Some(update) = agent_create_rx.recv() => Input::AgentCreate(update),
+            Some(update) = fleet_progress_rx.recv() => Input::FleetProgress(update),
         };
         let action = match input {
             Input::Tick => {
@@ -242,6 +254,22 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 };
                 if refresh {
                     request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                }
+                continue;
+            }
+            Input::FleetProgress(update) => {
+                mouse.reset();
+                match update {
+                    Ok(ProgressUpdate::Snapshot(events)) => {
+                        app.fleet_progress_snapshot(events);
+                        request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                    }
+                    Ok(ProgressUpdate::Event(event)) => app.fleet_progress_event(event),
+                    Ok(ProgressUpdate::Resync) => {
+                        app.progress_disconnected("resynchronizing provisioning telemetry".into());
+                        request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                    }
+                    Err(error) => app.progress_disconnected(error),
                 }
                 continue;
             }
@@ -419,6 +447,25 @@ fn spawn_prompt(
             .prompt_session(&agent, session, prompt.clone(), false, None)
             .await;
         let _ = outcomes.send((target, prompt, result));
+    });
+}
+
+fn spawn_fleet_progress(
+    socket_path: PathBuf,
+    updates: tokio::sync::mpsc::UnboundedSender<Result<ProgressUpdate, String>>,
+) {
+    tokio::task::spawn_local(async move {
+        loop {
+            let client = Client::for_path(socket_path.clone());
+            let live_updates = updates.clone();
+            let mut sink = move |update| {
+                let _ = live_updates.send(Ok(update));
+            };
+            if let Err(error) = client.watch_progress(Vec::new(), &mut sink).await {
+                let _ = updates.send(Err(error.to_string()));
+            }
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
     });
 }
 

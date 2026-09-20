@@ -165,6 +165,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         reconciliation_errors("Agent"),
     );
     let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
+    let progress = observers.progress();
     let convergence = agent::control_plane::Convergence::new(wakeup, observers);
     let executions = Rc::new(ExecutionService::new(store.clone(), convergence.clone()));
     let sessions = Rc::new(SessionService::new(
@@ -181,6 +182,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         executions,
         sessions,
         ssh,
+        progress,
         Rc::new(|error| tracing::error!(%error, "Control API connection failed")),
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());

@@ -9,11 +9,23 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
+    METHOD_PROGRESS_FLEET_EVENT, METHOD_PROGRESS_RESYNC, METHOD_PROGRESS_SNAPSHOT, METHOD_PROGRESS_SUBSCRIBE,
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification, ReadMessage, Request, Response,
-    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
-    ShutdownResult, read_message,
+    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification, ProgressSnapshot,
+    ProgressSubscribeParams, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
+
+/// One update from the fleet-wide, best-effort provisioning subscription.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ProgressUpdate {
+    /// Current in-memory telemetry retained by this daemon.
+    Snapshot(Vec<crate::progress::FleetEvent>),
+    /// One live provisioning event.
+    Event(crate::progress::FleetEvent),
+    /// Events were lost; the following snapshot replaces prior streamed state.
+    Resync,
+}
 
 /// A byte stream usable by the Agent Control API client.
 pub trait Connection: AsyncRead + AsyncWrite + Unpin {}
@@ -66,6 +78,84 @@ impl Client {
         let daemon = self.health().await?;
         daemon.require_compatible()?;
         Ok(daemon)
+    }
+
+    /// Watches best-effort provisioning telemetry across the fleet until the connection ends.
+    ///
+    /// The daemon first sends an in-memory snapshot. A [`ProgressUpdate::Resync`]
+    /// means the subscriber lagged and the next snapshot replaces its streamed
+    /// state. Durable readiness and failure still come from Agent conditions.
+    ///
+    /// # Errors
+    ///
+    /// Returns when the daemon rejects the subscription or its connection ends.
+    pub async fn watch_progress(
+        &self,
+        agents: Vec<String>,
+        update: &mut dyn FnMut(ProgressUpdate),
+    ) -> Result<(), Error> {
+        let id = self.next_id.get().wrapping_add(1);
+        self.next_id.set(id);
+        let request = Request {
+            jsonrpc: JSON_RPC_VERSION.into(),
+            method: METHOD_PROGRESS_SUBSCRIBE.into(),
+            params: serde_json::to_value(ProgressSubscribeParams { agents })?,
+            id,
+        };
+        let mut stream = self.connector.connect().await?;
+        let mut bytes = serde_json::to_vec(&request)?;
+        bytes.push(b'\n');
+        stream.write_all(&bytes).await?;
+        stream.flush().await?;
+
+        let mut stream = BufReader::new(stream);
+        let mut subscribed = false;
+        loop {
+            let line = match read_message(&mut stream).await? {
+                ReadMessage::Complete(line) => line,
+                ReadMessage::EndOfStream => {
+                    return Err(Error::Daemon("Agent progress subscription stopped".into()));
+                }
+                ReadMessage::TooLarge => {
+                    return Err(Error::Invalid("invalid Agent progress subscription message".into()));
+                }
+            };
+            let value: serde_json::Value = serde_json::from_slice(&line)?;
+            if value.get("id").is_none() {
+                if !subscribed {
+                    return Err(Error::Invalid(
+                        "Agent progress notification preceded subscription".into(),
+                    ));
+                }
+                let notification: Notification = serde_json::from_value(value)?;
+                if notification.jsonrpc != JSON_RPC_VERSION {
+                    continue;
+                }
+                match notification.method.as_str() {
+                    METHOD_PROGRESS_FLEET_EVENT => {
+                        if let Ok(event) = serde_json::from_value(notification.params) {
+                            update(ProgressUpdate::Event(event));
+                        }
+                    }
+                    METHOD_PROGRESS_SNAPSHOT => {
+                        if let Ok(snapshot) = serde_json::from_value::<ProgressSnapshot>(notification.params) {
+                            update(ProgressUpdate::Snapshot(snapshot.events));
+                        }
+                    }
+                    METHOD_PROGRESS_RESYNC => update(ProgressUpdate::Resync),
+                    _ => {}
+                }
+                continue;
+            }
+            let response: Response = serde_json::from_value(value)?;
+            if response.jsonrpc != JSON_RPC_VERSION || response.id != id || subscribed {
+                return Err(Error::Invalid("invalid Agent progress subscription response".into()));
+            }
+            if let Some(error) = response.error {
+                return Err(Error::Rpc(error));
+            }
+            subscribed = true;
+        }
     }
 
     /// Requests a graceful daemon shutdown for an upgrade.

@@ -6,6 +6,6 @@ mod protocol;
 mod server;
 mod socket;
 
-pub use client::{Client, Connection, Connector};
+pub use client::{Client, Connection, Connector, ProgressUpdate};
 pub use protocol::{DaemonInfo, PROTOCOL_VERSION, ResponseError};
 pub use server::{AgentApi, AuthenticationApi, ErrorHandler, ExecutionApi, Server, SessionApi, SshAccessApi};

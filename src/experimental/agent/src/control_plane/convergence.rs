@@ -38,8 +38,8 @@ impl Observers {
         Self::default()
     }
 
-    pub(crate) fn observe_sandbox(&self, id: AgentId) -> SandboxObserver {
-        self.telemetry.observe_sandbox(id)
+    pub(crate) fn observe_sandbox(&self, id: AgentId, agent: String) -> SandboxObserver {
+        self.telemetry.observe_sandbox(id, agent)
     }
 
     pub(crate) fn publish_status(&self, id: AgentId, status: ObservedStatus) {
@@ -48,6 +48,13 @@ impl Observers {
 
     pub(crate) fn forget(&self, id: AgentId) {
         self.statuses.forget(id);
+        self.telemetry.forget(id);
+    }
+
+    /// Returns the shared best-effort provisioning telemetry source.
+    #[must_use]
+    pub fn progress(&self) -> Hub {
+        self.telemetry.clone()
     }
 }
 

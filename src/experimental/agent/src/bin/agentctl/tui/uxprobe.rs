@@ -84,6 +84,7 @@ fn agent(name: &str, reason: &str, status: ConditionStatus, message: &str) -> ag
         status,
         reason: reason.into(),
         message: message.into(),
+        last_transition_time: None,
     });
     agent
 }

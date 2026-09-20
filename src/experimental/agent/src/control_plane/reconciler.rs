@@ -84,7 +84,9 @@ impl Reconciler {
             record.agent.status = status;
         }
 
-        let observer = self.observers.observe_sandbox(record.id);
+        let observer = self
+            .observers
+            .observe_sandbox(record.id, record.agent.metadata.name.clone());
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {
@@ -231,9 +233,10 @@ impl Reconciler {
     async fn update_status(
         &self,
         record: &AgentRecord,
-        status: Status,
+        mut status: Status,
         failure: Option<FailureKind>,
     ) -> Result<(), Error> {
+        timestamp_transitions(&record.agent.status, &mut status, time::OffsetDateTime::now_utc());
         let notify = session_relevant_transition(&record.agent.status, &status);
         let observed = ObservedStatus {
             conditions: status.conditions.clone(),
@@ -268,6 +271,30 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
         status,
         reason: reason.into(),
         message: message.into(),
+        last_transition_time: None,
+    }
+}
+
+fn timestamp_transitions(previous: &Status, current: &mut Status, now: time::OffsetDateTime) {
+    for condition in &mut current.conditions {
+        let earlier = previous
+            .conditions
+            .iter()
+            .find(|earlier| earlier.kind == condition.kind);
+        condition.last_transition_time = earlier.and_then(|earlier| {
+            (earlier.status == condition.status
+                && earlier.reason == condition.reason
+                && earlier.message == condition.message)
+                .then_some(earlier.last_transition_time)
+                .flatten()
+        });
+        if earlier.is_none_or(|earlier| {
+            earlier.status != condition.status
+                || earlier.reason != condition.reason
+                || earlier.message != condition.message
+        }) {
+            condition.last_transition_time = Some(now);
+        }
     }
 }
 
@@ -275,4 +302,43 @@ fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    fn ready(reason: &str, at: Option<time::OffsetDateTime>) -> Status {
+        Status::observed(
+            1,
+            None,
+            vec![Condition {
+                kind: Condition::READY.into(),
+                status: ConditionStatus::False,
+                reason: reason.into(),
+                message: String::new(),
+                last_transition_time: at,
+            }],
+        )
+    }
+
+    #[test]
+    fn condition_timestamp_changes_only_with_condition_content() {
+        let first = time::OffsetDateTime::from_unix_timestamp(100).expect("first timestamp");
+        let later = time::OffsetDateTime::from_unix_timestamp(200).expect("later timestamp");
+        let previous = ready("Pending", Some(first));
+        let mut unchanged = ready("Pending", None);
+        timestamp_transitions(&previous, &mut unchanged, later);
+        assert_eq!(unchanged.conditions[0].last_transition_time, Some(first));
+
+        let mut changed = ready("SandboxReady", None);
+        timestamp_transitions(&previous, &mut changed, later);
+        assert_eq!(changed.conditions[0].last_transition_time, Some(later));
+
+        let mut legacy_unchanged = ready("Pending", None);
+        timestamp_transitions(&ready("Pending", None), &mut legacy_unchanged, later);
+        assert_eq!(legacy_unchanged.conditions[0].last_transition_time, None);
+    }
 }

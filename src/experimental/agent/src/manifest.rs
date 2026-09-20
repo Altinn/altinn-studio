@@ -890,6 +890,13 @@ pub struct Condition {
     /// Optional human-readable detail.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub message: String,
+    /// Time at which status, reason, or message last changed.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub last_transition_time: Option<OffsetDateTime>,
 }
 
 /// Truth value of an Agent condition.
@@ -1168,4 +1175,31 @@ fn with_chain(error: Error, chain: &[PathBuf]) -> Error {
         .collect::<Vec<_>>()
         .join("\n");
     Error::Invalid(format!("{error}\ninheritance chain:\n{diagnostic}"))
+}
+
+#[cfg(test)]
+mod condition_tests {
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+
+    #[test]
+    fn condition_transition_time_is_rfc3339_and_legacy_payloads_default_absent() {
+        let legacy = serde_json::json!({
+            "type": "Ready",
+            "status": "False",
+            "reason": "Pending"
+        });
+        let condition: Condition = serde_json::from_value(legacy).expect("legacy Condition");
+        assert_eq!(condition.last_transition_time, None);
+
+        let at = OffsetDateTime::parse("2026-09-20T12:34:56Z", &time::format_description::well_known::Rfc3339)
+            .expect("timestamp");
+        let value = serde_json::to_value(Condition {
+            last_transition_time: Some(at),
+            ..condition
+        })
+        .expect("Condition JSON");
+        assert_eq!(value["lastTransitionTime"], "2026-09-20T12:34:56Z");
+    }
 }

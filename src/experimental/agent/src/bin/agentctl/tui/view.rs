@@ -284,6 +284,9 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             Color::Blue,
         );
     }
+    if app.progress_error.is_some() {
+        push_header_segment(&mut spans, area.width, " · progress reconnecting".into(), Color::Yellow);
+    }
     if !app.filter.is_empty() {
         push_header_segment(
             &mut spans,

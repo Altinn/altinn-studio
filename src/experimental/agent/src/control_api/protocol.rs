@@ -21,6 +21,10 @@ pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
 pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
 pub(crate) const METHOD_PROGRESS_EVENT: &str = "progress.v1.event";
+pub(crate) const METHOD_PROGRESS_FLEET_EVENT: &str = "progress.v1.fleetEvent";
+pub(crate) const METHOD_PROGRESS_SUBSCRIBE: &str = "progress.v1.subscribe";
+pub(crate) const METHOD_PROGRESS_SNAPSHOT: &str = "progress.v1.snapshot";
+pub(crate) const METHOD_PROGRESS_RESYNC: &str = "progress.v1.resync";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
@@ -96,6 +100,20 @@ impl ResponseError {
 #[serde(deny_unknown_fields)]
 pub(crate) struct NameParams {
     pub name: String,
+}
+
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub(crate) struct ProgressSubscribeParams {
+    /// Empty observes the whole fleet; otherwise only these Agent names are emitted.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub agents: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub(crate) struct ProgressSnapshot {
+    pub events: Vec<crate::progress::FleetEvent>,
 }
 
 #[derive(Deserialize, Serialize)]

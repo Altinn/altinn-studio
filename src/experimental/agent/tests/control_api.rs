@@ -10,7 +10,10 @@ use std::{
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi},
+    control_api::{
+        AuthenticationApi, Client, Connection, Connector, ExecutionApi, ProgressUpdate, Server, SessionApi,
+        SshAccessApi,
+    },
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
@@ -243,6 +246,7 @@ struct ApiFixture {
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
+    progress: agent::progress::Hub,
 }
 
 impl Connector for InProcessConnector {
@@ -286,6 +290,7 @@ fn api() -> ApiFixture {
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
+    let progress = agent::progress::Hub::new();
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
@@ -300,6 +305,7 @@ fn api() -> ApiFixture {
             upgrade_gates: upgrade_gates.clone(),
         }),
         Rc::new(FakeSshAccess),
+        progress.clone(),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
@@ -312,6 +318,7 @@ fn api() -> ApiFixture {
         upgrade_blockers,
         upgrade_warnings,
         upgrade_gates,
+        progress,
     }
 }
 
@@ -727,6 +734,56 @@ async fn opted_in_ensure_routes_notifications_before_the_matching_response() {
             message: "Prepare Sandbox Image".into(),
         }]
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn fleet_progress_subscription_starts_with_snapshot_then_streams_live_events() {
+    let fixture = api();
+    let observer = fixture.progress.observe_sandbox(
+        "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+        "worker".into(),
+    );
+    let report = observer.reporter();
+    report(sandbox::SandboxEvent::PhaseStarted {
+        phase: sandbox::SandboxPhase::ImagePrepare,
+    });
+    let (updates, mut received) = tokio::sync::mpsc::unbounded_channel();
+    let client = fixture.client;
+    let watch = tokio::task::spawn_local(async move {
+        client
+            .watch_progress(Vec::new(), &mut |update| {
+                let _ = updates.send(update);
+            })
+            .await
+    });
+
+    let snapshot = received.recv().await.expect("initial progress snapshot");
+    assert!(matches!(
+        snapshot,
+        ProgressUpdate::Snapshot(events)
+            if matches!(events.as_slice(), [agent::progress::FleetEvent { agent, event: agent::progress::Event::PhaseStarted { phase: agent::progress::Phase::ImagePrepare, .. } }] if agent == "worker")
+    ));
+
+    report(sandbox::SandboxEvent::PhaseCompleted {
+        phase: sandbox::SandboxPhase::ImagePrepare,
+        outcome: sandbox::PhaseOutcome::Completed,
+        elapsed: Duration::from_secs(2),
+    });
+    let live = received.recv().await.expect("live progress event");
+    assert!(matches!(
+        live,
+        ProgressUpdate::Event(agent::progress::FleetEvent {
+            agent,
+            event: agent::progress::Event::PhaseCompleted {
+                phase: agent::progress::Phase::ImagePrepare,
+                elapsed_ms: 2_000,
+                ..
+            }
+        }) if agent == "worker"
+    ));
+
+    watch.abort();
+    assert!(watch.await.expect_err("aborted subscription").is_cancelled());
 }
 
 #[tokio::test(flavor = "local")]
