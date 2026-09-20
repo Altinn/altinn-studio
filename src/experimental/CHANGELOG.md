@@ -19,6 +19,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Agent images include the `gh stack` extension for creating and managing stacked pull requests.
 - The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
   actions while retaining all keyboard controls.
+- The `agentctl` terminal UI now triages Sessions that need input, previews recent turns, prompts without attaching,
+  filters large fleets, jumps between blocked Sessions, follows provisioning progress with actionable failures, and
+  deletes Sessions after confirmation. `agentctl delete session/<name>` exposes the same deletion operation to scripts.
 - Agent Skill entries may declare an installed `name` separately from their source directory.
 - Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
   app checkouts. Full images also prepare LocalTest hostnames for browser testing.
@@ -27,11 +30,16 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
+- The `agentctl` terminal UI keeps its fleet visible and current during forms, detail views and transient refresh
+  failures, uses consistent fixed-size forms and responsive columns, and preserves its non-colour state cues when
+  `NO_COLOR` is set.
 
 ### Fixed
 
 - Chromium in a full Altinn Agent trusts the same host-mediated certificate authorities as command-line tools, so
   browser tests can load HTTPS dependencies without disabling certificate verification.
+- Refreshes and row reordering in the `agentctl` terminal UI no longer move selection or mouse actions onto another
+  Agent or Session.
 
 ## [0.1.0-preview.4] - 2026-09-18
 
