@@ -62,6 +62,10 @@ spec:
         - uploads.github.com
   access:
     - type: ssh
+    # The desktop is on a Unix socket inside the Sandbox and opens no port of its own. This entry
+    # is what makes agentd bridge a guest port to it, and removing the entry takes the bridge away
+    # again while leaving the Agent its screen.
+    - type: vnc
   network:
     mode: mediated
     allow: all
