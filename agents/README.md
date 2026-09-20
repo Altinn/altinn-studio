@@ -12,6 +12,10 @@ Choose an Agent and, optionally, a variant:
 | `full` `nested`          | Full published image, reduced to fit inside another Agent            |
 | `full` `nested-build`    | Reduced resources and a full image built from this checkout          |
 | `full` `worktree`        | Full published image with the current checkout mounted read-write    |
+| `desktop` default        | Full image plus a graphical desktop, and a fresh checkout            |
+| `desktop` `nested`       | Desktop published image, reduced to fit inside another Agent         |
+| `desktop` `nested-build` | Reduced resources and a desktop image built from this checkout       |
+| `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
 
 Install the released Agent CLI on Linux or macOS:
 
@@ -93,7 +97,8 @@ agentctl apply --wait
 `--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
 returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
-Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal Agent. From either Agent directory, select a
+Use `agents/minimal` and `agent/altinn-minimal` for the minimal Agent, and `agents/desktop` and
+`agent/altinn-desktop` for the desktop one. From any Agent directory, select a
 repository-owned variant with `agentctl apply --variant nested`, `--variant nested-build`, or `--variant worktree`.
 
 To work directly on the current checkout without cloning it, create `~/.agent/altinn-worktree.env` outside the
@@ -167,6 +172,34 @@ hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an 
 published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the loopback-only server
 policy and systemd unit. An Agent created from an image older than this feature reports that its image cannot provide
 SSH access; delete it and re-apply to pick up the current image.
+
+## Desktop access
+
+The `desktop` Agent runs a graphical desktop on display `:1` at 1456x819: an X server that is also
+a VNC server, the openbox window manager, a panel, and the same Chromium the Agent's Playwright
+tooling uses. The Agent drives it with the `desktop` helper and its `computer-use` skill; a person
+watches or takes over through VNC.
+
+The VNC server listens only inside the Sandbox, so reach it the way you reach any other loopback
+port there — either through `agentctl`:
+
+```sh
+agentctl port-forward agent/altinn-desktop 5900
+```
+
+or over the SSH access the Agent already declares:
+
+```sh
+ssh -N -L 5900:127.0.0.1:5900 agentctl-altinn-desktop
+```
+
+Then point a VNC client at `127.0.0.1:5900`; the connection carries no password because the
+Sandbox boundary and the forwarding you just set up are what protect it. On macOS, `open
+vnc://127.0.0.1:5900` uses the built-in client. You share the Agent's keyboard and pointer, so
+agree with it about who is driving before you start clicking.
+
+A browser-based client that needs no local install, and VNC as a declared `access` type alongside
+`ssh`, are the next step for this Agent rather than something it has today.
 
 Delete the Agent and its Sandbox:
 
