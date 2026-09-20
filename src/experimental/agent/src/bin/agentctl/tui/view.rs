@@ -567,8 +567,10 @@ fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
     let tone = tone_color(row.tone);
     let gutter = if row.gutter { "▐" } else { " " };
     push_at(&mut spans, 0, gutter.into(), Style::new().fg(tone));
-    push_at(&mut spans, 2, row.control.into(), Style::new().fg(tone));
-    let name_width = columns.state.saturating_sub(columns.name + 1);
+    let control_column = if row.agent { 2 } else { columns.name };
+    let name_column = if row.agent { columns.name } else { columns.name + 2 };
+    push_at(&mut spans, control_column, row.control.into(), Style::new().fg(tone));
+    let name_width = columns.state.saturating_sub(name_column + 1);
     let name_style = if row.agent {
         Style::new().add_modifier(Modifier::BOLD)
     } else if row.gutter {
@@ -576,7 +578,7 @@ fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
     } else {
         Style::new()
     };
-    push_at(&mut spans, columns.name, fit_left(&row.name, name_width), name_style);
+    push_at(&mut spans, name_column, fit_left(&row.name, name_width), name_style);
     push_at(
         &mut spans,
         columns.state,
@@ -1620,6 +1622,38 @@ mod tests {
             let text = line.spans.iter().map(|span| span.content.as_ref()).collect::<String>();
             assert_eq!(text_column(&text, "Working"), 34);
         }
+    }
+
+    #[test]
+    fn session_rows_are_visibly_nested_under_their_agent() {
+        let row = |agent: bool, control: &'static str, name: &str| super::super::app::RowView {
+            gutter: false,
+            control,
+            name: name.into(),
+            state: if agent { "Ready" } else { "Working" }.into(),
+            active_for: String::new(),
+            harness: String::new(),
+            model: String::new(),
+            age: String::new(),
+            detail: String::new(),
+            tone: Tone::Green,
+            agent,
+        };
+        let agent = tree_row(&row(true, "v", "machine"), 80);
+        let session = tree_row(&row(false, "*", "session"), 80);
+        let agent = agent.spans.iter().map(|span| span.content.as_ref()).collect::<String>();
+        let session = session
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+
+        assert_eq!(text_column(&agent, "v"), 2);
+        assert_eq!(text_column(&agent, "machine"), 4);
+        assert_eq!(text_column(&session, "*"), 4);
+        assert_eq!(text_column(&session, "session"), 6);
+        assert_eq!(text_column(&agent, "Ready"), 34);
+        assert_eq!(text_column(&session, "Working"), 34);
     }
 
     #[test]
