@@ -1,5 +1,7 @@
 mod app;
 mod terminal;
+#[cfg(test)]
+mod uxprobe;
 mod view;
 
 use std::{
