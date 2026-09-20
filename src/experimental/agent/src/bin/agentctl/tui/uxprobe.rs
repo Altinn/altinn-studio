@@ -228,4 +228,12 @@ fn fixture_covers_every_modal_with_the_real_renderer() {
     app.select_index(1);
     app.on_key(key('p'));
     assert!(render_dump(&app, 110, 30).text.contains("prompt"));
+
+    app.modal = None;
+    app.on_key(key('/'));
+    assert!(render_dump(&app, 110, 30).text.contains("filter fleet"));
+
+    app.modal = None;
+    app.on_key(key('q'));
+    assert!(render_dump(&app, 110, 30).text.contains("quit agentctl?"));
 }

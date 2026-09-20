@@ -83,6 +83,16 @@ pub(crate) const PROMPT_HINTS: [Hint; 2] = [
     Hint::key("esc", "cancel", KeyCode::Esc),
 ];
 
+pub(crate) const FILTER_HINTS: [Hint; 2] = [
+    Hint::key("enter", "apply", KeyCode::Enter),
+    Hint::key("esc", "close", KeyCode::Esc),
+];
+
+pub(crate) const CONFIRM_QUIT_HINTS: [Hint; 2] = [
+    Hint::key("y", "quit", KeyCode::Char('y')),
+    Hint::key("n", "cancel", KeyCode::Char('n')),
+];
+
 const DETAIL_HINTS: [Hint; 2] = [
     Hint::display("j/k", "scroll"),
     Hint::key("q", "back", KeyCode::Char('q')),
@@ -140,6 +150,7 @@ pub(crate) struct App {
     pub(crate) color_enabled: bool,
     pub(crate) transcript: Option<TranscriptPreview>,
     pub(crate) prompting: Option<TreeRowId>,
+    pub(crate) filter: String,
 }
 
 /// Display state of one process-owned port forward.
@@ -209,6 +220,8 @@ pub(crate) enum Modal {
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
     Prompt(PromptForm),
+    Filter(FilterForm),
+    ConfirmQuit,
 }
 
 pub(crate) struct TranscriptPreview {
@@ -224,6 +237,11 @@ pub(crate) struct PromptForm {
     pub(crate) target: TreeRowId,
     pub(crate) input: String,
     pub(crate) error: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct FilterForm {
+    pub(crate) input: String,
 }
 
 /// Focused field of the new Session form.
@@ -934,6 +952,7 @@ impl App {
             color_enabled: std::env::var_os("NO_COLOR").is_none(),
             transcript: None,
             prompting: None,
+            filter: String::new(),
         }
     }
 
@@ -991,11 +1010,36 @@ impl App {
             .iter()
             .enumerate()
             .flat_map(|(group_index, group)| {
+                let Some(agent) = self.agents.get(group.agent) else {
+                    return Vec::new();
+                };
+                let agent_matches = self.filter_matches(&agent.metadata.name);
+                let matching_sessions = group
+                    .sessions
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, session)| {
+                        agent_matches
+                            || self
+                                .sessions
+                                .get(**session)
+                                .is_some_and(|session| self.session_matches_filter(session))
+                    })
+                    .map(|(position, _)| position)
+                    .collect::<Vec<_>>();
+                if !self.filter.is_empty() && !agent_matches && matching_sessions.is_empty() {
+                    return Vec::new();
+                }
                 let mut rows = vec![Row::Agent(group_index)];
-                if let Some(agent) = self.agents.get(group.agent)
-                    && !self.collapsed.contains(&agent.metadata.name)
+                if (!self.collapsed.contains(&agent.metadata.name) || !self.filter.is_empty())
+                    && (self.filter.is_empty() || agent_matches || !matching_sessions.is_empty())
                 {
-                    rows.extend((0..group.sessions.len()).map(|position| Row::Session {
+                    let positions: Box<dyn Iterator<Item = usize>> = if self.filter.is_empty() {
+                        Box::new(0..group.sessions.len())
+                    } else {
+                        Box::new(matching_sessions.into_iter())
+                    };
+                    rows.extend(positions.map(|position| Row::Session {
                         group: group_index,
                         position,
                     }));
@@ -1130,6 +1174,7 @@ impl App {
     pub(crate) fn triage_counts(&self) -> TriageCounts {
         self.sessions
             .iter()
+            .filter(|session| self.session_in_filter(session))
             .fold(TriageCounts::default(), |mut counts, session| {
                 match session.status.state {
                     State::WaitingForInput => counts.needs_you += 1,
@@ -1140,6 +1185,56 @@ impl App {
                 }
                 counts
             })
+    }
+
+    fn filter_matches(&self, value: &str) -> bool {
+        value.to_lowercase().contains(&self.filter.to_lowercase())
+    }
+
+    fn session_matches_filter(&self, session: &Session) -> bool {
+        let presentation = session_presentation(session.status.state);
+        [
+            session.name.as_str(),
+            presentation.label,
+            harness_label(session.harness),
+            session.model_selection.model_str().unwrap_or("-"),
+        ]
+        .iter()
+        .any(|value| self.filter_matches(value))
+    }
+
+    fn session_in_filter(&self, session: &Session) -> bool {
+        self.filter.is_empty()
+            || self
+                .agents
+                .iter()
+                .find(|agent| agent.metadata.name == session.agent)
+                .is_some_and(|agent| self.filter_matches(&agent.metadata.name))
+            || self.session_matches_filter(session)
+    }
+
+    fn jump_needs_you(&mut self) {
+        if self.rows.is_empty() {
+            return;
+        }
+        let start = self.selected_index().map_or(0, |selected| selected + 1);
+        let index = (0..self.rows.len())
+            .map(|step| (start + step) % self.rows.len())
+            .find(|index| {
+                let Some(Row::Session { group, position }) = self.rows.get(*index) else {
+                    return false;
+                };
+                self.group_session(*group, *position)
+                    .is_some_and(|session| session.status.state == State::WaitingForInput)
+            });
+        if let Some(index) = index {
+            self.select_index(index);
+        }
+    }
+
+    fn set_filter(&mut self, filter: String) {
+        self.filter = filter;
+        self.rebuild();
     }
 
     pub(crate) const fn idle(&self) -> bool {
@@ -1269,7 +1364,18 @@ impl App {
 
     fn main_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
-            KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Esc => {
+                if !self.filter.is_empty() {
+                    self.set_filter(String::new());
+                }
+            }
+            KeyCode::Char('q') => self.modal = Some(Modal::ConfirmQuit),
+            KeyCode::Tab => self.jump_needs_you(),
+            KeyCode::Char('/') => {
+                self.modal = Some(Modal::Filter(FilterForm {
+                    input: self.filter.clone(),
+                }));
+            }
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
             KeyCode::Char('r') => return Action::Refresh,
@@ -1495,6 +1601,37 @@ impl App {
                 self.modal = Some(Modal::Prompt(form));
                 Action::None
             }
+            Some(Modal::Filter(mut form)) => match key.code {
+                KeyCode::Esc | KeyCode::Enter => Action::None,
+                KeyCode::Backspace => {
+                    form.input.pop();
+                    self.set_filter(form.input.clone());
+                    self.modal = Some(Modal::Filter(form));
+                    Action::None
+                }
+                KeyCode::Char(character)
+                    if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                        && !character.is_control()
+                        && form.input.chars().count() < 128 =>
+                {
+                    form.input.push(character);
+                    self.set_filter(form.input.clone());
+                    self.modal = Some(Modal::Filter(form));
+                    Action::None
+                }
+                _ => {
+                    self.modal = Some(Modal::Filter(form));
+                    Action::None
+                }
+            },
+            Some(Modal::ConfirmQuit) => match key.code {
+                KeyCode::Char('y') => Action::Quit,
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmQuit);
+                    Action::None
+                }
+            },
             None => Action::None,
         }
     }
@@ -1733,6 +1870,8 @@ impl App {
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
                 Modal::Prompt { .. } => &PROMPT_HINTS,
+                Modal::Filter { .. } => &FILTER_HINTS,
+                Modal::ConfirmQuit => &CONFIRM_QUIT_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -2067,6 +2206,96 @@ mod tests {
         app.select_index(4);
         app.apply_snapshot(vec![agent("worker")], Vec::new());
         assert_eq!(app.selected_index(), Some(0));
+    }
+
+    fn triage_app() -> App {
+        let mut app = populated();
+        let agents = std::mem::take(&mut app.agents);
+        let mut sessions = std::mem::take(&mut app.sessions);
+        for session in &mut sessions {
+            if matches!(session.name.as_str(), "b1" | "s2") {
+                session.status.state = State::WaitingForInput;
+            }
+        }
+        app.apply_snapshot(agents, sessions);
+        app
+    }
+
+    #[test]
+    fn filter_matches_friendly_fields_and_preserves_nearest_identity() {
+        let mut app = triage_app();
+        app.select_index(3);
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "worker".into(),
+                session: SessionName::new("s2").expect("Session name"),
+            })
+        );
+
+        app.on_key(key(KeyCode::Char('/')));
+        for character in "idle".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+        assert_eq!(app.filter, "idle");
+        assert_eq!(app.rows.len(), 2, "the owning Agent and matching Session remain");
+        assert_eq!(app.render_rows()[1].name, "s1");
+        assert_eq!(app.triage_counts().idle, 1);
+        assert_eq!(app.triage_counts().needs_you, 0);
+        assert_eq!(app.selected_index(), Some(1), "nearest surviving row is selected");
+
+        app.on_key(key(KeyCode::Enter));
+        assert!(app.modal.is_none());
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.filter.is_empty());
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "worker".into(),
+                session: SessionName::new("s1").expect("Session name"),
+            })
+        );
+
+        app.on_key(key(KeyCode::Char('/')));
+        for character in "builder".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+        assert_eq!(app.rows.len(), 2, "an Agent-name match includes its Sessions");
+        assert!(app.render_rows().iter().any(|row| row.name == "b1"));
+    }
+
+    #[test]
+    fn tab_wraps_across_visible_sessions_needing_input() {
+        let mut app = triage_app();
+
+        app.on_key(key(KeyCode::Tab));
+        assert!(matches!(app.selection, Some(TreeRowId::Session { ref session, .. }) if session.as_str() == "b1"));
+        app.on_key(key(KeyCode::Tab));
+        assert!(matches!(app.selection, Some(TreeRowId::Session { ref session, .. }) if session.as_str() == "s2"));
+        app.on_key(key(KeyCode::Tab));
+        assert!(matches!(app.selection, Some(TreeRowId::Session { ref session, .. }) if session.as_str() == "b1"));
+
+        app.set_filter("idle".into());
+        let before = app.selection.clone();
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(
+            app.selection, before,
+            "jump is inert when the filter hides every blocked Session"
+        );
+    }
+
+    #[test]
+    fn escape_goes_back_and_top_level_quit_requires_confirmation() {
+        let mut app = populated();
+
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(app.modal.is_none());
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::None);
+        assert!(matches!(app.modal, Some(Modal::ConfirmQuit)));
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(app.modal.is_none());
+        app.on_key(key(KeyCode::Char('q')));
+        assert_eq!(app.on_key(key(KeyCode::Char('y'))), Action::Quit);
     }
 
     #[test]
@@ -2922,7 +3151,9 @@ mod tests {
         app.on_key(key(KeyCode::Char('F')));
         app.error = Some("control plane unreachable".into());
         assert_eq!(app.on_key(key(KeyCode::Char('r'))), Action::Refresh);
-        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::None);
+        assert!(matches!(app.modal, Some(Modal::ConfirmQuit)));
+        assert_eq!(app.on_key(key(KeyCode::Char('y'))), Action::Quit);
         assert_eq!(app.view, View::Forwards);
         app.error = None;
         app.on_key(key(KeyCode::Char('q')));

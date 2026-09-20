@@ -8,8 +8,9 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
-    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, PROMPT_HINTS, Row, RowTarget, SessionField, Tone, TreeRowId, View,
+    App, CONFIRM_DELETE_HINTS, CONFIRM_QUIT_HINTS, CREATE_AGENT_HINTS, CreateField, FILTER_HINTS, ForwardField, Hint,
+    Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, PROMPT_HINTS, Row, RowTarget, SessionField, Tone,
+    TreeRowId, View,
 };
 
 const FORM_POPUP_WIDTH: u16 = 62;
@@ -25,7 +26,9 @@ const ERROR_HINTS: [Hint; 2] = [
     Hint::key("r", "retry", crossterm::event::KeyCode::Char('r')),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
 ];
-const GLOBAL_HINTS: [Hint; 4] = [
+const GLOBAL_HINTS: [Hint; 6] = [
+    Hint::key("tab", "next needing you", crossterm::event::KeyCode::Tab),
+    Hint::key("/", "filter", crossterm::event::KeyCode::Char('/')),
     Hint::display("j/k", "move"),
     Hint::key("r", "refresh", crossterm::event::KeyCode::Char('r')),
     Hint::key("F", "forwards", crossterm::event::KeyCode::Char('F')),
@@ -112,7 +115,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     let mut hit_map = HitMap::new(frame.area());
     let [header, body, footer] =
         Layout::vertical([Constraint::Length(1), Constraint::Min(0), Constraint::Length(2)]).areas(frame.area());
-    render_header(frame, header, app);
+    render_header(frame, header, app, &mut hit_map);
     let body = app.poll_error.as_ref().map_or(body, |error| {
         let [banner, content] = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).areas(body);
         frame.render_widget(
@@ -232,8 +235,9 @@ fn remove_colors(frame: &mut Frame) {
     }
 }
 
-fn render_header(frame: &mut Frame, area: Rect, app: &App) {
+fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
     let counts = app.triage_counts();
+    let need_you = format!("{} need you", counts.needs_you);
     let mut spans = vec![
         Span::styled(
             " agentctl ",
@@ -241,8 +245,10 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
         ),
         Span::raw(" "),
         Span::styled(
-            format!("{} need you", counts.needs_you),
-            Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            need_you.clone(),
+            Style::new()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
         ),
     ];
     for segment in [
@@ -265,12 +271,33 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     if app.prompting.is_some() {
         push_header_segment(&mut spans, area.width, " · sending prompt".into(), Color::Cyan);
     }
+    if !app.filter.is_empty() {
+        push_header_segment(
+            &mut spans,
+            area.width,
+            format!(" · filter: {}", app.filter),
+            Color::Cyan,
+        );
+    }
     let updated = app.last_updated.map_or_else(
         || "waiting for first update".to_owned(),
         |at| format!("updated {} ago", compact_duration(at.elapsed().as_secs())),
     );
     push_header_segment(&mut spans, area.width, format!(" · {updated}"), Color::DarkGray);
     frame.render_widget(Line::from(spans), area);
+    let count_x = area.x.saturating_add(11);
+    hit_map.click(
+        Rect::new(
+            count_x,
+            area.y,
+            u16::try_from(Line::from(need_you).width()).unwrap_or(u16::MAX),
+            1,
+        ),
+        HitTarget::Action(MouseAction::Key(
+            crossterm::event::KeyCode::Tab,
+            crossterm::event::KeyModifiers::NONE,
+        )),
+    );
 }
 
 fn push_header_segment(spans: &mut Vec<Span<'static>>, width: u16, segment: String, color: Color) {
@@ -291,7 +318,13 @@ fn compact_duration(seconds: u64) -> String {
 fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
     let rows = app.render_rows();
     if rows.is_empty() {
-        let placeholder = if app.loaded { "(no agents)" } else { "loading…" };
+        let placeholder = if !app.filter.is_empty() {
+            format!("(no matches for {:?})", app.filter)
+        } else if app.loaded {
+            "(no agents)".into()
+        } else {
+            "loading…".into()
+        };
         frame.render_widget(
             Paragraph::new(placeholder).style(Style::new().fg(Color::DarkGray)),
             area,
@@ -808,7 +841,28 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
         Modal::Prompt(form) => render_prompt(frame, area, form, hit_map),
+        Modal::Filter(form) => render_filter(frame, area, form, hit_map),
+        Modal::ConfirmQuit => {
+            let target = Form::new(" quit agentctl? ", Color::Red, &CONFIRM_QUIT_HINTS)
+                .field(Line::from(" Quit the fleet console?"))
+                .render(frame, area);
+            map_hint_targets(line_area(target, FORM_HINT_ROW), &CONFIRM_QUIT_HINTS, hit_map);
+        }
     }
+}
+
+fn render_filter(frame: &mut Frame, area: Rect, form: &super::app::FilterForm, hit_map: &mut HitMap) {
+    let target = Form::new(" filter fleet ", Color::Cyan, &FILTER_HINTS)
+        .field(form_text_line(
+            "Filter",
+            &form.input,
+            true,
+            "name, state, harness or model",
+            "",
+        ))
+        .note(" Results update as you type; Esc closes, then clears the filter.")
+        .render(frame, area);
+    map_hint_targets(line_area(target, FORM_HINT_ROW), &FILTER_HINTS, hit_map);
 }
 
 fn render_prompt(frame: &mut Frame, area: Rect, form: &super::app::PromptForm, hit_map: &mut HitMap) {
@@ -1491,7 +1545,35 @@ mod tests {
         assert!(text.contains("agentctl"));
         assert!(text.contains("0 need you · 0 working · 0 starting · 0 idle · 0 failed"));
         assert!(text.contains("loading…"));
-        assert!(text.contains(" j/k  move   r  refresh   F  forwards   q  quit"));
+        assert!(text.contains(" tab  next needing you"));
+        assert!(text.contains(" /  filter"));
+    }
+
+    #[test]
+    fn header_need_you_control_uses_the_same_jump_action_as_tab() {
+        let mut app = tree_app(1);
+        let agents = std::mem::take(&mut app.agents);
+        app.apply_snapshot(
+            agents,
+            vec![
+                session("agent-00", "first", "waitingForInput", 1),
+                session("agent-00", "second", "waitingForInput", 2),
+            ],
+        );
+        let mut terminal = Terminal::new(TestBackend::new(100, 14)).expect("test terminal");
+        let hit_map = draw(&mut terminal, &app);
+        let action = hit_map.click_at(12, 0).expect("need-you count click target");
+        let HitTarget::Action(action) = action else {
+            panic!("header emits a semantic action");
+        };
+
+        app.on_mouse(action);
+        assert!(matches!(app.selection, Some(TreeRowId::Session { ref session, .. }) if session.as_str() == "first"));
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Tab,
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        assert!(matches!(app.selection, Some(TreeRowId::Session { ref session, .. }) if session.as_str() == "second"));
     }
 
     #[test]
