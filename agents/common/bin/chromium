@@ -1,0 +1,21 @@
+#!/bin/sh
+# The desktop's browser is the one Chromium the image already carries for Playwright, so a page
+# looks the same whether playwright-cli or a person opened it.
+#
+# The flags are the ones measured to matter in an Agent Sandbox. --disable-gpu and
+# --use-gl=swiftshader are deliberately absent: neither changed launch time, page load or scroll
+# latency against software rendering here, and each is one more way for the browser to differ
+# from the one Playwright drives. --disable-dev-shm-usage keeps Chromium's shared memory in /tmp,
+# which the desktop Agent sizes, rather than in a /dev/shm whose size the Sandbox owns.
+set -eu
+for candidate in /opt/ms-playwright/chromium-*/chrome-linux*/chrome; do
+    [ -x "$candidate" ] && exec "$candidate" \
+        --no-first-run \
+        --no-default-browser-check \
+        --password-store=basic \
+        --disable-infobars \
+        --disable-dev-shm-usage \
+        "$@"
+done
+echo "chromium: no Playwright Chromium build found under /opt/ms-playwright" >&2
+exit 1
