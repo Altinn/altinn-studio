@@ -9,6 +9,7 @@ pub(crate) fn format_access(spec: &agent::Spec) -> String {
         .iter()
         .map(|capability| match capability {
             agent::AccessSpec::Ssh {} => "ssh",
+            agent::AccessSpec::Vnc {} => "vnc",
         })
         .collect::<Vec<_>>()
         .join(",")
@@ -27,6 +28,20 @@ pub(crate) fn ssh_access_lines(access: &agent::ssh::AccessInfo) -> Vec<String> {
         format!("Config:      {}", access.config_file.display()),
         format!("Proxy:       {}", access.proxy_command),
         format!("Connect:     ssh -F {} {}", access.config_file.display(), access.alias),
+    ]
+}
+
+/// Renders a VNC access descriptor as aligned `key: value` lines.
+pub(crate) fn vnc_access_lines(access: &agent::vnc::AccessInfo) -> Vec<String> {
+    vec![
+        format!("Type:        {}", access.kind),
+        format!("Agent:       {}", access.agent),
+        format!("Agent ID:    {}", access.agent_id),
+        format!("Guest port:  {}", access.guest_port),
+        format!("Web port:    {}", access.web_guest_port),
+        format!("Forward:     {}", access.forward_command),
+        format!("Connect:     agentctl vnc {}", access.agent),
+        format!("In browser:  agentctl vnc --web {}", access.agent),
     ]
 }
 
