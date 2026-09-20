@@ -5,14 +5,21 @@ After=agent-browser-ca-init.service
 
 [Service]
 # Xtigervnc is both the X server and the VNC server, so the desktop runs one process where an
-# Xvfb and x11vnc pair would poll a framebuffer. It listens on loopback only: reaching it from
-# outside the Sandbox is the platform's to grant, through `agentctl port-forward` or an SSH tunnel.
+# Xvfb and x11vnc pair would poll a framebuffer.
+#
+# It listens on a Unix socket and on no TCP port at all, which is what `-rfbport -1` means: the
+# default is not "no listener" but port 5900 plus the display number, on every interface. The
+# desktop is therefore always running and never reachable, and granting a person access to it is
+# the platform's to do, by bridging a guest port to this socket when the Agent declares
+# `access: [{type: vnc}]` and removing that bridge when it stops declaring it.
 Type=exec
 User=agent
 Group=agent
+RuntimeDirectory=agent-desktop
+RuntimeDirectoryMode=0755
 Environment=HOME=/home/agent
 EnvironmentFile=/etc/agent-desktop.conf
-ExecStart=/usr/bin/Xtigervnc ${AGENT_DESKTOP_DISPLAY} -geometry ${AGENT_DESKTOP_GEOMETRY} -depth 24 -rfbport ${AGENT_DESKTOP_VNC_PORT} -localhost -SecurityTypes None -AlwaysShared -desktop Altinn-Agent
+ExecStart=/usr/bin/Xtigervnc ${AGENT_DESKTOP_DISPLAY} -geometry ${AGENT_DESKTOP_GEOMETRY} -depth 24 -rfbport -1 -rfbunixpath ${AGENT_DESKTOP_SOCKET} -rfbunixmode 0600 -SecurityTypes None -AlwaysShared -desktop Altinn-Agent
 Restart=on-failure
 RestartSec=2
 
