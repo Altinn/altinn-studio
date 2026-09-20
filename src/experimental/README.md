@@ -142,6 +142,8 @@ contains any active Agent's secret file is refused at apply time, because the Sa
 values from the mounted directory. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
 the current real value only for an authorized request to an allowed host; rotation does not require copying new
 material into the Sandbox. A custom placeholder is optional for clients that validate token shape.
+Set `optional: true` when a missing or empty environment-file value should omit that secret binding instead of
+rejecting the Agent apply. Required secrets remain the default.
 
 Policy is evaluated for live Sandbox-originated operations and fails closed when the destination, authorization,
 secret resolution or trusted mediation path is unavailable. Host-destined traffic is restricted to the registered

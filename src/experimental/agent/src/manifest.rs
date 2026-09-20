@@ -671,6 +671,9 @@ impl SkillSpec {
 pub struct SecretSpec {
     /// Guest environment variable and stable secret binding name.
     pub environment: String,
+    /// Whether a missing or empty environment-file value omits this binding.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub optional: bool,
     /// Optional inert value; the selected Network Backend generates one when omitted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub placeholder: Option<String>,
@@ -679,6 +682,11 @@ pub struct SecretSpec {
     /// Optional variable name in the manifest directory's `.env`; defaults to `environment`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+const fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 impl SecretSpec {
