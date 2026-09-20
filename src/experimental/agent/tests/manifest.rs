@@ -225,6 +225,27 @@ fn decodes_explicit_non_secret_environment_with_an_optional_source() {
 }
 
 #[test]
+fn optional_secret_round_trips_without_changing_the_required_default() {
+    let mut agent = support::agent("worker");
+    agent.spec.secrets.push(SecretSpec {
+        environment: "OPTIONAL_TOKEN".into(),
+        optional: true,
+        placeholder: None,
+        allowed_hosts: vec!["example.com".into()],
+        source: None,
+    });
+
+    let encoded = serde_yaml_ng::to_string(&agent).expect("encoded manifest");
+    let decoded = manifest::decode(encoded.as_bytes()).expect("manifest with optional secret");
+    assert!(decoded.spec.secrets[0].optional);
+    assert!(encoded.contains("optional: true"));
+
+    agent.spec.secrets[0].optional = false;
+    let required = serde_yaml_ng::to_string(&agent).expect("encoded required secret");
+    assert!(!required.contains("optional:"));
+}
+
+#[test]
 fn rejects_invalid_duplicate_and_unpaired_environment_names() {
     let mut invalid = support::agent("worker");
     invalid.spec.environment.push(EnvironmentSpec {
@@ -272,6 +293,7 @@ fn rejects_environment_collisions_with_secrets_and_harness_owned_values() {
     });
     secret_collision.spec.secrets.push(SecretSpec {
         environment: "API_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["example.com".into()],
         source: Some("SHARED_VALUE".into()),
@@ -375,12 +397,14 @@ fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
     agent.spec.secrets = vec![
         SecretSpec {
             environment: "FIRST_TOKEN".into(),
+            optional: false,
             placeholder: None,
             allowed_hosts: vec!["example.com".into()],
             source: None,
         },
         SecretSpec {
             environment: "SECOND_TOKEN".into(),
+            optional: false,
             placeholder: Some("$AGENT_SECRET_FIRST_TOKEN".into()),
             allowed_hosts: vec!["example.com".into()],
             source: None,
@@ -447,6 +471,7 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
     agent.spec.harnesses.push(codex);
     agent.spec.secrets.push(SecretSpec {
         environment: "AGENT_CODEX_ACCESS_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["chatgpt.com".into()],
         source: None,
