@@ -1,0 +1,69 @@
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: altinn-desktop
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-desktop:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "4"
+      # The desktop itself is small: the X and VNC server, the window manager and the panel
+      # together hold about 40 MiB and idle at a tenth of a core. The browser is what needs room,
+      # so this stays at the full Agent's memory rather than growing with the desktop.
+      memory: "8Gi"
+      rootFilesystem:
+        capacity: "64Gi"
+        mode: direct
+    initSystem: image
+    # The Sandbox default sizes /tmp at a quarter of guest memory, capped at 512 MiB, which is
+    # too small for a large build's scratch space. A tmpfs holds only what is written to it.
+    # Chromium's shared memory lands here too, because the desktop browser runs with
+    # --disable-dev-shm-usage rather than depending on the Sandbox's /dev/shm size.
+    mounts:
+      - type: tmpfs
+        target: /tmp
+        capacity: "2Gi"
+  home:
+    source: home
+  instructions:
+    - source: ../instructions.md
+    - source: environment.md
+  skills:
+    - source: ../../src/cli/resources/agent/skills/app-development
+      name: altinn-studio-app-development
+    - source: ../skills/pr-evidence
+    - source: ../skills/computer-use
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+      # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
+      defaults:
+        model: fable
+    # - type: codex
+    #   version: "0.149.1"
+    #   auth: mediated
+  environment:
+    - name: GIT_USER_NAME
+    - name: GIT_USER_EMAIL
+  secrets:
+    - environment: GITHUB_TOKEN
+      # gh only attaches files with a token it classifies by prefix; the inert placeholder
+      # therefore carries the fine-grained PAT prefix and is far shorter than a real token.
+      placeholder: github_pat_AGENT_MEDIATED_GITHUB_TOKEN
+      allowedHosts:
+        - github.com
+        - api.github.com
+        - gist.github.com
+        - uploads.github.com
+  access:
+    - type: ssh
+  network:
+    mode: mediated
+    allow: all
+    deny:
+      - metadata.google.internal
