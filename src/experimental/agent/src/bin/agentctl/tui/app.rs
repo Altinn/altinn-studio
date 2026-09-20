@@ -145,7 +145,7 @@ pub(crate) struct ForwardEntry {
 
 impl ForwardEntry {
     /// Renders the mapping as `LOCAL:GUEST`, keeping a non-loopback address.
-    fn mapping(&self) -> String {
+    pub(crate) fn mapping(&self) -> String {
         let local = self.local.strip_prefix("127.0.0.1:").unwrap_or(&self.local);
         format!("{local}:{}", self.guest_port)
     }
@@ -202,16 +202,17 @@ pub(crate) enum Modal {
     PortForward(ForwardForm),
 }
 
-/// Text field of the new Session form that typing edits.
+/// Focused field of the new Session form.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum SessionField {
-    Name,
+    Harness,
     Model,
     Effort,
+    Name,
 }
 
 impl SessionField {
-    const ORDER: [Self; 3] = [Self::Name, Self::Model, Self::Effort];
+    const ORDER: [Self; 4] = [Self::Harness, Self::Model, Self::Effort, Self::Name];
 
     fn next(self) -> Self {
         let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
@@ -259,23 +260,33 @@ impl SessionForm {
     }
 
     /// Applies one key; `Some` closes the form with the returned action.
-    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+    fn key(&mut self, key: KeyEvent, sessions: &[Session]) -> Option<Action> {
         match key.code {
             KeyCode::Esc => return Some(Action::None),
-            KeyCode::Enter => match self.submit() {
+            KeyCode::Enter => match self.submit(sessions) {
                 Ok(action) => return Some(action),
-                Err(invalid) => self.error = Some(invalid.to_string()),
+                Err(invalid) => self.error = Some(invalid),
             },
-            KeyCode::Tab | KeyCode::Down => self.field = self.field.next(),
-            KeyCode::BackTab | KeyCode::Up => self.field = self.field.previous(),
-            KeyCode::Right => self.harness = (self.harness + 1) % self.harnesses.len().max(1),
-            KeyCode::Left => {
+            KeyCode::Tab | KeyCode::Down => {
+                self.field = self.field.next();
+                self.error = None;
+            }
+            KeyCode::BackTab | KeyCode::Up => {
+                self.field = self.field.previous();
+                self.error = None;
+            }
+            KeyCode::Right if self.field == SessionField::Harness => {
+                self.harness = (self.harness + 1) % self.harnesses.len().max(1);
+                self.error = None;
+            }
+            KeyCode::Left if self.field == SessionField::Harness => {
                 self.harness = self
                     .harness
                     .checked_sub(1)
                     .unwrap_or_else(|| self.harnesses.len().saturating_sub(1));
+                self.error = None;
             }
-            KeyCode::Backspace => {
+            KeyCode::Backspace if self.field != SessionField::Harness => {
                 self.value_mut().pop();
                 self.error = None;
             }
@@ -290,17 +301,29 @@ impl SessionForm {
         None
     }
 
-    fn submit(&self) -> Result<Action, agent::Error> {
-        let session = SessionName::new(self.name.clone())?;
+    fn submit(&self, sessions: &[Session]) -> Result<Action, String> {
+        let session = SessionName::new(self.name.clone()).map_err(|invalid| invalid.to_string())?;
+        if sessions
+            .iter()
+            .any(|existing| existing.agent == self.agent && existing.name == session)
+        {
+            return Err(format!(
+                "session {:?} already exists on agent {:?}",
+                session.as_str(),
+                self.agent
+            ));
+        }
         let Some(installation) = self.installation() else {
             return Ok(Action::None);
         };
         let model = (!self.model.is_empty())
             .then(|| Model::new(self.model.clone()))
-            .transpose()?;
+            .transpose()
+            .map_err(|invalid| invalid.to_string())?;
         let effort = (!self.effort.is_empty())
             .then(|| Effort::new(self.effort.clone()))
-            .transpose()?;
+            .transpose()
+            .map_err(|invalid| invalid.to_string())?;
         Ok(Action::CreateSession {
             agent: self.agent.clone(),
             session,
@@ -309,8 +332,9 @@ impl SessionForm {
         })
     }
 
-    const fn value_mut(&mut self) -> &mut String {
+    fn value_mut(&mut self) -> &mut String {
         match self.field {
+            SessionField::Harness => unreachable!("the Harness field is a picker"),
             SessionField::Name => &mut self.name,
             SessionField::Model => &mut self.model,
             SessionField::Effort => &mut self.effort,
@@ -323,6 +347,7 @@ impl SessionForm {
     /// silently reshaped into a different valid one.
     fn accepts(&self, character: char) -> bool {
         match self.field {
+            SessionField::Harness => false,
             SessionField::Name => {
                 (character.is_ascii_alphanumeric() || matches!(character, '-' | '_')) && self.name.len() < 64
             }
@@ -1032,7 +1057,9 @@ impl App {
                 if let Some(Modal::NewSession(form)) = &mut self.modal
                     && index < form.harnesses.len()
                 {
+                    form.field = SessionField::Harness;
                     form.harness = index;
+                    form.error = None;
                 }
                 Action::None
             }
@@ -1271,7 +1298,7 @@ impl App {
                 }
             },
             Some(Modal::NewSession(mut form)) => {
-                if let Some(action) = form.key(key) {
+                if let Some(action) = form.key(key, &self.sessions) {
                     return action;
                 }
                 self.modal = Some(Modal::NewSession(form));
@@ -1350,7 +1377,7 @@ impl App {
             name: String::new(),
             model: String::new(),
             effort: String::new(),
-            field: SessionField::Name,
+            field: SessionField::Harness,
             harnesses: agent.spec.harnesses.clone(),
             harness,
             error: None,
@@ -2080,6 +2107,9 @@ mod tests {
         assert!(matches!(app.modal, Some(Modal::NewSession(_))));
         assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
         assert!(matches!(&app.modal, Some(Modal::NewSession(form)) if form.error.is_some()));
+        for _ in 0..3 {
+            app.on_key(key(KeyCode::Tab));
+        }
         app.on_key(key(KeyCode::Char('s')));
         app.on_key(key(KeyCode::Char('!')));
         app.on_key(key(KeyCode::Char('1')));
@@ -2097,6 +2127,29 @@ mod tests {
     }
 
     #[test]
+    fn new_session_modal_rejects_an_existing_name_instead_of_attaching() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('n')));
+        for _ in 0..3 {
+            app.on_key(key(KeyCode::Tab));
+        }
+        for character in "b1".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        let Some(Modal::NewSession(form)) = &app.modal else {
+            panic!("duplicate keeps the New Session modal open");
+        };
+        assert_eq!(form.field, SessionField::Name);
+        assert!(
+            form.error
+                .as_deref()
+                .is_some_and(|error| error.contains("already exists"))
+        );
+    }
+
+    #[test]
     fn new_session_form_types_model_and_effort_and_shows_manifest_defaults() {
         let mut app = App::new();
         app.apply_snapshot(
@@ -2111,12 +2164,14 @@ mod tests {
             Some(Modal::NewSession(form)) => form.clone(),
             _ => panic!("expected the NewSession modal"),
         };
-        assert_eq!(form(&app).field, SessionField::Name);
+        assert_eq!(form(&app).field, SessionField::Harness);
         assert_eq!(form(&app).model_default(), Some("fable"));
         assert_eq!(form(&app).effort_default(), Some("high"));
         assert_eq!(app.hints(), &NEW_SESSION_HINTS);
 
+        app.on_key(key(KeyCode::BackTab));
         app.on_key(key(KeyCode::Char('s')));
+        app.on_key(key(KeyCode::Tab));
         app.on_key(key(KeyCode::Tab));
         assert_eq!(form(&app).field, SessionField::Model);
         for character in "gpt 5.4".chars() {
@@ -2139,8 +2194,7 @@ mod tests {
         assert_eq!(form(&app).field, SessionField::Effort);
         app.on_key(key(KeyCode::Char('x')));
         app.on_key(key(KeyCode::Backspace));
-        app.on_key(key(KeyCode::BackTab));
-        app.on_key(key(KeyCode::Up));
+        app.on_key(key(KeyCode::Down));
         assert_eq!(form(&app).field, SessionField::Name);
         assert_eq!(form(&app).name, "s");
 
@@ -2187,6 +2241,9 @@ mod tests {
             panic!("expected the NewSession modal");
         };
         assert_eq!(form.harness, 0, "the picker wraps in both directions");
+        for _ in 0..3 {
+            app.on_key(key(KeyCode::Tab));
+        }
         app.on_key(key(KeyCode::Char('s')));
         app.on_key(key(KeyCode::Char('1')));
         assert_eq!(
