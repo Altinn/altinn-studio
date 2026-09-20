@@ -14,7 +14,8 @@ use std::{
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    sessions::Session, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
+    progress::Event as ProgressEvent, sessions::Session, sessions::SessionName, sessions::SessionRequest,
+    sessions::Turn,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -46,6 +47,7 @@ enum Input {
     ManifestsDiscovered(Vec<ManifestCandidate>),
     TranscriptLoaded(TranscriptOutcome),
     PromptSent(PromptOutcome),
+    AgentCreate(AgentCreateUpdate),
 }
 
 /// Completion of one background forward creation.
@@ -53,6 +55,25 @@ type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Erro
 type FetchOutcome = Result<(Vec<Agent>, Vec<Session>), Error>;
 type TranscriptOutcome = (TreeRowId, Result<Vec<Turn>, Error>);
 type PromptOutcome = (TreeRowId, String, Result<(), Error>);
+
+enum AgentCreateUpdate {
+    Applied {
+        agent: String,
+    },
+    Progress {
+        agent: String,
+        event: ProgressEvent,
+    },
+    Finished {
+        agent: String,
+        result: Result<(), String>,
+    },
+    Rejected {
+        agent: String,
+        form: CreateForm,
+        error: String,
+    },
+}
 
 #[derive(Default)]
 struct MouseInput {
@@ -139,6 +160,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let (refreshed_tx, mut refreshed_rx) = tokio::sync::mpsc::unbounded_channel::<FetchOutcome>();
     let (transcript_tx, mut transcript_rx) = tokio::sync::mpsc::unbounded_channel::<TranscriptOutcome>();
     let (prompt_tx, mut prompt_rx) = tokio::sync::mpsc::unbounded_channel::<PromptOutcome>();
+    let (agent_create_tx, mut agent_create_rx) = tokio::sync::mpsc::unbounded_channel::<AgentCreateUpdate>();
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
@@ -161,6 +183,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Some(candidates) = discovered_rx.recv() => Input::ManifestsDiscovered(candidates),
             Some(outcome) = transcript_rx.recv() => Input::TranscriptLoaded(outcome),
             Some(outcome) = prompt_rx.recv() => Input::PromptSent(outcome),
+            Some(update) = agent_create_rx.recv() => Input::AgentCreate(update),
         };
         let action = match input {
             Input::Tick => {
@@ -193,6 +216,31 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Input::PromptSent((target, prompt, result)) => {
                 mouse.reset();
                 if app.prompt_finished(target, prompt, result) {
+                    request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                }
+                continue;
+            }
+            Input::AgentCreate(update) => {
+                mouse.reset();
+                let refresh = match update {
+                    AgentCreateUpdate::Applied { agent } => {
+                        app.agent_applied(agent);
+                        true
+                    }
+                    AgentCreateUpdate::Progress { agent, event } => {
+                        app.provisioning_event(&agent, event);
+                        false
+                    }
+                    AgentCreateUpdate::Finished { agent, result } => {
+                        app.provisioning_finished(&agent, result);
+                        true
+                    }
+                    AgentCreateUpdate::Rejected { agent, form, error } => {
+                        app.provisioning_rejected(&agent, form, error);
+                        false
+                    }
+                };
+                if refresh {
                     request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
                 }
                 continue;
@@ -249,9 +297,15 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 env_file,
                 form,
             } => {
-                if create(&mut app, client, manifest, name, env_file, form).await? {
-                    request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
-                }
+                app.begin_provisioning(name.clone());
+                spawn_agent_create(
+                    home.socket_path(),
+                    agent_create_tx.clone(),
+                    manifest,
+                    name,
+                    env_file,
+                    form,
+                );
             }
             Action::CreateForward { agent, spec, replace } => {
                 if let Some(id) = replace {
@@ -469,39 +523,51 @@ fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
     found
 }
 
-/// Applies the manifest under the chosen name; a rejection reopens the form with the error.
-async fn create(
-    app: &mut App,
-    client: &Client,
+/// Applies and follows one Agent create without blocking the input loop.
+fn spawn_agent_create(
+    socket_path: PathBuf,
+    updates: tokio::sync::mpsc::UnboundedSender<AgentCreateUpdate>,
     manifest: PathBuf,
     name: String,
     env_file: Option<PathBuf>,
-    mut form: CreateForm,
-) -> CommandResult<bool> {
-    match create_agent(client, manifest, name, env_file).await {
-        Ok(applied) => {
-            app.selection = Some(app::TreeRowId::Agent(applied));
-            Ok(true)
+    form: CreateForm,
+) {
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let applied = async {
+            let mut request = crate::read_apply_request(manifest, env_file)?;
+            request.agent.metadata.name = name.clone();
+            request.create_only = true;
+            client.apply(request).await
         }
-        Err(error) => {
-            form.error = Some(error.to_string());
-            app.modal = Some(Modal::CreateAgent(form));
-            Ok(false)
-        }
-    }
-}
-
-async fn create_agent(
-    client: &Client,
-    manifest: PathBuf,
-    name: String,
-    env_file: Option<PathBuf>,
-) -> Result<String, Error> {
-    let mut request = crate::read_apply_request(manifest, env_file)?;
-    request.agent.metadata.name = name;
-    request.create_only = true;
-    let applied = client.apply(request).await?;
-    Ok(applied.metadata.name)
+        .await;
+        let applied = match applied {
+            Ok(applied) => applied.metadata.name,
+            Err(error) => {
+                let _ = updates.send(AgentCreateUpdate::Rejected {
+                    agent: name,
+                    form,
+                    error: error.to_string(),
+                });
+                return;
+            }
+        };
+        let _ = updates.send(AgentCreateUpdate::Applied { agent: applied.clone() });
+        let progress_updates = updates.clone();
+        let progress_agent = applied.clone();
+        let mut sink = move |event| {
+            let _ = progress_updates.send(AgentCreateUpdate::Progress {
+                agent: progress_agent.clone(),
+                event,
+            });
+        };
+        let result = client
+            .ensure_execution(&applied, WaitPolicy::UntilReady, Some(&mut sink))
+            .await
+            .map(|_| ())
+            .map_err(|error| error.to_string());
+        let _ = updates.send(AgentCreateUpdate::Finished { agent: applied, result });
+    });
 }
 
 /// Applies one completed background forward creation to the UI state.

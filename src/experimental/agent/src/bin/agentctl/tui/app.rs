@@ -1,11 +1,13 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet, VecDeque},
+    fmt::Write as _,
     path::{Path, PathBuf},
-    time::Instant,
+    time::{Duration, Instant},
 };
 
 use agent::{
-    Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
+    Agent, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection,
+    progress::{Event as ProgressEvent, Phase, PhaseOutcome, ProgressUnit},
     sessions::{Session, SessionName, State, Turn},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -116,6 +118,19 @@ const AGENT_HINTS: [Hint; 9] = [
     Hint::key("z", "all", KeyCode::Char('z')),
 ];
 
+const AGENT_PROGRESS_HINTS: [Hint; 10] = [
+    Hint::key("p", "progress", KeyCode::Char('p')),
+    Hint::key("enter", "fold", KeyCode::Enter),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+    Hint::key("e", "exec", KeyCode::Char('e')),
+    Hint::key("f", "forward", KeyCode::Char('f')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("z", "all", KeyCode::Char('z')),
+];
+
 const SESSION_HINTS: [Hint; 6] = [
     Hint::key("enter", "attach", KeyCode::Enter),
     Hint::key("p", "prompt", KeyCode::Char('p')),
@@ -151,6 +166,7 @@ pub(crate) struct App {
     pub(crate) transcript: Option<TranscriptPreview>,
     pub(crate) prompting: Option<TreeRowId>,
     pub(crate) filter: String,
+    pub(crate) provisioning: HashMap<String, Provisioning>,
 }
 
 /// Display state of one process-owned port forward.
@@ -206,6 +222,7 @@ pub(crate) struct Detail {
 pub(crate) enum DetailKind {
     Describe,
     Yaml,
+    Provisioning,
 }
 
 pub(crate) struct DetailView {
@@ -242,6 +259,68 @@ pub(crate) struct PromptForm {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct FilterForm {
     pub(crate) input: String,
+}
+
+const PROVISIONING_PHASES: [Phase; 10] = [
+    Phase::Validate,
+    Phase::Lookup,
+    Phase::FeatureDiscovery,
+    Phase::ImageResolve,
+    Phase::ImagePrepare,
+    Phase::SandboxCreate,
+    Phase::SandboxUpdate,
+    Phase::NetworkStart,
+    Phase::SandboxStart,
+    Phase::Inspect,
+];
+
+const RECENT_OUTPUT_LINES: usize = 5;
+
+/// Durable display state for one provisioning operation followed by this TUI.
+pub(crate) struct Provisioning {
+    phases: Vec<ProvisioningPhase>,
+    current: Option<Phase>,
+    step: Option<ProvisioningStep>,
+    failure: Option<ProvisioningFailure>,
+    result: ProvisioningResult,
+}
+
+struct ProvisioningPhase {
+    phase: Phase,
+    message: String,
+    state: ProvisioningPhaseState,
+}
+
+enum ProvisioningPhaseState {
+    Pending,
+    Running { started_at: Instant },
+    Completed { outcome: PhaseOutcome, elapsed_ms: u64 },
+    Failed { elapsed_ms: u64 },
+}
+
+struct ProvisioningStep {
+    phase: Phase,
+    id: String,
+    message: String,
+    completed: Option<u64>,
+    total: Option<u64>,
+    unit: Option<ProgressUnit>,
+    recent_output: VecDeque<String>,
+}
+
+struct ProvisioningFailure {
+    phase: Option<Phase>,
+    detail: String,
+    kind: FailureKind,
+    output: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+enum ProvisioningResult {
+    #[default]
+    Following,
+    Ready,
+    Failed,
 }
 
 /// Focused field of the new Session form.
@@ -927,6 +1006,422 @@ struct SessionPresentation {
     tone: Tone,
 }
 
+impl Provisioning {
+    pub(crate) fn new() -> Self {
+        Self {
+            phases: PROVISIONING_PHASES
+                .into_iter()
+                .map(|phase| ProvisioningPhase {
+                    phase,
+                    message: phase_label(phase).into(),
+                    state: ProvisioningPhaseState::Pending,
+                })
+                .collect(),
+            current: None,
+            step: None,
+            failure: None,
+            result: ProvisioningResult::Following,
+        }
+    }
+
+    #[allow(clippy::too_many_lines)]
+    pub(crate) fn event(&mut self, event: ProgressEvent, now: Instant) {
+        match event {
+            ProgressEvent::PhaseStarted { phase, message } => {
+                let duplicate = self.current == Some(phase)
+                    && self
+                        .phase(phase)
+                        .is_some_and(|entry| matches!(entry.state, ProvisioningPhaseState::Running { .. }));
+                let entry = self.phase_mut(phase);
+                entry.message = message;
+                if !duplicate {
+                    entry.state = ProvisioningPhaseState::Running { started_at: now };
+                    self.step = None;
+                }
+                self.current = Some(phase);
+                self.failure = None;
+                self.result = ProvisioningResult::Following;
+            }
+            ProgressEvent::PhaseCompleted {
+                phase,
+                message,
+                outcome,
+                elapsed_ms,
+            } => {
+                let entry = self.phase_mut(phase);
+                entry.message = message;
+                entry.state = ProvisioningPhaseState::Completed { outcome, elapsed_ms };
+                if self.current == Some(phase) {
+                    self.current = None;
+                    self.step = None;
+                }
+                self.failure = None;
+            }
+            ProgressEvent::PhaseFailed {
+                phase,
+                message,
+                detail,
+                failure,
+                elapsed_ms,
+            } => {
+                let entry = self.phase_mut(phase);
+                entry.message = message;
+                entry.state = ProvisioningPhaseState::Failed { elapsed_ms };
+                let output = self
+                    .step
+                    .as_ref()
+                    .filter(|step| step.phase == phase)
+                    .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect());
+                self.failure = Some(ProvisioningFailure {
+                    phase: Some(phase),
+                    detail,
+                    kind: failure,
+                    output,
+                });
+                if self.current == Some(phase) {
+                    self.current = None;
+                    self.step = None;
+                }
+                if failure == FailureKind::Invalid {
+                    self.result = ProvisioningResult::Failed;
+                }
+            }
+            ProgressEvent::StepStarted {
+                phase,
+                step_id,
+                message,
+            } => {
+                if self.current != Some(phase) {
+                    return;
+                }
+                self.step = Some(ProvisioningStep {
+                    phase,
+                    id: step_id,
+                    message,
+                    completed: None,
+                    total: None,
+                    unit: None,
+                    recent_output: VecDeque::new(),
+                });
+            }
+            ProgressEvent::StepProgress {
+                phase,
+                step_id,
+                message,
+                completed,
+                total,
+                unit,
+            } => {
+                if self.current != Some(phase) {
+                    return;
+                }
+                if !self
+                    .step
+                    .as_ref()
+                    .is_some_and(|step| step.phase == phase && step.id == step_id)
+                {
+                    self.step = Some(ProvisioningStep {
+                        phase,
+                        id: step_id,
+                        message: message.clone(),
+                        completed: None,
+                        total: None,
+                        unit: None,
+                        recent_output: VecDeque::new(),
+                    });
+                }
+                if let Some(step) = self.step.as_mut() {
+                    step.message = message;
+                    step.completed = Some(completed);
+                    step.total = total;
+                    step.unit = Some(unit);
+                }
+            }
+            ProgressEvent::StepOutput {
+                phase,
+                step_id,
+                message,
+                detail,
+                ..
+            } => {
+                if self.current != Some(phase) {
+                    return;
+                }
+                if !self
+                    .step
+                    .as_ref()
+                    .is_some_and(|step| step.phase == phase && step.id == step_id)
+                {
+                    self.step = Some(ProvisioningStep {
+                        phase,
+                        id: step_id,
+                        message,
+                        completed: None,
+                        total: None,
+                        unit: None,
+                        recent_output: VecDeque::new(),
+                    });
+                }
+                if let Some(step) = self.step.as_mut() {
+                    for line in detail.lines().map(str::trim).filter(|line| !line.is_empty()) {
+                        if step.recent_output.len() == RECENT_OUTPUT_LINES {
+                            step.recent_output.pop_front();
+                        }
+                        step.recent_output.push_back(line.into());
+                    }
+                }
+            }
+            ProgressEvent::StepCompleted { phase, step_id, .. } => {
+                if self
+                    .step
+                    .as_ref()
+                    .is_some_and(|step| step.phase == phase && step.id == step_id)
+                {
+                    self.step = None;
+                }
+            }
+            ProgressEvent::Condition {
+                reason,
+                message,
+                failure: Some(kind),
+                ..
+            } => {
+                let detail = if message.is_empty() { reason } else { message };
+                if self.failure.as_ref().is_none_or(|failure| failure.detail != detail) {
+                    self.failure = Some(ProvisioningFailure {
+                        phase: self.current,
+                        detail,
+                        kind,
+                        output: self
+                            .step
+                            .as_ref()
+                            .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect()),
+                    });
+                }
+                if kind == FailureKind::Invalid {
+                    self.result = ProvisioningResult::Failed;
+                }
+            }
+            ProgressEvent::Condition { .. } => {}
+        }
+    }
+
+    pub(crate) fn finish(&mut self, result: Result<(), String>) {
+        match result {
+            Ok(()) => {
+                self.result = ProvisioningResult::Ready;
+                self.current = None;
+                self.step = None;
+                self.failure = None;
+            }
+            Err(error) => {
+                if self.failure.is_none() {
+                    self.failure = Some(ProvisioningFailure {
+                        phase: self.current,
+                        detail: error,
+                        kind: FailureKind::Transient,
+                        output: self
+                            .step
+                            .as_ref()
+                            .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect()),
+                    });
+                }
+                self.result = ProvisioningResult::Failed;
+                self.current = None;
+                self.step = None;
+            }
+        }
+    }
+
+    pub(crate) fn following(&self) -> bool {
+        self.result == ProvisioningResult::Following
+    }
+
+    fn phase(&self, phase: Phase) -> Option<&ProvisioningPhase> {
+        self.phases.iter().find(|entry| entry.phase == phase)
+    }
+
+    fn phase_mut(&mut self, phase: Phase) -> &mut ProvisioningPhase {
+        let index = self
+            .phases
+            .iter()
+            .position(|entry| entry.phase == phase)
+            .unwrap_or_default();
+        &mut self.phases[index]
+    }
+
+    fn presentation(&self, now: Instant) -> (Tone, String, String) {
+        match self.result {
+            ProvisioningResult::Ready => (Tone::Green, "Ready".into(), "provisioning complete".into()),
+            ProvisioningResult::Failed => (
+                Tone::Red,
+                "Failed".into(),
+                self.failure
+                    .as_ref()
+                    .map_or_else(|| "provisioning failed".into(), |failure| failure.detail.clone()),
+            ),
+            ProvisioningResult::Following => {
+                let detail = self.current.and_then(|phase| self.phase(phase)).map_or_else(
+                    || {
+                        self.failure.as_ref().map_or_else(
+                            || "waiting for provisioning".into(),
+                            |failure| format!("retrying after {}", failure.detail),
+                        )
+                    },
+                    |phase| {
+                        let mut detail = phase.message.clone();
+                        if let Some(step) = &self.step {
+                            let progress = step_progress(step, 6);
+                            if progress.is_empty() {
+                                let _ = write!(detail, " · {}", step.message);
+                            } else {
+                                let _ = write!(detail, " · {} {progress}", step.message);
+                            }
+                        } else if let ProvisioningPhaseState::Running { started_at } = phase.state {
+                            let _ = write!(detail, " · {}", compact_elapsed(now.duration_since(started_at)));
+                        }
+                        detail
+                    },
+                );
+                (Tone::Blue, "Starting".into(), detail)
+            }
+        }
+    }
+
+    fn lines(&self, now: Instant) -> Vec<String> {
+        let mut lines = Vec::new();
+        for phase in &self.phases {
+            let (marker, suffix) = match phase.state {
+                ProvisioningPhaseState::Pending => (" ", String::new()),
+                ProvisioningPhaseState::Running { started_at } => {
+                    (">", compact_elapsed(now.duration_since(started_at)))
+                }
+                ProvisioningPhaseState::Completed {
+                    outcome: PhaseOutcome::Reused,
+                    ..
+                } => ("+", "reused".into()),
+                ProvisioningPhaseState::Completed { elapsed_ms, .. }
+                | ProvisioningPhaseState::Failed { elapsed_ms } => (
+                    if matches!(phase.state, ProvisioningPhaseState::Failed { .. }) {
+                        "✖"
+                    } else {
+                        "+"
+                    },
+                    duration_ms(elapsed_ms),
+                ),
+            };
+            lines.push(format!("{marker} {:<22} {suffix}", phase.message));
+            if self.current == Some(phase.phase)
+                && let Some(step) = &self.step
+                && step.phase == phase.phase
+            {
+                lines.push(format!("    {}", step.message));
+                let progress = step_progress(step, 12);
+                if !progress.is_empty() {
+                    lines.push(format!("    {progress}"));
+                }
+                for output in &step.recent_output {
+                    lines.push(format!("    {output}"));
+                }
+            }
+        }
+        if let Some(failure) = &self.failure {
+            lines.push(String::new());
+            lines.push(failure.phase.map_or_else(
+                || format!("error: {}", failure.detail),
+                |phase| format!("error in {}: {}", phase_label(phase), failure.detail),
+            ));
+            for output in &failure.output {
+                lines.push(format!("    {output}"));
+            }
+            lines.push(String::new());
+            lines.push(match failure.kind {
+                FailureKind::Invalid => "Change the Agent manifest before retrying.".into(),
+                FailureKind::Transient => "agentd keeps retrying in the background.".into(),
+            });
+        } else if self.result == ProvisioningResult::Ready {
+            lines.push(String::new());
+            lines.push("Agent is ready.".into());
+        }
+        lines
+    }
+}
+
+const fn phase_label(phase: Phase) -> &'static str {
+    match phase {
+        Phase::Validate => "validate",
+        Phase::Lookup => "lookup",
+        Phase::FeatureDiscovery => "feature discovery",
+        Phase::ImageResolve => "image resolve",
+        Phase::ImagePrepare => "image prepare",
+        Phase::SandboxCreate => "sandbox create",
+        Phase::SandboxUpdate => "sandbox update",
+        Phase::NetworkStart => "network start",
+        Phase::SandboxStart => "sandbox start",
+        Phase::Inspect => "inspect",
+    }
+}
+
+fn step_progress(step: &ProvisioningStep, bar_width: usize) -> String {
+    let Some(completed) = step.completed else {
+        return String::new();
+    };
+    let counter = progress_counter(completed, step.total, step.unit);
+    let Some(total) = step.total.filter(|total| *total > 0) else {
+        return counter;
+    };
+    let filled = usize::try_from(completed.saturating_mul(bar_width as u64) / total)
+        .unwrap_or(bar_width)
+        .min(bar_width);
+    format!("{}{}  {counter}", "▰".repeat(filled), "▱".repeat(bar_width - filled))
+}
+
+fn progress_counter(completed: u64, total: Option<u64>, unit: Option<ProgressUnit>) -> String {
+    let value = |value| match unit {
+        Some(ProgressUnit::Bytes) => byte_count(value),
+        Some(ProgressUnit::Items) | None => value.to_string(),
+    };
+    total.map_or_else(
+        || value(completed),
+        |total| format!("{} / {}", value(completed), value(total)),
+    )
+}
+
+fn byte_count(value: u64) -> String {
+    const KIB: u64 = 1_024;
+    const MIB: u64 = KIB * 1_024;
+    const GIB: u64 = MIB * 1_024;
+    let (unit, suffix) = if value >= GIB {
+        (GIB, "GiB")
+    } else if value >= MIB {
+        (MIB, "MiB")
+    } else if value >= KIB {
+        (KIB, "KiB")
+    } else {
+        return format!("{value} B");
+    };
+    format!("{}.{:01} {suffix}", value / unit, value % unit * 10 / unit)
+}
+
+fn compact_elapsed(duration: Duration) -> String {
+    let seconds = duration.as_secs();
+    if seconds >= 60 {
+        format!("{}m{:02}s", seconds / 60, seconds % 60)
+    } else {
+        format!("{seconds}s")
+    }
+}
+
+fn duration_ms(milliseconds: u64) -> String {
+    if milliseconds >= 60_000 {
+        format!("{}m{:02}s", milliseconds / 60_000, milliseconds % 60_000 / 1_000)
+    } else if milliseconds >= 1_000 {
+        format!("{}.{:01}s", milliseconds / 1_000, milliseconds % 1_000 / 100)
+    } else {
+        format!("{milliseconds}ms")
+    }
+}
+
 impl App {
     pub(crate) fn new() -> Self {
         Self {
@@ -953,6 +1448,7 @@ impl App {
             transcript: None,
             prompting: None,
             filter: String::new(),
+            provisioning: HashMap::new(),
         }
     }
 
@@ -1125,6 +1621,44 @@ impl App {
 
     pub(crate) fn prompt_started(&mut self, target: TreeRowId) {
         self.prompting = Some(target);
+    }
+
+    pub(crate) fn begin_provisioning(&mut self, agent: String) {
+        self.provisioning.insert(agent, Provisioning::new());
+    }
+
+    pub(crate) fn agent_applied(&mut self, agent: String) {
+        let target = TreeRowId::Agent(agent);
+        self.selection = Some(target.clone());
+        self.detail = Some(Detail {
+            target,
+            kind: DetailKind::Provisioning,
+            scroll: 0,
+        });
+    }
+
+    pub(crate) fn provisioning_event(&mut self, agent: &str, event: ProgressEvent) {
+        self.provisioning
+            .entry(agent.into())
+            .or_insert_with(Provisioning::new)
+            .event(event, Instant::now());
+    }
+
+    pub(crate) fn provisioning_finished(&mut self, agent: &str, result: Result<(), String>) {
+        self.provisioning
+            .entry(agent.into())
+            .or_insert_with(Provisioning::new)
+            .finish(result);
+    }
+
+    pub(crate) fn provisioning_rejected(&mut self, agent: &str, mut form: CreateForm, error: String) {
+        self.provisioning.remove(agent);
+        form.error = Some(error);
+        if self.modal.is_none() && self.detail.is_none() {
+            self.modal = Some(Modal::CreateAgent(form));
+        } else {
+            self.error = form.error;
+        }
     }
 
     pub(crate) fn prompt_finished(
@@ -1455,6 +1989,13 @@ impl App {
                 self.detail = Some(Detail {
                     target: TreeRowId::Agent(name),
                     kind: DetailKind::Yaml,
+                    scroll: 0,
+                });
+            }
+            KeyCode::Char('p') if self.provisioning.contains_key(&name) => {
+                self.detail = Some(Detail {
+                    target: TreeRowId::Agent(name),
+                    kind: DetailKind::Provisioning,
                     scroll: 0,
                 });
             }
@@ -1800,7 +2341,10 @@ impl App {
                     } else {
                         "v"
                     };
-                    let (tone, state, message) = agent_presentation(agent);
+                    let (tone, state, message) = self.provisioning.get(&agent.metadata.name).map_or_else(
+                        || agent_presentation(agent),
+                        |progress| progress.presentation(Instant::now()),
+                    );
                     let forwards = self
                         .forwards
                         .iter()
@@ -1881,6 +2425,13 @@ impl App {
             return &FORWARD_VIEW_HINTS;
         }
         match self.selected_row() {
+            Some(Row::Agent(group))
+                if self
+                    .group_agent(group)
+                    .is_some_and(|agent| self.provisioning.contains_key(&agent.metadata.name)) =>
+            {
+                &AGENT_PROGRESS_HINTS
+            }
             Some(Row::Agent(_)) => &AGENT_HINTS,
             Some(Row::Session { .. }) => &SESSION_HINTS,
             None => &EMPTY_HINTS,
@@ -1891,6 +2442,17 @@ impl App {
         let detail = self.detail.as_ref()?;
         let (title, lines) = match &detail.target {
             TreeRowId::Agent(name) => {
+                if detail.kind == DetailKind::Provisioning {
+                    let lines = self.provisioning.get(name).map_or_else(
+                        || vec![format!("No provisioning progress is retained for Agent {name:?}.")],
+                        |progress| progress.lines(Instant::now()),
+                    );
+                    return Some(DetailView {
+                        title: format!("{name} · provisioning"),
+                        lines,
+                        scroll: detail.scroll,
+                    });
+                }
                 let title = format!(
                     "agent/{name}{}",
                     if detail.kind == DetailKind::Yaml { " yaml" } else { "" }
@@ -1904,6 +2466,7 @@ impl App {
                         |agent| match detail.kind {
                             DetailKind::Describe => format::describe_agent_lines(agent),
                             DetailKind::Yaml => yaml_lines(agent),
+                            DetailKind::Provisioning => unreachable!("handled above"),
                         },
                     );
                 (title, lines)
@@ -1924,6 +2487,9 @@ impl App {
                         |session| match detail.kind {
                             DetailKind::Describe => session_detail_lines(session),
                             DetailKind::Yaml => yaml_lines(session),
+                            DetailKind::Provisioning => {
+                                vec!["Provisioning progress belongs to an Agent.".into()]
+                            }
                         },
                     );
                 (title, lines)
@@ -2426,6 +2992,202 @@ mod tests {
         app.prompt_started(target.clone());
         assert!(app.prompt_finished(target, "done".into(), Ok(())));
         assert!(app.transcript.is_none(), "success schedules a fresh transcript read");
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn provisioning_fold_retains_progress_and_bounded_failure_output() {
+        let now = Instant::now();
+        let mut progress = Provisioning::new();
+        progress.event(
+            ProgressEvent::PhaseStarted {
+                phase: Phase::ImagePrepare,
+                message: "image prepare".into(),
+            },
+            now,
+        );
+        progress.event(
+            ProgressEvent::StepStarted {
+                phase: Phase::ImagePrepare,
+                step_id: "pull".into(),
+                message: "pulling layer 7 of 12".into(),
+            },
+            now,
+        );
+        progress.event(
+            ProgressEvent::StepProgress {
+                phase: Phase::ImagePrepare,
+                step_id: "pull".into(),
+                message: "pulling layer 7 of 12".into(),
+                completed: 512 * 1_024 * 1_024,
+                total: Some(1_024 * 1_024 * 1_024),
+                unit: ProgressUnit::Bytes,
+            },
+            now,
+        );
+        for line in 1..=6 {
+            progress.event(
+                ProgressEvent::StepOutput {
+                    phase: Phase::ImagePrepare,
+                    step_id: "pull".into(),
+                    message: "pulling layer 7 of 12".into(),
+                    stream: agent::progress::OutputStream::Stderr,
+                    detail: format!("output {line}"),
+                },
+                now,
+            );
+        }
+
+        progress.event(
+            ProgressEvent::PhaseStarted {
+                phase: Phase::ImagePrepare,
+                message: "image prepare".into(),
+            },
+            now + Duration::from_secs(3),
+        );
+        assert!(
+            progress.presentation(now).2.contains("▰▰▰▱▱▱  512.0 MiB / 1.0 GiB"),
+            "a duplicate phase start must not discard current step progress"
+        );
+
+        progress.event(
+            ProgressEvent::PhaseFailed {
+                phase: Phase::ImagePrepare,
+                message: "image prepare".into(),
+                detail: "COPY failed: dist not found".into(),
+                failure: FailureKind::Transient,
+                elapsed_ms: 62_000,
+            },
+            now,
+        );
+        let lines = progress.lines(now).join("\n");
+        assert!(lines.contains("✖ image prepare          1m02s"));
+        assert!(
+            !lines.contains("output 1"),
+            "only the five newest output lines are retained"
+        );
+        assert!(lines.contains("output 2"));
+        assert!(lines.contains("output 6"));
+        assert!(lines.contains("agentd keeps retrying in the background"));
+
+        progress.event(
+            ProgressEvent::PhaseCompleted {
+                phase: Phase::ImageResolve,
+                message: "image resolve".into(),
+                outcome: PhaseOutcome::Reused,
+                elapsed_ms: 3,
+            },
+            now,
+        );
+        progress.event(
+            ProgressEvent::PhaseCompleted {
+                phase: Phase::ImageResolve,
+                message: "image resolve".into(),
+                outcome: PhaseOutcome::Reused,
+                elapsed_ms: 3,
+            },
+            now,
+        );
+        progress.event(
+            ProgressEvent::StepProgress {
+                phase: Phase::ImageResolve,
+                step_id: "late".into(),
+                message: "late progress after completion".into(),
+                completed: 1,
+                total: Some(1),
+                unit: ProgressUnit::Items,
+            },
+            now,
+        );
+        assert_eq!(
+            progress
+                .lines(now)
+                .iter()
+                .filter(|line| line.contains("image resolve") && line.contains("reused"))
+                .count(),
+            1,
+            "duplicate completion updates one stable phase row"
+        );
+        assert!(
+            !progress.lines(now).join("\n").contains("late progress"),
+            "lagging step telemetry cannot reopen a completed phase"
+        );
+    }
+
+    #[test]
+    fn provisioning_panel_closes_without_losing_state_and_reopens_from_agent() {
+        let mut app = populated();
+        app.begin_provisioning("builder".into());
+        app.provisioning_event(
+            "builder",
+            ProgressEvent::PhaseStarted {
+                phase: Phase::SandboxStart,
+                message: "sandbox start".into(),
+            },
+        );
+        app.agent_applied("builder".into());
+
+        assert!(matches!(
+            app.detail,
+            Some(Detail {
+                kind: DetailKind::Provisioning,
+                ..
+            })
+        ));
+        assert!(
+            app.detail_view()
+                .expect("progress detail")
+                .lines
+                .join("\n")
+                .contains("sandbox start")
+        );
+        assert!(
+            app.render_rows()
+                .iter()
+                .find(|row| row.name == "builder")
+                .expect("builder row")
+                .detail
+                .contains("sandbox start")
+        );
+
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.detail.is_none());
+        assert!(app.provisioning.contains_key("builder"));
+        app.on_key(key(KeyCode::Char('p')));
+        assert!(matches!(
+            app.detail,
+            Some(Detail {
+                kind: DetailKind::Provisioning,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn invalid_provisioning_failure_explains_that_retry_cannot_help() {
+        let now = Instant::now();
+        let mut progress = Provisioning::new();
+        progress.event(
+            ProgressEvent::PhaseFailed {
+                phase: Phase::Validate,
+                message: "validate".into(),
+                detail: "manifest requests an unsupported platform".into(),
+                failure: FailureKind::Invalid,
+                elapsed_ms: 12,
+            },
+            now,
+        );
+
+        let (tone, state, summary) = progress.presentation(now);
+        assert_eq!(tone, Tone::Red);
+        assert_eq!(state, "Failed");
+        assert!(summary.contains("unsupported platform"));
+        assert!(
+            progress
+                .lines(now)
+                .join("\n")
+                .contains("Change the Agent manifest before retrying")
+        );
     }
 
     #[test]

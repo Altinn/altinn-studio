@@ -271,6 +271,19 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     if app.prompting.is_some() {
         push_header_segment(&mut spans, area.width, " · sending prompt".into(), Color::Cyan);
     }
+    let active_provisioning = app
+        .provisioning
+        .values()
+        .filter(|progress| progress.following())
+        .count();
+    if active_provisioning > 0 {
+        push_header_segment(
+            &mut spans,
+            area.width,
+            format!(" · {active_provisioning} provisioning"),
+            Color::Blue,
+        );
+    }
     if !app.filter.is_empty() {
         push_header_segment(
             &mut spans,
@@ -1508,7 +1521,7 @@ mod tests {
 
     #[test]
     fn aligned_tree_glyphs_are_narrow_in_cjk_terminals() {
-        for glyph in ['>', 'v', '❖', '◉', '◔', '◌', '✖', '▐', '~'] {
+        for glyph in ['>', 'v', '❖', '◉', '◔', '◌', '✖', '▐', '▰', '▱', '~'] {
             assert_eq!(glyph.width(), Some(1), "normal width for {glyph}");
             assert_eq!(glyph.width_cjk(), Some(1), "CJK width for {glyph}");
         }
@@ -1547,6 +1560,45 @@ mod tests {
         assert!(text.contains("loading…"));
         assert!(text.contains(" tab  next needing you"));
         assert!(text.contains(" /  filter"));
+    }
+
+    #[test]
+    fn agent_row_and_detail_render_followed_provisioning_progress() {
+        let mut app = tree_app(1);
+        app.begin_provisioning("agent-00".into());
+        app.provisioning_event(
+            "agent-00",
+            agent::progress::Event::PhaseStarted {
+                phase: agent::progress::Phase::ImagePrepare,
+                message: "image prepare".into(),
+            },
+        );
+        app.provisioning_event(
+            "agent-00",
+            agent::progress::Event::StepProgress {
+                phase: agent::progress::Phase::ImagePrepare,
+                step_id: "layer".into(),
+                message: "pulling layer".into(),
+                completed: 3,
+                total: Some(4),
+                unit: agent::progress::ProgressUnit::Items,
+            },
+        );
+        let mut terminal = Terminal::new(TestBackend::new(110, 20)).expect("test terminal");
+
+        draw(&mut terminal, &app);
+        let tree = buffer_text(&terminal);
+        assert!(tree.contains("image prepare · pulling layer ▰▰▰▰▱▱"));
+        assert!(tree.contains("1 provisioning"));
+        assert!(tree.contains(" p  progress"));
+
+        app.agent_applied("agent-00".into());
+        draw(&mut terminal, &app);
+        let detail = buffer_text(&terminal);
+        assert!(detail.contains("agent-00 · provisioning"));
+        assert!(detail.contains("> image prepare"));
+        assert!(detail.contains("pulling layer"));
+        assert!(detail.contains("▰▰▰▰▰▰▰▰▰▱▱▱  3 / 4"));
     }
 
     #[test]
