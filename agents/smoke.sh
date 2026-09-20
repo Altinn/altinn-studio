@@ -261,6 +261,29 @@ done
 grep -qxF 'panel_layer = top' /etc/xdg/tint2/tint2rc \
     || fail "the panel would sit underneath maximized windows"
 
+# The access units are the image's and ship disabled; agentd enables them when an Agent declares
+# `access: [{type: vnc}]`. Everything they name belongs here, so this is where it is checked.
+test -f /etc/agent-access.d/vnc.conf || fail "the image declares no VNC access capability"
+declared_units="$(sed -n 's/^units=//p' /etc/agent-access.d/vnc.conf)"
+test -n "$declared_units" || fail "the VNC access descriptor declares no units"
+for unit in $declared_units agent-vnc.service; do
+    test -f "/etc/systemd/system/$unit" || fail "$unit is declared but not installed"
+    # `is-enabled` exits non-zero for a disabled unit, which is the answer we want, so the value is
+    # captured rather than piped: under `pipefail` the pipeline would report the success as failure.
+    state="$(systemctl is-enabled "$unit" 2>/dev/null || true)"
+    case "$state" in
+        disabled | static) ;;
+        *) fail "$unit is $state; it must ship disabled so the platform decides when it runs" ;;
+    esac
+done
+for setting in port=5900 web-port=6080; do
+    grep -qxF "$setting" /etc/agent-access.d/vnc.conf \
+        || fail "the VNC access descriptor must declare $setting"
+done
+grep -qxF "ExecStart=/usr/lib/systemd/systemd-socket-proxyd \${AGENT_DESKTOP_SOCKET}" \
+    /etc/systemd/system/agent-vnc.service \
+    || fail "the VNC bridge does not proxy to the display socket the image declares"
+
 # systemd's RuntimeDirectory= makes this directory for the unit; there is no systemd here.
 sudo -n install -d -m 0755 -o agent -g agent "$(dirname "$AGENT_DESKTOP_SOCKET")"
 Xtigervnc "$AGENT_DESKTOP_DISPLAY" -geometry "$AGENT_DESKTOP_GEOMETRY" -depth 24 \
@@ -340,6 +363,44 @@ desktop batch <<'BATCH' >trailing.txt
 wait 0.2
 BATCH
 grep -qE '\.jpg \(1456x819' trailing.txt || fail "a batch did not end with a screenshot"
+
+echo "## desktop in a browser"
+# The image provides the viewer; a platform-owned unit runs it when the Agent declares VNC access.
+# There is no systemd here, so it is started the way that unit starts it.
+# Started the way the image's own unit starts it, since there is no systemd here to do it: the
+# unit's command with the unit's environment and nothing else. A service inherits none of the
+# image's ENV, so a variable the unit forgets to declare has to fail here too — NODE_PATH already
+# did once, and only a shell that happened to have it hid the failure.
+viewer_command="$(sed -n 's/^ExecStart=//p' /etc/systemd/system/agent-vnc-web.service)"
+viewer_environment="$(sed -n 's/^Environment=//p' /etc/systemd/system/agent-vnc-web.service)"
+env -u NODE_PATH -u AGENT_NOVNC_HOST -u AGENT_NOVNC_PORT \
+    AGENT_DESKTOP_SOCKET="$AGENT_DESKTOP_SOCKET" $viewer_environment \
+    $viewer_command >novnc.log 2>&1 &
+viewer=$!
+trap 'kill "$server" "$display_server" ${session:-} ${viewer:-} 2>/dev/null' EXIT
+for _ in $(seq 1 100); do
+    curl -s --noproxy '*' -o /dev/null "http://127.0.0.1:6080/vnc.html" && break
+    sleep 0.1
+done
+test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' http://127.0.0.1:6080/vnc.html)" = 200 \
+    || fail "the browser viewer does not serve noVNC"
+test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' 'http://127.0.0.1:6080/../../etc/passwd')" = 404 \
+    || fail "the browser viewer served a path outside its directory"
+# The page is worthless without the bridge, so assert the RFB stream reaches a WebSocket client.
+cat >ws-probe.js <<'PROBE'
+const WebSocket = require('ws');
+const socket = new WebSocket(process.argv[2], ['binary']);
+const timer = setTimeout(() => { console.error('no RFB greeting within 10s'); process.exit(1); }, 10000);
+socket.on('message', (data) => {
+    clearTimeout(timer);
+    const greeting = Buffer.from(data).toString('latin1');
+    console.log(`websockify greeting: ${JSON.stringify(greeting)}`);
+    socket.close();
+    process.exit(/^RFB \d{3}\.\d{3}\n$/.test(greeting) ? 0 : 1);
+});
+socket.on('error', (error) => { console.error(error.message); process.exit(1); });
+PROBE
+node ws-probe.js ws://127.0.0.1:6080/websockify || fail "the browser viewer does not bridge the desktop"
 
 media-preview desktop.jpg
 finish

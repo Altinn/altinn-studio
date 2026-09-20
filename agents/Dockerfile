@@ -506,6 +506,52 @@ RUN apt-get update \
         xdotool \
     && rm -rf /var/lib/apt/lists/*
 
+ARG NOVNC_VERSION=1.7.0
+ARG NOVNC_SHA256=b1003a11b6e6e8d8f7f5e5586daae7f8ca651d8aee0aa155ff9ac841c48f52c6
+ARG WS_VERSION=8.21.3
+
+# Browser access to the desktop, for a person who should not have to install a VNC client. noVNC is
+# static ES modules with no build step, and `ws` gives the bridge a WebSocket implementation worth
+# trusting instead of a hand-rolled one. Neither is packaged for Ubuntu, so the release tarball is
+# pinned by digest the way the other vendored tools here are. Only the files the viewer loads are
+# installed: the tests, docs and helper scripts in the tarball are not served.
+#
+# The image provides the program; whether it runs is the platform's decision, because reaching the
+# desktop is an access capability rather than something the image grants.
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    curl -fsSL "https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz" -o /tmp/novnc.tar.gz \
+    && echo "${NOVNC_SHA256}  /tmp/novnc.tar.gz" | sha256sum -c - \
+    && install -d -m 0755 /usr/local/share/novnc \
+    && tar -xzf /tmp/novnc.tar.gz -C /usr/local/share/novnc --strip-components=1 \
+        "noVNC-${NOVNC_VERSION}/vnc.html" \
+        "noVNC-${NOVNC_VERSION}/app" \
+        "noVNC-${NOVNC_VERSION}/core" \
+        "noVNC-${NOVNC_VERSION}/vendor" \
+        "noVNC-${NOVNC_VERSION}/po" \
+        "noVNC-${NOVNC_VERSION}/defaults.json" \
+        "noVNC-${NOVNC_VERSION}/mandatory.json" \
+        "noVNC-${NOVNC_VERSION}/package.json" \
+        "noVNC-${NOVNC_VERSION}/LICENSE.txt" \
+    && rm -f /tmp/novnc.tar.gz \
+    && npm install --global "ws@${WS_VERSION}" \
+    && node -e "require('ws')" \
+    && test -f /usr/local/share/novnc/vnc.html \
+    && rm -rf /home/agent/.npm /home/agent/.cache
+
+COPY --chmod=0755 common/novnc-service.js /usr/local/libexec/agent-novnc
+
+# What this image offers for `access: [{type: vnc}]`. The units stay disabled: the platform turns
+# them on when an Agent declares the capability and off when it stops, and everything they do —
+# the display socket, the viewer, its URL — is the image's own business and is never named on the
+# platform side.
+COPY common/vnc.socket /etc/systemd/system/agent-vnc.socket
+COPY common/vnc.service /etc/systemd/system/agent-vnc.service
+COPY common/vnc-web.service /etc/systemd/system/agent-vnc-web.service
+COPY common/access-vnc.conf /etc/agent-access.d/vnc.conf
+
 COPY common/desktop.conf /etc/agent-desktop.conf
 COPY common/desktop-display.service /etc/systemd/system/agent-desktop-display.service
 COPY common/desktop-session.service /etc/systemd/system/agent-desktop-session.service
@@ -539,6 +585,13 @@ RUN systemctl enable agent-desktop-display.service agent-desktop-session.service
     && test -x /usr/local/bin/desktop \
     && . /etc/agent-desktop.conf \
     && test "${DISPLAY}" = "${AGENT_DESKTOP_DISPLAY}" \
+    && for unit in agent-vnc.socket agent-vnc.service agent-vnc-web.service; do \
+        state="$(systemctl is-enabled "${unit}" 2>/dev/null || true)"; \
+        case "${state}" in disabled | static) ;; \
+            *) echo "${unit} is ${state}; it must ship disabled" >&2; exit 1 ;; \
+        esac; \
+    done \
+    && command -v ss >/dev/null \
     && if find /home/agent ! -user agent -print -quit | grep -q .; then \
         echo "build left files under /home/agent not owned by agent" >&2; exit 1; \
     fi

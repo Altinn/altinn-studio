@@ -1,0 +1,24 @@
+[Unit]
+Description=Browser-based viewer for the Agent desktop
+Documentation=https://github.com/Altinn/altinn-studio/tree/main/agents
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/agent-desktop.conf
+# systemd services inherit none of the image's ENV, and `ws` is a global install that Node finds
+# only through this path. Without it the viewer exits with MODULE_NOT_FOUND on every start.
+Environment=NODE_PATH=/usr/local/lib/node_modules
+Environment=AGENT_NOVNC_HOST=127.0.0.1
+Environment=AGENT_NOVNC_PORT=6080
+ExecStart=/usr/local/libexec/agent-novnc
+User=agent
+Group=agent
+Restart=on-failure
+RestartSec=2
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target
