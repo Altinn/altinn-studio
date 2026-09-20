@@ -53,7 +53,7 @@ struct MouseInput {
 }
 
 impl MouseInput {
-    const fn reset(&mut self) {
+    fn reset(&mut self) {
         self.last_row = None;
     }
 
@@ -61,14 +61,15 @@ impl MouseInput {
         self.position
     }
 
-    fn double_click(&mut self, row: RowTarget, now: Instant) -> bool {
+    fn double_click(&mut self, row: &RowTarget, now: Instant) -> bool {
         let double = self
             .last_row
-            .is_some_and(|(previous, at)| previous == row && now.duration_since(at) <= DOUBLE_CLICK_INTERVAL);
+            .as_ref()
+            .is_some_and(|(previous, at)| previous == row && now.duration_since(*at) <= DOUBLE_CLICK_INTERVAL);
         if double {
             self.reset();
         } else {
-            self.last_row = Some((row, now));
+            self.last_row = Some((row.clone(), now));
         }
         double
     }
@@ -91,7 +92,7 @@ impl MouseInput {
                         app.on_mouse(action)
                     }
                     HitTarget::Row(row) => {
-                        if self.double_click(row, now) {
+                        if self.double_click(&row, now) {
                             app.on_mouse(MouseAction::Primary(row))
                         } else {
                             app.on_mouse(MouseAction::Select(row))
@@ -760,12 +761,14 @@ mod tests {
     fn row_primary_actions_require_two_clicks_on_the_same_row_in_time() {
         let mut mouse = MouseInput::default();
         let start = Instant::now();
+        let second = RowTarget::Tree(app::TreeRowId::Agent("second".into()));
+        let third = RowTarget::Tree(app::TreeRowId::Agent("third".into()));
 
-        assert!(!mouse.double_click(RowTarget::Tree(2), start));
-        assert!(!mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(100)));
-        assert!(!mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(700)));
-        assert!(mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(800)));
-        assert!(!mouse.double_click(RowTarget::Forward(3), start + Duration::from_millis(850)));
+        assert!(!mouse.double_click(&second, start));
+        assert!(!mouse.double_click(&third, start + Duration::from_millis(100)));
+        assert!(!mouse.double_click(&third, start + Duration::from_millis(700)));
+        assert!(mouse.double_click(&third, start + Duration::from_millis(800)));
+        assert!(!mouse.double_click(&RowTarget::Forward(3), start + Duration::from_millis(850)));
     }
 
     #[test]

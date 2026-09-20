@@ -191,7 +191,7 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         })
         .collect::<Vec<_>>();
     let list = List::new(items).highlight_style(Style::new().add_modifier(Modifier::REVERSED));
-    state.tree.select(Some(app.selected));
+    state.tree.select(app.selected_index());
     frame.render_stateful_widget(list, area, &mut state.tree);
     hit_map.wheel(area, WheelTarget::Tree);
     for visible in 0..usize::from(area.height) {
@@ -201,11 +201,17 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         };
         let y = area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
         let row_area = Rect::new(area.x, y, area.width, 1);
-        hit_map.click(row_area, HitTarget::Row(RowTarget::Tree(index)));
+        let Some(target) = app.row_target(index) else {
+            continue;
+        };
+        hit_map.click(row_area, HitTarget::Row(target.clone()));
         if matches!(row, Row::Agent(_)) {
+            let RowTarget::Tree(target) = target else {
+                continue;
+            };
             hit_map.click(
                 Rect::new(area.x, y, area.width.min(2), 1),
-                HitTarget::Action(MouseAction::FoldTree(index)),
+                HitTarget::Action(MouseAction::FoldTree(target)),
             );
         }
     }
@@ -253,7 +259,7 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
         let y = inner.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
         hit_map.click(
             Rect::new(inner.x, y, inner.width, 1),
-            HitTarget::Row(RowTarget::Forward(index)),
+            HitTarget::Row(RowTarget::Forward(app.forwards[index].id)),
         );
     }
 }
@@ -969,21 +975,23 @@ mod tests {
     #[test]
     fn tree_hit_map_uses_the_rendered_offset_and_updates_after_resize() {
         let mut app = tree_app(10);
-        app.selected = 9;
+        app.select_index(9);
+        let fifth = app.row_target(5).expect("fifth Agent target");
+        let ninth = app.row_target(9).expect("ninth Agent target");
         let mut state = ViewState::default();
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
 
         let compact = draw_with_state(&mut terminal, &app, &mut state);
         assert_eq!(state.tree.offset(), 5);
-        assert_eq!(compact.click_at(10, 1), Some(HitTarget::Row(RowTarget::Tree(5))));
-        assert_eq!(compact.click_at(10, 5), Some(HitTarget::Row(RowTarget::Tree(9))));
+        assert_eq!(compact.click_at(10, 1), Some(HitTarget::Row(fifth.clone())));
+        assert_eq!(compact.click_at(10, 5), Some(HitTarget::Row(ninth)));
         assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
         assert_eq!(compact.click_at(40, 1), None, "right edge is out of bounds");
 
         terminal.resize(Rect::new(0, 0, 40, 12)).expect("terminal resize");
         let resized = draw_with_state(&mut terminal, &app, &mut state);
         assert_eq!(state.tree.offset(), 5, "the viewport remains stable when it still fits");
-        assert_eq!(resized.click_at(10, 1), Some(HitTarget::Row(RowTarget::Tree(5))));
+        assert_eq!(resized.click_at(10, 1), Some(HitTarget::Row(fifth)));
         assert_eq!(
             resized.click_at(10, 6),
             None,

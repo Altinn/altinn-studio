@@ -116,7 +116,7 @@ pub(crate) struct App {
     pub(crate) groups: Vec<Group>,
     pub(crate) rows: Vec<Row>,
     pub(crate) collapsed: HashSet<String>,
-    pub(crate) selected: usize,
+    pub(crate) selection: Option<TreeRowId>,
     pub(crate) loading: bool,
     pub(crate) loaded: bool,
     pub(crate) error: Option<String>,
@@ -673,12 +673,12 @@ pub(crate) enum ForwardField {
 /// Mouse input uses these instead of terminal coordinates so layout remains
 /// entirely owned by the renderer. Keyboard-shaped controls deliberately flow
 /// back through `on_key` to keep both input methods equivalent.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum MouseAction {
     Key(KeyCode, KeyModifiers),
     Select(RowTarget),
     Primary(RowTarget),
-    FoldTree(usize),
+    FoldTree(TreeRowId),
     MoveTree(isize),
     MoveForward(isize),
     ScrollDetail(isize),
@@ -690,10 +690,17 @@ pub(crate) enum MouseAction {
 }
 
 /// A rendered row whose selection is owned by the application.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub(crate) enum TreeRowId {
+    Agent(String),
+    Session { agent: String, session: SessionName },
+}
+
+/// A rendered row whose selection is owned by the application.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum RowTarget {
-    Tree(usize),
-    Forward(usize),
+    Tree(TreeRowId),
+    Forward(u64),
 }
 
 impl ForwardField {
@@ -777,7 +784,7 @@ impl App {
             groups: Vec::new(),
             rows: Vec::new(),
             collapsed: HashSet::new(),
-            selected: 0,
+            selection: None,
             loading: false,
             loaded: false,
             error: None,
@@ -793,15 +800,23 @@ impl App {
     }
 
     pub(crate) fn apply_snapshot(&mut self, mut agents: Vec<Agent>, mut sessions: Vec<Session>) {
+        let selection = self.selection.clone();
+        let fallback = self.selected_index().unwrap_or_default();
         agents.sort_by(|left, right| left.metadata.name.cmp(&right.metadata.name));
         sessions.sort_by(|left, right| left.agent.cmp(&right.agent).then_with(|| left.name.cmp(&right.name)));
         self.agents = agents;
         self.sessions = sessions;
         self.loaded = true;
-        self.rebuild();
+        self.rebuild_with(selection, fallback);
     }
 
     pub(crate) fn rebuild(&mut self) {
+        let selection = self.selection.clone();
+        let fallback = self.selected_index().unwrap_or_default();
+        self.rebuild_with(selection, fallback);
+    }
+
+    fn rebuild_with(&mut self, selection: Option<TreeRowId>, fallback: usize) {
         self.groups = self
             .agents
             .iter()
@@ -834,11 +849,32 @@ impl App {
                 rows
             })
             .collect();
-        self.selected = self.selected.min(self.rows.len().saturating_sub(1));
+        self.selection = selection
+            .filter(|target| self.tree_index(target).is_some())
+            .or_else(|| {
+                let index = fallback.min(self.rows.len().saturating_sub(1));
+                self.tree_id_at(index)
+            });
     }
 
     pub(crate) fn selected_row(&self) -> Option<Row> {
-        self.rows.get(self.selected).copied()
+        self.rows.get(self.selected_index()?).copied()
+    }
+
+    pub(crate) fn selected_index(&self) -> Option<usize> {
+        self.selection.as_ref().and_then(|target| self.tree_index(target))
+    }
+
+    pub(crate) fn row_target(&self, index: usize) -> Option<RowTarget> {
+        self.tree_id_at(index).map(RowTarget::Tree)
+    }
+
+    pub(crate) fn select_index(&mut self, index: usize) -> bool {
+        let Some(target) = self.tree_id_at(index) else {
+            return false;
+        };
+        self.selection = Some(target);
+        true
     }
 
     pub(crate) fn counts(&self) -> (usize, usize, usize) {
@@ -874,24 +910,23 @@ impl App {
         match action {
             MouseAction::Key(code, modifiers) => self.on_key(KeyEvent::new(code, modifiers)),
             MouseAction::Select(target) => {
-                self.select_row(target);
+                self.select_row(&target);
                 Action::None
             }
             MouseAction::Primary(target) => {
-                if !self.select_row(target) {
-                    return Action::None;
-                }
                 let code = match target {
                     RowTarget::Tree(_) => KeyCode::Enter,
                     RowTarget::Forward(_) => KeyCode::Char('e'),
                 };
-                self.on_key(KeyEvent::new(code, KeyModifiers::NONE))
-            }
-            MouseAction::FoldTree(index) => {
-                if index >= self.rows.len() || !matches!(self.rows[index], Row::Agent(_)) {
+                if !self.select_row(&target) {
                     return Action::None;
                 }
-                self.selected = index;
+                self.on_key(KeyEvent::new(code, KeyModifiers::NONE))
+            }
+            MouseAction::FoldTree(target) => {
+                if !matches!(target, TreeRowId::Agent(_)) || !self.select_tree(&target) {
+                    return Action::None;
+                }
                 self.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
             }
             MouseAction::MoveTree(delta) => {
@@ -947,12 +982,24 @@ impl App {
         }
     }
 
-    const fn select_row(&mut self, target: RowTarget) -> bool {
+    fn select_row(&mut self, target: &RowTarget) -> bool {
         match target {
-            RowTarget::Tree(index) if index < self.rows.len() => self.selected = index,
-            RowTarget::Forward(index) if index < self.forwards.len() => self.forward_selected = index,
-            RowTarget::Tree(_) | RowTarget::Forward(_) => return false,
+            RowTarget::Tree(target) => return self.select_tree(target),
+            RowTarget::Forward(id) => {
+                let Some(index) = self.forwards.iter().position(|entry| entry.id == *id) else {
+                    return false;
+                };
+                self.forward_selected = index;
+            }
         }
+        true
+    }
+
+    fn select_tree(&mut self, target: &TreeRowId) -> bool {
+        if self.tree_index(target).is_none() {
+            return false;
+        }
+        self.selection = Some(target.clone());
         true
     }
 
@@ -1076,11 +1123,9 @@ impl App {
             }
             KeyCode::Left => {
                 let agent = session.agent.clone();
-                self.collapsed.insert(agent);
+                self.collapsed.insert(agent.clone());
+                self.selection = Some(TreeRowId::Agent(agent));
                 self.rebuild();
-                if let Some(index) = self.rows.iter().position(|row| *row == Row::Agent(group)) {
-                    self.selected = index;
-                }
             }
             KeyCode::Char('s') => self.detail = Some(session_detail(session)),
             KeyCode::Char('y') => {
@@ -1181,13 +1226,8 @@ impl App {
     }
 
     pub(crate) fn select_agent(&mut self, name: &str) {
-        let position = self.rows.iter().position(|row| {
-            matches!(row, Row::Agent(group)
-                if self.group_agent(*group).is_some_and(|agent| agent.metadata.name == name))
-        });
-        if let Some(position) = position {
-            self.selected = position;
-        }
+        let target = TreeRowId::Agent(name.to_owned());
+        self.select_tree(&target);
     }
 
     fn open_new_session(&mut self, group: usize) {
@@ -1245,8 +1285,12 @@ impl App {
 
     /// Replaces the forward display list, keeping the selection in range.
     pub(crate) fn set_forwards(&mut self, forwards: Vec<ForwardEntry>) {
+        let selected = self.forwards.get(self.forward_selected).map(|entry| entry.id);
+        let fallback = self.forward_selected;
         self.forwards = forwards;
-        self.forward_selected = self.forward_selected.min(self.forwards.len().saturating_sub(1));
+        self.forward_selected = selected
+            .and_then(|id| self.forwards.iter().position(|entry| entry.id == id))
+            .unwrap_or_else(|| fallback.min(self.forwards.len().saturating_sub(1)));
     }
 
     fn move_selection(&mut self, delta: isize) {
@@ -1254,15 +1298,36 @@ impl App {
             return;
         }
         let length = self.rows.len();
-        let current = isize::try_from(self.selected).unwrap_or_default();
+        let current = isize::try_from(self.selected_index().unwrap_or_default()).unwrap_or_default();
         let next = (current + delta).rem_euclid(isize::try_from(length).unwrap_or(1));
-        self.selected = usize::try_from(next).unwrap_or_default();
+        self.select_index(usize::try_from(next).unwrap_or_default());
     }
 
     fn move_selection_clamped(&mut self, delta: isize) {
         if !self.rows.is_empty() {
-            self.selected = offset_clamped(self.selected, self.rows.len() - 1, delta);
+            let index = offset_clamped(self.selected_index().unwrap_or_default(), self.rows.len() - 1, delta);
+            self.select_index(index);
         }
+    }
+
+    fn tree_id_at(&self, index: usize) -> Option<TreeRowId> {
+        match *self.rows.get(index)? {
+            Row::Agent(group) => Some(TreeRowId::Agent(self.group_agent(group)?.metadata.name.clone())),
+            Row::Session { group, position } => {
+                let session = self.group_session(group, position)?;
+                Some(TreeRowId::Session {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                })
+            }
+        }
+    }
+
+    fn tree_index(&self, target: &TreeRowId) -> Option<usize> {
+        self.rows
+            .iter()
+            .enumerate()
+            .find_map(|(index, _)| (self.tree_id_at(index).as_ref() == Some(target)).then_some(index))
     }
 
     fn group_agent(&self, group: usize) -> Option<&Agent> {
@@ -1585,18 +1650,73 @@ mod tests {
     fn selection_wraps_and_clamps_after_shrink() {
         let mut app = populated();
         app.on_key(key(KeyCode::Up));
-        assert_eq!(app.selected, 4);
+        assert_eq!(app.selected_index(), Some(4));
         app.on_key(key(KeyCode::Down));
-        assert_eq!(app.selected, 0);
-        app.selected = 4;
+        assert_eq!(app.selected_index(), Some(0));
+        app.select_index(4);
         app.apply_snapshot(vec![agent("worker")], Vec::new());
-        assert_eq!(app.selected, 0);
+        assert_eq!(app.selected_index(), Some(0));
+    }
+
+    #[test]
+    fn snapshot_rebuild_preserves_selection_by_resource_identity() {
+        let mut app = populated();
+        app.select_index(4);
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "worker".into(),
+                session: SessionName::new("s2").expect("valid Session name"),
+            })
+        );
+
+        app.apply_snapshot(
+            vec![agent("worker"), agent("builder")],
+            vec![
+                session("worker", "s2", "working"),
+                session("worker", "s0", "idle"),
+                session("worker", "s1", "idle"),
+                session("builder", "b1", "starting"),
+            ],
+        );
+
+        assert_eq!(app.selected_index(), Some(5));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "worker".into(),
+                session: SessionName::new("s2").expect("valid Session name"),
+            })
+        );
+    }
+
+    #[test]
+    fn stale_mouse_target_still_acts_on_the_rendered_resource_after_reorder() {
+        let mut app = populated();
+        let target = app.row_target(4).expect("rendered s2 target");
+        app.apply_snapshot(
+            vec![agent("worker"), agent("builder")],
+            vec![
+                session("worker", "s2", "working"),
+                session("worker", "s0", "idle"),
+                session("worker", "s1", "idle"),
+                session("builder", "b1", "starting"),
+            ],
+        );
+
+        assert_eq!(
+            app.on_mouse(MouseAction::Primary(target)),
+            Action::Attach {
+                agent: "worker".into(),
+                session: SessionName::new("s2").expect("valid Session name"),
+            }
+        );
     }
 
     #[test]
     fn enter_on_a_session_attaches_to_it() {
         let mut app = populated();
-        app.selected = 1;
+        app.select_index(1);
         let action = app.on_key(key(KeyCode::Enter));
         assert_eq!(
             action,
@@ -1610,11 +1730,12 @@ mod tests {
     #[test]
     fn mouse_row_selection_is_separate_from_primary_actions() {
         let mut app = populated();
+        let session = app.row_target(4).expect("session target");
 
-        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Tree(4))), Action::None);
-        assert_eq!(app.selected, 4);
+        assert_eq!(app.on_mouse(MouseAction::Select(session.clone())), Action::None);
+        assert_eq!(app.selected_index(), Some(4));
         assert_eq!(
-            app.on_mouse(MouseAction::Primary(RowTarget::Tree(4))),
+            app.on_mouse(MouseAction::Primary(session)),
             Action::Attach {
                 agent: "worker".into(),
                 session: SessionName::new("s2").expect("valid Session name"),
@@ -1622,19 +1743,22 @@ mod tests {
         );
 
         assert_eq!(app.rows.len(), 5);
-        assert_eq!(app.on_mouse(MouseAction::FoldTree(0)), Action::None);
+        assert_eq!(
+            app.on_mouse(MouseAction::FoldTree(TreeRowId::Agent("builder".into()))),
+            Action::None
+        );
         assert_eq!(app.rows.len(), 4);
     }
 
     #[test]
     fn mouse_wheel_selection_and_detail_scrolling_clamp_at_the_ends() {
         let mut app = populated();
-        app.selected = app.rows.len() - 1;
+        app.select_index(app.rows.len() - 1);
 
         app.on_mouse(MouseAction::MoveTree(1));
-        assert_eq!(app.selected, app.rows.len() - 1);
+        assert_eq!(app.selected_index(), Some(app.rows.len() - 1));
         app.on_mouse(MouseAction::MoveTree(-100));
-        assert_eq!(app.selected, 0);
+        assert_eq!(app.selected_index(), Some(0));
 
         app.detail = Some(Detail {
             title: "detail".into(),
@@ -1691,9 +1815,9 @@ mod tests {
             },
         ]);
 
-        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Forward(1))), Action::None);
+        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Forward(20))), Action::None);
         assert_eq!(app.forward_selected, 1);
-        assert_eq!(app.on_mouse(MouseAction::Primary(RowTarget::Forward(1))), Action::None);
+        assert_eq!(app.on_mouse(MouseAction::Primary(RowTarget::Forward(20))), Action::None);
         assert!(matches!(
             app.modal,
             Some(Modal::PortForward(ForwardForm { replace: Some(20), .. }))
@@ -1704,6 +1828,25 @@ mod tests {
             app.on_mouse(MouseAction::Key(KeyCode::Char('d'), KeyModifiers::CONTROL)),
             Action::DeleteForward { id: 20 }
         );
+    }
+
+    #[test]
+    fn forward_selection_follows_its_stable_id_when_rows_reorder() {
+        let mut app = App::new();
+        let entry = |id, agent: &str| ForwardEntry {
+            id,
+            agent: agent.into(),
+            local: format!("127.0.0.1:{id}"),
+            guest_port: 80,
+            status: None,
+        };
+        app.set_forwards(vec![entry(10, "first"), entry(20, "second")]);
+        app.on_mouse(MouseAction::Select(RowTarget::Forward(20)));
+
+        app.set_forwards(vec![entry(5, "new"), entry(20, "second"), entry(10, "first")]);
+
+        assert_eq!(app.forward_selected, 1);
+        assert_eq!(app.forwards[app.forward_selected].id, 20);
     }
 
     #[test]
@@ -1874,7 +2017,7 @@ mod tests {
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
         let mut app = populated();
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
-        app.selected = 1;
+        app.select_index(1);
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
     }
 
@@ -1915,7 +2058,7 @@ mod tests {
                 });
             }
         }
-        app.selected = 3;
+        app.select_index(3);
         let mut discovered = candidates(&[("/sources/builder", "builder"), ("/sources/worker", "worker")]);
         discovered.push(ManifestCandidate::new(
             PathBuf::from("/sources/worker/agent.nested.yaml"),
@@ -2105,9 +2248,9 @@ mod tests {
     fn select_agent_moves_the_selection_to_that_row() {
         let mut app = populated();
         app.select_agent("worker");
-        assert_eq!(app.selected, 2);
+        assert_eq!(app.selected_index(), Some(2));
         app.select_agent("missing");
-        assert_eq!(app.selected, 2);
+        assert_eq!(app.selected_index(), Some(2));
     }
 
     #[test]
@@ -2310,7 +2453,7 @@ mod tests {
         assert_eq!(app.detail.as_ref().expect("agent detail").scroll, 1);
         app.on_key(key(KeyCode::Char('q')));
         assert!(app.detail.is_none());
-        app.selected = 1;
+        app.select_index(1);
         app.on_key(key(KeyCode::Char('s')));
         assert_eq!(app.detail.as_ref().expect("session detail").title, "session/builder/b1");
     }
@@ -2325,7 +2468,7 @@ mod tests {
         assert!(detail.lines.iter().any(|line| line.contains("apiVersion:")));
         assert!(detail.lines.iter().any(|line| line.contains("harnesses:")));
         app.on_key(key(KeyCode::Char('q')));
-        app.selected = 1;
+        app.select_index(1);
         app.on_key(key(KeyCode::Char('y')));
         let detail = app.detail.as_ref().expect("session yaml");
         assert_eq!(detail.title, "session/builder/b1 yaml");
