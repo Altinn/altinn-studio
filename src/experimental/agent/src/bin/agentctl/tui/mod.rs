@@ -313,6 +313,12 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 }
                 request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
             }
+            Action::DeleteSession { agent, session } => {
+                if let Err(error) = client.delete_session(&agent, session).await {
+                    app.error = Some(error.to_string());
+                }
+                request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+            }
             Action::OpenCreate => {
                 if !app.discovering {
                     app.discovering = true;

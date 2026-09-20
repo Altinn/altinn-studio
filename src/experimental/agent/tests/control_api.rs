@@ -72,6 +72,7 @@ struct FakeSessions {
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
 }
 
 fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
@@ -138,6 +139,15 @@ impl SessionApi for FakeSessions {
 
     fn list<'a>(&'a self, _agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
         Box::pin(async { Ok(Vec::new()) })
+    }
+
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.deleted.borrow_mut().push((agent.into(), name.clone()));
+        Box::pin(async { Ok(()) })
     }
 
     fn prompt<'a>(
@@ -247,6 +257,7 @@ struct ApiFixture {
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
     progress: agent::progress::Hub,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
 }
 
 impl Connector for InProcessConnector {
@@ -291,6 +302,7 @@ fn api() -> ApiFixture {
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
     let progress = agent::progress::Hub::new();
+    let deleted = Rc::new(RefCell::new(Vec::new()));
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
@@ -303,6 +315,7 @@ fn api() -> ApiFixture {
             upgrade_blockers: upgrade_blockers.clone(),
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
+            deleted: deleted.clone(),
         }),
         Rc::new(FakeSshAccess),
         progress.clone(),
@@ -319,6 +332,7 @@ fn api() -> ApiFixture {
         upgrade_warnings,
         upgrade_gates,
         progress,
+        deleted,
     }
 }
 
@@ -704,6 +718,13 @@ async fn client_and_server_exchange_versioned_agent_operations() {
         .await
         .expect_err("missing Session");
     assert!(matches!(session_error, Error::Rpc(error) if error.code == -32004));
+
+    let deleted_name = agent::sessions::SessionName::new("s1").expect("Session name");
+    client
+        .delete_session("worker", deleted_name.clone())
+        .await
+        .expect("delete Session request");
+    assert_eq!(fixture.deleted.borrow().as_slice(), &[("worker".into(), deleted_name)]);
 
     client.delete("worker").await.expect("delete request");
     let deleting = client.get("worker").await.expect("marked resource");

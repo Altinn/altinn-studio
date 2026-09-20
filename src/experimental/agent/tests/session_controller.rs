@@ -540,6 +540,68 @@ async fn resume_fixture(
     (database, runtime, reconciler, session)
 }
 
+#[tokio::test(flavor = "local")]
+async fn deleting_a_live_session_stops_its_runtime_then_removes_the_record() {
+    let directory = TempDir::new().expect("directory");
+    let (database, sandboxes, session) =
+        running_session(&directory, "abababab-abab-4bab-8bab-abababababab", true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    database
+        .mark_session_deleting("worker", &session.name)
+        .await
+        .expect("mark Session deleting");
+
+    reconciler.reconcile(session.id).await.expect("release Session");
+
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    reconciler.reconcile(session.id).await.expect("repeat reconciliation");
+}
+
+#[tokio::test(flavor = "local")]
+async fn deleting_a_missing_session_or_one_under_a_deleting_agent_only_removes_its_record() {
+    for (token, delete_agent) in [
+        ("bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc", false),
+        ("cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd", true),
+    ] {
+        let directory = TempDir::new().expect("directory");
+        let (database, sandboxes, session) = running_session(&directory, token, true).await;
+        let runtime = Rc::new(FakeRuntime::default());
+        runtime.present.set(false);
+        let reconciler = agent::sessions::Reconciler::new(
+            Rc::new(database.clone()),
+            Rc::new(agent::sessions::AgentSandboxes::new(
+                Rc::new(database.clone()),
+                sandboxes,
+            )),
+            runtime.clone(),
+            "http://platform-api".into(),
+        );
+        database
+            .mark_session_deleting("worker", &session.name)
+            .await
+            .expect("mark Session deleting");
+        if delete_agent {
+            database.mark_deleting("worker").await.expect("mark Agent deleting");
+            runtime.present.set(true);
+        }
+
+        reconciler.reconcile(session.id).await.expect("release Session");
+
+        assert_eq!(runtime.stop_calls.get(), 0);
+        assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    }
+}
+
 async fn interrupt_resume_after_start(
     database: &persistence::Database,
     runtime: &FakeRuntime,

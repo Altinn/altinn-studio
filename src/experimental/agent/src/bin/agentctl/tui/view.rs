@@ -853,6 +853,26 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
                 .render(frame, area);
             map_hint_targets(line_area(target, FORM_HINT_ROW), &CONFIRM_DELETE_HINTS, hit_map);
         }
+        Modal::ConfirmSessionDelete { agent, session, state } => {
+            let active = matches!(
+                state,
+                agent::sessions::State::Starting
+                    | agent::sessions::State::Working
+                    | agent::sessions::State::WaitingForInput
+            );
+            let target = Form::new(" delete session ", Color::Red, &CONFIRM_DELETE_HINTS)
+                .field(Line::from(format!(" Delete session {agent}/{session}?")))
+                .field(Line::from(Span::styled(
+                    if active {
+                        " Its running harness will be stopped and its record removed."
+                    } else {
+                        " Its durable record will be removed."
+                    },
+                    Style::new().fg(Color::DarkGray),
+                )))
+                .render(frame, area);
+            map_hint_targets(line_area(target, FORM_HINT_ROW), &CONFIRM_DELETE_HINTS, hit_map);
+        }
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),

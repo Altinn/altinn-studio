@@ -131,13 +131,14 @@ const AGENT_PROGRESS_HINTS: [Hint; 10] = [
     Hint::key("z", "all", KeyCode::Char('z')),
 ];
 
-const SESSION_HINTS: [Hint; 6] = [
+const SESSION_HINTS: [Hint; 7] = [
     Hint::key("enter", "attach", KeyCode::Enter),
     Hint::key("p", "prompt", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
     Hint::key("c", "new agent", KeyCode::Char('c')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
 ];
 
 const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))];
@@ -241,7 +242,15 @@ pub(crate) struct DetailView {
 }
 
 pub(crate) enum Modal {
-    ConfirmDelete { agent: String, sessions: usize },
+    ConfirmDelete {
+        agent: String,
+        sessions: usize,
+    },
+    ConfirmSessionDelete {
+        agent: String,
+        session: SessionName,
+        state: State,
+    },
     NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
@@ -960,6 +969,10 @@ pub(crate) enum Action {
     },
     Delete {
         agent: String,
+    },
+    DeleteSession {
+        agent: String,
+        session: SessionName,
     },
     CreateForward {
         agent: String,
@@ -2164,6 +2177,13 @@ impl App {
                     error: None,
                 }));
             }
+            KeyCode::Char('d') => {
+                self.modal = Some(Modal::ConfirmSessionDelete {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                    state: session.status.state,
+                });
+            }
             KeyCode::Char('n') => self.open_new_session(group),
             _ => {}
         }
@@ -2207,6 +2227,14 @@ impl App {
                 KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
                 _ => {
                     self.modal = Some(Modal::ConfirmDelete { agent, sessions });
+                    Action::None
+                }
+            },
+            Some(Modal::ConfirmSessionDelete { agent, session, state }) => match key.code {
+                KeyCode::Char('y') => Action::DeleteSession { agent, session },
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmSessionDelete { agent, session, state });
                     Action::None
                 }
             },
@@ -2523,7 +2551,7 @@ impl App {
     pub(crate) fn hints(&self) -> &'static [Hint] {
         if let Some(modal) = &self.modal {
             return match modal {
-                Modal::ConfirmDelete { .. } => &CONFIRM_DELETE_HINTS,
+                Modal::ConfirmDelete { .. } | Modal::ConfirmSessionDelete { .. } => &CONFIRM_DELETE_HINTS,
                 Modal::NewSession(_) => &NEW_SESSION_HINTS,
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
@@ -3491,6 +3519,33 @@ mod tests {
             app.on_key(key(KeyCode::Char('y'))),
             Action::Delete {
                 agent: "builder".into()
+            }
+        );
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn deleting_a_session_requires_confirmation_and_keeps_its_identity() {
+        let mut app = populated();
+        app.select_index(1);
+        assert_eq!(app.on_key(key(KeyCode::Char('d'))), Action::None);
+        assert!(matches!(
+            app.modal,
+            Some(Modal::ConfirmSessionDelete {
+                ref agent,
+                ref session,
+                state: State::Starting,
+            }) if agent == "builder" && session.as_str() == "b1"
+        ));
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None);
+        assert!(app.modal.is_none());
+
+        app.on_key(key(KeyCode::Char('d')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('y'))),
+            Action::DeleteSession {
+                agent: "builder".into(),
+                session: SessionName::new("b1").expect("Session name"),
             }
         );
         assert!(app.modal.is_none());

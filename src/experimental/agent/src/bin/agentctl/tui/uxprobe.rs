@@ -1,6 +1,9 @@
 //! Golden-frame fixture and inspection helpers for the TUI.
 
-use agent::{Condition, ConditionStatus, sessions::Session};
+use agent::{
+    Condition, ConditionStatus,
+    sessions::{Session, SessionName, State},
+};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{Terminal, backend::TestBackend, style::Color};
 
@@ -215,6 +218,17 @@ fn fixture_covers_every_modal_with_the_real_renderer() {
         sessions: 3,
     });
     assert!(render_dump(&app, 110, 30).text.contains("Delete agent altinn-studio?"));
+
+    app.modal = Some(Modal::ConfirmSessionDelete {
+        agent: "altinn-studio".into(),
+        session: SessionName::new("review-pr-20531").expect("Session name"),
+        state: State::WaitingForInput,
+    });
+    assert!(
+        render_dump(&app, 110, 30)
+            .text
+            .contains("Delete session altinn-studio/review-pr-20531?")
+    );
 
     app.modal = Some(Modal::CreateAgent(CreateForm::new(
         vec![ManifestCandidate::new(

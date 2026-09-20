@@ -147,6 +147,30 @@ impl Reconciler {
         .await
     }
 
+    async fn release(&self, session: &Session) -> Result<(), Error> {
+        let owner = match self.sandboxes.agent(session.agent_id).await {
+            Ok(owner) => owner,
+            Err(Error::NotFound) => return self.sessions.finalize_session_deletion(session.id).await,
+            Err(error) => return Err(error),
+        };
+        if owner.agent.metadata.deletion_timestamp.is_some()
+            || !matches!(
+                owner.agent.status.sandbox,
+                Some(crate::sandbox::Assignment::Materialized { .. })
+            )
+        {
+            return self.sessions.finalize_session_deletion(session.id).await;
+        }
+        let sandbox = self.sandboxes.open(&owner).await?;
+        if matches!(
+            self.runtime.observe(session, &sandbox).await?,
+            Observation::Alive { .. }
+        ) {
+            self.runtime.stop(session, &sandbox).await?;
+        }
+        self.sessions.finalize_session_deletion(session.id).await
+    }
+
     /// Consumes the first prompt before launch; recovery never replays it.
     async fn launch(
         &self,
@@ -239,6 +263,9 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                 Err(Error::NotFound) => return Ok(()),
                 Err(error) => return Err(error),
             };
+            if session.deletion_timestamp.is_some() {
+                return Self::release(self, &session).await;
+            }
             match self.converge(&session).await {
                 Ok(lifecycle) => {
                     self.sessions

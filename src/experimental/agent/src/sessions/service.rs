@@ -188,6 +188,9 @@ impl Service {
         let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
+            if current.deletion_timestamp.is_some() {
+                return Err(Error::NotFound);
+            }
             match current.status.state {
                 State::Failed => {
                     return Err(Error::Session(format!(
@@ -230,6 +233,9 @@ impl Service {
         tokio::time::timeout(INPUT_READY_TIMEOUT, async {
             loop {
                 let session = self.store.get_session(id).await?;
+                if session.deletion_timestamp.is_some() {
+                    return Err(Error::NotFound);
+                }
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
                     State::Idle | State::Failed => {
@@ -259,6 +265,9 @@ impl Service {
         let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
         let session = self.store.get_session(session.id).await?;
+        if session.deletion_timestamp.is_some() {
+            return Err(Error::NotFound);
+        }
         self.runtime.turns(&session, &sandbox, last).await
     }
 
@@ -328,18 +337,39 @@ impl Service {
         self.store.get_agent_session(agent, name).await
     }
 
+    /// Marks a Session for asynchronous runtime cleanup and durable deletion.
+    /// Repeating a delete, including after cleanup completed, is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the deletion marker cannot be stored.
+    pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<(), Error> {
+        match self.store.mark_session_deleting(agent, name).await {
+            Ok(session) => {
+                self.wakeup.notify(session.id);
+                Ok(())
+            }
+            Err(Error::NotFound) => Ok(()),
+            Err(error) => Err(error),
+        }
+    }
+
     /// Lists durable Sessions, optionally scoped to one active Agent incarnation.
     ///
     /// # Errors
     ///
     /// Returns an error when the scoped Agent is missing or persistent state cannot be read.
     pub async fn list(&self, agent: Option<&str>) -> Result<Vec<Session>, Error> {
-        if let Some(agent) = agent {
+        let sessions = if let Some(agent) = agent {
             self.sandboxes.agent_by_name(agent).await?;
             self.store.list_agent_sessions(agent).await
         } else {
             self.store.list_all_sessions().await
-        }
+        }?;
+        Ok(sessions
+            .into_iter()
+            .filter(|session| session.deletion_timestamp.is_none())
+            .collect())
     }
 
     /// Lists active work and terminal attachments that must finish before an upgrade.
@@ -356,6 +386,9 @@ impl Service {
     async fn inspect_upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
         let mut readiness = UpgradeReadiness::default();
         for session in self.store.list_all_sessions().await? {
+            if session.deletion_timestamp.is_some() {
+                continue;
+            }
             let label = format!("session/{}/{}", session.agent, session.name);
             if session.status.state == State::Working {
                 readiness.blockers.push(format!("{label} (working)"));
@@ -410,6 +443,9 @@ impl Service {
 
     async fn relaunch_sessions(&self) -> Result<(), Error> {
         for session in self.store.list_all_sessions().await? {
+            if session.deletion_timestamp.is_some() {
+                continue;
+            }
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
                 self.store.reset_session_launch_attempts(session.id).await?;
                 continue;

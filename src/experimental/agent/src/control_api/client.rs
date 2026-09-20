@@ -10,10 +10,11 @@ use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
     METHOD_PROGRESS_FLEET_EVENT, METHOD_PROGRESS_RESYNC, METHOD_PROGRESS_SNAPSHOT, METHOD_PROGRESS_SUBSCRIBE,
-    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification, ProgressSnapshot,
-    ProgressSubscribeParams, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification,
+    ProgressSnapshot, ProgressSubscribeParams, ReadMessage, Request, Response, SessionDeleteParams,
+    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    ShutdownResult, read_message,
 };
 
 /// One update from the fleet-wide, best-effort provisioning subscription.
@@ -272,6 +273,25 @@ impl Client {
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
         let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }, None).await?;
+        Ok(())
+    }
+
+    /// Requests asynchronous deletion of one Session and its runtime.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or persistence fails.
+    pub async fn delete_session(&self, agent: &str, name: crate::sessions::SessionName) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_DELETE,
+                SessionDeleteParams {
+                    agent: agent.into(),
+                    name,
+                },
+                None,
+            )
+            .await?;
         Ok(())
     }
 

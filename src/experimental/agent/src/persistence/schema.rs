@@ -8,7 +8,7 @@ use crate::Error;
 
 use super::database_error;
 
-pub(crate) const VERSION: u32 = 3;
+pub(crate) const VERSION: u32 = 4;
 
 const PREVIEW_1_SQL: &str = "
     CREATE TABLE agents (
@@ -64,6 +64,10 @@ const SESSION_SELECTION_COLUMNS_SQL: &str = "
     ALTER TABLE sessions ADD COLUMN effort TEXT;
 ";
 
+const SESSION_DELETION_COLUMN_SQL: &str = "
+    ALTER TABLE sessions ADD COLUMN deletion_timestamp INTEGER;
+";
+
 struct Migration {
     version: u32,
     name: &'static str,
@@ -89,6 +93,12 @@ const MIGRATIONS: &[Migration] = &[
         name: "session model and effort",
         schema: &[SESSION_SELECTION_COLUMNS_SQL],
         apply: add_session_selections,
+    },
+    Migration {
+        version: 4,
+        name: "session deletion",
+        schema: &[SESSION_DELETION_COLUMN_SQL],
+        apply: add_session_deletion,
     },
 ];
 
@@ -191,6 +201,15 @@ fn add_session_selections(transaction: &Transaction<'_>) -> Result<(), Error> {
             .map_err(database_error)?;
     }
     Ok(())
+}
+
+fn add_session_deletion(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 4)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_DELETION_COLUMN_SQL)
+        .map_err(database_error)
 }
 
 fn migrate_agent_instructions(transaction: &Transaction<'_>) -> Result<(), Error> {

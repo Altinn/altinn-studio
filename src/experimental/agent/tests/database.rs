@@ -361,6 +361,90 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
 }
 
 #[test]
+fn session_deletion_is_hidden_idempotent_and_releases_its_name_after_cleanup() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("ready Agent");
+        let name = SessionName::new("disposable").expect("Session name");
+        let session = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("Session");
+        let token: agent::sessions::LaunchToken = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa".parse().expect("launch token");
+        store
+            .record_session_launch(
+                session.id,
+                agent::sessions::LaunchRecord {
+                    token: token.clone(),
+                    sandbox: "sandbox-1".into(),
+                    launched_at: 1_750_000_000,
+                    attempts: 1,
+                },
+            )
+            .await
+            .expect("launch record");
+
+        let marked = store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert!(marked.deletion_timestamp.is_some());
+        let marked_again = store.mark_session_deleting("worker", &name).await.expect("repeat mark");
+        assert_eq!(marked_again.deletion_timestamp, marked.deletion_timestamp);
+        assert!(matches!(
+            store.get_agent_session("worker", &name).await,
+            Err(Error::NotFound)
+        ));
+        assert!(
+            store
+                .list_agent_sessions("worker")
+                .await
+                .expect("controller list")
+                .iter()
+                .any(|candidate| candidate.id == session.id && candidate.deletion_timestamp.is_some()),
+            "the controller retains the tombstone until runtime cleanup"
+        );
+        assert_eq!(
+            store
+                .apply_session_activity_for_launch(
+                    session.id,
+                    &token,
+                    uuid::Uuid::new_v4(),
+                    agent::sessions::ActivityEvent::TurnStarted,
+                    time::OffsetDateTime::now_utc(),
+                )
+                .await
+                .expect("stale report is ignored"),
+            None
+        );
+        assert!(matches!(
+            store
+                .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode),)
+                .await,
+            Err(Error::Conflict)
+        ));
+
+        store
+            .finalize_session_deletion(session.id)
+            .await
+            .expect("finalize deletion");
+        store
+            .finalize_session_deletion(session.id)
+            .await
+            .expect("repeat finalization");
+        let replacement = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::Codex))
+            .await
+            .expect("reuse name");
+        assert_ne!(replacement.id, session.id);
+    });
+}
+
+#[test]
 fn concurrent_creation_only_conflicts_on_explicit_selections() {
     let directory = TempDir::new().expect("temporary directory");
     let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
@@ -560,7 +644,7 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        3
+        4
     );
     assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
@@ -665,7 +749,7 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 4);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
@@ -722,11 +806,40 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 4);
     assert!(
         directory.path().join("backups").is_dir(),
         "a pending migration is backed up first"
     );
+}
+
+#[test]
+fn version_3_home_adds_the_session_deletion_marker() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create version 3 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("version 2 tables");
+    connection
+        .execute_batch(
+            "ALTER TABLE sessions ADD COLUMN model TEXT;
+             ALTER TABLE sessions ADD COLUMN effort TEXT;
+             PRAGMA user_version = 3;",
+        )
+        .expect("version 3 schema");
+    drop(connection);
+
+    drop(persistence::Database::open(&path).expect("migrate version 3 database"));
+
+    let (version, schema) = schema_snapshot(&path);
+    assert_eq!(version, 4);
+    let sessions = schema
+        .iter()
+        .find(|(name, _)| name == "table:sessions")
+        .map(|(_, sql)| sql)
+        .expect("sessions table");
+    assert!(sessions.contains("deletion_timestamp INTEGER"));
 }
 
 #[test]
@@ -763,7 +876,7 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 3);
+    assert_eq!(after.0, 4);
     let unchanged = |snapshot: &[(String, String)]| {
         snapshot
             .iter()
@@ -782,8 +895,10 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     let (before_sessions, after_sessions) = (sessions_sql(&before), sessions_sql(&after.1));
     assert!(!before_sessions.contains("model TEXT"));
     assert!(
-        after_sessions.contains("model TEXT") && after_sessions.contains("effort TEXT"),
-        "only the Session selection columns are added: {after_sessions}"
+        after_sessions.contains("model TEXT")
+            && after_sessions.contains("effort TEXT")
+            && after_sessions.contains("deletion_timestamp INTEGER"),
+        "the pending Session columns are added: {after_sessions}"
     );
 }
 

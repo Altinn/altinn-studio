@@ -17,7 +17,7 @@ use super::{agents, database_error};
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
     sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
-    sessions.model, sessions.effort";
+    sessions.model, sessions.effort, sessions.deletion_timestamp";
 
 /// Reconciler-owned column: the lifecycle half of the status plus the
 /// activation revision it was observed at.
@@ -44,7 +44,10 @@ pub(super) fn ensure(
         return Err(Error::Conflict);
     }
     let agent_id = owner.id;
-    if let Some(session) = query_named(&transaction, agent_id, name)? {
+    if let Some(session) = query_named_any(&transaction, agent_id, name)? {
+        if session.deletion_timestamp.is_some() {
+            return Err(Error::Conflict);
+        }
         // Two callers may both find no Session and both resolve one; the first
         // recorded selections bind, so a loser that explicitly chose differently
         // learns about it, while one that chose nothing gets the Session as is.
@@ -79,7 +82,7 @@ pub(super) fn ensure(
             ],
         )
         .map_err(database_error)?;
-    let session = query_named(&transaction, agent_id, name)?.ok_or(Error::NotFound)?;
+    let session = query_named_any(&transaction, agent_id, name)?.ok_or(Error::NotFound)?;
     transaction.commit().map_err(database_error)?;
     Ok(session)
 }
@@ -101,7 +104,46 @@ pub(super) fn get(connection: &Connection, id: SessionId) -> Result<Session, Err
 
 pub(super) fn get_by_name(connection: &Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
     let owner = agents::get_by_name(connection, agent)?;
-    query_named(connection, owner.id, name)?.ok_or(Error::NotFound)
+    query_named_active(connection, owner.id, name)?.ok_or(Error::NotFound)
+}
+
+pub(super) fn mark_deleting(connection: &mut Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let owner = agents::get_by_name(&transaction, agent)?;
+    let mut session = query_named_any(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    if session.deletion_timestamp.is_none() {
+        let timestamp = time::OffsetDateTime::from_unix_timestamp(time::OffsetDateTime::now_utc().unix_timestamp())
+            .map_err(|error| Error::Database(format!("invalid Session deletion timestamp: {error}")))?;
+        let changed = transaction
+            .execute(
+                "UPDATE sessions SET deletion_timestamp = ?1, launch_token = NULL WHERE id = ?2",
+                params![timestamp.unix_timestamp(), session.id.to_string()],
+            )
+            .map_err(database_error)?;
+        if changed != 1 {
+            return Err(Error::Conflict);
+        }
+        session.deletion_timestamp = Some(timestamp);
+    }
+    transaction.commit().map_err(database_error)?;
+    Ok(session)
+}
+
+pub(super) fn finalize_deletion(connection: &mut Connection, id: SessionId) -> Result<(), Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    transaction
+        .execute(
+            "DELETE FROM session_activity_reports WHERE session_id = ?1",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    transaction
+        .execute(
+            "DELETE FROM sessions WHERE id = ?1 AND deletion_timestamp IS NOT NULL",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    transaction.commit().map_err(database_error)
 }
 
 pub(super) fn list_all(connection: &Connection) -> Result<Vec<Session>, Error> {
@@ -129,7 +171,8 @@ pub(super) fn list_for_agent(connection: &Connection, agent: &str) -> Result<Vec
 pub(super) fn activate(connection: &Connection, id: SessionId) -> Result<u64, Error> {
     let changed = connection
         .execute(
-            "UPDATE sessions SET activation_generation = activation_generation + 1 WHERE id = ?1",
+            "UPDATE sessions SET activation_generation = activation_generation + 1 \
+             WHERE id = ?1 AND deletion_timestamp IS NULL",
             [id.to_string()],
         )
         .map_err(database_error)?;
@@ -161,7 +204,7 @@ pub(super) fn update_lifecycle(
     };
     let changed = connection
         .execute(
-            "UPDATE sessions SET lifecycle_json = ?1 WHERE id = ?2",
+            "UPDATE sessions SET lifecycle_json = ?1 WHERE id = ?2 AND deletion_timestamp IS NULL",
             params![serde_json::to_string(&row)?, id.to_string()],
         )
         .map_err(database_error)?;
@@ -174,7 +217,7 @@ pub(super) fn clear_report(connection: &Connection, id: SessionId) -> Result<(),
     let changed = connection
         .execute(
             "UPDATE sessions SET harness_native_id = NULL, harness_transcript_path = NULL, activity_json = '{}' \
-             WHERE id = ?1",
+             WHERE id = ?1 AND deletion_timestamp IS NULL",
             params![id.to_string()],
         )
         .map_err(database_error)?;
@@ -237,6 +280,7 @@ fn begin_report<'a>(
         .query_row(
             "SELECT activity_json FROM sessions \
              WHERE id = ?1 AND launch_token = ?2 \
+             AND deletion_timestamp IS NULL \
              AND EXISTS ( \
                  SELECT 1 FROM agents \
                  WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL \
@@ -282,7 +326,7 @@ pub(super) fn record_launch(
     let transaction = connection.transaction().map_err(database_error)?;
     let prompt: Option<String> = transaction
         .query_row(
-            "SELECT initial_prompt FROM sessions WHERE id = ?1",
+            "SELECT initial_prompt FROM sessions WHERE id = ?1 AND deletion_timestamp IS NULL",
             [id.to_string()],
             |row| row.get(0),
         )
@@ -292,7 +336,7 @@ pub(super) fn record_launch(
     transaction
         .execute(
             "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4, \
-             activity_json = '{}', initial_prompt = NULL WHERE id = ?5",
+             activity_json = '{}', initial_prompt = NULL WHERE id = ?5 AND deletion_timestamp IS NULL",
             params![token.expose(), sandbox, launched_at, attempts, id.to_string()],
         )
         .map_err(database_error)?;
@@ -340,7 +384,7 @@ pub(super) fn launch_state(connection: &Connection, id: SessionId) -> Result<Opt
 pub(super) fn reset_launch_attempts(connection: &Connection, id: SessionId) -> Result<(), Error> {
     let changed = connection
         .execute(
-            "UPDATE sessions SET launch_attempts = 0 WHERE id = ?1",
+            "UPDATE sessions SET launch_attempts = 0 WHERE id = ?1 AND deletion_timestamp IS NULL",
             [id.to_string()],
         )
         .map_err(database_error)?;
@@ -349,6 +393,9 @@ pub(super) fn reset_launch_attempts(connection: &Connection, id: SessionId) -> R
 
 pub(super) fn attach_target(connection: &Connection, id: SessionId) -> Result<AttachTarget, Error> {
     let session = get(connection, id)?;
+    if session.deletion_timestamp.is_some() {
+        return Err(Error::NotFound);
+    }
     if session.status.lifecycle.state != LifecycleState::Running {
         return Err(session.not_running_error());
     }
@@ -369,12 +416,30 @@ pub(super) fn attach_target(connection: &Connection, id: SessionId) -> Result<At
     Ok(AttachTarget { session, sandbox })
 }
 
-fn query_named(connection: &Connection, agent: AgentId, name: &SessionName) -> Result<Option<Session>, Error> {
+fn query_named_active(connection: &Connection, agent: AgentId, name: &SessionName) -> Result<Option<Session>, Error> {
+    query_named(connection, agent, name, true)
+}
+
+fn query_named_any(connection: &Connection, agent: AgentId, name: &SessionName) -> Result<Option<Session>, Error> {
+    query_named(connection, agent, name, false)
+}
+
+fn query_named(
+    connection: &Connection,
+    agent: AgentId,
+    name: &SessionName,
+    active_only: bool,
+) -> Result<Option<Session>, Error> {
+    let active = if active_only {
+        " AND sessions.deletion_timestamp IS NULL"
+    } else {
+        ""
+    };
     connection
         .query_row(
             &format!(
                 "SELECT {SESSION_COLUMNS} FROM sessions JOIN agents ON agents.id = sessions.agent_id \
-                 WHERE sessions.agent_id = ?1 AND sessions.name = ?2 AND agents.active_name IS NOT NULL"
+                 WHERE sessions.agent_id = ?1 AND sessions.name = ?2 AND agents.active_name IS NOT NULL{active}"
             ),
             params![agent.to_string(), name.as_str()],
             decode_row,
@@ -417,6 +482,11 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         .map(crate::Effort::new)
         .transpose()
         .map_err(conversion_error)?;
+    let deletion_timestamp = row
+        .get::<_, Option<i64>>(13)?
+        .map(time::OffsetDateTime::from_unix_timestamp)
+        .transpose()
+        .map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
@@ -425,6 +495,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         harness,
         model_selection: crate::ModelSelection { model, effort },
         created_at,
+        deletion_timestamp,
         status: Status::new(
             Lifecycle {
                 state: lifecycle.state,

@@ -20,6 +20,7 @@ pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
 pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
+pub(crate) const METHOD_SESSION_DELETE: &str = "sessions.v1.delete";
 pub(crate) const METHOD_PROGRESS_EVENT: &str = "progress.v1.event";
 pub(crate) const METHOD_PROGRESS_FLEET_EVENT: &str = "progress.v1.fleetEvent";
 pub(crate) const METHOD_PROGRESS_SUBSCRIBE: &str = "progress.v1.subscribe";
@@ -172,6 +173,13 @@ pub(crate) struct SessionTurnsParams {
     pub name: crate::sessions::SessionName,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last: Option<usize>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionDeleteParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
 }
 
 #[derive(Deserialize, Serialize)]

@@ -345,6 +345,14 @@ pub struct Session {
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+    /// Time deletion was requested; deleting Sessions disappear from user lists
+    /// while the controller stops their runtime and removes durable state.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub deletion_timestamp: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -479,6 +487,16 @@ pub trait SessionStore: SessionReports {
 
     /// Lists Sessions for the active incarnation of one Agent name.
     fn list_agent_sessions<'a>(&'a self, agent: &'a str) -> ::sandbox::LocalFuture<'a, Result<Vec<Session>, Error>>;
+
+    /// Atomically marks one named Session for asynchronous deletion.
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Removes a marked Session and its launch/report bookkeeping.
+    fn finalize_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
     /// Replaces the lifecycle half of the status for the desired activation
     /// revision observed by the reconciler; the reported half is untouched.
