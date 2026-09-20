@@ -35,6 +35,11 @@ jobs:
             repository: ghcr.io/altinn/altinn-studio/agent-minimal
           - variant: full
             repository: ghcr.io/altinn/altinn-studio/agent-full
+          # The desktop image is one stage on top of full, so it warms its build from that image's
+          # cache as well as its own and only rebuilds the desktop layers.
+          - variant: desktop
+            repository: ghcr.io/altinn/altinn-studio/agent-desktop
+            extra_cache: ghcr.io/altinn/altinn-studio/agent-full
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -64,6 +69,7 @@ jobs:
         env:
           CAN_PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
           IMAGE_REPOSITORY: ${{ matrix.repository }}
+          EXTRA_CACHE: ${{ matrix.extra_cache }}
           TARGET: ${{ matrix.variant }}
         run: |
           set -eu
@@ -88,6 +94,10 @@ jobs:
               --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache,mode=max,image-manifest=true"
           fi
 
+          if [ -n "${EXTRA_CACHE}" ]; then
+            set -- "$@" --cache-from "type=registry,ref=${EXTRA_CACHE}:buildcache"
+          fi
+
           docker buildx build \
             --provenance=false \
             --sbom=false \
@@ -103,12 +113,18 @@ jobs:
       - name: Smoke test amd64 image
         env:
           IMAGE_REPOSITORY: ${{ matrix.repository }}
+          EXTRA_CACHE: ${{ matrix.extra_cache }}
           TARGET: ${{ matrix.variant }}
         run: |
           set -eu
+          set --
+          if [ -n "${EXTRA_CACHE}" ]; then
+            set -- --cache-from "type=registry,ref=${EXTRA_CACHE}:buildcache"
+          fi
           docker buildx build \
             --provenance=false \
             --sbom=false \
+            "$@" \
             --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache" \
             --file agents/Dockerfile \
             --platform linux/amd64 \

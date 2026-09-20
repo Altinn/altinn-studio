@@ -2,7 +2,7 @@
 # Smoke-tests the shared developer and pull request evidence tooling inside a freshly built Agent image.
 #
 #   docker run --rm --init --ipc=host --security-opt seccomp=unconfined --entrypoint bash \
-#     -v "$PWD/agents/smoke.sh:/smoke.sh:ro" <image> /smoke.sh <minimal|full> [KEEP_DIR]
+#     -v "$PWD/agents/smoke.sh:/smoke.sh:ro" <image> /smoke.sh <minimal|full|desktop> [KEEP_DIR]
 #
 # With KEEP_DIR (a writable mount), the produced media is copied there for inspection.
 #
@@ -13,13 +13,13 @@
 # seccomp profile under Docker; inside a Sandbox it runs on a real kernel and needs neither.
 set -euo pipefail
 
-variant="${1:?usage: smoke.sh <minimal|full> [KEEP_DIR]}"
+variant="${1:?usage: smoke.sh <minimal|full|desktop> [KEEP_DIR]}"
 keep="${2:-}"
 work="$(mktemp -d "${TMPDIR:-/tmp}/smoke with space.XXXXXX")"
 cd "$work"
 fail() { echo "smoke: $*" >&2; exit 1; }
 finish() {
-    [ -n "$keep" ] && cp -- *.gif *.png *.cast *.webm "$keep"/ 2>/dev/null
+    [ -n "$keep" ] && cp -- *.gif *.jpg *.png *.cast *.webm "$keep"/ 2>/dev/null
     echo "smoke: $variant ok"
     exit 0
 }
@@ -169,7 +169,7 @@ frames="$(grep -c '^\[' terminal.cast || true)"
 test "${frames:-0}" -ge 4 || fail "cast has $frames timed events; the fixture should produce output over time"
 echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 
-[ "$variant" = full ] || finish
+[ "$variant" = minimal ] && finish
 
 echo "## rust"
 cargo --version
@@ -248,4 +248,93 @@ video-to-gif --fps 10 browser.webm interaction.gif
 media-preview before.png interaction.gif
 test -s interaction.gif.preview.png || fail "media-preview wrote no contact sheet"
 media-preview "$work/missing.png" && fail "media-preview accepted a missing file"
+[ "$variant" = desktop ] || finish
+
+# The desktop image boots this stack from systemd units; CI runs the image under Docker, where
+# there is no init, so the same three processes are started here from the same configuration.
+echo "## desktop"
+. /etc/agent-desktop.conf
+export DISPLAY="$AGENT_DESKTOP_DISPLAY"
+for unit in agent-desktop-display agent-desktop-session; do
+    systemctl is-enabled "${unit}.service" >/dev/null || fail "${unit}.service is not enabled"
+done
+grep -qxF 'panel_layer = top' /etc/xdg/tint2/tint2rc \
+    || fail "the panel would sit underneath maximized windows"
+
+Xtigervnc "$AGENT_DESKTOP_DISPLAY" -geometry "$AGENT_DESKTOP_GEOMETRY" -depth 24 \
+    -rfbport "$AGENT_DESKTOP_VNC_PORT" -localhost -SecurityTypes None -AlwaysShared \
+    -desktop Altinn-Agent >xvnc.log 2>&1 &
+display_server=$!
+trap 'kill "$server" "$display_server" ${session:-} 2>/dev/null' EXIT
+for _ in $(seq 1 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.1; done
+xdpyinfo >/dev/null 2>&1 || fail "the X and VNC server never came up"
+/usr/local/libexec/agent-desktop-session >session.log 2>&1 &
+session=$!
+for _ in $(seq 1 150); do desktop windows 2>/dev/null | grep -qi tint2 && break; sleep 0.1; done
+
+geometry="$(xdpyinfo | awk '/dimensions:/ { print $2 }')"
+test "$geometry" = "$AGENT_DESKTOP_GEOMETRY" \
+    || fail "display is $geometry, expected $AGENT_DESKTOP_GEOMETRY"
+# xdotool cannot type ÆØÅ under a layout that does not carry those characters: it loses the shift
+# level when it has to bind one itself, and Norwegian form input is full of them.
+layout="$(setxkbmap -query | awk '/^layout/ { print $2 }')"
+test "$layout" = no || fail "keyboard layout is $layout, expected the Norwegian layout"
+ss -ltn | grep -q '127.0.0.1:5900' || fail "the VNC server is not listening on loopback"
+! ss -ltn | grep -qE '0\.0\.0\.0:5900|\*:5900' || fail "the VNC server listens beyond loopback"
+desktop windows | grep -qi tint2 || fail "the desktop panel is not running"
+
+echo "## desktop capture"
+desktop display
+# The same locally signed HTTPS fixture the Playwright section served, loaded by the desktop's own
+# browser: it proves that browser trusts the Agent-managed CA without disabling verification.
+chromium --user-data-dir="$work/browser" https://localhost:8321/ >chromium.log 2>&1 &
+for _ in $(seq 1 300); do desktop windows | grep -qi chromium && break; sleep 0.1; done
+desktop windows | grep -qi chromium || fail "the desktop browser never opened a window"
+shot="$(desktop --json screenshot)"
+echo "$shot"
+path="$(jq -r .path <<<"$shot")"
+test "$(jq -r .width <<<"$shot")" = 1456 || fail "screenshot is not 1456 pixels wide"
+test "$(jq -r .height <<<"$shot")" = 819 || fail "screenshot is not 819 pixels high"
+test "$(jq -r .frames <<<"$shot")" -ge 2 || fail "the capture did not wait for the screen to settle"
+test "$(jq -r .bytes <<<"$shot")" -gt 20000 || fail "the screenshot is too small to hold a page"
+cp "$path" desktop.jpg
+! desktop zoom 0 0 400 200 --out zoom.png >/dev/null 2>&1 || fail "zoom accepted a non-JPEG path"
+desktop zoom 0 0 400 200 --out zoom.jpg
+IFS=, read -r zoom_width zoom_height < <(ffprobe -v error -select_streams v:0 \
+    -show_entries stream=width,height -of csv=p=0 zoom.jpg)
+test "$zoom_width" = 400 && test "$zoom_height" = 200 \
+    || fail "zoom wrote ${zoom_width}x${zoom_height}, expected 400x200"
+
+echo "## desktop input"
+# Norwegian text through the whole path: the batch parser, xdotool, the keyboard layout, the page.
+desktop batch --no-screenshot <<'BATCH'
+key ctrl+l
+type https://localhost:8321/?søk=Blåbær ÆØÅ
+key Return
+wait 2
+BATCH
+desktop zoom 0 40 1456 40 --out address.jpg
+title="$(desktop windows | grep -i chromium)"
+case "$title" in
+    *smoke*) ;;
+    *) fail "the desktop browser is not showing the fixture: $title" ;;
+esac
+
+halted="$(desktop batch --no-screenshot <<'BATCH' || true
+click 100 100
+not-a-command
+type this must never run
+BATCH
+)"
+grep -q 'Not executed: an earlier computer action in this turn failed.' <<<"$halted" \
+    || fail "a failing batch did not halt the actions after it"
+test "$(grep -c 'Not executed' <<<"$halted")" -eq 1 \
+    || fail "the halted batch skipped the wrong number of actions"
+
+desktop batch <<'BATCH' >trailing.txt
+wait 0.2
+BATCH
+grep -qE '\.jpg \(1456x819' trailing.txt || fail "a batch did not end with a screenshot"
+
+media-preview desktop.jpg
 finish
