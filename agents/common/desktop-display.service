@@ -1,0 +1,20 @@
+[Unit]
+Description=X11 display and VNC server for the Agent desktop
+Before=multi-user.target
+After=agent-browser-ca-init.service
+
+[Service]
+# Xtigervnc is both the X server and the VNC server, so the desktop runs one process where an
+# Xvfb and x11vnc pair would poll a framebuffer. It listens on loopback only: reaching it from
+# outside the Sandbox is the platform's to grant, through `agentctl port-forward` or an SSH tunnel.
+Type=exec
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+EnvironmentFile=/etc/agent-desktop.conf
+ExecStart=/usr/bin/Xtigervnc ${AGENT_DESKTOP_DISPLAY} -geometry ${AGENT_DESKTOP_GEOMETRY} -depth 24 -rfbport ${AGENT_DESKTOP_VNC_PORT} -localhost -SecurityTypes None -AlwaysShared -desktop Altinn-Agent
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

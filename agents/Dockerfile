@@ -477,3 +477,73 @@ USER agent
 WORKDIR /home/agent/code
 
 ENTRYPOINT ["/usr/lib/systemd/systemd"]
+
+FROM full AS desktop
+
+# The full stage ends as the unprivileged Agent user; installing packages needs root again.
+USER root
+
+# A minimal X11 desktop the Agent drives and a person can watch: one process that is both X server
+# and VNC server, a window manager that does not animate, a panel, and the input and window tools
+# the `desktop` helper is built on. Screen capture reuses the ffmpeg the full image already carries
+# for pull request evidence, so the image gains no imaging stack: `ffmpeg -f x11grab` grabs the
+# screen, crops a region and encodes JPEG at the quality the helper asks for.
+#
+# Deliberately absent: a desktop environment (hundreds of megabytes and animations), a second
+# browser (the Playwright Chromium is exposed through a shim instead), scrot, maim and ImageMagick
+# (ffmpeg covers capture, crop and encode), and wmctrl, whose build here segfaults whenever the
+# window list is empty; the helper reads the same EWMH properties with xprop and xdotool.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        dbus-x11 \
+        fonts-noto-color-emoji \
+        fonts-noto-core \
+        openbox \
+        tigervnc-standalone-server \
+        tint2 \
+        x11-utils \
+        x11-xserver-utils \
+        xdotool \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY common/desktop.conf /etc/agent-desktop.conf
+COPY common/desktop-display.service /etc/systemd/system/agent-desktop-display.service
+COPY common/desktop-session.service /etc/systemd/system/agent-desktop-session.service
+COPY common/desktop-openbox-rc.xml /etc/xdg/openbox/rc.xml
+COPY common/desktop-tint2rc /etc/xdg/tint2/tint2rc
+COPY --chmod=0755 common/desktop-session.sh /usr/local/libexec/agent-desktop-session
+COPY --chmod=0755 common/bin/chromium common/bin/desktop /usr/local/bin/
+
+# xdotool refuses to type a multi-byte character under the POSIX locale, which is every Norwegian
+# word with æ, ø or å in it. C.UTF-8 needs no locale package and is generated in the base image.
+ENV LANG=C.UTF-8
+# Every Session, and every process a harness starts, inherits the Agent's own display, so
+# playwright-cli --headed, the `desktop` helper and any GUI command land on the screen a person
+# can watch. The desktop units read the same number from /etc/agent-desktop.conf; the build below
+# fails if the two ever disagree.
+ENV DISPLAY=:1
+
+# HOME is the Agent's home for every later process, but these checks run as root: openbox writes a
+# log under $HOME/.cache the moment it is invoked, and a root-owned file there would deny the Agent
+# its own cache directory later. The home directory invariant the other stages assert is asserted
+# here too, so a future check that writes into it fails the build rather than the Agent.
+RUN systemctl enable agent-desktop-display.service agent-desktop-session.service \
+    && HOME=/tmp/image-checks sh -c ' \
+        Xtigervnc -version 2>&1 | head -1 \
+        && openbox --version | head -1 \
+        && tint2 --version \
+        && xdotool --version \
+        && chromium --version \
+        && desktop help >/dev/null' \
+    && rm -rf /tmp/image-checks \
+    && test -x /usr/local/bin/desktop \
+    && . /etc/agent-desktop.conf \
+    && test "${DISPLAY}" = "${AGENT_DESKTOP_DISPLAY}" \
+    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
+        echo "build left files under /home/agent not owned by agent" >&2; exit 1; \
+    fi
+
+USER agent
+WORKDIR /home/agent/code
+
+ENTRYPOINT ["/usr/lib/systemd/systemd"]
