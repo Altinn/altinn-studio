@@ -252,6 +252,45 @@ enum Command {
         #[arg(short = 'o', long, default_value = "table", value_enum)]
         output: OutputFormat,
     },
+    /// Forward an Agent's desktop to a local VNC port until interrupted.
+    Vnc {
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Local port to listen on; 0 selects an ephemeral port. Defaults to the forwarded guest port.
+        #[arg(long)]
+        port: Option<u16>,
+        /// Forward the browser-based viewer instead of the raw RFB port, so no VNC client is needed.
+        #[arg(long)]
+        web: bool,
+        /// Hand the address to the local browser or VNC handler instead of only printing it.
+        #[arg(long)]
+        open: bool,
+    },
+    /// Relay one connection to an Agent's desktop over standard input and output.
+    VncProxy {
+        /// Agent resource or name.
+        resource: String,
+    },
+    /// Describe how to reach an Agent's desktop over VNC.
+    VncInfo {
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
+    },
     /// Open the interactive terminal UI.
     Tui,
     /// Wait for a resource condition.
@@ -549,6 +588,24 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             variant,
             output,
         } => ssh_info(client, resource, agent, variant, output).await?,
+        Command::Vnc {
+            agent,
+            variant,
+            resource,
+            port,
+            web,
+            open,
+        } => {
+            let options = VncOptions { port, web, open };
+            return vnc(home, client, resource, agent, variant, options).await;
+        }
+        Command::VncProxy { resource } => return vnc_proxy(home, client, resource).await,
+        Command::VncInfo {
+            resource,
+            agent,
+            variant,
+            output,
+        } => vnc_info(client, resource, agent, variant, output).await?,
         Command::Create {
             target,
             selection,
@@ -888,6 +945,147 @@ async fn ssh_info(
         OutputFormat::Json => print_json(&access)?,
         OutputFormat::Table => {
             for line in format::ssh_access_lines(&access) {
+                println!("{line}");
+            }
+        }
+    }
+    Ok(())
+}
+
+/// How one `agentctl vnc` invocation should expose the desktop.
+struct VncOptions {
+    /// Local port to listen on; the forwarded guest port when omitted.
+    port: Option<u16>,
+    /// Forward the browser-based viewer rather than the raw RFB port.
+    web: bool,
+    /// Also hand the address to whichever local application handles its scheme.
+    open: bool,
+}
+
+/// Forwards the Agent's desktop to a local port and holds it open.
+///
+/// The Agent is converged first, so the platform-owned bridge from the guest
+/// port to the image's display socket exists before anything dials it.
+async fn vnc(
+    home: &ControlPlaneHome,
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    variant: Option<AgentVariantName>,
+    options: VncOptions,
+) -> CommandResult<ExitCode> {
+    let VncOptions { port, web, open } = options;
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
+    // Refuses early, with the remedy, when the Agent declares no VNC access.
+    let access = client.vnc_access(&agent).await?;
+    let guest_port = if web { access.web_guest_port } else { access.guest_port };
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .await?;
+    let spec = forward::ForwardSpec {
+        address: std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+        local_port: port.unwrap_or(guest_port),
+        guest_port,
+    };
+    let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
+    let address = forward.local_address();
+    // The image decides what its viewer port serves and where the root redirects, so the caller is
+    // pointed at the root rather than a path this side would have to keep in step with it.
+    let url = if web {
+        format!("http://{address}/")
+    } else {
+        format!("vnc://{address}")
+    };
+    println!("Desktop of agent {agent:?} is at {url}");
+    if web {
+        println!("Open that address in a browser; nothing needs installing.");
+    } else {
+        println!("Open it with any VNC viewer, for example `vncviewer {address}`, or pass --web for a browser.");
+    }
+    if open {
+        open_locally(&url);
+    }
+    let mut poll = tokio::time::interval(Duration::from_secs(1));
+    let mut reported = None;
+    loop {
+        tokio::select! {
+            result = tokio::signal::ctrl_c() => {
+                result.map_err(Error::from)?;
+                return Ok(ExitCode::SUCCESS);
+            }
+            _ = poll.tick() => {
+                let status = forward.status();
+                if status != reported {
+                    if let Some(message) = &status {
+                        eprintln!("{address}: {message}");
+                    }
+                    reported = status;
+                }
+                if forward.finished() {
+                    eprintln!("the desktop forward has stopped");
+                    return Ok(ExitCode::FAILURE);
+                }
+            }
+        }
+    }
+}
+
+/// Hands the address to whichever local application handles its scheme.
+///
+/// Best effort by design: there is no portable VNC viewer, the address is
+/// already printed, and a missing handler must not fail the forward.
+fn open_locally(url: &str) {
+    let opener = if cfg!(target_os = "macos") {
+        "open"
+    } else if cfg!(target_os = "windows") {
+        "explorer"
+    } else {
+        "xdg-open"
+    };
+    match ProcessCommand::new(opener).arg(url).spawn() {
+        Ok(_) => println!("Asked {opener} to open {url}."),
+        Err(error) => eprintln!("could not run {opener} to open {url}: {error}"),
+    }
+}
+
+/// Relays one desktop connection over standard input and output.
+///
+/// This is the seam for a viewer that dials through a command rather than a
+/// port, and for tooling that wants the RFB stream without a listening socket.
+async fn vnc_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -> CommandResult<ExitCode> {
+    let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
+    let access = client.vnc_access(&agent).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .await?;
+    forward::relay_guest_port(
+        home.path(),
+        &target.sandbox,
+        access.guest_port,
+        tokio::io::stdin(),
+        tokio::io::stdout(),
+    )
+    .await?;
+    // A blocked standard-input read would keep the runtime from shutting down;
+    // the relay is finished, so leave immediately.
+    std::process::exit(0)
+}
+
+async fn vnc_info(
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    variant: Option<AgentVariantName>,
+    output: OutputFormat,
+) -> CommandResult<()> {
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
+    let access = client.vnc_access(&agent).await?;
+    match output {
+        OutputFormat::Json => print_json(&access)?,
+        OutputFormat::Table => {
+            for line in format::vnc_access_lines(&access) {
                 println!("{line}");
             }
         }
@@ -1730,6 +1928,74 @@ mod tests {
         };
         assert_eq!(agent.as_deref(), Some("worker"));
         assert_eq!(split_forward_arguments(&arguments), (None, arguments.as_slice()));
+    }
+
+    #[test]
+    fn vnc_commands_accept_kubectl_shapes_and_a_chosen_local_port() {
+        let explicit = Arguments::try_parse_from(["agentctl", "vnc", "agent/worker"]).expect("vnc");
+        let Command::Vnc {
+            agent,
+            variant,
+            resource,
+            port,
+            web,
+            open,
+        } = explicit.command
+        else {
+            panic!("expected vnc command");
+        };
+        assert_eq!(resource.as_deref(), Some("agent/worker"));
+        assert!(agent.is_none() && variant.is_none());
+        assert!(
+            port.is_none(),
+            "the local port follows whichever guest port is forwarded"
+        );
+        assert!(!web, "the raw RFB port is forwarded unless a browser is asked for");
+        assert!(!open, "a viewer is launched only when asked for");
+
+        let chosen = Arguments::try_parse_from(["agentctl", "vnc", "--port", "0", "--open"]).expect("ephemeral vnc");
+        assert!(
+            matches!(
+                chosen.command,
+                Command::Vnc {
+                    port: Some(0),
+                    open: true,
+                    resource: None,
+                    ..
+                }
+            ),
+            "the Agent is inferred and an ephemeral local port is accepted"
+        );
+
+        let browser = Arguments::try_parse_from(["agentctl", "vnc", "--web"]).expect("web vnc");
+        assert!(
+            matches!(
+                browser.command,
+                Command::Vnc {
+                    web: true,
+                    port: None,
+                    ..
+                }
+            ),
+            "--web forwards the viewer port instead of the RFB port"
+        );
+
+        // The Agent is named once, the same rule the ssh commands follow.
+        assert!(Arguments::try_parse_from(["agentctl", "vnc", "--agent", "worker", "agent/other"]).is_err());
+
+        let proxy = Arguments::try_parse_from(["agentctl", "vnc-proxy", "agent/worker"]).expect("vnc-proxy");
+        assert!(matches!(proxy.command, Command::VncProxy { resource } if resource == "agent/worker"));
+        assert!(Arguments::try_parse_from(["agentctl", "vnc-proxy"]).is_err());
+
+        let info = Arguments::try_parse_from(["agentctl", "vnc-info", "worker", "-o", "json"]).expect("vnc-info");
+        assert!(matches!(
+            info.command,
+            Command::VncInfo {
+                resource: Some(resource),
+                output: OutputFormat::Json,
+                ..
+            } if resource == "worker"
+        ));
     }
 
     #[test]
