@@ -101,5 +101,9 @@ When posting multiline GitHub comments from a shell, pass the body through stdin
 The tools installed on this computer are listed in the section that follows this shared text. Detect a tool before
 relying on it.
 
+The image carries no APT package lists, so run `sudo apt-get update` before installing anything. Without it
+`apt-get install` reports `has no installation candidate` for packages that are in fact available, which reads like
+the package is missing from the distribution rather than from your index.
+
 Store reusable local scripts under `/home/agent/code/.scripts/` and downloaded reference repositories or source
 material under `/home/agent/code/.reference/`. Check for existing material before downloading another copy.
