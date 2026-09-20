@@ -32,6 +32,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
   becomes free. The harness's own conversation files stay in the Sandbox.
 - `agentctl archive session/<name>` and `a` in the terminal UI archive a Session: its harness stops once any turn in
   progress ends, and it is hidden until `agentctl unarchive`. `get sessions --archived` and `A` show archived Sessions.
+- A new `desktop` Altinn Agent has a graphical screen it can see and use, driven by a `desktop` helper and a
+  `computer-use` skill: screenshot, zoom, point, scroll and type, including Norwegian text.
+- Agents can declare `access: [{type: vnc}]`. Watch or take over the desktop with `agentctl vnc --web`, in a browser
+  with nothing installed, or `agentctl vnc` for a VNC client of your own.
 
 ### Changed
 

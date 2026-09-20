@@ -178,28 +178,45 @@ SSH access; delete it and re-apply to pick up the current image.
 The `desktop` Agent runs a graphical desktop on display `:1` at 1456x819: an X server that is also
 a VNC server, the openbox window manager, a panel, and the same Chromium the Agent's Playwright
 tooling uses. The Agent drives it with the `desktop` helper and its `computer-use` skill; a person
-watches or takes over through VNC.
+watches or takes over over VNC.
 
-The VNC server listens only inside the Sandbox, so reach it the way you reach any other loopback
-port there — either through `agentctl`:
+The desktop publishes itself on a Unix socket inside the Sandbox and opens no port of its own. The
+image also ships the units that bridge a port to it and serve it in a browser, disabled; the
+platform turns them on when the Agent declares the capability, and off when it stops:
 
-```sh
-agentctl port-forward agent/altinn-desktop 5900
+```yaml
+  access:
+    - type: ssh
+    - type: vnc
 ```
 
-or over the SSH access the Agent already declares:
+The published `desktop` variants declare both. Remove the `vnc` entry and re-apply and the Agent
+keeps its screen with nothing listening — `agentd` checks that rather than assuming it, and reports
+an image that is still publishing the desktop outside its access units.
+
+In a browser, with nothing to install:
 
 ```sh
-ssh -N -L 5900:127.0.0.1:5900 agentctl-altinn-desktop
+agentctl vnc --web --open agent/altinn-desktop
 ```
 
-Then point a VNC client at `127.0.0.1:5900`; the connection carries no password because the
-Sandbox boundary and the forwarding you just set up are what protect it. On macOS, `open
-vnc://127.0.0.1:5900` uses the built-in client. You share the Agent's keyboard and pointer, so
-agree with it about who is driving before you start clicking.
+Or with a VNC client of your own:
 
-A browser-based client that needs no local install, and VNC as a declared `access` type alongside
-`ssh`, are the next step for this Agent rather than something it has today.
+```sh
+agentctl vnc agent/altinn-desktop
+vncviewer 127.0.0.1:5900
+```
+
+Both hold the forward open until interrupted. `--port` picks a different local port, and
+`agentctl vnc-info agent/altinn-desktop -o json` prints the ports for tooling that wants them
+directly. Which viewer the browser gets, and at what URL, is the image's to decide: `--web`
+forwards the port and opens its root. The forward carries an unauthenticated RFB stream, which is safe for the same
+reason the Agent's other loopback ports are: it never leaves the Sandbox except through the
+forward you just opened. You share the Agent's keyboard and pointer, so agree with it about who is
+driving before you start clicking.
+
+An Agent created from an image older than this feature reports that its image cannot provide VNC
+access; delete it and re-apply to pick up the current image.
 
 Delete the Agent and its Sandbox:
 
