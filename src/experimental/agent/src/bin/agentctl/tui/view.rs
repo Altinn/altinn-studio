@@ -130,12 +130,23 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     }
     if let Some(modal) = &app.modal {
         hit_map.clear();
-        render_footer(frame, footer, app, &mut hit_map);
         render_modal(frame, body, modal, &mut hit_map);
     } else {
         render_footer(frame, footer, app, &mut hit_map);
     }
+    if !app.color_enabled {
+        remove_colors(frame);
+    }
     hit_map
+}
+
+fn remove_colors(frame: &mut Frame) {
+    let area = frame.area();
+    for y in area.top()..area.bottom() {
+        for x in area.left()..area.right() {
+            frame.buffer_mut()[(x, y)].set_fg(Color::Reset).set_bg(Color::Reset);
+        }
+    }
 }
 
 fn render_header(frame: &mut Frame, area: Rect, app: &App) {
@@ -150,29 +161,37 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
             format!("{} need you", counts.needs_you),
             Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
         ),
-        Span::styled(
-            format!(
-                " · {} working · {} starting · {} idle · {} failed",
-                counts.working, counts.starting, counts.idle, counts.failed
-            ),
-            Style::new().fg(Color::DarkGray),
-        ),
     ];
+    for segment in [
+        format!(" · {} working", counts.working),
+        format!(" · {} starting", counts.starting),
+        format!(" · {} idle", counts.idle),
+        format!(" · {} failed", counts.failed),
+    ] {
+        push_header_segment(&mut spans, area.width, segment, Color::DarkGray);
+    }
     if app.refreshing() {
-        spans.push(Span::styled(" · ⟳", Style::new().fg(Color::Cyan)));
+        push_header_segment(&mut spans, area.width, " · refreshing".into(), Color::Cyan);
     }
     if app.creating > 0 {
-        spans.push(Span::styled(" · creating forward…", Style::new().fg(Color::Cyan)));
+        push_header_segment(&mut spans, area.width, " · creating forward".into(), Color::Cyan);
     }
     if app.discovering {
-        spans.push(Span::styled(" · scanning manifests…", Style::new().fg(Color::Cyan)));
+        push_header_segment(&mut spans, area.width, " · scanning manifests".into(), Color::Cyan);
     }
     let updated = app.last_updated.map_or_else(
         || "waiting for first update".to_owned(),
         |at| format!("updated {} ago", compact_duration(at.elapsed().as_secs())),
     );
-    spans.push(Span::styled(format!(" · {updated}"), Style::new().fg(Color::DarkGray)));
+    push_header_segment(&mut spans, area.width, format!(" · {updated}"), Color::DarkGray);
     frame.render_widget(Line::from(spans), area);
+}
+
+fn push_header_segment(spans: &mut Vec<Span<'static>>, width: u16, segment: String, color: Color) {
+    let used = Line::from(spans.clone()).width();
+    if used + Line::from(segment.as_str()).width() <= usize::from(width) {
+        spans.push(Span::styled(segment, Style::new().fg(color)));
+    }
 }
 
 fn compact_duration(seconds: u64) -> String {
@@ -195,34 +214,134 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
     }
     let [columns, list_area] = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).areas(area);
     frame.render_widget(tree_header(columns.width), columns);
-    let items = rows
-        .iter()
-        .map(|row| ListItem::new(tree_row(row, list_area.width)))
-        .collect::<Vec<_>>();
-    let list = List::new(items).highlight_style(Style::new().add_modifier(Modifier::REVERSED));
-    state.tree.select(app.selected_index());
-    frame.render_stateful_widget(list, list_area, &mut state.tree);
+    let viewport = tree_viewport(app, state, list_area.height);
     hit_map.wheel(list_area, WheelTarget::Tree);
-    for visible in 0..usize::from(list_area.height) {
-        let index = state.tree.offset().saturating_add(visible);
-        let Some(row) = app.rows.get(index) else {
+    let mut y = list_area.y;
+    if viewport.hidden_above > 0 && y < list_area.bottom() {
+        render_more(frame, list_area, y, viewport.hidden_above, "above");
+        y = y.saturating_add(1);
+    }
+    if let Some(index) = viewport.sticky.filter(|_| y < list_area.bottom()) {
+        render_tree_item(frame, app, &rows, list_area, (index, y, true), hit_map);
+        y = y.saturating_add(1);
+    }
+    for index in viewport.offset..viewport.offset.saturating_add(viewport.visible) {
+        if y >= list_area.bottom() {
             break;
-        };
-        let y = list_area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
-        let row_area = Rect::new(list_area.x, y, list_area.width, 1);
-        let Some(target) = app.row_target(index) else {
-            continue;
-        };
-        hit_map.click(row_area, HitTarget::Row(target.clone()));
-        if matches!(row, Row::Agent(_)) {
-            let RowTarget::Tree(target) = target else {
-                continue;
-            };
-            hit_map.click(
-                Rect::new(area.x, y, area.width.min(2), 1),
-                HitTarget::Action(MouseAction::FoldTree(target)),
-            );
         }
+        render_tree_item(frame, app, &rows, list_area, (index, y, false), hit_map);
+        y = y.saturating_add(1);
+    }
+    if viewport.hidden_below > 0 && y < list_area.bottom() {
+        render_more(frame, list_area, y, viewport.hidden_below, "below");
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+struct TreeViewport {
+    offset: usize,
+    visible: usize,
+    sticky: Option<usize>,
+    hidden_above: usize,
+    hidden_below: usize,
+}
+
+fn tree_viewport(app: &App, state: &mut ViewState, height: u16) -> TreeViewport {
+    let total = app.rows.len();
+    let height = usize::from(height);
+    let Some(selected) = app.selected_index().filter(|_| total > 0 && height > 0) else {
+        *state.tree.offset_mut() = 0;
+        state.tree.select(app.selected_index());
+        return TreeViewport::default();
+    };
+    let mut offset = state.tree.offset().min(total.saturating_sub(1));
+    for _ in 0..4 {
+        let hidden_above = usize::from(offset > 0);
+        let sticky = sticky_agent_row(app, offset);
+        let reserved = hidden_above + usize::from(sticky.is_some());
+        let without_bottom = height.saturating_sub(reserved);
+        let has_bottom = offset.saturating_add(without_bottom) < total;
+        let capacity = without_bottom.saturating_sub(usize::from(has_bottom)).max(1);
+        let next = if selected < offset {
+            selected
+        } else if selected >= offset.saturating_add(capacity) {
+            selected.saturating_add(1).saturating_sub(capacity)
+        } else {
+            offset
+        };
+        if next == offset {
+            break;
+        }
+        offset = next.min(total.saturating_sub(1));
+    }
+    let hidden_above = offset;
+    let sticky = sticky_agent_row(app, offset);
+    let reserved = usize::from(hidden_above > 0) + usize::from(sticky.is_some());
+    let without_bottom = height.saturating_sub(reserved);
+    let has_bottom = offset.saturating_add(without_bottom) < total;
+    let visible = without_bottom
+        .saturating_sub(usize::from(has_bottom))
+        .min(total.saturating_sub(offset));
+    let hidden_below = total.saturating_sub(offset.saturating_add(visible));
+    *state.tree.offset_mut() = offset;
+    state.tree.select(Some(selected));
+    TreeViewport {
+        offset,
+        visible,
+        sticky,
+        hidden_above,
+        hidden_below,
+    }
+}
+
+fn sticky_agent_row(app: &App, offset: usize) -> Option<usize> {
+    let Row::Session { group, .. } = app.rows.get(offset)? else {
+        return None;
+    };
+    app.rows[..offset]
+        .iter()
+        .rposition(|row| matches!(row, Row::Agent(candidate) if candidate == group))
+}
+
+fn render_more(frame: &mut Frame, area: Rect, y: u16, count: usize, direction: &str) {
+    frame.render_widget(
+        Paragraph::new(format!("  {count} more {direction}"))
+            .style(Style::new().fg(Color::DarkGray).add_modifier(Modifier::ITALIC)),
+        Rect::new(area.x, y, area.width, 1),
+    );
+}
+
+fn render_tree_item(
+    frame: &mut Frame,
+    app: &App,
+    views: &[super::app::RowView],
+    area: Rect,
+    item: (usize, u16, bool),
+    hit_map: &mut HitMap,
+) {
+    let (index, y, sticky) = item;
+    let (Some(row), Some(view), Some(target)) = (app.rows.get(index), views.get(index), app.row_target(index)) else {
+        return;
+    };
+    let row_area = Rect::new(area.x, y, area.width, 1);
+    let selected = !sticky && app.selected_index() == Some(index);
+    let style = if selected {
+        Style::new().add_modifier(Modifier::REVERSED)
+    } else if sticky {
+        Style::new().add_modifier(Modifier::DIM)
+    } else {
+        Style::new()
+    };
+    frame.render_widget(Paragraph::new(tree_row(view, area.width)).style(style), row_area);
+    hit_map.click(row_area, HitTarget::Row(target.clone()));
+    if matches!(row, Row::Agent(_)) {
+        let RowTarget::Tree(target) = target else {
+            return;
+        };
+        hit_map.click(
+            Rect::new(area.x, y, area.width.min(2), 1),
+            HitTarget::Action(MouseAction::FoldTree(target)),
+        );
     }
 }
 
@@ -525,15 +644,23 @@ fn render_hint_line(
 ) {
     let mut spans = Vec::new();
     let mut x = area.x;
+    let mut rendered = 0;
     for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            spans.push(Span::styled(" · ", Style::new().fg(description_color)));
-            x = x.saturating_add(3);
+        let separator_width = if index > 0 { 2 } else { 0 };
+        let width = hint_width(hint);
+        if x.saturating_add(separator_width).saturating_add(width) > area.right() {
+            break;
         }
-        spans.push(Span::styled(hint.label, Style::new().fg(key_color)));
+        if index > 0 {
+            spans.push(Span::raw("  "));
+            x = x.saturating_add(2);
+        }
+        spans.push(Span::styled(
+            format!(" {} ", hint.label),
+            Style::new().fg(key_color).add_modifier(Modifier::REVERSED),
+        ));
         spans.push(Span::raw(" "));
         spans.push(Span::styled(hint.description, Style::new().fg(description_color)));
-        let width = hint_width(hint);
         if clickable(hint)
             && let Some((code, modifiers)) = hint.key
         {
@@ -543,6 +670,13 @@ fn render_hint_line(
             );
         }
         x = x.saturating_add(width);
+        rendered += 1;
+    }
+    if rendered < hints.len() {
+        let hidden = format!(" +{}", hints.len() - rendered);
+        if x.saturating_add(u16::try_from(hidden.len()).unwrap_or(u16::MAX)) <= area.right() {
+            spans.push(Span::styled(hidden, Style::new().fg(description_color)));
+        }
     }
     frame.render_widget(Line::from(spans), area);
 }
@@ -550,10 +684,14 @@ fn render_hint_line(
 fn map_hint_targets(area: Rect, hints: &[Hint], hit_map: &mut HitMap) {
     let mut x = area.x;
     for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            x = x.saturating_add(3);
-        }
+        let separator_width = if index > 0 { 2 } else { 0 };
         let width = hint_width(hint);
+        if x.saturating_add(separator_width).saturating_add(width) > area.right() {
+            break;
+        }
+        if index > 0 {
+            x = x.saturating_add(2);
+        }
         if let Some((code, modifiers)) = hint.key {
             hit_map.click(
                 Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
@@ -565,7 +703,7 @@ fn map_hint_targets(area: Rect, hints: &[Hint], hit_map: &mut HitMap) {
 }
 
 fn hint_width(hint: &Hint) -> u16 {
-    u16::try_from(Line::from(format!("{} {}", hint.label, hint.description)).width()).unwrap_or(u16::MAX)
+    u16::try_from(Line::from(format!(" {}  {}", hint.label, hint.description)).width()).unwrap_or(u16::MAX)
 }
 
 fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitMap) {
@@ -991,9 +1129,12 @@ fn hint_line(hints: &[Hint]) -> Line<'static> {
     let mut spans = Vec::new();
     for (index, hint) in hints.iter().enumerate() {
         if index > 0 {
-            spans.push(Span::styled(" · ", Style::new().fg(Color::DarkGray)));
+            spans.push(Span::raw("  "));
         }
-        spans.push(Span::styled(hint.label, Style::new().fg(Color::Cyan)));
+        spans.push(Span::styled(
+            format!(" {} ", hint.label),
+            Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED),
+        ));
         spans.push(Span::raw(" "));
         spans.push(Span::styled(hint.description, Style::new().fg(Color::DarkGray)));
     }
@@ -1138,6 +1279,28 @@ mod tests {
         app
     }
 
+    fn session(agent: &str, name: &str, state: &str, index: u128) -> agent::sessions::Session {
+        let lifecycle = if matches!(state, "working" | "waitingForInput") {
+            "running"
+        } else {
+            state
+        };
+        serde_json::from_value(serde_json::json!({
+            "id": format!("00000000-0000-0000-0000-{index:012x}"),
+            "agentId": "00000000-0000-0000-0000-000000000100",
+            "agent": agent,
+            "name": name,
+            "harness": "claudeCode",
+            "modelSelection": {},
+            "createdAt": "2026-09-19T00:00:00Z",
+            "status": {
+                "state": state,
+                "lifecycle": {"state": lifecycle}
+            }
+        }))
+        .expect("test Session")
+    }
+
     fn create_modal_geometry(text: &str) -> (String, usize, usize) {
         let top = text
             .lines()
@@ -1196,7 +1359,7 @@ mod tests {
         assert!(text.contains("agentctl"));
         assert!(text.contains("0 need you · 0 working · 0 starting · 0 idle · 0 failed"));
         assert!(text.contains("loading…"));
-        assert!(text.contains("j/k move · r refresh · F forwards · q quit"));
+        assert!(text.contains(" j/k  move   r  refresh   F  forwards   q  quit"));
     }
 
     #[test]
@@ -1208,28 +1371,108 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
 
         let compact = draw_with_state(&mut terminal, &app, &mut state);
-        assert_eq!(state.tree.offset(), 6);
+        assert_eq!(state.tree.offset(), 7);
         assert_eq!(compact.click_at(10, 1), None, "column header is inert");
+        assert_eq!(compact.click_at(10, 2), None, "hidden-row affordance is inert");
         assert_eq!(
-            compact.click_at(10, 2),
-            Some(HitTarget::Row(app.row_target(6).expect("sixth target")))
+            compact.click_at(10, 3),
+            Some(HitTarget::Row(app.row_target(7).expect("seventh target")))
         );
         assert_eq!(compact.click_at(10, 5), Some(HitTarget::Row(ninth)));
-        assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
+        assert!(
+            matches!(compact.click_at(10, 6), Some(HitTarget::Action(_))),
+            "footer control is not a stale list row"
+        );
         assert_eq!(compact.click_at(40, 1), None, "right edge is out of bounds");
 
-        terminal.resize(Rect::new(0, 0, 40, 12)).expect("terminal resize");
+        terminal = Terminal::new(TestBackend::new(40, 12)).expect("resized test terminal");
         let resized = draw_with_state(&mut terminal, &app, &mut state);
-        assert_eq!(state.tree.offset(), 6, "the viewport remains stable when it still fits");
+        assert_eq!(state.tree.offset(), 7, "the viewport remains stable when it still fits");
         assert_eq!(resized.click_at(10, 1), None, "column header remains inert");
+        assert_eq!(resized.click_at(10, 2), None, "hidden-row affordance remains inert");
         assert_eq!(
-            resized.click_at(10, 2),
-            Some(HitTarget::Row(app.row_target(6).expect("sixth target")))
+            resized.click_at(10, 3),
+            Some(HitTarget::Row(app.row_target(7).expect("seventh target")))
         );
         assert_eq!(
             resized.click_at(10, 6),
             None,
             "the resized map has no stale footer target"
+        );
+    }
+
+    #[test]
+    fn scrolled_session_view_keeps_its_agent_sticky_and_hit_targets_exact() {
+        let mut app = tree_app(2);
+        let agents = std::mem::take(&mut app.agents);
+        let sessions = (0..10)
+            .map(|index| session("agent-00", &format!("task-{index:02}"), "idle", index))
+            .collect();
+        app.apply_snapshot(agents, sessions);
+        app.select_index(9);
+        let sticky = app.row_target(0).expect("owning Agent target");
+        let selected = app.row_target(9).expect("selected Session target");
+        let mut state = ViewState::default();
+        let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
+
+        let hit_map = draw_with_state(&mut terminal, &app, &mut state);
+        let text = buffer_text(&terminal);
+
+        assert!(text.contains("9 more above"));
+        assert!(text.contains("agent-00"), "owning Agent is pinned above the Session");
+        assert!(text.contains("task-08"));
+        assert!(text.contains("2 more below"));
+        assert_eq!(hit_map.click_at(10, 2), None, "more affordance is inert");
+        assert_eq!(hit_map.click_at(10, 3), Some(HitTarget::Row(sticky)));
+        assert_eq!(hit_map.click_at(10, 4), Some(HitTarget::Row(selected)));
+        assert_eq!(hit_map.click_at(10, 5), None, "bottom affordance is inert");
+    }
+
+    #[test]
+    fn no_color_removes_palette_but_keeps_state_cues() {
+        let mut app = tree_app(1);
+        let agents = std::mem::take(&mut app.agents);
+        app.apply_snapshot(agents, vec![session("agent-00", "blocked", "waitingForInput", 1)]);
+        app.color_enabled = false;
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let buffer = terminal.backend().buffer();
+
+        assert!(text.contains("▐"));
+        assert!(text.contains("❖"));
+        assert!(text.contains("Needs you"));
+        assert!(
+            buffer
+                .content()
+                .iter()
+                .all(|cell| cell.fg == Color::Reset && cell.bg == Color::Reset)
+        );
+    }
+
+    #[test]
+    fn narrow_footer_only_renders_complete_keycap_controls() {
+        let app = App::new();
+        let mut terminal = Terminal::new(TestBackend::new(32, 8)).expect("test terminal");
+
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let footer = text.lines().rev().take(2).collect::<Vec<_>>();
+
+        assert!(
+            footer.iter().any(|line| line.contains('+')),
+            "hidden actions are counted"
+        );
+        assert!(
+            footer
+                .iter()
+                .all(|line| !line.contains("forw") || line.contains("forwards"))
+        );
+        assert!(
+            footer
+                .iter()
+                .all(|line| !line.contains("refre") || line.contains("refresh"))
         );
     }
 
@@ -1276,8 +1519,8 @@ mod tests {
         ));
 
         assert_eq!(hit_map.click_at(0, 4), Some(retry));
-        assert_eq!(hit_map.click_at(10, 4), Some(quit));
-        assert_eq!(hit_map.click_at(8, 4), None, "separator is inert");
+        assert_eq!(hit_map.click_at(11, 4), Some(quit));
+        assert_eq!(hit_map.click_at(9, 4), None, "separator is inert");
     }
 
     #[test]
@@ -1304,8 +1547,10 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
 
         let hit_map = draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
 
         assert_eq!(hit_map.click_at(0, 1), None, "modal prevents click-through");
+        assert!(!text.lines().rev().take(2).any(|line| line.contains("refresh")));
         let confirmation = HitTarget::Action(MouseAction::Key(
             crossterm::event::KeyCode::Char('y'),
             crossterm::event::KeyModifiers::NONE,
@@ -1315,7 +1560,16 @@ mod tests {
             .iter()
             .find_map(|(area, target)| (target == &confirmation).then_some(*area))
             .expect("confirmation control");
-        assert_eq!(hit_map.click_at(area.x, area.y), Some(confirmation));
+        assert_eq!(hit_map.click_at(area.x, area.y), Some(confirmation.clone()));
+        assert_eq!(
+            hit_map
+                .clicks
+                .iter()
+                .filter(|(_, target)| target == &confirmation)
+                .count(),
+            1,
+            "modal controls are registered once"
+        );
     }
 
     #[test]
@@ -1396,7 +1650,7 @@ mod tests {
         assert!(text.contains("Variant:  ◂ default"));
         assert!(text.contains("Name:       full"));
         assert!(text.contains("Env file:   default: .env beside manifest"));
-        assert!(text.contains("enter create · tab/↑/↓ field · ←/→ select · esc cancel"));
+        assert!(text.contains(" enter  create   tab/↑/↓  field   ←/→  select   esc  cancel"));
         let initial_geometry = create_modal_geometry(&text);
         let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
         let variant_line = text
@@ -1514,7 +1768,7 @@ mod tests {
         app.discovering = true;
         let mut terminal = Terminal::new(TestBackend::new(140, 12)).expect("test terminal");
         draw(&mut terminal, &app);
-        assert!(buffer_text(&terminal).contains("scanning manifests…"));
+        assert!(buffer_text(&terminal).contains("scanning manifests"));
     }
 
     #[test]

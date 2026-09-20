@@ -131,6 +131,7 @@ pub(crate) struct App {
     pub(crate) creating: usize,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
+    pub(crate) color_enabled: bool,
 }
 
 /// Display state of one process-owned port forward.
@@ -843,6 +844,7 @@ impl App {
             creating: 0,
             discovering: false,
             queued_candidates: None,
+            color_enabled: std::env::var_os("NO_COLOR").is_none(),
         }
     }
 
