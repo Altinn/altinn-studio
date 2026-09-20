@@ -33,5 +33,6 @@ Drive it with the `desktop` helper and the `computer-use` skill. `chromium` on `
 Playwright browser build, so a page looks the same whether `playwright-cli open --headed` or a
 person opened it.
 
-A person reaches the same desktop over VNC on loopback port 5900, forwarded with
-`agentctl port-forward` or an SSH tunnel; they share your keyboard and pointer.
+A person reaches the same desktop with `agentctl vnc --web`, which opens it in their browser, or
+with a VNC client of their own. They share your keyboard and pointer, so say what you are about to
+do before you do it, and stop when they take over.

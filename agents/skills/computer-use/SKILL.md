@@ -122,7 +122,7 @@ Add `--json` before the command for machine-readable output from `screenshot`, `
 
 ## When a person is watching
 
-The desktop is reachable over VNC on loopback port 5900, which a person forwards with
-`agentctl port-forward` or an SSH tunnel; `agents/README.md` has the commands. They see exactly
-what you see and share the same keyboard and pointer, so say what you are about to do before you
-do it, and stop when they take over.
+A person opens this desktop with `agentctl vnc --web`, in their browser, or with a VNC client of
+their own; `agents/README.md` has the commands. They see exactly what you see and share the same
+keyboard and pointer, so say what you are about to do before you do it, and stop when they take
+over.
