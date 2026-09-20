@@ -43,12 +43,24 @@ pub(super) async fn configure(
     // (the literal "max" tier is what the check looks for, regardless of the real plan); the server
     // still authorizes inference independently. Both are required — the type alone unblocks Max
     // models but not Fable. Remove when github.com/anthropics/claude-code#79360 ships.
+    //
+    // Claude Code's AGENTS.md support decides a project "has a CLAUDE.md" by walking the
+    // filesystem ancestors of the working directory, and that walk is not bounded by the project
+    // root: it reaches the Agent instructions this function writes to ~/.claude/CLAUDE.md and
+    // suppresses the project's AGENTS.md files entirely. The default mode would therefore give an
+    // Agent no project instructions at all in a repository that keeps its guidance in AGENTS.md.
+    // Loading both is also the honest description of the situation, because the two files are not
+    // alternatives here: ~/.claude/CLAUDE.md is the Agent's own user-level instructions and the
+    // repository's AGENTS.md is the project's.
     let settings = serde_json::to_vec(&serde_json::json!({
         "env": {
             "CLAUDE_CODE_SUBSCRIPTION_TYPE": "max",
             "CLAUDE_CODE_RATE_LIMIT_TIER": "default_claude_max_5x"
         },
-        "hooks": super::super::hooks::configuration(&hook_path)
+        "hooks": super::super::hooks::configuration(&hook_path),
+        "pluginConfigs": {
+            "agents-md": { "options": { "instructionFiles": "claude-md-and-agents-md" } }
+        }
     }))?;
     write_if_changed(sandbox, &settings_path, &settings).await?;
     // Runtime file transfer writes as the Sandbox supervisor (root), while

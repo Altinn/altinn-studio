@@ -36,6 +36,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- Agents read a repository's `AGENTS.md` files as project instructions. Claude Code takes the Agent's own
+  instructions to be the project's `CLAUDE.md` and then loads no `AGENTS.md` at all, so an Agent working in a
+  repository that keeps its guidance in `AGENTS.md` was given none of it.
 - Agent Sessions set `XDG_RUNTIME_DIR`, so `skopeo`, `buildah` and other tools that expect a user runtime
   directory run instead of failing with a permission error on a path they cannot read.
 - `podman run --init` works in full Agents; the `catatonit` binary the flag needs was missing from the image.
