@@ -17,6 +17,7 @@ pub struct Reconciler {
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
     ssh: Option<Rc<crate::ssh::Access>>,
+    vnc: Option<Rc<crate::vnc::Access>>,
     provisioning: ProvisioningState,
 }
 
@@ -33,6 +34,7 @@ impl Reconciler {
             sandboxes,
             sessions: None,
             ssh: None,
+            vnc: None,
             provisioning,
         }
     }
@@ -41,6 +43,13 @@ impl Reconciler {
     #[must_use]
     pub fn with_ssh_access(mut self, ssh: Rc<crate::ssh::Access>) -> Self {
         self.ssh = Some(ssh);
+        self
+    }
+
+    /// Reconciles declared VNC access after the Sandbox is set up.
+    #[must_use]
+    pub fn with_vnc_access(mut self, vnc: Rc<crate::vnc::Access>) -> Self {
+        self.vnc = Some(vnc);
         self
     }
 
@@ -147,6 +156,8 @@ impl Reconciler {
         )];
         self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
+        self.reconcile_vnc(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
+            .await?;
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         // As on failure, readiness is stored before followers see the pass end.
@@ -202,6 +213,65 @@ impl Reconciler {
                     Condition::READY,
                     ConditionStatus::False,
                     "SshAccessFailed",
+                    &failure.message,
+                ));
+                let status = Status::observed(
+                    record.agent.metadata.generation,
+                    Some(assignment.clone()),
+                    std::mem::take(conditions),
+                );
+                let stored = self.update_status(record, status, Some(failure.kind)).await;
+                observer.failed(&failure);
+                stored?;
+                Err(error)
+            }
+        }
+    }
+
+    /// Reconciles declared VNC access and appends its condition. A failure is
+    /// recorded as the Agent's `Ready=False` before it is returned.
+    async fn reconcile_vnc(
+        &self,
+        record: &AgentRecord,
+        sandbox: &::sandbox::SandboxHandle,
+        assignment: &crate::sandbox::Assignment,
+        conditions: &mut Vec<Condition>,
+        observer: &SandboxObserver,
+    ) -> Result<(), Error> {
+        let Some(vnc) = &self.vnc else {
+            return Ok(());
+        };
+        let phase = if record.agent.spec.vnc_access() {
+            Some(observer.reporter().start_phase(crate::progress::VNC_ACCESS).await)
+        } else {
+            None
+        };
+        match vnc.reconcile(record, sandbox).await {
+            Ok(true) => {
+                if let Some(phase) = phase {
+                    phase.complete().await;
+                }
+                conditions.push(condition(
+                    Condition::VNC_READY,
+                    ConditionStatus::True,
+                    "BridgeListening",
+                    "",
+                ));
+                Ok(())
+            }
+            Ok(false) => Ok(()),
+            Err(error) => {
+                let failure = ReconcileFailure::classify(&error);
+                conditions.push(condition(
+                    Condition::VNC_READY,
+                    ConditionStatus::False,
+                    "ReconcileFailed",
+                    &failure.message,
+                ));
+                conditions.push(condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    "VncAccessFailed",
                     &failure.message,
                 ));
                 let status = Status::observed(
