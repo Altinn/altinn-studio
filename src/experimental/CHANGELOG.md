@@ -21,7 +21,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   actions while retaining all keyboard controls.
 - The `agentctl` terminal UI now triages Sessions that need input, previews recent turns, prompts without attaching,
   filters large fleets, jumps between blocked Sessions, follows provisioning progress with actionable failures, and
-  deletes Sessions after confirmation. `agentctl delete session/<name>` exposes the same deletion operation to scripts.
+  soft-deletes Sessions after confirmation. `agentctl delete session/<name>` exposes the same operation to scripts;
+  deleted names can be reused while their database history remains preserved.
 - Agent Skill entries may declare an installed `name` separately from their source directory.
 - Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
   app checkouts. Full images also prepare LocalTest hostnames for browser testing.

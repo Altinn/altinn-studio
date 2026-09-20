@@ -86,8 +86,9 @@ the next relaunch. Detaching leaves a Session running. An inactive, unattached S
 on the next ensure or attach, resuming the harness conversation when its native state still exists. Repeated
 unexpected harness exits use bounded backoff. `agentctl prompt` and `agentctl turns` steer and inspect a Session
 without attaching; the terminal UI exposes the same workflow with `p` and a recent-turn preview. The command
-`agentctl delete session/<name>` (or `d` on a Session in the terminal UI) stops a live harness and removes its durable
-record after confirmation.
+`agentctl delete session/<name>` (or `d` on a Session in the terminal UI) stops a live harness and soft-deletes the
+Session after confirmation. The active name is released for reuse, while the SQLite tombstone and activity history
+remain available for audit and future lifecycle tooling.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.

@@ -17,10 +17,13 @@ struct Source(SharedStore);
 impl controller::Source<SessionId> for Source {
     fn list_keys(&self) -> ::sandbox::LocalFuture<'_, Result<Vec<SessionId>, Error>> {
         Box::pin(async move {
-            self.0
-                .list_all_sessions()
-                .await
-                .map(|sessions| sessions.into_iter().map(|session| session.id).collect())
+            self.0.list_all_sessions().await.map(|sessions| {
+                sessions
+                    .into_iter()
+                    .filter(|session| session.deletion_completed_timestamp.is_none())
+                    .map(|session| session.id)
+                    .collect()
+            })
         })
     }
 }
@@ -55,7 +58,10 @@ impl crate::control_plane::SessionNotifier for AgentNotifier {
         tokio::task::spawn_local(async move {
             match store.list_all_sessions().await {
                 Ok(sessions) => {
-                    for session in sessions.into_iter().filter(|session| session.agent_id == id) {
+                    for session in sessions
+                        .into_iter()
+                        .filter(|session| session.agent_id == id && session.deletion_completed_timestamp.is_none())
+                    {
                         wakeup.notify(session.id);
                     }
                 }

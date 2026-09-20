@@ -541,7 +541,7 @@ async fn resume_fixture(
 }
 
 #[tokio::test(flavor = "local")]
-async fn deleting_a_live_session_stops_its_runtime_then_removes_the_record() {
+async fn deleting_a_live_session_stops_its_runtime_then_completes_its_tombstone() {
     let directory = TempDir::new().expect("directory");
     let (database, sandboxes, session) =
         running_session(&directory, "abababab-abab-4bab-8bab-abababababab", true).await;
@@ -563,12 +563,15 @@ async fn deleting_a_live_session_stops_its_runtime_then_removes_the_record() {
     reconciler.reconcile(session.id).await.expect("release Session");
 
     assert_eq!(runtime.stop_calls.get(), 1);
-    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    let deleted = database.get_session(session.id).await.expect("Session tombstone");
+    assert!(deleted.deletion_timestamp.is_some());
+    assert!(deleted.deletion_completed_timestamp.is_some());
     reconciler.reconcile(session.id).await.expect("repeat reconciliation");
+    assert_eq!(runtime.stop_calls.get(), 1);
 }
 
 #[tokio::test(flavor = "local")]
-async fn deleting_a_missing_session_or_one_under_a_deleting_agent_only_removes_its_record() {
+async fn deleting_a_missing_session_or_one_under_a_deleting_agent_completes_its_tombstone() {
     for (token, delete_agent) in [
         ("bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc", false),
         ("cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd", true),
@@ -598,7 +601,9 @@ async fn deleting_a_missing_session_or_one_under_a_deleting_agent_only_removes_i
         reconciler.reconcile(session.id).await.expect("release Session");
 
         assert_eq!(runtime.stop_calls.get(), 0);
-        assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+        let deleted = database.get_session(session.id).await.expect("Session tombstone");
+        assert!(deleted.deletion_timestamp.is_some());
+        assert!(deleted.deletion_completed_timestamp.is_some());
     }
 }
 

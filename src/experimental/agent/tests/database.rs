@@ -19,6 +19,12 @@ fn test_agent_id() -> AgentId {
     "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID")
 }
 
+fn table_count(connection: &rusqlite::Connection, table: &str) -> i64 {
+    connection
+        .query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| row.get(0))
+        .expect("table count")
+}
+
 fn record_with_id(name: &str, generation: u64, id: AgentId) -> AgentRecord {
     let mut agent = support::agent(name);
     agent.metadata.generation = generation;
@@ -361,9 +367,10 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
 }
 
 #[test]
-fn session_deletion_is_hidden_idempotent_and_releases_its_name_after_cleanup() {
+fn session_deletion_retains_a_tombstone_and_releases_its_name() {
     let directory = TempDir::new().expect("temporary directory");
-    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database");
     LocalRuntime::new().expect("local runtime").block_on(async {
         store
             .put(ready_record("worker", test_agent_id()), 0)
@@ -387,14 +394,27 @@ fn session_deletion_is_hidden_idempotent_and_releases_its_name_after_cleanup() {
             )
             .await
             .expect("launch record");
+        store
+            .apply_session_activity_for_launch(
+                session.id,
+                &token,
+                uuid::Uuid::new_v4(),
+                agent::sessions::ActivityEvent::TurnStarted,
+                time::OffsetDateTime::now_utc(),
+            )
+            .await
+            .expect("activity report")
+            .expect("new activity report");
 
         let marked = store
             .mark_session_deleting("worker", &name)
             .await
             .expect("mark deleting");
         assert!(marked.deletion_timestamp.is_some());
-        let marked_again = store.mark_session_deleting("worker", &name).await.expect("repeat mark");
-        assert_eq!(marked_again.deletion_timestamp, marked.deletion_timestamp);
+        assert!(matches!(
+            store.mark_session_deleting("worker", &name).await,
+            Err(Error::NotFound)
+        ));
         assert!(matches!(
             store.get_agent_session("worker", &name).await,
             Err(Error::NotFound)
@@ -406,7 +426,7 @@ fn session_deletion_is_hidden_idempotent_and_releases_its_name_after_cleanup() {
                 .expect("controller list")
                 .iter()
                 .any(|candidate| candidate.id == session.id && candidate.deletion_timestamp.is_some()),
-            "the controller retains the tombstone until runtime cleanup"
+            "the controller retains the tombstone"
         );
         assert_eq!(
             store
@@ -421,27 +441,29 @@ fn session_deletion_is_hidden_idempotent_and_releases_its_name_after_cleanup() {
                 .expect("stale report is ignored"),
             None
         );
-        assert!(matches!(
-            store
-                .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode),)
-                .await,
-            Err(Error::Conflict)
-        ));
-
-        store
-            .finalize_session_deletion(session.id)
-            .await
-            .expect("finalize deletion");
-        store
-            .finalize_session_deletion(session.id)
-            .await
-            .expect("repeat finalization");
         let replacement = store
             .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::Codex))
             .await
             .expect("reuse name");
         assert_ne!(replacement.id, session.id);
+
+        store
+            .complete_session_deletion(session.id)
+            .await
+            .expect("complete deletion");
+        store
+            .complete_session_deletion(session.id)
+            .await
+            .expect("repeat completion");
+        let tombstone = store.get_session(session.id).await.expect("retained tombstone");
+        assert_eq!(tombstone.deletion_timestamp, marked.deletion_timestamp);
+        assert!(tombstone.deletion_completed_timestamp.is_some());
     });
+    drop(store);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(table_count(&connection, "sessions"), 2);
+    assert_eq!(table_count(&connection, "session_activity_reports"), 1);
 }
 
 #[test]
@@ -644,7 +666,7 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        4
+        5
     );
     assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
@@ -749,7 +771,7 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 4);
+    assert_eq!(schema_snapshot(&path).0, 5);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
@@ -806,7 +828,7 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
-    assert_eq!(schema_snapshot(&path).0, 4);
+    assert_eq!(schema_snapshot(&path).0, 5);
     assert!(
         directory.path().join("backups").is_dir(),
         "a pending migration is backed up first"
@@ -814,7 +836,7 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
 }
 
 #[test]
-fn version_3_home_adds_the_session_deletion_marker() {
+fn version_3_home_adds_session_soft_deletion() {
     let directory = TempDir::new().expect("temporary directory");
     let path = directory.path().join("control-plane.db");
     let connection = rusqlite::Connection::open(&path).expect("create version 3 database");
@@ -833,13 +855,92 @@ fn version_3_home_adds_the_session_deletion_marker() {
     drop(persistence::Database::open(&path).expect("migrate version 3 database"));
 
     let (version, schema) = schema_snapshot(&path);
-    assert_eq!(version, 4);
+    assert_eq!(version, 5);
     let sessions = schema
         .iter()
         .find(|(name, _)| name == "table:sessions")
         .map(|(_, sql)| sql)
         .expect("sessions table");
     assert!(sessions.contains("deletion_timestamp INTEGER"));
+    assert!(sessions.contains("deletion_completed_timestamp INTEGER"));
+    assert!(sessions.contains("active_name TEXT"));
+}
+
+#[test]
+fn version_4_home_preserves_deleted_sessions_and_activity_reports() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create version 4 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("version 2 tables");
+    connection
+        .execute_batch(
+            "ALTER TABLE sessions ADD COLUMN model TEXT;
+             ALTER TABLE sessions ADD COLUMN effort TEXT;
+             ALTER TABLE sessions ADD COLUMN deletion_timestamp INTEGER;
+             PRAGMA user_version = 4;",
+        )
+        .expect("version 4 schema");
+    let desired = serde_json::to_string(&support::agent("worker")).expect("desired state");
+    connection
+        .execute(
+            "INSERT INTO agents
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json)
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                PREVIEW_AGENT_ID,
+                serde_json::to_string(Path::new("/source")).expect("source"),
+                desired,
+            ],
+        )
+        .expect("Agent");
+    let session_id = "55555555-5555-4555-8555-555555555555";
+    let launch_token = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    connection
+        .execute(
+            "INSERT INTO sessions
+             (id, agent_id, name, harness, created_at, launch_token, deletion_timestamp)
+             VALUES (?1, ?2, 'historical', 'claudeCode', 1700000000, NULL, 1700000100)",
+            rusqlite::params![session_id, PREVIEW_AGENT_ID],
+        )
+        .expect("deleted Session");
+    connection
+        .execute(
+            "INSERT INTO session_activity_reports (session_id, launch_token, event_id)
+             VALUES (?1, ?2, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')",
+            rusqlite::params![session_id, launch_token],
+        )
+        .expect("activity report");
+    drop(connection);
+
+    let database = persistence::Database::open(&path).expect("migrate version 4 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let sessions = database.list_all_sessions().await.expect("all Sessions");
+        assert_eq!(sessions.len(), 1);
+        assert!(sessions[0].deletion_timestamp.is_some());
+        assert!(sessions[0].deletion_completed_timestamp.is_none());
+        let replacement = database
+            .ensure_session(
+                "worker",
+                &SessionName::new("historical").expect("Session name"),
+                NewSession::for_harness(agent::Harness::Codex),
+            )
+            .await
+            .expect("reuse deleted name");
+        assert_ne!(replacement.id.to_string(), session_id);
+    });
+    drop(database);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(
+        connection
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("schema version"),
+        5
+    );
+    assert_eq!(table_count(&connection, "sessions"), 2);
+    assert_eq!(table_count(&connection, "session_activity_reports"), 1);
 }
 
 #[test]
@@ -876,7 +977,7 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 4);
+    assert_eq!(after.0, 5);
     let unchanged = |snapshot: &[(String, String)]| {
         snapshot
             .iter()

@@ -22,9 +22,10 @@ const FORM_HINT_COLUMN: usize = 41;
 const FORM_NOTE_ROW: usize = 5;
 const FORM_ERROR_ROW: usize = 6;
 const FORM_HINT_ROW: usize = 8;
+const TREE_MAX_WIDTH: u16 = 160;
 const CONTROL_ACCENT: Color = Color::Rgb(78, 194, 212);
 const CONTROL_BACKGROUND: Color = Color::Rgb(34, 41, 49);
-const PLATFORM_ACCENT: Color = Color::Rgb(120, 166, 227);
+const SELECTION_BACKGROUND: Color = Color::Rgb(44, 49, 56);
 const ERROR_HINTS: [Hint; 2] = [
     Hint::key("r", "retry", crossterm::event::KeyCode::Char('r')),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
@@ -214,7 +215,7 @@ fn render_transcript(frame: &mut Frame, area: Rect, preview: &super::app::Transc
         lines.push(("No turns yet.".into(), Style::new().fg(Color::DarkGray)));
     }
     if preview.loading {
-        lines.push(("Loading recent turns...".into(), Style::new().fg(PLATFORM_ACCENT)));
+        lines.push(("Loading recent turns...".into(), Style::new().fg(CONTROL_ACCENT)));
     }
     if let Some(error) = &preview.error {
         lines.push((format!("Transcript unavailable: {error}"), Style::new().fg(Color::Red)));
@@ -251,7 +252,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     ];
     for (segment, color) in [
         (format!(" · {} working", counts.working), Color::Green),
-        (format!(" · {} starting", counts.starting), PLATFORM_ACCENT),
+        (format!(" · {} starting", counts.starting), CONTROL_ACCENT),
         (format!(" · {} idle", counts.idle), Color::DarkGray),
         (format!(" · {} failed", counts.failed), Color::Red),
     ] {
@@ -279,7 +280,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             &mut spans,
             area.width,
             format!(" · {active_provisioning} provisioning"),
-            PLATFORM_ACCENT,
+            CONTROL_ACCENT,
         );
     }
     if app.progress_error.is_some() {
@@ -456,17 +457,20 @@ fn render_tree_item(
     let (Some(row), Some(view), Some(target)) = (app.rows.get(index), views.get(index), app.row_target(index)) else {
         return;
     };
-    let row_area = Rect::new(area.x, y, area.width, 1);
+    let render_area = Rect::new(area.x, y, area.width.min(TREE_MAX_WIDTH), 1);
     let selected = !sticky && app.selected_index() == Some(index);
     let style = if selected {
-        Style::new().add_modifier(Modifier::REVERSED)
+        Style::new().bg(SELECTION_BACKGROUND)
     } else if sticky {
         Style::new().add_modifier(Modifier::DIM)
     } else {
         Style::new()
     };
-    frame.render_widget(Paragraph::new(tree_row(view, area.width)).style(style), row_area);
-    hit_map.click(row_area, HitTarget::Row(target.clone()));
+    frame.render_widget(
+        Paragraph::new(tree_row(view, render_area.width)).style(style),
+        render_area,
+    );
+    hit_map.click(render_area, HitTarget::Row(target.clone()));
     if matches!(row, Row::Agent(_)) {
         let RowTarget::Tree(target) = target else {
             return;
@@ -489,8 +493,21 @@ struct TreeColumns {
 }
 
 fn tree_columns(width: u16) -> TreeColumns {
-    let width = usize::from(width);
-    if width >= 80 {
+    let width = usize::from(width.min(TREE_MAX_WIDTH));
+    if width >= 100 {
+        let state = (width / 3 + 6).clamp(40, 50);
+        let harness = state + 19;
+        let model = state + 36;
+        let age = width - 8;
+        TreeColumns {
+            name: 4,
+            state,
+            active_for: Some((state + 11, 7)),
+            harness: Some((harness, model.saturating_sub(harness + 1))),
+            model: Some((model, age.saturating_sub(model + 1))),
+            age: Some((age, 8)),
+        }
+    } else if width >= 80 {
         TreeColumns {
             name: 4,
             state: 34,
@@ -562,22 +579,21 @@ fn tree_header(width: u16) -> Line<'static> {
 
 fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
     let columns = tree_columns(width);
-    let width = usize::from(width);
+    let width = usize::from(width.min(TREE_MAX_WIDTH));
     let mut spans = Vec::new();
     let tone = tone_color(row.tone);
     let gutter = if row.gutter { "▐" } else { " " };
-    push_at(&mut spans, 0, gutter.into(), Style::new().fg(tone));
+    let gutter_tone = if row.agent && row.gutter { Color::Yellow } else { tone };
+    push_at(&mut spans, 0, gutter.into(), Style::new().fg(gutter_tone));
     let control_column = if row.agent { 2 } else { columns.name };
     let name_column = if row.agent { columns.name } else { columns.name + 2 };
     push_at(&mut spans, control_column, row.control.into(), Style::new().fg(tone));
     let name_width = columns.state.saturating_sub(name_column + 1);
-    let name_style = if row.agent {
-        Style::new().add_modifier(Modifier::BOLD)
-    } else if row.gutter {
-        Style::new().fg(tone).add_modifier(Modifier::BOLD)
+    let name_style = Style::new().fg(tone).add_modifier(if row.agent || row.gutter {
+        Modifier::BOLD
     } else {
-        Style::new()
-    };
+        Modifier::empty()
+    });
     push_at(&mut spans, name_column, fit_left(&row.name, name_width), name_style);
     push_at(
         &mut spans,
@@ -588,17 +604,22 @@ fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
             .add_modifier(if row.gutter { Modifier::BOLD } else { Modifier::empty() }),
     );
     if row.agent {
-        let detail_column = columns.active_for.map_or(columns.state + 11, |(column, _)| column);
-        let detail_width = width.saturating_sub(detail_column);
-        push_at(
-            &mut spans,
-            detail_column,
-            fit_left(&row.detail, detail_width),
-            Style::new().fg(match row.tone {
-                Tone::Blue | Tone::Red => tone,
-                Tone::Green | Tone::Yellow | Tone::Gray => Color::DarkGray,
-            }),
-        );
+        if let Some((column, cell_width)) = columns.active_for {
+            push_at(
+                &mut spans,
+                column,
+                fit_right(&row.active_for, cell_width),
+                Style::new().fg(tone),
+            );
+        }
+        if let Some((column, _)) = columns.harness {
+            push_at(
+                &mut spans,
+                column,
+                fit_left(&row.detail, width.saturating_sub(column)),
+                Style::new().fg(tone),
+            );
+        }
         return Line::from(spans);
     }
     if let Some((column, cell_width)) = columns.active_for {
@@ -701,7 +722,7 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
         .collect::<Vec<_>>();
     let list = List::new(items)
         .block(block)
-        .highlight_style(Style::new().add_modifier(Modifier::REVERSED));
+        .highlight_style(Style::new().bg(SELECTION_BACKGROUND));
     state.forwards.select(Some(app.forward_selected));
     frame.render_stateful_widget(list, area, &mut state.forwards);
     hit_map.wheel(inner, WheelTarget::Forwards);
@@ -747,11 +768,11 @@ fn provisioning_line(line: &str) -> Line<'static> {
     let (color, modifier) = if line.starts_with("+ ") {
         (Color::Green, Modifier::empty())
     } else if line.starts_with("> ") {
-        (PLATFORM_ACCENT, Modifier::BOLD)
+        (CONTROL_ACCENT, Modifier::BOLD)
     } else if line.starts_with("x ") || line.starts_with("error") {
         (Color::Red, Modifier::BOLD)
     } else if line.trim_start().starts_with('=') {
-        (PLATFORM_ACCENT, Modifier::empty())
+        (CONTROL_ACCENT, Modifier::empty())
     } else {
         (Color::DarkGray, Modifier::empty())
     };
@@ -906,9 +927,9 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
                 .field(Line::from(format!(" Delete session {agent}/{session}?")))
                 .field(Line::from(Span::styled(
                     if active {
-                        " Its running harness will be stopped and its record removed."
+                        " Its running harness will be stopped and its record archived."
                     } else {
-                        " Its durable record will be removed."
+                        " Its durable record will be archived."
                     },
                     Style::new().fg(Color::DarkGray),
                 )))
@@ -1454,7 +1475,7 @@ const fn tone_color(tone: Tone) -> Color {
     match tone {
         Tone::Green => Color::Green,
         Tone::Yellow => Color::Yellow,
-        Tone::Blue => PLATFORM_ACCENT,
+        Tone::Blue => CONTROL_ACCENT,
         Tone::Gray => Color::DarkGray,
         Tone::Red => Color::Red,
     }
@@ -1635,6 +1656,167 @@ mod tests {
     }
 
     #[test]
+    fn wide_tree_uses_a_real_expanded_column_grid() {
+        let failed_agent = super::super::app::RowView {
+            gutter: false,
+            control: "v",
+            name: "broken-agent".into(),
+            state: "Failed".into(),
+            active_for: "11m".into(),
+            harness: String::new(),
+            model: String::new(),
+            age: String::new(),
+            detail: "missing .env".into(),
+            tone: Tone::Red,
+            agent: true,
+        };
+        let working_session = super::super::app::RowView {
+            gutter: false,
+            control: "*",
+            name: "task".into(),
+            state: "Working".into(),
+            active_for: "2m".into(),
+            harness: "Codex".into(),
+            model: "gpt-5".into(),
+            age: "12m".into(),
+            detail: String::new(),
+            tone: Tone::Green,
+            agent: false,
+        };
+
+        let header = tree_header(110)
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+        let agent = tree_row(&failed_agent, 110)
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+        let session = tree_row(&working_session, 110)
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+
+        assert_eq!(text_column(&header, "STATE"), 42);
+        assert_eq!(text_column(&header, "FOR"), 57);
+        assert_eq!(text_column(&header, "HARNESS"), 61);
+        assert_eq!(text_column(&header, "MODEL"), 78);
+        assert_eq!(text_column(&header, "AGE"), 107);
+        assert_eq!(text_column(&agent, "Failed"), 42);
+        assert_eq!(text_column(&agent, "11m"), 57);
+        assert_eq!(text_column(&agent, "missing .env"), 61);
+        assert_eq!(text_column(&session, "Working"), 42);
+        assert_eq!(text_column(&session, "2m"), 58);
+        assert_eq!(text_column(&session, "Codex"), 61);
+        assert_eq!(text_column(&session, "gpt-5"), 78);
+        assert_eq!(text_column(&session, "12m"), 107);
+
+        let at_limit = tree_header(TREE_MAX_WIDTH)
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+        let ultrawide = tree_header(240)
+            .spans
+            .iter()
+            .map(|span| span.content.as_ref())
+            .collect::<String>();
+        assert_eq!(ultrawide, at_limit, "the grid must stop expanding after 160 columns");
+        assert_eq!(text_column(&ultrawide, "STATE"), 50);
+        assert_eq!(text_column(&ultrawide, "AGE"), 157);
+    }
+
+    #[test]
+    fn rows_use_one_semantic_tone_for_primary_content() {
+        let failed_agent = super::super::app::RowView {
+            gutter: false,
+            control: "v",
+            name: "broken-agent".into(),
+            state: "Failed".into(),
+            active_for: String::new(),
+            harness: String::new(),
+            model: String::new(),
+            age: String::new(),
+            detail: "missing .env".into(),
+            tone: Tone::Red,
+            agent: true,
+        };
+        let line = tree_row(&failed_agent, 110);
+        for span in line.spans.iter().filter(|span| !span.content.trim().is_empty()) {
+            assert_eq!(span.style.fg, Some(Color::Red), "{:?}", span.content);
+        }
+
+        let working_session = super::super::app::RowView {
+            gutter: false,
+            control: "*",
+            name: "task".into(),
+            state: "Working".into(),
+            active_for: "2m".into(),
+            harness: "Codex".into(),
+            model: "gpt-5".into(),
+            age: "12m".into(),
+            detail: String::new(),
+            tone: Tone::Green,
+            agent: false,
+        };
+        let line = tree_row(&working_session, 110);
+        for text in ["*", "task", "Working", "2m"] {
+            let span = line
+                .spans
+                .iter()
+                .find(|span| span.content.contains(text))
+                .unwrap_or_else(|| panic!("{text:?} in rendered row"));
+            assert_eq!(span.style.fg, Some(Color::Green), "{text}");
+        }
+        for text in ["Codex", "gpt-5", "12m"] {
+            let span = line
+                .spans
+                .iter()
+                .find(|span| span.content.contains(text))
+                .unwrap_or_else(|| panic!("{text:?} in rendered row"));
+            assert_eq!(span.style.fg, Some(Color::DarkGray), "{text}");
+        }
+    }
+
+    #[test]
+    fn selection_keeps_the_rows_semantic_foreground() {
+        let failed_agent = super::super::app::RowView {
+            gutter: false,
+            control: "v",
+            name: "broken-agent".into(),
+            state: "Failed".into(),
+            active_for: String::new(),
+            harness: String::new(),
+            model: String::new(),
+            age: String::new(),
+            detail: "missing .env".into(),
+            tone: Tone::Red,
+            agent: true,
+        };
+        let mut terminal = Terminal::new(TestBackend::new(110, 1)).expect("test terminal");
+        terminal
+            .draw(|frame| {
+                frame.render_widget(
+                    Paragraph::new(tree_row(&failed_agent, frame.area().width))
+                        .style(Style::new().bg(SELECTION_BACKGROUND)),
+                    frame.area(),
+                );
+            })
+            .expect("draw selected row");
+
+        for text in ["broken-agent", "Failed", "missing .env"] {
+            assert_eq!(
+                colors_at_text(&terminal, text),
+                (Color::Red, SELECTION_BACKGROUND),
+                "{text}",
+            );
+        }
+    }
+
+    #[test]
     fn session_rows_are_visibly_nested_under_their_agent() {
         let row = |agent: bool, control: &'static str, name: &str| super::super::app::RowView {
             gutter: false,
@@ -1707,7 +1889,7 @@ mod tests {
         );
         assert_eq!(color_at_text(&terminal, "need you"), Color::Yellow);
         assert_eq!(color_at_text(&terminal, "working"), Color::Green);
-        assert_eq!(color_at_text(&terminal, "starting"), PLATFORM_ACCENT);
+        assert_eq!(color_at_text(&terminal, "starting"), CONTROL_ACCENT);
         assert_eq!(color_at_text(&terminal, "idle"), Color::DarkGray);
         assert_eq!(color_at_text(&terminal, "failed"), Color::Red);
 
@@ -1764,8 +1946,8 @@ mod tests {
         assert!(detail.contains("> image prepare"));
         assert!(detail.contains("pulling layer"));
         assert!(detail.contains("=========---  3 / 4"));
-        assert_eq!(color_at_text(&terminal, "> image prepare"), PLATFORM_ACCENT);
-        assert_eq!(color_at_text(&terminal, "=========---"), PLATFORM_ACCENT);
+        assert_eq!(color_at_text(&terminal, "> image prepare"), CONTROL_ACCENT);
+        assert_eq!(color_at_text(&terminal, "=========---"), CONTROL_ACCENT);
     }
 
     #[test]

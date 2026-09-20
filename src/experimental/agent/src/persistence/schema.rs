@@ -8,7 +8,7 @@ use crate::Error;
 
 use super::database_error;
 
-pub(crate) const VERSION: u32 = 4;
+pub(crate) const VERSION: u32 = 5;
 
 const PREVIEW_1_SQL: &str = "
     CREATE TABLE agents (
@@ -68,6 +68,66 @@ const SESSION_DELETION_COLUMN_SQL: &str = "
     ALTER TABLE sessions ADD COLUMN deletion_timestamp INTEGER;
 ";
 
+// Rebuild the Session table so deleted names can be reused without discarding
+// the historical row. `active_name` is the nullable uniqueness key, following
+// the same pattern as Agent incarnations; `name` remains the immutable display
+// name recorded on the tombstone.
+const SESSION_SOFT_DELETION_SQL: &str = "
+    ALTER TABLE session_activity_reports RENAME TO session_activity_reports_v4;
+    ALTER TABLE sessions RENAME TO sessions_v4;
+
+    CREATE TABLE sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        active_name TEXT,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        harness_native_id TEXT,
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        initial_prompt TEXT,
+        harness_transcript_path TEXT,
+        activity_json TEXT NOT NULL DEFAULT '{}',
+        model TEXT,
+        effort TEXT,
+        deletion_timestamp INTEGER,
+        deletion_completed_timestamp INTEGER,
+        UNIQUE (agent_id, active_name)
+    );
+    INSERT INTO sessions (
+        id, agent_id, name, active_name, harness, created_at,
+        activation_generation, lifecycle_json, harness_native_id,
+        launch_token, launch_sandbox, launched_at, launch_attempts,
+        initial_prompt, harness_transcript_path, activity_json, model, effort,
+        deletion_timestamp, deletion_completed_timestamp
+    )
+    SELECT
+        id, agent_id, name,
+        CASE WHEN deletion_timestamp IS NULL THEN name ELSE NULL END,
+        harness, created_at, activation_generation, lifecycle_json,
+        harness_native_id, launch_token, launch_sandbox, launched_at,
+        launch_attempts, initial_prompt, harness_transcript_path, activity_json,
+        model, effort, deletion_timestamp, NULL
+    FROM sessions_v4;
+
+    CREATE TABLE session_activity_reports (
+        session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        launch_token TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        PRIMARY KEY (session_id, launch_token, event_id)
+    );
+    INSERT INTO session_activity_reports (session_id, launch_token, event_id)
+    SELECT session_id, launch_token, event_id FROM session_activity_reports_v4;
+
+    DROP TABLE session_activity_reports_v4;
+    DROP TABLE sessions_v4;
+";
+
 struct Migration {
     version: u32,
     name: &'static str,
@@ -99,6 +159,12 @@ const MIGRATIONS: &[Migration] = &[
         name: "session deletion",
         schema: &[SESSION_DELETION_COLUMN_SQL],
         apply: add_session_deletion,
+    },
+    Migration {
+        version: 5,
+        name: "session soft deletion",
+        schema: &[SESSION_SOFT_DELETION_SQL],
+        apply: add_session_soft_deletion,
     },
 ];
 
@@ -209,6 +275,15 @@ fn add_session_deletion(transaction: &Transaction<'_>) -> Result<(), Error> {
     }
     transaction
         .execute_batch(SESSION_DELETION_COLUMN_SQL)
+        .map_err(database_error)
+}
+
+fn add_session_soft_deletion(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 5)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_SOFT_DELETION_SQL)
         .map_err(database_error)
 }
 

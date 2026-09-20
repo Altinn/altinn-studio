@@ -231,9 +231,9 @@ impl crate::sessions::SessionStore for Database {
         })
     }
 
-    fn finalize_session_deletion(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+    fn complete_session_deletion(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
-            self.request(|response| Command::FinalizeSessionDeletion { id, response })
+            self.request(|response| Command::CompleteSessionDeletion { id, response })
                 .await
         })
     }
@@ -546,7 +546,7 @@ enum Command {
         name: crate::sessions::SessionName,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
-    FinalizeSessionDeletion {
+    CompleteSessionDeletion {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<(), Error>>,
     },
@@ -783,8 +783,8 @@ fn execute_session(connection: &mut Connection, command: Command) {
         Command::MarkSessionDeleting { agent, name, response } => {
             let _ = response.send(sessions::mark_deleting(connection, &agent, &name));
         }
-        Command::FinalizeSessionDeletion { id, response } => {
-            let _ = response.send(sessions::finalize_deletion(connection, id));
+        Command::CompleteSessionDeletion { id, response } => {
+            let _ = response.send(sessions::complete_deletion(connection, id));
         }
         Command::UpdateSessionLifecycle {
             id,

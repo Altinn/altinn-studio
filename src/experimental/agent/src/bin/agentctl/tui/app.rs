@@ -297,7 +297,7 @@ const RECENT_OUTPUT_LINES: usize = 5;
 
 /// Durable display state for one provisioning operation followed by this TUI.
 pub(crate) struct Provisioning {
-    phases: Vec<ProvisioningPhase>,
+    phases: [ProvisioningPhase; PROVISIONING_PHASES.len()],
     current: Option<Phase>,
     step: Option<ProvisioningStep>,
     failure: Option<ProvisioningFailure>,
@@ -305,7 +305,6 @@ pub(crate) struct Provisioning {
 }
 
 struct ProvisioningPhase {
-    phase: Phase,
     message: String,
     state: ProvisioningPhaseState,
 }
@@ -1032,14 +1031,10 @@ struct SessionPresentation {
 impl Provisioning {
     pub(crate) fn new() -> Self {
         Self {
-            phases: PROVISIONING_PHASES
-                .into_iter()
-                .map(|phase| ProvisioningPhase {
-                    phase,
-                    message: phase_label(phase).into(),
-                    state: ProvisioningPhaseState::Pending,
-                })
-                .collect(),
+            phases: PROVISIONING_PHASES.map(|phase| ProvisioningPhase {
+                message: phase_label(phase).into(),
+                state: ProvisioningPhaseState::Pending,
+            }),
             current: None,
             step: None,
             failure: None,
@@ -1047,23 +1042,10 @@ impl Provisioning {
         }
     }
 
-    #[allow(clippy::too_many_lines)]
     pub(crate) fn event(&mut self, event: ProgressEvent, now: Instant) {
         match event {
             ProgressEvent::PhaseStarted { phase, message } => {
-                let duplicate = self.current == Some(phase)
-                    && self
-                        .phase(phase)
-                        .is_some_and(|entry| matches!(entry.state, ProvisioningPhaseState::Running { .. }));
-                let entry = self.phase_mut(phase);
-                entry.message = message;
-                if !duplicate {
-                    entry.state = ProvisioningPhaseState::Running { started_at: now };
-                    self.step = None;
-                }
-                self.current = Some(phase);
-                self.failure = None;
-                self.result = ProvisioningResult::Following;
+                self.phase_started(phase, message, now);
             }
             ProgressEvent::PhaseCompleted {
                 phase,
@@ -1071,14 +1053,7 @@ impl Provisioning {
                 outcome,
                 elapsed_ms,
             } => {
-                let entry = self.phase_mut(phase);
-                entry.message = message;
-                entry.state = ProvisioningPhaseState::Completed { outcome, elapsed_ms };
-                if self.current == Some(phase) {
-                    self.current = None;
-                    self.step = None;
-                }
-                self.failure = None;
+                self.phase_completed(phase, message, outcome, elapsed_ms);
             }
             ProgressEvent::PhaseFailed {
                 phase,
@@ -1087,45 +1062,14 @@ impl Provisioning {
                 failure,
                 elapsed_ms,
             } => {
-                let entry = self.phase_mut(phase);
-                entry.message = message;
-                entry.state = ProvisioningPhaseState::Failed { elapsed_ms };
-                let output = self
-                    .step
-                    .as_ref()
-                    .filter(|step| step.phase == phase)
-                    .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect());
-                self.failure = Some(ProvisioningFailure {
-                    phase: Some(phase),
-                    detail,
-                    kind: failure,
-                    output,
-                });
-                if self.current == Some(phase) {
-                    self.current = None;
-                    self.step = None;
-                }
-                if failure == FailureKind::Invalid {
-                    self.result = ProvisioningResult::Failed;
-                }
+                self.phase_failed(phase, message, detail, failure, elapsed_ms);
             }
             ProgressEvent::StepStarted {
                 phase,
                 step_id,
                 message,
             } => {
-                if self.current != Some(phase) {
-                    return;
-                }
-                self.step = Some(ProvisioningStep {
-                    phase,
-                    id: step_id,
-                    message,
-                    completed: None,
-                    total: None,
-                    unit: None,
-                    recent_output: VecDeque::new(),
-                });
+                self.step_started(phase, step_id, message);
             }
             ProgressEvent::StepProgress {
                 phase,
@@ -1135,30 +1079,12 @@ impl Provisioning {
                 total,
                 unit,
             } => {
-                if self.current != Some(phase) {
+                let Some(step) = self.step_mut(phase, step_id, message) else {
                     return;
-                }
-                if !self
-                    .step
-                    .as_ref()
-                    .is_some_and(|step| step.phase == phase && step.id == step_id)
-                {
-                    self.step = Some(ProvisioningStep {
-                        phase,
-                        id: step_id,
-                        message: message.clone(),
-                        completed: None,
-                        total: None,
-                        unit: None,
-                        recent_output: VecDeque::new(),
-                    });
-                }
-                if let Some(step) = self.step.as_mut() {
-                    step.message = message;
-                    step.completed = Some(completed);
-                    step.total = total;
-                    step.unit = Some(unit);
-                }
+                };
+                step.completed = Some(completed);
+                step.total = total;
+                step.unit = Some(unit);
             }
             ProgressEvent::StepOutput {
                 phase,
@@ -1167,31 +1093,14 @@ impl Provisioning {
                 detail,
                 ..
             } => {
-                if self.current != Some(phase) {
+                let Some(step) = self.step_mut(phase, step_id, message) else {
                     return;
-                }
-                if !self
-                    .step
-                    .as_ref()
-                    .is_some_and(|step| step.phase == phase && step.id == step_id)
-                {
-                    self.step = Some(ProvisioningStep {
-                        phase,
-                        id: step_id,
-                        message,
-                        completed: None,
-                        total: None,
-                        unit: None,
-                        recent_output: VecDeque::new(),
-                    });
-                }
-                if let Some(step) = self.step.as_mut() {
-                    for line in detail.lines().map(str::trim).filter(|line| !line.is_empty()) {
-                        if step.recent_output.len() == RECENT_OUTPUT_LINES {
-                            step.recent_output.pop_front();
-                        }
-                        step.recent_output.push_back(line.into());
+                };
+                for line in detail.lines().map(str::trim).filter(|line| !line.is_empty()) {
+                    if step.recent_output.len() == RECENT_OUTPUT_LINES {
+                        step.recent_output.pop_front();
                     }
+                    step.recent_output.push_back(line.into());
                 }
             }
             ProgressEvent::StepCompleted { phase, step_id, .. } => {
@@ -1209,24 +1118,115 @@ impl Provisioning {
                 failure: Some(kind),
                 ..
             } => {
-                let detail = if message.is_empty() { reason } else { message };
-                if self.failure.as_ref().is_none_or(|failure| failure.detail != detail) {
-                    self.failure = Some(ProvisioningFailure {
-                        phase: self.current,
-                        detail,
-                        kind,
-                        output: self
-                            .step
-                            .as_ref()
-                            .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect()),
-                    });
-                }
-                if kind == FailureKind::Invalid {
-                    self.result = ProvisioningResult::Failed;
-                }
+                self.condition_failed(reason, message, kind);
             }
             ProgressEvent::Condition { .. } => {}
         }
+    }
+
+    fn phase_started(&mut self, phase: Phase, message: String, now: Instant) {
+        let duplicate =
+            self.current == Some(phase) && matches!(self.phase(phase).state, ProvisioningPhaseState::Running { .. });
+        let entry = self.phase_mut(phase);
+        entry.message = message;
+        if !duplicate {
+            entry.state = ProvisioningPhaseState::Running { started_at: now };
+            self.step = None;
+        }
+        self.current = Some(phase);
+        self.failure = None;
+        self.result = ProvisioningResult::Following;
+    }
+
+    fn phase_completed(&mut self, phase: Phase, message: String, outcome: PhaseOutcome, elapsed_ms: u64) {
+        let entry = self.phase_mut(phase);
+        entry.message = message;
+        entry.state = ProvisioningPhaseState::Completed { outcome, elapsed_ms };
+        if self.current == Some(phase) {
+            self.current = None;
+            self.step = None;
+        }
+        self.failure = None;
+    }
+
+    fn phase_failed(&mut self, phase: Phase, message: String, detail: String, kind: FailureKind, elapsed_ms: u64) {
+        let entry = self.phase_mut(phase);
+        entry.message = message;
+        entry.state = ProvisioningPhaseState::Failed { elapsed_ms };
+        let output = self
+            .step
+            .as_ref()
+            .filter(|step| step.phase == phase)
+            .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect());
+        self.failure = Some(ProvisioningFailure {
+            phase: Some(phase),
+            detail,
+            kind,
+            output,
+        });
+        if self.current == Some(phase) {
+            self.current = None;
+            self.step = None;
+        }
+        if kind == FailureKind::Invalid {
+            self.result = ProvisioningResult::Failed;
+        }
+    }
+
+    fn step_started(&mut self, phase: Phase, id: String, message: String) {
+        if self.current == Some(phase) {
+            self.step = Some(ProvisioningStep {
+                phase,
+                id,
+                message,
+                completed: None,
+                total: None,
+                unit: None,
+                recent_output: VecDeque::new(),
+            });
+        }
+    }
+
+    fn condition_failed(&mut self, reason: String, message: String, kind: FailureKind) {
+        let detail = if message.is_empty() { reason } else { message };
+        if self.failure.as_ref().is_none_or(|failure| failure.detail != detail) {
+            self.failure = Some(ProvisioningFailure {
+                phase: self.current,
+                detail,
+                kind,
+                output: self
+                    .step
+                    .as_ref()
+                    .map_or_else(Vec::new, |step| step.recent_output.iter().cloned().collect()),
+            });
+        }
+        if kind == FailureKind::Invalid {
+            self.result = ProvisioningResult::Failed;
+        }
+    }
+
+    fn step_mut(&mut self, phase: Phase, id: String, message: String) -> Option<&mut ProvisioningStep> {
+        if self.current != Some(phase) {
+            return None;
+        }
+        if !self
+            .step
+            .as_ref()
+            .is_some_and(|step| step.phase == phase && step.id == id)
+        {
+            self.step = Some(ProvisioningStep {
+                phase,
+                id,
+                message,
+                completed: None,
+                total: None,
+                unit: None,
+                recent_output: VecDeque::new(),
+            });
+        } else if let Some(step) = &mut self.step {
+            step.message = message;
+        }
+        self.step.as_mut()
     }
 
     pub(crate) fn finish(&mut self, result: Result<(), String>) {
@@ -1264,22 +1264,17 @@ impl Provisioning {
         self.failure.is_some()
     }
 
-    fn phase(&self, phase: Phase) -> Option<&ProvisioningPhase> {
-        self.phases.iter().find(|entry| entry.phase == phase)
+    const fn phase(&self, phase: Phase) -> &ProvisioningPhase {
+        &self.phases[phase_index(phase)]
     }
 
-    fn phase_mut(&mut self, phase: Phase) -> &mut ProvisioningPhase {
-        let index = self
-            .phases
-            .iter()
-            .position(|entry| entry.phase == phase)
-            .unwrap_or_default();
-        &mut self.phases[index]
+    const fn phase_mut(&mut self, phase: Phase) -> &mut ProvisioningPhase {
+        &mut self.phases[phase_index(phase)]
     }
 
     fn presentation(&self, now: Instant) -> (Tone, String, String) {
         match self.result {
-            ProvisioningResult::Ready => (Tone::Green, "Ready".into(), "provisioning complete".into()),
+            ProvisioningResult::Ready => (Tone::Green, "Ready".into(), String::new()),
             ProvisioningResult::Failed => (
                 Tone::Red,
                 "Failed".into(),
@@ -1288,7 +1283,7 @@ impl Provisioning {
                     .map_or_else(|| "provisioning failed".into(), |failure| failure.detail.clone()),
             ),
             ProvisioningResult::Following => {
-                let detail = self.current.and_then(|phase| self.phase(phase)).map_or_else(
+                let detail = self.current.map(|phase| self.phase(phase)).map_or_else(
                     || {
                         self.failure.as_ref().map_or_else(
                             || "waiting for provisioning".into(),
@@ -1317,7 +1312,7 @@ impl Provisioning {
 
     fn lines(&self, now: Instant) -> Vec<String> {
         let mut lines = Vec::new();
-        for phase in &self.phases {
+        for (phase_kind, phase) in PROVISIONING_PHASES.into_iter().zip(&self.phases) {
             let (marker, suffix) = match phase.state {
                 ProvisioningPhaseState::Pending => (" ", String::new()),
                 ProvisioningPhaseState::Running { started_at } => {
@@ -1338,9 +1333,9 @@ impl Provisioning {
                 ),
             };
             lines.push(format!("{marker} {:<22} {suffix}", phase.message));
-            if self.current == Some(phase.phase)
+            if self.current == Some(phase_kind)
                 && let Some(step) = &self.step
-                && step.phase == phase.phase
+                && step.phase == phase_kind
             {
                 lines.push(format!("    {}", step.message));
                 let progress = step_progress(step, 12);
@@ -1386,6 +1381,21 @@ const fn phase_label(phase: Phase) -> &'static str {
         Phase::NetworkStart => "network start",
         Phase::SandboxStart => "sandbox start",
         Phase::Inspect => "inspect",
+    }
+}
+
+const fn phase_index(phase: Phase) -> usize {
+    match phase {
+        Phase::Validate => 0,
+        Phase::Lookup => 1,
+        Phase::FeatureDiscovery => 2,
+        Phase::ImageResolve => 3,
+        Phase::ImagePrepare => 4,
+        Phase::SandboxCreate => 5,
+        Phase::SandboxUpdate => 6,
+        Phase::NetworkStart => 7,
+        Phase::SandboxStart => 8,
+        Phase::Inspect => 9,
     }
 }
 
@@ -2502,7 +2512,7 @@ impl App {
                         )
                     };
                     let ports = forwards.join(" ");
-                    let detail = [active_for.as_str(), message.as_str(), summary.as_str(), ports.as_str()]
+                    let detail = [message.as_str(), summary.as_str(), ports.as_str()]
                         .into_iter()
                         .filter(|part| !part.is_empty())
                         .collect::<Vec<_>>()
@@ -3144,7 +3154,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::too_many_lines)]
     fn provisioning_fold_retains_progress_and_bounded_failure_output() {
         let now = Instant::now();
         let mut progress = Provisioning::new();
@@ -3218,7 +3227,12 @@ mod tests {
         assert!(lines.contains("output 2"));
         assert!(lines.contains("output 6"));
         assert!(lines.contains("agentd keeps retrying in the background"));
+    }
 
+    #[test]
+    fn provisioning_fold_coalesces_duplicates_and_ignores_late_steps() {
+        let now = Instant::now();
+        let mut progress = Provisioning::new();
         progress.event(
             ProgressEvent::PhaseCompleted {
                 phase: Phase::ImageResolve,
@@ -3384,16 +3398,10 @@ mod tests {
         let rows = app.render_rows();
         let persisted = rows.iter().find(|row| row.name == "persisted").expect("persisted row");
         let legacy = rows.iter().find(|row| row.name == "legacy").expect("legacy row");
-        assert!(
-            persisted.detail.starts_with("5m ·"),
-            "persisted transition clock: {}",
-            persisted.detail
-        );
-        assert!(
-            legacy.detail.starts_with("~0s ·"),
-            "legacy clock is explicitly approximate: {}",
-            legacy.detail
-        );
+        assert_eq!(persisted.active_for, "5m", "persisted transition clock");
+        assert_eq!(persisted.detail, "Preparing image");
+        assert_eq!(legacy.active_for, "~0s", "legacy clock is explicitly approximate");
+        assert_eq!(legacy.detail, "Preparing image");
     }
 
     #[test]

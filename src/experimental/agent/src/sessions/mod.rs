@@ -345,14 +345,21 @@ pub struct Session {
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
-    /// Time deletion was requested; deleting Sessions disappear from user lists
-    /// while the controller stops their runtime and removes durable state.
+    /// Time deletion was requested; deleted Sessions disappear from user-facing
+    /// reads while their tombstones and activity history remain durable.
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
         with = "time::serde::rfc3339::option"
     )]
     pub deletion_timestamp: Option<OffsetDateTime>,
+    /// Time runtime cleanup completed for a deleted Session.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub deletion_completed_timestamp: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -495,8 +502,8 @@ pub trait SessionStore: SessionReports {
         name: &'a SessionName,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
-    /// Removes a marked Session and its launch/report bookkeeping.
-    fn finalize_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
+    /// Records that runtime cleanup completed for a marked Session.
+    fn complete_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
     /// Replaces the lifecycle half of the status for the desired activation
     /// revision observed by the reconciler; the reported half is untouched.
