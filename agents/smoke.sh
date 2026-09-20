@@ -71,6 +71,61 @@ jq -e '.cli.version | startswith("v")' <<<"$doctor" >/dev/null \
 jq -e '.disk.checks[] | select(.id == "appmgr_binary" and .level == "ok")' <<<"$doctor" >/dev/null \
     || fail "studioctl doctor did not find studioctl-server"
 
+systemctl is-enabled agent-studioctl-auth-init.service >/dev/null \
+    || fail "the studioctl authentication service is not enabled"
+grep -qxF 'PassEnvironment=STUDIO_PROD_API_KEY STUDIO_STAGING_API_KEY STUDIO_DEV_API_KEY' \
+    /etc/systemd/system/agent-studioctl-auth-init.service \
+    || fail "the studioctl authentication service does not receive the mediated API-key placeholders"
+/bin/sh -n /usr/local/libexec/agent-studioctl-auth-init
+
+auth_test="$work/studioctl auth"
+mkdir -p "$auth_test"
+auth_capture="$auth_test/calls"
+cat >"$auth_test/getent" <<'SH'
+#!/bin/sh
+exit 0
+SH
+cat >"$auth_test/studioctl" <<'SH'
+#!/bin/sh
+token=$(cat)
+printf '%s|%s\n' "$*" "$token" >>"$AGENT_STUDIOCTL_AUTH_CAPTURE"
+SH
+chmod +x "$auth_test/getent" "$auth_test/studioctl"
+AGENT_STUDIOCTL_AUTH_CAPTURE="$auth_capture" \
+AGENT_STUDIOCTL_AUTH_GETENT="$auth_test/getent" \
+AGENT_STUDIOCTL_AUTH_STUDIOCTL="$auth_test/studioctl" \
+STUDIO_PROD_API_KEY=prod-placeholder \
+STUDIO_STAGING_API_KEY=staging-placeholder \
+STUDIO_DEV_API_KEY=dev-placeholder \
+    /usr/local/libexec/agent-studioctl-auth-init
+cat >"$auth_test/expected" <<'EOF'
+auth login --env prod --with-token|prod-placeholder
+auth login --env staging --with-token|staging-placeholder
+auth login --env dev --with-token|dev-placeholder
+EOF
+cmp "$auth_test/expected" "$auth_capture" \
+    || fail "the studioctl authentication service did not import every environment"
+
+: >"$auth_capture"
+AGENT_STUDIOCTL_AUTH_CAPTURE="$auth_capture" \
+AGENT_STUDIOCTL_AUTH_GETENT="$auth_test/getent" \
+AGENT_STUDIOCTL_AUTH_STUDIOCTL="$auth_test/studioctl" \
+STUDIO_STAGING_API_KEY=staging-placeholder \
+    /usr/local/libexec/agent-studioctl-auth-init
+cat >"$auth_test/expected" <<'EOF'
+auth login --env staging --with-token|staging-placeholder
+EOF
+cmp "$auth_test/expected" "$auth_capture" \
+    || fail "the studioctl authentication service did not ignore unconfigured environments"
+
+: >"$auth_capture"
+AGENT_STUDIOCTL_AUTH_CAPTURE="$auth_capture" \
+AGENT_STUDIOCTL_AUTH_GETENT="$auth_test/getent" \
+AGENT_STUDIOCTL_AUTH_STUDIOCTL="$auth_test/studioctl" \
+    /usr/local/libexec/agent-studioctl-auth-init
+test ! -s "$auth_capture" \
+    || fail "the studioctl authentication service ran without configured environments"
+
 echo "## timezone"
 # Norwegian local time is Europe/Oslo the year round, so assert the zone rather than an offset.
 # Node resolves it through ICU rather than glibc, so both are checked.

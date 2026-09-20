@@ -3,6 +3,8 @@
 .NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest
 resources.
 External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest hostnames are prepared at boot.
+`studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
+host-mediated API key.
 
 Podman with `docker` and `/run/docker.sock` as compatibility surfaces, kind, kubectl, Helm and Flux.
 

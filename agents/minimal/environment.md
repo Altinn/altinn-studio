@@ -2,6 +2,8 @@
 
 .NET, Node.js with Yarn, Go, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest resources.
 External Altinn app repositories belong under `/home/agent/code/apps`.
+`studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
+host-mediated API key.
 
 No container, Kubernetes or browser tooling: `studioctl` can support authentication, repository and app work, but
 LocalTest and browser verification cannot run here, so say so instead of working around it.

@@ -23,7 +23,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Agent manifests may mark a mediated secret as optional, so an absent or empty value omits that binding instead of
   blocking Agent provisioning.
 - Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
-  app checkouts. Full images also prepare LocalTest hostnames for browser testing.
+  app checkouts. They log `studioctl` in to each configured production, staging or development Studio environment
+  with a host-mediated API key. Full images also prepare LocalTest hostnames for browser testing.
 
 ### Changed
 

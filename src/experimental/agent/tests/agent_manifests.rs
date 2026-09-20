@@ -111,6 +111,23 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
                 .collect::<Vec<_>>(),
             ["altinn-studio-app-development", "pr-evidence"]
         );
+        assert_eq!(default.spec.secrets.len(), 4);
+        for (environment, host) in [
+            ("STUDIO_PROD_API_KEY", "altinn.studio"),
+            ("STUDIO_STAGING_API_KEY", "staging.altinn.studio"),
+            ("STUDIO_DEV_API_KEY", "dev.altinn.studio"),
+        ] {
+            let secret = default
+                .spec
+                .secrets
+                .iter()
+                .find(|secret| secret.environment == environment)
+                .expect("Studio API key is declared as a mediated secret");
+            assert_eq!(secret.source(), environment);
+            assert!(secret.optional);
+            assert_eq!(secret.allowed_hosts, [host]);
+            assert_eq!(secret.inert_value(), format!("$AGENT_SECRET_{environment}"));
+        }
 
         let mut comparable_build = nested_build.clone();
         comparable_build.metadata.name = nested.metadata.name.clone();
