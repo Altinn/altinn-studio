@@ -110,8 +110,19 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     let [header, body, footer] =
         Layout::vertical([Constraint::Length(1), Constraint::Min(0), Constraint::Length(2)]).areas(frame.area());
     render_header(frame, header, app);
-    if let Some(detail) = &app.detail {
-        render_detail(frame, body, detail, &mut hit_map);
+    let body = if let Some(error) = &app.poll_error {
+        let [banner, content] = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).areas(body);
+        frame.render_widget(
+            Paragraph::new(format!(" refresh failed: {error} · showing last good snapshot "))
+                .style(Style::new().fg(Color::Red).add_modifier(Modifier::REVERSED)),
+            banner,
+        );
+        content
+    } else {
+        body
+    };
+    if let Some(detail) = app.detail_view() {
+        render_detail(frame, body, &detail, &mut hit_map);
     } else if let Some(error) = &app.error {
         render_error(frame, body, error, &mut hit_map);
     } else if app.view == View::Forwards {
@@ -151,7 +162,20 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     if app.discovering {
         spans.push(Span::styled(" · scanning manifests…", Style::new().fg(Color::Cyan)));
     }
+    let updated = app.last_updated.map_or_else(
+        || "waiting for first update".to_owned(),
+        |at| format!("updated {} ago", compact_duration(at.elapsed().as_secs())),
+    );
+    spans.push(Span::styled(format!(" · {updated}"), Style::new().fg(Color::DarkGray)));
     frame.render_widget(Line::from(spans), area);
+}
+
+fn compact_duration(seconds: u64) -> String {
+    match seconds {
+        0..=59 => format!("{seconds}s"),
+        60..=3_599 => format!("{}m", seconds / 60),
+        _ => format!("{}h", seconds / 3_600),
+    }
 }
 
 fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
@@ -264,7 +288,7 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
     }
 }
 
-fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail, hit_map: &mut HitMap) {
+fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::DetailView, hit_map: &mut HitMap) {
     let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
     let inner = block.inner(area);
     let scroll = u16::try_from(detail.scroll).unwrap_or(u16::MAX);
@@ -1044,6 +1068,20 @@ mod tests {
         assert_eq!(hit_map.click_at(0, 4), Some(retry));
         assert_eq!(hit_map.click_at(10, 4), Some(quit));
         assert_eq!(hit_map.click_at(8, 4), None, "separator is inert");
+    }
+
+    #[test]
+    fn poll_error_keeps_the_last_good_tree_visible() {
+        let mut app = tree_app(2);
+        app.poll_error = Some("daemon unavailable".into());
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+
+        assert!(text.contains("refresh failed: daemon unavailable"));
+        assert!(text.contains("agent-00"));
+        assert!(text.contains("agent-01"));
     }
 
     #[test]

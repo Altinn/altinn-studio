@@ -1,6 +1,7 @@
 use std::{
     collections::HashSet,
     path::{Path, PathBuf},
+    time::Instant,
 };
 
 use agent::{
@@ -120,6 +121,9 @@ pub(crate) struct App {
     pub(crate) loading: bool,
     pub(crate) loaded: bool,
     pub(crate) error: Option<String>,
+    pub(crate) poll_error: Option<String>,
+    pub(crate) last_updated: Option<Instant>,
+    pub(crate) refresh_queued: bool,
     pub(crate) detail: Option<Detail>,
     pub(crate) modal: Option<Modal>,
     pub(crate) forwards: Vec<ForwardEntry>,
@@ -166,6 +170,18 @@ pub(crate) enum Row {
 }
 
 pub(crate) struct Detail {
+    pub(crate) target: TreeRowId,
+    pub(crate) kind: DetailKind,
+    pub(crate) scroll: usize,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum DetailKind {
+    Describe,
+    Yaml,
+}
+
+pub(crate) struct DetailView {
     pub(crate) title: String,
     pub(crate) lines: Vec<String>,
     pub(crate) scroll: usize,
@@ -788,6 +804,9 @@ impl App {
             loading: false,
             loaded: false,
             error: None,
+            poll_error: None,
+            last_updated: None,
+            refresh_queued: false,
             detail: None,
             modal: None,
             forwards: Vec::new(),
@@ -938,10 +957,12 @@ impl App {
                 Action::None
             }
             MouseAction::ScrollDetail(delta) => {
+                let limit = self
+                    .detail_view()
+                    .map_or(0, |detail| detail.lines.len().saturating_sub(1));
                 let Some(detail) = self.detail.as_mut() else {
                     return Action::None;
                 };
-                let limit = detail.lines.len().saturating_sub(1);
                 detail.scroll = offset_clamped(detail.scroll, limit, delta);
                 Action::None
             }
@@ -1076,15 +1097,15 @@ impl App {
             }
             KeyCode::Char('s') => {
                 self.detail = Some(Detail {
-                    title: format!("agent/{name}"),
-                    lines: format::describe_agent_lines(agent),
+                    target: TreeRowId::Agent(name),
+                    kind: DetailKind::Describe,
                     scroll: 0,
                 });
             }
             KeyCode::Char('y') => {
                 self.detail = Some(Detail {
-                    title: format!("agent/{name} yaml"),
-                    lines: yaml_lines(agent),
+                    target: TreeRowId::Agent(name),
+                    kind: DetailKind::Yaml,
                     scroll: 0,
                 });
             }
@@ -1127,11 +1148,23 @@ impl App {
                 self.selection = Some(TreeRowId::Agent(agent));
                 self.rebuild();
             }
-            KeyCode::Char('s') => self.detail = Some(session_detail(session)),
+            KeyCode::Char('s') => {
+                self.detail = Some(Detail {
+                    target: TreeRowId::Session {
+                        agent: session.agent.clone(),
+                        session: session.name.clone(),
+                    },
+                    kind: DetailKind::Describe,
+                    scroll: 0,
+                });
+            }
             KeyCode::Char('y') => {
                 self.detail = Some(Detail {
-                    title: format!("session/{}/{} yaml", session.agent, session.name.as_str()),
-                    lines: yaml_lines(session),
+                    target: TreeRowId::Session {
+                        agent: session.agent.clone(),
+                        session: session.name.clone(),
+                    },
+                    kind: DetailKind::Yaml,
                     scroll: 0,
                 });
             }
@@ -1142,16 +1175,31 @@ impl App {
     }
 
     fn detail_key(&mut self, key: KeyEvent) {
-        let Some(detail) = self.detail.as_mut() else {
-            return;
-        };
-        let limit = detail.lines.len().saturating_sub(1);
+        let limit = self
+            .detail_view()
+            .map_or(0, |detail| detail.lines.len().saturating_sub(1));
         match key.code {
             KeyCode::Esc | KeyCode::Char('q') => self.detail = None,
-            KeyCode::Down | KeyCode::Char('j') => detail.scroll = (detail.scroll + 1).min(limit),
-            KeyCode::Up | KeyCode::Char('k') => detail.scroll = detail.scroll.saturating_sub(1),
-            KeyCode::PageDown => detail.scroll = (detail.scroll + 10).min(limit),
-            KeyCode::PageUp => detail.scroll = detail.scroll.saturating_sub(10),
+            KeyCode::Down | KeyCode::Char('j') => {
+                if let Some(detail) = self.detail.as_mut() {
+                    detail.scroll = (detail.scroll + 1).min(limit);
+                }
+            }
+            KeyCode::Up | KeyCode::Char('k') => {
+                if let Some(detail) = self.detail.as_mut() {
+                    detail.scroll = detail.scroll.saturating_sub(1);
+                }
+            }
+            KeyCode::PageDown => {
+                if let Some(detail) = self.detail.as_mut() {
+                    detail.scroll = (detail.scroll + 10).min(limit);
+                }
+            }
+            KeyCode::PageUp => {
+                if let Some(detail) = self.detail.as_mut() {
+                    detail.scroll = detail.scroll.saturating_sub(10);
+                }
+            }
             _ => {}
         }
     }
@@ -1431,6 +1479,55 @@ impl App {
             None => &EMPTY_HINTS,
         }
     }
+
+    pub(crate) fn detail_view(&self) -> Option<DetailView> {
+        let detail = self.detail.as_ref()?;
+        let (title, lines) = match &detail.target {
+            TreeRowId::Agent(name) => {
+                let title = format!(
+                    "agent/{name}{}",
+                    if detail.kind == DetailKind::Yaml { " yaml" } else { "" }
+                );
+                let lines = self
+                    .agents
+                    .iter()
+                    .find(|agent| agent.metadata.name == *name)
+                    .map_or_else(
+                        || vec![format!("Agent {name:?} no longer exists.")],
+                        |agent| match detail.kind {
+                            DetailKind::Describe => format::describe_agent_lines(agent),
+                            DetailKind::Yaml => yaml_lines(agent),
+                        },
+                    );
+                (title, lines)
+            }
+            TreeRowId::Session { agent, session } => {
+                let title = format!(
+                    "session/{}/{}{}",
+                    agent,
+                    session.as_str(),
+                    if detail.kind == DetailKind::Yaml { " yaml" } else { "" }
+                );
+                let lines = self
+                    .sessions
+                    .iter()
+                    .find(|candidate| candidate.agent == *agent && candidate.name == *session)
+                    .map_or_else(
+                        || vec![format!("Session {agent}/{session} no longer exists.")],
+                        |session| match detail.kind {
+                            DetailKind::Describe => session_detail_lines(session),
+                            DetailKind::Yaml => yaml_lines(session),
+                        },
+                    );
+                (title, lines)
+            }
+        };
+        Some(DetailView {
+            title,
+            lines,
+            scroll: detail.scroll,
+        })
+    }
 }
 
 fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
@@ -1496,8 +1593,8 @@ fn yaml_lines<T: serde::Serialize>(value: &T) -> Vec<String> {
     )
 }
 
-fn session_detail(session: &Session) -> Detail {
-    let lines = vec![
+fn session_detail_lines(session: &Session) -> Vec<String> {
+    vec![
         format!("Name:       {}", session.name.as_str()),
         format!("Agent:      {}", session.agent),
         format!("Harness:    {}", session.harness.as_str()),
@@ -1515,12 +1612,7 @@ fn session_detail(session: &Session) -> Detail {
             session.status.reported.harness_session_id.as_deref().unwrap_or("-")
         ),
         format!("ID:         {}", session.id),
-    ];
-    Detail {
-        title: format!("session/{}/{}", session.agent, session.name.as_str()),
-        lines,
-        scroll: 0,
-    }
+    ]
 }
 
 #[cfg(test)]
@@ -1761,12 +1853,13 @@ mod tests {
         assert_eq!(app.selected_index(), Some(0));
 
         app.detail = Some(Detail {
-            title: "detail".into(),
-            lines: vec!["one".into(), "two".into(), "three".into()],
+            target: TreeRowId::Agent("builder".into()),
+            kind: DetailKind::Describe,
             scroll: 0,
         });
+        let limit = app.detail_view().expect("detail view").lines.len() - 1;
         app.on_mouse(MouseAction::ScrollDetail(100));
-        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(2));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(limit));
         app.on_mouse(MouseAction::ScrollDetail(-100));
         assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(0));
     }
@@ -2447,7 +2540,7 @@ mod tests {
     fn describe_opens_a_detail_view_that_scrolls_and_closes() {
         let mut app = populated();
         app.on_key(key(KeyCode::Char('s')));
-        let detail = app.detail.as_ref().expect("agent detail");
+        let detail = app.detail_view().expect("agent detail");
         assert_eq!(detail.title, "agent/builder");
         app.on_key(key(KeyCode::Char('j')));
         assert_eq!(app.detail.as_ref().expect("agent detail").scroll, 1);
@@ -2455,14 +2548,45 @@ mod tests {
         assert!(app.detail.is_none());
         app.select_index(1);
         app.on_key(key(KeyCode::Char('s')));
-        assert_eq!(app.detail.as_ref().expect("session detail").title, "session/builder/b1");
+        assert_eq!(app.detail_view().expect("session detail").title, "session/builder/b1");
+    }
+
+    #[test]
+    fn open_detail_reads_the_latest_resource_snapshot() {
+        let mut app = populated();
+        app.select_index(1);
+        app.on_key(key(KeyCode::Char('s')));
+        assert!(
+            app.detail_view()
+                .expect("starting detail")
+                .lines
+                .iter()
+                .any(|line| line == "State:      Starting")
+        );
+
+        app.apply_snapshot(
+            vec![agent("worker"), agent("builder")],
+            vec![
+                session("worker", "s2", "working"),
+                session("worker", "s1", "idle"),
+                session("builder", "b1", "failed"),
+            ],
+        );
+
+        assert!(
+            app.detail_view()
+                .expect("updated detail")
+                .lines
+                .iter()
+                .any(|line| line == "State:      Failed")
+        );
     }
 
     #[test]
     fn yaml_views_render_the_full_resource() {
         let mut app = populated();
         app.on_key(key(KeyCode::Char('y')));
-        let detail = app.detail.as_ref().expect("agent yaml");
+        let detail = app.detail_view().expect("agent yaml");
         assert_eq!(detail.title, "agent/builder yaml");
         assert!(detail.lines.iter().any(|line| line == "kind: Agent"));
         assert!(detail.lines.iter().any(|line| line.contains("apiVersion:")));
@@ -2470,7 +2594,7 @@ mod tests {
         app.on_key(key(KeyCode::Char('q')));
         app.select_index(1);
         app.on_key(key(KeyCode::Char('y')));
-        let detail = app.detail.as_ref().expect("session yaml");
+        let detail = app.detail_view().expect("session yaml");
         assert_eq!(detail.title, "session/builder/b1 yaml");
         assert!(detail.lines.iter().any(|line| line.contains("harness: claudeCode")));
         assert!(detail.lines.iter().any(|line| line.contains("name: b1")));

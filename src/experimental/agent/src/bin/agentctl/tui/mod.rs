@@ -39,12 +39,14 @@ const DISCOVERY_DEPTH: usize = 8;
 enum Input {
     Event(Option<std::io::Result<Event>>),
     Tick,
+    Refreshed(FetchOutcome),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
 
 /// Completion of one background forward creation.
 type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Error>);
+type FetchOutcome = Result<(Vec<Agent>, Vec<Session>), Error>;
 
 #[derive(Default)]
 struct MouseInput {
@@ -128,12 +130,13 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let mut forwards = ActiveForwards::default();
     let (created_tx, mut created_rx) = tokio::sync::mpsc::unbounded_channel::<CreateOutcome>();
     let (discovered_tx, mut discovered_rx) = tokio::sync::mpsc::unbounded_channel::<Vec<ManifestCandidate>>();
+    let (refreshed_tx, mut refreshed_rx) = tokio::sync::mpsc::unbounded_channel::<FetchOutcome>();
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
     let mut tick = tokio::time::interval_at(tokio::time::Instant::now() + REFRESH_INTERVAL, REFRESH_INTERVAL);
     tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
-    refresh(&mut app, &mut tui, client).await?;
+    request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
     loop {
         app.open_queued_create();
         app.set_forwards(forwards.entries());
@@ -142,14 +145,21 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         let input = tokio::select! {
             event = events.next() => Input::Event(event),
             _ = tick.tick() => Input::Tick,
+            Some(outcome) = refreshed_rx.recv() => Input::Refreshed(outcome),
             Some(outcome) = created_rx.recv() => Input::ForwardCreated(outcome),
             Some(candidates) = discovered_rx.recv() => Input::ManifestsDiscovered(candidates),
         };
         let action = match input {
             Input::Tick => {
                 mouse.reset();
-                if app.idle() {
-                    refresh(&mut app, &mut tui, client).await?;
+                request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                continue;
+            }
+            Input::Refreshed(outcome) => {
+                mouse.reset();
+                refresh_finished(&mut app, outcome);
+                if std::mem::take(&mut app.refresh_queued) {
+                    request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
                 }
                 continue;
             }
@@ -191,12 +201,12 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
             }
-            Action::Refresh => refresh(&mut app, &mut tui, client).await?,
+            Action::Refresh => request_refresh(&mut app, refreshed_tx.clone(), home.socket_path()),
             Action::Delete { agent } => {
                 if let Err(error) = client.delete(&agent).await {
                     app.error = Some(error.to_string());
                 }
-                refresh(&mut app, &mut tui, client).await?;
+                request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
             }
             Action::OpenCreate => {
                 if !app.discovering {
@@ -210,7 +220,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 env_file,
                 form,
             } => {
-                create(&mut app, &mut tui, client, manifest, name, env_file, form).await?;
+                if create(&mut app, client, manifest, name, env_file, form).await? {
+                    request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                }
             }
             Action::CreateForward { agent, spec, replace } => {
                 if let Some(id) = replace {
@@ -224,7 +236,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 drop(events);
                 suspended(&mut app, &mut tui, home, client, action).await?;
                 events = EventStream::new();
-                refresh(&mut app, &mut tui, client).await?;
+                request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
             }
         }
     }
@@ -389,24 +401,23 @@ fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
 /// Applies the manifest under the chosen name; a rejection reopens the form with the error.
 async fn create(
     app: &mut App,
-    tui: &mut Tui,
     client: &Client,
     manifest: PathBuf,
     name: String,
     env_file: Option<PathBuf>,
     mut form: CreateForm,
-) -> CommandResult<()> {
+) -> CommandResult<bool> {
     match create_agent(client, manifest, name, env_file).await {
         Ok(applied) => {
-            refresh(app, tui, client).await?;
-            app.select_agent(&applied);
+            app.selection = Some(app::TreeRowId::Agent(applied));
+            Ok(true)
         }
         Err(error) => {
             form.error = Some(error.to_string());
             app.modal = Some(Modal::CreateAgent(form));
+            Ok(false)
         }
     }
-    Ok(())
 }
 
 async fn create_agent(
@@ -439,19 +450,29 @@ fn forward_created(app: &mut App, forwards: &mut ActiveForwards, outcome: Create
     }
 }
 
-async fn refresh(app: &mut App, tui: &mut Tui, client: &Client) -> CommandResult<()> {
+fn request_refresh(app: &mut App, outcomes: tokio::sync::mpsc::UnboundedSender<FetchOutcome>, socket_path: PathBuf) {
+    if app.loading {
+        app.refresh_queued = true;
+        return;
+    }
     app.loading = true;
-    let _ = tui.draw(app)?;
-    let result = fetch(client).await;
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let _ = outcomes.send(fetch(&client).await);
+    });
+}
+
+fn refresh_finished(app: &mut App, outcome: FetchOutcome) {
     app.loading = false;
-    match result {
+    match outcome {
         Ok((agents, sessions)) => {
             app.error = None;
+            app.poll_error = None;
+            app.last_updated = Some(Instant::now());
             app.apply_snapshot(agents, sessions);
         }
-        Err(error) => app.error = Some(error.to_string()),
+        Err(error) => app.poll_error = Some(error.to_string()),
     }
-    Ok(())
 }
 
 async fn fetch(client: &Client) -> Result<(Vec<Agent>, Vec<Session>), Error> {
@@ -757,6 +778,39 @@ mod tests {
         assert!(manifest_candidates(None, &[]).await.is_empty());
     }
 
+    #[tokio::test(flavor = "local")]
+    async fn refresh_requests_coalesce_and_failure_preserves_last_snapshot() {
+        let root = tempfile::tempdir().expect("temporary directory");
+        let socket = root.path().join("missing.sock");
+        let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel();
+        let mut app = App::new();
+        app.apply_snapshot(Vec::new(), Vec::new());
+
+        request_refresh(&mut app, sender.clone(), socket.clone());
+        request_refresh(&mut app, sender, socket);
+
+        assert!(app.loading);
+        assert!(app.refresh_queued);
+        let outcome = receiver.recv().await.expect("refresh outcome");
+        assert!(outcome.is_err());
+        refresh_finished(&mut app, outcome);
+        assert!(app.loaded, "the last successful snapshot remains active");
+        assert!(app.poll_error.is_some());
+        assert!(!app.loading);
+    }
+
+    #[test]
+    fn successful_refresh_records_freshness_and_clears_poll_error() {
+        let mut app = App::new();
+        app.poll_error = Some("old failure".into());
+
+        refresh_finished(&mut app, Ok((Vec::new(), Vec::new())));
+
+        assert!(app.poll_error.is_none());
+        assert!(app.last_updated.is_some());
+        assert!(app.loaded);
+    }
+
     #[test]
     fn row_primary_actions_require_two_clicks_on_the_same_row_in_time() {
         let mut mouse = MouseInput::default();
@@ -819,8 +873,8 @@ mod tests {
 
         let mut app = App::new();
         app.detail = Some(app::Detail {
-            title: "detail".into(),
-            lines: vec!["one".into(), "two".into(), "three".into()],
+            target: app::TreeRowId::Agent("missing".into()),
+            kind: app::DetailKind::Describe,
             scroll: 0,
         });
         let mut state = view::ViewState::default();
@@ -840,8 +894,8 @@ mod tests {
         };
 
         assert_eq!(mouse.action(wheel(1, 2), &hit_map, &mut app, now), Action::None);
-        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(1));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(0));
         assert_eq!(mouse.action(wheel(0, 1), &hit_map, &mut app, now), Action::None);
-        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(1));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(0));
     }
 }
