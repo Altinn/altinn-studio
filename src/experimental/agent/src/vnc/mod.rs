@@ -21,7 +21,7 @@
 //! over a forwarded loopback port, and the Sandbox boundary is what protects
 //! it, exactly as it protects every other guest loopback port.
 
-use std::{path::PathBuf, rc::Rc};
+use std::{cell::RefCell, collections::BTreeMap, path::PathBuf, rc::Rc};
 
 use ::sandbox::SandboxHandle;
 use serde::{Deserialize, Serialize};
@@ -59,11 +59,13 @@ pub struct AccessInfo {
     pub agent_id: AgentId,
     /// Guest loopback port carrying the RFB stream.
     pub guest_port: u16,
-    /// Guest loopback port serving the browser-based viewer over HTTP.
+    /// Guest loopback port serving the browser-based viewer over HTTP, when the image serves one.
     ///
-    /// The image decides what that port serves and where it redirects, so a caller opens the root
-    /// of the forwarded port rather than a path this side would have to keep in step.
-    pub web_guest_port: u16,
+    /// A browser viewer is a convenience an image may reasonably not carry, so this is absent for
+    /// an image offering the RFB port alone, and until a reconciliation pass has seen what the
+    /// image declares. The image decides what the port serves and where it redirects, so a caller
+    /// opens the root of the forwarded port rather than a path this side would keep in step.
+    pub web_guest_port: Option<u16>,
     /// Complete command forwarding the RFB port to the caller's machine.
     pub forward_command: String,
 }
@@ -86,6 +88,19 @@ pub fn image_contract_missing(what: &str) -> String {
 pub struct Access {
     agentctl: PathBuf,
     agents: Rc<dyn AgentStore>,
+    /// What each Agent's image was last seen to declare.
+    ///
+    /// A descriptor lives in the guest, and describing an Agent must not require reaching into a
+    /// running Sandbox, so what reconciliation observed is remembered here for the descriptor to
+    /// report. It is deliberately not persisted: after a restart the answer is unknown until the
+    /// next pass, which is the truth rather than a stale claim.
+    observed: RefCell<BTreeMap<AgentId, Observation>>,
+}
+
+/// What one reconciliation pass saw an image declare.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct Observation {
+    web_port: Option<u16>,
 }
 
 impl Access {
@@ -94,8 +109,12 @@ impl Access {
     /// `agentctl` is the absolute executable named in the forwarding command
     /// the descriptor reports.
     #[must_use]
-    pub const fn new(agentctl: PathBuf, agents: Rc<dyn AgentStore>) -> Self {
-        Self { agentctl, agents }
+    pub fn new(agentctl: PathBuf, agents: Rc<dyn AgentStore>) -> Self {
+        Self {
+            agentctl,
+            agents,
+            observed: RefCell::new(BTreeMap::new()),
+        }
     }
 
     /// Describes the VNC access of a named Agent.
@@ -126,7 +145,7 @@ impl Access {
             agent: name.clone(),
             agent_id: record.id,
             guest_port: GUEST_PORT,
-            web_guest_port: WEB_GUEST_PORT,
+            web_guest_port: self.observed.borrow().get(&record.id).and_then(|seen| seen.web_port),
             forward_command: format!("{} port-forward agent/{name} {GUEST_PORT}", self.agentctl.display()),
         }
     }
@@ -147,10 +166,17 @@ impl Access {
         let os = sandbox.snapshot().image.platform.os.clone();
         if !record.agent.spec.vnc_access() {
             remove_guest_state(&os, sandbox).await?;
+            self.observed.borrow_mut().remove(&record.id);
             return Ok(false);
         }
         let capability = verify_guest_capability(&os, sandbox).await?;
         grant_guest_access(&os, sandbox, &capability).await?;
+        self.observed.borrow_mut().insert(
+            record.id,
+            Observation {
+                web_port: capability.web_port,
+            },
+        );
         Ok(true)
     }
 }

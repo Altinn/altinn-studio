@@ -977,12 +977,24 @@ async fn vnc(
     let VncOptions { port, web, open } = options;
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     // Refuses early, with the remedy, when the Agent declares no VNC access.
-    let access = client.vnc_access(&agent).await?;
-    let guest_port = if web { access.web_guest_port } else { access.guest_port };
+    client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
         .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
+    // Read again now the Agent is Ready: which ports its image offers is something a
+    // reconciliation pass observes, so before converging the browser viewer's port is unknown
+    // rather than absent.
+    let access = client.vnc_access(&agent).await?;
+    let guest_port = if web {
+        access.web_guest_port.ok_or_else(|| {
+            Error::Invalid(format!(
+                "the image of Agent {agent:?} serves no browser viewer; use `agentctl vnc {agent}` with a VNC client"
+            ))
+        })?
+    } else {
+        access.guest_port
+    };
     let spec = forward::ForwardSpec {
         address: std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
         local_port: port.unwrap_or(guest_port),

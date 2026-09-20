@@ -35,13 +35,17 @@ pub(crate) struct Capability {
     pub(crate) units: Vec<String>,
     /// Guest loopback port carrying the RFB stream.
     pub(crate) port: u16,
-    /// Guest loopback port serving the browser-based viewer.
-    pub(crate) web_port: u16,
+    /// Guest loopback port serving the browser-based viewer, when the image serves one.
+    ///
+    /// Optional because a browser viewer is a convenience an image may reasonably not carry; one
+    /// that omits it offers the RFB port alone and `agentctl vnc --web` says so.
+    pub(crate) web_port: Option<u16>,
 }
 
 impl Capability {
-    const fn ports(&self) -> [u16; 2] {
-        [self.port, self.web_port]
+    /// The ports the image promised, which are what a grant and a withdrawal are checked against.
+    fn ports(&self) -> Vec<u16> {
+        std::iter::once(self.port).chain(self.web_port).collect()
     }
 }
 
@@ -202,13 +206,16 @@ fn parse_descriptor(descriptor: &str) -> Result<Capability, Error> {
             ))));
         }
     }
-    let port = declared_port(descriptor, "port", crate::vnc::GUEST_PORT)?;
+    let port = declared_port(descriptor, "port", crate::vnc::GUEST_PORT)?.ok_or_else(|| missing("port"))?;
     let web_port = declared_port(descriptor, "web-port", crate::vnc::WEB_GUEST_PORT)?;
     Ok(Capability { units, port, web_port })
 }
 
-fn declared_port(descriptor: &str, key: &str, expected: u16) -> Result<u16, Error> {
-    let value = setting(descriptor, key).ok_or_else(|| missing(key))?;
+/// Reads a declared port, which must be the one both sides agree on when it is declared at all.
+fn declared_port(descriptor: &str, key: &str, expected: u16) -> Result<Option<u16>, Error> {
+    let Some(value) = setting(descriptor, key) else {
+        return Ok(None);
+    };
     let parsed: u16 = value.parse().map_err(|_| {
         Error::Invalid(crate::vnc::image_contract_missing(&format!(
             "{DESCRIPTOR} sets {key} to {value:?}, which is not a port"
@@ -219,7 +226,7 @@ fn declared_port(descriptor: &str, key: &str, expected: u16) -> Result<u16, Erro
             "{DESCRIPTOR} sets {key} to {parsed}, but VNC access uses guest port {expected}"
         ))));
     }
-    Ok(parsed)
+    Ok(Some(parsed))
 }
 
 fn valid_unit_name(unit: &str) -> bool {
@@ -301,9 +308,16 @@ mod tests {
             Capability {
                 units: vec!["agent-vnc.socket".to_owned(), "agent-vnc-web.service".to_owned()],
                 port: 5900,
-                web_port: 6080,
+                web_port: Some(6080),
             }
         );
+    }
+
+    #[test]
+    fn an_image_may_offer_the_rfb_port_without_a_browser_viewer() {
+        let capability = parse_descriptor("units=agent-vnc.socket\nport=5900\n").expect("descriptor");
+        assert_eq!(capability.web_port, None);
+        assert_eq!(capability.ports(), vec![5900], "only the declared port is promised");
     }
 
     #[test]
@@ -311,7 +325,6 @@ mod tests {
         for (descriptor, expected) in [
             ("port=5900\nweb-port=6080\n", "does not set units"),
             ("units=agent-vnc.socket\nweb-port=6080\n", "does not set port"),
-            ("units=agent-vnc.socket\nport=5900\n", "does not set web-port"),
             (
                 "units=\nport=5900\nweb-port=6080\n",
                 "must declare between 1 and 8 units",
