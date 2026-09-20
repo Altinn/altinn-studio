@@ -211,7 +211,7 @@ fn render_transcript(frame: &mut Frame, area: Rect, preview: &super::app::Transc
         lines.push(("No turns yet.".into(), Style::new().fg(Color::DarkGray)));
     }
     if preview.loading {
-        lines.push(("Loading recent turns...".into(), Style::new().fg(Color::Blue)));
+        lines.push(("Loading recent turns...".into(), Style::new().fg(Color::LightBlue)));
     }
     if let Some(error) = &preview.error {
         lines.push((format!("Transcript unavailable: {error}"), Style::new().fg(Color::Red)));
@@ -251,7 +251,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     ];
     for (segment, color) in [
         (format!(" · {} working", counts.working), Color::Green),
-        (format!(" · {} starting", counts.starting), Color::Blue),
+        (format!(" · {} starting", counts.starting), Color::LightBlue),
         (format!(" · {} idle", counts.idle), Color::DarkGray),
         (format!(" · {} failed", counts.failed), Color::Red),
     ] {
@@ -279,7 +279,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             &mut spans,
             area.width,
             format!(" · {active_provisioning} provisioning"),
-            Color::Blue,
+            Color::LightBlue,
         );
     }
     if app.progress_error.is_some() {
@@ -747,11 +747,11 @@ fn provisioning_line(line: &str) -> Line<'static> {
     let (color, modifier) = if line.starts_with("+ ") {
         (Color::Green, Modifier::empty())
     } else if line.starts_with("> ") {
-        (Color::Blue, Modifier::BOLD)
+        (Color::LightBlue, Modifier::BOLD)
     } else if line.starts_with("x ") || line.starts_with("error") {
         (Color::Red, Modifier::BOLD)
     } else if line.trim_start().starts_with('=') {
-        (Color::Blue, Modifier::empty())
+        (Color::LightBlue, Modifier::empty())
     } else {
         (Color::DarkGray, Modifier::empty())
     };
@@ -1448,7 +1448,7 @@ const fn tone_color(tone: Tone) -> Color {
     match tone {
         Tone::Green => Color::Green,
         Tone::Yellow => Color::Yellow,
-        Tone::Blue => Color::Blue,
+        Tone::Blue => Color::LightBlue,
         Tone::Gray => Color::DarkGray,
         Tone::Red => Color::Red,
     }
@@ -1689,7 +1689,7 @@ mod tests {
 
         assert_eq!(color_at_text(&terminal, "need you"), Color::Yellow);
         assert_eq!(color_at_text(&terminal, "working"), Color::Green);
-        assert_eq!(color_at_text(&terminal, "starting"), Color::Blue);
+        assert_eq!(color_at_text(&terminal, "starting"), Color::LightBlue);
         assert_eq!(color_at_text(&terminal, "idle"), Color::DarkGray);
         assert_eq!(color_at_text(&terminal, "failed"), Color::Red);
 
@@ -1746,8 +1746,8 @@ mod tests {
         assert!(detail.contains("> image prepare"));
         assert!(detail.contains("pulling layer"));
         assert!(detail.contains("=========---  3 / 4"));
-        assert_eq!(color_at_text(&terminal, "> image prepare"), Color::Blue);
-        assert_eq!(color_at_text(&terminal, "=========---"), Color::Blue);
+        assert_eq!(color_at_text(&terminal, "> image prepare"), Color::LightBlue);
+        assert_eq!(color_at_text(&terminal, "=========---"), Color::LightBlue);
     }
 
     #[test]
