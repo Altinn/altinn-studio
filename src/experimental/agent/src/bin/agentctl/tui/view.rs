@@ -22,6 +22,9 @@ const FORM_HINT_COLUMN: usize = 41;
 const FORM_NOTE_ROW: usize = 5;
 const FORM_ERROR_ROW: usize = 6;
 const FORM_HINT_ROW: usize = 8;
+const CONTROL_ACCENT: Color = Color::Rgb(78, 194, 212);
+const CONTROL_BACKGROUND: Color = Color::Rgb(34, 41, 49);
+const PLATFORM_ACCENT: Color = Color::Rgb(120, 166, 227);
 const ERROR_HINTS: [Hint; 2] = [
     Hint::key("r", "retry", crossterm::event::KeyCode::Char('r')),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
@@ -184,7 +187,7 @@ fn render_transcript(frame: &mut Frame, area: Rect, preview: &super::app::Transc
         ));
         for message in &turn.messages {
             let (who, style) = match message.role {
-                agent::sessions::Role::User => ("you", Style::new().fg(Color::Cyan)),
+                agent::sessions::Role::User => ("you", Style::new().fg(CONTROL_ACCENT)),
                 agent::sessions::Role::Assistant => ("agent", Style::new()),
             };
             for part in &message.parts {
@@ -211,7 +214,7 @@ fn render_transcript(frame: &mut Frame, area: Rect, preview: &super::app::Transc
         lines.push(("No turns yet.".into(), Style::new().fg(Color::DarkGray)));
     }
     if preview.loading {
-        lines.push(("Loading recent turns...".into(), Style::new().fg(Color::LightBlue)));
+        lines.push(("Loading recent turns...".into(), Style::new().fg(PLATFORM_ACCENT)));
     }
     if let Some(error) = &preview.error {
         lines.push((format!("Transcript unavailable: {error}"), Style::new().fg(Color::Red)));
@@ -239,10 +242,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     let counts = app.triage_counts();
     let need_you = format!("{} need you", counts.needs_you);
     let mut spans = vec![
-        Span::styled(
-            " agentctl ",
-            Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED),
-        ),
+        Span::styled(" agentctl ", Style::new().fg(CONTROL_ACCENT).bg(CONTROL_BACKGROUND)),
         Span::raw(" "),
         Span::styled(
             need_you.clone(),
@@ -251,23 +251,23 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     ];
     for (segment, color) in [
         (format!(" · {} working", counts.working), Color::Green),
-        (format!(" · {} starting", counts.starting), Color::LightBlue),
+        (format!(" · {} starting", counts.starting), PLATFORM_ACCENT),
         (format!(" · {} idle", counts.idle), Color::DarkGray),
         (format!(" · {} failed", counts.failed), Color::Red),
     ] {
         push_header_segment(&mut spans, area.width, segment, color);
     }
     if app.refreshing() {
-        push_header_segment(&mut spans, area.width, " · refreshing".into(), Color::Cyan);
+        push_header_segment(&mut spans, area.width, " · refreshing".into(), CONTROL_ACCENT);
     }
     if app.creating > 0 {
-        push_header_segment(&mut spans, area.width, " · creating forward".into(), Color::Cyan);
+        push_header_segment(&mut spans, area.width, " · creating forward".into(), CONTROL_ACCENT);
     }
     if app.discovering {
-        push_header_segment(&mut spans, area.width, " · scanning manifests".into(), Color::Cyan);
+        push_header_segment(&mut spans, area.width, " · scanning manifests".into(), CONTROL_ACCENT);
     }
     if app.prompting.is_some() {
-        push_header_segment(&mut spans, area.width, " · sending prompt".into(), Color::Cyan);
+        push_header_segment(&mut spans, area.width, " · sending prompt".into(), CONTROL_ACCENT);
     }
     let active_provisioning = app
         .provisioning
@@ -279,7 +279,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             &mut spans,
             area.width,
             format!(" · {active_provisioning} provisioning"),
-            Color::LightBlue,
+            PLATFORM_ACCENT,
         );
     }
     if app.progress_error.is_some() {
@@ -290,7 +290,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             &mut spans,
             area.width,
             format!(" · filter: {}", app.filter),
-            Color::Cyan,
+            CONTROL_ACCENT,
         );
     }
     let updated = app.last_updated.map_or_else(
@@ -688,7 +688,7 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
         .iter()
         .map(|entry| {
             let mut spans = vec![
-                Span::styled("⇄ ", Style::new().fg(Color::Cyan)),
+                Span::styled("⇄ ", Style::new().fg(CONTROL_ACCENT)),
                 Span::raw(entry.mapping()),
                 Span::styled(format!("  {}", entry.agent), Style::new().fg(Color::DarkGray)),
             ];
@@ -723,7 +723,7 @@ fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::DetailView,
     let block = Block::bordered()
         .title(format!(" {} — q back · ↑/↓ scroll ", detail.title))
         .border_style(if provisioning {
-            Style::new().fg(Color::Cyan)
+            Style::new().fg(CONTROL_ACCENT)
         } else {
             Style::new()
         });
@@ -747,11 +747,11 @@ fn provisioning_line(line: &str) -> Line<'static> {
     let (color, modifier) = if line.starts_with("+ ") {
         (Color::Green, Modifier::empty())
     } else if line.starts_with("> ") {
-        (Color::LightBlue, Modifier::BOLD)
+        (PLATFORM_ACCENT, Modifier::BOLD)
     } else if line.starts_with("x ") || line.starts_with("error") {
         (Color::Red, Modifier::BOLD)
     } else if line.trim_start().starts_with('=') {
-        (Color::LightBlue, Modifier::empty())
+        (PLATFORM_ACCENT, Modifier::empty())
     } else {
         (Color::DarkGray, Modifier::empty())
     };
@@ -783,7 +783,7 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         frame,
         contextual,
         app.hints(),
-        Color::Cyan,
+        CONTROL_ACCENT,
         Color::DarkGray,
         hit_map,
         |_| app.error.is_none(),
@@ -831,7 +831,10 @@ fn render_hint_line(
         }
         spans.push(Span::styled(
             format!(" {} ", hint.label),
-            Style::new().fg(key_color).add_modifier(Modifier::REVERSED),
+            Style::new()
+                .fg(key_color)
+                .bg(CONTROL_BACKGROUND)
+                .add_modifier(Modifier::BOLD),
         ));
         spans.push(Span::raw(" "));
         spans.push(Span::styled(hint.description, Style::new().fg(description_color)));
@@ -927,7 +930,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
 }
 
 fn render_filter(frame: &mut Frame, area: Rect, form: &super::app::FilterForm, hit_map: &mut HitMap) {
-    let target = Form::new(" filter fleet ", Color::Cyan, &FILTER_HINTS)
+    let target = Form::new(" filter fleet ", CONTROL_ACCENT, &FILTER_HINTS)
         .field(form_text_line(
             "Filter",
             &form.input,
@@ -945,7 +948,7 @@ fn render_prompt(frame: &mut Frame, area: Rect, form: &super::app::PromptForm, h
         TreeRowId::Session { session, .. } => format!(" prompt {session} "),
         TreeRowId::Agent(agent) => format!(" prompt {agent} "),
     };
-    let target = Form::new(&title, Color::Cyan, &PROMPT_HINTS)
+    let target = Form::new(&title, CONTROL_ACCENT, &PROMPT_HINTS)
         .field(form_text_line("Prompt", &form.input, true, "type a response", ""))
         .note(" Sends directly to the running Session without attaching.")
         .error(form.error.as_deref())
@@ -959,7 +962,7 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
         .map_or("-", |installation| friendly_harness(installation.kind.as_str()));
     let model = form.model_default().unwrap_or("harness default");
     let effort = form.effort_default().unwrap_or("harness default");
-    let target = Form::new(" new session ", Color::Cyan, &NEW_SESSION_HINTS)
+    let target = Form::new(" new session ", CONTROL_ACCENT, &NEW_SESSION_HINTS)
         .field(form_inert_line("Agent", &form.agent))
         .field(form_picker_line(
             "Harness",
@@ -1039,7 +1042,7 @@ fn render_port_forward(frame: &mut Frame, area: Rect, form: &super::app::Forward
     } else {
         " port forward "
     };
-    let widget = Form::new(title, Color::Cyan, &PORT_FORWARD_HINTS)
+    let widget = Form::new(title, CONTROL_ACCENT, &PORT_FORWARD_HINTS)
         .field(form_inert_line("Agent", &form.agent))
         .field(form_text_line(
             "Address",
@@ -1102,7 +1105,7 @@ fn map_picker_targets(area: Rect, previous: MouseAction, next: MouseAction, hit_
 
 fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm, hit_map: &mut HitMap) {
     let candidate_error = form.candidate().and_then(|candidate| candidate.name.as_ref().err());
-    let mut widget = Form::new(" create agent ", Color::Cyan, &CREATE_AGENT_HINTS)
+    let mut widget = Form::new(" create agent ", CONTROL_ACCENT, &CREATE_AGENT_HINTS)
         .error(form.error.as_deref().or_else(|| candidate_error.map(String::as_str)));
     if let (Some(agent), Some(candidate)) = (form.agent(), form.candidate()) {
         let agent_path = abbreviate_home(&agent.directory.display().to_string());
@@ -1249,7 +1252,7 @@ fn form_prefix(label: &str, focused: bool) -> Vec<Span<'static>> {
         Span::styled(
             fit_left(label, 8),
             if focused {
-                Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+                Style::new().fg(CONTROL_ACCENT).add_modifier(Modifier::BOLD)
             } else {
                 Style::new().fg(Color::DarkGray)
             },
@@ -1288,7 +1291,7 @@ fn form_text_line(label: &str, value: &str, focused: bool, placeholder: &str, ri
             FORM_HINT_COLUMN.saturating_sub(FORM_VALUE_COLUMN + 3),
         )));
         if focused {
-            spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
+            spans.push(Span::styled("▏", Style::new().fg(CONTROL_ACCENT)));
         }
     }
     if value.is_empty() && !right_hint.is_empty() {
@@ -1311,12 +1314,12 @@ fn form_picker_line(
     detail: &str,
 ) -> Line<'static> {
     let mut spans = form_prefix(label, focused);
-    let control = if focused { Color::Cyan } else { Color::DarkGray };
+    let control = if focused { CONTROL_ACCENT } else { Color::DarkGray };
     spans.push(Span::styled("< ", Style::new().fg(control)));
     spans.push(Span::styled(
         fit_left(value, FORM_VALUE_WIDTH),
         if focused {
-            Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+            Style::new().fg(CONTROL_ACCENT).add_modifier(Modifier::BOLD)
         } else {
             Style::new()
         },
@@ -1389,7 +1392,10 @@ fn hint_line(hints: &[Hint], width: usize) -> Line<'static> {
         }
         spans.push(Span::styled(
             format!(" {} ", hint.label),
-            Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED),
+            Style::new()
+                .fg(CONTROL_ACCENT)
+                .bg(CONTROL_BACKGROUND)
+                .add_modifier(Modifier::BOLD),
         ));
         spans.push(Span::raw(" "));
         spans.push(Span::styled(hint.description, Style::new().fg(Color::DarkGray)));
@@ -1448,7 +1454,7 @@ const fn tone_color(tone: Tone) -> Color {
     match tone {
         Tone::Green => Color::Green,
         Tone::Yellow => Color::Yellow,
-        Tone::Blue => Color::LightBlue,
+        Tone::Blue => PLATFORM_ACCENT,
         Tone::Gray => Color::DarkGray,
         Tone::Red => Color::Red,
     }
@@ -1477,6 +1483,10 @@ mod tests {
     }
 
     fn color_at_text(terminal: &Terminal<TestBackend>, needle: &str) -> Color {
+        colors_at_text(terminal, needle).0
+    }
+
+    fn colors_at_text(terminal: &Terminal<TestBackend>, needle: &str) -> (Color, Color) {
         let text = buffer_text(terminal);
         let (y, line) = text
             .lines()
@@ -1488,11 +1498,11 @@ mod tests {
             .chars()
             .map(|character| character.width().unwrap_or(0))
             .sum::<usize>();
-        terminal.backend().buffer()[(
+        let cell = &terminal.backend().buffer()[(
             u16::try_from(x).expect("test frame x coordinate"),
             u16::try_from(y).expect("test frame y coordinate"),
-        )]
-            .fg
+        )];
+        (cell.fg, cell.bg)
     }
 
     fn draw(terminal: &mut Terminal<TestBackend>, app: &App) -> HitMap {
@@ -1687,9 +1697,17 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(110, 16)).expect("test terminal");
         draw(&mut terminal, &app);
 
+        assert_eq!(
+            colors_at_text(&terminal, "agentctl"),
+            (CONTROL_ACCENT, CONTROL_BACKGROUND),
+        );
+        assert_eq!(
+            colors_at_text(&terminal, " enter "),
+            (CONTROL_ACCENT, CONTROL_BACKGROUND),
+        );
         assert_eq!(color_at_text(&terminal, "need you"), Color::Yellow);
         assert_eq!(color_at_text(&terminal, "working"), Color::Green);
-        assert_eq!(color_at_text(&terminal, "starting"), Color::LightBlue);
+        assert_eq!(color_at_text(&terminal, "starting"), PLATFORM_ACCENT);
         assert_eq!(color_at_text(&terminal, "idle"), Color::DarkGray);
         assert_eq!(color_at_text(&terminal, "failed"), Color::Red);
 
@@ -1746,8 +1764,8 @@ mod tests {
         assert!(detail.contains("> image prepare"));
         assert!(detail.contains("pulling layer"));
         assert!(detail.contains("=========---  3 / 4"));
-        assert_eq!(color_at_text(&terminal, "> image prepare"), Color::LightBlue);
-        assert_eq!(color_at_text(&terminal, "=========---"), Color::LightBlue);
+        assert_eq!(color_at_text(&terminal, "> image prepare"), PLATFORM_ACCENT);
+        assert_eq!(color_at_text(&terminal, "=========---"), PLATFORM_ACCENT);
     }
 
     #[test]
@@ -2291,7 +2309,7 @@ mod tests {
         );
         form.field = CreateField::Name;
         let line = form_text_line("Name", &form.name, true, form.placeholder().expect("placeholder"), "");
-        assert_eq!(line.spans[1].style.fg, Some(Color::Cyan));
+        assert_eq!(line.spans[1].style.fg, Some(CONTROL_ACCENT));
         assert!(line.spans[1].style.add_modifier.contains(Modifier::BOLD));
         assert_eq!(line.spans[3].content, "f");
         assert!(line.spans[3].style.add_modifier.contains(Modifier::REVERSED));
