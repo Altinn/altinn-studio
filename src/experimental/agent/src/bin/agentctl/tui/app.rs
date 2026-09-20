@@ -6,7 +6,7 @@ use std::{
 
 use agent::{
     Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
-    sessions::{LifecycleState, Session, SessionName, State},
+    sessions::{Session, SessionName, State},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -118,12 +118,11 @@ pub(crate) struct App {
     pub(crate) rows: Vec<Row>,
     pub(crate) collapsed: HashSet<String>,
     pub(crate) selection: Option<TreeRowId>,
-    pub(crate) loading: bool,
+    pub(crate) refresh: RefreshState,
     pub(crate) loaded: bool,
     pub(crate) error: Option<String>,
     pub(crate) poll_error: Option<String>,
     pub(crate) last_updated: Option<Instant>,
-    pub(crate) refresh_queued: bool,
     pub(crate) detail: Option<Detail>,
     pub(crate) modal: Option<Modal>,
     pub(crate) forwards: Vec<ForwardEntry>,
@@ -156,6 +155,14 @@ impl ForwardEntry {
 pub(crate) enum View {
     Tree,
     Forwards,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) enum RefreshState {
+    #[default]
+    Idle,
+    Fetching,
+    Queued,
 }
 
 pub(crate) struct Group {
@@ -775,21 +782,43 @@ pub(crate) enum Action {
     },
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(crate) enum Tone {
     Green,
     Yellow,
+    Blue,
     Gray,
     Red,
 }
 
 pub(crate) struct RowView {
-    pub(crate) marker: &'static str,
-    pub(crate) dot: Option<&'static str>,
-    pub(crate) label: String,
-    pub(crate) badge: String,
+    pub(crate) gutter: bool,
+    pub(crate) control: &'static str,
+    pub(crate) name: String,
+    pub(crate) state: String,
+    pub(crate) active_for: String,
+    pub(crate) harness: String,
+    pub(crate) model: String,
+    pub(crate) age: String,
+    pub(crate) detail: String,
     pub(crate) tone: Tone,
     pub(crate) agent: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct TriageCounts {
+    pub(crate) needs_you: usize,
+    pub(crate) working: usize,
+    pub(crate) starting: usize,
+    pub(crate) idle: usize,
+    pub(crate) failed: usize,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct SessionPresentation {
+    glyph: &'static str,
+    label: &'static str,
+    tone: Tone,
 }
 
 impl App {
@@ -801,12 +830,11 @@ impl App {
             rows: Vec::new(),
             collapsed: HashSet::new(),
             selection: None,
-            loading: false,
+            refresh: RefreshState::Idle,
             loaded: false,
             error: None,
             poll_error: None,
             last_updated: None,
-            refresh_queued: false,
             detail: None,
             modal: None,
             forwards: Vec::new(),
@@ -821,8 +849,24 @@ impl App {
     pub(crate) fn apply_snapshot(&mut self, mut agents: Vec<Agent>, mut sessions: Vec<Session>) {
         let selection = self.selection.clone();
         let fallback = self.selected_index().unwrap_or_default();
-        agents.sort_by(|left, right| left.metadata.name.cmp(&right.metadata.name));
-        sessions.sort_by(|left, right| left.agent.cmp(&right.agent).then_with(|| left.name.cmp(&right.name)));
+        sessions.sort_by(|left, right| {
+            left.agent.cmp(&right.agent).then_with(|| {
+                session_priority(left.status.state)
+                    .cmp(&session_priority(right.status.state))
+                    .then_with(|| left.name.cmp(&right.name))
+            })
+        });
+        agents.sort_by(|left, right| {
+            let needs_you = |agent: &Agent| {
+                sessions.iter().any(|session| {
+                    session.agent == agent.metadata.name && session.status.state == State::WaitingForInput
+                })
+            };
+            needs_you(left)
+                .cmp(&needs_you(right))
+                .reverse()
+                .then_with(|| left.metadata.name.cmp(&right.metadata.name))
+        });
         self.agents = agents;
         self.sessions = sessions;
         self.loaded = true;
@@ -896,17 +940,27 @@ impl App {
         true
     }
 
-    pub(crate) fn counts(&self) -> (usize, usize, usize) {
-        let running = self
-            .sessions
+    pub(crate) fn triage_counts(&self) -> TriageCounts {
+        self.sessions
             .iter()
-            .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
-            .count();
-        (self.agents.len(), self.sessions.len(), running)
+            .fold(TriageCounts::default(), |mut counts, session| {
+                match session.status.state {
+                    State::WaitingForInput => counts.needs_you += 1,
+                    State::Working => counts.working += 1,
+                    State::Starting => counts.starting += 1,
+                    State::Idle => counts.idle += 1,
+                    State::Failed => counts.failed += 1,
+                }
+                counts
+            })
     }
 
     pub(crate) const fn idle(&self) -> bool {
-        !self.loading && self.modal.is_none() && self.detail.is_none()
+        !self.refreshing() && self.modal.is_none() && self.detail.is_none()
+    }
+
+    pub(crate) const fn refreshing(&self) -> bool {
+        !matches!(self.refresh, RefreshState::Idle)
     }
 
     pub(crate) fn on_key(&mut self, key: KeyEvent) -> Action {
@@ -1273,6 +1327,7 @@ impl App {
         self.modal = Some(Modal::CreateAgent(CreateForm::new(candidates, manifest.as_deref())));
     }
 
+    #[cfg(test)]
     pub(crate) fn select_agent(&mut self, name: &str) {
         let target = TreeRowId::Agent(name.to_owned());
         self.select_tree(&target);
@@ -1393,64 +1448,70 @@ impl App {
                 Row::Agent(group) => {
                     let agent = self.group_agent(group)?;
                     let sessions = &self.groups.get(group)?.sessions;
-                    let running = sessions
+                    let needs_you = sessions
                         .iter()
                         .filter_map(|index| self.sessions.get(*index))
-                        .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
-                        .count();
-                    let marker = if self.collapsed.contains(&agent.metadata.name) {
-                        "▸ "
+                        .any(|session| session.status.state == State::WaitingForInput);
+                    let control = if self.collapsed.contains(&agent.metadata.name) {
+                        ">"
                     } else {
-                        "▾ "
+                        "v"
                     };
-                    let (tone, status) = agent_tone(agent);
+                    let (tone, state, message) = agent_presentation(agent);
                     let forwards = self
                         .forwards
                         .iter()
                         .filter(|entry| entry.agent == agent.metadata.name)
                         .map(ForwardEntry::mapping)
                         .collect::<Vec<_>>();
-                    let forward_badge = if forwards.is_empty() {
+                    let summary = if sessions.is_empty() {
                         String::new()
                     } else {
-                        format!(" · ports: {}", forwards.join(" "))
+                        format!(
+                            "{} session{}",
+                            sessions.len(),
+                            if sessions.len() == 1 { "" } else { "s" }
+                        )
                     };
-                    let badge = format!("{running}/{} · {status}{forward_badge}", sessions.len());
+                    let ports = forwards.join(" ");
+                    let detail = [message.as_str(), summary.as_str(), ports.as_str()]
+                        .into_iter()
+                        .filter(|part| !part.is_empty())
+                        .collect::<Vec<_>>()
+                        .join(" · ");
                     Some(RowView {
-                        marker,
-                        dot: None,
-                        label: agent.metadata.name.clone(),
-                        badge,
+                        gutter: needs_you,
+                        control,
+                        name: agent.metadata.name.clone(),
+                        state,
+                        active_for: String::new(),
+                        harness: String::new(),
+                        model: String::new(),
+                        age: String::new(),
+                        detail,
                         tone,
                         agent: true,
                     })
                 }
                 Row::Session { group, position } => {
                     let session = self.group_session(group, position)?;
-                    let last = position + 1 == self.groups.get(group)?.sessions.len();
-                    let marker = if last { "  └─ " } else { "  ├─ " };
-                    let tone = session_tone(session.status.state);
-                    let dot = if session.status.state == State::Idle {
-                        "○"
-                    } else {
-                        "●"
-                    };
+                    let presentation = session_presentation(session.status.state);
                     Some(RowView {
-                        marker,
-                        dot: Some(dot),
-                        label: session.name.as_str().to_owned(),
-                        badge: format!(
-                            "{} · {}{} · {}",
-                            format::session_state(session.status.state),
-                            session.harness.as_str(),
-                            session
-                                .model_selection
-                                .model_str()
-                                .map(|model| format!(" · {model}"))
-                                .unwrap_or_default(),
-                            format::format_age(session.created_at)
-                        ),
-                        tone,
+                        gutter: session.status.state == State::WaitingForInput,
+                        control: presentation.glyph,
+                        name: session.name.as_str().to_owned(),
+                        state: presentation.label.into(),
+                        active_for: session
+                            .status
+                            .reported
+                            .activity
+                            .last_event_at
+                            .map_or_else(String::new, format::format_age),
+                        harness: harness_label(session.harness).into(),
+                        model: session.model_selection.model_str().unwrap_or("-").into(),
+                        age: format::format_age(session.created_at),
+                        detail: String::new(),
+                        tone: presentation.tone,
                         agent: false,
                     })
                 }
@@ -1538,35 +1599,78 @@ fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
     }
 }
 
-fn agent_tone(agent: &Agent) -> (Tone, String) {
+fn agent_presentation(agent: &Agent) -> (Tone, String, String) {
     if agent.metadata.deletion_timestamp.is_some() {
-        return (Tone::Red, "Terminating".to_owned());
+        return (Tone::Red, "Terminating".into(), "Agent is being deleted".into());
     }
     let ready = agent.status.ready_condition();
     ready.map_or_else(
-        || (Tone::Gray, "Pending".to_owned()),
+        || {
+            (
+                Tone::Blue,
+                "Starting".into(),
+                "Waiting for the first controller observation".into(),
+            )
+        },
         |condition| {
-            let tone = if condition.status == ConditionStatus::True {
-                Tone::Green
+            let failed = condition.status != ConditionStatus::True
+                && (condition.reason.contains("Failed") || condition.reason.contains("Error"));
+            let (tone, state) = if condition.status == ConditionStatus::True {
+                (Tone::Green, "Ready")
+            } else if failed {
+                (Tone::Red, "Failed")
             } else {
-                Tone::Yellow
+                (Tone::Blue, "Starting")
             };
-            let reason = if condition.reason.is_empty() {
-                format::condition_status(condition.status).to_owned()
-            } else {
-                condition.reason.clone()
-            };
-            (tone, reason)
+            (tone, state.into(), condition.detail())
         },
     )
 }
 
-const fn session_tone(state: State) -> Tone {
+const fn session_priority(state: State) -> u8 {
     match state {
-        State::Working | State::WaitingForInput => Tone::Green,
-        State::Starting => Tone::Yellow,
-        State::Idle => Tone::Gray,
-        State::Failed => Tone::Red,
+        State::WaitingForInput => 0,
+        State::Failed => 1,
+        State::Starting => 2,
+        State::Working => 3,
+        State::Idle => 4,
+    }
+}
+
+const fn session_presentation(state: State) -> SessionPresentation {
+    match state {
+        State::WaitingForInput => SessionPresentation {
+            glyph: "❖",
+            label: "Needs you",
+            tone: Tone::Yellow,
+        },
+        State::Working => SessionPresentation {
+            glyph: "◉",
+            label: "Working",
+            tone: Tone::Green,
+        },
+        State::Starting => SessionPresentation {
+            glyph: "◔",
+            label: "Starting",
+            tone: Tone::Blue,
+        },
+        State::Idle => SessionPresentation {
+            glyph: "◌",
+            label: "Idle",
+            tone: Tone::Gray,
+        },
+        State::Failed => SessionPresentation {
+            glyph: "✖",
+            label: "Failed",
+            tone: Tone::Red,
+        },
+    }
+}
+
+const fn harness_label(harness: Harness) -> &'static str {
+    match harness {
+        Harness::ClaudeCode => "Claude Code",
+        Harness::Codex => "Codex",
     }
 }
 
@@ -1719,12 +1823,20 @@ mod tests {
             ]
         );
         let views = app.render_rows();
-        assert_eq!(views[0].label, "builder");
-        assert_eq!(views[1].label, "b1");
-        assert_eq!(views[2].label, "worker");
-        assert_eq!(views[3].label, "s1");
-        assert_eq!(views[4].label, "s2");
-        assert_eq!(app.counts(), (2, 3, 1));
+        assert_eq!(views[0].name, "builder");
+        assert_eq!(views[1].name, "b1");
+        assert_eq!(views[2].name, "worker");
+        assert_eq!(views[3].name, "s2");
+        assert_eq!(views[4].name, "s1");
+        assert_eq!(
+            app.triage_counts(),
+            TriageCounts {
+                working: 1,
+                starting: 1,
+                idle: 1,
+                ..TriageCounts::default()
+            }
+        );
     }
 
     #[test]
@@ -1753,7 +1865,7 @@ mod tests {
     #[test]
     fn snapshot_rebuild_preserves_selection_by_resource_identity() {
         let mut app = populated();
-        app.select_index(4);
+        app.select_index(3);
         assert_eq!(
             app.selection,
             Some(TreeRowId::Session {
@@ -1772,7 +1884,7 @@ mod tests {
             ],
         );
 
-        assert_eq!(app.selected_index(), Some(5));
+        assert_eq!(app.selected_index(), Some(3));
         assert_eq!(
             app.selection,
             Some(TreeRowId::Session {
@@ -1785,7 +1897,7 @@ mod tests {
     #[test]
     fn stale_mouse_target_still_acts_on_the_rendered_resource_after_reorder() {
         let mut app = populated();
-        let target = app.row_target(4).expect("rendered s2 target");
+        let target = app.row_target(3).expect("rendered s2 target");
         app.apply_snapshot(
             vec![agent("worker"), agent("builder")],
             vec![
@@ -1822,10 +1934,10 @@ mod tests {
     #[test]
     fn mouse_row_selection_is_separate_from_primary_actions() {
         let mut app = populated();
-        let session = app.row_target(4).expect("session target");
+        let session = app.row_target(3).expect("session target");
 
         assert_eq!(app.on_mouse(MouseAction::Select(session.clone())), Action::None);
-        assert_eq!(app.selected_index(), Some(4));
+        assert_eq!(app.selected_index(), Some(3));
         assert_eq!(
             app.on_mouse(MouseAction::Primary(session)),
             Action::Attach {
@@ -2360,15 +2472,64 @@ mod tests {
         );
         let views = app.render_rows();
         assert_eq!(views[0].tone, Tone::Green);
-        assert!(views[0].badge.contains("SandboxReady"));
-        assert_eq!(views[1].tone, Tone::Red);
-        assert_eq!(views[2].tone, Tone::Green);
-        assert!(views[3].badge.contains("Terminating"));
+        assert!(views[0].detail.contains("SandboxReady"));
+        assert!(views[0].gutter);
+        assert_eq!(views[1].tone, Tone::Yellow);
+        assert_eq!(views[1].control, "❖");
+        assert_eq!(views[1].state, "Needs you");
+        assert_eq!(views[2].tone, Tone::Red);
+        assert_eq!(views[2].control, "✖");
+        assert_eq!(views[3].state, "Terminating");
         assert_eq!(views[3].tone, Tone::Red);
-        assert_eq!(views[4].tone, Tone::Gray);
-        assert!(views[4].badge.contains("Pending"));
-        assert_eq!(views[1].dot, Some("●"));
-        assert!(views[1].badge.contains("Failed"));
+        assert_eq!(views[4].tone, Tone::Blue);
+        assert_eq!(views[4].state, "Starting");
+    }
+
+    #[test]
+    fn every_session_state_has_a_distinct_glyph_and_tone() {
+        let mut encodings = std::collections::HashSet::new();
+        for state in [
+            State::WaitingForInput,
+            State::Working,
+            State::Starting,
+            State::Idle,
+            State::Failed,
+        ] {
+            let presentation = session_presentation(state);
+            assert!(
+                encodings.insert((presentation.glyph, presentation.tone)),
+                "duplicate encoding for {state:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn reconciliation_failure_is_red_and_exposes_its_message() {
+        let mut broken = agent("broken");
+        broken.status.conditions.push(agent::Condition {
+            kind: agent::Condition::READY.into(),
+            status: ConditionStatus::False,
+            reason: "SandboxReconcileFailed".into(),
+            message: "COPY failed: dist was not found".into(),
+        });
+        let mut app = App::new();
+        app.apply_snapshot(vec![broken], Vec::new());
+
+        let row = &app.render_rows()[0];
+        assert_eq!(row.tone, Tone::Red);
+        assert_eq!(row.state, "Failed");
+        assert!(row.detail.contains("COPY failed: dist was not found"));
+    }
+
+    #[test]
+    fn session_activity_age_uses_the_last_event_clock() {
+        let mut active = session("worker", "active", "working");
+        active.status.reported.activity.last_event_at =
+            Some(time::OffsetDateTime::now_utc() - time::Duration::minutes(7));
+        let mut app = App::new();
+        app.apply_snapshot(vec![agent("worker")], vec![active]);
+
+        assert_eq!(app.render_rows()[1].active_for, "7m");
     }
 
     #[test]
@@ -2532,8 +2693,8 @@ mod tests {
             },
         ]);
         let views = app.render_rows();
-        assert!(!views[0].badge.contains("ports:"));
-        assert!(views[2].badge.contains("ports: 9090:80 0.0.0.0:80:80"));
+        assert!(!views[0].detail.contains("9090"));
+        assert!(views[2].detail.contains("9090:80 0.0.0.0:80:80"));
     }
 
     #[test]

@@ -157,8 +157,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             }
             Input::Refreshed(outcome) => {
                 mouse.reset();
-                refresh_finished(&mut app, outcome);
-                if std::mem::take(&mut app.refresh_queued) {
+                if refresh_finished(&mut app, outcome) {
                     request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
                 }
                 continue;
@@ -451,19 +450,22 @@ fn forward_created(app: &mut App, forwards: &mut ActiveForwards, outcome: Create
 }
 
 fn request_refresh(app: &mut App, outcomes: tokio::sync::mpsc::UnboundedSender<FetchOutcome>, socket_path: PathBuf) {
-    if app.loading {
-        app.refresh_queued = true;
-        return;
+    match app.refresh {
+        app::RefreshState::Idle => app.refresh = app::RefreshState::Fetching,
+        app::RefreshState::Fetching | app::RefreshState::Queued => {
+            app.refresh = app::RefreshState::Queued;
+            return;
+        }
     }
-    app.loading = true;
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
         let _ = outcomes.send(fetch(&client).await);
     });
 }
 
-fn refresh_finished(app: &mut App, outcome: FetchOutcome) {
-    app.loading = false;
+fn refresh_finished(app: &mut App, outcome: FetchOutcome) -> bool {
+    let queued = app.refresh == app::RefreshState::Queued;
+    app.refresh = app::RefreshState::Idle;
     match outcome {
         Ok((agents, sessions)) => {
             app.error = None;
@@ -473,6 +475,7 @@ fn refresh_finished(app: &mut App, outcome: FetchOutcome) {
         }
         Err(error) => app.poll_error = Some(error.to_string()),
     }
+    queued
 }
 
 async fn fetch(client: &Client) -> Result<(Vec<Agent>, Vec<Session>), Error> {
@@ -789,14 +792,14 @@ mod tests {
         request_refresh(&mut app, sender.clone(), socket.clone());
         request_refresh(&mut app, sender, socket);
 
-        assert!(app.loading);
-        assert!(app.refresh_queued);
+        assert!(app.refreshing());
+        assert_eq!(app.refresh, app::RefreshState::Queued);
         let outcome = receiver.recv().await.expect("refresh outcome");
         assert!(outcome.is_err());
-        refresh_finished(&mut app, outcome);
+        assert!(refresh_finished(&mut app, outcome));
         assert!(app.loaded, "the last successful snapshot remains active");
         assert!(app.poll_error.is_some());
-        assert!(!app.loading);
+        assert!(!app.refreshing());
     }
 
     #[test]
@@ -804,7 +807,7 @@ mod tests {
         let mut app = App::new();
         app.poll_error = Some("old failure".into());
 
-        refresh_finished(&mut app, Ok((Vec::new(), Vec::new())));
+        assert!(!refresh_finished(&mut app, Ok((Vec::new(), Vec::new()))));
 
         assert!(app.poll_error.is_none());
         assert!(app.last_updated.is_some());

@@ -39,6 +39,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
+ "unicode-width",
  "uuid",
  "win_uds",
  "zeroize",

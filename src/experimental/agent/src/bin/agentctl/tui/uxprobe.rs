@@ -194,7 +194,7 @@ fn fleet_fixture_renders_at_review_widths_with_cell_styles() {
         assert!(dump.colors.iter().all(|row| row.len() == usize::from(width)));
         assert!(dump.text.contains("agentctl"));
         assert!(dump.text.contains("altinn-studio"));
-        assert!(dump.text.contains("WaitingForInput"));
+        assert!(dump.text.contains("Needs you"));
         assert!(dump.text.contains("j/k move"));
     }
 }

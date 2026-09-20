@@ -38,6 +38,7 @@ uuid.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+unicode-width.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 tokio-util = { workspace = true, features = ["compat"] }

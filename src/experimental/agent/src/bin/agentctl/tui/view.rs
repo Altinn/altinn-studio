@@ -110,7 +110,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     let [header, body, footer] =
         Layout::vertical([Constraint::Length(1), Constraint::Min(0), Constraint::Length(2)]).areas(frame.area());
     render_header(frame, header, app);
-    let body = if let Some(error) = &app.poll_error {
+    let body = app.poll_error.as_ref().map_or(body, |error| {
         let [banner, content] = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).areas(body);
         frame.render_widget(
             Paragraph::new(format!(" refresh failed: {error} · showing last good snapshot "))
@@ -118,9 +118,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
             banner,
         );
         content
-    } else {
-        body
-    };
+    });
     if let Some(detail) = app.detail_view() {
         render_detail(frame, body, &detail, &mut hit_map);
     } else if let Some(error) = &app.error {
@@ -141,7 +139,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
 }
 
 fn render_header(frame: &mut Frame, area: Rect, app: &App) {
-    let (agents, sessions, running) = app.counts();
+    let counts = app.triage_counts();
     let mut spans = vec![
         Span::styled(
             " agentctl ",
@@ -149,11 +147,18 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
         ),
         Span::raw(" "),
         Span::styled(
-            format!("{agents} agents · {sessions} sessions · {running} running"),
+            format!("{} need you", counts.needs_you),
+            Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!(
+                " · {} working · {} starting · {} idle · {} failed",
+                counts.working, counts.starting, counts.idle, counts.failed
+            ),
             Style::new().fg(Color::DarkGray),
         ),
     ];
-    if app.loading {
+    if app.refreshing() {
         spans.push(Span::styled(" · ⟳", Style::new().fg(Color::Cyan)));
     }
     if app.creating > 0 {
@@ -188,43 +193,23 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         );
         return;
     }
+    let [columns, list_area] = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]).areas(area);
+    frame.render_widget(tree_header(columns.width), columns);
     let items = rows
         .iter()
-        .map(|row| {
-            let mut spans = Vec::new();
-            if row.agent {
-                spans.push(Span::styled(row.marker, Style::new().fg(tone_color(row.tone))));
-            } else {
-                spans.push(Span::styled(row.marker, Style::new().fg(Color::DarkGray)));
-            }
-            if let Some(dot) = row.dot {
-                spans.push(Span::styled(dot, Style::new().fg(tone_color(row.tone))));
-                spans.push(Span::raw(" "));
-            }
-            let label_style = if row.agent {
-                Style::new().add_modifier(Modifier::BOLD)
-            } else {
-                Style::new()
-            };
-            spans.push(Span::styled(row.label.clone(), label_style));
-            spans.push(Span::styled(
-                format!("  {}", row.badge),
-                Style::new().fg(Color::DarkGray),
-            ));
-            ListItem::new(Line::from(spans))
-        })
+        .map(|row| ListItem::new(tree_row(row, list_area.width)))
         .collect::<Vec<_>>();
     let list = List::new(items).highlight_style(Style::new().add_modifier(Modifier::REVERSED));
     state.tree.select(app.selected_index());
-    frame.render_stateful_widget(list, area, &mut state.tree);
-    hit_map.wheel(area, WheelTarget::Tree);
-    for visible in 0..usize::from(area.height) {
+    frame.render_stateful_widget(list, list_area, &mut state.tree);
+    hit_map.wheel(list_area, WheelTarget::Tree);
+    for visible in 0..usize::from(list_area.height) {
         let index = state.tree.offset().saturating_add(visible);
         let Some(row) = app.rows.get(index) else {
             break;
         };
-        let y = area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
-        let row_area = Rect::new(area.x, y, area.width, 1);
+        let y = list_area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
+        let row_area = Rect::new(list_area.x, y, list_area.width, 1);
         let Some(target) = app.row_target(index) else {
             continue;
         };
@@ -239,6 +224,192 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
             );
         }
     }
+}
+
+#[derive(Clone, Copy)]
+struct TreeColumns {
+    name: usize,
+    state: usize,
+    active_for: Option<(usize, usize)>,
+    harness: Option<(usize, usize)>,
+    model: Option<(usize, usize)>,
+    age: Option<(usize, usize)>,
+}
+
+fn tree_columns(width: u16) -> TreeColumns {
+    let width = usize::from(width);
+    if width >= 80 {
+        TreeColumns {
+            name: 4,
+            state: 34,
+            active_for: Some((45, 6)),
+            harness: Some((52, 13)),
+            model: Some((66, 9)),
+            age: Some((76, 4)),
+        }
+    } else if width >= 60 {
+        TreeColumns {
+            name: 4,
+            state: 27,
+            active_for: Some((38, 6)),
+            harness: Some((45, width.saturating_sub(45))),
+            model: None,
+            age: None,
+        }
+    } else {
+        TreeColumns {
+            name: 4,
+            state: width.saturating_sub(17).max(18),
+            active_for: (width >= 38).then_some((width.saturating_sub(6), 6)),
+            harness: None,
+            model: None,
+            age: None,
+        }
+    }
+}
+
+fn tree_header(width: u16) -> Line<'static> {
+    let columns = tree_columns(width);
+    let mut spans = Vec::new();
+    push_at(
+        &mut spans,
+        columns.name,
+        "NAME".into(),
+        Style::new().fg(Color::DarkGray),
+    );
+    push_at(
+        &mut spans,
+        columns.state,
+        "STATE".into(),
+        Style::new().fg(Color::DarkGray),
+    );
+    if let Some((column, cell_width)) = columns.active_for {
+        push_at(
+            &mut spans,
+            column,
+            fit_right("FOR", cell_width),
+            Style::new().fg(Color::DarkGray),
+        );
+    }
+    if let Some((column, _)) = columns.harness {
+        push_at(&mut spans, column, "HARNESS".into(), Style::new().fg(Color::DarkGray));
+    }
+    if let Some((column, _)) = columns.model {
+        push_at(&mut spans, column, "MODEL".into(), Style::new().fg(Color::DarkGray));
+    }
+    if let Some((column, cell_width)) = columns.age {
+        push_at(
+            &mut spans,
+            column,
+            fit_right("AGE", cell_width),
+            Style::new().fg(Color::DarkGray),
+        );
+    }
+    Line::from(spans)
+}
+
+fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
+    let columns = tree_columns(width);
+    let width = usize::from(width);
+    let mut spans = Vec::new();
+    let tone = tone_color(row.tone);
+    let gutter = if row.gutter { "▐" } else { " " };
+    push_at(&mut spans, 0, gutter.into(), Style::new().fg(tone));
+    push_at(&mut spans, 2, row.control.into(), Style::new().fg(tone));
+    let name_width = columns.state.saturating_sub(columns.name + 1);
+    let name_style = if row.agent {
+        Style::new().add_modifier(Modifier::BOLD)
+    } else {
+        Style::new()
+    };
+    push_at(&mut spans, columns.name, fit_left(&row.name, name_width), name_style);
+    push_at(
+        &mut spans,
+        columns.state,
+        fit_left(&row.state, 10),
+        Style::new()
+            .fg(tone)
+            .add_modifier(if row.gutter { Modifier::BOLD } else { Modifier::empty() }),
+    );
+    if row.agent {
+        let detail_column = columns.active_for.map_or(columns.state + 11, |(column, _)| column);
+        let detail_width = width.saturating_sub(detail_column);
+        push_at(
+            &mut spans,
+            detail_column,
+            fit_left(&row.detail, detail_width),
+            Style::new().fg(Color::DarkGray),
+        );
+        return Line::from(spans);
+    }
+    if let Some((column, cell_width)) = columns.active_for {
+        push_at(
+            &mut spans,
+            column,
+            fit_right(&row.active_for, cell_width),
+            Style::new().fg(tone),
+        );
+    }
+    if let Some((column, cell_width)) = columns.harness {
+        push_at(
+            &mut spans,
+            column,
+            fit_left(&row.harness, cell_width),
+            Style::new().fg(Color::DarkGray),
+        );
+    }
+    if let Some((column, cell_width)) = columns.model {
+        push_at(
+            &mut spans,
+            column,
+            fit_left(&row.model, cell_width),
+            Style::new().fg(Color::DarkGray),
+        );
+    }
+    if let Some((column, cell_width)) = columns.age {
+        push_at(
+            &mut spans,
+            column,
+            fit_right(&row.age, cell_width),
+            Style::new().fg(Color::DarkGray),
+        );
+    }
+    Line::from(spans)
+}
+
+fn push_at(spans: &mut Vec<Span<'static>>, column: usize, value: String, style: Style) {
+    let current = Line::from(spans.clone()).width();
+    if current < column {
+        spans.push(Span::raw(" ".repeat(column - current)));
+    }
+    spans.push(Span::styled(value, style));
+}
+
+fn fit_left(value: &str, width: usize) -> String {
+    let mut output = String::new();
+    let mut used = 0;
+    let truncated = Line::from(value).width() > width;
+    let available = width.saturating_sub(usize::from(truncated));
+    for character in value.chars() {
+        let cell_width = Line::from(character.to_string()).width();
+        if used + cell_width > available {
+            break;
+        }
+        output.push(character);
+        used += cell_width;
+    }
+    if truncated && width > 0 {
+        output.push('~');
+        used += 1;
+    }
+    output.push_str(&" ".repeat(width.saturating_sub(used)));
+    output
+}
+
+fn fit_right(value: &str, width: usize) -> String {
+    let value = fit_left(value, width);
+    let value = value.trim_end();
+    format!("{value:>width$}")
 }
 
 fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
@@ -885,6 +1056,7 @@ const fn tone_color(tone: Tone) -> Color {
     match tone {
         Tone::Green => Color::Green,
         Tone::Yellow => Color::Yellow,
+        Tone::Blue => Color::Blue,
         Tone::Gray => Color::DarkGray,
         Tone::Red => Color::Red,
     }
@@ -895,6 +1067,7 @@ mod tests {
     #![allow(clippy::expect_used)]
 
     use ratatui::{Terminal, backend::TestBackend};
+    use unicode_width::UnicodeWidthChar as _;
 
     use super::*;
 
@@ -985,13 +1158,43 @@ mod tests {
     }
 
     #[test]
+    fn aligned_tree_glyphs_are_narrow_in_cjk_terminals() {
+        for glyph in ['>', 'v', '❖', '◉', '◔', '◌', '✖', '▐', '~'] {
+            assert_eq!(glyph.width(), Some(1), "normal width for {glyph}");
+            assert_eq!(glyph.width_cjk(), Some(1), "CJK width for {glyph}");
+        }
+    }
+
+    #[test]
+    fn state_column_does_not_move_with_the_name() {
+        let row = |name: &str| super::super::app::RowView {
+            gutter: false,
+            control: "◉",
+            name: name.into(),
+            state: "Working".into(),
+            active_for: "2m".into(),
+            harness: "Codex".into(),
+            model: "gpt-5".into(),
+            age: "12m".into(),
+            detail: String::new(),
+            tone: Tone::Green,
+            agent: false,
+        };
+        for name in ["x", "investigate-summary2-focus-regression"] {
+            let line = tree_row(&row(name), 80);
+            let text = line.spans.iter().map(|span| span.content.as_ref()).collect::<String>();
+            assert_eq!(text_column(&text, "Working"), 34);
+        }
+    }
+
+    #[test]
     fn frame_shows_header_counts_tree_and_hints() {
         let app = App::new();
         let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("agentctl"));
-        assert!(text.contains("0 agents · 0 sessions · 0 running"));
+        assert!(text.contains("0 need you · 0 working · 0 starting · 0 idle · 0 failed"));
         assert!(text.contains("loading…"));
         assert!(text.contains("j/k move · r refresh · F forwards · q quit"));
     }
@@ -1000,22 +1203,29 @@ mod tests {
     fn tree_hit_map_uses_the_rendered_offset_and_updates_after_resize() {
         let mut app = tree_app(10);
         app.select_index(9);
-        let fifth = app.row_target(5).expect("fifth Agent target");
         let ninth = app.row_target(9).expect("ninth Agent target");
         let mut state = ViewState::default();
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
 
         let compact = draw_with_state(&mut terminal, &app, &mut state);
-        assert_eq!(state.tree.offset(), 5);
-        assert_eq!(compact.click_at(10, 1), Some(HitTarget::Row(fifth.clone())));
+        assert_eq!(state.tree.offset(), 6);
+        assert_eq!(compact.click_at(10, 1), None, "column header is inert");
+        assert_eq!(
+            compact.click_at(10, 2),
+            Some(HitTarget::Row(app.row_target(6).expect("sixth target")))
+        );
         assert_eq!(compact.click_at(10, 5), Some(HitTarget::Row(ninth)));
         assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
         assert_eq!(compact.click_at(40, 1), None, "right edge is out of bounds");
 
         terminal.resize(Rect::new(0, 0, 40, 12)).expect("terminal resize");
         let resized = draw_with_state(&mut terminal, &app, &mut state);
-        assert_eq!(state.tree.offset(), 5, "the viewport remains stable when it still fits");
-        assert_eq!(resized.click_at(10, 1), Some(HitTarget::Row(fifth)));
+        assert_eq!(state.tree.offset(), 6, "the viewport remains stable when it still fits");
+        assert_eq!(resized.click_at(10, 1), None, "column header remains inert");
+        assert_eq!(
+            resized.click_at(10, 2),
+            Some(HitTarget::Row(app.row_target(6).expect("sixth target")))
+        );
         assert_eq!(
             resized.click_at(10, 6),
             None,
@@ -1074,7 +1284,7 @@ mod tests {
     fn poll_error_keeps_the_last_good_tree_visible() {
         let mut app = tree_app(2);
         app.poll_error = Some("daemon unavailable".into());
-        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+        let mut terminal = Terminal::new(TestBackend::new(120, 12)).expect("test terminal");
 
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
@@ -1302,7 +1512,7 @@ mod tests {
     fn header_reports_a_running_manifest_scan() {
         let mut app = App::new();
         app.discovering = true;
-        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+        let mut terminal = Terminal::new(TestBackend::new(140, 12)).expect("test terminal");
         draw(&mut terminal, &app);
         assert!(buffer_text(&terminal).contains("scanning manifests…"));
     }
