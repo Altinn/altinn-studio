@@ -8,9 +8,9 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CONFIRM_QUIT_HINTS, CREATE_AGENT_HINTS, CreateField, FILTER_HINTS, ForwardField, Hint,
-    Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, PROMPT_HINTS, Row, RowTarget, SessionField, Tone,
-    TreeRowId, View,
+    App, CONFIRM_DELETE_HINTS, CONFIRM_QUIT_HINTS, CREATE_AGENT_HINTS, CreateField, DetailKind, FILTER_HINTS,
+    ForwardField, Hint, Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, PROMPT_HINTS, Row, RowTarget,
+    SessionField, Tone, TreeRowId, View,
 };
 
 const FORM_POPUP_WIDTH: u16 = 62;
@@ -246,18 +246,16 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         Span::raw(" "),
         Span::styled(
             need_you.clone(),
-            Style::new()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD | Modifier::UNDERLINED),
+            Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD),
         ),
     ];
-    for segment in [
-        format!(" · {} working", counts.working),
-        format!(" · {} starting", counts.starting),
-        format!(" · {} idle", counts.idle),
-        format!(" · {} failed", counts.failed),
+    for (segment, color) in [
+        (format!(" · {} working", counts.working), Color::Green),
+        (format!(" · {} starting", counts.starting), Color::Blue),
+        (format!(" · {} idle", counts.idle), Color::DarkGray),
+        (format!(" · {} failed", counts.failed), Color::Red),
     ] {
-        push_header_segment(&mut spans, area.width, segment, Color::DarkGray);
+        push_header_segment(&mut spans, area.width, segment, color);
     }
     if app.refreshing() {
         push_header_segment(&mut spans, area.width, " · refreshing".into(), Color::Cyan);
@@ -573,6 +571,8 @@ fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
     let name_width = columns.state.saturating_sub(columns.name + 1);
     let name_style = if row.agent {
         Style::new().add_modifier(Modifier::BOLD)
+    } else if row.gutter {
+        Style::new().fg(tone).add_modifier(Modifier::BOLD)
     } else {
         Style::new()
     };
@@ -592,7 +592,10 @@ fn tree_row(row: &super::app::RowView, width: u16) -> Line<'static> {
             &mut spans,
             detail_column,
             fit_left(&row.detail, detail_width),
-            Style::new().fg(Color::DarkGray),
+            Style::new().fg(match row.tone {
+                Tone::Blue | Tone::Red => tone,
+                Tone::Green | Tone::Yellow | Tone::Gray => Color::DarkGray,
+            }),
         );
         return Line::from(spans);
     }
@@ -714,12 +717,46 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
 }
 
 fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::DetailView, hit_map: &mut HitMap) {
-    let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
+    let provisioning = detail.kind == DetailKind::Provisioning;
+    let block = Block::bordered()
+        .title(format!(" {} — q back · ↑/↓ scroll ", detail.title))
+        .border_style(if provisioning {
+            Style::new().fg(Color::Cyan)
+        } else {
+            Style::new()
+        });
     let inner = block.inner(area);
     let scroll = u16::try_from(detail.scroll).unwrap_or(u16::MAX);
-    let paragraph = Paragraph::new(detail.lines.join("\n")).block(block).scroll((scroll, 0));
+    let content = if provisioning {
+        detail
+            .lines
+            .iter()
+            .map(|line| provisioning_line(line))
+            .collect::<Vec<_>>()
+    } else {
+        detail.lines.iter().cloned().map(Line::from).collect()
+    };
+    let paragraph = Paragraph::new(content).block(block).scroll((scroll, 0));
     frame.render_widget(paragraph, area);
     hit_map.wheel(inner, WheelTarget::Detail);
+}
+
+fn provisioning_line(line: &str) -> Line<'static> {
+    let (color, modifier) = if line.starts_with("+ ") {
+        (Color::Green, Modifier::empty())
+    } else if line.starts_with("> ") {
+        (Color::Blue, Modifier::BOLD)
+    } else if line.starts_with("x ") || line.starts_with("error") {
+        (Color::Red, Modifier::BOLD)
+    } else if line.trim_start().starts_with('=') {
+        (Color::Blue, Modifier::empty())
+    } else {
+        (Color::DarkGray, Modifier::empty())
+    };
+    Line::from(Span::styled(
+        line.to_owned(),
+        Style::new().fg(color).add_modifier(modifier),
+    ))
 }
 
 fn render_error(frame: &mut Frame, area: Rect, error: &str, hit_map: &mut HitMap) {
@@ -1206,33 +1243,27 @@ impl<'a> Form<'a> {
 
 fn form_prefix(label: &str, focused: bool) -> Vec<Span<'static>> {
     vec![
-        Span::styled(
-            if focused { ">" } else { " " },
-            Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD),
-        ),
         Span::raw(" "),
         Span::styled(
             fit_left(label, 8),
             if focused {
-                Style::new().add_modifier(Modifier::BOLD)
+                Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD)
             } else {
-                Style::new()
+                Style::new().fg(Color::DarkGray)
             },
         ),
-        Span::raw(" "),
+        Span::raw("  "),
     ]
 }
 
 fn form_inert_line(label: &str, value: &str) -> Line<'static> {
     let mut spans = form_prefix(label, false);
-    spans.push(Span::raw("  "));
     spans.push(Span::styled(value.to_owned(), Style::new().fg(Color::DarkGray)));
     Line::from(spans)
 }
 
 fn form_text_line(label: &str, value: &str, focused: bool, placeholder: &str, right_hint: &str) -> Line<'static> {
     let mut spans = form_prefix(label, focused);
-    spans.push(Span::raw("  "));
     if value.is_empty() {
         let mut placeholder = placeholder.chars();
         if let Some(first) = placeholder.next() {
@@ -1279,7 +1310,7 @@ fn form_picker_line(
 ) -> Line<'static> {
     let mut spans = form_prefix(label, focused);
     let control = if focused { Color::Cyan } else { Color::DarkGray };
-    spans.push(Span::styled("◂ ", Style::new().fg(control)));
+    spans.push(Span::styled("< ", Style::new().fg(control)));
     spans.push(Span::styled(
         fit_left(value, FORM_VALUE_WIDTH),
         if focused {
@@ -1288,7 +1319,7 @@ fn form_picker_line(
             Style::new()
         },
     ));
-    spans.push(Span::styled(" ▸", Style::new().fg(control)));
+    spans.push(Span::styled(" >", Style::new().fg(control)));
     spans.push(Span::styled(
         format!("{:>5}", format!("{}/{}", selected.saturating_add(1), total)),
         Style::new().fg(Color::DarkGray),
@@ -1443,6 +1474,25 @@ mod tests {
         text
     }
 
+    fn color_at_text(terminal: &Terminal<TestBackend>, needle: &str) -> Color {
+        let text = buffer_text(terminal);
+        let (y, line) = text
+            .lines()
+            .enumerate()
+            .find(|(_, line)| line.contains(needle))
+            .unwrap_or_else(|| panic!("{needle:?} in rendered frame"));
+        let byte = line.find(needle).expect("needle offset");
+        let x = line[..byte]
+            .chars()
+            .map(|character| character.width().unwrap_or(0))
+            .sum::<usize>();
+        terminal.backend().buffer()[(
+            u16::try_from(x).expect("test frame x coordinate"),
+            u16::try_from(y).expect("test frame y coordinate"),
+        )]
+            .fg
+    }
+
     fn draw(terminal: &mut Terminal<TestBackend>, app: &App) -> HitMap {
         let mut state = ViewState::default();
         draw_with_state(terminal, app, &mut state)
@@ -1544,7 +1594,7 @@ mod tests {
 
     #[test]
     fn aligned_tree_glyphs_are_narrow_in_cjk_terminals() {
-        for glyph in ['>', 'v', '❖', '◉', '◔', '◌', '✖', '▐', '▰', '▱', '~'] {
+        for glyph in ['>', 'v', '!', '*', '~', '-', 'x', '▐', '=', '#'] {
             assert_eq!(glyph.width(), Some(1), "normal width for {glyph}");
             assert_eq!(glyph.width_cjk(), Some(1), "CJK width for {glyph}");
         }
@@ -1554,7 +1604,7 @@ mod tests {
     fn state_column_does_not_move_with_the_name() {
         let row = |name: &str| super::super::app::RowView {
             gutter: false,
-            control: "◉",
+            control: "*",
             name: name.into(),
             state: "Working".into(),
             active_for: "2m".into(),
@@ -1586,8 +1636,48 @@ mod tests {
     }
 
     #[test]
+    fn triage_header_and_needs_you_name_use_the_design_palette() {
+        let mut app = tree_app(1);
+        let agents = std::mem::take(&mut app.agents);
+        app.apply_snapshot(
+            agents,
+            vec![
+                session("agent-00", "blocked", "waitingForInput", 1),
+                session("agent-00", "working", "working", 2),
+                session("agent-00", "starting", "starting", 3),
+                session("agent-00", "idle", "idle", 4),
+                session("agent-00", "failed", "failed", 5),
+            ],
+        );
+        app.color_enabled = true;
+        let mut terminal = Terminal::new(TestBackend::new(110, 16)).expect("test terminal");
+        draw(&mut terminal, &app);
+
+        assert_eq!(color_at_text(&terminal, "need you"), Color::Yellow);
+        assert_eq!(color_at_text(&terminal, "working"), Color::Green);
+        assert_eq!(color_at_text(&terminal, "starting"), Color::Blue);
+        assert_eq!(color_at_text(&terminal, "idle"), Color::DarkGray);
+        assert_eq!(color_at_text(&terminal, "failed"), Color::Red);
+
+        let blocked = app
+            .render_rows()
+            .into_iter()
+            .find(|row| row.name == "blocked")
+            .expect("blocked row");
+        let line = tree_row(&blocked, 110);
+        let name = line
+            .spans
+            .iter()
+            .find(|span| span.content.contains("blocked"))
+            .expect("blocked name span");
+        assert_eq!(name.style.fg, Some(Color::Yellow));
+        assert!(name.style.add_modifier.contains(Modifier::BOLD));
+    }
+
+    #[test]
     fn agent_row_and_detail_render_followed_provisioning_progress() {
         let mut app = tree_app(1);
+        app.color_enabled = true;
         app.begin_provisioning("agent-00".into());
         app.provisioning_event(
             "agent-00",
@@ -1611,7 +1701,7 @@ mod tests {
 
         draw(&mut terminal, &app);
         let tree = buffer_text(&terminal);
-        assert!(tree.contains("image prepare · pulling layer ▰▰▰▰▱▱"));
+        assert!(tree.contains("image prepare · pulling layer ====--"));
         assert!(tree.contains("1 provisioning"));
         assert!(tree.contains(" p  progress"));
 
@@ -1621,7 +1711,9 @@ mod tests {
         assert!(detail.contains("agent-00 · provisioning"));
         assert!(detail.contains("> image prepare"));
         assert!(detail.contains("pulling layer"));
-        assert!(detail.contains("▰▰▰▰▰▰▰▰▰▱▱▱  3 / 4"));
+        assert!(detail.contains("=========---  3 / 4"));
+        assert_eq!(color_at_text(&terminal, "> image prepare"), Color::Blue);
+        assert_eq!(color_at_text(&terminal, "=========---"), Color::Blue);
     }
 
     #[test]
@@ -1730,7 +1822,7 @@ mod tests {
         let buffer = terminal.backend().buffer();
 
         assert!(text.contains("▐"));
-        assert!(text.contains("❖"));
+        assert!(text.contains('!'));
         assert!(text.contains("Needs you"));
         assert!(
             buffer
@@ -2061,11 +2153,10 @@ mod tests {
         let hit_map = draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("create agent"));
-        assert!(text.contains("> Agent"), "{text}");
-        assert!(text.contains("Agent    ◂ full"), "{text}");
-        assert!(text.contains("Variant  ◂ default"), "{text}");
-        assert!(text.contains("Name       full"), "{text}");
-        assert!(text.contains("Env file   .env beside manifest"), "{text}");
+        assert!(text.contains("Agent     < full"), "{text}");
+        assert!(text.contains("Variant   < default"), "{text}");
+        assert!(text.contains("Name      full"), "{text}");
+        assert!(text.contains("Env file  .env beside manifest"), "{text}");
         assert!(text.contains(" enter  create   tab/↑/↓  field   ←/→  select   esc  cancel"));
         let initial_geometry = create_modal_geometry(&text);
         let agent_line = text.lines().find(|line| line.contains("Agent ")).expect("Agent row");
@@ -2078,15 +2169,16 @@ mod tests {
             .lines()
             .find(|line| line.contains("Env file "))
             .expect("environment row");
-        assert_eq!(text_column(agent_line, "◂"), text_column(variant_line, "◂"));
+        assert_eq!(text_column(agent_line, "<"), text_column(variant_line, "<"));
         assert_eq!(
             text_column(agent_line, "/sources/full"),
             text_column(variant_line, "agent.yaml")
         );
         let value_column = text_column(agent_line, "full");
         assert_eq!(value_column, text_column(variant_line, "default"));
-        assert_eq!(value_column, text_column(name_line, "full"));
-        assert_eq!(value_column, text_column(env_line, ".env"));
+        let control_column = text_column(agent_line, "<");
+        assert_eq!(control_column, text_column(name_line, "full"));
+        assert_eq!(control_column, text_column(env_line, ".env"));
         assert!(
             hit_map
                 .clicks
@@ -2117,11 +2209,11 @@ mod tests {
         form.name = "copy".into();
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
-        assert!(text.contains("Agent    ◂ broken"));
-        assert!(text.contains("Variant  ◂ default"));
+        assert!(text.contains("Agent     < broken"));
+        assert!(text.contains("Variant   < default"));
         assert!(text.contains("manifest cannot be decoded"));
-        assert!(text.contains("Name       copy▏"));
-        assert!(text.contains("Env file   .env beside manifest"));
+        assert!(text.contains("Name      copy▏"));
+        assert!(text.contains("Env file  .env beside manifest"));
         assert_eq!(create_modal_geometry(&text), initial_geometry);
     }
 
@@ -2165,17 +2257,19 @@ mod tests {
         );
         form.field = CreateField::Name;
         let line = form_text_line("Name", &form.name, true, form.placeholder().expect("placeholder"), "");
-        assert_eq!(line.spans[5].content, "f");
-        assert!(line.spans[5].style.add_modifier.contains(Modifier::REVERSED));
-        assert_eq!(line.spans[6].content, "ull");
+        assert_eq!(line.spans[1].style.fg, Some(Color::Cyan));
+        assert!(line.spans[1].style.add_modifier.contains(Modifier::BOLD));
+        assert_eq!(line.spans[3].content, "f");
+        assert!(line.spans[3].style.add_modifier.contains(Modifier::REVERSED));
+        assert_eq!(line.spans[4].content, "ull");
 
         let typed = CreateForm {
             name: "my".into(),
             ..form
         };
         let line = form_text_line("Name", &typed.name, true, typed.placeholder().expect("placeholder"), "");
-        assert_eq!(line.spans[5].content, "my");
-        assert_eq!(line.spans[6].content, "▏");
+        assert_eq!(line.spans[3].content, "my");
+        assert_eq!(line.spans[4].content, "▏");
     }
 
     #[test]

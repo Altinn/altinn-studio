@@ -239,6 +239,7 @@ pub(crate) struct DetailView {
     pub(crate) title: String,
     pub(crate) lines: Vec<String>,
     pub(crate) scroll: usize,
+    pub(crate) kind: DetailKind,
 }
 
 pub(crate) enum Modal {
@@ -1329,7 +1330,7 @@ impl Provisioning {
                 ProvisioningPhaseState::Completed { elapsed_ms, .. }
                 | ProvisioningPhaseState::Failed { elapsed_ms } => (
                     if matches!(phase.state, ProvisioningPhaseState::Failed { .. }) {
-                        "✖"
+                        "x"
                     } else {
                         "+"
                     },
@@ -1399,7 +1400,7 @@ fn step_progress(step: &ProvisioningStep, bar_width: usize) -> String {
     let filled = usize::try_from(completed.saturating_mul(bar_width as u64) / total)
         .unwrap_or(bar_width)
         .min(bar_width);
-    format!("{}{}  {counter}", "▰".repeat(filled), "▱".repeat(bar_width - filled))
+    format!("{}{}  {counter}", "=".repeat(filled), "-".repeat(bar_width - filled))
 }
 
 fn progress_counter(completed: u64, total: Option<u64>, unit: Option<ProgressUnit>) -> String {
@@ -2469,24 +2470,22 @@ impl App {
                         || agent_presentation(agent),
                         |progress| progress.presentation(Instant::now()),
                     );
-                    let active_for = self
-                        .provisioning
-                        .contains_key(&agent.metadata.name)
-                        .then(String::new)
-                        .unwrap_or_else(|| {
-                            agent.status.ready_condition().map_or_else(String::new, |condition| {
-                                condition.last_transition_time.map_or_else(
-                                    || {
-                                        self.condition_seen
-                                            .get(&agent.metadata.name)
-                                            .map_or_else(String::new, |seen| {
-                                                format!("~{}", compact_elapsed(seen.at.elapsed()))
-                                            })
-                                    },
-                                    format::format_age,
-                                )
-                            })
-                        });
+                    let active_for = if state == "Ready" || self.provisioning.contains_key(&agent.metadata.name) {
+                        String::new()
+                    } else {
+                        agent.status.ready_condition().map_or_else(String::new, |condition| {
+                            condition.last_transition_time.map_or_else(
+                                || {
+                                    self.condition_seen
+                                        .get(&agent.metadata.name)
+                                        .map_or_else(String::new, |seen| {
+                                            format!("~{}", compact_elapsed(seen.at.elapsed()))
+                                        })
+                                },
+                                format::format_age,
+                            )
+                        })
+                    };
                     let forwards = self
                         .forwards
                         .iter()
@@ -2593,6 +2592,7 @@ impl App {
                         title: format!("{name} · provisioning"),
                         lines,
                         scroll: detail.scroll,
+                        kind: detail.kind,
                     });
                 }
                 let title = format!(
@@ -2641,6 +2641,7 @@ impl App {
             title,
             lines,
             scroll: detail.scroll,
+            kind: detail.kind,
         })
     }
 }
@@ -2676,7 +2677,12 @@ fn agent_presentation(agent: &Agent) -> (Tone, String, String) {
             } else {
                 (Tone::Blue, "Starting")
             };
-            (tone, state.into(), condition.detail())
+            let detail = if condition.status == ConditionStatus::True {
+                String::new()
+            } else {
+                condition.detail()
+            };
+            (tone, state.into(), detail)
         },
     )
 }
@@ -2694,27 +2700,27 @@ const fn session_priority(state: State) -> u8 {
 const fn session_presentation(state: State) -> SessionPresentation {
     match state {
         State::WaitingForInput => SessionPresentation {
-            glyph: "❖",
+            glyph: "!",
             label: "Needs you",
             tone: Tone::Yellow,
         },
         State::Working => SessionPresentation {
-            glyph: "◉",
+            glyph: "*",
             label: "Working",
             tone: Tone::Green,
         },
         State::Starting => SessionPresentation {
-            glyph: "◔",
+            glyph: "~",
             label: "Starting",
             tone: Tone::Blue,
         },
         State::Idle => SessionPresentation {
-            glyph: "◌",
+            glyph: "-",
             label: "Idle",
             tone: Tone::Gray,
         },
         State::Failed => SessionPresentation {
-            glyph: "✖",
+            glyph: "x",
             label: "Failed",
             tone: Tone::Red,
         },
@@ -3189,7 +3195,7 @@ mod tests {
             now + Duration::from_secs(3),
         );
         assert!(
-            progress.presentation(now).2.contains("▰▰▰▱▱▱  512.0 MiB / 1.0 GiB"),
+            progress.presentation(now).2.contains("===---  512.0 MiB / 1.0 GiB"),
             "a duplicate phase start must not discard current step progress"
         );
 
@@ -3204,7 +3210,7 @@ mod tests {
             now,
         );
         let lines = progress.lines(now).join("\n");
-        assert!(lines.contains("✖ image prepare          1m02s"));
+        assert!(lines.contains("x image prepare          1m02s"));
         assert!(
             !lines.contains("output 1"),
             "only the five newest output lines are retained"
@@ -3363,9 +3369,15 @@ mod tests {
     #[test]
     fn agent_condition_age_uses_persisted_time_or_marks_first_seen_as_approximate() {
         let mut persisted = ready_agent("persisted");
+        persisted.status.conditions[0].status = ConditionStatus::False;
+        persisted.status.conditions[0].reason = "ProviderSelected".into();
+        persisted.status.conditions[0].message = "Preparing image".into();
         persisted.status.conditions[0].last_transition_time =
             Some(time::OffsetDateTime::now_utc() - time::Duration::minutes(5));
-        let legacy = ready_agent("legacy");
+        let mut legacy = ready_agent("legacy");
+        legacy.status.conditions[0].status = ConditionStatus::False;
+        legacy.status.conditions[0].reason = "ProviderSelected".into();
+        legacy.status.conditions[0].message = "Preparing image".into();
         let mut app = App::new();
         app.apply_snapshot(vec![persisted, legacy], Vec::new());
 
@@ -3982,13 +3994,13 @@ mod tests {
         );
         let views = app.render_rows();
         assert_eq!(views[0].tone, Tone::Green);
-        assert!(views[0].detail.contains("SandboxReady"));
+        assert_eq!(views[0].detail, "2 sessions");
         assert!(views[0].gutter);
         assert_eq!(views[1].tone, Tone::Yellow);
-        assert_eq!(views[1].control, "❖");
+        assert_eq!(views[1].control, "!");
         assert_eq!(views[1].state, "Needs you");
         assert_eq!(views[2].tone, Tone::Red);
-        assert_eq!(views[2].control, "✖");
+        assert_eq!(views[2].control, "x");
         assert_eq!(views[3].state, "Terminating");
         assert_eq!(views[3].tone, Tone::Red);
         assert_eq!(views[4].tone, Tone::Blue);
@@ -4006,6 +4018,10 @@ mod tests {
             State::Failed,
         ] {
             let presentation = session_presentation(state);
+            assert!(
+                presentation.glyph.is_ascii(),
+                "status marker must stay in the terminal's primary font"
+            );
             assert!(
                 encodings.insert((presentation.glyph, presentation.tone)),
                 "duplicate encoding for {state:?}"
