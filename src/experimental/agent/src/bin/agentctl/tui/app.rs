@@ -6,7 +6,7 @@ use std::{
 
 use agent::{
     Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
-    sessions::{Session, SessionName, State},
+    sessions::{Session, SessionName, State, Turn},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -78,6 +78,11 @@ pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
     Hint::key("esc", "cancel", KeyCode::Esc),
 ];
 
+pub(crate) const PROMPT_HINTS: [Hint; 2] = [
+    Hint::key("enter", "send", KeyCode::Enter),
+    Hint::key("esc", "cancel", KeyCode::Esc),
+];
+
 const DETAIL_HINTS: [Hint; 2] = [
     Hint::display("j/k", "scroll"),
     Hint::key("q", "back", KeyCode::Char('q')),
@@ -101,8 +106,9 @@ const AGENT_HINTS: [Hint; 9] = [
     Hint::key("z", "all", KeyCode::Char('z')),
 ];
 
-const SESSION_HINTS: [Hint; 5] = [
+const SESSION_HINTS: [Hint; 6] = [
     Hint::key("enter", "attach", KeyCode::Enter),
+    Hint::key("p", "prompt", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
@@ -132,6 +138,8 @@ pub(crate) struct App {
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
     pub(crate) color_enabled: bool,
+    pub(crate) transcript: Option<TranscriptPreview>,
+    pub(crate) prompting: Option<TreeRowId>,
 }
 
 /// Display state of one process-owned port forward.
@@ -200,6 +208,22 @@ pub(crate) enum Modal {
     NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
+    Prompt(PromptForm),
+}
+
+pub(crate) struct TranscriptPreview {
+    pub(crate) target: TreeRowId,
+    pub(crate) activity_turns: u64,
+    pub(crate) turns: Vec<Turn>,
+    pub(crate) loading: bool,
+    pub(crate) error: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct PromptForm {
+    pub(crate) target: TreeRowId,
+    pub(crate) input: String,
+    pub(crate) error: Option<String>,
 }
 
 /// Focused field of the new Session form.
@@ -354,6 +378,39 @@ impl SessionForm {
             SessionField::Model => !character.is_control() && self.model.chars().count() < 128,
             SessionField::Effort => !character.is_control() && self.effort.chars().count() < 128,
         }
+    }
+}
+
+impl PromptForm {
+    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter => {
+                if self.input.trim().is_empty() {
+                    self.error = Some("a prompt is required".into());
+                } else if let TreeRowId::Session { agent, session } = &self.target {
+                    return Some(Action::Prompt {
+                        agent: agent.clone(),
+                        session: session.clone(),
+                        input: self.input.clone(),
+                    });
+                }
+            }
+            KeyCode::Backspace => {
+                self.input.pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty()
+                    && !character.is_control()
+                    && self.input.chars().count() < 4096 =>
+            {
+                self.input.push(character);
+                self.error = None;
+            }
+            _ => {}
+        }
+        None
     }
 }
 
@@ -806,6 +863,11 @@ pub(crate) enum Action {
     DeleteForward {
         id: u64,
     },
+    Prompt {
+        agent: String,
+        session: SessionName,
+        input: String,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -870,6 +932,8 @@ impl App {
             discovering: false,
             queued_candidates: None,
             color_enabled: std::env::var_os("NO_COLOR").is_none(),
+            transcript: None,
+            prompting: None,
         }
     }
 
@@ -953,6 +1017,102 @@ impl App {
 
     pub(crate) fn selected_index(&self) -> Option<usize> {
         self.selection.as_ref().and_then(|target| self.tree_index(target))
+    }
+
+    pub(crate) fn transcript_request(&mut self) -> Option<TreeRowId> {
+        let Some(TreeRowId::Session { agent, session }) = self.selection.as_ref() else {
+            self.transcript = None;
+            return None;
+        };
+        let target = TreeRowId::Session {
+            agent: agent.clone(),
+            session: session.clone(),
+        };
+        let activity_turns = self
+            .sessions
+            .iter()
+            .find(|candidate| candidate.agent == *agent && candidate.name == *session)
+            .map_or(0, |session| session.status.reported.activity.turns);
+        match &mut self.transcript {
+            Some(preview) if preview.target == target => {
+                if preview.loading || preview.activity_turns == activity_turns {
+                    return None;
+                }
+                preview.activity_turns = activity_turns;
+                preview.loading = true;
+                preview.error = None;
+            }
+            _ => {
+                self.transcript = Some(TranscriptPreview {
+                    target: target.clone(),
+                    activity_turns,
+                    turns: Vec::new(),
+                    loading: true,
+                    error: None,
+                });
+            }
+        }
+        Some(target)
+    }
+
+    pub(crate) fn retry_transcript(&mut self) -> Option<TreeRowId> {
+        let preview = self.transcript.as_mut()?;
+        if preview.loading || preview.error.is_none() {
+            return None;
+        }
+        preview.loading = true;
+        preview.error = None;
+        Some(preview.target.clone())
+    }
+
+    pub(crate) fn transcript_loaded(&mut self, target: &TreeRowId, result: Result<Vec<Turn>, agent::Error>) {
+        let Some(preview) = self.transcript.as_mut().filter(|preview| preview.target == *target) else {
+            return;
+        };
+        preview.loading = false;
+        match result {
+            Ok(turns) => {
+                preview.turns = turns;
+                preview.error = None;
+            }
+            Err(error) => preview.error = Some(error.to_string()),
+        }
+    }
+
+    pub(crate) fn prompt_started(&mut self, target: TreeRowId) {
+        self.prompting = Some(target);
+    }
+
+    pub(crate) fn prompt_finished(
+        &mut self,
+        target: TreeRowId,
+        input: String,
+        result: Result<(), agent::Error>,
+    ) -> bool {
+        if self.prompting.as_ref() == Some(&target) {
+            self.prompting = None;
+        }
+        match result {
+            Ok(()) => {
+                if self.transcript.as_ref().is_some_and(|preview| preview.target == target) {
+                    self.transcript = None;
+                }
+                true
+            }
+            Err(error) => {
+                let form = PromptForm {
+                    target,
+                    input,
+                    error: Some(error.to_string()),
+                };
+                if self.modal.is_none() {
+                    self.modal = Some(Modal::Prompt(form));
+                } else {
+                    self.error = form.error;
+                }
+                false
+            }
+        }
     }
 
     pub(crate) fn row_target(&self, index: usize) -> Option<RowTarget> {
@@ -1251,6 +1411,16 @@ impl App {
                     scroll: 0,
                 });
             }
+            KeyCode::Char('p') if self.prompting.is_none() => {
+                self.modal = Some(Modal::Prompt(PromptForm {
+                    target: TreeRowId::Session {
+                        agent: session.agent.clone(),
+                        session: session.name.clone(),
+                    },
+                    input: String::new(),
+                    error: None,
+                }));
+            }
             KeyCode::Char('n') => self.open_new_session(group),
             _ => {}
         }
@@ -1316,6 +1486,13 @@ impl App {
                     return action;
                 }
                 self.modal = Some(Modal::PortForward(form));
+                Action::None
+            }
+            Some(Modal::Prompt(mut form)) => {
+                if let Some(action) = form.key(key) {
+                    return action;
+                }
+                self.modal = Some(Modal::Prompt(form));
                 Action::None
             }
             None => Action::None,
@@ -1555,6 +1732,7 @@ impl App {
                 Modal::NewSession(_) => &NEW_SESSION_HINTS,
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
+                Modal::Prompt { .. } => &PROMPT_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -1958,6 +2136,67 @@ mod tests {
                 session: SessionName::new("b1").expect("valid name"),
             }
         );
+    }
+
+    #[test]
+    fn prompt_form_submits_in_place_and_keeps_invalid_input_open() {
+        let mut app = populated();
+        app.select_index(1);
+
+        assert_eq!(app.on_key(key(KeyCode::Char('p'))), Action::None);
+        assert!(matches!(app.modal, Some(Modal::Prompt(_))));
+        assert_eq!(app.hints(), &PROMPT_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::Prompt(form)) if form.error.is_some()));
+        for character in "yes".chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::Prompt {
+                agent: "builder".into(),
+                session: SessionName::new("b1").expect("valid Session name"),
+                input: "yes".into(),
+            }
+        );
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn transcript_preview_tracks_selection_and_prompt_failures_restore_input() {
+        let mut app = populated();
+        app.select_index(1);
+        let target = app.transcript_request().expect("selected Session starts a load");
+        assert_eq!(app.transcript_request(), None, "one transcript request stays in flight");
+        app.transcript_loaded(
+            &target,
+            Ok(vec![Turn {
+                messages: vec![agent::sessions::Message {
+                    role: agent::sessions::Role::Assistant,
+                    parts: vec![agent::sessions::Part::Text { text: "ready".into() }],
+                }],
+            }]),
+        );
+        let preview = app.transcript.as_ref().expect("loaded preview");
+        assert!(!preview.loading);
+        assert_eq!(preview.turns.len(), 1);
+
+        app.prompt_started(target.clone());
+        assert!(!app.prompt_finished(
+            target.clone(),
+            "try again".into(),
+            Err(agent::Error::Session("delivery failed".into())),
+        ));
+        assert!(matches!(
+            &app.modal,
+            Some(Modal::Prompt(PromptForm { input, error: Some(_), .. })) if input == "try again"
+        ));
+
+        app.modal = None;
+        app.prompt_started(target.clone());
+        assert!(app.prompt_finished(target, "done".into(), Ok(())));
+        assert!(app.transcript.is_none(), "success schedules a fresh transcript read");
     }
 
     #[test]

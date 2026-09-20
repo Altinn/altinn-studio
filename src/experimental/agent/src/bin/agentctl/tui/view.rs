@@ -9,7 +9,7 @@ use ratatui::{
 use super::MANIFEST_FILE;
 use super::app::{
     App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
-    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row, RowTarget, SessionField, Tone, View,
+    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, PROMPT_HINTS, Row, RowTarget, SessionField, Tone, TreeRowId, View,
 };
 
 const FORM_POPUP_WIDTH: u16 = 62;
@@ -129,7 +129,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     } else if app.view == View::Forwards {
         render_forwards(frame, body, app, state, &mut hit_map);
     } else {
-        render_tree(frame, body, app, state, &mut hit_map);
+        render_fleet(frame, body, app, state, &mut hit_map);
     }
     if let Some(modal) = &app.modal {
         hit_map.clear();
@@ -142,6 +142,85 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
         remove_colors(frame);
     }
     hit_map
+}
+
+fn render_fleet(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
+    let Some(preview) = &app.transcript else {
+        render_tree(frame, area, app, state, hit_map);
+        return;
+    };
+    if area.width >= 90 {
+        let [tree, transcript] =
+            Layout::horizontal([Constraint::Percentage(62), Constraint::Percentage(38)]).areas(area);
+        render_tree(frame, tree, app, state, hit_map);
+        render_transcript(frame, transcript, preview);
+    } else if area.width >= 70 && area.height >= 18 {
+        let [tree, transcript] = Layout::vertical([Constraint::Percentage(60), Constraint::Percentage(40)]).areas(area);
+        render_tree(frame, tree, app, state, hit_map);
+        render_transcript(frame, transcript, preview);
+    } else {
+        render_tree(frame, area, app, state, hit_map);
+    }
+}
+
+fn render_transcript(frame: &mut Frame, area: Rect, preview: &super::app::TranscriptPreview) {
+    let session = match &preview.target {
+        TreeRowId::Session { session, .. } => session.as_str(),
+        TreeRowId::Agent(_) => return,
+    };
+    let block = Block::bordered().title(format!(" {session} · recent turns "));
+    let inner = block.inner(area);
+    let mut lines = Vec::<(String, Style)>::new();
+    for (index, turn) in preview.turns.iter().enumerate() {
+        if index > 0 {
+            lines.push((String::new(), Style::new()));
+        }
+        lines.push((
+            format!("turn {}", index + 1),
+            Style::new().fg(Color::DarkGray).add_modifier(Modifier::BOLD),
+        ));
+        for message in &turn.messages {
+            let (who, style) = match message.role {
+                agent::sessions::Role::User => ("you", Style::new().fg(Color::Cyan)),
+                agent::sessions::Role::Assistant => ("agent", Style::new()),
+            };
+            for part in &message.parts {
+                match part {
+                    agent::sessions::Part::Text { text } => {
+                        for (line_index, text) in text.lines().enumerate() {
+                            let prefix = if line_index == 0 {
+                                format!("{who}: ")
+                            } else {
+                                "  ".into()
+                            };
+                            lines.push((format!("{prefix}{text}"), style));
+                        }
+                    }
+                    agent::sessions::Part::ToolCall { name, failed } => {
+                        let failure = if *failed { " (failed)" } else { "" };
+                        lines.push((format!("{who}: -> {name}{failure}"), style));
+                    }
+                }
+            }
+        }
+    }
+    if preview.turns.is_empty() && !preview.loading && preview.error.is_none() {
+        lines.push(("No turns yet.".into(), Style::new().fg(Color::DarkGray)));
+    }
+    if preview.loading {
+        lines.push(("Loading recent turns...".into(), Style::new().fg(Color::Blue)));
+    }
+    if let Some(error) = &preview.error {
+        lines.push((format!("Transcript unavailable: {error}"), Style::new().fg(Color::Red)));
+        lines.push(("Press r to retry.".into(), Style::new().fg(Color::DarkGray)));
+    }
+    let height = usize::from(inner.height);
+    let start = lines.len().saturating_sub(height);
+    let visible = lines
+        .into_iter()
+        .skip(start)
+        .map(|(line, style)| Line::from(Span::styled(fit_left(&line, usize::from(inner.width)), style)));
+    frame.render_widget(Paragraph::new(visible.collect::<Vec<_>>()).block(block), area);
 }
 
 fn remove_colors(frame: &mut Frame) {
@@ -182,6 +261,9 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     }
     if app.discovering {
         push_header_segment(&mut spans, area.width, " · scanning manifests".into(), Color::Cyan);
+    }
+    if app.prompting.is_some() {
+        push_header_segment(&mut spans, area.width, " · sending prompt".into(), Color::Cyan);
     }
     let updated = app.last_updated.map_or_else(
         || "waiting for first update".to_owned(),
@@ -725,7 +807,21 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
+        Modal::Prompt(form) => render_prompt(frame, area, form, hit_map),
     }
+}
+
+fn render_prompt(frame: &mut Frame, area: Rect, form: &super::app::PromptForm, hit_map: &mut HitMap) {
+    let title = match &form.target {
+        TreeRowId::Session { session, .. } => format!(" prompt {session} "),
+        TreeRowId::Agent(agent) => format!(" prompt {agent} "),
+    };
+    let target = Form::new(&title, Color::Cyan, &PROMPT_HINTS)
+        .field(form_text_line("Prompt", &form.input, true, "type a response", ""))
+        .note(" Sends directly to the running Session without attaching.")
+        .error(form.error.as_deref())
+        .render(frame, area);
+    map_hint_targets(line_area(target, FORM_HINT_ROW), &PROMPT_HINTS, hit_map);
 }
 
 fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionForm, hit_map: &mut HitMap) {
@@ -1577,6 +1673,53 @@ mod tests {
     }
 
     #[test]
+    fn selected_session_renders_recent_transcript_beside_the_tree() {
+        let mut app = tree_app(1);
+        let agents = std::mem::take(&mut app.agents);
+        app.apply_snapshot(agents, vec![session("agent-00", "blocked", "waitingForInput", 1)]);
+        app.select_index(1);
+        let target = app.selection.clone().expect("selected Session");
+        app.transcript = Some(super::super::app::TranscriptPreview {
+            target,
+            activity_turns: 1,
+            turns: vec![agent::sessions::Turn {
+                messages: vec![
+                    agent::sessions::Message {
+                        role: agent::sessions::Role::User,
+                        parts: vec![agent::sessions::Part::Text {
+                            text: "ship it?".into(),
+                        }],
+                    },
+                    agent::sessions::Message {
+                        role: agent::sessions::Role::Assistant,
+                        parts: vec![
+                            agent::sessions::Part::Text {
+                                text: "Ready to ship.".into(),
+                            },
+                            agent::sessions::Part::ToolCall {
+                                name: "cargo test".into(),
+                                failed: false,
+                            },
+                        ],
+                    },
+                ],
+            }],
+            loading: false,
+            error: None,
+        });
+        let mut terminal = Terminal::new(TestBackend::new(120, 20)).expect("test terminal");
+
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+
+        assert!(text.contains("blocked · recent turns"));
+        assert!(text.contains("you: ship it?"));
+        assert!(text.contains("agent: Ready to ship."));
+        assert!(text.contains("agent: -> cargo test"));
+        assert!(text.contains(" p  prompt"));
+    }
+
+    #[test]
     fn modal_hit_map_blocks_the_underlying_list_and_exposes_confirmation() {
         let mut app = tree_app(3);
         app.modal = Some(Modal::ConfirmDelete {
@@ -1718,7 +1861,18 @@ mod tests {
         draw(&mut terminal, &app);
         let delete = modal_geometry(&buffer_text(&terminal), "delete");
 
-        for geometry in [&forward, &forward_error, &create, &delete] {
+        app.modal = Some(Modal::Prompt(super::super::app::PromptForm {
+            target: TreeRowId::Session {
+                agent: "agent-00".into(),
+                session: agent::sessions::SessionName::new("task").expect("Session name"),
+            },
+            input: String::new(),
+            error: None,
+        }));
+        draw(&mut terminal, &app);
+        let prompt = modal_geometry(&buffer_text(&terminal), "prompt task");
+
+        for geometry in [&forward, &forward_error, &create, &delete, &prompt] {
             assert_eq!((geometry.1, geometry.2), (session.1, session.2));
             assert_eq!(
                 (text_column(&geometry.0, "┌"), text_column(&geometry.0, "┐")),

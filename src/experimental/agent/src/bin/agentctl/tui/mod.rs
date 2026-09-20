@@ -14,7 +14,7 @@ use std::{
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    sessions::Session, sessions::SessionName, sessions::SessionRequest,
+    sessions::Session, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -27,7 +27,9 @@ use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
 use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
-use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, RowTarget};
+use app::{
+    Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, RowTarget, TreeRowId,
+};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
@@ -42,11 +44,15 @@ enum Input {
     Refreshed(FetchOutcome),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
+    TranscriptLoaded(TranscriptOutcome),
+    PromptSent(PromptOutcome),
 }
 
 /// Completion of one background forward creation.
 type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Error>);
 type FetchOutcome = Result<(Vec<Agent>, Vec<Session>), Error>;
+type TranscriptOutcome = (TreeRowId, Result<Vec<Turn>, Error>);
+type PromptOutcome = (TreeRowId, String, Result<(), Error>);
 
 #[derive(Default)]
 struct MouseInput {
@@ -131,6 +137,8 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let (created_tx, mut created_rx) = tokio::sync::mpsc::unbounded_channel::<CreateOutcome>();
     let (discovered_tx, mut discovered_rx) = tokio::sync::mpsc::unbounded_channel::<Vec<ManifestCandidate>>();
     let (refreshed_tx, mut refreshed_rx) = tokio::sync::mpsc::unbounded_channel::<FetchOutcome>();
+    let (transcript_tx, mut transcript_rx) = tokio::sync::mpsc::unbounded_channel::<TranscriptOutcome>();
+    let (prompt_tx, mut prompt_rx) = tokio::sync::mpsc::unbounded_channel::<PromptOutcome>();
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
@@ -140,6 +148,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     loop {
         app.open_queued_create();
         app.set_forwards(forwards.entries());
+        if let Some(target) = app.transcript_request() {
+            spawn_transcript(home.socket_path(), transcript_tx.clone(), target);
+        }
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
         let input = tokio::select! {
@@ -148,6 +159,8 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Some(outcome) = refreshed_rx.recv() => Input::Refreshed(outcome),
             Some(outcome) = created_rx.recv() => Input::ForwardCreated(outcome),
             Some(candidates) = discovered_rx.recv() => Input::ManifestsDiscovered(candidates),
+            Some(outcome) = transcript_rx.recv() => Input::TranscriptLoaded(outcome),
+            Some(outcome) = prompt_rx.recv() => Input::PromptSent(outcome),
         };
         let action = match input {
             Input::Tick => {
@@ -170,6 +183,18 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Input::ManifestsDiscovered(candidates) => {
                 mouse.reset();
                 app.manifests_discovered(candidates);
+                continue;
+            }
+            Input::TranscriptLoaded((target, result)) => {
+                mouse.reset();
+                app.transcript_loaded(&target, result);
+                continue;
+            }
+            Input::PromptSent((target, prompt, result)) => {
+                mouse.reset();
+                if app.prompt_finished(target, prompt, result) {
+                    request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+                }
                 continue;
             }
             Input::Event(None) => {
@@ -200,7 +225,12 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
             }
-            Action::Refresh => request_refresh(&mut app, refreshed_tx.clone(), home.socket_path()),
+            Action::Refresh => {
+                if let Some(target) = app.retry_transcript() {
+                    spawn_transcript(home.socket_path(), transcript_tx.clone(), target);
+                }
+                request_refresh(&mut app, refreshed_tx.clone(), home.socket_path());
+            }
             Action::Delete { agent } => {
                 if let Err(error) = client.delete(&agent).await {
                     app.error = Some(error.to_string());
@@ -231,6 +261,14 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 spawn_create(home, created_tx.clone(), agent, spec, replace);
             }
             Action::DeleteForward { id } => forwards.remove(id),
+            Action::Prompt { agent, session, input } => {
+                let target = TreeRowId::Session {
+                    agent: agent.clone(),
+                    session: session.clone(),
+                };
+                app.prompt_started(target.clone());
+                spawn_prompt(home.socket_path(), prompt_tx.clone(), target, agent, session, input);
+            }
             action => {
                 drop(events);
                 suspended(&mut app, &mut tui, home, client, action).await?;
@@ -293,6 +331,40 @@ fn spawn_create(
         }
         .await;
         let _ = outcomes.send((agent, spec, replace, result));
+    });
+}
+
+fn spawn_transcript(
+    socket_path: PathBuf,
+    outcomes: tokio::sync::mpsc::UnboundedSender<TranscriptOutcome>,
+    target: TreeRowId,
+) {
+    tokio::task::spawn_local(async move {
+        let result = match &target {
+            TreeRowId::Session { agent, session } => {
+                Client::for_path(socket_path)
+                    .session_turns(agent, session.clone(), Some(3))
+                    .await
+            }
+            TreeRowId::Agent(_) => return,
+        };
+        let _ = outcomes.send((target, result));
+    });
+}
+
+fn spawn_prompt(
+    socket_path: PathBuf,
+    outcomes: tokio::sync::mpsc::UnboundedSender<PromptOutcome>,
+    target: TreeRowId,
+    agent: String,
+    session: SessionName,
+    prompt: String,
+) {
+    tokio::task::spawn_local(async move {
+        let result = Client::for_path(socket_path)
+            .prompt_session(&agent, session, prompt.clone(), false, None)
+            .await;
+        let _ = outcomes.send((target, prompt, result));
     });
 }
 

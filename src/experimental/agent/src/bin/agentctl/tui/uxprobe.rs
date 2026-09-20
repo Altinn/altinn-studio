@@ -223,4 +223,9 @@ fn fixture_covers_every_modal_with_the_real_renderer() {
         None,
     )));
     assert!(render_dump(&app, 110, 30).text.contains("create agent"));
+
+    app.modal = None;
+    app.select_index(1);
+    app.on_key(key('p'));
+    assert!(render_dump(&app, 110, 30).text.contains("prompt"));
 }
