@@ -30,8 +30,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
+- Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
+- Altinn Agents offer the Codex CLI alongside Claude Code, so a Session can be started on either harness.
 
 ### Fixed
 

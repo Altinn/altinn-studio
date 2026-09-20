@@ -38,9 +38,8 @@ spec:
       # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
       defaults:
         model: fable
-    # - type: codex
-    #   version: "0.149.1"
-    #   auth: mediated
+    - type: codex
+      auth: mediated
   environment:
     - name: GIT_USER_NAME
     - name: GIT_USER_EMAIL
