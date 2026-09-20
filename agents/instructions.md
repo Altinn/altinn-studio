@@ -16,12 +16,12 @@ and backlog work is managed in that repository and related Altinn repositories o
 
 Other relevant repositories include:
 
-- `Altinn/altinn-studio-docs`
-- `Altinn/app-lib-dotnet`
-- `Altinn/app-frontend-react`
-- `Altinn/app-localtest`
-- `Altinn/altinn-studio-charts`
-- `Altinn/altinn-storage`
+- `Altinn/altinn-studio-docs`: docs site, also for other Altinn products
+- `Altinn/app-lib-dotnet`: app v8 backend code
+- `Altinn/app-frontend-react`: app v4 frontend code (matches v8)
+- `Altinn/app-localtest`: old localtest repo, soon to be archived
+- `Altinn/altinn-studio-charts`: Helm chart currently used for app deployment, see src/App/azure-pipelines/deploy-app.yaml in altinn-studio
+- `Altinn/altinn-storage`: Storage platform service
 - `Altinn/altinn-file-scan`
 - `Altinn/altinn-receipt`
 - `Altinn/altinn-decision-log`
@@ -72,7 +72,7 @@ and rerun the evidence that demonstrates the outcome. Benchmark and profile perf
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
 
-Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental`.
+Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental` to get an updated version of `agentctl`.
 
 ## Pull requests
 
@@ -90,15 +90,13 @@ When asked to create or update a pull request:
 - After review feedback, fetch the complete current discussion rather than acting on a shortened notification.
 - Treat clear contributor requests and questions as actionable. Implement or answer them in the original GitHub thread.
 - Evaluate automated review comments before acting; escalate conflicts, scope expansion, missing authority, or genuine
-  ambiguity to Martin.
+  ambiguity to the user.
 - Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
 
 When posting multiline GitHub comments from a shell, pass the body through stdin or `--body-file`; do not embed literal
 `\n` escapes in ordinary double-quoted strings.
 
 ## Environment
-
-Real secrets are host-mediated. Never search for, print, copy, or persist their values.
 
 The tools installed on this computer are listed in the section that follows this shared text. Detect a tool before
 relying on it.
