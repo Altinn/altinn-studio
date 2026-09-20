@@ -261,9 +261,11 @@ done
 grep -qxF 'panel_layer = top' /etc/xdg/tint2/tint2rc \
     || fail "the panel would sit underneath maximized windows"
 
+# systemd's RuntimeDirectory= makes this directory for the unit; there is no systemd here.
+sudo -n install -d -m 0755 -o agent -g agent "$(dirname "$AGENT_DESKTOP_SOCKET")"
 Xtigervnc "$AGENT_DESKTOP_DISPLAY" -geometry "$AGENT_DESKTOP_GEOMETRY" -depth 24 \
-    -rfbport "$AGENT_DESKTOP_VNC_PORT" -localhost -SecurityTypes None -AlwaysShared \
-    -desktop Altinn-Agent >xvnc.log 2>&1 &
+    -rfbport -1 -rfbunixpath "$AGENT_DESKTOP_SOCKET" -rfbunixmode 0600 \
+    -SecurityTypes None -AlwaysShared -desktop Altinn-Agent >xvnc.log 2>&1 &
 display_server=$!
 trap 'kill "$server" "$display_server" ${session:-} 2>/dev/null' EXIT
 for _ in $(seq 1 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.1; done
@@ -279,8 +281,11 @@ test "$geometry" = "$AGENT_DESKTOP_GEOMETRY" \
 # level when it has to bind one itself, and Norwegian form input is full of them.
 layout="$(setxkbmap -query | awk '/^layout/ { print $2 }')"
 test "$layout" = no || fail "keyboard layout is $layout, expected the Norwegian layout"
-ss -ltn | grep -q '127.0.0.1:5900' || fail "the VNC server is not listening on loopback"
-! ss -ltn | grep -qE '0\.0\.0\.0:5900|\*:5900' || fail "the VNC server listens beyond loopback"
+test -S "$AGENT_DESKTOP_SOCKET" || fail "the VNC server has no Unix socket at $AGENT_DESKTOP_SOCKET"
+# -rfbport -1 is what turns TCP off; the default is port 5900 plus the display number on every
+# interface, so a regression here would publish the desktop rather than merely fail to hide it.
+rfb_listeners="$(ss -ltnH | awk '{ split($4, a, ":"); port = a[length(a)] + 0; if (port >= 5900 && port <= 5999) print }')"
+test -z "$rfb_listeners" || fail "the desktop opened an RFB TCP listener:"$'\n'"$rfb_listeners"
 desktop windows | grep -qi tint2 || fail "the desktop panel is not running"
 
 echo "## desktop capture"
