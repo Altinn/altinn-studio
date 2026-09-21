@@ -828,7 +828,7 @@ workflow's status changed.
 
 ### Timers
 
-Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Each frame re-reads the anchor from the live section's own copy of the workflow (`state.previousWorkflows[databaseId]`), so a card re-anchors on `executionStartedAt` as soon as a new attempt stamps it and its number stays continuous with the settled duration the same workflow shows once it lands in Recent. A workflow the live section has dropped has no copy left to read, so its card keeps the last value it rendered — that is the frozen elapsed an exiting card shows for the length of its animation.
+Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Each frame re-reads the anchor from the live section's own copy of the workflow (`state.previousWorkflows[databaseId]`), so a card re-anchors on `executionStartedAt` as soon as a new attempt stamps it and its number stays continuous with the settled duration the same workflow shows once it lands in Recent. A workflow that leaves the active set loses that copy, so nothing ticks its card any more: the live section stamps the card's counter with its final elapsed on the way out, and that frozen number is what the card shows for the length of its exit animation. Re-renders skip a card already marked exiting, so the frozen value survives until the card is removed.
 
 ### Late-Bound Callbacks
 

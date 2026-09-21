@@ -4,19 +4,27 @@
 import { state } from '../core/state.js';
 import { formatElapsed, formatSpan } from '../core/helpers.js';
 
+/**
+ * How long a live workflow's current attempt has been running — or, for one the engine has not
+ * stamped yet, how long it has been waiting since it was created.
+ * @param {import('../core/state.js').Workflow} wf
+ * @param {number} [now]
+ */
+export const elapsedLabel = (wf, now = Date.now()) =>
+    formatElapsed(
+        Math.max(0, (now - new Date(wf.executionStartedAt || wf.createdAt).getTime()) / 1000),
+    );
+
 export const updateTimers = () => {
     const now = Date.now();
 
-    // Anchored on the live copy, re-read every frame: `executionStartedAt` moves to the start of
+    // Anchored on the live copy and re-read every frame: `executionStartedAt` moves to the start of
     // each new attempt, so a cached anchor would keep counting from a previous one. A workflow the
-    // live section has dropped leaves its card's last value on screen — the frozen elapsed an
-    // exiting card shows for the length of its animation.
+    // live section has dropped is not found here at all — its card was stamped with its final
+    // elapsed on the way out.
     for (const el of document.querySelectorAll('[data-timer]')) {
         const wf = state.previousWorkflows[el.getAttribute('data-timer') ?? ''];
-        if (wf) {
-            const startedAt = new Date(wf.executionStartedAt || wf.createdAt).getTime();
-            el.textContent = formatElapsed(Math.max(0, (now - startedAt) / 1000));
-        }
+        if (wf) el.textContent = elapsedLabel(wf, now);
     }
 
     for (const el of document.querySelectorAll('[data-backoff]')) {
