@@ -5,10 +5,12 @@ import userEvent from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
+import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
+import { useNavigatePage, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import {
   FocusComponentRequestFromUrl,
   setFocusComponentRequest,
+  useFocusComponentRequest,
   useHandleFocusComponent,
 } from 'src/layout/focusComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -36,11 +38,32 @@ async function setup({ available = true, query = 'other=keep' }: { available?: b
     const navigate = useNavigateToComponent();
     return <button onClick={() => navigate('target', 'target', undefined)}>Focus name</button>;
   }
+  function PageCaller() {
+    const { navigateToPage } = useNavigatePage();
+    return (
+      <button
+        onClick={() =>
+          navigateToPage('FormLayout', {
+            preventScrollReset: true,
+            focusComponentRequest: { nodeId: 'target', errorBinding: null },
+          })
+        }
+      >
+        Navigate and focus
+      </button>
+    );
+  }
+  function PendingRequest() {
+    return <span data-testid='pending-request'>{useFocusComponentRequest()?.nodeId ?? 'none'}</span>;
+  }
   const result = await renderWithInstanceAndLayout({
     renderer: (
       <>
         <Caller />
+        <PageCaller />
+        <LinkToPotentialNode to='?other=keep&focusComponentId=target'>Focus name link</LinkToPotentialNode>
         {available && <Target />}
+        <PendingRequest />
         <FocusComponentRequestFromUrl />
       </>
     ),
@@ -92,17 +115,41 @@ describe('useNavigateToComponent', () => {
     expect(renders).toHaveBeenCalledTimes(originalRenders);
   });
 
-  it('keeps URL navigation as the fallback for a field that is not available', async () => {
+  it('keeps a request pending without navigating when a same-page field is not available', async () => {
     const user = userEvent.setup();
     const { routerRef } = await setup({ available: false, query: 'other=keep&focusErrorBinding=old' });
+    const originalLocation = routerRef.current?.state.location;
 
     await user.click(screen.getByRole('button', { name: 'Focus name' }));
 
-    await waitFor(() => {
-      const params = new URLSearchParams(routerRef.current?.state.location.search);
-      expect(params.get('focusComponentId')).toBe('target');
-      expect(params.get('other')).toBe('keep');
-      expect(params.get('focusErrorBinding')).toBeNull();
+    await waitFor(() => expect(screen.getByTestId('pending-request')).toHaveTextContent('target'));
+    expect(routerRef.current?.state.location).toBe(originalLocation);
+  });
+
+  it('keeps focus parameters in a component link while using clean navigation for an ordinary click', async () => {
+    const user = userEvent.setup();
+    const { routerRef } = await setup();
+    const link = screen.getByRole('link', { name: 'Focus name link' });
+    const input = screen.getByRole('textbox', { name: 'Name' });
+
+    expect(link).toHaveAttribute('href', expect.stringContaining('focusComponentId=target'));
+    await user.click(link);
+
+    await waitFor(() => expect(input).toHaveFocus());
+    expect(routerRef.current?.state.location.search).toBe('?other=keep');
+  });
+
+  it('preserves the focus request when navigation also prevents focus and scroll reset', async () => {
+    const user = userEvent.setup();
+    const { routerRef } = await setup();
+    const input = screen.getByRole('textbox', { name: 'Name' });
+
+    await user.click(screen.getByRole('button', { name: 'Navigate and focus' }));
+
+    await waitFor(() => expect(input).toHaveFocus());
+    expect(routerRef.current?.state.location.state).toEqual({
+      preventFocusReset: true,
+      focusComponentRequest: { nodeId: 'target', errorBinding: null },
     });
   });
 });

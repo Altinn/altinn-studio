@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import * as Router from 'react-router';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 
 import { NumericInput } from '@app/form-component';
@@ -10,13 +9,10 @@ import {
   FocusComponentRequestFromUrl,
   setFocusComponentRequest,
   tryFocusComponent,
+  useFocusComponentRequest,
   useHandleFocusComponent,
+  withFocusComponentRequestState,
 } from 'src/layout/focusComponent';
-
-vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
-  return { ...actual, useSearchParams: vi.fn(actual.useSearchParams) };
-});
 
 function useFocusContainerRef(nodeId: string) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -52,12 +48,10 @@ describe('focusComponent', () => {
   afterEach(() => {
     act(() => setFocusComponentRequest(undefined));
     vi.restoreAllMocks();
-    vi.mocked(Router.useSearchParams).mockReset();
   });
 
   it('handles matching requests without re-rendering the target or other components', () => {
     const renders = vi.fn();
-    const cleanup = vi.fn();
     function CountedTarget() {
       renders();
       const focusContainerRef = useFocusContainerRef('node-a');
@@ -73,10 +67,9 @@ describe('focusComponent', () => {
 
     act(() => setFocusComponentRequest({ nodeId: 'node-b', errorBinding: null }));
     expect(focus).not.toHaveBeenCalled();
-    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: 'name' }, cleanup));
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: 'name' }));
 
     expect(input).toHaveFocus();
-    expect(cleanup).toHaveBeenCalledTimes(1);
     expect(renders).toHaveBeenCalledTimes(1);
     expect(input.parentElement?.scrollIntoView).toHaveBeenCalledTimes(1);
     act(() => setFocusComponentRequest(undefined));
@@ -106,7 +99,6 @@ describe('focusComponent', () => {
   });
 
   it('cancels an older pending request when a different available field is focused directly', () => {
-    const finished = vi.fn();
     const { rerender } = render(
       <>
         <FocusTarget nodeId='node-b' />
@@ -116,11 +108,10 @@ describe('focusComponent', () => {
         />
       </>,
     );
-    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }, finished));
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
 
     act(() => expect(tryFocusComponent({ nodeId: 'node-b', errorBinding: null })).toBe(true));
     expect(screen.getByLabelText('Name')).toHaveFocus();
-    expect(finished).toHaveBeenCalledTimes(1);
     rerender(
       <>
         <FocusTarget nodeId='node-b' />
@@ -130,11 +121,9 @@ describe('focusComponent', () => {
 
     expect(screen.getAllByLabelText('Name')[0]).toHaveFocus();
     expect(screen.getAllByLabelText('Name')[1]).not.toHaveFocus();
-    expect(finished).toHaveBeenCalledTimes(1);
   });
 
   it('keeps an unsuccessful focus request pending until a usable container mounts', () => {
-    const finished = vi.fn();
     function DisabledTarget() {
       const focusContainerRef = useFocusContainerRef('node-a');
       return (
@@ -147,20 +136,61 @@ describe('focusComponent', () => {
       );
     }
     const { rerender } = render(<DisabledTarget />);
-    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }, finished));
-    expect(finished).not.toHaveBeenCalled();
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
 
     rerender(<FocusTarget />);
 
     expect(screen.getByLabelText('Name')).toHaveFocus();
-    expect(finished).toHaveBeenCalledTimes(1);
   });
 
   it('returns false when direct focus cannot reach a usable field', () => {
     expect(tryFocusComponent({ nodeId: 'node-a', errorBinding: null })).toBe(false);
   });
 
-  it('publishes and cleans focus requests from URL parameters', () => {
+  it('notifies revealers while a request is pending and when focus consumes it', () => {
+    function Revealer() {
+      return <span data-testid='request'>{useFocusComponentRequest()?.nodeId ?? 'none'}</span>;
+    }
+    const { rerender } = render(<Revealer />);
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
+    expect(screen.getByTestId('request')).toHaveTextContent('node-a');
+
+    rerender(
+      <>
+        <Revealer />
+        <FocusTarget />
+      </>,
+    );
+
+    expect(screen.getByLabelText('Name')).toHaveFocus();
+    expect(screen.getByTestId('request')).toHaveTextContent('none');
+  });
+
+  it('accepts a focus request in navigation state while keeping the URL clean', () => {
+    function Location() {
+      return <span data-testid='location'>{useLocation().search}</span>;
+    }
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/page',
+            search: '?other=keep',
+            state: withFocusComponentRequestState(undefined, { nodeId: 'node-a', errorBinding: 'name' }),
+          },
+        ]}
+      >
+        <FocusComponentRequestFromUrl />
+        <FocusTarget />
+        <Location />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByLabelText('Name')).toHaveFocus();
+    expect(screen.getByTestId('location')).toHaveTextContent('?other=keep');
+  });
+
+  it('accepts focus parameters from a direct URL without starting a cleanup navigation', () => {
     function Location() {
       return <span data-testid='location'>{useLocation().search}</span>;
     }
@@ -173,12 +203,12 @@ describe('focusComponent', () => {
     );
 
     expect(screen.getByLabelText('Name')).toHaveFocus();
-    expect(screen.getByTestId('location')).toHaveTextContent('?other=keep');
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '?other=keep&focusComponentId=node-a&focusErrorBinding=name',
+    );
   });
 
-  it('handles a repeated navigation to the same field before URL cleanup completes', () => {
-    const cleanup = vi.fn();
-    vi.mocked(Router.useSearchParams).mockReturnValue([new URLSearchParams(), cleanup]);
+  it('handles a repeated navigation to the same field', () => {
     function NavigateAgain() {
       const navigate = useNavigate();
       return <button onClick={() => navigate('/page?focusComponentId=node-a')}>Focus again</button>;
@@ -197,13 +227,11 @@ describe('focusComponent', () => {
     act(() => screen.getByRole('button', { name: 'Focus again' }).click());
 
     expect(focus).toHaveBeenCalledTimes(1);
-    expect(cleanup).toHaveBeenCalledTimes(2);
   });
 
   it('waits for child initialization when a request arrives before the target mounts', () => {
     const events: string[] = [];
-    const cleanup = vi.fn();
-    setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }, cleanup);
+    setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null });
     function Field() {
       useEffect(() => {
         events.push('initialized');
@@ -223,18 +251,14 @@ describe('focusComponent', () => {
         </div>
       );
     }
-    expect(cleanup).not.toHaveBeenCalled();
-
     render(<Target />);
 
     expect(screen.getByLabelText('Name')).toHaveFocus();
     expect(events).toEqual(['initialized', 'focused']);
-    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
   it('retries a pending request when an existing component mounts its container, without attachment renders', () => {
     const renders = vi.fn();
-    const cleanup = vi.fn();
     function Target({ visible }: { visible: boolean }) {
       renders();
       const focusContainerRef = useFocusContainerRef('node-a');
@@ -245,15 +269,13 @@ describe('focusComponent', () => {
       ) : null;
     }
     const { rerender } = render(<Target visible={false} />);
-    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }, cleanup));
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
     expect(renders).toHaveBeenCalledTimes(1);
-    expect(cleanup).not.toHaveBeenCalled();
 
     rerender(<Target visible />);
 
     expect(screen.getByLabelText('Name')).toHaveFocus();
     expect(renders).toHaveBeenCalledTimes(2);
-    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
   it('can type into a numeric field revealed for a pending request', async () => {
@@ -285,16 +307,14 @@ describe('focusComponent', () => {
   });
 
   it('does not replay a handled request on re-render or container replacement', () => {
-    const cleanup = vi.fn();
     const { rerender } = render(<FocusTarget />);
-    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }, cleanup));
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
     const focus = vi.spyOn(screen.getByLabelText('Name'), 'focus');
 
     rerender(<FocusTarget />);
     expect(focus).not.toHaveBeenCalled();
     rerender(<FocusTarget visible={false} />);
     rerender(<FocusTarget />);
-    expect(cleanup).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText('Name')).not.toHaveFocus();
   });
 
@@ -315,14 +335,12 @@ describe('focusComponent', () => {
   });
 
   it('survives StrictMode subscription setup and cleanup without repeating focus', () => {
-    const cleanup = vi.fn();
-    setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }, cleanup);
+    setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null });
     render(
       <React.StrictMode>
         <FocusTarget />
       </React.StrictMode>,
     );
     expect(screen.getByLabelText('Name')).toHaveFocus();
-    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 });
