@@ -119,8 +119,9 @@
 
 /**
  * `previousWorkflows` is the live section's own set: the freshest SSE copy of every workflow it
- * currently holds a card for, dropped the moment one leaves. Other sections read it for fresher
- * data than their own snapshot, and to tell a live workflow from a settled one.
+ * holds a live card for, dropped the moment one leaves (an exiting card outlives its entry by the
+ * length of its animation). Other sections read it for fresher data than their own snapshot, and
+ * to tell a live workflow from a settled one.
  *
  * @typedef {{
  *   previousWorkflows:    Record<string, Workflow>,
