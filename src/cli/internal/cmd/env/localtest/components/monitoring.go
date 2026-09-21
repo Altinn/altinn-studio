@@ -13,31 +13,25 @@ func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	enabled := opts.IncludeMonitoring
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringTempo, opts.Images.Monitoring.Tempo),
-		monitoringTempoContainer(opts),
+		monitoringImage(opts, ContainerVictoriaMetrics, opts.Images.Monitoring.VictoriaMetrics),
+		monitoringVictoriaMetricsContainer(),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringMimir, opts.Images.Monitoring.Mimir),
-		monitoringMimirContainer(opts),
+		monitoringImage(opts, ContainerVictoriaTraces, opts.Images.Monitoring.VictoriaTraces),
+		monitoringVictoriaTracesContainer(),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringLoki, opts.Images.Monitoring.Loki),
-		monitoringLokiContainer(opts),
-		enabled,
-	)
-	manifest.addContainer(
-		opts,
-		monitoringImage(opts, ContainerMonitoringOtelCollector, opts.Images.Monitoring.OtelCollector),
+		monitoringImage(opts, ContainerOtelCollector, opts.Images.Monitoring.OtelCollector),
 		monitoringOTelCollectorContainer(opts),
 		enabled,
 	)
 	manifest.addContainer(
 		opts,
-		monitoringImage(opts, ContainerMonitoringGrafana, opts.Images.Monitoring.Grafana),
+		monitoringImage(opts, ContainerGrafana, opts.Images.Monitoring.Grafana),
 		monitoringGrafanaContainer(opts),
 		enabled,
 	)
@@ -52,49 +46,29 @@ func monitoringImage(ctx *Options, name string, spec config.ImageSpec) resource.
 	}
 }
 
-func monitoringTempoContainer(ctx *Options) *ContainerSpec {
+func monitoringVictoriaMetricsContainer() *ContainerSpec {
 	spec := newContainerSpec(
-		ContainerMonitoringTempo,
+		ContainerVictoriaMetrics,
 		nil,
 		nil,
-		[]types.VolumeMount{
-			newVolume(filepath.Join(ctx.Paths.InfraDir, "tempo.yaml"), "/etc/tempo.yaml"),
-		},
 		nil,
 		nil,
-		[]string{"-config.file=/etc/tempo.yaml", "-log.level=error"},
+		nil,
+		[]string{"-storageDataPath=/tmp/victoria-metrics-data", "-retentionPeriod=1d"},
 	)
 	spec.UseDefaultUser = true
 	return spec
 }
 
-func monitoringMimirContainer(ctx *Options) *ContainerSpec {
+func monitoringVictoriaTracesContainer() *ContainerSpec {
 	spec := newContainerSpec(
-		ContainerMonitoringMimir,
+		ContainerVictoriaTraces,
 		nil,
 		nil,
-		[]types.VolumeMount{
-			newVolume(filepath.Join(ctx.Paths.InfraDir, "mimir.yaml"), "/etc/mimir.yaml"),
-		},
 		nil,
 		nil,
-		[]string{"-config.file=/etc/mimir.yaml", "-target=all", "-log.level=error"},
-	)
-	spec.UseDefaultUser = true
-	return spec
-}
-
-func monitoringLokiContainer(ctx *Options) *ContainerSpec {
-	spec := newContainerSpec(
-		ContainerMonitoringLoki,
 		nil,
-		nil,
-		[]types.VolumeMount{
-			newVolume(filepath.Join(ctx.Paths.InfraDir, "loki.yaml"), "/etc/loki.yaml"),
-		},
-		nil,
-		nil,
-		[]string{"-config.file=/etc/loki.yaml", "-target=all", "-log.level=error"},
+		[]string{"-storageDataPath=/tmp/victoria-traces-data", "-retentionPeriod=1d"},
 	)
 	spec.UseDefaultUser = true
 	return spec
@@ -103,14 +77,14 @@ func monitoringLokiContainer(ctx *Options) *ContainerSpec {
 func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 	otel := ctx.Topology.MustComponent(envtopology.ComponentOTel)
 	spec := newContainerSpec(
-		ContainerMonitoringOtelCollector,
+		ContainerOtelCollector,
 		[]types.PortMapping{newPort("4317", "4317")},
 		nil,
 		[]types.VolumeMount{
 			newVolume(filepath.Join(ctx.Paths.InfraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 		},
 		[]string{otel.Host()},
-		[]string{ContainerMonitoringMimir, ContainerMonitoringTempo, ContainerMonitoringLoki},
+		[]string{ContainerVictoriaMetrics, ContainerVictoriaTraces},
 		[]string{"--config=/etc/otel-collector.yaml"},
 	)
 	spec.UseDefaultUser = true
@@ -120,7 +94,7 @@ func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 	app := ctx.Topology.MustComponent(envtopology.ComponentApp)
 	spec := newContainerSpec(
-		ContainerMonitoringGrafana,
+		ContainerGrafana,
 		nil,
 		map[string]string{
 			"GF_AUTH_ANONYMOUS_ENABLED":     "true",
@@ -144,10 +118,9 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 		},
 		nil,
 		[]string{
-			ContainerMonitoringOtelCollector,
-			ContainerMonitoringMimir,
-			ContainerMonitoringTempo,
-			ContainerMonitoringLoki,
+			ContainerOtelCollector,
+			ContainerVictoriaMetrics,
+			ContainerVictoriaTraces,
 		},
 		nil,
 	)
