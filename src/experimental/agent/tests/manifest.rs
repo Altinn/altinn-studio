@@ -114,25 +114,46 @@ fn decodes_the_minimal_manifest() {
     );
 }
 
+/// The image owns the harness version, so a manifest that repeats it only creates a second place
+/// to forget. The examples are what people copy, so none of them may pin one.
 #[test]
-fn minimal_manifest_declares_the_installed_claude_code_version() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/minimal");
-    let dockerfile = std::fs::read_to_string(root.join("Dockerfile")).expect("minimal Dockerfile");
-    let installed = dockerfile
-        .lines()
-        .find_map(|line| line.strip_prefix("ARG CLAUDE_CODE_VERSION="))
-        .expect("minimal Dockerfile pins Claude Code");
-    let agent = manifest::resolve(&root.join("agent.yaml"))
-        .expect("minimal manifest should resolve")
-        .agent;
-    let declared = agent
-        .spec
-        .harness(Harness::ClaudeCode)
-        .expect("minimal manifest installs Claude Code")
-        .version
-        .as_deref();
-
-    assert_eq!(declared, Some(installed));
+fn no_example_manifest_pins_a_harness_version() {
+    let examples = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples");
+    let mut checked = 0;
+    for example in std::fs::read_dir(&examples).expect("examples directory") {
+        let directory = example.expect("examples entry").path();
+        if !directory.is_dir() {
+            continue;
+        }
+        for manifest in std::fs::read_dir(&directory).expect("example directory") {
+            let path = manifest.expect("example entry").path();
+            if !path.is_file() {
+                continue;
+            }
+            let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+            let is_manifest = name.starts_with("agent")
+                && path
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("yaml"));
+            if !is_manifest {
+                continue;
+            }
+            let agent = manifest::resolve(&path)
+                .unwrap_or_else(|error| panic!("{} should resolve: {error}", path.display()))
+                .agent;
+            for harness in &agent.spec.harnesses {
+                assert_eq!(
+                    harness.version,
+                    None,
+                    "{} pins a version for {:?}; the image owns it",
+                    path.display(),
+                    harness.kind
+                );
+            }
+            checked += 1;
+        }
+    }
+    assert!(checked > 0, "no example manifests were checked");
 }
 
 #[test]
