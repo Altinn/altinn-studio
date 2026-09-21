@@ -61,8 +61,6 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             if (card && !card.dataset.exiting) {
                 const visible = card.offsetParent !== null;
                 if (visible && !movedToRecent) {
-                    const failed = state.previousWorkflows[key]?.status === 'Failed';
-                    if (failed) card.classList.add('exit-fail');
                     // The card outlives its live entry by the length of the animation and nothing
                     // ticks it after this pass, so freeze its counter on the elapsed it ended at —
                     // otherwise it fades out showing whatever the last card rebuild left behind.

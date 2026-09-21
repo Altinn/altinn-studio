@@ -817,13 +817,19 @@ reason sub-label and its backoff countdown.
 The trailing relation-status segments keep relation chip dot colors fresh when only a related
 workflow's status changed.
 
+Timestamps are deliberately absent from both this formula and the server's own change detection for
+the `active` array (`{databaseId}|{status}|{backoffUntil}|{step status}:{retryCount}`), so a new
+`executionStartedAt` is pushed and drawn only because the status change that accompanies it is. That
+costs nothing today — the elapsed counter reads the anchor out of `state.previousWorkflows` on every
+frame rather than from the rendered HTML — but anything new that renders a timestamp *into* card
+markup would sit stale until some other field moved, and belongs in the formula.
+
 ### Animations
 
 - **Enter**: New inbox cards slide in from top
 - **Exit**: Removed cards fade out with `complete-exit` animation (0.5s)
-- **Exit-fail**: Failed workflows use a red-tinted exit animation
 - **Recent-enter**: New recent cards slide in with a brief glow highlight (`recent-glow` / `recent-glow-fail`)
-- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by matching idempotency keys in the SSE `recentKeys` set), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations.
+- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by its `databaseId` being in the `recentKeys` set built from the same SSE payload's `recent` array), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations. Keyed by `databaseId` and not by idempotency key, which is batch-level: a sibling workflow from the same batch reaching Recent must not suppress a still-active one's animation.
 - **Pulse sync**: When a card is re-rendered, the CSS processing pulse animation phase is synchronized to `performance.now() % 2000` to avoid flicker.
 
 ### Timers
@@ -878,7 +884,7 @@ The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappi
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
 - **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
-- **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. The card, chain and live durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The persisted value trails the worker by at most one write-back — the `step.started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
+- **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. Settled card and chain durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The **live** counter falls back to `updatedAt` before `createdAt`, because a live workflow with no stamp is `Enqueued` or `Held` and for those `updatedAt` is when it entered the queue — the enqueue leaves it null, every later path back into the queue sets it — so a workflow the operator has just resumed counts from the resume instead of showing its whole age until a worker claims it. A settled workflow must never take that fallback: there `updatedAt` is when it finished. The persisted value trails the worker by at most one write-back — the `step.started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.
