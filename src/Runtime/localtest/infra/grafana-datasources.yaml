@@ -19,12 +19,14 @@ datasources:
       prometheusVersion: 2.24.0
       timeInterval: "10s"
 
+  # VictoriaTraces implements the Tempo HTTP API, so the Tempo datasource gives
+  # TraceQL and Traces Drilldown. /select/jaeger is also served, if ever needed.
   - name: Traces
-    type: jaeger
+    type: tempo
     uid: traces
     access: proxy
     orgId: 1
-    url: http://localtest_victoria_traces:10428/select/jaeger/
+    url: http://localtest_victoria_traces:10428/select/tempo
     basicAuth: false
     isDefault: false
     version: 1
@@ -35,3 +37,14 @@ datasources:
         enabled: true
       tracesToMetrics:
         datasourceUid: prometheus
+
+  - name: Logs
+    type: victoriametrics-logs-datasource
+    uid: logs
+    access: proxy
+    orgId: 1
+    url: http://localtest_victoria_logs:9428
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: true
