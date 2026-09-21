@@ -205,6 +205,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         return ParseSegment(path, offset, out int nextOffset, out int literalIndex) switch
         {
             "value" when nextOffset is -1 && literalIndex is -1 => model.valueNullable,
+            "notFixedNoBindNever" when nextOffset is -1 && literalIndex is -1 => model.notFixedNoBindNever,
             // _ => throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"{path} is not a valid path."),
             _ => null,
         };
@@ -790,6 +791,13 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 if (value.TryDeserialize<decimal?>(out var result_valueNullable))
                 {
                     model.valueNullable = result_valueNullable;
+                    return true;
+                }
+                return false;
+            case "notFixedNoBindNever" when nextOffset is -1 && literalIndex is -1:
+                if (value.TryDeserialize<string?>(out var result_notFixedNoBindNever))
+                {
+                    model.notFixedNoBindNever = result_notFixedNoBindNever;
                     return true;
                 }
                 return false;
@@ -1554,6 +1562,10 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 segment.CopyTo(buffer.Slice(bufferOffset));
                 bufferOffset += 5;
                 return;
+            case "notFixedNoBindNever":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 19;
+                return;
             default:
                 bufferOffset = 0;
                 return;
@@ -1718,6 +1730,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             // Initialize properties
             valueNullable = data.valueNullable,
+            notFixedNoBindNever = data.notFixedNoBindNever,
         };
     }
 
@@ -2110,6 +2123,9 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             case "value" when (nextOffset is -1) && (literalIndex is -1):
                 model.valueNullable = default;
                 break;
+            case "notFixedNoBindNever" when (nextOffset is -1) && (literalIndex is -1):
+                model.notFixedNoBindNever = default;
+                break;
             default:
                 // throw new ArgumentException("{path} is not a valid path.");
                 return;
@@ -2338,6 +2354,110 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     }
 
     #endregion AltinnRowIds
+    #region FixedValues
+
+    /// <inheritdoc />
+    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> ValidateFixedValues()
+    {
+        var errors =
+            new global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError>();
+        ValidateFixedValues(_dataModel, "", errors);
+        return errors;
+    }
+
+    private static void ValidateFixedValues(
+        global::Altinn.App.SourceGenerator.Tests.Skjema dataModel,
+        string path,
+        global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
+    )
+    {
+        if (dataModel.Skjemainnhold is not null)
+        {
+            int index = 0;
+            foreach (var item in dataModel.Skjemainnhold)
+            {
+                if (item is not null)
+                {
+                    ValidateFixedValues(item, $"{path}skjemainnhold[{index}].", errors);
+                }
+                index++;
+            }
+        }
+    }
+
+    private static void ValidateFixedValues(
+        global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold dataModel,
+        string path,
+        global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
+    )
+    {
+        if (dataModel.OldXmlValue is not null)
+        {
+            ValidateFixedValues(dataModel.OldXmlValue, path + "oldXmlValue.", errors);
+        }
+    }
+
+    private static void ValidateFixedValues(
+        global::Altinn.App.SourceGenerator.Tests.OldXmlValue dataModel,
+        string path,
+        global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
+    )
+    {
+        if (dataModel.orid != "7117")
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "orid",
+                    "7117",
+                    global::System.Convert.ToString(
+                        dataModel.orid,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+        }
+        if (dataModel.dataFormatVersion != "46317")
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "dataFormatVersion",
+                    "46317",
+                    global::System.Convert.ToString(
+                        dataModel.dataFormatVersion,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+        }
+        if (dataModel.fixedInt != -42)
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "fixedInt",
+                    "-42",
+                    global::System.Convert.ToString(
+                        dataModel.fixedInt,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+        }
+        if (dataModel.fixedDecimal != 1.5m)
+        {
+            errors.Add(
+                new global::Altinn.App.Core.Internal.Data.FixedValueError(
+                    path + "fixedDecimal",
+                    "1.5",
+                    global::System.Convert.ToString(
+                        dataModel.fixedDecimal,
+                        global::System.Globalization.CultureInfo.InvariantCulture
+                    )
+                )
+            );
+        }
+    }
+
+    #endregion FixedValues
     public static global::System.ReadOnlySpan<char> ParseSegment(
         global::System.ReadOnlySpan<char> path,
         int offset,
@@ -2602,6 +2722,13 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
 //               "CSharpName": "valueNullable",
 //               "IsNullable": true,
 //               "TypeName": "decimal",
+//               "IsJsonValueType": true,
+//             },
+//             {
+//               "JsonName": "notFixedNoBindNever",
+//               "CSharpName": "notFixedNoBindNever",
+//               "IsNullable": true,
+//               "TypeName": "string",
 //               "IsJsonValueType": true,
 //             }
 //           ]

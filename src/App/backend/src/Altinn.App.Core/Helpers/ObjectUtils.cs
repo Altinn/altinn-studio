@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
@@ -262,5 +264,151 @@ public static partial class ObjectUtils
     private static bool PropertyIsAltinnRowGuid(PropertyInfo prop)
     {
         return prop.PropertyType == typeof(Guid) && prop.Name == "AltinnRowId";
+    }
+}
+
+/// <summary>
+/// Reflection based detection of fixed value properties, used by <see cref="Internal.Data.ReflectionFormDataWrapper"/>
+/// when no source generated wrapper exists for the model type.
+/// </summary>
+public static partial class ObjectUtils
+{
+    private static readonly ConcurrentDictionary<Type, FixedValueProperty[]> _fixedValueProperties = new();
+
+    private sealed record FixedValueProperty(PropertyInfo Property, object Expected);
+
+    /// <summary>
+    /// Find properties with <c>[BindNever]</c> whose value differs from the value a new instance of the class gets from its initializer.
+    /// </summary>
+    /// <param name="model">The object to inspect</param>
+    /// <param name="depth">Remaining recursion depth. To prevent infinite recursion we stop after this depth. (default matches json serialization)</param>
+    internal static IReadOnlyList<Internal.Data.FixedValueError> GetFixedValueErrors(object model, int depth = 64)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        var errors = new List<Internal.Data.FixedValueError>();
+        CollectFixedValueErrors(model, string.Empty, errors, depth);
+        return errors;
+    }
+
+    private static void CollectFixedValueErrors(
+        object model,
+        string path,
+        List<Internal.Data.FixedValueError> errors,
+        int depth
+    )
+    {
+        var type = model.GetType();
+        if (depth < 0)
+        {
+            throw new Exception(
+                $"Recursion depth exceeded. {type.Name} in {type.Namespace} likely causes infinite recursion."
+            );
+        }
+
+        if (type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true)
+        {
+            return;
+        }
+
+        foreach (var fixedValue in _fixedValueProperties.GetOrAdd(type, FindFixedValueProperties))
+        {
+            var actual = fixedValue.Property.GetValue(model);
+            if (!fixedValue.Expected.Equals(actual))
+            {
+                errors.Add(
+                    new Internal.Data.FixedValueError(
+                        path + fixedValue.Property.Name,
+                        Convert.ToString(fixedValue.Expected, CultureInfo.InvariantCulture),
+                        Convert.ToString(actual, CultureInfo.InvariantCulture)
+                    )
+                );
+            }
+        }
+
+        foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (
+                prop.GetIndexParameters().Length > 0
+                || prop.PropertyType.IsValueType
+                || prop.PropertyType == typeof(string)
+            )
+            {
+                continue;
+            }
+
+            var value = prop.GetValue(model);
+            if (value is null)
+            {
+                continue;
+            }
+
+            var jsonName =
+                prop.GetCustomAttribute<System.Text.Json.Serialization.JsonPropertyNameAttribute>()?.Name ?? prop.Name;
+            if (value is IEnumerable items)
+            {
+                int index = 0;
+                foreach (var item in items)
+                {
+                    if (item is not null)
+                    {
+                        CollectFixedValueErrors(item, $"{path}{jsonName}[{index}].", errors, depth - 1);
+                    }
+                    index++;
+                }
+            }
+            else
+            {
+                CollectFixedValueErrors(value, $"{path}{jsonName}.", errors, depth - 1);
+            }
+        }
+    }
+
+    private static FixedValueProperty[] FindFixedValueProperties(Type type)
+    {
+        var candidates = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            .Where(prop =>
+                prop.CanRead
+                && prop.CanWrite
+                && prop.GetIndexParameters().Length == 0
+                && prop.GetCustomAttribute<XmlIgnoreAttribute>() is null
+                && prop.GetCustomAttribute<Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute>() is not null
+            )
+            .ToArray();
+
+        if (candidates.Length == 0 || type.GetConstructor(Type.EmptyTypes) is null)
+        {
+            return [];
+        }
+
+        var defaultInstance = Activator.CreateInstance(type);
+        var fixedValueProperties = new List<FixedValueProperty>(candidates.Length);
+        foreach (var prop in candidates)
+        {
+            // Reflection can't see the initializer, so we use the value of a new instance instead.
+            // Only auto properties can have initializers, and a value equal to default(T) can't be
+            // distinguished from a missing initializer.
+            if (!IsAutoProperty(prop) || prop.GetValue(defaultInstance) is not { } expected)
+            {
+                continue;
+            }
+
+            if (expected.GetType().IsValueType && expected.Equals(Activator.CreateInstance(expected.GetType())))
+            {
+                continue;
+            }
+
+            fixedValueProperties.Add(new FixedValueProperty(prop, expected));
+        }
+
+        return fixedValueProperties.ToArray();
+    }
+
+    private static bool IsAutoProperty(PropertyInfo prop)
+    {
+        return prop.DeclaringType?.GetField(
+            $"<{prop.Name}>k__BackingField",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        )
+            is not null;
     }
 }

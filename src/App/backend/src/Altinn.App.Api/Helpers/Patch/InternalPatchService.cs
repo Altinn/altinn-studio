@@ -154,12 +154,19 @@ public class InternalPatchService
             }
 
             var newModel = newModelResult.Ok;
-            // Reset dataAccessor to provide the patched model.
             var dataType = dataAccessor.GetDataType(dataElementIdentifier);
-            dataAccessor.SetFormData(
-                dataElementIdentifier,
-                FormDataWrapperFactory.Create(newModel, dataType, dataElement)
-            );
+            var previousFormDataWrapper = FormDataWrapperFactory.Create(oldModel, dataType, dataElement);
+            var currentFormDataWrapper = FormDataWrapperFactory.Create(newModel, dataType, dataElement);
+
+            // Reject patches that change fixed values, but tolerate mismatches that were already stored
+            var fixedValueErrors = FixedValueValidator.GetNewErrors(currentFormDataWrapper, previousFormDataWrapper);
+            if (fixedValueErrors.Count > 0)
+            {
+                return FixedValueValidator.ToProblemDetails(fixedValueErrors);
+            }
+
+            // Reset dataAccessor to provide the patched model.
+            dataAccessor.SetFormData(dataElementIdentifier, currentFormDataWrapper);
 
             changesAfterPatch.Add(
                 new FormDataChange(
@@ -167,8 +174,8 @@ public class InternalPatchService
                     dataElement: dataElement,
                     contentType: dataElement.ContentType,
                     dataType: dataType,
-                    previousFormDataWrapper: FormDataWrapperFactory.Create(oldModel, dataType, dataElement),
-                    currentFormDataWrapper: FormDataWrapperFactory.Create(newModel, dataType, dataElement),
+                    previousFormDataWrapper: previousFormDataWrapper,
+                    currentFormDataWrapper: currentFormDataWrapper,
                     previousBinaryData: await dataAccessor.GetBinaryData(dataElementIdentifier),
                     currentBinaryData: null // Set this after DataProcessors have run
                 )

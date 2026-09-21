@@ -166,6 +166,88 @@ public static class SourceReaderUtils
         return false;
     }
 
+    /// <summary>
+    /// Detect properties with a fixed value: public get/set properties with [BindNever] (but not [XmlIgnore])
+    /// that are initialized with a literal, eg <c>[BindNever] public string orid { get; set; } = "7117";</c>
+    /// Altinn Studio generates such properties for XSD attributes with a fixed value.
+    /// </summary>
+    /// <returns>The fixed value node, or null if the property does not have a fixed value</returns>
+    public static FixedValueNode? GetFixedValue(IPropertySymbol property)
+    {
+        if (
+            property.IsStatic
+            || property.IsIndexer
+            || property.GetMethod is null
+            || property.SetMethod is null
+            || property.DeclaredAccessibility is not Accessibility.Public
+            || !HasBindNeverAttribute(property)
+            || HasXmlIgnoreAttribute(property)
+        )
+        {
+            return null;
+        }
+
+        foreach (var syntaxReference in property.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is not PropertyDeclarationSyntax { Initializer.Value: { } initializer })
+            {
+                continue;
+            }
+
+            var literal = initializer switch
+            {
+                LiteralExpressionSyntax l => l,
+                PrefixUnaryExpressionSyntax { Operand: LiteralExpressionSyntax l }
+                    when initializer.IsKind(SyntaxKind.UnaryMinusExpression) => l,
+                _ => null,
+            };
+
+            if (
+                literal is null
+                || literal.IsKind(SyntaxKind.NullLiteralExpression)
+                || literal.IsKind(SyntaxKind.DefaultLiteralExpression)
+            )
+            {
+                continue;
+            }
+
+            var valueExpression = initializer.WithoutTrivia().ToFullString();
+
+            // Describe the value the same way Convert.ToString does at runtime (eg 1.5m => "1.5", -42 => "-42")
+            var valueText = literal.Token.Value is { } value
+                ? Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture)
+                : literal.Token.ValueText;
+            if (initializer.IsKind(SyntaxKind.UnaryMinusExpression))
+            {
+                valueText = "-" + valueText;
+            }
+
+            return new FixedValueNode(
+                property.Name,
+                valueExpression,
+                SymbolDisplay.FormatLiteral(valueText, quote: true)
+            );
+        }
+
+        return null;
+    }
+
+    public static bool HasXmlIgnoreAttribute(IPropertySymbol property)
+    {
+        foreach (var attributeData in property.GetAttributes())
+        {
+            if (
+                attributeData.AttributeClass is { Name: "XmlIgnoreAttribute" } attr
+                && attr.ContainingNamespace?.ToDisplayString() == "System.Xml.Serialization"
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static bool HasBindNeverAttribute(IPropertySymbol property)
     {
         foreach (var attributeData in property.GetAttributes())

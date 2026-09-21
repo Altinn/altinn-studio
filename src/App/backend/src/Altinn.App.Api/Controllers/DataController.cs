@@ -288,6 +288,15 @@ public class DataController : ControllerBase
                     {
                         return deserializationResult.Error;
                     }
+
+                    var fixedValueErrors = FixedValueValidator.GetNewErrors(
+                        FormDataWrapperFactory.Create(appModel, dataType, null),
+                        previous: null
+                    );
+                    if (fixedValueErrors.Count > 0)
+                    {
+                        return FixedValueValidator.ToProblemDetails(fixedValueErrors);
+                    }
                 }
 
                 // runs prefill from repo configuration if config exists
@@ -1133,6 +1142,17 @@ public class DataController : ControllerBase
 
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
+
+        // Reject changes to fixed values, but tolerate mismatches that were already stored
+        var fixedValueErrors = FixedValueValidator.GetNewErrors(
+            FormDataWrapperFactory.Create(serviceModel, dataType, dataElement),
+            FormDataWrapperFactory.Create(oldServiceModel, dataType, dataElement)
+        );
+        if (fixedValueErrors.Count > 0)
+        {
+            return Problem(FixedValueValidator.ToProblemDetails(fixedValueErrors));
+        }
+
         // Set the new service model so that dataAccessors see the new state
         dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel, dataType, dataElement));
 

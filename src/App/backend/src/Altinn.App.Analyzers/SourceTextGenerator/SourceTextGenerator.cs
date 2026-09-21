@@ -78,6 +78,9 @@ public static class SourceTextGenerator
         builder.Append("    #region AltinnRowIds\n");
         AltinnRowIdsGenerator.Generate(builder, rootNode);
         builder.Append("\n    #endregion AltinnRowIds\n");
+        builder.Append("    #region FixedValues\n");
+        FixedValuesGenerator.Generate(builder, rootNode);
+        builder.Append("\n    #endregion FixedValues\n");
 
         builder.Append(
             $$"""

@@ -507,6 +507,58 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task ChangedFixedValue_ReturnsBadRequest()
+    {
+        // orid has [BindNever] and a literal initializer in the model, so it is a fixed value that clients can't change
+        var pointer = JsonPointer.Create("melding", "tag-with-attribute");
+        var patch = new JsonPatch(
+            PatchOperation.Test(pointer, JsonNode.Parse("null")),
+            PatchOperation.Add(pointer, JsonNode.Parse("""{"orid": 1, "value": "test"}"""))
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.BadRequest);
+
+        parsedResponse.Title.Should().Be("Fixed value mismatch");
+        parsedResponse
+            .Detail.Should()
+            .Be("Property \"melding.tag-with-attribute.orid\" has the fixed value \"34730\", but was \"1\"");
+
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task UnchangedFixedValue_ReturnsOk()
+    {
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        var pointer = JsonPointer.Create("melding", "tag-with-attribute");
+        var patch = new JsonPatch(
+            PatchOperation.Test(pointer, JsonNode.Parse("null")),
+            PatchOperation.Add(pointer, JsonNode.Parse("""{"orid": 34730, "value": "test"}"""))
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        var data = parsedResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        data.GetProperty("melding")
+            .GetProperty("tag-with-attribute")
+            .GetProperty("orid")
+            .GetDecimal()
+            .Should()
+            .Be(34730);
+    }
+
+    [Fact]
     public async Task InvalidTestPath_ReturnsPreconditionFailed()
     {
         // Update data element

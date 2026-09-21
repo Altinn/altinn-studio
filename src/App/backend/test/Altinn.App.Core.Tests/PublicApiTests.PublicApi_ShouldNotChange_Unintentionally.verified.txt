@@ -3338,6 +3338,14 @@ namespace Altinn.App.Core.Internal.Auth
 }
 namespace Altinn.App.Core.Internal.Data
 {
+    public sealed class FixedValueError : System.IEquatable<Altinn.App.Core.Internal.Data.FixedValueError>
+    {
+        public FixedValueError(string Path, string? ExpectedValue, string? ActualValue) { }
+        public string? ActualValue { get; init; }
+        public string? ExpectedValue { get; init; }
+        public string Path { get; init; }
+        public override string ToString() { }
+    }
     public static class FormDataWrapperFactory
     {
         public static void Register<T>(System.Func<object, Altinn.Platform.Storage.Interface.Models.DataType, Altinn.Platform.Storage.Interface.Models.DataElement?, Altinn.App.Core.Internal.Data.IFormDataWrapper> factory)
@@ -3458,6 +3466,7 @@ namespace Altinn.App.Core.Internal.Data
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
         bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Data.FixedValueError> ValidateFixedValues();
     }
 }
 namespace Altinn.App.Core.Internal.Events
