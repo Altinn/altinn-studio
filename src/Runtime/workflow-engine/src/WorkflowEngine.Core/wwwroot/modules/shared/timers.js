@@ -5,15 +5,22 @@ import { state } from '../core/state.js';
 import { formatElapsed, formatSpan } from '../core/helpers.js';
 
 /**
- * How long a live workflow's current attempt has been running — or, for one the engine has not
- * stamped yet, how long it has been waiting since it was created.
+ * How long a live workflow's current attempt has been running, or how long one with no attempt yet
+ * has been waiting to start.
+ *
+ * A live workflow carrying no `executionStartedAt` is `Enqueued` or `Held`, and for those
+ * `updatedAt` is when it entered the queue: the enqueue itself leaves it null, while every later
+ * path back into the queue — resume, stale reclaim, dependency recovery, a mailbox hold — stamps
+ * it. Reading it here is what keeps a workflow the operator has just retried from showing its whole
+ * age until a worker picks it up. Settled durations elsewhere must not use this fallback, where
+ * `updatedAt` is the moment the workflow finished.
  * @param {import('../core/state.js').Workflow} wf
  * @param {number} [now]
  */
-export const elapsedLabel = (wf, now = Date.now()) =>
-    formatElapsed(
-        Math.max(0, (now - new Date(wf.executionStartedAt || wf.createdAt).getTime()) / 1000),
-    );
+export const elapsedLabel = (wf, now = Date.now()) => {
+    const anchor = new Date(wf.executionStartedAt || wf.updatedAt || wf.createdAt).getTime();
+    return formatElapsed(Math.max(0, (now - anchor) / 1000));
+};
 
 export const updateTimers = () => {
     const now = Date.now();
