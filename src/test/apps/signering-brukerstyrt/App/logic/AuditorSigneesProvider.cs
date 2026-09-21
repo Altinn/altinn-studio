@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
@@ -19,17 +20,32 @@ public class AuditorSigneesProvider : ISigneeProvider
             .Single();
 
         var formData = await parameters.InstanceDataAccessor.GetFormData<Skjemadata>(dataElement);
-        Revisor revisor = formData.Revisor!;
 
-        if (formData.Revisor!.HarRevisor == "nei")
+        // The auditor block is absent until the user answers the "har revisor" question, so no
+        // auditor data — like an explicit "nei" — simply means there is no auditor to sign.
+        if (formData.Revisor is not { } revisor || revisor.HarRevisor == "nei")
         {
             return new SigneeProviderResult { Signees = [] };
         }
 
+        // Navn and Organisasjonsnummer are filled in together by the OrganizationLookup component
+        // and are required by the model schema once the auditor block applies, so a missing value
+        // here means the app is misconfigured.
+        string name =
+            revisor.Navn
+            ?? throw new InvalidOperationException(
+                "Expected Revisor.Navn to be set when the auditor block applies"
+            );
+        string organizationNumber =
+            revisor.Organisasjonsnummer
+            ?? throw new InvalidOperationException(
+                "Expected Revisor.Organisasjonsnummer to be set when the auditor block applies"
+            );
+
         var organisationSignee = new ProvidedOrganization
         {
-            Name = revisor.Navn!,
-            OrganizationNumber = revisor.Organisasjonsnummer!,
+            Name = name,
+            OrganizationNumber = organizationNumber,
             CommunicationConfig = new CommunicationConfig
             {
                 InboxMessage = new InboxMessage
