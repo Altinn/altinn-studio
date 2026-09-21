@@ -821,7 +821,6 @@ workflow's status changed.
 
 - **Enter**: New inbox cards slide in from top
 - **Exit**: Removed cards fade out with `complete-exit` animation (0.5s)
-- **Exit-fail**: Failed workflows use a red-tinted exit animation
 - **Recent-enter**: New recent cards slide in with a brief glow highlight (`recent-glow` / `recent-glow-fail`)
 - **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by matching idempotency keys in the SSE `recentKeys` set), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations.
 - **Pulse sync**: When a card is re-rendered, the CSS processing pulse animation phase is synchronized to `performance.now() % 2000` to avoid flicker.
