@@ -1679,6 +1679,7 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection {
             model: None,

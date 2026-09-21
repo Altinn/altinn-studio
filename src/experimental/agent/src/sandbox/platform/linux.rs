@@ -150,7 +150,8 @@ impl PlatformAdapter for Linux {
 
 impl Linux {
     async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        for installation in &record.agent.spec.harnesses {
+        let installations = installed_harnesses(record, sandbox);
+        for installation in &installations {
             harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
         }
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
@@ -160,11 +161,32 @@ impl Linux {
         configure_git_identity(sandbox).await?;
         let instructions = read_instructions(record).await?;
         let skills = read_skills(record).await?;
-        for installation in &record.agent.spec.harnesses {
+        for installation in &installations {
             harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
         }
         Ok(())
     }
+}
+
+/// Selects the harnesses preparation actually installed.
+///
+/// A required installation is always present. An optional one is present only when preparation
+/// found its host login and bound its mediated credential, which is read back from the Sandbox
+/// rather than re-derived, so setup and preparation cannot disagree.
+fn installed_harnesses<'a>(
+    record: &'a control_plane::AgentRecord,
+    sandbox: &SandboxHandle,
+) -> Vec<&'a crate::HarnessSpec> {
+    let environment = &sandbox.snapshot().environment;
+    record
+        .agent
+        .spec
+        .harnesses
+        .iter()
+        .filter(|installation| {
+            !installation.optional || environment.contains_key(harness::mediated_access_environment(installation.kind))
+        })
+        .collect()
 }
 
 async fn configure_git_identity(sandbox: &SandboxHandle) -> Result<(), Error> {

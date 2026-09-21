@@ -272,6 +272,43 @@ impl Service {
         Ok((session, sandbox))
     }
 
+    /// Refuses a Session on an optional installation this Agent's Sandbox does not carry.
+    ///
+    /// Provisioning omits an optional harness whose host login is absent, and the omission shows
+    /// as a missing mediated credential binding. Without this the Session would start and the
+    /// harness would fail at its first request with a login prompt no one can answer.
+    ///
+    /// An Agent with no materialized Sandbox has nothing to read yet, so the Session is allowed;
+    /// the check runs again on the next attach, once convergence has settled what is installed.
+    async fn reject_omitted_optional_harness(
+        &self,
+        owner: &control_plane::AgentRecord,
+        harness: crate::Harness,
+    ) -> Result<(), Error> {
+        let Some(installation) = owner.agent.spec.harness(harness) else {
+            return Ok(());
+        };
+        if !installation.optional {
+            return Ok(());
+        }
+        let Ok(sandbox) = self.sandboxes.open(owner).await else {
+            return Ok(());
+        };
+        let bound = sandbox
+            .snapshot()
+            .environment
+            .contains_key(crate::harness::mediated_access_environment(installation.kind));
+        if bound {
+            return Ok(());
+        }
+        Err(Error::Invalid(format!(
+            "Agent {:?} declares harness {:?} as optional and it is not installed, because its \
+             host login is absent; sign in on the host and the next Agent convergence installs it",
+            owner.agent.metadata.name,
+            installation.kind.as_str()
+        )))
+    }
+
     async fn prepare(
         &self,
         agent: &str,
@@ -290,27 +327,50 @@ impl Service {
                 harness.as_str()
             )));
         }
-        let session = match self.store.get_agent_session(agent, name).await {
+        let existing = match self.store.get_agent_session(agent, name).await {
             Ok(session) => {
                 reject_conflicting_selections(name, &session, &request)?;
-                session
+                Some(session)
             }
-            Err(Error::NotFound) => {
-                let installation = match request.harness {
-                    Some(harness) => owner.agent.spec.harness(harness),
-                    None => owner.agent.spec.default_harness(),
-                }
-                .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?;
-                if let Some(initial_prompt) = &request.initial_prompt {
-                    crate::harness::validate_initial_prompt(initial_prompt)?;
-                }
-                let new = NewSession {
-                    initial_prompt: request.initial_prompt,
-                    ..NewSession::resolved(installation.kind, request.model_selection, &installation.defaults)
-                };
-                self.store.ensure_session(agent, name, new).await?
-            }
+            Err(Error::NotFound) => None,
             Err(error) => return Err(error),
+        };
+        // The harness this Session runs on: its own when it exists, otherwise the requested one or
+        // the Agent's default.
+        let harness = match (&existing, request.harness) {
+            (Some(session), _) => session.harness,
+            (None, Some(harness)) => harness,
+            (None, None) => {
+                owner
+                    .agent
+                    .spec
+                    .default_harness()
+                    .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?
+                    .kind
+            }
+        };
+        // Before the Session is persisted, because nothing deletes a Session: a name bound to a
+        // harness by an attempt that failed would stay bound for the life of the Agent. Resolving
+        // the harness first also covers attaching to a Session that already exists, which is the
+        // one an optional harness strands when it was created before the Agent had a Sandbox.
+        self.reject_omitted_optional_harness(&owner, harness).await?;
+        let session = if let Some(session) = existing {
+            session
+        } else {
+            let installation = owner.agent.spec.harness(harness).ok_or_else(|| {
+                Error::Invalid(format!(
+                    "Agent {agent:?} does not declare harness {:?}",
+                    harness.as_str()
+                ))
+            })?;
+            if let Some(initial_prompt) = &request.initial_prompt {
+                crate::harness::validate_initial_prompt(initial_prompt)?;
+            }
+            let new = NewSession {
+                initial_prompt: request.initial_prompt,
+                ..NewSession::resolved(installation.kind, request.model_selection, &installation.defaults)
+            };
+            self.store.ensure_session(agent, name, new).await?
         };
         if session.agent_id != owner.id {
             return Err(Error::Conflict);

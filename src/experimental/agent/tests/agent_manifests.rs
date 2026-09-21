@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use agent::{Agent, MountSpec, manifest};
+use agent::{Agent, Harness, MountSpec, manifest};
 use sandbox::image::ImageSource;
 
 fn repository_root() -> PathBuf {
@@ -123,6 +123,8 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
             }
         }
 
+        assert_published_harnesses(&default);
+
         assert_eq!(default.spec.secrets.len(), 5);
         let azure_devops_pat = default
             .spec
@@ -223,4 +225,21 @@ fn every_agent_ignores_local_variants() {
         let ignore = std::fs::read_to_string(directory.join(".gitignore")).expect("Agent .gitignore");
         assert!(ignore.lines().any(|line| line == "agent.*.yaml"));
     }
+}
+
+/// Claude Code is required and the default; Codex is optional, so an Agent is created without it
+/// on a host that has no Codex login rather than refusing to be created at all.
+fn assert_published_harnesses(agent: &Agent) {
+    let claude = agent
+        .spec
+        .harness(Harness::ClaudeCode)
+        .expect("published manifests install Claude Code");
+    assert!(!claude.optional);
+    assert!(claude.default);
+    let codex = agent
+        .spec
+        .harness(Harness::Codex)
+        .expect("published manifests install Codex");
+    assert!(codex.optional);
+    assert!(!codex.default);
 }

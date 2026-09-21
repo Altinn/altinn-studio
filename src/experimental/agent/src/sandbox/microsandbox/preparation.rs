@@ -77,6 +77,13 @@ impl Preparation {
             let mut managed_environments = BTreeMap::new();
             let mut managed_placeholders = BTreeMap::new();
             for installation in &record.agent.spec.harnesses {
+                // An optional installation whose host login is absent is omitted rather than
+                // failing the whole Agent, so someone who signs in to only one harness can still
+                // use an Agent that offers both. Re-evaluated here on every pass, so signing in
+                // later installs it without touching the manifest.
+                if installation.optional && !harness::authentication_ready(installation.kind, &self.database).await? {
+                    continue;
+                }
                 for secret in harness::prepare(installation.kind, &self.database).await? {
                     if let Some(existing) = managed_environments.insert(secret.environment, installation.kind.as_str())
                     {

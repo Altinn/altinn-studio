@@ -440,6 +440,56 @@ fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
 }
 
 #[test]
+fn decodes_an_optional_harness_installation_and_omits_the_flag_by_default() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-minimal:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "4Gi"
+      rootFilesystem:
+        capacity: "32Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+    - type: codex
+      auth: mediated
+      optional: true
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest with an optional harness should decode");
+    let claude = agent
+        .spec
+        .harness(Harness::ClaudeCode)
+        .expect("Claude Code installation");
+    let codex = agent.spec.harness(Harness::Codex).expect("Codex installation");
+    assert!(!claude.optional);
+    assert!(codex.optional);
+
+    // The flag is absent from a required installation's serialized form, so manifests that never
+    // opt in are unchanged by this field existing.
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert!(value["spec"]["harnesses"][0].get("optional").is_none());
+    assert_eq!(value["spec"]["harnesses"][1]["optional"], true);
+}
+
+#[test]
 fn validates_harness_installation_cardinality_and_defaults() {
     let mut empty = support::agent("worker");
     empty.spec.harnesses.clear();

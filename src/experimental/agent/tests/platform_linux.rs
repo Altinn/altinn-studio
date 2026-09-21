@@ -181,6 +181,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection::default(),
     });
