@@ -936,6 +936,7 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     let mut changed = request;
     changed.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: Some("GH_PAT".into()),
@@ -982,6 +983,7 @@ async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
     let mut request = apply_request_in("worker", source_directory.clone());
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1132,6 +1134,7 @@ async fn existing_default_env_outside_bind_mount_is_allowed() {
     request.env_file = Some(external.path().join("worker.env"));
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1162,6 +1165,7 @@ async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
     let mut request = apply_request_in("worker", source_directory);
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1195,6 +1199,7 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
     secret_agent.env_file = Some(selected_secret_file);
     secret_agent.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,

@@ -11,21 +11,104 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::{format, forward::ForwardSpec};
 
+/// A displayed key hint and, when unambiguous, the key emitted by a click.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct Hint {
+    pub(crate) label: &'static str,
+    pub(crate) description: &'static str,
+    pub(crate) key: Option<(KeyCode, KeyModifiers)>,
+}
+
+impl Hint {
+    pub(crate) const fn key(label: &'static str, description: &'static str, code: KeyCode) -> Self {
+        Self {
+            label,
+            description,
+            key: Some((code, KeyModifiers::NONE)),
+        }
+    }
+
+    pub(crate) const fn modified(
+        label: &'static str,
+        description: &'static str,
+        code: KeyCode,
+        modifiers: KeyModifiers,
+    ) -> Self {
+        Self {
+            label,
+            description,
+            key: Some((code, modifiers)),
+        }
+    }
+
+    pub(crate) const fn display(label: &'static str, description: &'static str) -> Self {
+        Self {
+            label,
+            description,
+            key: None,
+        }
+    }
+}
+
 /// Key hints of the new Session form, shared by the modal and the footer.
-pub(crate) const NEW_SESSION_HINTS: [(&str, &str); 4] = [
-    ("enter", "create"),
-    ("tab/↑/↓", "field"),
-    ("←/→", "harness"),
-    ("esc", "cancel"),
+pub(crate) const NEW_SESSION_HINTS: [Hint; 4] = [
+    Hint::key("enter", "create", KeyCode::Enter),
+    Hint::display("tab/↑/↓", "field"),
+    Hint::display("←/→", "harness"),
+    Hint::key("esc", "cancel", KeyCode::Esc),
 ];
 
 /// Key hints of the create Agent form, shared by the modal and the footer.
-pub(crate) const CREATE_AGENT_HINTS: [(&str, &str); 4] = [
-    ("enter", "create"),
-    ("tab/↑/↓", "field"),
-    ("←/→", "select"),
-    ("esc", "cancel"),
+pub(crate) const CREATE_AGENT_HINTS: [Hint; 4] = [
+    Hint::key("enter", "create", KeyCode::Enter),
+    Hint::display("tab/↑/↓", "field"),
+    Hint::display("←/→", "select"),
+    Hint::key("esc", "cancel", KeyCode::Esc),
 ];
+
+pub(crate) const CONFIRM_DELETE_HINTS: [Hint; 2] = [
+    Hint::key("y", "confirm", KeyCode::Char('y')),
+    Hint::key("n", "cancel", KeyCode::Char('n')),
+];
+
+pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
+    Hint::key("enter", "forward", KeyCode::Enter),
+    Hint::key("tab", "field", KeyCode::Tab),
+    Hint::key("esc", "cancel", KeyCode::Esc),
+];
+
+const DETAIL_HINTS: [Hint; 2] = [
+    Hint::display("j/k", "scroll"),
+    Hint::key("q", "back", KeyCode::Char('q')),
+];
+
+const FORWARD_VIEW_HINTS: [Hint; 3] = [
+    Hint::key("e", "edit", KeyCode::Char('e')),
+    Hint::modified("ctrl-d", "delete", KeyCode::Char('d'), KeyModifiers::CONTROL),
+    Hint::key("q", "back", KeyCode::Char('q')),
+];
+
+const AGENT_HINTS: [Hint; 9] = [
+    Hint::key("enter", "fold", KeyCode::Enter),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+    Hint::key("e", "exec", KeyCode::Char('e')),
+    Hint::key("f", "forward", KeyCode::Char('f')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("z", "all", KeyCode::Char('z')),
+];
+
+const SESSION_HINTS: [Hint; 5] = [
+    Hint::key("enter", "attach", KeyCode::Enter),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
+const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))];
 
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
@@ -585,6 +668,34 @@ pub(crate) enum ForwardField {
     GuestPort,
 }
 
+/// A semantic interaction emitted by the renderer's hit map.
+///
+/// Mouse input uses these instead of terminal coordinates so layout remains
+/// entirely owned by the renderer. Keyboard-shaped controls deliberately flow
+/// back through `on_key` to keep both input methods equivalent.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum MouseAction {
+    Key(KeyCode, KeyModifiers),
+    Select(RowTarget),
+    Primary(RowTarget),
+    FoldTree(usize),
+    MoveTree(isize),
+    MoveForward(isize),
+    ScrollDetail(isize),
+    FocusSessionField(SessionField),
+    SelectHarness(usize),
+    FocusCreateField(CreateField),
+    SelectCreate { field: CreateField, delta: isize },
+    FocusForwardField(ForwardField),
+}
+
+/// A rendered row whose selection is owned by the application.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum RowTarget {
+    Tree(usize),
+    Forward(usize),
+}
+
 impl ForwardField {
     const fn next(self) -> Self {
         match self {
@@ -757,6 +868,92 @@ impl App {
             return self.forwards_key(key);
         }
         self.main_key(key)
+    }
+
+    pub(crate) fn on_mouse(&mut self, action: MouseAction) -> Action {
+        match action {
+            MouseAction::Key(code, modifiers) => self.on_key(KeyEvent::new(code, modifiers)),
+            MouseAction::Select(target) => {
+                self.select_row(target);
+                Action::None
+            }
+            MouseAction::Primary(target) => {
+                if !self.select_row(target) {
+                    return Action::None;
+                }
+                let code = match target {
+                    RowTarget::Tree(_) => KeyCode::Enter,
+                    RowTarget::Forward(_) => KeyCode::Char('e'),
+                };
+                self.on_key(KeyEvent::new(code, KeyModifiers::NONE))
+            }
+            MouseAction::FoldTree(index) => {
+                if index >= self.rows.len() || !matches!(self.rows[index], Row::Agent(_)) {
+                    return Action::None;
+                }
+                self.selected = index;
+                self.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
+            }
+            MouseAction::MoveTree(delta) => {
+                self.move_selection_clamped(delta);
+                Action::None
+            }
+            MouseAction::MoveForward(delta) => {
+                self.move_forward_selection_clamped(delta);
+                Action::None
+            }
+            MouseAction::ScrollDetail(delta) => {
+                let Some(detail) = self.detail.as_mut() else {
+                    return Action::None;
+                };
+                let limit = detail.lines.len().saturating_sub(1);
+                detail.scroll = offset_clamped(detail.scroll, limit, delta);
+                Action::None
+            }
+            MouseAction::FocusSessionField(field) => {
+                if let Some(Modal::NewSession(form)) = &mut self.modal {
+                    form.field = field;
+                }
+                Action::None
+            }
+            MouseAction::SelectHarness(index) => {
+                if let Some(Modal::NewSession(form)) = &mut self.modal
+                    && index < form.harnesses.len()
+                {
+                    form.harness = index;
+                }
+                Action::None
+            }
+            MouseAction::FocusCreateField(field) => {
+                if let Some(Modal::CreateAgent(form)) = &mut self.modal {
+                    form.field = field;
+                    form.error = None;
+                }
+                Action::None
+            }
+            MouseAction::SelectCreate { field, delta } => {
+                if let Some(Modal::CreateAgent(form)) = &mut self.modal {
+                    form.field = field;
+                    form.select(delta);
+                }
+                Action::None
+            }
+            MouseAction::FocusForwardField(field) => {
+                if let Some(Modal::PortForward(form)) = &mut self.modal {
+                    form.field = field;
+                }
+                Action::None
+            }
+        }
+    }
+
+    const fn select_row(&mut self, target: RowTarget) -> bool {
+        match target {
+            RowTarget::Tree(index) if index < self.rows.len() => self.selected = index,
+            RowTarget::Forward(index) if index < self.forwards.len() => self.forward_selected = index,
+            RowTarget::Tree(_) | RowTarget::Forward(_) => return false,
+        }
+        true
     }
 
     fn main_key(&mut self, key: KeyEvent) -> Action {
@@ -1040,6 +1237,12 @@ impl App {
         self.forward_selected = usize::try_from((current + delta).rem_euclid(length)).unwrap_or_default();
     }
 
+    fn move_forward_selection_clamped(&mut self, delta: isize) {
+        if !self.forwards.is_empty() {
+            self.forward_selected = offset_clamped(self.forward_selected, self.forwards.len() - 1, delta);
+        }
+    }
+
     /// Replaces the forward display list, keeping the selection in range.
     pub(crate) fn set_forwards(&mut self, forwards: Vec<ForwardEntry>) {
         self.forwards = forwards;
@@ -1054,6 +1257,12 @@ impl App {
         let current = isize::try_from(self.selected).unwrap_or_default();
         let next = (current + delta).rem_euclid(isize::try_from(length).unwrap_or(1));
         self.selected = usize::try_from(next).unwrap_or_default();
+    }
+
+    fn move_selection_clamped(&mut self, delta: isize) {
+        if !self.rows.is_empty() {
+            self.selected = offset_clamped(self.selected, self.rows.len() - 1, delta);
+        }
     }
 
     fn group_agent(&self, group: usize) -> Option<&Agent> {
@@ -1136,42 +1345,34 @@ impl App {
             .collect()
     }
 
-    pub(crate) fn hints(&self) -> Vec<(&'static str, &'static str)> {
+    pub(crate) fn hints(&self) -> &'static [Hint] {
         if let Some(modal) = &self.modal {
             return match modal {
-                Modal::ConfirmDelete { .. } => vec![("y", "confirm"), ("n", "cancel")],
-                Modal::NewSession(_) => NEW_SESSION_HINTS.to_vec(),
-                Modal::CreateAgent { .. } => CREATE_AGENT_HINTS.to_vec(),
-                Modal::PortForward { .. } => vec![("enter", "forward"), ("tab", "field"), ("esc", "cancel")],
+                Modal::ConfirmDelete { .. } => &CONFIRM_DELETE_HINTS,
+                Modal::NewSession(_) => &NEW_SESSION_HINTS,
+                Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
+                Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
             };
         }
         if self.detail.is_some() {
-            return vec![("j/k", "scroll"), ("q", "back")];
+            return &DETAIL_HINTS;
         }
         if self.view == View::Forwards {
-            return vec![("e", "edit"), ("ctrl-d", "delete"), ("q", "back")];
+            return &FORWARD_VIEW_HINTS;
         }
         match self.selected_row() {
-            Some(Row::Agent(_)) => vec![
-                ("enter", "fold"),
-                ("s", "describe"),
-                ("y", "yaml"),
-                ("n", "new session"),
-                ("c", "new agent"),
-                ("e", "exec"),
-                ("f", "forward"),
-                ("d", "delete"),
-                ("z", "all"),
-            ],
-            Some(Row::Session { .. }) => vec![
-                ("enter", "attach"),
-                ("s", "describe"),
-                ("y", "yaml"),
-                ("n", "new session"),
-                ("c", "new agent"),
-            ],
-            None => vec![("c", "new agent")],
+            Some(Row::Agent(_)) => &AGENT_HINTS,
+            Some(Row::Session { .. }) => &SESSION_HINTS,
+            None => &EMPTY_HINTS,
         }
+    }
+}
+
+fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
+    if delta.is_negative() {
+        current.saturating_sub(delta.unsigned_abs())
+    } else {
+        current.saturating_add(delta.unsigned_abs()).min(limit)
     }
 }
 
@@ -1407,6 +1608,105 @@ mod tests {
     }
 
     #[test]
+    fn mouse_row_selection_is_separate_from_primary_actions() {
+        let mut app = populated();
+
+        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Tree(4))), Action::None);
+        assert_eq!(app.selected, 4);
+        assert_eq!(
+            app.on_mouse(MouseAction::Primary(RowTarget::Tree(4))),
+            Action::Attach {
+                agent: "worker".into(),
+                session: SessionName::new("s2").expect("valid Session name"),
+            }
+        );
+
+        assert_eq!(app.rows.len(), 5);
+        assert_eq!(app.on_mouse(MouseAction::FoldTree(0)), Action::None);
+        assert_eq!(app.rows.len(), 4);
+    }
+
+    #[test]
+    fn mouse_wheel_selection_and_detail_scrolling_clamp_at_the_ends() {
+        let mut app = populated();
+        app.selected = app.rows.len() - 1;
+
+        app.on_mouse(MouseAction::MoveTree(1));
+        assert_eq!(app.selected, app.rows.len() - 1);
+        app.on_mouse(MouseAction::MoveTree(-100));
+        assert_eq!(app.selected, 0);
+
+        app.detail = Some(Detail {
+            title: "detail".into(),
+            lines: vec!["one".into(), "two".into(), "three".into()],
+            scroll: 0,
+        });
+        app.on_mouse(MouseAction::ScrollDetail(100));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(2));
+        app.on_mouse(MouseAction::ScrollDetail(-100));
+        assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(0));
+    }
+
+    #[test]
+    fn clickable_actions_keep_confirmation_and_terminal_action_semantics() {
+        let mut app = populated();
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('e'), KeyModifiers::NONE)),
+            Action::Exec {
+                agent: "builder".into()
+            }
+        );
+
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('d'), KeyModifiers::NONE)),
+            Action::None
+        );
+        assert!(matches!(app.modal, Some(Modal::ConfirmDelete { .. })));
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('y'), KeyModifiers::NONE)),
+            Action::Delete {
+                agent: "builder".into()
+            }
+        );
+    }
+
+    #[test]
+    fn mouse_forward_actions_select_edit_and_delete_the_target() {
+        let mut app = App::new();
+        app.view = View::Forwards;
+        app.set_forwards(vec![
+            ForwardEntry {
+                id: 10,
+                agent: "first".into(),
+                local: "127.0.0.1:8000".into(),
+                guest_port: 80,
+                status: None,
+            },
+            ForwardEntry {
+                id: 20,
+                agent: "second".into(),
+                local: "127.0.0.1:9000".into(),
+                guest_port: 90,
+                status: None,
+            },
+        ]);
+
+        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Forward(1))), Action::None);
+        assert_eq!(app.forward_selected, 1);
+        assert_eq!(app.on_mouse(MouseAction::Primary(RowTarget::Forward(1))), Action::None);
+        assert!(matches!(
+            app.modal,
+            Some(Modal::PortForward(ForwardForm { replace: Some(20), .. }))
+        ));
+
+        app.modal = None;
+        assert_eq!(
+            app.on_mouse(MouseAction::Key(KeyCode::Char('d'), KeyModifiers::CONTROL)),
+            Action::DeleteForward { id: 20 }
+        );
+    }
+
+    #[test]
     fn deleting_an_agent_requires_confirmation() {
         let mut app = populated();
         assert_eq!(app.on_key(key(KeyCode::Char('d'))), Action::None);
@@ -1464,7 +1764,7 @@ mod tests {
         assert_eq!(form(&app).field, SessionField::Name);
         assert_eq!(form(&app).model_default(), Some("fable"));
         assert_eq!(form(&app).effort_default(), Some("high"));
-        assert_eq!(app.hints(), NEW_SESSION_HINTS.to_vec());
+        assert_eq!(app.hints(), &NEW_SESSION_HINTS);
 
         app.on_key(key(KeyCode::Char('s')));
         app.on_key(key(KeyCode::Tab));
@@ -1570,7 +1870,7 @@ mod tests {
     fn create_key_requests_manifest_discovery_even_without_agents() {
         let mut app = App::new();
         app.apply_snapshot(Vec::new(), Vec::new());
-        assert_eq!(app.hints(), vec![("c", "new agent")]);
+        assert_eq!(app.hints(), &EMPTY_HINTS);
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
         let mut app = populated();
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
@@ -1627,15 +1927,7 @@ mod tests {
         assert_eq!(form.variant, 1);
         assert_eq!(form.variant_label(), Some("nested".into()));
         assert_eq!(form.placeholder(), Some("worker-nested"));
-        assert_eq!(
-            app.hints(),
-            vec![
-                ("enter", "create"),
-                ("tab/↑/↓", "field"),
-                ("←/→", "select"),
-                ("esc", "cancel")
-            ]
-        );
+        assert_eq!(app.hints(), &CREATE_AGENT_HINTS);
     }
 
     #[test]

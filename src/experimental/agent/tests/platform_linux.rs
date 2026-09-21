@@ -171,6 +171,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     resource.spec.home.source = home;
     resource.spec.skills = vec![agent::SkillSpec {
         source: PathBuf::from("skills/evidence"),
+        name: None,
     }];
     resource.spec.instructions.push(agent::InstructionsSpec {
         source: PathBuf::from("environment.md"),
@@ -784,6 +785,7 @@ async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
     resource.spec.instructions.clear();
     resource.spec.skills = vec![agent::SkillSpec {
         source: PathBuf::from("skills/evidence"),
+        name: None,
     }];
     let record = AgentRecord {
         id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),

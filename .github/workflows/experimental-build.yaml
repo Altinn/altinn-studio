@@ -126,6 +126,7 @@ jobs:
           sparse-checkout: |
             src/experimental
             src/ci/github-runner/coordinator
+            src/cli/resources/agent/skills
             agents
 
       - name: Install native build dependencies
