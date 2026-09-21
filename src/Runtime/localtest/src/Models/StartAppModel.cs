@@ -119,6 +119,31 @@ namespace LocalTest.Models
             ShowFrontendVersionSwitcher = selectedApp.ShowFrontendVersionSwitcher;
         }
 
+        /// <summary>
+        /// Preselects the app chosen at the last login, when nothing else has chosen one and that app
+        /// is still running. An app that is not running is left alone, so the choice survives the app
+        /// being restarted.
+        /// </summary>
+        public void SelectRememberedApp(string appPath)
+        {
+            if (string.IsNullOrWhiteSpace(appPath) || TestApps == null || TestApps.Any(app => app.Selected))
+            {
+                return;
+            }
+
+            var selectedApp = TestApps.FirstOrDefault(
+                app => string.Equals(app.Value, appPath, StringComparison.OrdinalIgnoreCase)
+            );
+            if (selectedApp == null)
+            {
+                return;
+            }
+
+            selectedApp.Selected = true;
+            AppPathSelection = selectedApp.Value;
+            ShowFrontendVersionSwitcher = selectedApp.ShowFrontendVersionSwitcher;
+        }
+
         private string GetAppIdFromRedirectUrl()
         {
             if (string.IsNullOrWhiteSpace(RedirectUrl) || !Uri.TryCreate(RedirectUrl, UriKind.Absolute, out var uri))
