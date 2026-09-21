@@ -243,7 +243,9 @@ export function useNavigateToPage() {
     async (page?: string, options?: NavigateToPageOptions) => {
       debounceImmediately('forced');
       const preventScrollReset =
-        options?.preventScrollReset || options?.searchParams?.has(SearchParams.FocusComponentId);
+        options?.preventScrollReset ||
+        options?.focusComponentRequest !== undefined ||
+        options?.searchParams?.has(SearchParams.FocusComponentId);
       const resetOptions = preventScrollReset ? preventFocusAndScrollResetOptions : undefined;
       const navOptions: NavigateOptions = {
         ...resetOptions,

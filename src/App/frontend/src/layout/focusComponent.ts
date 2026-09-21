@@ -11,22 +11,26 @@ export type FocusComponentRequest = {
 
 const focusComponentRequestStateKey = 'focusComponentRequest';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 export function withFocusComponentRequestState(state: unknown, request: FocusComponentRequest) {
-  const previousState = state && typeof state === 'object' && !Array.isArray(state) ? state : {};
+  const previousState = isRecord(state) ? state : {};
   return { ...previousState, [focusComponentRequestStateKey]: request };
 }
 
 function getFocusComponentRequestFromState(state: unknown): FocusComponentRequest | undefined {
-  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+  if (!isRecord(state)) {
     return undefined;
   }
 
-  const request = (state as Record<string, unknown>)[focusComponentRequestStateKey];
-  if (!request || typeof request !== 'object' || Array.isArray(request)) {
+  const request = state[focusComponentRequestStateKey];
+  if (!isRecord(request)) {
     return undefined;
   }
 
-  const { nodeId, errorBinding } = request as Record<string, unknown>;
+  const { nodeId, errorBinding } = request;
   return typeof nodeId === 'string' && (typeof errorBinding === 'string' || errorBinding === null)
     ? { nodeId, errorBinding }
     : undefined;
@@ -78,6 +82,12 @@ export function setFocusComponentRequest(request: FocusComponentRequest | undefi
   publishFocusRequest(request);
   if (request) {
     tryPendingFocusRequest(request.nodeId);
+  }
+}
+
+function clearFocusComponentRequest(request: FocusComponentRequest) {
+  if (pendingFocusRequest === request) {
+    publishFocusRequest(undefined);
   }
 }
 
@@ -145,9 +155,14 @@ export function FocusComponentRequestFromUrl() {
     const params = new URLSearchParams(location.search);
     const nodeId = params.get(SearchParams.FocusComponentId);
     const requestFromUrl = nodeId ? { nodeId, errorBinding: params.get(SearchParams.FocusErrorBinding) } : undefined;
-    setFocusComponentRequest(getFocusComponentRequestFromState(location.state) ?? requestFromUrl);
+    const request = getFocusComponentRequestFromState(location.state) ?? requestFromUrl;
+    setFocusComponentRequest(request);
 
-    return () => setFocusComponentRequest(undefined);
+    return () => {
+      if (request) {
+        clearFocusComponentRequest(request);
+      }
+    };
   }, [location.key, location.search, location.state]);
 
   return null;
