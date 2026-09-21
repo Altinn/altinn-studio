@@ -149,6 +149,84 @@ fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]
     }));
 }
 
+/// Setup installs an optional harness only when preparation bound its mediated credential.
+///
+/// The two run in the same convergence pass and must agree on what was installed, but setup has no
+/// database to re-ask the host-login question with, so it reads the decision back out of the
+/// Sandbox. Without the credential the harness is skipped entirely: not verified, not configured.
+#[tokio::test(flavor = "local")]
+async fn linux_setup_skips_an_optional_harness_whose_credential_is_unbound() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions\n").expect("instruction file");
+    let agent_id: AgentId = "5c0fd6ac-1d5a-4f8b-9f58-6b0f4de1f6c1".parse().expect("Agent ID");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    resource.spec.harnesses[0].default = true;
+    resource.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: None,
+        auth: agent::HarnessAuthMode::Mediated,
+        optional: true,
+        default: false,
+        defaults: agent::ModelSelection::default(),
+    });
+    let record = AgentRecord {
+        id: agent_id,
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    // No AGENT_CODEX_ACCESS_TOKEN: preparation found no host login and bound nothing.
+    let sandbox = service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("Sandbox");
+
+    Linux.setup(&record, &sandbox).await.expect("setup");
+
+    let writes = backend
+        .file_writes()
+        .into_iter()
+        .map(|path| path.as_str().to_owned())
+        .collect::<Vec<_>>();
+    assert!(
+        writes.iter().any(|path| path == "/home/agent/.claude/CLAUDE.md"),
+        "the required harness is still configured: {writes:?}"
+    );
+    assert!(
+        !writes.iter().any(|path| path.starts_with("/home/agent/.codex/")),
+        "the omitted harness must not be configured: {writes:?}"
+    );
+    assert!(
+        !backend.execution_specs().iter().any(is_codex_version),
+        "the omitted harness must not be verified either"
+    );
+}
+
 #[tokio::test(flavor = "local")]
 #[allow(clippy::too_many_lines)]
 async fn linux_setup_rewrites_configuration_without_owning_workspace_initialization() {

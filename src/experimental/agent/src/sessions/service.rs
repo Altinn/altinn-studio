@@ -278,8 +278,11 @@ impl Service {
     /// as a missing mediated credential binding. Without this the Session would start and the
     /// harness would fail at its first request with a login prompt no one can answer.
     ///
-    /// An Agent with no materialized Sandbox has nothing to read yet, so the Session is allowed;
-    /// the check runs again on the next attach, once convergence has settled what is installed.
+    /// An Agent with no materialized Sandbox defers the decision rather than refusing: there is
+    /// nothing to read yet, and the check runs again on the next attach, once convergence has
+    /// settled what is installed. A Sandbox that exists but cannot be opened is a fault, not an
+    /// absence, and stays an error — inferring "not installed" from it would let a transient
+    /// Provider failure pass a Session that this check exists to refuse.
     async fn reject_omitted_optional_harness(
         &self,
         owner: &control_plane::AgentRecord,
@@ -291,9 +294,10 @@ impl Service {
         if !installation.optional {
             return Ok(());
         }
-        let Ok(sandbox) = self.sandboxes.open(owner).await else {
+        let Some(crate::sandbox::Assignment::Materialized { .. }) = &owner.agent.status.sandbox else {
             return Ok(());
         };
+        let sandbox = self.sandboxes.open(owner).await?;
         let bound = sandbox
             .snapshot()
             .environment

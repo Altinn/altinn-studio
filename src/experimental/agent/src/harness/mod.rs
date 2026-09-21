@@ -344,6 +344,10 @@ pub(crate) async fn authentication_ready(harness: Harness, database: &persistenc
 /// Its presence in a Sandbox is the observable record of the installation having been prepared,
 /// which is how setup skips the same optional installations preparation skipped without repeating
 /// the host-login check against a different moment in time.
+///
+/// This holds because every installation is [`HarnessAuthMode::Mediated`] and so always binds this
+/// variable. A future authentication mode that binds nothing would need its own record of having
+/// been prepared, or an installed harness under it would read as omitted.
 pub(crate) const fn mediated_access_environment(harness: Harness) -> &'static str {
     match harness {
         Harness::ClaudeCode => claude_code::ACCESS_ENVIRONMENT,
