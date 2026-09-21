@@ -14,34 +14,25 @@ namespace Altinn.App.Logic;
 /// Post-commit lever for the forward transition (<c>path == "postCommit"</c>), implemented as a
 /// pipeline service task with one stage: <c>PrepareScenario</c> completes first, then the
 /// <c>Finally</c> (<c>RunScenario</c>) reads the TransitionControl levers and runs the scenario.
-/// The stage's completion is recorded durably, so every retry, deferral re-check and resume
-/// re-runs only <c>RunScenario</c> — every postCommit e2e scenario thereby drives the multi-stage
+/// Once <c>PrepareScenario</c> completes, its completion is recorded durably. Later retries,
+/// deferral re-checks and resumes re-run only <c>RunScenario</c>, exercising the multi-stage
 /// contract (expansion, dispatch by stage index, per-stage durability) through the public API.
 ///
 /// The <c>Gateway_PostCommit</c> gateway routes through <c>Task_Service</c> only on this path.
 /// That transition COMMITS first; the engine then runs the task as critical post-commit steps, so
 /// a delay or transient failure surfaces as workflow-status <c>processing</c> on the committed
 /// task and a permanent failure as terminal <c>failed</c> — the two states the workflow-status
-/// e2e drives. On success the task auto-advances to Task_2.
+/// e2e drives. On success the process advances to Task_2.
 ///
 /// Scenario shape: run <c>attempts</c> times with <c>delayMs</c> injected on each; every attempt
 /// but the last fails retryably, and the last settles on <c>endState</c> — <c>success</c>,
 /// <c>failure</c> (every replay fails the same way), or <c>failureThenSuccess</c> (permanent
 /// failure once, then success on the resume-driven replay — the "Prøv igjen" recovery lever).
-/// A successful settle honours <c>advance: "park"</c>: succeed WITHOUT auto-advancing, leaving
-/// the process on the service task (the frontend's implicit waiting step, #18935) until an
-/// out-of-band process/next releases it. Both service tasks (Task_Service and its layouted twin
-/// Task_ServiceLayout, via <c>serviceView</c>) run this same scenario.
+/// Both service tasks (Task_Service and its layouted twin Task_ServiceLayout, via
+/// <c>serviceView</c>) run this same scenario. Pending outcomes use deferrals until ready.
 /// </summary>
 public sealed class ScenarioServiceTask : IPipelineServiceTask
 {
-    private readonly ParkedTaskReleaser _parkedTaskReleaser;
-
-    public ScenarioServiceTask(ParkedTaskReleaser parkedTaskReleaser)
-    {
-        _parkedTaskReleaser = parkedTaskReleaser;
-    }
-
     public string Type => "scenario";
 
     /// <summary>
@@ -51,18 +42,28 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
-    public ProcessStepOptions? StepOptions => new() { WaitBudget = ScenarioWaitBudget };
-
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-        pipeline.Stage(PrepareScenario).Finally(RunScenario);
+        pipeline
+            .Stage(PrepareScenario, new ProcessStepOptions { WaitBudget = TimeSpan.FromMinutes(5) })
+            .Finally(RunScenario, new ProcessStepOptions { WaitBudget = ScenarioWaitBudget });
 
     /// <summary>
-    /// No scenario work of its own — it exists so every postCommit e2e scenario runs a real
-    /// multi-stage pipeline: this stage completes exactly once per pass, and retries/resumes
-    /// re-enter at <c>RunScenario</c> without re-running it.
+    /// Defers while a browser test holds the instance, so assertions about waiting UI do not
+    /// race task completion. Otherwise completes immediately. Later retries/resumes re-enter
+    /// <c>RunScenario</c> without re-running this completed stage.
     /// </summary>
-    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context)
+    {
+        Guid instanceGuid = Guid.Parse(context.InstanceDataMutator.Instance.Id.Split('/').Last());
+        return Task.FromResult<ServiceTaskStageResult>(
+            ServiceTaskTestGate.IsHeld(instanceGuid)
+                ? ServiceTaskStageResult.Defer(
+                    TimeSpan.FromSeconds(1),
+                    "Waiting for the test to release the instance"
+                )
+                : ServiceTaskStageResult.Completed()
+        );
+    }
 
     private async Task<ServiceTaskResult> RunScenario(ServiceTaskContext context)
     {
@@ -158,20 +159,6 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
             return ServiceTaskResult.FailedPermanent(
                 $"TransitionControl forced a terminal postCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
             );
-        }
-
-        // "park" / "parkThenRelease": succeed WITHOUT auto-advancing — the process stays parked
-        // on the service task (the frontend's implicit waiting step) until an out-of-band
-        // process/next releases it, simulating a task that waits for an external callback.
-        // "parkThenRelease" additionally schedules that release itself (~5s), imitating the
-        // external system's callback arriving on its own.
-        if (levers.advance is "park" or "parkThenRelease")
-        {
-            if (levers.advance == "parkThenRelease")
-            {
-                _parkedTaskReleaser.ScheduleRelease(instance.Org, instance.AppId, instance.Id);
-            }
-            return ServiceTaskResult.SuccessWithoutAutoAdvance();
         }
 
         return ServiceTaskResult.Success();

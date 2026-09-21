@@ -77,14 +77,6 @@ internal static class TestHelpers
         return authEndpoints.Any(x => requestPath.Contains(x, StringComparison.OrdinalIgnoreCase));
     }
 
-    public static MaskinportenSettings DefaultMaskinportenSettings =>
-        new()
-        {
-            Authority = "test-authority",
-            ClientId = "test-client-id",
-            JwkBase64 = "test-jwk-base64",
-        };
-
     public static FiksIOSettings DefaultFiksIOSettings =>
         new()
         {
@@ -128,19 +120,10 @@ internal static class TestHelpers
             },
             SuccessHandling = new FiksArkivSuccessHandlingSettings
             {
-                MoveToNextTask = true,
                 MarkInstanceComplete = true,
                 Action = "fiks-arkiv-success",
             },
-            ErrorHandling = new FiksArkivErrorHandlingSettings { MoveToNextTask = true, Action = "fiks-arkiv-error" },
-        };
-
-    public static MaskinportenSettings RandomMaskinportenSettings =>
-        new()
-        {
-            Authority = Guid.NewGuid().ToString(),
-            ClientId = Guid.NewGuid().ToString(),
-            JwkBase64 = Guid.NewGuid().ToString(),
+            ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "fiks-arkiv-error" },
         };
 
     public static FiksIOSettings RandomFiksIOSettings =>

@@ -35,6 +35,7 @@ wwwroot/
       filters.js                     — label filters, status chips, text filter, tabs
       url.js                         — syncUrl(), restoreUrl(), time range state
       query.js                       — query tab with pagination, time range, auto-refresh; chains/compact/full view modes
+      throttles.js                   — throttled-namespaces panel (breaker list, force-trip/clear overrides, 10s poll)
       modal.js                       — step detail modal (SSE-driven refresh, retry/skip/fail actions)
       settings.js                    — settings modal (timestamps, UTC toggle)
       state-modal.js                 — state evolution modal (SSE-driven refresh)
@@ -75,7 +76,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 | `/dashboard/mailboxes`    | GET    | Mailbox blocks under the collection groups (chains views) |
 | `/dashboard/hot-reload`   | SSE    | Dev file change watcher                              |
 
-The dashboard's workflow actions (Retry, Retry now / Check now, Fail) are not dashboard endpoints: `modal.js` calls the engine's public API — `POST /api/v1/{namespace}/workflows/{id}/resume`, `/nudge` and `/fail` — so the UI exercises the same contract external callers use, and a refusal's problem-details `detail` becomes the button tooltip.
+The dashboard's workflow actions (Retry, Retry now / Check now, Fail) are not dashboard endpoints: `modal.js` calls the engine's public API — `POST /api/v1/{namespace}/workflows/{id}/resume`, `/nudge` and `/fail` — so the UI exercises the same contract external callers use, and a refusal's problem-details `detail` becomes the button tooltip. The throttled-namespaces panel is the same: `throttles.js` polls `GET /api/v1/throttles` every 10s (the section stays hidden while it is empty), and its two-click overrides call `POST /api/v1/{namespace}/throttle/trip` and `/clear`.
 
 ## Patterns
 

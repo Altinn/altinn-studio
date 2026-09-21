@@ -2,6 +2,7 @@
 
 from .llm_client import LLMClient, parse_intent_with_llm, suggest_goals_with_llm
 from .intent_parser import (
+    GATE_FAILED_ACTION,
     MINIMUM_INTENT_CONFIDENCE,
     parse_intent_async,
     ParsedIntent,
@@ -12,6 +13,7 @@ from .semantic_query import extract_semantic_query
 from .scope_checker import check_scope_async, ScopeCheckResult
 
 __all__ = [
+    "GATE_FAILED_ACTION",
     "MINIMUM_INTENT_CONFIDENCE",
     "LLMClient",
     "parse_intent_with_llm",

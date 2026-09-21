@@ -171,15 +171,37 @@ internal sealed class FiksIOClient : IFiksIOClient
             kontoConfiguration: new KontoConfiguration(fiksIOSettings.AccountId, fiksIOSettings.AccountPrivateKey)
         );
 
-        if (_fiksIoClient is not null)
-            await _fiksIoClient.DisposeAsync().AsTask().WaitAsync(cancellationToken);
+        // Build the replacement before retiring the incumbent. Creating a client opens an AMQP connection, and
+        // acquires a Maskinporten token before it does, so this call fails for reasons outside the app's control —
+        // an expired integration secret, a Maskinporten outage. Retiring the incumbent first would leave a disposed
+        // client behind on every such failure, throwing away a connection that still works because a replacement
+        // could not be built.
+        var replacement = await _fiksIOClientFactory.CreateClient(fiksConfiguration).WaitAsync(cancellationToken);
+        var retired = _fiksIoClient;
+        _fiksIoClient = replacement;
 
-        _fiksIoClient = await _fiksIOClientFactory.CreateClient(fiksConfiguration).WaitAsync(cancellationToken);
+        if (retired is not null)
+            await RetireClient(retired, cancellationToken);
 
         if (_messageReceivedHandler is not null)
             await SubscribeToEvents(cancellationToken);
 
-        return _fiksIoClient;
+        return replacement;
+    }
+
+    // The replacement is already in place by the time the incumbent is retired, so failing to dispose it leaks a
+    // connection the broker will reap on its own — worth a log line, but not worth failing an initialization that
+    // has otherwise succeeded and left the caller with a working client.
+    private async Task RetireClient(IExternalFiksIOClient client, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await client.DisposeAsync().AsTask().WaitAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Failed to dispose the previous Fiks IO client: {ErrorMessage}", e.Message);
+        }
     }
 
     private async void InitialiseFiksIOClient_NeverThrowsWrapper(object? x = null)

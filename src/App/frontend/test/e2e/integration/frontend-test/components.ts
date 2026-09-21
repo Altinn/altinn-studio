@@ -1,9 +1,10 @@
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 import { changeToLang } from 'test/e2e/support/lang';
 
 import { isNumberFormat } from 'src/layout/Input/number-format-helpers';
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();

@@ -41,17 +41,6 @@ namespace Altinn.App.Models.TransitionControl
         [JsonPropertyName("endState")]
         public string endState { get; set; }
 
-        /// <summary>What the service task does after a successful settle: "auto" (auto-advance to
-        /// Task_2, today's behavior), "park" (succeed WITHOUT advancing - the process stays on
-        /// the service task until an out-of-band process/next releases it, simulating a task that
-        /// waits for an external callback) or "parkThenRelease" (park, then the app's own
-        /// background task releases it after ~5s - the callback arriving on its own). Only
-        /// meaningful on the postCommit path.</summary>
-        [XmlElement("advance", Order = 5)]
-        [JsonProperty("advance")]
-        [JsonPropertyName("advance")]
-        public string advance { get; set; }
-
         /// <summary>Which service task the postCommit path routes through: "default" (Task_Service,
         /// no layout - the frontend renders its built-in waiting/failure views) or "layout"
         /// (Task_ServiceLayout, which has a ui folder - the frontend renders the app's custom

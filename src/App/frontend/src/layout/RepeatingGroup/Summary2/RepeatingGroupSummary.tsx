@@ -3,6 +3,7 @@ import React from 'react';
 import { Flex } from '@app/form-component';
 import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
@@ -23,7 +24,6 @@ import {
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 

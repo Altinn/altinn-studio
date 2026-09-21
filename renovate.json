@@ -44,6 +44,14 @@
       "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@playwright/cli"
     }
   ],
   "separateMultipleMajor": true,

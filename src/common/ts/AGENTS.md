@@ -10,11 +10,15 @@ for the wider repository picture.
 
 ## Packages
 
-| Folder           | Package               | What it is                                           |
-| ---------------- | --------------------- | ---------------------------------------------------- |
-| `form-component` | `@app/form-component` | React UI and layout components used to render forms. |
-| `form-engine`    | `@app/form-engine`    | Form logic that does not depend on React.            |
-| `language`       | `@app/language`       | Language resources and text helpers.                 |
+| Folder            | Package                | What it is                                           |
+| ----------------- | ---------------------- | ---------------------------------------------------- |
+| `form-component`  | `@app/form-component`  | React UI and layout components used to render forms. |
+| `form-engine`     | `@app/form-engine`     | Form logic that does not depend on React.            |
+| `language`        | `@app/language`        | Language resources and text helpers.                 |
+| `layout-contract` | `@app/layout-contract` | Shared layout component and property contracts.      |
+
+Most of `layout-contract` is generated from definitions and generator sources in `src/App/frontend`.
+Do not edit generated files by hand; run `yarn gen` from `src/App/frontend` after changing generator inputs.
 
 ## Build & test
 

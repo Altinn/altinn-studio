@@ -16,23 +16,62 @@ spec:
         capacity: "64Gi"
         mode: direct
     initSystem: image
+    # The Sandbox default sizes /tmp at a quarter of guest memory, capped at 512 MiB, which is
+    # too small for a large build's scratch space. A tmpfs holds only what is written to it.
+    mounts:
+      - type: tmpfs
+        target: /tmp
+        capacity: "2Gi"
   home:
     source: home
   instructions:
-    source: ../instructions.md
+    - source: ../instructions.md
+    - source: environment.md
+  skills:
+    - source: ../../src/cli/resources/agent/skills/app-development
+      name: altinn-studio-app-development
+    - source: ../skills/pr-evidence
   harnesses:
     - type: claudeCode
       auth: mediated
       default: true
+      # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
+      defaults:
+        model: fable
     # - type: codex
     #   version: "0.149.1"
     #   auth: mediated
+  environment:
+    - name: GIT_USER_NAME
+    - name: GIT_USER_EMAIL
   secrets:
     - environment: GITHUB_TOKEN
+      # gh only attaches files with a token it classifies by prefix; the inert placeholder
+      # therefore carries the fine-grained PAT prefix and is far shorter than a real token.
+      placeholder: github_pat_AGENT_MEDIATED_GITHUB_TOKEN
       allowedHosts:
         - github.com
         - api.github.com
         - gist.github.com
+        - uploads.github.com
+    - environment: AZURE_DEVOPS_PAT
+      optional: true
+      allowedHosts:
+        - dev.azure.com
+    - environment: STUDIO_PROD_API_KEY
+      optional: true
+      allowedHosts:
+        - altinn.studio
+    - environment: STUDIO_STAGING_API_KEY
+      optional: true
+      allowedHosts:
+        - staging.altinn.studio
+    - environment: STUDIO_DEV_API_KEY
+      optional: true
+      allowedHosts:
+        - dev.altinn.studio
+  access:
+    - type: ssh
   network:
     mode: mediated
     allow: all

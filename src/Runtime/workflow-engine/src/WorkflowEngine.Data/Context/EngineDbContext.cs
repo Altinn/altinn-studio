@@ -51,11 +51,29 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
             // Backs the throttle sweep's per-namespace GROUP BY counts over incomplete
-            // workflows. status is a second key column so requeued-vs-active counts resolve
-            // from the index alone. Same constancy contract as the retention index below.
+            // workflows, reading no column the index does not carry. Deliberately narrow:
+            // (namespace, status) repeats across every row of a namespace, so btree
+            // deduplication keeps this index a fraction of the size a unique trailing key
+            // would make it. Same constancy contract as the retention index below.
             entity
                 .HasIndex(e => new { e.Namespace, e.Status }, "ix_workflows_namespace_status_incomplete")
                 .HasFilter($"status IN ({PersistentItemStatusMap.IncompleteSqlList})");
+
+            // Backs the throttle sweep's park pass, which walks one namespace's Requeued
+            // population in keyset pages ordered by id. id has to be a key column for the page
+            // boundary to narrow the scan instead of filtering it afterwards; without this index
+            // the planner drives the walk off the primary key and re-reads every row the earlier
+            // pages already walked, once per page. throttled_until rides along as an INCLUDE
+            // column, for the fetch-gate index's reason below: it is the residual filter that
+            // rejects the already-parked majority, so carrying it here answers a whole page from
+            // the index rather than a heap visit per candidate. Kept separate from the counts
+            // index rather than folded into it as a third key column — that would cost the counts
+            // index its deduplication, and this index only has to cover Requeued rows, a small
+            // population outside a storm.
+            entity
+                .HasIndex(e => new { e.Namespace, e.Id }, "ix_workflows_namespace_id_requeued")
+                .HasFilter($"status = {PersistentItemStatusMap.RequeuedSqlLiteral}")
+                .IncludeProperties(e => e.ThrottledUntil);
 
             // Backs the fetch gate; the shared constant keeps it aligned with every other reader.
             // throttled_until rides along as an INCLUDE column (not a key): it is only ever a

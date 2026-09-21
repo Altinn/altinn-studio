@@ -1,11 +1,8 @@
 use std::rc::Rc;
 
-use crate::{Condition, ConditionStatus, Error, Status};
+use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status};
 
-use super::{AgentRecord, SharedAgentStore};
-
-const READY: &str = "Ready";
-const SANDBOX_READY: &str = "SandboxReady";
+use super::{AgentRecord, ObservedStatus, Observers, SharedAgentStore};
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
@@ -18,17 +15,28 @@ pub struct Reconciler {
     store: SharedAgentStore,
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
+    ssh: Option<Rc<crate::ssh::Access>>,
+    observers: Observers,
 }
 
 impl Reconciler {
     /// Creates an Agent reconciler over persistent resources and runtime-resolved Sandboxes.
     #[must_use]
-    pub fn new(store: SharedAgentStore, sandboxes: Rc<crate::sandbox::Service>) -> Self {
+    pub fn new(store: SharedAgentStore, sandboxes: Rc<crate::sandbox::Service>, observers: Observers) -> Self {
         Self {
             store,
             sandboxes,
             sessions: None,
+            ssh: None,
+            observers,
         }
+    }
+
+    /// Reconciles declared SSH access after the Sandbox is set up.
+    #[must_use]
+    pub fn with_ssh_access(mut self, ssh: Rc<crate::ssh::Access>) -> Self {
+        self.ssh = Some(ssh);
+        self
     }
 
     /// Wakes dependent Sessions when readiness or Sandbox identity changes.
@@ -57,37 +65,51 @@ impl Reconciler {
             let provider = match self.sandboxes.resolve(&record).await {
                 Ok(provider) => provider,
                 Err(error) => {
-                    self.record_failure(&record, "ProviderResolutionFailed", &error).await?;
+                    self.record_failure(&record, "ProviderResolutionFailed", &ReconcileFailure::classify(&error))
+                        .await?;
                     return Err(error);
                 }
             };
-            let status = Status {
-                observed_generation: record.agent.metadata.generation,
-                sandbox: Some(crate::sandbox::Assignment::Selected { provider }),
-                conditions: vec![condition(
-                    READY,
+            let status = Status::observed(
+                record.agent.metadata.generation,
+                Some(crate::sandbox::Assignment::Selected { provider }),
+                vec![condition(
+                    Condition::READY,
                     ConditionStatus::False,
                     "ProviderSelected",
                     "Sandbox provisioning has not completed",
                 )],
-            };
-            self.update_status(&record, status.clone()).await?;
+            );
+            self.update_status(&record, status.clone(), None).await?;
             record.agent.status = status;
         }
 
-        let ensured = match self.sandboxes.ensure(&record).await {
+        let observer = self.observers.observe_sandbox(record.id);
+        let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {
+                let failure = ReconcileFailure::classify(&error);
+                observer.failed(&failure);
                 let message = error.to_string();
-                let status = Status {
-                    observed_generation: record.agent.metadata.generation,
-                    sandbox: record.agent.status.sandbox.clone(),
-                    conditions: vec![
-                        condition(READY, ConditionStatus::False, "SandboxReconcileFailed", &message),
-                        condition(SANDBOX_READY, ConditionStatus::False, "ReconcileFailed", &message),
+                let status = Status::observed(
+                    record.agent.metadata.generation,
+                    record.agent.status.sandbox.clone(),
+                    vec![
+                        condition(
+                            Condition::READY,
+                            ConditionStatus::False,
+                            "SandboxReconcileFailed",
+                            &message,
+                        ),
+                        condition(
+                            Condition::SANDBOX_READY,
+                            ConditionStatus::False,
+                            "ReconcileFailed",
+                            &message,
+                        ),
                     ],
-                };
-                self.update_status(&record, status).await?;
+                );
+                self.update_status(&record, status, Some(failure.kind)).await?;
                 return Err(error);
             }
         };
@@ -101,49 +123,126 @@ impl Reconciler {
             .provider()
             .clone();
 
-        let status = Status {
-            observed_generation: record.agent.metadata.generation,
-            sandbox: Some(crate::sandbox::Assignment::Materialized {
-                provider,
-                id: ensured.id,
-            }),
-            conditions: vec![
-                condition(SANDBOX_READY, ConditionStatus::True, "SandboxRunning", ""),
-                condition(READY, ConditionStatus::True, "SandboxReady", ""),
-            ],
+        let assignment = crate::sandbox::Assignment::Materialized {
+            provider,
+            id: ensured.id,
         };
-        self.update_status(&record, status).await?;
+        let mut conditions = vec![condition(
+            Condition::SANDBOX_READY,
+            ConditionStatus::True,
+            "SandboxRunning",
+            "",
+        )];
+        self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions)
+            .await?;
+        conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
+        let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
+        self.update_status(&record, status, None).await?;
         if ensured.runtime_restarted {
             self.notify_sessions(record.id);
         }
         Ok(())
     }
 
+    /// Reconciles declared SSH access and appends its condition. A failure is
+    /// recorded as the Agent's `Ready=False` before it is returned.
+    async fn reconcile_ssh(
+        &self,
+        record: &AgentRecord,
+        sandbox: &::sandbox::SandboxHandle,
+        assignment: &crate::sandbox::Assignment,
+        conditions: &mut Vec<Condition>,
+    ) -> Result<(), Error> {
+        let Some(ssh) = &self.ssh else {
+            return Ok(());
+        };
+        match ssh.reconcile(record, sandbox).await {
+            Ok(true) => {
+                conditions.push(condition(
+                    Condition::SSH_READY,
+                    ConditionStatus::True,
+                    "ServerRunning",
+                    "",
+                ));
+                Ok(())
+            }
+            Ok(false) => Ok(()),
+            Err(error) => {
+                let failure = ReconcileFailure::classify(&error);
+                conditions.push(condition(
+                    Condition::SSH_READY,
+                    ConditionStatus::False,
+                    "ReconcileFailed",
+                    &failure.message,
+                ));
+                conditions.push(condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    "SshAccessFailed",
+                    &failure.message,
+                ));
+                let status = Status::observed(
+                    record.agent.metadata.generation,
+                    Some(assignment.clone()),
+                    std::mem::take(conditions),
+                );
+                self.update_status(record, status, Some(failure.kind)).await?;
+                Err(error)
+            }
+        }
+    }
+
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {
         self.sandboxes.release(record).await?;
+        if let Some(ssh) = &self.ssh {
+            ssh.remove(record).await?;
+        }
         self.notify_sessions(record.id);
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
-            .await
+            .await?;
+        self.observers.forget(record.id);
+        Ok(())
     }
 
-    async fn record_failure(&self, record: &AgentRecord, reason: &str, error: &Error) -> Result<(), Error> {
+    async fn record_failure(
+        &self,
+        record: &AgentRecord,
+        reason: &str,
+        failure: &ReconcileFailure,
+    ) -> Result<(), Error> {
         self.update_status(
             record,
-            Status {
-                observed_generation: record.agent.metadata.generation,
-                sandbox: record.agent.status.sandbox.clone(),
-                conditions: vec![condition(READY, ConditionStatus::False, reason, &error.to_string())],
-            },
+            Status::observed(
+                record.agent.metadata.generation,
+                record.agent.status.sandbox.clone(),
+                vec![condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    reason,
+                    &failure.message,
+                )],
+            ),
+            Some(failure.kind),
         )
         .await
     }
 
-    async fn update_status(&self, record: &AgentRecord, status: Status) -> Result<(), Error> {
+    async fn update_status(
+        &self,
+        record: &AgentRecord,
+        status: Status,
+        failure: Option<FailureKind>,
+    ) -> Result<(), Error> {
         let notify = session_relevant_transition(&record.agent.status, &status);
+        let observed = ObservedStatus {
+            conditions: status.conditions.clone(),
+            failure,
+        };
         self.store
             .update_status(record.id, record.agent.metadata.generation, status)
             .await?;
+        self.observers.publish_status(record.id, observed);
         if notify {
             self.notify_sessions(record.id);
         }
@@ -173,14 +272,7 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
 }
 
 fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
-    ready(previous) != ready(current)
+    previous.is_ready() != current.is_ready()
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
-}
-
-fn ready(status: &Status) -> bool {
-    status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == READY && condition.status == ConditionStatus::True)
 }

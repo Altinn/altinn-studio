@@ -4,22 +4,28 @@ use rusqlite::{Connection, OptionalExtension as _, params};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AgentId, ConditionStatus, Error, Harness,
+    AgentId, Error,
     sandbox::Assignment,
-    sessions::{AttachTarget, LaunchState, LaunchToken, Session, SessionId, SessionName, State, Status},
+    sessions::{
+        Activity, ActivityEvent, AttachTarget, LaunchState, LaunchToken, Lifecycle, LifecycleState, NewSession,
+        Reported, Session, SessionId, SessionName, Status,
+    },
 };
 
 use super::{agents, database_error};
 
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
-    sessions.harness_native_id";
+    sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
+    sessions.model, sessions.effort";
 
+/// Reconciler-owned column: the lifecycle half of the status plus the
+/// activation revision it was observed at.
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
-struct Lifecycle {
+struct LifecycleRow {
     #[serde(default)]
-    state: State,
+    state: LifecycleState,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     failure: Option<String>,
     #[serde(default)]
@@ -30,7 +36,7 @@ pub(super) fn ensure(
     connection: &mut Connection,
     agent: &str,
     name: &SessionName,
-    harness: Harness,
+    new: &NewSession,
 ) -> Result<Session, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let owner = agents::get_by_name(&transaction, agent)?;
@@ -39,12 +45,18 @@ pub(super) fn ensure(
     }
     let agent_id = owner.id;
     if let Some(session) = query_named(&transaction, agent_id, name)? {
-        if session.harness != harness {
+        // Two callers may both find no Session and both resolve one; the first
+        // recorded selections bind, so a loser that explicitly chose differently
+        // learns about it, while one that chose nothing gets the Session as is.
+        if session.harness != new.harness {
             return Err(Error::Invalid(format!(
-                "Session {name:?} already uses harness {:?}, not {:?}",
+                "Session \"{name}\" already uses harness {:?}, not {:?}",
                 session.harness.as_str(),
-                harness.as_str()
+                new.harness.as_str()
             )));
+        }
+        if let Some(conflict) = session.model_selection.conflict_with(&new.requested) {
+            return Err(Error::Invalid(format!("Session \"{name}\" {conflict}")));
         }
         transaction.commit().map_err(database_error)?;
         return Ok(session);
@@ -53,13 +65,17 @@ pub(super) fn ensure(
     let created_at = time::OffsetDateTime::now_utc().unix_timestamp();
     transaction
         .execute(
-            "INSERT INTO sessions (id, agent_id, name, harness, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT INTO sessions (id, agent_id, name, harness, created_at, initial_prompt, model, effort) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
                 id.to_string(),
                 agent_id.to_string(),
                 name.as_str(),
-                harness.as_str(),
-                created_at
+                new.harness.as_str(),
+                created_at,
+                new.initial_prompt.as_deref(),
+                new.model_selection.model_str(),
+                new.model_selection.effort_str(),
             ],
         )
         .map_err(database_error)?;
@@ -132,84 +148,184 @@ pub(super) fn activate(connection: &Connection, id: SessionId) -> Result<u64, Er
         .map_err(database_error)
 }
 
-pub(super) fn update_status(
+pub(super) fn update_lifecycle(
     connection: &Connection,
     id: SessionId,
-    status: Status,
+    lifecycle: Lifecycle,
     observed_activation_generation: u64,
 ) -> Result<(), Error> {
-    let lifecycle = Lifecycle {
-        state: status.state,
-        failure: status.failure,
+    let row = LifecycleRow {
+        state: lifecycle.state,
+        failure: lifecycle.failure,
         observed_activation_generation,
     };
     let changed = connection
         .execute(
             "UPDATE sessions SET lifecycle_json = ?1 WHERE id = ?2",
-            params![serde_json::to_string(&lifecycle)?, id.to_string()],
+            params![serde_json::to_string(&row)?, id.to_string()],
         )
         .map_err(database_error)?;
     if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
 }
 
-pub(super) fn set_native_session_id(connection: &Connection, id: SessionId, native: Option<&str>) -> Result<(), Error> {
+/// Clears every reported column: the previous harness incarnation's
+/// conversation no longer exists, so neither do its ID, transcript or activity.
+pub(super) fn clear_report(connection: &Connection, id: SessionId) -> Result<(), Error> {
     let changed = connection
         .execute(
-            "UPDATE sessions SET harness_native_id = ?1 WHERE id = ?2",
-            params![native, id.to_string()],
+            "UPDATE sessions SET harness_native_id = NULL, harness_transcript_path = NULL, activity_json = '{}' \
+             WHERE id = ?1",
+            params![id.to_string()],
         )
         .map_err(database_error)?;
     if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
 }
 
-pub(super) fn set_native_session_id_for_launch(
-    connection: &Connection,
+/// Folds one activity event into the Session, guarded by the current launch token.
+///
+/// A stale token (an earlier launch, or a deleted Agent) matches no row and is a
+/// silent no-op returning `None`, so the harness hook does not retry a report it
+/// can never land.
+pub(super) fn apply_activity_for_launch(
+    connection: &mut Connection,
     id: SessionId,
     token: &LaunchToken,
+    event_id: uuid::Uuid,
+    event: ActivityEvent,
+    at: time::OffsetDateTime,
+) -> Result<Option<Activity>, Error> {
+    let (transaction, activity) = match begin_report(connection, id, token, event_id) {
+        Ok(Some(report)) => report,
+        Ok(None) | Err(Error::NotFound) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    commit_report(transaction, id, activity.folded(event, at)).map(Some)
+}
+
+/// Records start metadata and activity as one deduplicated report.
+pub(super) fn record_start_for_launch(
+    connection: &mut Connection,
+    id: SessionId,
+    token: &LaunchToken,
+    event_id: uuid::Uuid,
     native: &str,
-) -> Result<(), Error> {
-    let changed = connection
+    transcript_path: Option<&str>,
+    at: time::OffsetDateTime,
+) -> Result<Option<Activity>, Error> {
+    let Some((transaction, activity)) = begin_report(connection, id, token, event_id)? else {
+        return Ok(None);
+    };
+    transaction
         .execute(
-            "UPDATE sessions SET harness_native_id = ?1
-             WHERE id = ?2 AND launch_token = ?3
-             AND EXISTS (
-                 SELECT 1 FROM agents
-                 WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL
-             )",
-            params![native, id.to_string(), token.expose()],
+            "UPDATE sessions SET harness_native_id = ?1, harness_transcript_path = ?2 WHERE id = ?3",
+            params![native, transcript_path, id.to_string()],
         )
         .map_err(database_error)?;
-    if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
+    commit_report(transaction, id, activity.folded(ActivityEvent::SessionStart, at)).map(Some)
+}
+
+/// Authenticates the launch and claims the event ID inside its write transaction.
+/// Duplicate reports return `None`; stale launches return `Error::NotFound`.
+fn begin_report<'a>(
+    connection: &'a mut Connection,
+    id: SessionId,
+    token: &LaunchToken,
+    event_id: uuid::Uuid,
+) -> Result<Option<(rusqlite::Transaction<'a>, Activity)>, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let current = transaction
+        .query_row(
+            "SELECT activity_json FROM sessions \
+             WHERE id = ?1 AND launch_token = ?2 \
+             AND EXISTS ( \
+                 SELECT 1 FROM agents \
+                 WHERE agents.id = sessions.agent_id AND agents.active_name IS NOT NULL \
+             )",
+            params![id.to_string(), token.expose()],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(database_error)?
+        .ok_or(Error::NotFound)?;
+    let inserted = transaction
+        .execute(
+            "INSERT INTO session_activity_reports (session_id, launch_token, event_id) VALUES (?1, ?2, ?3) \
+             ON CONFLICT (session_id, launch_token, event_id) DO NOTHING",
+            params![id.to_string(), token.expose(), event_id.to_string()],
+        )
+        .map_err(database_error)?;
+    if inserted == 0 {
+        return Ok(None);
+    }
+    Ok(Some((transaction, serde_json::from_str(&current)?)))
+}
+
+fn commit_report(transaction: rusqlite::Transaction<'_>, id: SessionId, activity: Activity) -> Result<Activity, Error> {
+    transaction
+        .execute(
+            "UPDATE sessions SET activity_json = ?1 WHERE id = ?2",
+            params![serde_json::to_string(&activity)?, id.to_string()],
+        )
+        .map_err(database_error)?;
+    transaction.commit().map_err(database_error)?;
+    Ok(activity)
 }
 
 pub(super) fn record_launch(
-    connection: &Connection,
+    connection: &mut Connection,
     id: SessionId,
     token: &LaunchToken,
     sandbox: &str,
     launched_at: i64,
     attempts: u32,
-) -> Result<(), Error> {
-    let changed = connection
+) -> Result<Option<String>, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let prompt: Option<String> = transaction
+        .query_row(
+            "SELECT initial_prompt FROM sessions WHERE id = ?1",
+            [id.to_string()],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(database_error)?
+        .ok_or(Error::NotFound)?;
+    transaction
         .execute(
-            "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4 \
-             WHERE id = ?5",
+            "UPDATE sessions SET launch_token = ?1, launch_sandbox = ?2, launched_at = ?3, launch_attempts = ?4, \
+             activity_json = '{}', initial_prompt = NULL WHERE id = ?5",
             params![token.expose(), sandbox, launched_at, attempts, id.to_string()],
         )
         .map_err(database_error)?;
-    if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
+    // Reports from previous launches can no longer authenticate, so their IDs can be discarded.
+    transaction
+        .execute(
+            "DELETE FROM session_activity_reports WHERE session_id = ?1",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    transaction.commit().map_err(database_error)?;
+    Ok(prompt)
 }
 
 pub(super) fn launch_state(connection: &Connection, id: SessionId) -> Result<Option<LaunchState>, Error> {
     connection
         .query_row(
-            "SELECT launch_sandbox, launched_at, launch_attempts FROM sessions WHERE id = ?1",
+            "SELECT launch_token, launch_sandbox, launched_at, launch_attempts
+             FROM sessions WHERE id = ?1",
             [id.to_string()],
             |row| {
-                let sandbox = row.get::<_, Option<String>>(0)?;
-                let launched_at = row.get::<_, Option<i64>>(1)?;
-                let attempts = row.get::<_, u32>(2)?;
-                Ok(sandbox.zip(launched_at).map(|(sandbox, launched_at)| LaunchState {
+                let token = row
+                    .get::<_, Option<String>>(0)?
+                    .map(|token| token.parse().map_err(conversion_error))
+                    .transpose()?;
+                let sandbox = row.get::<_, Option<String>>(1)?;
+                let launched_at = row.get::<_, Option<i64>>(2)?;
+                let attempts = row.get::<_, u32>(3)?;
+                let (Some(token), Some(sandbox), Some(launched_at)) = (token, sandbox, launched_at) else {
+                    return Ok(None);
+                };
+                Ok(Some(LaunchState {
+                    token,
                     sandbox,
                     launched_at,
                     attempts,
@@ -233,16 +349,11 @@ pub(super) fn reset_launch_attempts(connection: &Connection, id: SessionId) -> R
 
 pub(super) fn attach_target(connection: &Connection, id: SessionId) -> Result<AttachTarget, Error> {
     let session = get(connection, id)?;
-    if session.status.state != State::Running {
-        return Err(Error::Invalid(format!("Session {} is not ready", session.id)));
+    if session.status.lifecycle.state != LifecycleState::Running {
+        return Err(session.not_running_error());
     }
     let agent = agents::get(connection, session.agent_id)?;
-    let ready = agent
-        .agent
-        .status
-        .conditions
-        .iter()
-        .any(|condition| condition.kind == "Ready" && condition.status == ConditionStatus::True);
+    let ready = agent.agent.status.is_ready();
     let Some(sandbox @ Assignment::Materialized { .. }) = agent.agent.status.sandbox else {
         return Err(Error::Invalid(format!(
             "Agent {:?} is not ready",
@@ -292,20 +403,39 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
     let harness = row.get::<_, String>(4)?.parse().map_err(conversion_error)?;
     let created_at = time::OffsetDateTime::from_unix_timestamp(row.get::<_, i64>(5)?).map_err(conversion_error)?;
     let activation_generation = u64::try_from(row.get::<_, i64>(6)?).map_err(conversion_error)?;
-    let lifecycle = serde_json::from_str::<Lifecycle>(&row.get::<_, String>(7)?).map_err(conversion_error)?;
+    let lifecycle = serde_json::from_str::<LifecycleRow>(&row.get::<_, String>(7)?).map_err(conversion_error)?;
     let harness_session_id = row.get::<_, Option<String>>(8)?;
+    let harness_transcript_path = row.get::<_, Option<String>>(9)?;
+    let activity = serde_json::from_str::<Activity>(&row.get::<_, String>(10)?).map_err(conversion_error)?;
+    let model = row
+        .get::<_, Option<String>>(11)?
+        .map(crate::Model::new)
+        .transpose()
+        .map_err(conversion_error)?;
+    let effort = row
+        .get::<_, Option<String>>(12)?
+        .map(crate::Effort::new)
+        .transpose()
+        .map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
         agent,
         name,
         harness,
+        model_selection: crate::ModelSelection { model, effort },
         created_at,
-        status: Status {
-            state: lifecycle.state,
-            failure: lifecycle.failure,
-            harness_session_id,
-        },
+        status: Status::new(
+            Lifecycle {
+                state: lifecycle.state,
+                failure: lifecycle.failure,
+            },
+            Reported {
+                harness_session_id,
+                harness_transcript_path,
+                activity,
+            },
+        ),
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })

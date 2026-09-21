@@ -1,90 +1,68 @@
 import React, { useEffect, useState } from 'react';
 
-import { AccordionItem, Flex, Spinner } from '@app/form-component';
+import { AccordionItem, Flex } from '@app/form-component';
 import { Alert, Heading } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/process/ProcessWrapper.module.css';
-import { useInstancePollFailureCount, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { Loader } from 'src/core/loading/Loader';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IProcessWorkflowFailure } from 'src/types/shared';
 
-/**
- * Delay before explaining that processing is taking unusually long. The server-reported start
- * time keeps the threshold stable across refreshes and sessions; older backends fall back to the
- * page-mount time. A single escalation avoids a series of near-identical slow-wait messages.
- */
-const STILL_WORKING_MS = 30_000;
-/**
- * Consecutive failed poll cycles before the waiting view reports connection trouble. A single
- * failed cycle is treated as a transient blip while the poll loop recovers.
- */
-const CONNECTION_TROUBLE_AFTER_CYCLES = 2;
+/** Delay before explaining that processing is taking unusually long. */
+const STILL_WORKING_MS = 8_000;
 
 /**
- * Renders the live workflow-transition state. Every message is a text resource, so an app can
- * override it. The spinner, title, and body are always present; the slow-processing alert is shown
- * after 30 seconds; and connection trouble is shown independently when polling has repeatedly
- * failed. The wire model also reports step progress, but it is deliberately not rendered - internal
- * engine step counts mean nothing to the user.
+ * Uses the ordinary form loader while a workflow transition is running. After eight seconds
+ * of processing, the user also sees the safe-to-leave message. Both timestamps come from the
+ * engine clock; a browser timer covers the remaining wait between status responses.
  */
 export function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
-  const pollFailureCount = useInstancePollFailureCount();
-  const { langAsString } = useLanguage();
+  const isProcessing = workflow?.status === 'processing';
+  const startedAt = isProcessing ? workflow.startedAt : undefined;
+  const currentTime = isProcessing ? workflow.currentTime : undefined;
+  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(startedAt ?? '');
+  // Older engines and invalid timestamps fall back to an eight-second wait on this screen.
+  const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
   const [stillWorking, setStillWorking] = useState(false);
-  const startedAt = workflow?.status === 'processing' ? workflow.startedAt : undefined;
 
   useEffect(() => {
-    // Clamping elapsed at 0 guards against client-clock skew: a reconnect must never wait longer
-    // than a fresh mount would.
-    const startedMs = startedAt ? Date.parse(startedAt) : Number.NaN;
-    const elapsedMs = Number.isFinite(startedMs) ? Math.max(0, Date.now() - startedMs) : 0;
-    const stillWorkingTimer = setTimeout(() => setStillWorking(true), Math.max(0, STILL_WORKING_MS - elapsedMs));
+    const remainingMs = Math.max(0, STILL_WORKING_MS - elapsedMs);
+    setStillWorking(isProcessing && remainingMs === 0);
+    if (!isProcessing || remainingMs === 0) {
+      return;
+    }
+    const stillWorkingTimer = setTimeout(() => setStillWorking(true), remainingMs);
     return () => {
       clearTimeout(stillWorkingTimer);
     };
-  }, [startedAt]);
+  }, [isProcessing, startedAt, elapsedMs]);
 
   return (
-    <Flex
-      item
-      size={{ xs: 12 }}
-      aria-live='polite'
-    >
-      <div className={classes.processingContainer}>
-        <Spinner
-          aria-hidden='true'
-          aria-label={langAsString('general.loading')}
-          data-size='xl'
-        />
-        <Heading
-          level={2}
-          data-size='sm'
-        >
-          <Lang id='process_workflow.advancing_title' />
-        </Heading>
-        <div className={classes.processingNote}>
-          <Lang id='process_workflow.advancing_body' />
-        </div>
-        {pollFailureCount >= CONNECTION_TROUBLE_AFTER_CYCLES && (
-          <div className={classes.processingNote}>
-            <Lang id='process_workflow.connection_trouble' />
-          </div>
-        )}
-        {stillWorking && (
-          <Alert
-            data-color='info'
-            className={classes.stillWorkingAlert}
+    <Loader
+      reason='workflow-processing'
+      overlay={
+        isProcessing && stillWorking ? (
+          <div
+            role='status'
+            aria-live='polite'
+            aria-atomic='true'
+            className={classes.stillWorkingOverlay}
           >
-            <Lang id='process_workflow.still_working' />
-          </Alert>
-        )}
-      </div>
-    </Flex>
+            <Alert
+              data-color='info'
+              className={classes.stillWorkingAlert}
+            >
+              <Lang id='process_workflow.still_working' />
+            </Alert>
+          </div>
+        ) : undefined
+      }
+    />
   );
 }
 

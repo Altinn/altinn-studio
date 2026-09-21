@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import {
@@ -15,7 +16,6 @@ import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
 import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 export function useSubformFormData(dataElementId: string) {
   const instanceId = useStrictInstanceId();

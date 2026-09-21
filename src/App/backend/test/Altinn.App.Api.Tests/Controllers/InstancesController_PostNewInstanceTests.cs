@@ -1376,26 +1376,29 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool isInstantiation = false,
             Dictionary<string, string>? prefill = null,
             InstantiationNotification? notification = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => Task.FromResult(instance);
 
-        public Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default) =>
-            throw new NotSupportedException();
+        public Task<ProcessChangeResult> Next(
+            ProcessNextRequest request,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<ProcessChangeResult> ResumeCurrentTask(
             ProcessNextRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task EnqueueProcessNext(
-            Instance instance,
+            IInstanceDataAccessor dataAccessor,
             Actor actor,
             Guid dependsOnWorkflowId,
             string collectionKey,
             string state,
+            DateTimeOffset executionReferenceTime,
             string? action = null,
             string? idempotencyKey = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -1406,13 +1409,19 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new HttpRequestException("Workflow engine rejected enqueue.", null, statusCode);
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => Task.FromResult<WorkflowCollectionDetailResponse?>(null);
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
@@ -1420,39 +1429,42 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([]);
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<MailboxDeliveryResult> DeliverToMailbox(
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -1466,7 +1478,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             _collectionKey = collectionKey;
@@ -1478,10 +1490,16 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             );
         }
 
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) =>
             Task.FromResult<WorkflowCollectionDetailResponse?>(
                 new WorkflowCollectionDetailResponse
@@ -1508,7 +1526,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) =>
             Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([
                 new WorkflowStatusResponse
@@ -1554,33 +1572,36 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
-            throw new NotSupportedException();
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<MailboxDeliveryResult> DeliverToMailbox(
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 }

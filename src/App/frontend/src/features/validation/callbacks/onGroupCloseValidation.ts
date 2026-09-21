@@ -1,3 +1,5 @@
+import type { AllowedValidationMasks } from '@app/layout-contract/generated/common.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
@@ -5,7 +7,6 @@ import { useVisibleValidationsDeepSelector } from 'src/features/validation/valid
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import type { NodeRefValidation } from 'src/features/validation';
-import type { AllowedValidationMasks } from 'src/layout/common.generated';
 import type { BaseRow } from 'src/utils/layout/types';
 
 /**

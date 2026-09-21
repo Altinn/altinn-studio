@@ -15,7 +15,7 @@ internal sealed class LegacyRuleFileCleanup
     /// <summary>
     /// Remove legacy rule files from all layout sets
     /// </summary>
-    public CleanupStatistics CleanupAllLayoutSets()
+    public CleanupStatistics CleanupAllLayoutSets(IReadOnlySet<string>? layoutSetsToKeep = null)
     {
         var stats = new CleanupStatistics();
 
@@ -36,6 +36,11 @@ internal sealed class LegacyRuleFileCleanup
         foreach (var layoutSetPath in layoutSetDirectories)
         {
             var layoutSetName = Path.GetFileName(layoutSetPath);
+            if (layoutSetsToKeep?.Contains(layoutSetName) == true)
+            {
+                stats.LayoutSetsKept++;
+                continue;
+            }
 
             try
             {
@@ -43,10 +48,12 @@ internal sealed class LegacyRuleFileCleanup
                 stats.TotalLayoutSets++;
                 stats.RuleConfigFilesDeleted += result.RuleConfigDeleted ? 1 : 0;
                 stats.RuleHandlerFilesDeleted += result.RuleHandlerDeleted ? 1 : 0;
+                stats.Errors += result.Errors;
             }
             catch (Exception ex)
             {
                 UpgradeConsole.WriteErrorLine($"Error cleaning up layout set {layoutSetName}: {ex.Message}");
+                stats.Errors++;
             }
         }
 
@@ -74,6 +81,7 @@ internal sealed class LegacyRuleFileCleanup
                 UpgradeConsole.WriteErrorLine(
                     $"Failed to delete RuleConfiguration.json in {layoutSetName}: {ex.Message}"
                 );
+                result.Errors++;
             }
         }
 
@@ -89,6 +97,7 @@ internal sealed class LegacyRuleFileCleanup
             catch (Exception ex)
             {
                 UpgradeConsole.WriteErrorLine($"Failed to delete RuleHandler.js in {layoutSetName}: {ex.Message}");
+                result.Errors++;
             }
         }
 
@@ -104,6 +113,8 @@ internal sealed class CleanupStatistics
     public int TotalLayoutSets { get; set; }
     public int RuleConfigFilesDeleted { get; set; }
     public int RuleHandlerFilesDeleted { get; set; }
+    public int LayoutSetsKept { get; set; }
+    public int Errors { get; set; }
 }
 
 /// <summary>
@@ -114,4 +125,5 @@ internal sealed class LayoutSetCleanupResult
     public string LayoutSetName { get; set; } = string.Empty;
     public bool RuleConfigDeleted { get; set; }
     public bool RuleHandlerDeleted { get; set; }
+    public int Errors { get; set; }
 }

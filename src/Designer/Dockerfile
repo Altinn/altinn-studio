@@ -45,13 +45,18 @@ COPY src/common/ts/package.json ./src/common/ts/
 COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
+COPY src/common/ts/layout-contract/package.json ./src/common/ts/layout-contract/
 
 ARG CYPRESS_INSTALL_BINARY=0
 ARG PUPPETEER_SKIP_DOWNLOAD=true
 ENV CYPRESS_INSTALL_BINARY=${CYPRESS_INSTALL_BINARY}
 ENV PUPPETEER_SKIP_DOWNLOAD=${PUPPETEER_SKIP_DOWNLOAD}
 
-RUN yarn --immutable
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn --immutable
 
 COPY . .
 RUN cd src/Designer/frontend && yarn build

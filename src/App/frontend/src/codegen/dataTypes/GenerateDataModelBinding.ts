@@ -1,6 +1,8 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
+import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
 
 /**
@@ -14,10 +16,24 @@ export class GenerateDataModelBinding extends GenerateCommonImport<'IDataModelRe
     super('IDataModelReference');
   }
 
+  toTypeScript(): string {
+    return CodeGeneratorContext.isGeneratingSerializedTypeScript()
+      ? this.rawBinding.toTypeScript()
+      : super.toTypeScript();
+  }
+
   toJsonSchema(): JSONSchema7 {
     // This tricks the schema to output a union of either string or object, although the typescript types are only
     // objects. We rewrite incoming layouts to always be objects in LayoutsContext, so in practice this is always
     // an object internally.
     return this.rawBinding.toJsonSchema();
+  }
+
+  toComponentCatalog(): PropertyValueDefinition {
+    return { ...super.toComponentCatalog(), semanticType: 'dataModelBinding' };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { ...super.toComponentCatalogDefinition(), semanticType: 'dataModelBinding' };
   }
 }

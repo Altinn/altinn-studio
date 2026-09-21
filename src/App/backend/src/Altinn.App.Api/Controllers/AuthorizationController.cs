@@ -124,20 +124,25 @@ public class AuthorizationController : Controller
     /// </summary>
     /// <param name="userId">The userId</param>
     /// <param name="partyId">The partyId</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Boolean indicating if the selected party is valid.</returns>
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId)
+    public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId, CancellationToken cancellationToken)
     {
         if (partyId == 0 || userId == 0)
         {
             return BadRequest("Both userId and partyId must be provided.");
         }
 
-        bool? result = await _authorization.ValidateSelectedParty(userId, partyId);
+        bool? result = await _authorization.ValidateSelectedParty(
+            userId,
+            partyId,
+            cancellationToken: cancellationToken
+        );
 
         if (result != null)
         {

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { TaskKeys } from 'src/routesBuilder';
 
 /**
@@ -46,52 +47,5 @@ export function useFollowProcess(enabled = true) {
     reFetchProcessData,
   ]);
 
-  useBackoff(callback, enabled);
-}
-
-export function useBackoff(callback: () => Promise<void>, enabled = true) {
-  // The backoff algorithm is used to check the process data, and slow down the requests after a while.
-  // At first, it starts off once a second (every 1000ms) for 10 seconds.
-  // After that, it slows down by one more second for every request.
-  // Once it reaches 20 attempts, it will reach the max delay of 30 seconds between each request.
-  const attempts = useRef(0);
-  const wasEnabled = useRef(false);
-
-  useEffect(() => {
-    if (!enabled) {
-      wasEnabled.current = false;
-      return;
-    }
-
-    // Each disabled->enabled transition is a new waiting episode and starts the backoff from the
-    // fast cadence again. The reset is keyed on that transition alone - NOT on every effect re-run,
-    // since the effect also re-runs whenever the callback identity changes (e.g. fresh process
-    // data), and resetting there would pin the cadence at the fastest rate forever. This matters
-    // for the ProcessWrapper-mounted poll, which lives for the whole instance session: without the
-    // reset, a second parked service task would inherit the slowed-down cadence (up to 30s to the
-    // first poll) from an earlier long wait.
-    if (!wasEnabled.current) {
-      wasEnabled.current = true;
-      attempts.current = 0;
-    }
-
-    let shouldContinue = true;
-    function continueCalling() {
-      const backoff = attempts.current < 10 ? 1000 : Math.min(30000, 1000 + (attempts.current - 10) * 1000);
-      setTimeout(() => {
-        if (!shouldContinue) {
-          return;
-        }
-        callback().then();
-        attempts.current++;
-        shouldContinue && continueCalling();
-      }, backoff);
-    }
-
-    continueCalling();
-
-    return () => {
-      shouldContinue = false;
-    };
-  }, [callback, enabled]);
+  usePollingWithBackoff(callback, enabled);
 }

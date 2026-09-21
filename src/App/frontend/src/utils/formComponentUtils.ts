@@ -1,13 +1,18 @@
 import type React from 'react';
 
+import type {
+  IDataModelBindingsList,
+  IPageBreak,
+  ITableColumnProperties,
+} from '@app/layout-contract/generated/common.generated';
+import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
+
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { FormStore } from 'src/features/form/FormContext';
 import printStyles from 'src/styles/print.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IDataModelBindingsList, IPageBreak, ITableColumnProperties } from 'src/layout/common.generated';
 import type { CompTypes, IDataModelBindings, ITextResourceBindings } from 'src/layout/layout';
-import type { IGroupColumnFormatting } from 'src/layout/RepeatingGroup/config.generated';
 
 export type BindingToValues<B extends IDataModelBindings | undefined> = B extends undefined
   ? { [key: string]: undefined }

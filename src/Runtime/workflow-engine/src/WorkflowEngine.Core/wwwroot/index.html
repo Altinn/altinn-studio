@@ -69,6 +69,13 @@
       <button class="filter-clear" id="live-filter-clear" title="Clear filter">&times;</button>
     </div>
   </div>
+  <div class="section" id="throttle-section" style="display:none">
+    <div class="section-title collapsible" onclick="toggleSection('throttle-section')"><span class="chevron">&#9656;</span>THROTTLED NAMESPACES
+      <span class="count" id="throttle-count"></span>
+    </div>
+    <div class="section-body" id="throttle-list"></div>
+  </div>
+
   <div class="section collapsed" id="scheduled-section">
     <div class="section-title collapsible" onclick="toggleSection('scheduled-section')"><span class="chevron">&#9656;</span>SCHEDULED
       <span class="section-chips" data-section="scheduled" onclick="event.stopPropagation()">

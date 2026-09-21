@@ -23,7 +23,7 @@ done
 archive_directory="$(dirname "${archive}")"
 archive_name="$(basename "${archive}")"
 mkdir -p "${archive_directory}"
-temporary="$(mktemp -d -t altinn-agent-package.XXXXXXXX)"
+temporary="$(mktemp -d -t agentctl-package.XXXXXXXX)"
 trap 'rm -rf "${temporary}"' EXIT HUP INT TERM
 
 cp "${binary_directory}/agentctl${executable_suffix}" "${binary_directory}/agentd${executable_suffix}" "${temporary}/"

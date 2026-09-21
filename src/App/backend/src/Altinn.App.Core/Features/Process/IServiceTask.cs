@@ -14,10 +14,9 @@ namespace Altinn.App.Core.Features.Process;
 public interface IServiceTask : IPipelineServiceTask
 {
     /// <summary>
-    /// Executes the service task: <see cref="ServiceTaskResult.Success"/> (with optional
-    /// auto-advance action), <see cref="ServiceTaskResult.SuccessWithoutAutoAdvance"/>,
-    /// <see cref="ServiceTaskResult.Defer"/> to run again later, or a failure. Unhandled
-    /// exceptions are treated as retryable failures.
+    /// Executes the service task. Return <see cref="ServiceTaskResult.Success"/> when complete,
+    /// <see cref="ServiceTaskResult.Defer"/> to run again later, or a failure result.
+    /// Unhandled exceptions are treated as retryable failures.
     /// </summary>
     public Task<ServiceTaskResult> Execute(ServiceTaskContext context);
 

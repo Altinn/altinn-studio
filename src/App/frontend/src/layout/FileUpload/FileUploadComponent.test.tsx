@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
@@ -17,8 +18,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
-import type { IRawOption } from 'src/layout/common.generated';
-import type { CompExternal } from 'src/layout/layout';
+import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
@@ -613,7 +613,7 @@ describe('File uploading components', () => {
           },
         }),
         ...component,
-      } as CompExternal<'FileUpload'>,
+      } as CompExternalExact<'FileUpload'>,
       queries: {
         fetchOptions: () =>
           Promise.resolve({

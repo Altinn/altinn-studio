@@ -129,7 +129,6 @@ oneof
 
 # Abbreviations and literals
 dd          # yyyy-mm-dd
-ifm         # i forbindelse med
 orgnr
 param
 personnr

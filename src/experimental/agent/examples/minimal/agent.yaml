@@ -19,11 +19,14 @@ spec:
   home:
     source: home
   instructions:
-    source: instructions.md
+    - source: instructions.md
   harnesses:
     - type: claudeCode
-      version: "2.1.239"
+      version: "2.1.278"
       auth: mediated
+      # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
+      defaults:
+        model: fable
   secrets: []
   network:
     mode: mediated

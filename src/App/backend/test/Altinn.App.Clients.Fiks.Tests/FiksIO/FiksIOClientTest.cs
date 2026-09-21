@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
@@ -152,6 +153,63 @@ public class FiksIOClientTest
         // Assert
         fixture.FiksIOClientFactoryMock.Verify();
         externalFiksIOClientMock.Verify();
+    }
+
+    [Fact]
+    public async Task InitialiseFiksIOClient_WhenCreatingTheReplacementFails_KeepsTheExistingClient()
+    {
+        // Arrange
+        var existingClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
+        var fixture = TestFixture.Create(services => // Don't dispose the fixture here, it messes with the verifications
+        {
+            services.AddFiksIOClient();
+        });
+
+        fixture
+            .FiksIOClientFactoryMock.SetupSequence(x => x.CreateClient(It.IsAny<ExternalFiksIOConfiguration>()))
+            .ReturnsAsync(existingClientMock.Object)
+            .ThrowsAsync(new FiksIOException("Maskinporten token could not be retrieved"));
+
+        // The client that is still in use must not be disposed on behalf of a replacement that was never built.
+        existingClientMock.Setup(x => x.DisposeAsync()).Verifiable(Times.Never);
+        existingClientMock.Setup(x => x.IsOpenAsync()).ReturnsAsync(true);
+
+        await fixture.FiksIOClient.InitializeFiksIOClient();
+
+        // Act
+        await Assert.ThrowsAsync<FiksIOException>(() => fixture.FiksIOClient.InitializeFiksIOClient());
+
+        // Assert
+        Assert.Same(existingClientMock.Object, fixture.FiksIOClient.GetUnderlyingFiksIOClient());
+        Assert.True(await fixture.FiksIOClient.IsHealthy());
+        existingClientMock.Verify();
+    }
+
+    [Fact]
+    public async Task InitialiseFiksIOClient_WhenRetiringTheOldClientFails_StillReturnsTheReplacement()
+    {
+        // Arrange
+        var existingClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
+        var replacementClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
+        var fixture = TestFixture.Create(services => // Don't dispose the fixture here, it messes with the verifications
+        {
+            services.AddFiksIOClient();
+        });
+
+        fixture
+            .FiksIOClientFactoryMock.SetupSequence(x => x.CreateClient(It.IsAny<ExternalFiksIOConfiguration>()))
+            .ReturnsAsync(existingClientMock.Object)
+            .ReturnsAsync(replacementClientMock.Object);
+        existingClientMock.Setup(x => x.DisposeAsync()).Throws(new FiksIOException("Connection already faulted"));
+
+        await fixture.FiksIOClient.InitializeFiksIOClient();
+
+        // Act
+        var result = await fixture.FiksIOClient.InitializeFiksIOClient();
+
+        // Assert
+        Assert.Same(replacementClientMock.Object, result);
+        Assert.Same(replacementClientMock.Object, fixture.FiksIOClient.GetUnderlyingFiksIOClient());
     }
 
     [Fact]

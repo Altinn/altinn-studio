@@ -1,36 +1,26 @@
-using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Maskinporten.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds a singleton <see cref="IMaskinportenClient"/> service to the service collection.
-    /// If no <see cref="MaskinportenSettings"/> configuration is found, it binds one to the path "MaskinportenSettings".
+    /// <para>Adds the app's <see cref="IMaskinportenClient"/> to the service collection, bound to the one
+    /// Maskinporten identity the app has: the client Studio provisions for it, or the one studioctl provisions
+    /// for a local run.</para>
+    /// <para>There is deliberately no way for the app to configure those credentials — see
+    /// <see cref="ProvisionedSecrets"/> for why.</para>
     /// </summary>
     /// <param name="services">The service collection</param>
     public static IServiceCollection AddMaskinportenClient(this IServiceCollection services)
     {
-        // Only add MaskinportenSettings if not already configured.
-        // Users sometimes wish to bind the default options to another configuration path than "MaskinportenSettings".
-        if (services.IsConfigured<MaskinportenSettings>() is false)
-        {
-            services.ConfigureMaskinportenClient("MaskinportenSettings");
-        }
-
-        services.TryAddSingleton<IMaskinportenClient>(sp =>
-            ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantDefault)
-        );
-
-        services.ConfigureMaskinportenClient("MaskinportenSettingsInternal", MaskinportenClient.VariantInternal);
-        services.AddKeyedSingleton<IMaskinportenClient>(
-            MaskinportenClient.VariantInternal,
-            (sp, key) => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp, MaskinportenClient.VariantInternal)
-        );
+        services.AddMaskinportenSettings();
+        services.TryAddSingleton<IMaskinportenClient>(sp => ActivatorUtilities.CreateInstance<MaskinportenClient>(sp));
 
         // TryAddEnumerable makes repeated registration safe; a container without a host never runs it.
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MaskinportenWellKnownRefreshService>());
@@ -39,38 +29,25 @@ internal static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Binds a <see cref="MaskinportenSettings"/> configuration to the supplied config section path and options name.
+    /// <para>Binds <see cref="MaskinportenSettings"/> to the provisioned credentials — the first tenant of the
+    /// channel the platform provisions secrets through.</para>
+    /// <para>The credentials are validated whenever they are read, and <see cref="MaskinportenSettingsStartupCheck"/>
+    /// reads them once at host startup: a deployed app with none does not start, while a local run does and
+    /// fails its first token request instead. Rotating credentials that are there reaches a running app
+    /// without a restart, and so does storing them for the first time on a local run.</para>
     /// </summary>
     /// <param name="services">The service collection</param>
-    /// <param name="configSectionPath">The configuration section path, e.g. "MaskinportenSettingsInternal"</param>
-    /// <param name="optionsName">The options name to bind to, e.g. <see cref="MaskinportenClient.VariantInternal"/></param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        string configSectionPath,
-        string? optionsName = null
-    )
+    public static IServiceCollection AddMaskinportenSettings(this IServiceCollection services)
     {
-        services
-            .AddOptions<MaskinportenSettings>(optionsName ?? Microsoft.Extensions.Options.Options.DefaultName)
-            .BindConfiguration(configSectionPath)
-            .ValidateDataAnnotations();
-        return services;
-    }
-
-    /// <summary>
-    /// <p>Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.</p>
-    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration this will be overridden.</p>
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">
-    /// Action delegate that provides <see cref="MaskinportenSettings"/> configuration for the <see cref="MaskinportenClient"/> service
-    /// </param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        Action<MaskinportenSettings> configureOptions
-    )
-    {
-        services.AddOptions<MaskinportenSettings>().Configure(configureOptions).ValidateDataAnnotations();
+        services.BindProvisionedSecret<MaskinportenSettings>(ProvisionedSecretFiles.Maskinporten);
+        services.AddOptions<MaskinportenSettings>().ValidateDataAnnotations();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IValidateOptions<MaskinportenSettings>,
+                ValidateMaskinportenSettingsProvisioned
+            >()
+        );
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService, MaskinportenSettingsStartupCheck>());
 
         return services;
     }

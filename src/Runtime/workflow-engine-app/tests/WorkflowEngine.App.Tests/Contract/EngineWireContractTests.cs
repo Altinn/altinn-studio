@@ -50,6 +50,7 @@ public class EngineWireContractTests
             typeof(ResumeWorkflowResponse),
             typeof(AbandonWorkflowResponse),
             typeof(NudgeWorkflowResponse),
+            typeof(NamespaceThrottleResponse),
             // Mailbox mint/read/close — one response shape for all three
             typeof(MailboxCreateRequest),
             typeof(MailboxResponse),
