@@ -35,6 +35,30 @@ public class AssistantProxyHubTests
     private readonly Mock<IAiAssistantAccessService> _aiAssistantAccessServiceMock = new();
     private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
 
+    public AltinityProxyHubTests()
+    {
+        SetupAssistantAccess(TestOrg, hasAccess: true);
+    }
+
+    [Fact]
+    public async Task RegisterSession_ThrowsHubException_WhenDeveloperHasNoAssistantAccess()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupAssistantAccess(TestOrg, hasAccess: false);
+        var hub = CreateHub();
+
+        var exception = await Assert.ThrowsAsync<HubException>(() =>
+            hub.RegisterSession(TestOrg, TestApp, threadId.ToString())
+        );
+
+        Assert.Contains("Access denied", exception.Message);
+        _webSocketServiceMock.Verify(
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
+            Times.Never
+        );
+    }
+
     [Fact]
     public async Task RegisterSession_ThrowsHubException_WhenThreadIdIsNotAGuid()
     {
@@ -133,9 +157,9 @@ public class AssistantProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        SetupAssistantAccess(TestOrg, hasAccess: false);
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+        SetupAssistantAccess(TestOrg, hasAccess: false);
 
         var request = JsonSerializer.SerializeToElement(
             new
@@ -188,7 +212,6 @@ public class AssistantProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        SetupAssistantAccess(TestOrg, hasAccess: true);
         _apiKeyServiceMock
             .Setup(a =>
                 a.CreateAsync(

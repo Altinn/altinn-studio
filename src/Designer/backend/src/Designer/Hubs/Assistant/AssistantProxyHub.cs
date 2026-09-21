@@ -110,6 +110,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
 
+        await ValidateAssistantAccessAsync(org, developer);
+
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(parsedThreadId, context);
         if (!isOwner)
@@ -298,7 +300,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
     {
         if (!await _aiAssistantAccessService.HasAccessAsync(org))
         {
-            _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
+            _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
             throw new HubException("Access denied");
         }
     }
