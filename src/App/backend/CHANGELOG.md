@@ -11,8 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- The Altinn events your app's process transitions raise - `app.instance.created`, `app.instance.process.movedTo.<task>` and `app.instance.process.completed` - are now registered with an idempotency key, so a transition the workflow engine retries raises its event once instead of once per attempt. Subscribers that occasionally received the same event twice for one transition stop seeing those duplicates; nothing about the events themselves changes, and no app configuration is involved. The `app.instance.substatus.changed` event is deliberately left out - it is raised directly by the request that changes the substatus, and nothing retries it.
-- Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app that calls it keeps compiling unless it passes the cancellation token positionally - pass it by name (`cancellationToken:`) if so. An app raising its own events from a service task can now pass `ServiceTaskContext.StepId` as the key, and Altinn Events then stores and delivers that event once however many times the task is retried. One key registers one event, so a task raising two events must give each its own key, or the second is discarded as a duplicate of the first.
+- The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
+- Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 
 ## [9.0.0-preview.6] - 2026-09-18
 

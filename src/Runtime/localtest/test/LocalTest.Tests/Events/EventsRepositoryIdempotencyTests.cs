@@ -8,11 +8,8 @@ using Xunit;
 namespace LocalTest.Tests.Events;
 
 /// <summary>
-/// An <c>Idempotency-Key</c> is globally unique and registers exactly one event, which is what lets an
-/// app retry a registration without publishing the event twice. That is the contract Altinn Events
-/// offers, so localtest has to model it, or a local run cannot show the behavior a deployed app depends
-/// on. These tests pin the whole of it: one event per key, one key per event, and one winner when
-/// registrations race.
+/// An <c>Idempotency-Key</c> is globally unique and registers exactly one event. Localtest models that
+/// contract so a local run behaves the way a deployed app does.
 /// </summary>
 public class EventsRepositoryIdempotencyTests : IDisposable
 {
