@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,7 +34,10 @@ public class AllTagsValidator(IAppOptionsService appOptionsService) : IValidator
         var allTags = files.SelectMany(f => f.Tags).Distinct().ToList();
         var options = await appOptionsService.GetOptionsAsync("applicationdocs", language, new Dictionary<string, string>());
 
-        foreach (var option in options.Options!)
+        var documentOptions = options.Options
+            ?? throw new InvalidOperationException("Expected the 'applicationdocs' options to be configured.");
+
+        foreach (var option in documentOptions)
         {
             if (!allTags.Contains(option.Value))
             {

@@ -32,11 +32,9 @@ namespace Altinn.App.logic.DataProcessing
             Dictionary<string, string>? prefill
         )
         {
-            if (data.GetType() == typeof(modell2))
+            if (data is modell2 form)
             {
-                var form = data as modell2;
-
-                form!.questions = new List<questions>
+                form.questions = new List<questions>
                 {
                     new questions { Id = "question-1", Answer = "" },
                     new questions { Id = "question-2", Answer = "" },

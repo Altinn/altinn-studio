@@ -31,18 +31,18 @@ namespace Altinn.App.Options
                 count = int.Parse(size);
             }
 
-            List<ListItem> items = new List<ListItem>();
+            List<PersonEntry> items = new List<PersonEntry>();
 
-            items.Add(new ListItem { Name = "Caroline", Age = "28", Profession = "Utvikler" });
-            items.Add(new ListItem { Name = "Kåre", Age = "37", Profession = "Sykepleier" });
-            items.Add(new ListItem { Name = "Johanne", Age = "27", Profession = "Utvikler" });
-            items.Add(new ListItem { Name = "Kari", Age = "56", Profession = "Snekker" });
-            items.Add(new ListItem { Name = "Petter", Age = "19", Profession = "Personlig trener" });
-            items.Add(new ListItem { Name = "Hans", Age = "80", Profession = "Pensjonist" });
-            items.Add(new ListItem { Name = "Siri", Age = "28", Profession = "UX designer" });
-            items.Add(new ListItem { Name = "Tiril", Age = "40", Profession = "Arkitekt" });
-            items.Add(new ListItem { Name = "Karl", Age = "49", Profession = "Skuespiller" });
-            items.Add(new ListItem { Name = "Mette", Age = "33", Profession = "Artist" });
+            items.Add(new PersonEntry("Caroline", "28", "Utvikler"));
+            items.Add(new PersonEntry("Kåre", "37", "Sykepleier"));
+            items.Add(new PersonEntry("Johanne", "27", "Utvikler"));
+            items.Add(new PersonEntry("Kari", "56", "Snekker"));
+            items.Add(new PersonEntry("Petter", "19", "Personlig trener"));
+            items.Add(new PersonEntry("Hans", "80", "Pensjonist"));
+            items.Add(new PersonEntry("Siri", "28", "UX designer"));
+            items.Add(new PersonEntry("Tiril", "40", "Arkitekt"));
+            items.Add(new PersonEntry("Karl", "49", "Skuespiller"));
+            items.Add(new PersonEntry("Mette", "33", "Artist"));
 
             if (!String.IsNullOrEmpty(search))
             {
@@ -50,9 +50,9 @@ namespace Altinn.App.Options
                 items = items
                     .Where(o =>
                     {
-                        var n = o.Name!.ToLower();
-                        var a = o.Age!.ToString();
-                        var p = o.Profession!.ToLower();
+                        var n = o.Name.ToLower();
+                        var a = o.Age.ToString();
+                        var p = o.Profession.ToLower();
 
                         return n.Contains(s) || a.Contains(s) || p.Contains(s);
                     })
@@ -78,7 +78,16 @@ namespace Altinn.App.Options
             };
 
             List<object> objectList = new List<object>();
-            items.ForEach(o => objectList.Add(o));
+            items.ForEach(o =>
+                objectList.Add(
+                    new ListItem
+                    {
+                        Name = o.Name,
+                        Age = o.Age,
+                        Profession = o.Profession
+                    }
+                )
+            );
 
             int boundedCount = start + count > items.Count ? items.Count - start : count;
             return Task.FromResult(
@@ -89,5 +98,11 @@ namespace Altinn.App.Options
                 }
             );
         }
+
+        /// <summary>
+        /// Seed data for the people list. Every field is required, so the compiler
+        /// can see that the values are present without any assertion at the use site.
+        /// </summary>
+        private sealed record PersonEntry(string Name, string Age, string Profession);
     }
 }

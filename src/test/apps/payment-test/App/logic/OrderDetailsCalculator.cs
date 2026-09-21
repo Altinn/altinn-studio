@@ -52,7 +52,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
         
         ContactInformation contactInformation = formData.ContactInformation;
         Company company = formData.Company;
-        CompanyProperties? companyProperties = company.CompanyProperties!.FirstOrDefault();
+        CompanyProperties? companyProperties = company.CompanyProperties?.FirstOrDefault();
 
         if(companyProperties == null)
         {
@@ -64,7 +64,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
             PrivatePerson = new PayerPrivatePerson
             {
                 Email = contactInformation.Email,
-                PhoneNumber = ExtractPhoneNumber(contactInformation.PhoneNumber!),
+                PhoneNumber = contactInformation.PhoneNumber is { } phoneNumber ? ExtractPhoneNumber(phoneNumber) : null,
                 FirstName = companyProperties.FirstName,
                 LastName = companyProperties.LastName
             },

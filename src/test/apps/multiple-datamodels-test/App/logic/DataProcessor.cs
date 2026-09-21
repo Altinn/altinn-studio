@@ -37,7 +37,7 @@ namespace Altinn.App.logic.DataProcessing
 
         private void ProcessModel2(modell2 data)
         {
-            foreach (var person in data.personer!)
+            foreach (var person in data.personer ?? [])
             {
                 if (
                     !string.IsNullOrEmpty(person.fødselsdato)

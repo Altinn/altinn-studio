@@ -29,7 +29,8 @@ namespace Altinn.App.logic
         {
             if (data is Form form)
             {
-                var currentFields = await GetCurrentFields(instance, dataId!.Value, data);
+                Guid dataElementId = dataId ?? throw new InvalidOperationException("ProcessDataWrite was called without a data element id.");
+                var currentFields = await GetCurrentFields(instance, dataElementId, data);
                 int index = (form.GoodsAndServicesProperties?.Inventory?.InventoryProperties?.Count > 0) ? form.GoodsAndServicesProperties.Inventory.InventoryProperties.Count - 1 : 0;
 
                 if (currentFields.ContainsKey("Trademark.TrademarkType") ||

@@ -11,11 +11,11 @@ namespace Altinn.App.logic.DataProcessing
     {
         public async Task DataCreation(Instance instance, object datamodel, Dictionary<string, string>? prefill)
         {
-            if (datamodel.GetType() == typeof(data))
+            if (datamodel is data model)
             {
-                data model = (data)datamodel;
-                model.form!.year = DateTime.Now.Year - 1;
-            } 
+                form formData = model.form ??= new form();
+                formData.year = DateTime.Now.Year - 1;
+            }
 
             await Task.CompletedTask;
         }
