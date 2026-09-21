@@ -1,0 +1,52 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoriametrics-operator
+  namespace: victoriametrics-operator
+spec:
+  interval: 1h
+  timeout: 5m
+  install:
+    remediation:
+      retries: 5
+  upgrade:
+    remediation:
+      retries: 5
+  chart:
+    spec:
+      # Chart 0.67.3 ships operator v0.74.1.
+      chart: victoria-metrics-operator
+      sourceRef:
+        kind: HelmRepository
+        name: victoriametrics-oci
+        namespace: victoriametrics-operator
+      version: 0.67.3
+  values:
+    # The operator manages the Victoria backend only. Watching every namespace
+    # would give it reconcile authority over the whole cluster for no gain.
+    watchNamespaces:
+      - observability
+    operator:
+      # kube-prometheus-stack owns the ServiceMonitors in this cluster. With the
+      # converter enabled the operator mirrors each one into a VMServiceScrape,
+      # which is a second source of truth for scrape configuration that nothing
+      # here reads.
+      disable_prometheus_converter: true
+    # Disabled for the same reason as on otel-operator: the API server has to
+    # reach the webhook through the mesh, and a webhook that fails closed blocks
+    # every write to the custom resources. Manifests are validated against the
+    # CRDs before they are committed instead.
+    admissionWebhooks:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+    # The operator is a controller, not part of the telemetry data path, so it
+    # stays on the general node pool. It carries no observability toleration or
+    # node selector: pinning it to the pool it schedules workloads onto would
+    # leave nothing able to recreate them if that pool is replaced.
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi

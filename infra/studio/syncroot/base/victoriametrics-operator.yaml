@@ -1,0 +1,30 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: victoriametrics-operator
+  namespace: default
+spec:
+  interval: 5m
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/victoriametrics-operator-repo
+  ref:
+    tag: ${ENVIRONMENT}
+  provider: azure
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: victoriametrics-operator
+  namespace: default
+spec:
+  interval: 5m
+  targetNamespace: victoriametrics-operator
+  sourceRef:
+    kind: OCIRepository
+    name: victoriametrics-operator
+    namespace: default
+  path: ./
+  prune: true
+  timeout: 1m
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}
