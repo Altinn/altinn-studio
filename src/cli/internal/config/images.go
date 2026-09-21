@@ -56,6 +56,7 @@ type CoreImages struct {
 type MonitoringImages struct {
 	VictoriaMetrics ImageSpec
 	VictoriaTraces  ImageSpec
+	VictoriaLogs    ImageSpec
 	OtelCollector   ImageSpec
 	Grafana         ImageSpec
 }
@@ -78,10 +79,11 @@ func DefaultImages() ImagesConfig {
 			PgAdmin:          ImageSpec{Image: "dpage/pgadmin4", Tag: "9.14", Floating: false},
 		},
 		Monitoring: MonitoringImages{
-			VictoriaMetrics: ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "v1.146.0", Floating: false},
-			VictoriaTraces:  ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "v0.9.3", Floating: false},
-			OtelCollector:   ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "0.98.0", Floating: false},
-			Grafana:         ImageSpec{Image: "grafana/grafana", Tag: "13.1.0", Floating: false},
+			VictoriaMetrics: ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "v1.152.0", Floating: false},
+			VictoriaTraces:  ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "v0.11.1", Floating: false},
+			VictoriaLogs:    ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "v1.52.0", Floating: false},
+			OtelCollector:   ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "0.148.0", Floating: false},
+			Grafana:         ImageSpec{Image: "grafana/grafana", Tag: "13.2.2", Floating: false},
 		},
 	}
 	images.applyEnvOverrides(os.Getenv)
@@ -100,6 +102,7 @@ func (c *ImagesConfig) imageOverrides() map[string]*ImageSpec {
 		"STUDIOCTL_IMAGE_PGADMIN":            &c.Core.PgAdmin,
 		"STUDIOCTL_IMAGE_VICTORIA_METRICS":   &c.Monitoring.VictoriaMetrics,
 		"STUDIOCTL_IMAGE_VICTORIA_TRACES":    &c.Monitoring.VictoriaTraces,
+		"STUDIOCTL_IMAGE_VICTORIA_LOGS":      &c.Monitoring.VictoriaLogs,
 		"STUDIOCTL_IMAGE_OTEL_COLLECTOR":     &c.Monitoring.OtelCollector,
 		"STUDIOCTL_IMAGE_GRAFANA":            &c.Monitoring.Grafana,
 	}
