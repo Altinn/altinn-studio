@@ -552,7 +552,7 @@ section's Chains view.
 **Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
 tooltip), side-chain badge where applicable, one status-colored dot per step (clickable — opens the
 step modal), duration, status pill. Terminal rows show their real duration; active rows tick via
-the shared `[data-timer]` loop when the live section registered a timer. Side rows indent under
+the shared `[data-timer]` loop while the live section still holds the workflow. Side rows indent under
 their head with the violet side-chain card chrome and an elbow connector to the spine line. The
 root workflow (where a root id is given) gets a cyan spine marker and a brightened name.
 
@@ -828,7 +828,7 @@ workflow's status changed.
 
 ### Timers
 
-Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Timer state stored in `state.workflowTimers[databaseId]`. Timers freeze (`frozenAt`) when a workflow leaves active state but the card hasn't been removed yet (during exit animation).
+Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Each frame re-reads the anchor from the live section's own copy of the workflow (`state.previousWorkflows[databaseId]`), so a card re-anchors on `executionStartedAt` as soon as a new attempt stamps it and its number stays continuous with the settled duration the same workflow shows once it lands in Recent. A workflow that leaves the active set loses that copy, so nothing ticks its card any more: the live section stamps the card's counter with its final elapsed on the way out, and that frozen number is what the card shows for the length of its exit animation. Re-renders skip a card already marked exiting, so the frozen value survives until the card is removed.
 
 ### Late-Bound Callbacks
 
