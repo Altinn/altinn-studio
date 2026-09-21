@@ -7,11 +7,15 @@ import { formatElapsed, formatSpan } from '../core/helpers.js';
 export const updateTimers = () => {
     const now = Date.now();
 
+    // Anchored on the live copy, re-read every frame: `executionStartedAt` moves to the start of
+    // each new attempt, so a cached anchor would keep counting from a previous one. A workflow the
+    // live section has dropped leaves its card's last value on screen — the frozen elapsed an
+    // exiting card shows for the length of its animation.
     for (const el of document.querySelectorAll('[data-timer]')) {
-        const timer = state.workflowTimers[el.getAttribute('data-timer') ?? ''];
-        if (timer) {
-            const end = timer.frozenAt || now;
-            el.textContent = formatElapsed((end - new Date(timer.startedAt).getTime()) / 1000);
+        const wf = state.previousWorkflows[el.getAttribute('data-timer') ?? ''];
+        if (wf) {
+            const startedAt = new Date(wf.executionStartedAt || wf.createdAt).getTime();
+            el.textContent = formatElapsed(Math.max(0, (now - startedAt) / 1000));
         }
     }
 

@@ -81,7 +81,6 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             }
             delete state.previousWorkflows[key];
             delete state.workflowFingerprints[key];
-            delete state.workflowTimers[key];
             delete _processingIdx[key];
             notifyStepChanged(key);
             notifyWorkflowChanged(key);
@@ -102,9 +101,6 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
         if (!card) {
             card = createWorkflowCard(wf, elId);
             dom.liveContainer.appendChild(card);
-            state.workflowTimers[wf.databaseId] = {
-                startedAt: wf.executionStartedAt || wf.createdAt,
-            };
             state.workflowFingerprints[wf.databaseId] = fp;
             // createWorkflowCard centers the active step itself; record which one so the first
             // rebuild does not re-center a pipeline the operator has since scrolled.
