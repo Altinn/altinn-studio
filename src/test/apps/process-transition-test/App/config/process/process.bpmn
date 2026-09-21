@@ -55,10 +55,37 @@
       <bpmn:outgoing>Flow_ServiceLayout_GatewayS</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:exclusiveGateway id="Gateway_Service">
+      <bpmn:extensionElements>
+        <!-- A service task sits between Task_1 and this gateway, so the gateway cannot infer the data
+             type from the preceding task's ui folder: name the one the `next` lever lives in. -->
+        <altinn:gatewayExtension>
+          <altinn:connectedDataTypeId>TransitionControl</altinn:connectedDataTypeId>
+        </altinn:gatewayExtension>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_Service_GatewayS</bpmn:incoming>
       <bpmn:incoming>Flow_ServiceLayout_GatewayS</bpmn:incoming>
       <bpmn:outgoing>Flow_GatewayS_Task2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_GatewayS_Sign</bpmn:outgoing>
     </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Sign" name="Sign">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>reject</altinn:action>
+            <altinn:action>sign</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>TransitionControl</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signature</altinn:signatureDataType>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_GatewayS_Sign</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sign_Gateway1</bpmn:outgoing>
+    </bpmn:task>
     <bpmn:task id="Task_2" name="Task 2">
       <bpmn:extensionElements>
         <altinn:taskExtension>
@@ -74,6 +101,7 @@
     </bpmn:task>
     <bpmn:exclusiveGateway id="Gateway_1">
       <bpmn:incoming>Flow_Task2_Gateway</bpmn:incoming>
+      <bpmn:incoming>Flow_Sign_Gateway1</bpmn:incoming>
       <bpmn:outgoing>Flow_Gateway_Task1</bpmn:outgoing>
       <bpmn:outgoing>Flow_Gateway_End</bpmn:outgoing>
     </bpmn:exclusiveGateway>
@@ -93,7 +121,13 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_Service_GatewayS" sourceRef="Task_Service" targetRef="Gateway_Service" />
     <bpmn:sequenceFlow id="Flow_ServiceLayout_GatewayS" sourceRef="Task_ServiceLayout" targetRef="Gateway_Service" />
-    <bpmn:sequenceFlow id="Flow_GatewayS_Task2" sourceRef="Gateway_Service" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_GatewayS_Task2" sourceRef="Gateway_Service" targetRef="Task_2">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals", ["dataModel", "next"], "sign"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_GatewayS_Sign" sourceRef="Gateway_Service" targetRef="Task_Sign">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals", ["dataModel", "next"], "sign"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Sign_Gateway1" sourceRef="Task_Sign" targetRef="Gateway_1" />
     <bpmn:sequenceFlow id="Flow_Task2_Gateway" sourceRef="Task_2" targetRef="Gateway_1" />
     <bpmn:sequenceFlow id="Flow_Gateway_Task1" sourceRef="Gateway_1" targetRef="Task_1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
@@ -124,6 +158,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_2_di" bpmnElement="Task_2">
         <dc:Bounds x="500" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Sign_di" bpmnElement="Task_Sign">
+        <dc:Bounds x="635" y="-40" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1_di" bpmnElement="Gateway_1">
         <dc:Bounds x="660" y="96" width="50" height="50" />
@@ -173,6 +210,14 @@
         <di:waypoint x="685" y="230" />
         <di:waypoint x="350" y="230" />
         <di:waypoint x="350" y="161" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_GatewayS_Sign_di" bpmnElement="Flow_GatewayS_Sign">
+        <di:waypoint x="575" y="0" />
+        <di:waypoint x="635" y="0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Sign_Gateway1_di" bpmnElement="Flow_Sign_Gateway1">
+        <di:waypoint x="685" y="40" />
+        <di:waypoint x="685" y="96" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_Gateway_End_di" bpmnElement="Flow_Gateway_End">
         <di:waypoint x="710" y="121" />

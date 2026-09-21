@@ -62,6 +62,16 @@ namespace Altinn.App.Models.TransitionControl
 
         /// <summary>How long the engine waits between deferrals. The service task picks this per
         /// re-check; the step's wait budget caps the total.</summary>
+        /// <summary>Which task the process moves on to after the service task on the postCommit
+        /// path: "task2" (a data task, the default) or "sign" (Task_Sign, a signing task). A
+        /// signing task renders through its ui folder, so a session still parked on the service
+        /// task's url when the process moves on exercises the task-type lookup for a url that
+        /// names a different task than the current one.</summary>
+        [XmlElement("next", Order = 9)]
+        [JsonProperty("next")]
+        [JsonPropertyName("next")]
+        public string next { get; set; }
+
         [XmlElement("deferDelayMs", Order = 8)]
         [JsonProperty("deferDelayMs")]
         [JsonPropertyName("deferDelayMs")]
