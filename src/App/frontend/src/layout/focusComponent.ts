@@ -1,20 +1,62 @@
-import { useCallback, useEffect } from 'react';
-import { useLocation, useSearchParams } from 'react-router';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useLocation } from 'react-router';
 import type React from 'react';
 
 import { SearchParams } from 'src/core/routing/types';
-import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 
 export type FocusComponentRequest = {
   nodeId: string;
   errorBinding: string | null;
 };
 
+const focusComponentRequestStateKey = 'focusComponentRequest';
+
+export function withFocusComponentRequestState(state: unknown, request: FocusComponentRequest) {
+  const previousState = state && typeof state === 'object' && !Array.isArray(state) ? state : {};
+  return { ...previousState, [focusComponentRequestStateKey]: request };
+}
+
+function getFocusComponentRequestFromState(state: unknown): FocusComponentRequest | undefined {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    return undefined;
+  }
+
+  const request = (state as Record<string, unknown>)[focusComponentRequestStateKey];
+  if (!request || typeof request !== 'object' || Array.isArray(request)) {
+    return undefined;
+  }
+
+  const { nodeId, errorBinding } = request as Record<string, unknown>;
+  return typeof nodeId === 'string' && (typeof errorBinding === 'string' || errorBinding === null)
+    ? { nodeId, errorBinding }
+    : undefined;
+}
+
 type FocusHandler = (binding: string | null) => boolean;
-type PendingFocusRequest = FocusComponentRequest & { onFinished?: () => void };
 
 const focusComponentHandlers = new Map<string, Set<FocusHandler>>();
-let pendingFocusRequest: PendingFocusRequest | undefined;
+const focusRequestListeners = new Set<() => void>();
+let pendingFocusRequest: FocusComponentRequest | undefined;
+
+function publishFocusRequest(request: FocusComponentRequest | undefined) {
+  pendingFocusRequest = request;
+  for (const listener of focusRequestListeners) {
+    listener();
+  }
+}
+
+function subscribeToFocusRequest(listener: () => void) {
+  focusRequestListeners.add(listener);
+  return () => focusRequestListeners.delete(listener);
+}
+
+function getFocusRequestSnapshot() {
+  return pendingFocusRequest;
+}
+
+function getServerFocusRequestSnapshot() {
+  return undefined;
+}
 
 function focusRegisteredComponent(request: FocusComponentRequest) {
   for (const handler of focusComponentHandlers.get(request.nodeId) ?? []) {
@@ -28,23 +70,24 @@ function focusRegisteredComponent(request: FocusComponentRequest) {
 function tryPendingFocusRequest(nodeId: string) {
   const request = pendingFocusRequest;
   if (request?.nodeId === nodeId && focusRegisteredComponent(request) && pendingFocusRequest === request) {
-    // Consume before URL cleanup can remount the target.
-    pendingFocusRequest = undefined;
-    request.onFinished?.();
+    publishFocusRequest(undefined);
   }
 }
 
-export function setFocusComponentRequest(request: FocusComponentRequest | undefined, onFinished?: () => void) {
-  pendingFocusRequest = request ? { ...request, onFinished } : undefined;
+export function setFocusComponentRequest(request: FocusComponentRequest | undefined) {
+  publishFocusRequest(request);
   if (request) {
     tryPendingFocusRequest(request.nodeId);
   }
 }
 
 export function cancelFocusComponentRequest() {
-  const previousRequest = pendingFocusRequest;
-  pendingFocusRequest = undefined;
-  previousRequest?.onFinished?.();
+  publishFocusRequest(undefined);
+}
+
+/** Subscribes structural components that must reveal a requested field before it can mount. */
+export function useFocusComponentRequest() {
+  return useSyncExternalStore(subscribeToFocusRequest, getFocusRequestSnapshot, getServerFocusRequestSnapshot);
 }
 
 /** Tries direct focus, cancelling any older pending request. Returns false if navigation is needed. */
@@ -97,25 +140,15 @@ export function useHandleFocusComponent(nodeId: string, containerDivRef: React.R
 
 export function FocusComponentRequestFromUrl() {
   const location = useLocation();
-  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const nodeId = params.get(SearchParams.FocusComponentId);
-    setFocusComponentRequest(
-      nodeId ? { nodeId, errorBinding: params.get(SearchParams.FocusErrorBinding) } : undefined,
-      () => {
-        setSearchParams((currentParams) => {
-          const nextParams = new URLSearchParams(currentParams);
-          nextParams.delete(SearchParams.FocusComponentId);
-          nextParams.delete(SearchParams.FocusErrorBinding);
-          return nextParams;
-        }, replaceAndPreventResetOptions);
-      },
-    );
+    const requestFromUrl = nodeId ? { nodeId, errorBinding: params.get(SearchParams.FocusErrorBinding) } : undefined;
+    setFocusComponentRequest(getFocusComponentRequestFromState(location.state) ?? requestFromUrl);
 
     return () => setFocusComponentRequest(undefined);
-  }, [location, setSearchParams]);
+  }, [location.key, location.search, location.state]);
 
   return null;
 }

@@ -17,7 +17,12 @@ import {
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-import { cancelFocusComponentRequest, tryFocusComponent } from 'src/layout/focusComponent';
+import {
+  type FocusComponentRequest,
+  setFocusComponentRequest,
+  tryFocusComponent,
+  withFocusComponentRequestState,
+} from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
@@ -30,6 +35,7 @@ export interface NavigateToPageOptions {
   skipAutoSave?: boolean;
   resetReturnToView?: boolean;
   searchParams?: URLSearchParams;
+  focusComponentRequest?: FocusComponentRequest;
 }
 
 /**
@@ -238,9 +244,13 @@ export function useNavigateToPage() {
       debounceImmediately('forced');
       const preventScrollReset =
         options?.preventScrollReset || options?.searchParams?.has(SearchParams.FocusComponentId);
+      const resetOptions = preventScrollReset ? preventFocusAndScrollResetOptions : undefined;
       const navOptions: NavigateOptions = {
+        ...resetOptions,
         replace: options?.replace ?? false,
-        ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
+        state: options?.focusComponentRequest
+          ? withFocusComponentRequestState(resetOptions?.state, options.focusComponentRequest)
+          : resetOptions?.state,
       };
       if (!page) {
         window.logWarn('navigateToPage called without page');
@@ -475,7 +485,7 @@ export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   return async (
     indexedId: string,
@@ -488,23 +498,20 @@ export function useNavigateToComponent() {
       return;
     }
 
-    cancelFocusComponentRequest();
+    const request = { nodeId: indexedId, errorBinding: errorBindingKey };
     const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set(SearchParams.FocusComponentId, indexedId);
+    newSearchParams.delete(SearchParams.FocusComponentId);
     newSearchParams.delete(SearchParams.FocusErrorBinding);
-    if (errorBindingKey) {
-      newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
-    }
 
     if (targetPage && targetPage !== currentPageId) {
       await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
         searchParams: newSearchParams,
-        replace:
-          !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
+        replace: true,
+        focusComponentRequest: request,
       });
     } else {
-      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
+      setFocusComponentRequest(request);
     }
   };
 }
