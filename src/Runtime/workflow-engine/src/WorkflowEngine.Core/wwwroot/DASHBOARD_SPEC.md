@@ -861,10 +861,12 @@ Extracts the BPMN transition from `workflow.operationId`. Expected format: `"Pro
 
 Maps step command names to phases:
 
-- **`end`**: EndTask, CommonTaskFinalization, EndTaskLegacyHook, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook, AbandonTaskLegacyHook
-- **`start`**: UnlockTaskData, StartTask, StartTaskLegacyHook, OnTaskStartingHook, CommonTaskInitialization
-- **`process-end`**: OnProcessEndingHook
+- **`end`**: EndTask, CommonTaskFinalization, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook
+- **`start`**: UnlockTaskData, CleanupGeneratedFromTask, StartTask, OnTaskStartingHook, CommonTaskInitialization
+- **`process-end`**: OnProcessEndingHook, EndProcessLegacyHook
 - **`null`**: Everything else (service tasks, webhooks)
+
+The sets mirror the app library's `WorkflowCommandSet` (the app's `Internal/WorkflowEngine/AGENTS.md`, "How to Add a New Command"). A task-phase command missing here maps to `null`, which ends the bracket before it and starts a new one after it — the task name is then drawn twice around an untagged step.
 
 Phases drive the bracket lines and task name labels shown on the pipeline. The `pipeline.js` renderer groups consecutive steps with the same phase and renders labels at the center of each group.
 
