@@ -6,18 +6,21 @@ import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../../testing/appContextMock';
 import { useMutation } from '@tanstack/react-query';
+import type { PropertyDefinition } from '@app/layout-contract';
 
 const renderEditNumberValue = async ({
   enumValues = null,
   maxLength = undefined,
   handleComponentChange = jest.fn(),
   componentOverrides = {},
+  definition = undefined as PropertyDefinition | undefined,
 } = {}) => {
   return renderWithProviders(
     <EditNumberValue
       handleComponentChange={handleComponentChange}
       propertyKey='maxLength'
       enumValues={enumValues}
+      definition={definition}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
         type: ComponentType.Input,
@@ -33,6 +36,20 @@ const renderEditNumberValue = async ({
 };
 
 describe('EditNumberValue', () => {
+  it.each([
+    { value: 0, message: textMock('validation_errors.min', { 0: 1 }) },
+    { value: 4, message: textMock('validation_errors.max', { 0: 3 }) },
+    { value: 1.5, message: textMock('validation_errors.integer') },
+  ])('shows the specific numeric validation message for $value', async ({ value, message }) => {
+    await renderEditNumberValue({
+      maxLength: value,
+      definition: { type: 'integer', required: false, minimum: 1, maximum: 3 },
+    });
+
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByText(textMock('validation_errors.pattern'))).not.toBeInTheDocument();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });

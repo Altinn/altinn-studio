@@ -97,8 +97,8 @@ describe('componentCatalog', () => {
 
     expect(validateCatalogValue(definition, '')).toBe('required');
     expect(validateCatalogValue(definition, 1.5)).toBe('integer');
-    expect(validateCatalogValue(definition, 0)).toBe('minimum');
-    expect(validateCatalogValue(definition, 4)).toBe('maximum');
+    expect(validateCatalogValue(definition, 0)).toBe('min');
+    expect(validateCatalogValue(definition, 4)).toBe('max');
     expect(validateCatalogValue(definition, 2)).toBe('');
   });
 });
