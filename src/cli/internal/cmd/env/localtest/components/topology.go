@@ -44,7 +44,7 @@ func registerTopologyComponents(manifest *Manifest, opts *Options) {
 		Destination: envtopology.BoundTopologyDestination{
 			Location: envtopology.DestinationLocationEnv,
 			Kind:     envtopology.DestinationKindHTTP,
-			URL:      "http://" + ContainerMonitoringGrafana + ":3000",
+			URL:      "http://" + ContainerGrafana + ":3000",
 		},
 		Enabled: opts.IncludeMonitoring,
 	})
