@@ -16,7 +16,6 @@ on:
       - 'src/<area>/**'
       - '.github/workflows/<this-workflow>.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
 
 jobs:
   build:
@@ -51,7 +50,7 @@ when they do both.
 ## Path filters
 
 Scope `paths` to what the workflow tests, always including its own file, and
-exclude `'!**/AGENTS.md'` / `'!**/CLAUDE.md'`.
+exclude `'!**/AGENTS.md'`.
 
 ## Runners
 

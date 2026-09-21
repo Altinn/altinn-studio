@@ -7,7 +7,6 @@ on:
       - "src/tools/releaser/**"
       - ".github/workflows/releaser-build-test.yml"
       - "!**/AGENTS.md"
-      - "!**/CLAUDE.md"
   workflow_dispatch:
 
 concurrency:

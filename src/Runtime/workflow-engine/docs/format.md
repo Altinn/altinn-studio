@@ -1,7 +1,4 @@
----
-name: format
-description: Format C# files with CSharpier and verify the build passes. Use when formatting code, fixing build errors from formatting, or before committing changes.
----
+# Formatting
 
 ## Format specific files
 

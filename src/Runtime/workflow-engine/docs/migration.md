@@ -1,7 +1,4 @@
----
-name: migration
-description: Manage EF Core database migrations. Use when adding, listing, or removing migrations for the workflow engine.
----
+# EF Core migrations
 
 ## Add a new migration
 
