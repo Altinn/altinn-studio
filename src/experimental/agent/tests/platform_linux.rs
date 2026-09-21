@@ -149,6 +149,97 @@ fn assert_podman_setup_commands(executions: &[sandbox::execution::ExecutionSpec]
     }));
 }
 
+/// Every harness the Agent declares, as preparation would report when all host logins are present.
+fn declared(record: &AgentRecord) -> Vec<agent::Harness> {
+    record
+        .agent
+        .spec
+        .harnesses
+        .iter()
+        .map(|installation| installation.kind)
+        .collect()
+}
+
+/// Setup acts on the installed set preparation reported, not on everything the Agent declares.
+///
+/// The two run in the same convergence pass and must agree about an optional installation whose
+/// host login was absent. Preparation decides and reports; setup is told. An omitted harness is
+/// skipped entirely: not verified, not configured.
+#[tokio::test(flavor = "local")]
+async fn linux_setup_configures_only_the_harnesses_preparation_reported() {
+    let directory = TempDir::new().expect("temporary directory");
+    let home = directory.path().join("home");
+    std::fs::create_dir_all(&home).expect("home directory");
+    std::fs::write(directory.path().join("instructions.md"), "test instructions\n").expect("instruction file");
+    let agent_id: AgentId = "5c0fd6ac-1d5a-4f8b-9f58-6b0f4de1f6c1".parse().expect("Agent ID");
+    let mut resource = support::agent("worker");
+    resource.metadata.generation = 1;
+    resource.spec.home.source = home;
+    resource.spec.harnesses[0].default = true;
+    resource.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: None,
+        auth: agent::HarnessAuthMode::Mediated,
+        optional: true,
+        default: false,
+        defaults: agent::ModelSelection::default(),
+    });
+    let record = AgentRecord {
+        id: agent_id,
+        source_directory: directory.path().to_path_buf(),
+        manifest_path: None,
+        env_file: None,
+        agent: resource,
+    };
+
+    let backend = Rc::new(memory::Provider::new());
+    backend.queue_execution_events_matching(
+        is_claude_version,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("2.1.266 (Claude Code)\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
+    );
+    backend.queue_execution_events_matching(is_podman_presence_check, completed(1));
+    let service = SandboxService::new(backend.clone());
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("Sandbox");
+
+    Linux
+        .setup(&record, &sandbox, &[agent::Harness::ClaudeCode])
+        .await
+        .expect("setup");
+
+    let writes = backend
+        .file_writes()
+        .into_iter()
+        .map(|path| path.as_str().to_owned())
+        .collect::<Vec<_>>();
+    assert!(
+        writes.iter().any(|path| path == "/home/agent/.claude/CLAUDE.md"),
+        "the required harness is still configured: {writes:?}"
+    );
+    assert!(
+        !writes.iter().any(|path| path.starts_with("/home/agent/.codex/")),
+        "the omitted harness must not be configured: {writes:?}"
+    );
+    assert!(
+        !backend.execution_specs().iter().any(is_codex_version),
+        "the omitted harness must not be verified either"
+    );
+}
+
 #[tokio::test(flavor = "local")]
 #[allow(clippy::too_many_lines)]
 async fn linux_setup_rewrites_configuration_without_owning_workspace_initialization() {
@@ -181,6 +272,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection::default(),
     });
@@ -227,7 +319,10 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         .expect("Sandbox");
     let platform = Linux;
 
-    platform.setup(&record, &sandbox).await.expect("first setup");
+    platform
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect("first setup");
     let first_pass_writes = backend.file_writes();
     let mutable_state = br#"{"theme":"light","projects":{"/home/agent/code/example":{"hasTrustDialogAccepted":true}}}"#;
     sandbox
@@ -237,7 +332,10 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         )
         .await
         .expect("write harness-owned state");
-    platform.setup(&record, &sandbox).await.expect("second setup");
+    platform
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect("second setup");
 
     // Harnesses watch their configuration and skills live: a pass that changes nothing must not
     // rewrite them. Only the home archive, consumed by tar and watched by nobody, is re-sent.
@@ -404,7 +502,10 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
             ExecutionEvent::Exited(ExitStatus { code: 1 }),
         ],
     );
-    Linux.setup(&record, &sandbox).await.expect("first setup");
+    Linux
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect("first setup");
     sandbox
         .write_file(
             &SandboxPath::new("/etc/containers/containers.conf.d/50-agent-ca.conf"),
@@ -412,7 +513,10 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         )
         .await
         .expect("replace managed configuration");
-    Linux.setup(&record, &sandbox).await.expect("second setup");
+    Linux
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect("second setup");
 
     assert_eq!(
         read_file(&sandbox, "/etc/containers/containers.conf.d/50-agent-ca.conf").await,
@@ -517,7 +621,7 @@ async fn linux_setup_accepts_any_installed_version_when_none_is_declared() {
         .expect("Sandbox");
 
     Linux
-        .setup(&record, &sandbox)
+        .setup(&record, &sandbox, &declared(&record))
         .await
         .expect("setup without a declared version");
 
@@ -577,12 +681,18 @@ async fn linux_setup_converges_git_identity_after_home_sync() {
         .ensure(&request("First User", "first@example.com"))
         .await
         .expect("first Sandbox");
-    Linux.setup(&record, &first).await.expect("first setup");
+    Linux
+        .setup(&record, &first, &declared(&record))
+        .await
+        .expect("first setup");
     let second = service
         .ensure(&request("Second User", "second@example.com"))
         .await
         .expect("updated Sandbox");
-    Linux.setup(&record, &second).await.expect("updated setup");
+    Linux
+        .setup(&record, &second, &declared(&record))
+        .await
+        .expect("updated setup");
 
     let executions = backend.execution_specs();
     let git = executions.iter().filter(|spec| is_git_config(spec)).collect::<Vec<_>>();
@@ -662,7 +772,10 @@ async fn linux_setup_skips_git_identity_when_git_is_absent() {
         .await
         .expect("Sandbox");
 
-    Linux.setup(&record, &sandbox).await.expect("setup without Git");
+    Linux
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect("setup without Git");
 
     assert!(!backend.execution_specs().iter().any(is_git_config));
 }
@@ -707,7 +820,10 @@ async fn linux_setup_rejects_partial_git_identity() {
         .await
         .expect("Sandbox");
 
-    let error = Linux.setup(&record, &sandbox).await.expect_err("partial Git identity");
+    let error = Linux
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect_err("partial Git identity");
 
     assert!(matches!(error, agent::Error::Invalid(message) if message.contains("must both be configured")));
     assert!(!backend.execution_specs().iter().any(is_git_presence_check));
@@ -753,7 +869,10 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
         .await
         .expect("Sandbox");
 
-    let error = Linux.setup(&record, &sandbox).await.expect_err("version mismatch");
+    let error = Linux
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect_err("version mismatch");
 
     assert!(error.to_string().contains("does not match installed version"));
     assert_eq!(
@@ -818,7 +937,10 @@ async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
         .await
         .expect("Sandbox");
 
-    let error = Linux.setup(&record, &sandbox).await.expect_err("FIFO must be rejected");
+    let error = Linux
+        .setup(&record, &sandbox, &declared(&record))
+        .await
+        .expect_err("FIFO must be rejected");
 
     assert!(
         matches!(&error, agent::Error::Invalid(message) if message.contains("non-regular file pipe")),
