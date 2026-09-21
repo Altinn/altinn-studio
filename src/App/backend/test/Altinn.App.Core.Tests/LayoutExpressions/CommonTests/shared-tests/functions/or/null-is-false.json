@@ -1,5 +1,0 @@
-{
-  "name": "Null is false",
-  "expression": ["or", null],
-  "expects": false
-}

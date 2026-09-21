@@ -1,16 +1,16 @@
 import React from 'react';
 
+import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
-import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -155,6 +155,51 @@ describe('CheckboxesContainerComponent', () => {
         newValue: 'norway,denmark',
       });
     });
+  });
+
+  it('should select an option with help text when clicking its label', async () => {
+    const { formDataMethods } = await render({
+      options: [
+        {
+          label: 'Norway',
+          value: 'norway',
+          helpText: 'Help text',
+        },
+      ],
+    });
+    const checkbox = getCheckbox({ name: /Norway/ });
+    const label = document.querySelector(`label[for="${checkbox.id}"]`);
+
+    expect(label).toBeInTheDocument();
+
+    await userEvent.click(label as HTMLLabelElement);
+
+    expect(checkbox).toBeChecked();
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
+    expect(formDataMethods.setLeafValue).toHaveBeenLastCalledWith({
+      reference: { field: 'selectedValues', dataType: defaultDataTypeMock },
+      newValue: 'norway',
+    });
+  });
+
+  it('should not select an option when clicking its help text button', async () => {
+    const { formDataMethods } = await render({
+      options: [
+        {
+          label: 'Norway',
+          value: 'norway',
+          helpText: 'Help text',
+        },
+      ],
+    });
+    const checkbox = getCheckbox({ name: /Norway/ });
+    const helpTextButton = screen.getByRole('button', { name: 'Help text' });
+
+    await userEvent.click(helpTextButton);
+
+    expect(helpTextButton).toHaveAttribute('aria-expanded', 'true');
+    expect(checkbox).not.toBeChecked();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
   it('should call setLeafValue with updated values when deselecting item', async () => {

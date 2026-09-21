@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -17,7 +18,6 @@ import {
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { ILayout } from 'src/layout/layout';
-import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 // Mocking so that we can predict the UUIDs for new rows
 const nextUuids: string[] = [];

@@ -1,8 +1,35 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
-from typing import Dict, Any, Set, Optional, Tuple
+from typing import Dict, Any, List, Set, Optional, Tuple
 import requests
 from urllib.parse import urlparse
+
+
+# Pairings the schema marks optional but the renderer requires.
+BINDING_CONSTRAINTS: Dict[str, List[str]] = {
+    "Datepicker": [
+        'A binding to a string with "format": "date" requires "timeStamp": false. '
+        'The property defaults to true, which stores a full ISO timestamp against a '
+        'date-only field, and Altinn Studio refuses to render the component.'
+    ],
+    "Checkboxes": [
+        'Bind "simpleBinding" and nothing else. "group" is a repeating-group '
+        'binding: setting it makes Studio apply the repeating-group rules to this '
+        'component, which then demands "deletionStrategy" and an array-typed '
+        'target, and the page stops rendering.'
+    ],
+    "RepeatingGroup": [
+        'A "group" binding must point at an array in the data model, not a string.',
+        'Setting "group" requires "deletionStrategy".',
+        'Every child simpleBinding must start with the group binding\'s field, so '
+        'a group on "vaccines" takes children like "vaccines.name".',
+    ],
+}
+
+_BINDING_ADVICE = (
+    "allowed_properties is what this component permits, not a list to fill: "
+    "set only the properties the component needs."
+)
 
 
 def layout_properties_tool(
@@ -55,6 +82,10 @@ def layout_properties_tool(
         return {
             "status": "success",
             "message": f"Schema information retrieved for component type '{component_type}'",
+            "constraints": [
+                *BINDING_CONSTRAINTS.get(component_type, []),
+                _BINDING_ADVICE,
+            ],
             "allowed_properties": sorted(list(allowed_properties)),
             "required_properties": sorted(list(required_properties)),
             "property_details": property_details

@@ -48,9 +48,15 @@ public sealed class SignDocumentManagerTests : IDisposable
 
         // Setup default party lookup behavior
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
-                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _, CancellationToken _) =>
                 {
                     if (lookup.Ssn is not null)
                     {
@@ -528,6 +534,27 @@ public sealed class SignDocumentManagerTests : IDisposable
         Assert.IsType<PersonSignee>(result[1].Signee);
         Assert.True(result[1].SigneeState.IsAccessDelegated);
         Assert.True(result[1].SigneeState.HasBeenMessagedForCallToSign);
+    }
+
+    [Fact]
+    public async Task SynchronizeSigneeContextsWithSignDocuments_WhenPartyLookupIsCancelled_PropagatesCancellation()
+    {
+        // Cancellation must surface as such, not be reported as a failed party lookup.
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        _altinnPartyClient.Reset();
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>(), cts.Token))
+            .ThrowsAsync(new OperationCanceledException(cts.Token));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
+                "Task_1",
+                [],
+                [CreateSignDocument("10987654321", null, null)],
+                cts.Token
+            )
+        );
     }
 
     [Fact]

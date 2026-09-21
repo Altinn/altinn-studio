@@ -1,5 +1,3 @@
-.buttons {
+.retryButton {
   margin-top: var(--button-margin-top);
-  display: flex;
-  gap: 1rem;
 }

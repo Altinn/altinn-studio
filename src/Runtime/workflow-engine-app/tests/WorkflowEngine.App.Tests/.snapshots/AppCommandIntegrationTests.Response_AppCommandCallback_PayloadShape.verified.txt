@@ -4,7 +4,6 @@
     orgId: test-user,
     language: null
   },
-  lockToken: e2e-lock-token-abc123,
   payload: test-payload,
   workflowId: {Scrubbed},
   mailbox: null,

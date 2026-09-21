@@ -8,9 +8,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: src/App/frontend/dist
-        key: frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/package.json') }}-${{ hashFiles('src/App/frontend/src/**') }}
-        restore-keys: |
-          frontend-build-${{ runner.os }}-${{ hashFiles('src/App/frontend/package.json') }}-
+        key: frontend-build-v2-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock', '.yarnrc.yml', 'src/App/frontend/package.json', 'src/App/frontend/src/**', 'src/App/frontend/public/**', 'src/App/frontend/schemas/**', 'src/App/frontend/scripts/**', 'src/App/frontend/vite.config.ts', 'src/App/frontend/tsconfig*.json', 'src/common/ts/package.json', 'src/common/ts/tsconfig*.json', 'src/common/ts/*/package.json', 'src/common/ts/*/tsconfig*.json', 'src/common/ts/*/src/**') }}
 
     - name: Installing Frontend Dependencies
       if: steps.cache-frontend.outputs.cache-hit != 'true'
@@ -28,4 +26,3 @@ runs:
         name: app-frontend-dist
         path: src/App/frontend/dist
         if-no-files-found: error
-

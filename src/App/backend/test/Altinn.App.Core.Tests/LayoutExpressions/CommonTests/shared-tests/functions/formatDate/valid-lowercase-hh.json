@@ -1,9 +1,0 @@
-{
-  "name": "Should format date with format 'hh' as '05'",
-  "expression": [
-    "formatDate",
-    "2023-03-04T05:06:07.120Z",
-    "hh"
-  ],
-  "expects": "05"
-}

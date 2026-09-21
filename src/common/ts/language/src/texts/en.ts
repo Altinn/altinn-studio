@@ -472,9 +472,6 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
-    'process_workflow.advancing_title': 'We’re working on your form',
-    'process_workflow.advancing_body':
-      'You don’t need to do anything. We’ll take you to the next step as soon as everything is ready.',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',
@@ -490,9 +487,7 @@ export function en() {
     'process_workflow.failure_kind.timeout': 'Processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown cause',
     'process_workflow.still_working':
-      'This is taking longer than usual. Your information is saved, and we’ll continue automatically — you can safely close this page and come back later.',
-    'process_workflow.connection_trouble':
-      'We’re having trouble reaching the service right now. Retrying…',
+      'This is taking longer than usual. Your information has been saved, and the work continues automatically. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
     'pdfPreview.error': 'Could not show PDF preview',
     'pdfPreview.defaultButtonText': 'Preview PDF',
     'taskTypes.data': 'Fill out',
@@ -582,7 +577,6 @@ export function en() {
     'service_task.help_text':
       'You can try to process again by clicking "{0}". If the problem persists, contact customer service at {1}.',
     'service_task.retry_button': 'Try again',
-    'service_task.back_button': 'Go back',
     'service_task.waiting_title': 'We are processing your request',
     'service_task.waiting_body':
       'This may take a little while. You do not need to do anything, we will continue automatically once everything is ready.',

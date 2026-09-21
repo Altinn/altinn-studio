@@ -57,7 +57,7 @@ spec:
 
     # Per-org concurrency caps. Default applies to every org; overrides
     # keyed by org name take precedence.
-    maxConcurrentDefault: {{ .Values.maxConcurrentDefault | default 2 }}
+    maxConcurrentDefault: {{ .Values.maxConcurrentDefault | default 4 }}
     maxConcurrentOverrides:
       {{- toYaml (.Values.maxConcurrentOverrides | default dict) | nindent 6 }}
 

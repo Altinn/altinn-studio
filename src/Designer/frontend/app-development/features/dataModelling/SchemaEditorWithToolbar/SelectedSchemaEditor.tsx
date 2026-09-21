@@ -67,15 +67,16 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
   const [model, setModel] = useState<JsonSchema>(jsonSchema);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const updatedModel = useRef<JsonSchema>(jsonSchema);
+  const lastSavedModel = useRef<JsonSchema>(undefined);
 
   useEffect(() => {
-    setModel(jsonSchema);
+    if (jsonSchema !== lastSavedModel.current) setModel(jsonSchema);
   }, [jsonSchema]);
 
-  const saveFunction = useCallback(
-    () => mutate({ modelPath, model: updatedModel.current }),
-    [modelPath, mutate],
-  );
+  const saveFunction = useCallback(() => {
+    lastSavedModel.current = updatedModel.current;
+    mutate({ modelPath, model: updatedModel.current });
+  }, [modelPath, mutate]);
 
   const saveSchema = useCallback(
     (newModel: JsonSchema) => {

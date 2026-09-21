@@ -8,6 +8,7 @@ export const AltinnPalette = {
   blueHover: '#37b7f8',
   blueLight: '#CFF0FF',
   blueLighter: '#E3F7FF',
+  blueLighterActive: '#ACE3FD',
   green: '#12AA64',
   greenHover: '#45D489',
   greenLight: '#D4F9E4',

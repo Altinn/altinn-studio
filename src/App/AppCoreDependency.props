@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared Altinn.App.Core wiring for the sibling packages built on it in this repository:
+  Altinn.Codelists and Altinn.FileAnalyzers.
+
+  These packages ship a dependency on a *published* Altinn.App.Core, but they cannot reference it as
+  a package while building inside this repository. The test apps under src/test/apps reference the
+  app backend as projects, so a package reference here puts two Altinn.App.Core assemblies in each
+  app's graph: NuGet drops the project from the restore graph (a ProjectReference restores as
+  version 1.0.0, because PackageVersioning.props sets Version in a target that restore never runs,
+  so the 9.x package node wins the version unification) while MSBuild still passes the project's
+  output to the compiler. Whether that is loud or silent depends on the clone:
+
+    - Assembly versions differ (any clone with tags, so every developer machine): MSB3243 and then
+      CS1704, and the app does not build.
+    - Assembly versions match (a shallow CI clone resolves both to 9.0.0.0): the app builds, and
+      silently binds to the published Core instead of the one in this repository.
+
+  So the reference is a ProjectReference by default, and only a release pack builds against the
+  pinned package. The version the nuspec declares is then, by construction, the version the shipped
+  assembly was compiled against - and it comes from Directory.Packages.props, which is what Renovate
+  bumps.
+
+  Callers that pack for release pass:
+    UseAppLibsFromSource=false
+
+  Today those are the `Pack package` steps in .github/workflows/release-codelists.yaml and
+  release-fileanalyzers.yaml. Each has a `Verify packed dependencies` step that fails unless the
+  packed dependency matches the pin, so forgetting the property cannot ship: without it, pack emits
+  the *component's own* release version for Altinn.App.Core, because ReleasePackageVersion is passed
+  as a global property and so re-versions the referenced Core project too.
+-->
+<Project>
+
+  <PropertyGroup>
+    <UseAppLibsFromSource Condition="'$(UseAppLibsFromSource)' == ''">true</UseAppLibsFromSource>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseAppLibsFromSource)' == 'true'">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseAppLibsFromSource)' != 'true'">
+    <PackageReference Include="Altinn.App.Core" />
+  </ItemGroup>
+
+</Project>

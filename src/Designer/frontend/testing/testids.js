@@ -1,4 +1,5 @@
 export const app = 'testApp';
+export const appValidationAreaId = (area) => `app-validation-area-${area}`;
 export const layoutSet = 'test-layout-set';
 export const appContentWrapperId = 'app-content-wrapper';
 export const conditionalRenderingDeleteButtonId = 'delete_field_button';

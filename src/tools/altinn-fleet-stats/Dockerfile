@@ -4,7 +4,11 @@
 FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS frontend-builder
 WORKDIR /src
 COPY frontend/package.json frontend/yarn.lock* ./
-RUN yarn install --frozen-lockfile --network-timeout 600000
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn install --frozen-lockfile --network-timeout 600000
 COPY frontend/ .
 RUN yarn build
 

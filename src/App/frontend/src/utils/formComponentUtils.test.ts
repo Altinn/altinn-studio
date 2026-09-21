@@ -1,5 +1,6 @@
+import type { ITableColumnProperties } from '@app/layout-contract/generated/common.generated';
+
 import { getColumnStyles, smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import type { ITableColumnProperties } from 'src/layout/common.generated';
 
 describe('formComponentUtils', () => {
   describe('smartLowerCaseFirst', () => {

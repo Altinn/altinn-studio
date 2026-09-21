@@ -27,7 +27,7 @@ pre-commit:
     app-frontend-eslint:
       root: 'src/App/frontend/'
       glob: '*.{js,jsx,ts,tsx,json}'
-      run: yarn eslint --cache --fix --max-warnings=0 {staged_files}
+      run: yarn eslint --cache --fix --max-warnings=0 --no-warn-ignored {staged_files}
       stage_fixed: true
     form-component-eslint:
       root: 'src/common/ts/form-component/'

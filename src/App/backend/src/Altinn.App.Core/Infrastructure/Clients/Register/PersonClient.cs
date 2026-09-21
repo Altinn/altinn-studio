@@ -60,7 +60,7 @@ public class PersonClient : IPersonClient
         string nationalIdentityNumber,
         string lastName,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"persons");
@@ -69,9 +69,13 @@ public class PersonClient : IPersonClient
         request.Headers.Add("X-Ai-NationalIdentityNumber", nationalIdentityNumber);
         request.Headers.Add("X-Ai-LastName", ConvertToBase64(lastName));
 
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, ct);
+        using var response = await _httpClient.SendAsync(
+            request,
+            HttpCompletionOption.ResponseContentRead,
+            cancellationToken
+        );
 
-        return await ReadResponse(response, ct);
+        return await ReadResponse(response, cancellationToken);
     }
 
     private async Task AddAuthHeaders(HttpRequestMessage request, StorageAuthenticationMethod? authenticationMethod)
@@ -89,11 +93,11 @@ public class PersonClient : IPersonClient
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
     }
 
-    private static async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken ct)
+    private static async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return await response.Content.ReadFromJsonAsync<Person>(_jsonSerializerOptions, ct);
+            return await response.Content.ReadFromJsonAsync<Person>(_jsonSerializerOptions, cancellationToken);
         }
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -101,7 +105,7 @@ public class PersonClient : IPersonClient
             return null;
         }
 
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     private static string ConvertToBase64(string text)

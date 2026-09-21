@@ -20,6 +20,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             var factories = context.ValueProviderFactories;
             factories.RemoveType<FormValueProviderFactory>();
+            factories.RemoveType<FormFileValueProviderFactory>();
             factories.RemoveType<JQueryFormValueProviderFactory>();
         }
 

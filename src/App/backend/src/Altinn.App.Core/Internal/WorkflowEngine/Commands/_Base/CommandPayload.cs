@@ -10,9 +10,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// Request payloads are sent from app → engine → app callback.
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(AcquireProcessingStatusPayload), typeDiscriminator: "acquireProcessingStatus")]
 [JsonDerivedType(typeof(ExecuteServiceTaskPayload), typeDiscriminator: "executeServiceTask")]
-[JsonDerivedType(typeof(SaveProcessStateToStoragePayload), typeDiscriminator: "saveProcessStateToStorage")]
+[JsonDerivedType(typeof(ProcessStateChangePayload), typeDiscriminator: "processStateChange")]
 [JsonDerivedType(typeof(CommonTaskInitializationPayload), typeDiscriminator: "commonTaskInitialization")]
+[JsonDerivedType(typeof(TaskDataLockPayload), typeDiscriminator: "taskDataLock")]
 [JsonDerivedType(
     typeof(NotifyInstanceOwnerOnInstantiationPayload),
     typeDiscriminator: "notifyInstanceOwnerOnInstantiation"
@@ -21,15 +23,19 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
 internal abstract record CommandRequestPayload;
 
+internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
+
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.
 /// Provides AOT-compatible, high-performance serialization.
 /// </summary>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(CommandRequestPayload))]
+[JsonSerializable(typeof(AcquireProcessingStatusPayload))]
 [JsonSerializable(typeof(ExecuteServiceTaskPayload))]
-[JsonSerializable(typeof(SaveProcessStateToStoragePayload))]
+[JsonSerializable(typeof(ProcessStateChangePayload))]
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]
+[JsonSerializable(typeof(TaskDataLockPayload))]
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
 [JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
@@ -49,7 +55,9 @@ internal static class CommandPayloadSerializer
     public static string? Serialize<T>(T? payload)
         where T : CommandRequestPayload
     {
-        return payload is null ? null : JsonSerializer.Serialize(payload, CommandPayloadJsonContext.Default.Options);
+        return payload is null
+            ? null
+            : JsonSerializer.Serialize<CommandRequestPayload>(payload, CommandPayloadJsonContext.Default.Options);
     }
 
     public static T? Deserialize<T>(string? json)

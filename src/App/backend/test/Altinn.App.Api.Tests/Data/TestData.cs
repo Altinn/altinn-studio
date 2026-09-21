@@ -1,11 +1,13 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Tests.Data;
@@ -249,5 +251,51 @@ public static class TestData
 
         XmlSerializer serializer = new(modelType);
         serializer.Serialize(xmlWriter, model);
+    }
+
+    public static async Task SetProcessStatus(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        ProcessStatus status
+    )
+    {
+        string path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        JsonNode root =
+            JsonNode.Parse(await File.ReadAllTextAsync(path))
+            ?? throw new InvalidOperationException(
+                $"Unable to parse test instance {instanceOwnerPartyId}/{instanceGuid}."
+            );
+        JsonObject process =
+            root["process"] as JsonObject
+            ?? throw new InvalidOperationException(
+                $"Test instance {instanceOwnerPartyId}/{instanceGuid} does not have a process."
+            );
+        process["status"] = JsonSerializer.SerializeToNode(status);
+        await File.WriteAllTextAsync(path, root.ToJsonString(_jsonSerializerOptions));
+    }
+
+    public static async Task SetCurrentTaskType(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        string taskType
+    )
+    {
+        string path = GetInstancePath(org, app, instanceOwnerPartyId, instanceGuid);
+        JsonNode root =
+            JsonNode.Parse(await File.ReadAllTextAsync(path))
+            ?? throw new InvalidOperationException(
+                $"Unable to parse test instance {instanceOwnerPartyId}/{instanceGuid}."
+            );
+        JsonObject currentTask =
+            root["process"]?["currentTask"] as JsonObject
+            ?? throw new InvalidOperationException(
+                $"Test instance {instanceOwnerPartyId}/{instanceGuid} does not have a current task."
+            );
+        currentTask["altinnTaskType"] = taskType;
+        await File.WriteAllTextAsync(path, root.ToJsonString(_jsonSerializerOptions));
     }
 }

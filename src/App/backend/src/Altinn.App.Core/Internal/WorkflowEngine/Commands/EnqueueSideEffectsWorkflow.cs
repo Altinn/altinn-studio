@@ -1,4 +1,7 @@
+using System.Text.Json;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -6,22 +9,24 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// <summary>
 /// The pre-assembled enqueue request for the transition's side-effects workflows (one single-step
 /// workflow per side effect), built by <c>ProcessNextRequestFactory</c> at Main-enqueue time. The
-/// command fills in the runtime-only values on execution: the commit-time state blob and a link
-/// back to the Main workflow, on every sibling.
+/// command fills in runtime authentication, the commit-time state blob and a link back to the Main
+/// workflow on execution. Authentication stays out of the parent's hashed command payload.
 /// </summary>
 internal sealed record EnqueueSideEffectsWorkflowPayload(WorkflowEnqueueRequest EnqueueRequest) : CommandRequestPayload;
 
 /// <summary>
 /// Critical post-commit command that enqueues the transition's side-effects workflows — one
 /// independent single-step workflow per side effect, submitted as a single atomic batch. Runs
-/// immediately after <see cref="SaveProcessStateToStorage"/>, so the side effects exist if and
+/// immediately after <see cref="CommitProcessState"/>, so the side effects exist if and
 /// only if the transition committed — and, as independent roots each carrying their own
 /// commit-time state, they survive whatever happens to Main afterwards and fail independently of
 /// each other. Idempotent per Main workflow: the derived idempotency key covers the whole batch,
 /// so step retries dedup.
 /// </summary>
-internal sealed class EnqueueSideEffectsWorkflow(IWorkflowEngineClient workflowEngineClient)
-    : WorkflowEngineCommandBase<EnqueueSideEffectsWorkflowPayload>
+internal sealed class EnqueueSideEffectsWorkflow(
+    IWorkflowEngineClient workflowEngineClient,
+    IWorkflowCallbackTokenGenerator callbackTokenGenerator
+) : WorkflowEngineCommandBase<EnqueueSideEffectsWorkflowPayload>
 {
     public static string Key => "EnqueueSideEffectsWorkflow";
 
@@ -64,9 +69,20 @@ internal sealed class EnqueueSideEffectsWorkflow(IWorkflowEngineClient workflowE
                 collectionKey: ProcessNextRequestFactory.CreateCollectionKey(context.InstanceId),
                 request: payload.EnqueueRequest with
                 {
+                    Context = JsonSerializer.SerializeToElement(
+                        new AppWorkflowContext
+                        {
+                            Actor = context.Payload.Actor,
+                            Org = context.AppId.Org,
+                            App = context.AppId.App,
+                            InstanceOwnerPartyId = context.InstanceId.InstanceOwnerPartyId,
+                            InstanceGuid = context.InstanceId.InstanceGuid,
+                            CallbackToken = callbackTokenGenerator.GenerateToken(context.InstanceId.InstanceGuid),
+                        }
+                    ),
                     Workflows = sideEffectWorkflows,
                 },
-                ct: context.CancellationToken
+                cancellationToken: context.CancellationToken
             );
 
             return new SuccessfulProcessEngineCommandResult();

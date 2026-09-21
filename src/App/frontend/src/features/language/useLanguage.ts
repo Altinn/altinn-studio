@@ -2,6 +2,7 @@ import { Children, isValidElement, useCallback, useMemo } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 import { type FixedLanguageList, getLanguageFromCode, replaceParameters, type ValidLanguageKey } from '@app/language';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
@@ -16,7 +17,6 @@ import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation'
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type { TextResourceMap } from 'src/features/language/textResources';
 import type { FormDataSelector } from 'src/layout';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LooseAutocomplete } from 'src/types';
 import type { IApplicationSettings, IInstanceDataSources, IVariable } from 'src/types/shared';
 

@@ -3,7 +3,7 @@ members = [
   "src/experimental/agent",
   "src/experimental/sandbox-authorization",
   "src/experimental/sandbox",
-  "src/experimental/sandbox/examples/self-dev",
+  "src/experimental/sandbox/examples/worktree",
   "src/experimental/sandbox-microsandbox",
   "src/ci/github-runner/coordinator",
 ]
@@ -23,26 +23,30 @@ clap = { version = "4.6.6", features = ["derive"] }
 crossterm = { version = "0.29.0", features = ["event-stream"] }
 futures-core = "0.3.34"
 futures-util = "0.3.34"
+flate2 = "1.1.9"
 ignore = "0.4.33"
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 # Microsandbox fork commit from `main-digdir`; update all four revisions together.
-microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["net"] }
-microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", package = "microsandbox-image" }
-microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", package = "microsandbox-network" }
+microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "12138819b66d4188b7d0821f4cb0c4e2adec73bf", default-features = false, features = ["net"] }
+microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "12138819b66d4188b7d0821f4cb0c4e2adec73bf", package = "microsandbox-image" }
+microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "12138819b66d4188b7d0821f4cb0c4e2adec73bf", package = "microsandbox-network" }
 # Microsandbox does not ship its embedded sandbox agent in the crate.
 # Enabling this transitive feature downloads only that build artifact into
 # Cargo's output directory; the host runtime is installed automatically on
 # first use into the control-plane home.
-microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "1969126cab06c65695990750a8d1489b87cbaa94", default-features = false, features = ["prebuilt"] }
+microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "12138819b66d4188b7d0821f4cb0c4e2adec73bf", default-features = false, features = ["prebuilt"] }
 ratatui = "0.30.2"
 reqwest = { version = "0.13.4", features = ["json"] }
+rand_core = { version = "0.6.4", features = ["getrandom"] }
 rusqlite = "0.39.0"
 sandbox = { path = "src/experimental/sandbox" }
 sandbox-microsandbox = { path = "src/experimental/sandbox-microsandbox" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_yaml_ng = "0.10.0"
+semver = "1.0.27"
 sha2 = "0.11.0"
+ssh-key = { version = "0.6.7", default-features = false, features = ["ed25519", "rand_core", "std"] }
 tar = "0.4.46"
 tempfile = "3.27.0"
 thiserror = "2.0.20"
@@ -50,6 +54,7 @@ time = { version = "0.3.55", features = ["formatting", "parsing", "serde"] }
 tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
 tokio-util = { version = "0.7.19", features = ["io"] }
 tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 uuid = { version = "1.24.1", features = ["serde", "v4"] }
 zeroize = "1.9.0"
 

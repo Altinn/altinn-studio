@@ -76,7 +76,14 @@ public class StatelessDataControllerTests
         string dataType = null!; // this is what we're testing
 
         // Act
-        var result = await statelessDataController.Get("ttd", "demo-app", dataType, "partyId:123", null);
+        var result = await statelessDataController.Get(
+            "ttd",
+            "demo-app",
+            dataType,
+            "partyId:123",
+            null,
+            CancellationToken.None
+        );
 
         // Assert
         result
@@ -101,7 +108,14 @@ public class StatelessDataControllerTests
 
         // Act
         fixture.Mock<IAppResources>().Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(string.Empty);
-        var result = await statelessDataController.Get("ttd", "demo-app", dataType, "partyId:123", null);
+        var result = await statelessDataController.Get(
+            "ttd",
+            "demo-app",
+            dataType,
+            "partyId:123",
+            null,
+            CancellationToken.None
+        );
 
         // Assert
         result
@@ -161,7 +175,9 @@ public class StatelessDataControllerTests
             .AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>()))
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
-            .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
+            .RegisterClientMoq.Setup(p =>
+                p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
 
         // Act
@@ -189,7 +205,9 @@ public class StatelessDataControllerTests
             .AppResourcesMoq.Setup(ar => ar.GetClassRefForLogicDataType(It.IsAny<string>()))
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
-            .RegisterClientMoq.Setup(p => p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>()))
+            .RegisterClientMoq.Setup(p =>
+                p.GetParty(234, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
 
         // Act
@@ -212,7 +230,14 @@ public class StatelessDataControllerTests
             .Mock<IAppResources>()
             .Setup(x => x.GetClassRefForLogicDataType(dataType))
             .Returns(typeof(DummyModel).FullName!);
-        var result = await statelessDataController.Get("ttd", "demo-app", dataType, string.Empty, null);
+        var result = await statelessDataController.Get(
+            "ttd",
+            "demo-app",
+            dataType,
+            string.Empty,
+            null,
+            CancellationToken.None
+        );
 
         // Assert
         var response = result.Should().BeOfType<BadRequestObjectResult>().Which;
@@ -247,7 +272,14 @@ public class StatelessDataControllerTests
             .Mock<IAppResources>()
             .Setup(x => x.GetClassRefForLogicDataType(dataType))
             .Returns(typeof(DummyModel).FullName!);
-        var result = await statelessDataController.Get("ttd", "demo-app", dataType, null!, null);
+        var result = await statelessDataController.Get(
+            "ttd",
+            "demo-app",
+            dataType,
+            null!,
+            null,
+            CancellationToken.None
+        );
 
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>().Which.StatusCode.Should().Be(400);
@@ -291,7 +323,14 @@ public class StatelessDataControllerTests
             .Mock<IAppResources>()
             .Setup(x => x.GetClassRefForLogicDataType(dataType))
             .Returns(typeof(DummyModel).FullName!);
-        var result = await statelessDataController.Get("ttd", "demo-app", dataType, null!, null);
+        var result = await statelessDataController.Get(
+            "ttd",
+            "demo-app",
+            dataType,
+            null!,
+            null,
+            CancellationToken.None
+        );
 
         // Assert
         result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(403);
@@ -333,7 +372,14 @@ public class StatelessDataControllerTests
 
         // Act
         fixture.Mock<IAppResources>().Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(classRef);
-        var result = await statelessDataController.Get("ttd", "demo-app", dataType, null!, null);
+        var result = await statelessDataController.Get(
+            "ttd",
+            "demo-app",
+            dataType,
+            null!,
+            null,
+            CancellationToken.None
+        );
 
         // Assert
         result.Should().BeOfType<OkObjectResult>().Which.StatusCode.Should().Be(200);

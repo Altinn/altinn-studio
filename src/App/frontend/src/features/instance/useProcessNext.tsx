@@ -1,10 +1,9 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
 import { instanceQueryKeys, useCurrentInstance } from 'src/core/queries/instance';
+import { useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { FormStore } from 'src/features/form/FormContext';
 import { invalidateFormDataQueries } from 'src/features/formData/useFormDataQuery';
 import {
@@ -13,8 +12,10 @@ import {
   useInstanceDataQueryArgs,
   useLaxInstanceId,
 } from 'src/features/instance/InstanceContext';
+import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { doProcessNext, doProcessResume } from 'src/queries/queries';
@@ -38,13 +39,6 @@ interface ProcessNextInternalProps extends ProcessNextProps {
   onValidationIssues?: (validationIssues: BackendValidationIssue[]) => Promise<void>;
 }
 
-export function getProcessNextMutationKey(action?: IActionType) {
-  if (!action) {
-    return ['processNext'] as const;
-  }
-  return ['processNext', action] as const;
-}
-
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const language = useCurrentLanguage();
@@ -54,6 +48,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
   const queryClient = useQueryClient();
   const hasPendingScans = useHasPendingScans();
+  const isPdfMode = usePdfModeActive();
 
   return useMutation({
     scope: { id: 'process/next' },
@@ -151,6 +146,10 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         navigateToTask(newCurrentTask.elementId);
       }
 
+      if (!isPdfMode && isRenderedByWorkflowStateMachine(newInstance)) {
+        return;
+      }
+
       toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
         type: 'error',
         autoClose: false,
@@ -187,7 +186,7 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
  * Resumes the terminally failed workflow that owns the current task (POST process/resume). This is
  * the engine-era analogue of "retry the service task": the engine re-runs the failed step (and its
  * dependents) in place, whereas a plain process/next is rejected with 409/resumeRequired while the
- * workflow is failed. The mutation shares the process/next scope so a retry and a reject can never
+ * workflow is failed. The mutation shares the process/next scope so resuming and advancing can never
  * run concurrently, but deliberately not its mutation key: the key gates ProcessWrapper's
  * full-screen loader, and the failed task view should stay mounted (button spinner) while resuming.
  */
@@ -197,6 +196,7 @@ export function useProcessResume() {
   const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
   const queryClient = useQueryClient();
+  const isPdfMode = usePdfModeActive();
 
   return useMutation({
     scope: { id: 'process/next' },
@@ -253,12 +253,21 @@ export function useProcessResume() {
         navigateToTask(newCurrentTask.elementId);
       }
 
+      if (!isPdfMode && isRenderedByWorkflowStateMachine(newInstance)) {
+        return;
+      }
+
       toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
         type: 'error',
         autoClose: false,
       });
     },
   });
+}
+
+function isRenderedByWorkflowStateMachine(instance: IInstance | undefined) {
+  const status = instance?.process?.workflow?.status;
+  return status === 'processing' || status === 'failed';
 }
 
 export function getTargetTaskFromProcess(processData: IProcess | undefined) {

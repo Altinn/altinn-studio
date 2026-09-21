@@ -61,15 +61,22 @@ public sealed class AppProcessWorkflowStatus
     public AppProcessWorkflowProgress? Progress { get; init; }
 
     /// <summary>
-    /// When the in-flight transition was started (enqueued), on the server's clock. Present only
-    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>. Lets a
-    /// client that reconnects mid-transition (page refresh, second session) measure how long the
-    /// transition has actually been running instead of measuring from its own page load - e.g. to
-    /// decide immediately, rather than after a fresh local timer, that the wait is abnormal.
+    /// When the in-flight transition was enqueued, on the workflow engine's clock. Present only
+    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>. Compare with
+    /// <see cref="CurrentTime"/> to measure elapsed processing time across page reloads.
     /// </summary>
     [JsonPropertyName("startedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? StartedAt { get; init; }
+
+    /// <summary>
+    /// The workflow engine clock time when its status response was assembled. Present only while
+    /// processing and when supported by the engine. Shares a clock with <see cref="StartedAt"/>,
+    /// so clients can calculate elapsed time without relying on synchronized clocks.
+    /// </summary>
+    [JsonPropertyName("currentTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CurrentTime { get; init; }
 
     /// <summary>
     /// Failure detail. Present only when <see cref="Status"/> is

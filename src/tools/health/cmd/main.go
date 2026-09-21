@@ -63,6 +63,7 @@ Examples:
   go run cmd/main.go init tt02
   go run cmd/main.go init at22,at24
   go run cmd/main.go init -s ttd tt02,prod
+  go run cmd/main.go init --kubeconfig ./kubeconfigs/tt02.yaml tt02
 
   # Check resource status
   go run cmd/main.go status tt02 hr traefik/altinn-traefik
@@ -169,8 +170,12 @@ func listContextRuntimes(environments []string, serviceowner string) ([]kubernet
 	return runtimes, nil
 }
 
-func listAzureRuntimes(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
-	runtimes, err := dis.ListFromAzure(environments, serviceowner)
+func listAzureRuntimes(
+	environments []string,
+	serviceowner string,
+	kubeconfigPath string,
+) ([]kubernetes.KubernetesRuntime, error) {
+	runtimes, err := dis.ListFromAzure(environments, serviceowner, kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("list runtimes from azure: %w", err)
 	}
@@ -868,6 +873,7 @@ func runInit() error {
 	initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	serviceowner := initCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	initCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
+	kubeconfigPath := initCmd.String("kubeconfig", "", "Optional: kubeconfig file to inspect and update")
 
 	args, err := parseCommandArgs(initCmd)
 	if err != nil {
@@ -881,6 +887,8 @@ func runInit() error {
 			"Flags:\n" +
 			"  -s, --service-owner string\n" +
 			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n\n" +
+			"  --kubeconfig path\n" +
+			"                  Optional: kubeconfig file to inspect and update\n\n" +
 			"Description:\n" +
 			"  Discovers AKS clusters for the specified environment(s) and ensures\n" +
 			"  kubectl credentials are configured. Maintains a cache of discovered\n")
@@ -898,7 +906,7 @@ func runInit() error {
 	}
 
 	fmt.Println("Querying all container runtimes and contexts")
-	runtimes, err := listAzureRuntimes(environments, *serviceowner)
+	runtimes, err := listAzureRuntimes(environments, *serviceowner, *kubeconfigPath)
 	if err != nil {
 		return err
 	}
@@ -964,7 +972,7 @@ func runInit() error {
 				fmt.Println("\nFetching credentials...")
 				for _, runtime := range runtimesMissingCredentials {
 					fmt.Printf("  Fetching credentials for %s...\n", runtime.ClusterName)
-					if err := az.EnsureCredentials(runtime.Cluster); err != nil {
+					if err := az.EnsureCredentials(runtime.Cluster, *kubeconfigPath); err != nil {
 						fmt.Printf("  ✗ Failed: %v\n", err)
 						return fmt.Errorf("failed to fetch credentials for %s: %w", runtime.ClusterName, err)
 					}

@@ -92,6 +92,10 @@ export const isArray = (node: UiSchemaNode): boolean => node.isArray;
 export const isCombination = (node: UiSchemaNode): node is CombinationNode =>
   node.objectKind === ObjectKind.Combination;
 
+// Invalid according to the JSON Schema specification, which requires at least one subschema.
+export const isEmptyCombination = (node: UiSchemaNode): boolean =>
+  isCombination(node) && node.children.length === 0;
+
 export const isReference = (node: UiSchemaNode): node is ReferenceNode =>
   node.objectKind === ObjectKind.Reference;
 

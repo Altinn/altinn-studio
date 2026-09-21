@@ -110,6 +110,7 @@ function checkCode({ fix, root }) {
   const {
     kept: unclassified,
     norwegian,
+    explicitNorwegian,
     data,
     pattern,
     usedSignals,
@@ -147,7 +148,8 @@ function checkCode({ fix, root }) {
     findings,
     counts:
       `${fileCount} files visited, ${norwegian} in Norwegian strings ` +
-      `(${usedSignals.size}/${NORWEGIAN_SIGNAL_WORDS.size} signal words at work), ${data} in data runs, ` +
+      `(${explicitNorwegian} in explicit generator slots; ` +
+      `${usedSignals.size}/${NORWEGIAN_SIGNAL_WORDS.size} signal words at work), ${data} in data runs, ` +
       `${pattern} after bracket expressions, ` +
       `${suppressedCount} finding(s) suppressed by ${compiled.length} scoped rules`,
   };
@@ -971,11 +973,14 @@ function classifierFailures({ lines, cases }) {
   for (const [path, typo, want, what] of cases) {
     // The fixture lines are ASCII, so indexOf is the byte offset.
     const find = { path, line_num: 1, byte_offset: lines[path].indexOf(typo), typo };
-    const { norwegian, data, pattern, usedSignals } = classifyFindings([find], readLine);
+    const { norwegian, explicitNorwegian, data, pattern, usedSignals } = classifyFindings(
+      [find],
+      readLine,
+    );
     const got =
       norwegian === 1 ? 'norwegian' : data === 1 ? 'data' : pattern === 1 ? 'pattern' : 'finding';
     if (got !== want) failures.push(`expected ${want} but got ${got} for ${what}`);
-    if (got === 'norwegian' && usedSignals.size === 0) {
+    if (got === 'norwegian' && usedSignals.size === 0 && explicitNorwegian === 0) {
       failures.push(`classification of ${what} recorded no signal-word usage`);
     }
   }

@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/common/dotnet/**'
       - 'src/App/backend/**'
+      - 'src/App/PackageVersioning.props'
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/**'

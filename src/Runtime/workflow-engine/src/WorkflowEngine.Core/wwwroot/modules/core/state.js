@@ -14,6 +14,9 @@
  *   status:         StepStatus,
  *   processingOrder: number,
  *   retryCount:     number,
+ *   deferCount:     number,
+ *   firstDeferredAt: string | null,
+ *   lastDeferReason: string | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   executionStartedAt: string | null,
@@ -252,21 +255,19 @@ export const parseTransition = (wf) => {
 const TASK_END_COMMANDS = new Set([
     'EndTask',
     'CommonTaskFinalization',
-    'EndTaskLegacyHook',
     'OnTaskEndingHook',
     'LockTaskData',
     'AbandonTask',
     'OnTaskAbandonHook',
-    'AbandonTaskLegacyHook',
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
+    'CleanupGeneratedFromTask',
     'StartTask',
-    'StartTaskLegacyHook',
     'OnTaskStartingHook',
     'CommonTaskInitialization',
 ]);
-const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook']);
+const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook', 'EndProcessLegacyHook']);
 
 /** @param {string} commandDetail @returns {'end'|'start'|'process-end'|null} */
 export const stepPhase = (commandDetail) => {
@@ -276,5 +277,11 @@ export const stepPhase = (commandDetail) => {
     return null;
 };
 
-/** Extra sub-label for a step (e.g. service task type). Returns null if none. */
-export const stepSubLabel = (_step) => null;
+/**
+ * Extra sub-label for a step. A Waiting step shows the reason its command gave for deferring, so
+ * the card says what the step is waiting for without opening the modal.
+ * @param {Step} step
+ * @returns {string | null}
+ */
+export const stepSubLabel = (step) =>
+    step.status === 'Waiting' && step.lastDeferReason ? step.lastDeferReason : null;

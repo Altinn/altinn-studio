@@ -39,17 +39,21 @@ public class ApplicationClient : IApplicationClient
     }
 
     /// <inheritdoc />
-    public async Task<Application?> GetApplication(string org, string app)
+    public async Task<Application?> GetApplication(
+        string org,
+        string app,
+        CancellationToken cancellationToken = default
+    )
     {
         string appId = $"{org}/{app}";
 
         Application? application = null;
         string getApplicationMetadataUrl = $"applications/{appId}";
 
-        using HttpResponseMessage response = await _client.GetAsync(getApplicationMetadataUrl);
+        using HttpResponseMessage response = await _client.GetAsync(getApplicationMetadataUrl, cancellationToken);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string applicationData = await response.Content.ReadAsStringAsync();
+            string applicationData = await response.Content.ReadAsStringAsync(cancellationToken);
             application = JsonConvert.DeserializeObject<Application>(applicationData);
         }
         else

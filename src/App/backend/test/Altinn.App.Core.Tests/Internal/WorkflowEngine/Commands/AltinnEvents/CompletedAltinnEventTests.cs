@@ -28,10 +28,10 @@ public class CompletedAltinnEventTests
             {
                 CommandKey = CompletedAltinnEvent.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = Guid.NewGuid().ToString(),
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 State = "{}",
                 WorkflowId = Guid.Empty,
+                StepId = Guid.NewGuid(),
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
     }
@@ -72,7 +72,8 @@ public class CompletedAltinnEventTests
                 x.AddEvent(
                     "app.instance.process.completed",
                     instance,
-                    It.Is<StorageAuthenticationMethod>(a => a != null)
+                    It.Is<StorageAuthenticationMethod>(a => a != null),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -103,7 +104,14 @@ public class CompletedAltinnEventTests
         var instance = CreateInstance("EndEvent_1");
         var eventsClientMock = new Mock<IEventsClient>();
         eventsClientMock
-            .Setup(x => x.AddEvent(It.IsAny<string>(), It.IsAny<Instance>(), It.IsAny<StorageAuthenticationMethod>()))
+            .Setup(x =>
+                x.AddEvent(
+                    It.IsAny<string>(),
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new Exception("AddEvent failed"));
         var command = new CompletedAltinnEvent(eventsClientMock.Object);
         var context = CreateContext(instance);

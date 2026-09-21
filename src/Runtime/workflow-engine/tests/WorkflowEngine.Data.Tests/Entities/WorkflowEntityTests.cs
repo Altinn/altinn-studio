@@ -17,6 +17,7 @@ public class WorkflowEntityTests
             StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 10, 35, 0, TimeSpan.Zero),
             BackoffUntil = new DateTimeOffset(2025, 6, 15, 12, 31, 0, TimeSpan.Zero),
+            ThrottledUntil = new DateTimeOffset(2025, 6, 15, 12, 45, 0, TimeSpan.Zero),
             Status = PersistentItemStatus.Processing,
             Labels = new Dictionary<string, string> { ["env"] = "test" },
             ContextJson = """{"key":"value"}""",
@@ -54,6 +55,7 @@ public class WorkflowEntityTests
         Assert.Equal(entity.StartAt, roundTripped.StartAt);
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
         Assert.Equal(entity.BackoffUntil, roundTripped.BackoffUntil);
+        Assert.Equal(entity.ThrottledUntil, roundTripped.ThrottledUntil);
         Assert.Equal(entity.Status, roundTripped.Status);
         Assert.Equal(entity.DistributedTraceContext, roundTripped.DistributedTraceContext);
         Assert.Equal(entity.Steps.Count, roundTripped.Steps.Count);

@@ -3,13 +3,13 @@ import { useMemo } from 'react';
 import { wktToGeoJSON } from '@terraformer/wkt';
 import dot from 'dot-object';
 import { geoJson, LatLngBounds } from 'leaflet';
+import type { IGeometryType } from '@app/layout-contract/generated/components/Map/config.generated';
 import type { GeoJSON } from 'geojson';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import type { IGeometryType } from 'src/layout/Map/config.generated';
 import type { Geometry, RawGeometry } from 'src/layout/Map/types';
 
 export function useMapRawGeometries(baseComponentId: string): RawGeometry[] | undefined {

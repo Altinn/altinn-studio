@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -28,5 +29,9 @@ export class GenerateConst<Val extends string | boolean | number | null> extends
       ...this.getInternalJsonSchema(),
       const: this.value,
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { type: 'constant', value: this.value, ...this.componentCatalogMetadata() };
   }
 }

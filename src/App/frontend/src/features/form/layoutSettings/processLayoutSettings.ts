@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
+import type { ILayoutSettings, NavigationPageGroup } from '@app/layout-contract/generated/common.generated';
 
 import { getGlobalUiSettings } from 'src/features/form/ui';
 import { useCurrentUiFolderSettingsFromUrl } from 'src/features/form/ui/hooks';
 import type { GlobalPageSettings } from 'src/features/form/ui/types';
-import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
 
 const emptyArray = [];
 

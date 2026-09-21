@@ -1,5 +1,0 @@
-{
-  "name": "Errors when trying to read argument when none exist",
-  "expression": ["argv", 0],
-  "expectsFailure": "No positional arguments available"
-}

@@ -18,6 +18,11 @@ internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipe
 internal sealed record TaskStartContext
 {
     /// <summary>
+    /// The task that is starting.
+    /// </summary>
+    public required string TaskId { get; init; }
+
+    /// <summary>
     /// If this is a service task, the task and its pipeline. Otherwise null.
     /// </summary>
     public required ResolvedServiceTask? ServiceTask { get; init; }
@@ -58,14 +63,4 @@ internal sealed record ProcessEndContext
     /// Whether to register events with the events component.
     /// </summary>
     public bool RegisterEvents { get; init; }
-
-    /// <summary>
-    /// Whether any data types have AutoDeleteOnProcessEnd enabled.
-    /// </summary>
-    public bool HasAutoDeleteDataTypes { get; init; }
-
-    /// <summary>
-    /// Whether the application is configured to auto-delete the instance on process end.
-    /// </summary>
-    public bool AutoDeleteInstanceOnProcessEnd { get; init; }
 }

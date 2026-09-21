@@ -492,3 +492,132 @@ class TestCommitSessionBranch:
         assert result.is_error
         assert "feedface" in result.content
         assert "gitea unreachable" in result.content
+
+
+class TestTextKeysResolve:
+    """A key with no entry renders as the key, and every file validates fine alone."""
+
+    def _app(self, tmp_path: Path, bindings: dict, resources: list[str]) -> Path:
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {
+            "data": {
+                "layout": [
+                    {"id": "submit", "type": "Button", "textResourceBindings": bindings}
+                ]
+            }
+        }
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+        texts = tmp_path / "App" / "config" / "texts"
+        texts.mkdir(parents=True)
+        (texts / "resource.nb.json").write_text(
+            json.dumps({"language": "nb", "resources": [{"id": i, "value": i} for i in resources]}),
+            encoding="utf-8",
+        )
+        return layouts / "Side1.json"
+
+    async def _verify(self, tmp_path: Path):
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={"App/ui/form/layouts/Side1.json"})
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        return result, json.loads(result.content), ctx
+
+    async def test_a_missing_key_fails_verification(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {"title": "app.button.submit"}, ["appName"])
+
+        result, body, ctx = await self._verify(tmp_path)
+
+        assert result.is_error
+        assert not body["passed"]
+        assert any("app.button.submit" in note for note in body["notes"])
+        assert not ctx.extras.get("verified_files")
+
+    async def test_a_resolved_key_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {"title": "app.button.submit"}, ["app.button.submit"])
+
+        result, body, _ = await self._verify(tmp_path)
+
+        assert not result.is_error
+        assert body["passed"]
+
+    async def test_a_layout_with_no_bindings_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {}, ["appName"])
+
+        _, body, _ = await self._verify(tmp_path)
+
+        assert body["passed"]
+
+    async def test_an_app_with_no_text_files_is_not_blocked(
+        self, tmp_path: Path, permissive_schema
+    ):
+        """Nothing to resolve against is the layout validator's problem, not ours."""
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {"data": {"layout": [{"id": "submit", "type": "Button",
+                                     "textResourceBindings": {"title": "app.button.submit"}}]}}
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+
+        _, body, _ = await self._verify(tmp_path)
+
+        assert body["passed"]
+
+
+class TestTextKeysResolveInEveryLanguage:
+    """A key present in nb and missing in en renders as the key for English users,
+    and removing it from a resource file leaves every layout still pointing at it."""
+
+    def _app(self, tmp_path: Path, *, en_has_key: bool):
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {
+            "data": {
+                "layout": [
+                    {
+                        "id": "submit",
+                        "type": "Button",
+                        "textResourceBindings": {"title": "app.button.submit"},
+                    }
+                ]
+            }
+        }
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+        texts = tmp_path / "App" / "config" / "texts"
+        texts.mkdir(parents=True)
+        for language, has in (("nb", True), ("en", en_has_key)):
+            ids = ["app.button.submit"] if has else ["appName"]
+            (texts / f"resource.{language}.json").write_text(
+                json.dumps(
+                    {"language": language, "resources": [{"id": i, "value": i} for i in ids]}
+                ),
+                encoding="utf-8",
+            )
+
+    async def _verify(self, tmp_path: Path, changed: set[str]):
+        ctx = _write_ctx(repo_path=str(tmp_path), changed=changed)
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        return result, json.loads(result.content)
+
+    async def test_a_key_missing_from_one_language_fails(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, en_has_key=False)
+
+        result, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+
+        assert result.is_error
+        assert any("resource.en.json" in note for note in body["notes"])
+
+    async def test_every_language_having_it_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, en_has_key=True)
+
+        _, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+
+        assert body["passed"]
+
+    async def test_changing_a_resource_file_rechecks_untouched_layouts(
+        self, tmp_path: Path, permissive_schema
+    ):
+        """The layout is unchanged, so a per-file check would never look at it."""
+        self._app(tmp_path, en_has_key=False)
+
+        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+
+        assert result.is_error
+        assert any("Side1.json" in note for note in body["notes"])

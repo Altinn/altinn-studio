@@ -13,6 +13,9 @@ namespace Altinn.App.Api.Tests.Maskinporten;
 
 public class MaskinportenClientIntegrationTests
 {
+    private const string _platformHostName = "at22.altinn.cloud";
+    private const string _localtestHostName = "local.altinn.cloud";
+
     [Fact]
     public void ConfigureAppWebHost_AddsMaskinportenService()
     {
@@ -21,99 +24,139 @@ public class MaskinportenClientIntegrationTests
     }
 
     [Fact]
-    public void ConfigureMaskinportenClient_OverridesDefaultMaskinportenConfiguration()
+    public async Task ProvisionedSettingsFile_IsWhatTheClientAuthenticatesWith()
     {
-        // Arrange
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
+        // Arrange - the platform mounts the credentials as a file and says where; this is the only way in
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
-        {
-            services.ConfigureMaskinportenClient(config =>
-            {
-                config.ClientId = clientId;
-                config.Authority = authority;
-                config.JwkBase64 = "gibberish";
-            });
-        });
+        var app = AppBuilder.Build(configData: ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path));
 
         // Assert
-        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.Equal("https://test.maskinporten.no/", settings.Authority);
     }
 
     [Fact]
-    public void ConfigureMaskinportenClient_LastConfigurationOverwritesOthers()
+    public async Task AppConfiguration_CannotChangeTheProvisionedIdentity()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
-
-        // Act
-        services.ConfigureMaskinportenClient(config =>
-        {
-            config.ClientId = "this should be overwritten";
-            config.Authority = "ditto";
-            config.JwkBase64 = "gibberish";
-        });
-        services.ConfigureMaskinportenClient(config =>
-        {
-            config.ClientId = clientId;
-            config.Authority = authority;
-            config.JwkBase64 = "gibberish";
-        });
-
-        // Assert
-        var serviceProvider = services.BuildStrictServiceProvider();
-        var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-    }
-
-    [Fact]
-    public void ConfigureMaskinportenClient_BindsToSpecifiedConfigPath()
-    {
-        // Arrange
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
-        var jwkBase64 = "gibberish";
-
-        List<KeyValuePair<string, string?>> configData =
-        [
-            new("CustomMaskinportenSettings:clientId", clientId),
-            new("CustomMaskinportenSettings:authority", authority),
-            new("CustomMaskinportenSettings:jwkBase64", jwkBase64),
-        ];
+        // Arrange - an app supplying its own MaskinportenSettings section, the pre-v9 hazard
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
         var app = AppBuilder.Build(
-            configData: configData,
-            registerCustomAppServices: services =>
-            {
-                services.ConfigureMaskinportenClient("CustomMaskinportenSettings");
-            }
+            configData:
+            [
+                .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path),
+                new("MaskinportenSettings:clientId", "app-supplied-client"),
+                new("MaskinportenSettings:jwkBase64", "app-supplied-key"),
+                new("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
+                new("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own"),
+            ]
         );
 
-        // Assert
-        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
+        // Assert - the app's section is not a Maskinporten configuration surface at all
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.Null(settings.JwkBase64);
+    }
 
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-        Assert.Equal(jwkBase64, settings.JwkBase64);
+    /// <summary>
+    /// Studio provisions every app's Maskinporten client, so a deployed app given none does not start at all:
+    /// an operator sees a deployment that failed, rather than a token request that fails hours later.
+    /// </summary>
+    [Fact]
+    public async Task Host_DoesNotStart_WhenNoClientIsProvisionedOnThePlatform()
+    {
+        using var secretsDirectory = new TempDirectory();
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
+
+        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path, _platformHostName));
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
+        Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A local run starts without a client, because most apps never call a Maskinporten-protected API. What
+    /// the developer pays instead is the first token request, which reads the credentials through
+    /// <c>MaskinportenClient.Settings</c> and fails with the command that stores one.
+    /// </summary>
+    [Fact]
+    public async Task Host_Starts_WhenNoClientIsStoredLocally()
+    {
+        using var secretsDirectory = new TempDirectory();
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
+
+        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+
+        await app.StartAsync();
+        await app.StopAsync();
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue
+        );
+        Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Host_Starts_WhenTheClientIsProvisioned()
+    {
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
+
+        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+
+        await app.StartAsync();
+        await app.StopAsync();
+
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+    }
+
+    /// <summary>
+    /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port and no
+    /// localtest probing. The callback app code the workflow engine integration validates at startup is
+    /// provisioned as a file beside the client, because an <c>AppCodes</c> section is no longer read. The host
+    /// name decides which platform the app believes it is on, and a test host is on localtest unless it says
+    /// otherwise.
+    /// </summary>
+    /// <param name="secretsDirectory">The directory standing in for the platform's secrets mount.</param>
+    /// <param name="hostName">The host name the app is served under.</param>
+    private static IEnumerable<KeyValuePair<string, string?>> HostConfiguration(
+        string secretsDirectory,
+        string hostName = _localtestHostName
+    ) =>
+        [
+            .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory),
+            new("urls", "http://127.0.0.1:0"),
+            new("GeneralSettings:DisableLocaltestValidation", "true"),
+            new("GeneralSettings:HostName", hostName),
+        ];
+
+    private static Task WriteProvisionedClient(string secretsDirectory, string clientId) =>
+        File.WriteAllTextAsync(
+            Path.Join(secretsDirectory, ProvisionedSecretsTestEnvironment.MaskinportenFileName),
+            ProvisionedSecretsTestEnvironment.CreateMaskinportenSettingsJson(clientId)
+        );
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public TempDirectory() => Path = Directory.CreateTempSubdirectory().FullName;
+
+        public string Path { get; }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path))
+            {
+                Directory.Delete(Path, recursive: true);
+            }
+        }
     }
 
     [Theory]

@@ -12,11 +12,11 @@ describe('Accordion', () => {
       { overrides: { 'my.title': 'Resolved Title' } },
     );
 
-    const button = screen.getByRole('button', { name: 'Resolved Title' });
-    expect(button).toBeInTheDocument();
+    const summary = screen.getByText('Resolved Title').closest('summary');
+    expect(summary).toBeInTheDocument();
     expect(screen.getByText('Child content')).toBeInTheDocument();
     // openByDefault is omitted, so the accordion starts closed.
-    expect(button.parentElement).not.toHaveAttribute('open');
+    expect(summary?.parentElement).not.toHaveAttribute('open');
   });
 
   it('opens by default when openByDefault is true', () => {
@@ -26,14 +26,14 @@ describe('Accordion', () => {
       </Accordion>,
     );
 
-    const button = screen.getByRole('button', { name: 'x' });
-    expect(button.parentElement).toHaveAttribute('open');
+    const summary = screen.getByText('x').closest('summary');
+    expect(summary?.parentElement).toHaveAttribute('open');
   });
 
   it('renders without children', () => {
     renderWithTranslations(<Accordion title='x' />);
 
-    expect(screen.getByRole('button', { name: 'x' })).toBeInTheDocument();
+    expect(screen.getByText('x').closest('summary')).toBeInTheDocument();
   });
 
   it('forwards className to the rendered accordion element', () => {
@@ -44,9 +44,9 @@ describe('Accordion', () => {
     );
 
     // className is threaded into AccordionItem, which lands on the <Details>
-    // element that is the parent of the summary button.
-    const button = screen.getByRole('button', { name: 'x' });
-    expect(button.parentElement).toHaveClass('foo');
+    // element that is the parent of the native summary.
+    const summary = screen.getByText('x').closest('summary');
+    expect(summary?.parentElement).toHaveClass('foo');
   });
 
   it('wraps in Card by default (renderAsItem omitted)', () => {

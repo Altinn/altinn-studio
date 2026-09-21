@@ -91,7 +91,7 @@ partial class Telemetry
     internal static class ServiceOwnerPartyConst
     {
         internal static readonly string MetricNameGetServiceOwnerParty = Metrics.CreateLibName(
-            "singing_get_service_owner_party"
+            "signing_get_service_owner_party"
         );
 
         [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]

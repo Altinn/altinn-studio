@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
@@ -28,7 +29,7 @@ public class ProcessNavigatorTests
     {
         using var fixture = SetupProcessNavigator("simple-linear.bpmn", []);
         var (_, processNavigator) = fixture;
-        var nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(new Instance()), "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -53,7 +54,7 @@ public class ProcessNavigatorTests
         using var fixture = SetupProcessNavigator(processFile, [new SingleSignGateway()]);
         var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
         var (_, processNavigator) = fixture;
-        var nextElements = await processNavigator.GetNextTask(instance, "Task_Sign1", "sign");
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(instance), "Task_Sign1", "sign");
         Assert.NotNull(nextElements);
         nextElements.Id.Should().Be("EndEvent_1");
     }
@@ -92,8 +93,9 @@ public class ProcessNavigatorTests
         var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
         using var fixture = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
         var (_, processNavigator) = fixture;
+        var dataAccessor = await fixture.Accessor(instance);
         await Assert.ThrowsAsync<ProcessException>(async () =>
-            await processNavigator.GetNextTask(instance, "Task_Sign1", "sign")
+            await processNavigator.GetNextTask(dataAccessor, "Task_Sign1", "sign")
         );
     }
 
@@ -127,7 +129,7 @@ public class ProcessNavigatorTests
     {
         using var fixture = SetupProcessNavigator("simple-linear.bpmn", []);
         var (_, processNavigator) = fixture;
-        var nextElements = await processNavigator.GetNextTask(new Instance(), "EndEvent", null);
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(new Instance()), "EndEvent", null);
         nextElements.Should().BeNull();
     }
 
@@ -136,7 +138,7 @@ public class ProcessNavigatorTests
     {
         using var fixture = SetupProcessNavigator("simple-gateway-default.bpmn", []);
         var (_, processNavigator) = fixture;
-        var nextElements = await processNavigator.GetNextTask(new Instance(), "Task1", null);
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(new Instance()), "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -173,7 +175,7 @@ public class ProcessNavigatorTests
             DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } },
         };
 
-        var nextElements = await processNavigator.GetNextTask(i, "Task1", null);
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(i), "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -205,8 +207,9 @@ public class ProcessNavigatorTests
         var (_, processNavigator) = fixture;
         Instance i = new Instance() { DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } } };
 
+        var dataAccessor = await fixture.Accessor(i);
         var result = await Assert.ThrowsAsync<ProcessException>(async () =>
-            await processNavigator.GetNextTask(i, "Task1", null)
+            await processNavigator.GetNextTask(dataAccessor, "Task1", null)
         );
         result
             .Message.Should()
@@ -227,7 +230,7 @@ public class ProcessNavigatorTests
             AppId = "org/app",
             DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" } },
         };
-        var nextElements = await processNavigator.GetNextTask(i, "Task1", null);
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(i), "Task1", null);
         nextElements
             .Should()
             .BeEquivalentTo(
@@ -260,7 +263,10 @@ public class ProcessNavigatorTests
             DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" }, { "choose2", "Bar" } },
         };
 
-        await Assert.ThrowsAsync<ProcessException>(async () => await processNavigator.GetNextTask(i, "Task1", null));
+        var dataAccessor = await fixture.Accessor(i);
+        await Assert.ThrowsAsync<ProcessException>(async () =>
+            await processNavigator.GetNextTask(dataAccessor, "Task1", null)
+        );
     }
 
     [Fact]
@@ -271,7 +277,7 @@ public class ProcessNavigatorTests
 
         Instance i = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
 
-        var nextElements = await processNavigator.GetNextTask(i, "EndEvent", null);
+        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(i), "EndEvent", null);
         nextElements.Should().BeNull();
     }
 
@@ -287,11 +293,14 @@ public class ProcessNavigatorTests
         services.AddSingleton<IProcessReader>(sp => ProcessTestUtils.SetupProcessReader(bpmnfile));
         services.AddTransient<IProcessNavigator, ProcessNavigator>();
         services.AddTransient<ExclusiveGatewayFactory>();
-        services.AddSingleton(new Mock<IInstanceClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict).Object);
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
         appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         services.AddSingleton(appMetadata.Object);
-        services.AddSingleton(new Mock<IDataClient>(MockBehavior.Strict).Object);
+        var dataClient = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        var mutationClient = dataClient.As<IInstanceMutationClient>();
+        services.AddSingleton(dataClient.Object);
+        services.AddSingleton(mutationClient.Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);
@@ -305,6 +314,11 @@ public class ProcessNavigatorTests
     private sealed record Fixture(IServiceProvider ServiceProvider) : IDisposable
     {
         public IProcessNavigator ProcessNavigator => ServiceProvider.GetRequiredService<IProcessNavigator>();
+
+        public async Task<IInstanceDataAccessor> Accessor(Instance instance) =>
+            await ServiceProvider
+                .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
+                .Init(instance, StorageVersionMetadata.Empty, taskId: null, language: null);
 
         public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
 

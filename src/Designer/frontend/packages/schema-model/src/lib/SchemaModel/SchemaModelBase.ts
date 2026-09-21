@@ -102,7 +102,7 @@ export class SchemaModelBase {
     }
   }
 
-  protected getReferringNodes(schemaPointer: string): ReferenceNode[] {
+  public getReferringNodes(schemaPointer: string): ReferenceNode[] {
     const referringNodes: ReferenceNode[] = [];
     for (const node of this.nodeMap.values()) {
       if (isReference(node) && node.reference === schemaPointer) {

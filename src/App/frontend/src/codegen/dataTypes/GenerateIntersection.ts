@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -12,6 +13,10 @@ export class GenerateIntersection<U extends CodeGenerator<any>[]> extends Descri
     this.types = types;
   }
 
+  getTypes(): readonly CodeGenerator<unknown>[] {
+    return this.types;
+  }
+
   toJsonSchemaDefinition(): JSONSchema7 {
     return {
       ...this.getInternalJsonSchema(),
@@ -23,5 +28,13 @@ export class GenerateIntersection<U extends CodeGenerator<any>[]> extends Descri
     const out = this.types.map((type) => type.toTypeScript()).join(' & ');
 
     return symbol ? `type ${symbol} = ${out};` : out;
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return {
+      type: 'intersection',
+      parts: this.types.map((type) => type.toComponentCatalog()),
+      ...this.componentCatalogMetadata(),
+    };
   }
 }

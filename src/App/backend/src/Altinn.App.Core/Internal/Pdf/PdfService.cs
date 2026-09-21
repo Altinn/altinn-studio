@@ -7,6 +7,7 @@ using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
@@ -70,7 +71,7 @@ public class PdfService : IPdfService
     public async Task GenerateAndStorePdf(
         IInstanceDataMutator instanceDataMutator,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         Instance instance = instanceDataMutator.Instance;
@@ -86,7 +87,7 @@ public class PdfService : IPdfService
             null,
             null,
             authenticationMethod,
-            ct: ct
+            cancellationToken: cancellationToken
         );
     }
 
@@ -96,7 +97,7 @@ public class PdfService : IPdfService
         string? customFileNameTextResourceKey,
         List<string>? autoGeneratePdfForTaskIds = null,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         Instance instance = instanceDataMutator.Instance;
@@ -112,7 +113,7 @@ public class PdfService : IPdfService
             null,
             autoGeneratePdfForTaskIds,
             authenticationMethod,
-            ct: ct
+            cancellationToken: cancellationToken
         );
     }
 
@@ -123,7 +124,7 @@ public class PdfService : IPdfService
         SubformPdfContext subformPdfContext,
         List<KeyValueEntry>? metadata = null,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         Instance instance = instanceDataMutator.Instance;
@@ -139,7 +140,7 @@ public class PdfService : IPdfService
             null,
             authenticationMethod,
             metadata,
-            ct
+            cancellationToken
         );
     }
 
@@ -149,7 +150,7 @@ public class PdfService : IPdfService
         string taskId,
         bool isPreview,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
@@ -169,14 +170,14 @@ public class PdfService : IPdfService
             null,
             authenticationMethod,
             dataAccessor: null,
-            ct
+            cancellationToken
         );
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
+    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken)
     {
-        return await GeneratePdf(instance, taskId, false, ct: ct);
+        return await GeneratePdf(instance, taskId, false, cancellationToken: cancellationToken);
     }
 
     async Task<Stream> IPdfService.GeneratePdf(
@@ -184,7 +185,7 @@ public class PdfService : IPdfService
         string taskId,
         bool isPreview,
         StorageAuthenticationMethod? authenticationMethod,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         Instance instance = dataAccessor.Instance;
@@ -205,7 +206,7 @@ public class PdfService : IPdfService
             null,
             authenticationMethod,
             dataAccessor,
-            ct
+            cancellationToken
         );
     }
 
@@ -217,7 +218,7 @@ public class PdfService : IPdfService
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
         List<KeyValueEntry>? metadata = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         Instance instance = instanceDataMutator.Instance;
@@ -237,7 +238,7 @@ public class PdfService : IPdfService
             autoGeneratePdfForTaskIds,
             authenticationMethod,
             instanceDataMutator,
-            ct
+            cancellationToken
         );
 
         string fileName = await GetFileName(
@@ -251,7 +252,7 @@ public class PdfService : IPdfService
 
         // Read stream to byte array for the mutator
         using var memoryStream = new MemoryStream();
-        await pdfContent.CopyToAsync(memoryStream, ct);
+        await pdfContent.CopyToAsync(memoryStream, cancellationToken);
         ReadOnlyMemory<byte> pdfBytes = memoryStream.ToArray();
 
         BinaryDataChange change = instanceDataMutator.AddBinaryDataElement(
@@ -275,7 +276,7 @@ public class PdfService : IPdfService
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
         IInstanceDataAccessor? dataAccessor,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
@@ -302,7 +303,12 @@ public class PdfService : IPdfService
             footerContent = await GetFooterContent(instance, taskId, language, dataAccessor);
         }
 
-        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, footerContent, authenticationMethod, ct);
+        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(
+            uri,
+            footerContent,
+            authenticationMethod,
+            cancellationToken
+        );
 
         return pdfContent;
     }
@@ -407,10 +413,8 @@ public class PdfService : IPdfService
             fileName = "Altinn PDF.pdf";
         }
 
-        string escapedFileName = Uri.EscapeDataString(fileName.AsFileName(false));
-        return escapedFileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
-            ? escapedFileName
-            : $"{escapedFileName}.pdf";
+        fileName = fileName.AsFileName(false);
+        return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? fileName : $"{fileName}.pdf";
     }
 
     private async Task<string> GetPreviewFooter(string language)
@@ -502,7 +506,12 @@ public class PdfService : IPdfService
                     return false;
                 }
 
-                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+                dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+                    instance,
+                    StorageVersionMetadata.Empty,
+                    taskId,
+                    language
+                );
             }
 
             var state = dataAccessor.GetLayoutEvaluatorState();

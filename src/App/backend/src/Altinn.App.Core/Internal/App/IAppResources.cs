@@ -35,36 +35,6 @@ public interface IAppResources
     string GetModelJsonSchema(string modelId);
 
     /// <summary>
-    /// Returns the application metadata for an application.
-    /// </summary>
-    /// <returns>The application  metadata for an application.</returns>
-    [Obsolete(
-        "GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMetadata.GetApplicationMetadata instead",
-        false
-    )]
-    Application GetApplication();
-
-    /// <summary>
-    /// Returns the application XACML policy for an application.
-    /// </summary>
-    /// <returns>The application  XACML policy for an application.</returns>
-    [Obsolete(
-        "GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMetadata.GetApplicationXACMLPolicy instead",
-        false
-    )]
-    string? GetApplicationXACMLPolicy();
-
-    /// <summary>
-    /// Returns the application BPMN process for an application.
-    /// </summary>
-    /// <returns>The application  BPMN process for an application.</returns>
-    [Obsolete(
-        "GetApplication is scheduled for removal. Use Altinn.App.Core.Internal.App.IAppMetadata.GetApplicationBPMNProcess instead",
-        false
-    )]
-    string? GetApplicationBPMNProcess();
-
-    /// <summary>
     /// Gets the prefill json file
     /// </summary>
     /// <param name="dataModelName">the data model name</param>

@@ -27,7 +27,7 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     private const string CacheKeyPrefix = "studioctl-install-script:";
     private const string StudioctlTagPrefix = "studioctl/v";
     private const int MaxScriptBytes = 8 * 1024 * 1024;
-    private const int MaxReleaseMetadataBytes = 1024 * 1024;
+    private const int MaxReleaseMetadataBytes = 8 * 1024 * 1024;
     private const int ReleaseLookupPageSize = 100;
     private const int ReleaseLookupMaxPages = 10;
     private const string StudioctlPreviewSuffix = "-preview.";

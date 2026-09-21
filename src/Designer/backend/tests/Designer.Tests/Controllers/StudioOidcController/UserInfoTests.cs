@@ -1,10 +1,7 @@
 using System.Security.Claims;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.StudioOidcController;
@@ -58,11 +55,7 @@ public class UserInfoTests
 
     private static Altinn.Studio.Designer.Controllers.StudioOidcController CreateController(ClaimsPrincipal principal)
     {
-        var controller = new Altinn.Studio.Designer.Controllers.StudioOidcController(
-            Mock.Of<IStudioOidcUsernameProvider>(),
-            new DeveloperMappingSettings(),
-            Mock.Of<IUserProvisioningService>()
-        )
+        var controller = new Altinn.Studio.Designer.Controllers.StudioOidcController
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = principal } },
         };

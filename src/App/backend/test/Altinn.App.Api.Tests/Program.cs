@@ -14,11 +14,11 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Sign;
+using Altinn.App.Tests.Common;
 using Altinn.App.Tests.Common.Mocks;
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
@@ -71,12 +71,14 @@ builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfi
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
 
-// Provide a WorkflowEngineCallback app-code so the enqueue path can mint callback tokens and the
-// always-on WorkflowEngineCallback startup validation passes for every test host.
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:Id"] = "test";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:Code"] = "test-workflow-engine-callback-secret-long-enough";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:IssuedAt"] = "2020-01-01T00:00:00Z";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:ExpiresAt"] = "2999-01-01T00:00:00Z";
+// The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
+// both files the libraries host: the app's one Maskinporten client, and the callback verification codes whose
+// WorkflowEngineCallback entry every test host needs to pass the always-on startup validation. The libraries
+// require all of it and refuse to start without it, so stand in for the platform with a throwaway directory.
+foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variables)
+{
+    builder.Configuration[key] = value;
+}
 
 // AppConfigurationCache.Disable = true;
 
@@ -107,12 +109,22 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     };
     services.AddSingleton<IOptions<PlatformSettings>>(Options.Create(platformSettings));
     services.AddTransient<IAuthorizationClient, AuthorizationMock>();
-    services.AddTransient<IInstanceClient, InstanceClientMockSi>();
+    services.AddSingleton<ApiTestStorageMetadata>();
+    services.AddTransient<InstanceClientMockSi>();
+    services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+        (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+    );
+    services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
     services.AddTransient<IAppMetadata, AppMetadataMock>();
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
-    services.AddTransient<IDataClient, DataClientMock>();
+    services.AddTransient<DataClientMock>();
+    services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+        (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+    );
+    services.AddTransient<IInstanceMutationClient>(sp => (IInstanceMutationClient)sp.GetRequiredService<IDataClient>());
+    services.AddTransient<IDataClient>(sp => sp.GetRequiredService<DataClientMock>());
     services.AddTransient<AltinnPartyClientInterceptor>();
     services
         .AddHttpClient<IAltinnPartyClient, AltinnPartyClient>()
@@ -123,8 +135,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IAppModel, AppModelMock<Program>>();
     services.AddTransient<IEventsClient, EventsClientMock>();
     services.AddTransient<ISignClient, SignClientMock>();
-    services.AddSingleton<IInstanceLocker, InstanceLockerMock>();
-
     services.PostConfigureAll<JwtCookieOptions>(options =>
     {
         // During tests we generate tokens immediately before trying to validate them.

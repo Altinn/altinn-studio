@@ -21,7 +21,7 @@ import type { ItemType } from '../ItemType';
 import type { SelectedItem } from '../../../AppContext';
 import { EditPageId } from './EditPageId';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
-import { MainSettingsHeader } from '../CommonElements/MainSettingsHeader/MainSettingsHeader';
+import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;

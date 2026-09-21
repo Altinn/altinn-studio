@@ -325,6 +325,25 @@ public static class OptionsBuilderExtensions
                         .MailboxBuffers
                         .Delivery
                         .FlushConcurrency;
+                // Throttling.Enabled deliberately has no fallback: false is both the record
+                // default and the shipped default (the feature ships dark).
+                if (config.Throttling.MinRequeuedWorkflows <= 0)
+                    config.Throttling.MinRequeuedWorkflows = Defaults.EngineSettings.Throttling.MinRequeuedWorkflows;
+
+                if (config.Throttling.MinRequeuedRatio <= 0)
+                    config.Throttling.MinRequeuedRatio = Defaults.EngineSettings.Throttling.MinRequeuedRatio;
+
+                if (config.Throttling.SweepInterval <= TimeSpan.Zero)
+                    config.Throttling.SweepInterval = Defaults.EngineSettings.Throttling.SweepInterval;
+
+                if (config.Throttling.CanaryCount <= 0)
+                    config.Throttling.CanaryCount = Defaults.EngineSettings.Throttling.CanaryCount;
+
+                if (config.Throttling.InitialWindow <= TimeSpan.Zero)
+                    config.Throttling.InitialWindow = Defaults.EngineSettings.Throttling.InitialWindow;
+
+                if (config.Throttling.MaxWindow <= TimeSpan.Zero)
+                    config.Throttling.MaxWindow = Defaults.EngineSettings.Throttling.MaxWindow;
             });
 
             return builder;
@@ -420,6 +439,31 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Retention.Interval > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.Interval)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Throttling.MinRequeuedRatio is > 0 and <= 1,
+                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.MinRequeuedRatio)} must be greater than 0 and less than or equal to 1."
+            );
+
+            builder.Validate(
+                config => config.Throttling.CanaryCount >= 1,
+                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.CanaryCount)} must be at least 1."
+            );
+
+            builder.Validate(
+                config => config.Throttling.SweepInterval > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.SweepInterval)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Throttling.InitialWindow > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.InitialWindow)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Throttling.InitialWindow <= config.Throttling.MaxWindow,
+                $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.InitialWindow)} must be less than or equal to {ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.MaxWindow)}."
             );
 
             return builder;

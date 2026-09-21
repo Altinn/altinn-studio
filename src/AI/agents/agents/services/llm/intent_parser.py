@@ -9,7 +9,10 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
-MINIMUM_INTENT_CONFIDENCE = 0.1
+MINIMUM_INTENT_CONFIDENCE = 0.30
+
+# `action` when the classifier never ran, as opposed to answering "unsafe".
+GATE_FAILED_ACTION = "error"
 
 class ParsedIntent(BaseModel):
     """Structured representation of user intent"""
@@ -66,7 +69,7 @@ async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachme
     except Exception as e:
         log.error(f"LLM intent parsing failed: {e}")
         return ParsedIntent(
-            action="error",
+            action=GATE_FAILED_ACTION,
             component="unknown",
             target=goal,
             safe=False,
@@ -95,36 +98,6 @@ def parse_intent(goal: str, attachments: Optional[List[AgentAttachment]] = None)
         log.error(f"Intent parsing failed: {e}")
         raise
 
-def validate_goal_safety(goal: str) -> tuple[bool, Optional[str]]:
-    """Comprehensive safety check for user goals"""
-    
-    # First, quick safety check without LLM
-    is_safe, safety_reason = _validate_goal_safety_quick(goal)
-    if not is_safe:
-        return False, safety_reason
-    
-    try:
-        # Full LLM-based parsing and validation
-        parsed = parse_intent(goal, attachments=attachments)
-
-        if not parsed.safe:
-            return False, parsed.reason
-
-        if parsed.confidence < 0.3:
-            return False, "Goal is too unclear or ambiguous"
-
-        if parsed.action == "blocked":
-            return False, parsed.reason or "Goal was blocked by safety filters"
-            
-        if parsed.action == "error":
-            return False, parsed.reason or "Goal could not be processed"
-
-        return True, None
-        
-    except Exception as e:
-        log.error(f"Goal validation failed: {e}")
-        return False, f"Could not validate goal: {str(e)}"
-
 def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
     """Quick safety check for dangerous keywords before LLM processing"""
     goal_lower = goal.lower().strip()
@@ -150,11 +123,6 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
         if pattern in goal_lower:
             return False, f"Contains potentially dangerous pattern: {pattern}"
 
-    credential_keywords = {"api key", "secret", "password", "token", "credential"}
-    for keyword in credential_keywords:
-        if keyword in goal_lower:
-            return False, f"Contains sensitive keyword: {keyword}"
-    
     return True, None
 
 async def suggest_goal_correction(

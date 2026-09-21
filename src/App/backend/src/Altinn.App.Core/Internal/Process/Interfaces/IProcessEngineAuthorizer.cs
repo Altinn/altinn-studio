@@ -10,5 +10,12 @@ public interface IProcessEngineAuthorizer
     /// <summary>
     /// Use this to determine if the user is allowed to perform process next for the current task.
     /// </summary>
-    Task<bool> AuthorizeProcessNext(Instance instance, string? action = null);
+    /// <param name="instance">The instance</param>
+    /// <param name="action">The action being performed, if any</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<bool> AuthorizeProcessNext(
+        Instance instance,
+        string? action = null,
+        CancellationToken cancellationToken = default
+    );
 }

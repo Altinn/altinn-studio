@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Converts a browser recording (WebM/MP4) to a GIF that stays readable under GitHub's 10 MB limit.
+#
+#   video-to-gif [--start SECONDS] [--duration SECONDS] [--width PIXELS] [--fps N] INPUT OUTPUT.gif
+#
+# Two ffmpeg passes: the first computes a palette from the selected interval, the second dithers
+# against it. A single-pass conversion uses a generic palette and produces both larger and worse
+# GIFs. The defaults match the evidence guidelines: 1280 px wide, 12 fps, whole clip.
+set -euo pipefail
+
+usage() {
+    sed -n '2,6p' "$0" >&2
+    exit 64
+}
+
+start=""
+duration=""
+width=1280
+fps=12
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --start) start="$2"; shift 2 ;;
+        --duration) duration="$2"; shift 2 ;;
+        --width) width="$2"; shift 2 ;;
+        --fps) fps="$2"; shift 2 ;;
+        --help | -h) usage ;;
+        --*) echo "video-to-gif: unknown option $1" >&2; usage ;;
+        *) break ;;
+    esac
+done
+
+[ $# -eq 2 ] || usage
+input="$1"
+output="$2"
+
+[ -r "$input" ] || { echo "video-to-gif: cannot read $input" >&2; exit 66; }
+case "$output" in
+    *.gif) ;;
+    *) echo "video-to-gif: output must end in .gif" >&2; exit 64 ;;
+esac
+
+trim=()
+[ -n "$start" ] && trim+=(-ss "$start")
+[ -n "$duration" ] && trim+=(-t "$duration")
+
+filters="fps=${fps},scale=${width}:-1:flags=lanczos"
+palette="$(mktemp --suffix=.png)"
+trap 'rm -f "$palette"' EXIT
+
+ffmpeg -hide_banner -loglevel error -y "${trim[@]}" -i "$input" \
+    -vf "${filters},palettegen=stats_mode=diff" "$palette"
+ffmpeg -hide_banner -loglevel error -y "${trim[@]}" -i "$input" -i "$palette" \
+    -lavfi "${filters} [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
+    "$output"
+
+size="$(stat -c %s "$output")"
+printf '%s: %d frames at %s fps, %s bytes\n' "$output" \
+    "$(ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 "$output")" \
+    "$fps" "$size"
+if [ "$size" -gt $((8 * 1024 * 1024)) ]; then
+    echo "video-to-gif: larger than 8 MB; shorten the interval, lower --fps or --width, or attach an MP4 instead" >&2
+    exit 1
+fi

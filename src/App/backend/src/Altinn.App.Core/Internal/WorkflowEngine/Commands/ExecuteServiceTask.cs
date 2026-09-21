@@ -49,6 +49,14 @@ internal sealed class ExecuteServiceTask(
     {
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = context.InstanceDataMutator.Instance;
+        ProcessState? processState = instance.Process;
+        if (processState is null)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                "Executing a service task requires an active process state.",
+                nameof(InvalidOperationException)
+            );
+        }
         string serviceTaskType = payload.ServiceTaskType;
 
         using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, serviceTaskType);
@@ -89,7 +97,8 @@ internal sealed class ExecuteServiceTask(
             };
 
             AppCallbackMailbox? rendezvous = context.Payload.Mailbox;
-            return pipeline.Items.ElementAtOrDefault(itemIndex) switch
+            PipelineItem? pipelineItem = pipeline.Items.ElementAtOrDefault(itemIndex);
+            ProcessEngineCommandResult result = pipelineItem switch
             {
                 null => PipelineItemNotFound(serviceTaskType, itemIndex),
 
@@ -138,6 +147,8 @@ internal sealed class ExecuteServiceTask(
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
+
+            return result;
         }
         catch (Exception ex)
         {
@@ -527,18 +538,16 @@ internal sealed class ExecuteServiceTask(
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            ServiceTaskSuccessResult { AutoAdvanceProcess: true } success => new SuccessfulProcessEngineCommandResult
+            ServiceTaskSuccessResult success => new SuccessfulProcessEngineCommandResult
             {
-                AutoAdvanceProcess = true,
-                AutoAdvanceAction = success.Action,
+                ProcessNextContinuation = new(success.Action),
             },
-            ServiceTaskSuccessResult => new SuccessfulProcessEngineCommandResult(),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
                 task,
                 result,
                 nameof(ServiceTaskResult),
-                $"{nameof(ServiceTaskResult.Success)}, {nameof(ServiceTaskResult.SuccessWithoutAutoAdvance)}, "
+                $"{nameof(ServiceTaskResult.Success)}, "
                     + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                     + $"{nameof(ServiceTaskResult.FailedPermanent)} or {nameof(ServiceTaskResult.Defer)}"
             ),

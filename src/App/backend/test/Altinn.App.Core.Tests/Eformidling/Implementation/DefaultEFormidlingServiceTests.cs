@@ -5,16 +5,15 @@ using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
+using Altinn.App.Core.EFormidling.Models.SBD;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
-using Altinn.Common.EFormidlingClient;
-using Altinn.Common.EFormidlingClient.Models;
-using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -208,16 +207,7 @@ public class DefaultEFormidlingServiceTests
         var result = defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert
-        var expectedReqHeaders = new Dictionary<string, string>
-        {
-            { "Authorization", $"Bearer authz-token" },
-            { General.EFormidlingAccessTokenHeaderName, "access-token" },
-            { General.SubscriptionKeyHeaderName, "subscription-key" },
-        };
-
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
-        fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
-        fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
         fixture
             .Mock<IEFormidlingReceivers>()
             .Verify(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()));
@@ -227,28 +217,55 @@ public class DefaultEFormidlingServiceTests
             Times.Exactly(instance.Data.Count)
         );
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
-        eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), EFormidlingMetadataFilename, expectedReqHeaders)
+            ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), It.IsAny<CancellationToken>())
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), $"{ModelDataType}.xml", expectedReqHeaders)
+            ec.UploadAttachment(
+                Stream.Null,
+                instanceGuid.ToString(),
+                EFormidlingMetadataFilename,
+                It.IsAny<CancellationToken>()
+            )
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), "attachment.txt", expectedReqHeaders)
+            ec.UploadAttachment(
+                It.IsAny<Stream>(),
+                instanceGuid.ToString(),
+                $"{ModelDataType}.xml",
+                It.IsAny<CancellationToken>()
+            )
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), "attachment-1.txt", expectedReqHeaders)
+            ec.UploadAttachment(
+                It.IsAny<Stream>(),
+                instanceGuid.ToString(),
+                "attachment.txt",
+                It.IsAny<CancellationToken>()
+            )
         );
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(It.IsAny<Stream>(), instanceGuid.ToString(), "no-extension", expectedReqHeaders)
+            ec.UploadAttachment(
+                It.IsAny<Stream>(),
+                instanceGuid.ToString(),
+                "attachment-1.txt",
+                It.IsAny<CancellationToken>()
+            )
+        );
+        eFormidlingClient.Verify(ec =>
+            ec.UploadAttachment(
+                It.IsAny<Stream>(),
+                instanceGuid.ToString(),
+                "no-extension",
+                It.IsAny<CancellationToken>()
+            )
         );
         eFormidlingClient.Verify(ec =>
             ec.UploadAttachment(
                 It.IsAny<Stream>(),
                 instanceGuid.ToString(),
                 FileAttachmentsDataType,
-                expectedReqHeaders
+                It.IsAny<CancellationToken>()
             )
         );
         eFormidlingClient.Verify(ec =>
@@ -256,7 +273,7 @@ public class DefaultEFormidlingServiceTests
                 It.IsAny<Stream>(),
                 instanceGuid.ToString(),
                 $"{Path.GetFileNameWithoutExtension(EFormidlingMetadataFilename)}-1.xml",
-                expectedReqHeaders
+                It.IsAny<CancellationToken>()
             )
         );
         eFormidlingClient.Verify(ec =>
@@ -264,15 +281,13 @@ public class DefaultEFormidlingServiceTests
                 It.IsAny<Stream>(),
                 instanceGuid.ToString(),
                 $"{FileAttachmentsDataType}-{ModelDataType}.xml",
-                expectedReqHeaders
+                It.IsAny<CancellationToken>()
             )
         );
 
-        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
+        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), It.IsAny<CancellationToken>()));
 
         eFormidlingClient.VerifyNoOtherCalls();
-        fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
-        fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
         fixture.Mock<IEFormidlingReceivers>().VerifyNoOtherCalls();
         fixture.Mock<IAppMetadata>().VerifyNoOtherCalls();
 
@@ -339,7 +354,7 @@ public class DefaultEFormidlingServiceTests
             setupEFormidlingClient: static eFormidlingClient =>
             {
                 eFormidlingClient
-                    .Setup(ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                    .Setup(ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ThrowsAsync(new Exception("XUnit expected exception"));
             }
         );
@@ -350,30 +365,26 @@ public class DefaultEFormidlingServiceTests
         var result = defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert
-        var expectedReqHeaders = new Dictionary<string, string>
-        {
-            { "Authorization", $"Bearer authz-token" },
-            { General.EFormidlingAccessTokenHeaderName, "access-token" },
-            { General.SubscriptionKeyHeaderName, "subscription-key" },
-        };
-
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
-        fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
-        fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
         fixture
             .Mock<IEFormidlingReceivers>()
             .Verify(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()));
         fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(dataAccessor.Object));
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
-        eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
         eFormidlingClient.Verify(ec =>
-            ec.UploadAttachment(Stream.Null, instanceGuid.ToString(), EFormidlingMetadataFilename, expectedReqHeaders)
+            ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), It.IsAny<CancellationToken>())
         );
-        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), expectedReqHeaders));
+        eFormidlingClient.Verify(ec =>
+            ec.UploadAttachment(
+                Stream.Null,
+                instanceGuid.ToString(),
+                EFormidlingMetadataFilename,
+                It.IsAny<CancellationToken>()
+            )
+        );
+        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), It.IsAny<CancellationToken>()));
 
         eFormidlingClient.VerifyNoOtherCalls();
-        fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
-        fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
         fixture.Mock<IEFormidlingReceivers>().VerifyNoOtherCalls();
         fixture.Mock<IAppMetadata>().VerifyNoOtherCalls();
 
@@ -381,30 +392,37 @@ public class DefaultEFormidlingServiceTests
     }
 
     private const string DuplicateMessageBody =
-        "The remote server returned an unexpcted error: {\n"
+        "{\n"
         + "  \"timestamp\" : \"2026-05-28T14:52:16.925861287+02:00\",\n"
         + "  \"exception\" : \"no.difi.meldingsutveksling.exceptions.MessageAlreadyExistsException\",\n"
         + "  \"message\" : \"Message with messageId = e9f0f271-a01e-4457-8a24-3c2079824717 already exists\",\n"
         + "  \"status\" : 400,\n"
         + "  \"error\" : \"Bad Request\",\n"
         + "  \"path\" : \"/api/messages/out\"\n"
-        + "}.";
+        + "}";
+
+    /// <summary>
+    /// The shape the client raises for a rejected request: status and captured body, no interpolation
+    /// of the body into the message.
+    /// </summary>
+    private static PlatformHttpException Rejected(string body) =>
+        new(new PlatformHttpResponse(HttpStatusCode.BadRequest) { Content = body }, "Bad Request");
 
     private static void SetupDuplicateCreate(Mock<IEFormidlingClient> eFormidlingClient, params string[] statuses)
     {
         eFormidlingClient
-            .Setup(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), It.IsAny<Dictionary<string, string>>()))
-            .ThrowsAsync(new WebException(DuplicateMessageBody));
+            .Setup(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(Rejected(DuplicateMessageBody));
         eFormidlingClient
-            .Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+            .Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 // A status entry without a status value (the frozen client model is pre-NRT, so a
                 // missing field deserialises to null) must not break the recovery path.
                 new Statuses
                 {
                     Content = statuses
-                        .Select(status => new Content { Status = status })
-                        .Prepend(new Content())
+                        .Select(status => new Statuses.Entry { Status = status })
+                        .Prepend(new Statuses.Entry())
                         .ToList(),
                 }
             );
@@ -431,10 +449,10 @@ public class DefaultEFormidlingServiceTests
                 Stream.Null,
                 instanceGuid.ToString(),
                 EFormidlingMetadataFilename,
-                It.IsAny<Dictionary<string, string>>()
+                It.IsAny<CancellationToken>()
             )
         );
-        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), It.IsAny<Dictionary<string, string>>()));
+        eFormidlingClient.Verify(ec => ec.SendMessage(instanceGuid.ToString(), It.IsAny<CancellationToken>()));
     }
 
     [Fact]
@@ -459,14 +477,11 @@ public class DefaultEFormidlingServiceTests
                     It.IsAny<Stream>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<Dictionary<string, string>>()
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Never
         );
-        eFormidlingClient.Verify(
-            ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
-            Times.Never
-        );
+        eFormidlingClient.Verify(ec => ec.SendMessage(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -489,15 +504,17 @@ public class DefaultEFormidlingServiceTests
 
     [Theory]
     [InlineData(DuplicateMessageBody, true)]
-    [InlineData("The remote server returned an unexpcted error: not json MessageAlreadyExistsException.", true)]
+    // Not JSON, but the truncated or plain-text body still names the exception.
+    [InlineData("not json MessageAlreadyExistsException", true)]
     [InlineData(
-        "The remote server returned an unexpcted error: { \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }.",
+        "{ \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }",
         false
     )]
     [InlineData("Connection refused", false)]
-    public void IsMessageAlreadyExistsError_matches_only_duplicate_errors(string message, bool expected)
+    [InlineData("", false)]
+    public void IsMessageAlreadyExistsError_matches_only_duplicate_errors(string body, bool expected)
     {
-        Assert.Equal(expected, DefaultEFormidlingService.IsMessageAlreadyExistsError(new WebException(message)));
+        Assert.Equal(expected, DefaultEFormidlingService.IsMessageAlreadyExistsError(Rejected(body)));
     }
 
     [Fact]
@@ -507,14 +524,14 @@ public class DefaultEFormidlingServiceTests
         await using var fixture = CreateFixture(
             data: [],
             setupEFormidlingClient: static c =>
-                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
+                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(
                         new Statuses
                         {
                             Content =
                             [
-                                new Content { Status = "sendt" },
-                                new Content { Status = "levert", Description = "Levert til mottaker" },
+                                new Statuses.Entry { Status = "sendt" },
+                                new Statuses.Entry { Status = "levert", Description = "Levert til mottaker" },
                             ],
                         }
                     )
@@ -534,37 +551,7 @@ public class DefaultEFormidlingServiceTests
         Assert.Equal("Levert til mottaker", status.Description);
         fixture
             .Mock<IEFormidlingClient>()
-            .Verify(ec => ec.GetMessageStatusById(instanceGuid.ToString(), It.IsAny<Dictionary<string, string>>()));
-    }
-
-    [Fact]
-    public async Task GetEFormidlingShipmentStatus_sends_only_the_subscription_key()
-    {
-        // Arrange - the status read is a gateway read, not an operation on the instance's behalf, so
-        // it mints none of the tokens the send path needs. That matters: the poll runs from a
-        // workflow-engine callback, where there is no end user to borrow a token from.
-        Dictionary<string, string>? capturedHeaders = null;
-        await using var fixture = CreateFixture(
-            data: [],
-            setupEFormidlingClient: c =>
-                c.Setup(ec => ec.GetMessageStatusById(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
-                    .ReturnsAsync(new Statuses())
-                    .Callback<string, Dictionary<string, string>>((_, headers) => capturedHeaders = headers)
-        );
-        var (sp, _, _, dataAccessor) = fixture;
-        var defaultEformidlingService = sp.GetRequiredService<IEFormidlingService>();
-
-        // Act
-        await defaultEformidlingService.GetEFormidlingShipmentStatus(dataAccessor.Object, TestConfiguration);
-
-        // Assert
-        Assert.NotNull(capturedHeaders);
-        Assert.Equal(
-            new Dictionary<string, string> { [General.SubscriptionKeyHeaderName] = "subscription-key" },
-            capturedHeaders
-        );
-        fixture.Mock<IUserTokenProvider>().VerifyNoOtherCalls();
-        fixture.Mock<IAccessTokenGenerator>().VerifyNoOtherCalls();
+            .Verify(ec => ec.GetMessageStatusById(instanceGuid.ToString(), It.IsAny<CancellationToken>()));
     }
 
     [Theory]

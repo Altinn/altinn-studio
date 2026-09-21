@@ -20,6 +20,8 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Resume](#resume)
     - [Abandon](#abandon)
     - [Nudge](#nudge)
+    - [Fail](#fail)
+    - [Failure-Storm Throttling](#failure-storm-throttling)
     - [Mailboxes](#mailboxes)
     - [Dependency Graphs](#dependency-graphs)
     - [Telemetry \& Observability](#telemetry--observability)
@@ -342,7 +344,8 @@ engine.workflows.execution.failed{reason="wait_expired"}
 ```
 
 Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
-not that the engine or the command broke. Route it to the team that owns the integration. A
+not that the engine or the command broke. Route it to the team that owns the integration. The same goes
+for `manual`, which a caller produces on purpose by [failing a parked workflow](#fail). A
 non-positive delay, by contrast, is a command bug and fails the step under the ordinary `execution`
 reason. A _positive but negligible_ delay is the same class of mistake handled gently: it is clamped
 up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
@@ -429,7 +432,7 @@ Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be resume
 POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
 ```
 
-1. Resets the workflow to `Enqueued`, clearing `CancellationRequestedAt`, `BackoffUntil`, `HeartbeatAt`, and `ReclaimCount`
+1. Resets the workflow to `Enqueued`, clearing `CancellationRequestedAt`, `BackoffUntil`, `ThrottledUntil` (an explicit resume wins over the [namespace circuit breaker](#failure-storm-throttling)), `HeartbeatAt`, and `ReclaimCount`
 2. Resets all non-completed steps to `Enqueued`
 3. The processor picks up the workflow on its next cycle
 
@@ -484,8 +487,10 @@ can be told to stop waiting:
 POST /api/v1/{namespace}/workflows/{workflowId}/nudge
 ```
 
-This clears `backoff_until` and signals the processor, so the workflow is claimed on the next fetch
-cycle instead of when its timer would have elapsed. The workflow is **re-executed, not skipped**: the
+This clears `backoff_until` — and `throttled_until`, so an explicit nudge always wins over the
+[namespace circuit breaker](#failure-storm-throttling) — and signals the processor, so the workflow
+is claimed on the next fetch cycle instead of when its timer would have elapsed. The workflow is
+**re-executed, not skipped**: the
 step runs again and reaches its own conclusion. Nudging a poller that still has nothing to report
 simply produces another deferral.
 
@@ -493,6 +498,45 @@ This is the engine's push channel. It exists so an external signal (a webhook, a
 _accelerate_ a poll, never to carry it: the step's own cadence remains the source of truth, so a lost
 nudge costs one poll interval of latency and nothing else. Never build a flow whose correctness
 depends on the nudge arriving.
+
+## Failure-Storm Throttling
+
+Operations guide for the per-namespace failure-storm circuit breaker (design and rationale in the
+[failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md);
+configuration and state-machine behavior under
+[Throttling (namespace circuit breaker)](#throttling-namespace-circuit-breaker)).
+
+**Observability.**
+
+- `GET /api/v1/throttles` lists every namespace breaker (tripped, recovering, or lingering cleared);
+  `GET /api/v1/{namespace}/throttle` fetches one. Both work whether or not throttling is enabled.
+- The dashboard shows a **Throttled Namespaces** panel (Live tab, above Scheduled) whenever any
+  breaker state exists, with force-trip/force-clear actions behind a two-click confirm.
+- Metrics (all tagged with `namespace`): `engine.throttle.tripped` (trips and re-trips, including
+  force-trips), `engine.throttle.extended` (window extensions after unanimous canary failure),
+  `engine.throttle.released` (workflows released in recovery cohorts),
+  `engine.throttle.cleared` (clears, including force-clears),
+  `engine.throttle.handler_parked` (workflows parked cooperatively by the handler), and the gauge
+  `engine.throttle.breakers.tripped` (breakers currently tripped, untagged).
+- Trip/extend/release/clear events are logged at Warning/Information by `NamespaceThrottleService`.
+
+**Manual overrides — one-shot interventions, not standing policy.**
+
+- `POST /api/v1/{namespace}/throttle/trip` force-trips the breaker: an immediate trip regardless of
+  the detection thresholds — state `Tripped` with the initial window, fresh canaries, the rest of the
+  `Requeued` population parked. It does **not** prevent canary-driven recovery.
+- `POST /api/v1/{namespace}/throttle/clear` force-clears it: state `Clear` and every
+  `throttled_until` stamp in the namespace cleared immediately, releasing the parked population to
+  the normal retry schedule. It means "release now", not "never throttle": the next sweep re-trips
+  if the trip condition still holds. The state row lingers through the normal cleared grace period.
+- Both overrides run through the sweep's advisory lock (blocking), so they never interleave with a
+  running sweep cycle. Both return `409 Conflict` when `Throttling.Enabled` is `false`: with the
+  feature disabled the workflow fetch ignores `throttled_until` entirely, so an override would be
+  inert.
+
+**Per-workflow overrides.** The existing [nudge](#nudge) and [resume](#resume) operations clear
+`throttled_until` along with `backoff_until`: an operator's explicit poke at a single workflow
+always wins over the breaker, without touching the namespace's breaker state.
 
 **Response (202 Accepted):**
 
@@ -505,8 +549,53 @@ depends on the nudge arriving.
 
 Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
 the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
-does not exist. The dashboard's _Retry now_ / _Check now_ buttons drive the same operation through
-`POST /dashboard/nudge`.
+does not exist. The dashboard's _Retry now_ / _Check now_ buttons call this endpoint directly.
+
+## Fail
+
+A parked workflow — `Requeued` between retry attempts, or `Waiting` on a [deferral](#deferral-durable-yield) —
+can be **failed** by a caller who has decided not to wait for its retries or wait budget to run out:
+
+```http
+POST /api/v1/{namespace}/workflows/{workflowId}/fail
+```
+
+**Request (optional body):**
+
+```json
+{
+    "reason": "Upstream registry confirmed the shipment was never created"
+}
+```
+
+The transition is a compare-and-set from `Requeued` or `Waiting` to `Failed`: the backoff is cleared and the
+parked step is marked `Failed` with `reason` appended to its error history as a non-retryable entry (a default
+text is recorded when the body is omitted; at most 500 characters), so consumers see exactly what an exhausted
+retry would have produced — the app side surfaces it through its normal failure path, dependents settle as
+`DependencyFailed`, and [resume](#resume) brings it back. A workflow the processor claimed first is left alone:
+an in-flight step is never failed out from under its worker — [cancel](#cancellation) it instead.
+
+Fail is not cancel. Cancelling a parked workflow withdraws the work and leaves the step in its parked state under
+a `Canceled` workflow; failing it rules on the step's outcome, and the step reads as failed everywhere. Use fail
+when the outcome is known to be bad and people should see it as a failure, cancel when the work is simply no
+longer wanted.
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "failedAt": "2026-03-19T10:04:00+00:00"
+}
+```
+
+Returns `409 Conflict` when the workflow is not parked — including when it is already `Failed`: a manual failure
+is indistinguishable from one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay,
+and a client that must retry the call reads the workflow's status first. `404 Not Found` when it does not exist,
+`400 Bad Request` when `reason` is blank or over-long. The failure is counted as
+`engine.workflows.execution.failed{reason="manual"}` (and `engine.steps.execution.failed{reason="manual"}` for
+the step) — keep that reason out of the default ops alert alongside
+`wait_expired`. The dashboard's _Fail_ button calls this endpoint with a fixed reason naming the dashboard.
 
 ## Mailboxes
 
@@ -1107,6 +1196,9 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
 - SSE streams for engine health and active workflows
 - Visual step pipeline with status colors
 - Step detail modal (command, retry strategy, trace ID, errors)
+- Operator actions on a step: _Retry_ a failed one, _Retry now_ / _Check now_ a parked one ([nudge](#nudge)),
+  or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
+  exercises the same contract external callers use
 - State evolution viewer
 - Grafana Tempo click-through links
 - Paginated query interface with namespace/status/label filters
@@ -1133,7 +1225,7 @@ POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collection
     },
     "context": {
         "actor": { "orgId": "12345678901" },
-        "lockToken": "lock-token-from-app",
+        "callbackToken": "opaque-callback-token",
         "org": "ttd",
         "app": "my-app",
         "instanceOwnerPartyId": 50001234,
@@ -1223,6 +1315,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     "namespace": "ttd:my-app",
     "createdAt": "2026-03-19T10:00:00+00:00",
     "updatedAt": "2026-03-19T10:00:05+00:00",
+    "executionStartedAt": "2026-03-19T10:00:01+00:00",
     "overallStatus": "Completed",
     "labels": {
         "org": "ttd",
@@ -1236,6 +1329,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "validate-form",
             "processingOrder": 0,
             "updatedAt": "2026-03-19T10:00:02+00:00",
+            "executionStartedAt": "2026-03-19T10:00:01+00:00",
             "command": { "type": "app" },
             "status": "Completed",
             "retryCount": 0
@@ -1245,6 +1339,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "generate-pdf",
             "processingOrder": 1,
             "updatedAt": "2026-03-19T10:00:04+00:00",
+            "executionStartedAt": "2026-03-19T10:00:03+00:00",
             "command": { "type": "app" },
             "status": "Completed",
             "retryCount": 1,
@@ -1260,6 +1355,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
             "operationId": "notify-complete",
             "processingOrder": 2,
             "updatedAt": "2026-03-19T10:00:05+00:00",
+            "executionStartedAt": "2026-03-19T10:00:04+00:00",
             "command": { "type": "webhook" },
             "status": "Completed",
             "retryCount": 0
@@ -1267,6 +1363,20 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     ]
 }
 ```
+
+`executionStartedAt` — on the workflow and on each step — is the start of the **most recent attempt**,
+stamped by the worker as the attempt begins and persisted by that attempt's write-backs. It is absent
+while the workflow is `Enqueued` — before the first attempt, and again after `resume`, a stale reclaim or
+dependency recovery return it there — and every new attempt overwrites it (retries and deferral
+re-executions included). `executionStartedAt − createdAt` is queue wait; on a settled step,
+`updatedAt − executionStartedAt` is the last attempt's duration. Do not substitute `createdAt` when
+deriving a duration: that counts queue wait as processing time.
+
+The persisted value trails the in-memory one by at most one write-back. A step's first write-back of an
+attempt (`step.started`) is fire-and-forget and is dropped when the update buffer is saturated, so under
+pressure a `Processing` step can read with the previous attempt's stamp — or none — until the attempt
+settles. A duration derived from a settled step is exact; one derived from a `Processing` step is
+indicative.
 
 ### List Workflows
 
@@ -1375,6 +1485,83 @@ POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/nudge
 Clears the pending backoff of a parked (`Requeued` or `Waiting`) workflow so it runs on the next fetch
 cycle — see [Nudge](#nudge). Returns `200 OK` with a null `nudgedAt` when it was already due,
 `409 Conflict` when the workflow is not parked, and `404 Not Found` when it doesn't exist.
+
+### Fail Workflow
+
+```http
+POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/fail
+Content-Type: application/json
+
+{ "reason": "Upstream registry confirmed the shipment was never created" }
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "failedAt": "2026-03-19T10:04:00+00:00"
+}
+```
+
+Fails a parked (`Requeued` or `Waiting`) workflow by caller decision, recording the optional `reason` as the
+parked step's final error entry — see [Fail](#fail). Returns `409 Conflict` when the workflow is not parked
+(including when it is already `Failed`), `404 Not Found` when it doesn't exist, and `400 Bad Request` for a
+blank or over-long reason.
+
+### List Namespace Throttles
+
+Lists the [failure-storm circuit breaker](#failure-storm-throttling) state of every namespace that currently has one. Purely observational — works whether or not throttling is enabled. Returns `204 No Content` when no breaker state exists.
+
+```http
+GET /api/v1/throttles
+```
+
+**Response (200 OK):**
+
+```json
+[
+    {
+        "namespace": "ttd/broken-app",
+        "state": "Tripped",
+        "trippedAt": "2026-03-19T10:00:00+00:00",
+        "currentWindow": "00:10:00",
+        "canaryCount": 3,
+        "lastEvaluatedAt": "2026-03-19T10:05:00+00:00",
+        "lastRequeuedCount": 120,
+        "lastActiveCount": 150,
+        "updatedAt": "2026-03-19T10:05:00+00:00"
+    }
+]
+```
+
+### Get Namespace Throttle
+
+The same breaker state for a single namespace. `404 Not Found` when the namespace has no breaker state row.
+
+```http
+GET /api/v1/{namespace}/throttle
+```
+
+### Force-Trip Throttle
+
+Trips the namespace's breaker immediately, regardless of the detection thresholds — a one-shot intervention that does not prevent canary-driven recovery (see [Failure-Storm Throttling](#failure-storm-throttling)). Force-tripping an already-tripped breaker re-trips it with the initial window and fresh canaries.
+
+```http
+POST /api/v1/{namespace}/throttle/trip
+```
+
+**Response (202 Accepted):** the resulting breaker state (same shape as **Get Namespace Throttle**). `409 Conflict` when throttling is disabled — with `Throttling.Enabled = false` the workflow fetch ignores `throttled_until` entirely, so the override would be inert.
+
+### Force-Clear Throttle
+
+Clears the namespace's breaker immediately and clears every `throttled_until` stamp in the namespace — "release now", not "never throttle": the next sweep re-trips if the trip condition still holds. The state row lingers through the normal cleared grace period.
+
+```http
+POST /api/v1/{namespace}/throttle/clear
+```
+
+**Response (202 Accepted):** the resulting breaker state. `200 OK` when the breaker was already clear (idempotent replay, stragglers still cleared), `404 Not Found` when the namespace has no breaker state, `409 Conflict` when throttling is disabled.
 
 ### List Collections
 
@@ -1610,6 +1797,46 @@ All via `EngineSettings` (bound from `appsettings.json`):
 | `MaxMailboxLogLength`           | 100     | Positions per mailbox log, deliveries and receivers alike (`429`)                                  |
 | `MailboxSweepInterval`          | 5m      | Closure sweep cadence — a term in the callback-token lifetime bound derived on `MaxMailboxTimeout` |
 
+### Throttling (namespace circuit breaker)
+
+Per-namespace failure-storm throttling (see the failure-throttling ADR). Ships dark: with
+`Enabled: false` (the default) the sweep does not run and the fetch query's throttle gate is
+switched off by a parameter, so `throttled_until` has no bearing on which workflows are fetched
+and the schema is fully inert.
+
+The sweep (`NamespaceThrottleService`) runs the whole state machine every `SweepInterval` under a
+Postgres advisory lock (single writer across replicas; a replica that finds the lock held skips
+its cycle): trip when a namespace's `Requeued` population exceeds both thresholds, park that
+population behind `throttled_until` (jittered ±20% per row and clamped per stamp to each
+workflow's retry deadline, so throttling never costs a final attempt), keep a small rotating
+canary set on the normal retry schedule, extend the window ×2 on unanimous canary failure, and —
+once any canary progresses (judged by requeue-count comparison, never timing; a canary observed
+mid-attempt is indeterminate and keeps the breaker waiting) — release the parked horde
+oldest-first in doubling cohorts with a jittered smear, clearing only once a cohort comes back
+empty — a short cohort proves nothing, because rows are claimed `FOR UPDATE SKIP LOCKED` and one
+held by a concurrent cancellation or fetch is skipped while still parked. A failed recovery
+re-trips keeping the grown window; a cleared breaker lingers for a grace period (5 sweep intervals) during which
+stragglers are cleared. Each cycle every replica refreshes an in-memory snapshot of the tripped
+breakers (`IThrottleStateView`), which expires fail-open — it reads as empty once older than 3
+sweep intervals, so a replica whose sweep loop has died loses its power to park; on top of that
+snapshot the workflow handler cooperates by parking newly failing workflows in an open namespace
+immediately, without waiting for the next sweep. Operational tooling — the observability and
+force-trip/force-clear endpoints, the dashboard panel, and the nudge/resume interplay — is
+described under [Failure-Storm Throttling](#failure-storm-throttling).
+
+| Setting                            | Default | Description                                             |
+| ---------------------------------- | ------- | ------------------------------------------------------- |
+| `Throttling.Enabled`               | false   | Master switch for the namespace circuit breaker         |
+| `Throttling.MinRequeuedWorkflows`  | 50      | Absolute floor of `Requeued` workflows before tripping  |
+| `Throttling.MinRequeuedRatio`      | 0.5     | Fraction of active workflows that must be `Requeued`    |
+| `Throttling.SweepInterval`         | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
+| `Throttling.CanaryCount`           | 3       | Canary workflows kept on the normal retry schedule      |
+| `Throttling.InitialWindow`         | 10m     | Throttle window at first trip                           |
+| `Throttling.MaxWindow`             | 1h      | Cap on the exponentially growing window                 |
+
+Window growth (×2), release cohort growth (×2), and jitter (±20%) are named constants on
+`ThrottlingSettings`, deliberately not configuration.
+
 ## Testing
 
 ### TestKit
@@ -1727,7 +1954,7 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 
 - **Type string**: `"app"`
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
-- **Context**: `AppWorkflowContext` — `{ actor, lockToken, org, app, instanceOwnerPartyId, instanceGuid }`
+- **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
 - **Execution**: HTTP POST to a templated URL expanded from the workflow context
 
 ### Error Classification

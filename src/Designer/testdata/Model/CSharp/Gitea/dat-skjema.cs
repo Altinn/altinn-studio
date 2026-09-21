@@ -188,6 +188,7 @@ namespace Altinn.App.Models
 
   public class InnholdSkjema
   {
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("AntallAnsatte", Order = 1)]
     [JsonProperty("AntallAnsatte")]

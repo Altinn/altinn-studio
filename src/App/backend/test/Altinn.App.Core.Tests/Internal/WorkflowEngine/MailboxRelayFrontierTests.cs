@@ -15,6 +15,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -94,7 +95,7 @@ public class MailboxRelayFrontierTests
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             var accepted = new List<WorkflowResult>();
@@ -132,10 +133,16 @@ public class MailboxRelayFrontierTests
             return Task.FromResult(new WorkflowEnqueueResponse.Accepted { Workflows = accepted });
         }
 
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) =>
             Task.FromResult<WorkflowCollectionDetailResponse?>(
                 new WorkflowCollectionDetailResponse
@@ -159,7 +166,7 @@ public class MailboxRelayFrontierTests
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) =>
             Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([
                 .. _workflows
@@ -184,36 +191,39 @@ public class MailboxRelayFrontierTests
                     }),
             ]);
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default) =>
-            Task.FromResult<MailboxResponse?>(null);
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        ) => Task.FromResult<MailboxResponse?>(null);
 
         public Task<MailboxDeliveryResult> DeliverToMailbox(
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -316,19 +326,29 @@ public class MailboxRelayFrontierTests
         processEngine
             .Setup(x =>
                 x.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
-                    It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns<Instance, Actor, string, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, _, collectionKey, _, _, idempotencyKey, ct) =>
+            .Returns<
+                IInstanceDataAccessor,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (_, _, _, collectionKey, _, _, _, idempotencyKey, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
                         idempotencyKey!,
@@ -340,7 +360,7 @@ public class MailboxRelayFrontierTests
                                 new WorkflowRequest { OperationId = "Process next: Task_2 -> Task_3", Steps = [] },
                             ],
                         },
-                        ct
+                        cancellationToken
                     )
             );
 
@@ -353,7 +373,12 @@ public class MailboxRelayFrontierTests
     }
 
     private static WorkflowEngineService CreateReader(CollectionModel collection) =>
-        new(processNextRequestFactory: null!, collection, Mock.Of<IInstanceClient>(), new AppIdentifier(Org, App));
+        new(
+            processNextRequestFactory: null!,
+            collection,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            new AppIdentifier(Org, App)
+        );
 
     private static MailboxRelayRequest CreateRequest(Guid receiverWorkflowId, Guid stepId) =>
         new()
@@ -364,13 +389,20 @@ public class MailboxRelayFrontierTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 WorkflowId = receiverWorkflowId,
                 StepId = stepId,
                 State = "incoming-state",
             },
-            Instance = CreateInstance(),
+            DataAccessor = new InstanceDataAccessorFake(
+                CreateInstance(),
+                applicationMetadata: null,
+                translationService: null,
+                layout: null,
+                frontEndSettings: null,
+                gatewayAction: null,
+                language: null
+            ),
             State = "published-state",
             AutoAdvanceProcess = true,
             AutoAdvanceAction = null,
@@ -449,35 +481,6 @@ public class MailboxRelayFrontierTests
         collection.Purge(main, receiver);
 
         await AssertFrontierHeldOpenBy(reader, CreateInstance(), successor, "retention purged Main and receiver 1");
-    }
-
-    [Fact]
-    public async Task AConcludedExchangeThatAdvancesNothing_LetsTheFrontierEmpty()
-    {
-        // The bound: once the task concluded and asked for nothing downstream, all-settled is correct.
-        var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection);
-        WorkflowEngineService reader = CreateReader(collection);
-
-        Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Completed);
-        Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
-        Assert.NotEqual(Guid.Empty, main);
-
-        await relay.Continue(
-            new MailboxContinuation.Conclude([_mailboxId]),
-            CreateRequest(receiver, Guid.NewGuid()) with
-            {
-                AutoAdvanceProcess = false,
-            },
-            CancellationToken.None
-        );
-        collection.Settle(receiver);
-
-        CurrentTaskWorkflowState state = await reader.GetCurrentTaskWorkflowState(
-            CreateInstance(),
-            CancellationToken.None
-        );
-        Assert.IsType<CurrentTaskWorkflowState.Unblocked>(state);
     }
 
     /// <summary>

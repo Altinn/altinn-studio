@@ -1,4 +1,5 @@
 import deepEqual from 'fast-deep-equal';
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -16,6 +17,10 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
   constructor(...types: U) {
     super();
     this.types = types;
+  }
+
+  getTypes(): readonly CodeGenerator<unknown>[] {
+    return this.types;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,5 +64,13 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
 
   shouldUseParens(): boolean {
     return true;
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return {
+      type: 'union',
+      variants: this.types.map((type) => type.toComponentCatalog()),
+      ...this.componentCatalogMetadata(),
+    };
   }
 }

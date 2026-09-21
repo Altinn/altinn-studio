@@ -17,8 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
-
     <PackageReference Include="Mime-Detective" />
   </ItemGroup>
 

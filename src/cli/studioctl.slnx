@@ -3,4 +3,8 @@
   <Folder Name="/studioctl-server-tests/">
     <Project Path="studioctl-server-tests/Studioctl.Tests.csproj" />
   </Folder>
+  <Folder Name="/common/">
+    <Project Path="common/dotnet/Altinn.Studio.AppDist/Altinn.Studio.AppDist.csproj" />
+    <Project Path="common/dotnet/tests/Altinn.Studio.AppDist.Tests/Altinn.Studio.AppDist.Tests.csproj" />
+  </Folder>
 </Solution>

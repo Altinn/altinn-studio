@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -84,7 +85,7 @@ public class MailboxRelayTests
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             // The workflow's shape, not a bare "enqueue": a receiver and a continuation are two different
@@ -101,7 +102,11 @@ public class MailboxRelayTests
             );
         }
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        )
         {
             recorder.Calls.Add("close-mailbox");
             recorder.Closes.Add(mailboxId);
@@ -112,13 +117,19 @@ public class MailboxRelayTests
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
@@ -126,29 +137,29 @@ public class MailboxRelayTests
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -163,19 +174,29 @@ public class MailboxRelayTests
         processEngine
             .Setup(x =>
                 x.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
-                    It.IsAny<string>(),
                     It.IsAny<Guid>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     It.IsAny<string?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, Actor, string, Guid, string, string, string?, string?, CancellationToken>(
-                (_, _, _, dependsOn, collectionKey, state, action, idempotencyKey, _) =>
+            .Callback<
+                IInstanceDataAccessor,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (_, _, dependsOn, collectionKey, state, _, action, idempotencyKey, _) =>
                 {
                     recorder.Calls.Add("enqueue-after-workflow");
                     recorder.AfterWorkflows.Add((dependsOn, collectionKey, state, action, idempotencyKey));
@@ -330,20 +351,27 @@ public class MailboxRelayTests
             {
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
                 WorkflowId = workflowId ?? Guid.NewGuid(),
                 StepId = stepId,
                 State = "incoming-state",
             },
-            Instance = new Instance
-            {
-                Id = $"1337/{_instanceGuid}",
-                Org = "ttd",
-                AppId = "ttd/test-app",
-                InstanceOwner = new InstanceOwner { PartyId = "1337" },
-                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            },
+            DataAccessor = new InstanceDataAccessorFake(
+                new Instance
+                {
+                    Id = $"1337/{_instanceGuid}",
+                    Org = "ttd",
+                    AppId = "ttd/test-app",
+                    InstanceOwner = new InstanceOwner { PartyId = "1337" },
+                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+                },
+                applicationMetadata: null,
+                translationService: null,
+                layout: null,
+                frontEndSettings: null,
+                gatewayAction: null,
+                language: null
+            ),
             State = state,
             AutoAdvanceProcess = autoAdvance,
             AutoAdvanceAction = action,
@@ -410,21 +438,6 @@ public class MailboxRelayTests
 
         Assert.Equal(["close-mailbox", "close-mailbox", "enqueue-after-workflow"], recorder.Calls);
         Assert.Equal([_mailboxId, secondMailboxId], recorder.Closes);
-    }
-
-    [Fact]
-    public async Task Conclusion_WithoutAutoAdvance_StillClosesTheMailbox()
-    {
-        var recorder = new RelayRecorder();
-
-        await CreateRelay(recorder)
-            .Continue(
-                new MailboxContinuation.Conclude([_mailboxId]),
-                CreateRequest(Guid.NewGuid(), autoAdvance: false),
-                CancellationToken.None
-            );
-
-        Assert.Equal(["close-mailbox"], recorder.Calls);
     }
 
     [Fact]
@@ -590,20 +603,6 @@ public class MailboxRelayTests
     public void AVerdictThatMakesNoKeyedCall_IsUnaffectedByAMissingStepId()
     {
         // Refusing this too would take the close with it.
-        var carry = new WorkflowCallbackStateCarry();
-
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(
-            MailboxRelay.Decide(
-                ServiceTaskResult.SuccessWithoutAutoAdvance(),
-                ServiceTaskType,
-                Guid.Empty,
-                Delivered(),
-                carry,
-                ArchivingReplyIndex,
-                OpeningStageIndex
-            )
-        );
-
         FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.FailedPermanent("the archive never confirmed"),
@@ -703,7 +702,7 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public async Task SuccessorReceiver_CarriesAFreshCallbackTokenAndTheTransitionsLockToken()
+    public async Task SuccessorReceiver_CarriesAFreshCallbackToken()
     {
         var recorder = new RelayRecorder();
 
@@ -718,7 +717,6 @@ public class MailboxRelayTests
             .Single(recorder.Enqueues)
             .Request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal("callback-token", context.CallbackToken);
-        Assert.Equal("lock-token", context.LockToken);
         Assert.Equal(_instanceGuid, context.InstanceGuid);
     }
 
@@ -784,7 +782,6 @@ public class MailboxRelayTests
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal("callback-token", context.CallbackToken);
-        Assert.Equal("lock-token", context.LockToken);
     }
 
     /// <summary>
@@ -901,31 +898,10 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("confirm", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("confirm", success.ProcessNextContinuation?.Action);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
-    }
-
-    [Fact]
-    public void SuccessWithoutAutoAdvance_ConcludesTheExchangeWithoutAdvancingTheProcess()
-    {
-        var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
-
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
-            ServiceTaskResult.SuccessWithoutAutoAdvance(),
-            ServiceTaskType,
-            _stepId,
-            Delivered(),
-            carry,
-            ArchivingReplyIndex,
-            OpeningStageIndex
-        );
-
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-        Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
     }
 
     [Fact]
@@ -945,7 +921,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             success.MailboxContinuation
         );
@@ -1085,8 +1061,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-        Assert.Null(success.AutoAdvanceAction);
+        Assert.Null(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
             success.MailboxContinuation
@@ -1450,7 +1426,6 @@ public class MailboxRelayTests
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal("callback-token", context.CallbackToken);
-        Assert.Equal("lock-token", context.LockToken);
         Assert.Equal(_instanceGuid, context.InstanceGuid);
     }
 
@@ -1758,7 +1733,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -1900,7 +1875,7 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
+        Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -1963,8 +1938,8 @@ public class MailboxRelayTests
         );
 
         SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
-        Assert.Equal("reject", success.AutoAdvanceAction);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Equal("reject", success.ProcessNextContinuation?.Action);
 
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
             success.MailboxContinuation
@@ -1974,28 +1949,6 @@ public class MailboxRelayTests
         // Dropped before the capture, so the published blob carries no concluded exchange.
         Assert.Null(carry.FindMailbox(OpeningStageIndex));
         Assert.Null(carry.FindMailbox(2));
-    }
-
-    [Fact]
-    public void OpeningStageConclusion_SuccessWithoutAutoAdvance_ClosesWithoutAdvancing()
-    {
-        var carry = new WorkflowCallbackStateCarry();
-        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
-
-        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
-            ServiceTaskResult.SuccessWithoutAutoAdvance(),
-            ServiceTaskType,
-            // No keyed call is made, so the missing id must not refuse the verdict.
-            Guid.Empty,
-            carry
-        );
-
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.False(success.AutoAdvanceProcess);
-        MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
-            success.MailboxContinuation
-        );
-        Assert.Equal(_mailboxId, Assert.Single(conclude.MailboxIds));
     }
 
     [Fact]

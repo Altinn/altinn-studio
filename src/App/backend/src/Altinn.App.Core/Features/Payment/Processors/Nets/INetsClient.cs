@@ -11,20 +11,29 @@ internal interface INetsClient
     /// Creates a payment using the Nets payment provider.
     /// </summary>
     /// <param name="payment">The payment details.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns></returns>
-    Task<HttpApiResult<NetsCreatePaymentSuccess>> CreatePayment(NetsCreatePayment payment);
+    Task<HttpApiResult<NetsCreatePaymentSuccess>> CreatePayment(
+        NetsCreatePayment payment,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Retrieve existing payment.
     /// </summary>
     /// <param name="paymentId"></param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns></returns>
-    Task<HttpApiResult<NetsPaymentFull>> RetrievePayment(string paymentId);
+    Task<HttpApiResult<NetsPaymentFull>> RetrievePayment(
+        string paymentId,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Terminate a payment that has not been captured.
     /// </summary>
     /// <param name="paymentId"></param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns></returns>
-    Task<bool> TerminatePayment(string paymentId);
+    Task<bool> TerminatePayment(string paymentId, CancellationToken cancellationToken = default);
 }

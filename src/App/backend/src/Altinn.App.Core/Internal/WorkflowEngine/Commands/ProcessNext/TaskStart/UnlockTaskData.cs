@@ -1,30 +1,45 @@
-using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.Platform.Storage.Interface.Models;
+using System.Diagnostics;
+using Altinn.App.Core.Internal.App;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 
-internal sealed class UnlockTaskData : IWorkflowEngineCommand
+internal sealed class UnlockTaskData : WorkflowEngineCommandBase<TaskDataLockPayload>
 {
     public static string Key => "UnlockTaskData";
 
-    public string GetKey() => Key;
+    public override string GetKey() => Key;
 
-    private readonly IProcessTaskDataLocker _processTaskDataLocker;
-
-    public UnlockTaskData(IProcessTaskDataLocker processTaskDataLocker)
+    protected override TaskDataLockPayload? ResolvePayload(ProcessEngineCommandContext context)
     {
-        _processTaskDataLocker = processTaskDataLocker;
+        TaskDataLockPayload? payload = base.ResolvePayload(context);
+        return payload is not null && !string.IsNullOrWhiteSpace(payload.TaskId) ? payload : null;
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
-    {
-        Instance instance = parameters.InstanceDataMutator.Instance;
-        string taskId = instance.Process.CurrentTask.ElementId;
+    private readonly IAppMetadata _appMetadata;
 
+    public UnlockTaskData(IAppMetadata appMetadata)
+    {
+        _appMetadata = appMetadata;
+    }
+
+    public override async Task<ProcessEngineCommandResult> Execute(
+        ProcessEngineCommandContext parameters,
+        TaskDataLockPayload payload
+    )
+    {
         try
         {
-            await _processTaskDataLocker.Unlock(taskId, instance);
+            await TaskDataLockStatusHelper.SetLockStatus(
+                _appMetadata,
+                parameters.InstanceDataMutator,
+                payload.TaskId,
+                false
+            );
             return new SuccessfulProcessEngineCommandResult();
+        }
+        catch (UnreachableException ex)
+        {
+            return FailedProcessEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
         }
         catch (Exception ex)
         {
