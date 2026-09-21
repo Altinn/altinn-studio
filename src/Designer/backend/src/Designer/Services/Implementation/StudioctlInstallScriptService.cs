@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,6 +33,9 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     private const int ReleaseLookupPageSize = 100;
     private const int ReleaseLookupMaxPages = 10;
     private const string StudioctlPreviewSuffix = "-preview.";
+
+    // Short-term fallback until release discovery no longer depends on the GitHub API.
+    private const string FallbackStudioctlReleaseTag = "studioctl/v0.1.0-preview.26";
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _cache;
@@ -175,13 +180,32 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         CancellationToken cancellationToken
     )
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(StudioctlInstallScriptService)}.{nameof(FetchAndCacheAsync)}"
+        );
+        activity?.SetTag("studioctl.install_script.type", scriptType.ToString());
+
         string fileName = GetFileName(scriptType);
         using HttpClient client = _httpClientFactory.CreateClient();
         ReleaseLookupResult releaseLookup = await ResolveLatestStudioctlReleaseAsync(client, cancellationToken);
+        activity?.SetTag("studioctl.release.discovery_status", releaseLookup.Status.ToString());
+        if (releaseLookup.Status == StudioctlInstallScriptStatus.Unavailable)
+        {
+            _logger.LogWarning(
+                "Using last-known-good studioctl release {Tag} because release discovery is unavailable",
+                FallbackStudioctlReleaseTag
+            );
+            activity?.SetTag("studioctl.release.fallback", true);
+            activity.SetAlwaysSample();
+            releaseLookup = new ReleaseLookupResult(StudioctlInstallScriptStatus.Ok, FallbackStudioctlReleaseTag);
+        }
+
         if (releaseLookup.Status != StudioctlInstallScriptStatus.Ok || releaseLookup.TagName is null)
         {
             return new StudioctlInstallScriptResult(releaseLookup.Status, Array.Empty<byte>(), fileName, false);
         }
+
+        activity?.SetTag("studioctl.release.tag", releaseLookup.TagName);
 
         Uri url = new(s_downloadBaseUrl, $"{releaseLookup.TagName}/{fileName}");
 
@@ -272,6 +296,9 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         CancellationToken cancellationToken
     )
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(StudioctlInstallScriptService)}.{nameof(ResolveLatestStudioctlReleaseAsync)}"
+        );
         StudioctlTagVersion? highestStableVersion = null;
         string? highestStableTag = null;
         StudioctlTagVersion? highestPreviewVersion = null;
@@ -294,11 +321,17 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             );
             if (response is null)
             {
+                activity?.SetStatus(ActivityStatusCode.Error, "Release discovery request unavailable");
                 return new ReleaseLookupResult(StudioctlInstallScriptStatus.Unavailable, null);
             }
 
+            activity?.SetTag("github.release_lookup.page", page);
+            activity?.SetTag("github.response.status_code", (int)response.StatusCode);
+            activity?.SetTag("github.rate_limited", IsGitHubRateLimited(response));
+
             if (!response.IsSuccessStatusCode)
             {
+                activity?.SetStatus(ActivityStatusCode.Error, response.StatusCode.ToString());
                 _logger.LogWarning(
                     "Failed to resolve latest studioctl release from {Url}. Status: {Status}",
                     releasesUrl,
@@ -399,6 +432,32 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
 
         _logger.LogInformation("No stable studioctl release tag was found upstream");
         return new ReleaseLookupResult(StudioctlInstallScriptStatus.NotFound, null);
+    }
+
+    private static bool IsGitHubRateLimited(HttpResponseMessage response)
+    {
+        if (response.StatusCode == HttpStatusCode.TooManyRequests || response.Headers.RetryAfter is not null)
+        {
+            return true;
+        }
+
+        if (
+            response.StatusCode != HttpStatusCode.Forbidden
+            || !response.Headers.TryGetValues("X-RateLimit-Remaining", out var values)
+        )
+        {
+            return false;
+        }
+
+        foreach (string value in values)
+        {
+            if (value == "0")
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private async Task<HttpResponseMessage?> SendAsync(
