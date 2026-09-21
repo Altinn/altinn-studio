@@ -208,6 +208,27 @@ describe('focusComponent', () => {
     );
   });
 
+  it('does not clear a newer request when the URL request source unmounts', () => {
+    function PendingRequest() {
+      return <span data-testid='request'>{useFocusComponentRequest()?.nodeId ?? 'none'}</span>;
+    }
+    const { rerender } = render(
+      <MemoryRouter initialEntries={['/page?focusComponentId=node-a']}>
+        <FocusComponentRequestFromUrl />
+        <PendingRequest />
+      </MemoryRouter>,
+    );
+    act(() => setFocusComponentRequest({ nodeId: 'node-b', errorBinding: null }));
+
+    rerender(
+      <MemoryRouter initialEntries={['/page?focusComponentId=node-a']}>
+        <PendingRequest />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('request')).toHaveTextContent('node-b');
+  });
+
   it('handles a repeated navigation to the same field', () => {
     function NavigateAgain() {
       const navigate = useNavigate();

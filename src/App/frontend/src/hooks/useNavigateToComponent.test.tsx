@@ -44,7 +44,6 @@ async function setup({ available = true, query = 'other=keep' }: { available?: b
       <button
         onClick={() =>
           navigateToPage('FormLayout', {
-            preventScrollReset: true,
             focusComponentRequest: { nodeId: 'target', errorBinding: null },
           })
         }
