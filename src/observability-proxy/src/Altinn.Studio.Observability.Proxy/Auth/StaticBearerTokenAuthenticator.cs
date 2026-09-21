@@ -10,10 +10,12 @@ namespace Altinn.Studio.Observability.Proxy.Auth;
 internal sealed class StaticBearerTokenAuthenticator
 {
     private readonly IOptionsMonitor<ObservabilityProxyOptions> _options;
+    private readonly AuthTokenFile _tokenFile;
 
-    public StaticBearerTokenAuthenticator(IOptionsMonitor<ObservabilityProxyOptions> options)
+    public StaticBearerTokenAuthenticator(IOptionsMonitor<ObservabilityProxyOptions> options, AuthTokenFile tokenFile)
     {
         _options = options;
+        _tokenFile = tokenFile;
     }
 
     public bool TryAuthenticate(string? authorizationHeader, [NotNullWhen(true)] out ObservabilitySource? source)
@@ -30,7 +32,9 @@ internal sealed class StaticBearerTokenAuthenticator
             return false;
         }
 
-        foreach (var configuredToken in _options.CurrentValue.Authentication.Tokens)
+        // Every candidate is compared even after a match, so the work does not depend on which
+        // token was presented.
+        foreach (var configuredToken in AcceptedTokens())
         {
             if (
                 string.IsNullOrEmpty(configuredToken.Token) || string.IsNullOrWhiteSpace(configuredToken.SourceIdentity)
@@ -46,6 +50,12 @@ internal sealed class StaticBearerTokenAuthenticator
         }
 
         return source is not null;
+    }
+
+    private IEnumerable<BearerTokenOptions> AcceptedTokens()
+    {
+        // The mounted Secret is the production source. Inline tokens stay for local runs and tests.
+        return _tokenFile.GetTokens().Concat(_options.CurrentValue.Authentication.Tokens);
     }
 
     private static bool TokenEquals(string candidateToken, string configuredToken)

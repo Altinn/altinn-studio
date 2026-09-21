@@ -15,8 +15,12 @@ internal sealed class ObservabilitySource
 
     public string SourceIdentity { get; }
 
+    /// <summary>
+    /// A token reaches only the route groups it was granted. A token that resolves to none is
+    /// rejected everywhere rather than granted everything.
+    /// </summary>
     public bool AllowsRouteGroup(string routeGroup)
     {
-        return _allowedRouteGroups.Count == 0 || _allowedRouteGroups.Contains(routeGroup);
+        return _allowedRouteGroups.Contains(routeGroup);
     }
 }

@@ -1,3 +1,4 @@
+using Altinn.Studio.Observability.Proxy.Auth;
 using Altinn.Studio.Observability.Proxy.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -7,10 +8,15 @@ namespace Altinn.Studio.Observability.Proxy.Health;
 internal sealed class ObservabilityReadinessHealthCheck : IHealthCheck
 {
     private readonly IOptionsMonitor<ObservabilityProxyOptions> _options;
+    private readonly AuthTokenFile _tokenFile;
 
-    public ObservabilityReadinessHealthCheck(IOptionsMonitor<ObservabilityProxyOptions> options)
+    public ObservabilityReadinessHealthCheck(
+        IOptionsMonitor<ObservabilityProxyOptions> options,
+        AuthTokenFile tokenFile
+    )
     {
         _options = options;
+        _tokenFile = tokenFile;
     }
 
     public Task<HealthCheckResult> CheckHealthAsync(
@@ -19,32 +25,44 @@ internal sealed class ObservabilityReadinessHealthCheck : IHealthCheck
     )
     {
         var options = _options.CurrentValue;
-        if (!options.Authentication.Tokens.Any(token => IsUsableToken(token)))
+
+        if (!_tokenFile.GetTokens().Concat(options.Authentication.Tokens).Any(IsUsableToken))
         {
-            return Task.FromResult(HealthCheckResult.Unhealthy("No accepted bearer tokens are configured."));
+            return Unhealthy("No accepted bearer tokens are configured.");
         }
 
-        if (!IsAbsoluteHttpAddress(options.Downstreams.Otlp.Address))
+        foreach (var signal in ObservabilitySignal.All)
         {
-            return Task.FromResult(HealthCheckResult.Unhealthy("OTLP downstream address is invalid."));
-        }
+            if (!IsAbsoluteHttpAddress(options.Downstreams.Agents.For(signal)))
+            {
+                return Unhealthy($"The {signal.RouteGroup} agent address is invalid.");
+            }
 
-        if (!IsAbsoluteHttpAddress(options.Downstreams.Traces.Address))
-        {
-            return Task.FromResult(HealthCheckResult.Unhealthy("Traces downstream address is invalid."));
-        }
+            var storage = options.Downstreams.Storage.For(signal);
+            if (storage.Count == 0)
+            {
+                return Unhealthy($"No {signal.RouteGroup} storage addresses are configured.");
+            }
 
-        if (!IsAbsoluteHttpAddress(options.Downstreams.Metrics.Address))
-        {
-            return Task.FromResult(HealthCheckResult.Unhealthy("Metrics downstream address is invalid."));
+            if (!storage.All(IsAbsoluteHttpAddress))
+            {
+                return Unhealthy($"A {signal.RouteGroup} storage address is invalid.");
+            }
         }
 
         return Task.FromResult(HealthCheckResult.Healthy());
     }
 
+    private static Task<HealthCheckResult> Unhealthy(string reason)
+    {
+        return Task.FromResult(HealthCheckResult.Unhealthy(reason));
+    }
+
     private static bool IsUsableToken(BearerTokenOptions token)
     {
-        return !string.IsNullOrEmpty(token.Token) && !string.IsNullOrWhiteSpace(token.SourceIdentity);
+        return !string.IsNullOrEmpty(token.Token)
+            && !string.IsNullOrWhiteSpace(token.SourceIdentity)
+            && token.AllowedRouteGroups.Count > 0;
     }
 
     private static bool IsAbsoluteHttpAddress(string address)

@@ -5,6 +5,7 @@ using Altinn.Studio.Observability.Proxy.Health;
 using Altinn.Studio.Observability.Proxy.Routing;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Yarp.ReverseProxy.Transforms;
 
 namespace Altinn.Studio.Observability.Proxy.Hosting;
@@ -23,6 +24,8 @@ internal static class ObservabilityProxyExtensions
             builder.Configuration.GetSection(ObservabilityProxyOptions.SectionName).Get<ObservabilityProxyOptions>()
             ?? new ObservabilityProxyOptions();
 
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<AuthTokenFile>();
         builder.Services.AddSingleton<StaticBearerTokenAuthenticator>();
         builder.Services.AddHealthChecks().AddCheck<ObservabilityReadinessHealthCheck>("observability-proxy-config");
 
@@ -91,7 +94,9 @@ internal static class ObservabilityProxyExtensions
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        app.MapGet("/health/live", () => Results.Ok(new { status = "Healthy" }));
+        // Plain text, not JSON: the image is published ahead of time, where serializing an
+        // anonymous type throws and the liveness probe then fails the container.
+        app.MapGet("/health/live", () => Results.Text("Healthy"));
         app.MapHealthChecks("/health/ready", new HealthCheckOptions());
 
         app.UseMiddleware<StaticBearerTokenMiddleware>();

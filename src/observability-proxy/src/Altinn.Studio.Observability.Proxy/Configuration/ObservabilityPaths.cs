@@ -12,6 +12,15 @@ internal static class ObservabilityPaths
 
     public const string MetricsRouteGroup = "metrics";
 
+    public const string LogsRouteGroup = "logs";
+
+    public static readonly IReadOnlyList<string> ReadRouteGroups =
+    [
+        TracesRouteGroup,
+        MetricsRouteGroup,
+        LogsRouteGroup,
+    ];
+
     public static string NormalizePrefix(string? pathPrefix)
     {
         if (string.IsNullOrWhiteSpace(pathPrefix))
@@ -36,14 +45,12 @@ internal static class ObservabilityPaths
             return OtlpRouteGroup;
         }
 
-        if (remainingPath.StartsWithSegments($"/{TracesRouteGroup}"))
+        foreach (var readRouteGroup in ReadRouteGroups)
         {
-            return TracesRouteGroup;
-        }
-
-        if (remainingPath.StartsWithSegments($"/{MetricsRouteGroup}"))
-        {
-            return MetricsRouteGroup;
+            if (remainingPath.StartsWithSegments($"/{readRouteGroup}"))
+            {
+                return readRouteGroup;
+            }
         }
 
         return null;

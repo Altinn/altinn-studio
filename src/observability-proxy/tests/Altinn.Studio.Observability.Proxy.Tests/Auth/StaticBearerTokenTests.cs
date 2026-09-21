@@ -65,4 +65,25 @@ public sealed class StaticBearerTokenTests
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task TokenGrantingNoRouteGroup_Returns403()
+    {
+        // A token that resolves to nothing must reach nothing. An earlier version read an empty
+        // list as "no restriction" and let such a token reach every route group.
+        await using var proxy = await TestWebApplication.StartProxyAsync(
+            new Dictionary<string, string?>
+            {
+                ["ObservabilityProxy:Authentication:Tokens:0:Token"] = "ungrouped-token",
+                ["ObservabilityProxy:Authentication:Tokens:0:SourceIdentity"] = "misconfigured",
+            }
+        );
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/internal/observability/otlp/v1/traces");
+        request.Headers.Authorization = new("Bearer", "ungrouped-token");
+
+        using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }
