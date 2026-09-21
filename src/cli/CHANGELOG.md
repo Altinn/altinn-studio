@@ -11,12 +11,20 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- The local monitoring stack now keeps logs again, in VictoriaLogs, so Grafana can explore local application logs.
 - `studioctl agent skills` now distributes an Altinn Studio app-development skill and installs it for Codex,
   Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill
   with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
 
 ### Changed
 
+- The local monitoring stack now stores metrics in VictoriaMetrics and traces in VictoriaTraces, replacing Mimir,
+  Tempo and Loki. Local Grafana queries traces through the Tempo datasource, so TraceQL is available. Existing local
+  telemetry is not carried over; run `studioctl env down` and `studioctl env up` to rebuild the stack. The
+  `STUDIOCTL_IMAGE_TEMPO`, `STUDIOCTL_IMAGE_MIMIR` and `STUDIOCTL_IMAGE_LOKI` overrides are replaced by
+  `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `STUDIOCTL_IMAGE_VICTORIA_TRACES` and `STUDIOCTL_IMAGE_VICTORIA_LOGS`.
+- Local Grafana installs the VictoriaLogs datasource plugin when the environment starts, which needs network access
+  the first time.
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
 
 ### Fixed

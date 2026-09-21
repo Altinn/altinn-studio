@@ -25,6 +25,12 @@ func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	)
 	manifest.addContainer(
 		opts,
+		monitoringImage(opts, ContainerVictoriaLogs, opts.Images.Monitoring.VictoriaLogs),
+		monitoringVictoriaLogsContainer(),
+		enabled,
+	)
+	manifest.addContainer(
+		opts,
 		monitoringImage(opts, ContainerOtelCollector, opts.Images.Monitoring.OtelCollector),
 		monitoringOTelCollectorContainer(opts),
 		enabled,
@@ -74,6 +80,20 @@ func monitoringVictoriaTracesContainer() *ContainerSpec {
 	return spec
 }
 
+func monitoringVictoriaLogsContainer() *ContainerSpec {
+	spec := newContainerSpec(
+		ContainerVictoriaLogs,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		[]string{"-storageDataPath=/tmp/victoria-logs-data", "-retentionPeriod=1d"},
+	)
+	spec.UseDefaultUser = true
+	return spec
+}
+
 func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 	otel := ctx.Topology.MustComponent(envtopology.ComponentOTel)
 	spec := newContainerSpec(
@@ -84,7 +104,7 @@ func monitoringOTelCollectorContainer(ctx *Options) *ContainerSpec {
 			newVolume(filepath.Join(ctx.Paths.InfraDir, "otel-collector.yaml"), "/etc/otel-collector.yaml"),
 		},
 		[]string{otel.Host()},
-		[]string{ContainerVictoriaMetrics, ContainerVictoriaTraces},
+		[]string{ContainerVictoriaMetrics, ContainerVictoriaTraces, ContainerVictoriaLogs},
 		[]string{"--config=/etc/otel-collector.yaml"},
 	)
 	spec.UseDefaultUser = true
@@ -98,6 +118,7 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 		nil,
 		map[string]string{
 			"GF_AUTH_ANONYMOUS_ENABLED":     "true",
+			"GF_INSTALL_PLUGINS":            "victoriametrics-logs-datasource",
 			"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
 			"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
 			"GF_LOG_LEVEL":                  "error",
@@ -121,6 +142,7 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 			ContainerOtelCollector,
 			ContainerVictoriaMetrics,
 			ContainerVictoriaTraces,
+			ContainerVictoriaLogs,
 		},
 		nil,
 	)
