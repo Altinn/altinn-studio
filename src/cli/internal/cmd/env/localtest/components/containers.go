@@ -15,16 +15,14 @@ const (
 	// ContainerPgAdmin is the pgAdmin web UI container.
 	ContainerPgAdmin = "localtest-pgadmin"
 
-	// ContainerMonitoringTempo is the Tempo tracing container.
-	ContainerMonitoringTempo = "monitoring_tempo"
-	// ContainerMonitoringMimir is the Mimir metrics container.
-	ContainerMonitoringMimir = "monitoring_mimir"
-	// ContainerMonitoringLoki is the Loki logging container.
-	ContainerMonitoringLoki = "monitoring_loki"
-	// ContainerMonitoringOtelCollector is the OpenTelemetry collector container.
-	ContainerMonitoringOtelCollector = "monitoring_otel_collector"
-	// ContainerMonitoringGrafana is the Grafana dashboard container.
-	ContainerMonitoringGrafana = "monitoring_grafana"
+	// ContainerVictoriaMetrics is the localtest VictoriaMetrics container.
+	ContainerVictoriaMetrics = "localtest_victoria_metrics"
+	// ContainerVictoriaTraces is the localtest VictoriaTraces container.
+	ContainerVictoriaTraces = "localtest_victoria_traces"
+	// ContainerOtelCollector is the localtest OpenTelemetry collector container.
+	ContainerOtelCollector = "localtest_otel_collector"
+	// ContainerGrafana is the localtest Grafana dashboard container.
+	ContainerGrafana = "localtest_grafana"
 )
 
 // EnabledContainerNames returns enabled container names in manifest order.
