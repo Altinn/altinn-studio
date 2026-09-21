@@ -1,0 +1,124 @@
+# Log storage. Disk-bound rather than time-bound: retentionPeriod is set far
+# enough out to disable time-based expiry, and the disk usage threshold drops
+# the oldest per-day partitions once the filesystem passes it.
+apiVersion: operator.victoriametrics.com/v1
+kind: VLSingle
+metadata:
+  name: logs-a
+spec:
+  image:
+    repository: victoriametrics/victoria-logs
+    tag: v1.52.0
+  retentionPeriod: 100y
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 256Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 4Gi
+    limits:
+      memory: 8Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+          topologyKey: kubernetes.io/hostname
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VLSingle
+metadata:
+  name: logs-b
+spec:
+  image:
+    repository: victoriametrics/victoria-logs
+    tag: v1.52.0
+  retentionPeriod: 100y
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 256Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 4Gi
+    limits:
+      memory: 8Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+          topologyKey: kubernetes.io/hostname
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VLAgent
+metadata:
+  name: logs
+spec:
+  replicaCount: 2
+  image:
+    repository: victoriametrics/vlagent
+    tag: v1.52.0
+  remoteWrite:
+    - url: http://vlsingle-logs-a.observability.svc.cluster.local:9428/insert/native
+    - url: http://vlsingle-logs-b.observability.svc.cluster.local:9428/insert/native
+  remoteWriteSettings:
+    maxDiskUsagePerURL: 20GiB
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: studio-observability-premium-v2
+        resources:
+          requests:
+            storage: 50Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlagent
+          topologyKey: kubernetes.io/hostname

@@ -1,0 +1,220 @@
+# Trace storage, same disk-bound retention shape as logs.
+apiVersion: operator.victoriametrics.com/v1
+kind: VTSingle
+metadata:
+  name: traces-a
+spec:
+  image:
+    repository: victoriametrics/victoria-traces
+    tag: v0.11.1
+  retentionPeriod: 100y
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: "1"
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+          topologyKey: kubernetes.io/hostname
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VTSingle
+metadata:
+  name: traces-b
+spec:
+  image:
+    repository: victoriametrics/victoria-traces
+    tag: v0.11.1
+  retentionPeriod: 100y
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: "1"
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+          topologyKey: kubernetes.io/hostname
+---
+# The trace agent has no CRD in operator v0.74.1 - VTAgent arrives in v0.75.0,
+# which is still a release candidate. This runs the same vtagent binary the CRD
+# will run, under the names the operator would generate, so replacing this with
+# a VTAgent object later leaves the service DNS unchanged.
+apiVersion: v1
+kind: Service
+metadata:
+  name: vtagent-traces
+  labels:
+    app.kubernetes.io/name: vtagent
+    app.kubernetes.io/instance: traces
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vtagent
+    app.kubernetes.io/instance: traces
+  ports:
+    - name: http
+      port: 10429
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vtagent-traces-headless
+  labels:
+    app.kubernetes.io/name: vtagent
+    app.kubernetes.io/instance: traces
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: vtagent
+    app.kubernetes.io/instance: traces
+  ports:
+    - name: http
+      port: 10429
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vtagent-traces
+  labels:
+    app.kubernetes.io/name: vtagent
+    app.kubernetes.io/instance: traces
+spec:
+  replicas: 2
+  serviceName: vtagent-traces-headless
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vtagent
+      app.kubernetes.io/instance: traces
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vtagent
+        app.kubernetes.io/instance: traces
+      annotations:
+        linkerd.io/inject: enabled
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: vtagent
+          image: victoriametrics/vtagent:v0.11.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -httpListenAddr=:10429
+            - -remoteWrite.url=http://vtsingle-traces-a.observability.svc.cluster.local:10428/insert/native
+            - -remoteWrite.url=http://vtsingle-traces-b.observability.svc.cluster.local:10428/insert/native
+            - -remoteWrite.tmpDataPath=/vtagent-data
+            - -remoteWrite.maxDiskUsagePerURL=20GiB
+          ports:
+            - containerPort: 10429
+              name: http
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /vtagent-data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              memory: 2Gi
+      nodeSelector:
+        purpose: observability
+      tolerations:
+        - key: purpose
+          operator: Equal
+          value: observability
+          effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: vtagent
+              topologyKey: kubernetes.io/hostname
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: studio-observability-premium-v2
+        resources:
+          requests:
+            storage: 50Gi
