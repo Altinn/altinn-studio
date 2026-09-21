@@ -5,3 +5,18 @@ resources:
   - ../base/github-runners.yaml
   - ../base/sandbox-node.yaml
   - ../base/victoriametrics-operator.yaml
+
+patches:
+  # The observability artifact carries the Victoria custom resources in prod, so
+  # it cannot reconcile before the operator has installed their CRDs. Prod only:
+  # dev and staging have no operator Kustomization to depend on.
+  - target:
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      kind: Kustomization
+      name: observability
+    patch: |-
+      - op: add
+        path: /spec/dependsOn
+        value:
+          - name: victoriametrics-operator

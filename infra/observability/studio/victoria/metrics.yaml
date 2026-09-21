@@ -1,0 +1,133 @@
+# Metrics storage. Two independent VMSingle instances, one per observability
+# node, each holding a full copy. VMSingle is single-node by definition, so a
+# pair is two objects rather than one object with two replicas.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: metrics-a
+spec:
+  image:
+    repository: victoriametrics/victoria-metrics
+    tag: v1.152.0
+  # Metrics are time-bound rather than disk-bound: VictoriaMetrics stops
+  # accepting writes when the disk fills instead of dropping old data, so the
+  # retention period has to be chosen to stay inside the volume and the free
+  # space floor is only a backstop.
+  retentionPeriod: 90d
+  extraArgs:
+    storage.minFreeDiskSpaceBytes: 100GiB
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+          topologyKey: kubernetes.io/hostname
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: metrics-b
+spec:
+  image:
+    repository: victoriametrics/victoria-metrics
+    tag: v1.152.0
+  retentionPeriod: 90d
+  extraArgs:
+    storage.minFreeDiskSpaceBytes: 100GiB
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+          topologyKey: kubernetes.io/hostname
+---
+# Accepts OTLP metrics and replicates them to both instances, buffering to disk
+# when one is unreachable. It does no scraping: selectAllByDefault is off and no
+# scrape selectors are set, so it is purely an ingest and fan-out tier.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: metrics
+spec:
+  replicaCount: 2
+  image:
+    repository: victoriametrics/vmagent
+    tag: v1.152.0
+  selectAllByDefault: false
+  statefulMode: true
+  statefulStorage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: studio-observability-premium-v2
+        resources:
+          requests:
+            storage: 50Gi
+  remoteWrite:
+    - url: http://vmsingle-metrics-a.observability.svc.cluster.local:8428/api/v1/write
+    - url: http://vmsingle-metrics-b.observability.svc.cluster.local:8428/api/v1/write
+  remoteWriteSettings:
+    maxDiskUsagePerURL: 20GiB
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+          topologyKey: kubernetes.io/hostname
