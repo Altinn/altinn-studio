@@ -29,6 +29,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- The local monitoring stack receives application telemetry again. The OpenTelemetry Collector stopped listening on
+  anything but its own loopback address, so nothing an app exported reached Grafana.
 - Installing `studioctl` on a new machine no longer requires Docker or another container runtime. Legacy data
   migrations are recorded as already satisfied on a fresh installation and still run normally during updates.
 - `studioctl app upgrade v9` can be safely run again after the project has moved to v9. Layout and legacy-rule migrations no longer duplicate successful changes.
