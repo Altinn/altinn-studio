@@ -143,14 +143,28 @@ impl PlatformAdapter for Linux {
         &'a self,
         record: &'a control_plane::AgentRecord,
         sandbox: &'a SandboxHandle,
+        harnesses: &'a [crate::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(self.setup(record, sandbox))
+        Box::pin(self.setup(record, sandbox, harnesses))
     }
 }
 
 impl Linux {
-    async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        let installations = installed_harnesses(record, sandbox);
+    /// Sets up only the harnesses preparation reported installing, so setup and preparation
+    /// cannot disagree about an optional installation whose host login was absent.
+    async fn setup(
+        &self,
+        record: &control_plane::AgentRecord,
+        sandbox: &SandboxHandle,
+        harnesses: &[crate::Harness],
+    ) -> Result<(), Error> {
+        let installations: Vec<&crate::HarnessSpec> = record
+            .agent
+            .spec
+            .harnesses
+            .iter()
+            .filter(|installation| harnesses.contains(&installation.kind))
+            .collect();
         for installation in &installations {
             harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
         }
@@ -166,27 +180,6 @@ impl Linux {
         }
         Ok(())
     }
-}
-
-/// Selects the harnesses preparation actually installed.
-///
-/// A required installation is always present. An optional one is present only when preparation
-/// found its host login and bound its mediated credential, which is read back from the Sandbox
-/// rather than re-derived, so setup and preparation cannot disagree.
-fn installed_harnesses<'a>(
-    record: &'a control_plane::AgentRecord,
-    sandbox: &SandboxHandle,
-) -> Vec<&'a crate::HarnessSpec> {
-    let environment = &sandbox.snapshot().environment;
-    record
-        .agent
-        .spec
-        .harnesses
-        .iter()
-        .filter(|installation| {
-            !installation.optional || environment.contains_key(harness::mediated_access_environment(installation.kind))
-        })
-        .collect()
 }
 
 async fn configure_git_identity(sandbox: &SandboxHandle) -> Result<(), Error> {

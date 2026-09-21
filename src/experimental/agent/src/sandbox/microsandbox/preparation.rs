@@ -16,6 +16,7 @@ pub(super) struct Preparation {
 pub(super) struct PreparedNetwork {
     pub(super) bindings_changed: bool,
     pub(super) environment: BTreeMap<String, String>,
+    pub(super) harnesses: Vec<crate::Harness>,
 }
 
 impl Preparation {
@@ -76,14 +77,13 @@ impl Preparation {
             let mut managed_secrets = Vec::new();
             let mut managed_environments = BTreeMap::new();
             let mut managed_placeholders = BTreeMap::new();
+            let mut installed = Vec::with_capacity(record.agent.spec.harnesses.len());
             for installation in &record.agent.spec.harnesses {
-                // An optional installation whose host login is absent is omitted rather than
-                // failing the whole Agent, so someone who signs in to only one harness can still
-                // use an Agent that offers both. Re-evaluated here on every pass, so signing in
-                // later installs it without touching the manifest.
+                // Re-evaluated every pass, so signing in later installs it with no manifest change.
                 if installation.optional && !harness::authentication_ready(installation.kind, &self.database).await? {
                     continue;
                 }
+                installed.push(installation.kind);
                 for secret in harness::prepare(installation.kind, &self.database).await? {
                     if let Some(existing) = managed_environments.insert(secret.environment, installation.kind.as_str())
                     {
@@ -131,6 +131,7 @@ impl Preparation {
             Ok(PreparedNetwork {
                 bindings_changed,
                 environment: guest_environment,
+                harnesses: installed,
             })
         }
         .await;

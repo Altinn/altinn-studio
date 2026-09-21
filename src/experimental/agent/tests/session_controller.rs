@@ -66,6 +66,7 @@ impl Reconcile<AgentId> for BlockingAgentReady {
                             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af"
                                 .parse()
                                 .map_err(|error| Error::Database(format!("test Sandbox ID: {error}")))?,
+                            harnesses: record.agent.spec.harnesses.iter().map(|i| i.kind).collect(),
                         }),
                         vec![Condition {
                             kind: "Ready".into(),
@@ -111,6 +112,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -152,6 +154,13 @@ impl Provider for CountingProvider {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: false,
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
@@ -208,6 +217,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
         Some(SandboxAssignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
+            harnesses: resource.spec.harnesses.iter().map(|i| i.kind).collect(),
         }),
         vec![Condition {
             kind: "Ready".into(),
@@ -423,6 +433,32 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
 /// A database, a materialized memory Sandbox for Agent `worker`, and one
 /// Running Session `s1` launched with `token`; with `started`, its harness has
 /// already reported its start (native ID and conversation location).
+/// The Agent's materialized assignment, observing exactly these harnesses.
+fn observing(record: &AgentRecord, harnesses: &[agent::Harness]) -> SandboxAssignment {
+    let Some(SandboxAssignment::Materialized { provider, id, .. }) = &record.agent.status.sandbox else {
+        panic!("the fixture Agent has a materialized Sandbox");
+    };
+    SandboxAssignment::Materialized {
+        provider: provider.clone(),
+        id: id.clone(),
+        harnesses: harnesses.to_vec(),
+    }
+}
+
+/// Observes every declared harness, as a convergence with all host logins present would.
+fn observe_all_harnesses(record: &mut AgentRecord) {
+    let declared = record
+        .agent
+        .spec
+        .harnesses
+        .iter()
+        .map(|installation| installation.kind)
+        .collect();
+    if let Some(SandboxAssignment::Materialized { harnesses, .. }) = &mut record.agent.status.sandbox {
+        *harnesses = declared;
+    }
+}
+
 async fn running_session(
     directory: &TempDir,
     token: &str,
@@ -456,7 +492,9 @@ async fn running_session(
     record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
         provider: ProviderId::new("memory").expect("Provider ID"),
         id: sandbox.id().clone(),
+        harnesses: Vec::new(),
     });
+    observe_all_harnesses(&mut record);
     database.put(record, 0).await.expect("Agent");
     let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
         id: ProviderId::new("memory").expect("Provider ID"),
@@ -1679,13 +1717,14 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
-        optional: false,
+        optional: true,
         default: false,
         defaults: agent::ModelSelection {
             model: None,
             effort: Some(agent::Effort::new("high").expect("effort")),
         },
     });
+    observe_all_harnesses(&mut record);
     database.put(record.clone(), 0).await.expect("Agent");
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
@@ -1718,6 +1757,225 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
         agent_task,
         session_task,
     }
+}
+
+/// The original race: a Session admitted before its Agent had ever converged.
+///
+/// Admission cannot know whether an optional harness will be installed, because nothing has been
+/// observed yet, so the Session is persisted and activated. Convergence then omits Codex. The
+/// reconciler must park the Session rather than launch a harness the image ships but nothing
+/// authenticated — and must start it once a later convergence installs Codex.
+#[tokio::test(flavor = "local")]
+async fn a_session_admitted_before_convergence_is_parked_until_its_optional_harness_is_installed() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider_service =
+        SandboxService::new(backend).with_network_backend(Rc::new(sandbox_memory::NetworkBackend::for_endpoint(
+            "memory",
+            NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+        )));
+    let mut record = ready_record("worker", agent_id);
+    record.agent.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: None,
+        auth: agent::HarnessAuthMode::Mediated,
+        optional: true,
+        default: false,
+        defaults: agent::ModelSelection::default(),
+    });
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = provider_service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("materialized Sandbox");
+    // Convergence found no Codex host login, so it installed and observed only Claude Code.
+    record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
+        provider: ProviderId::new("memory").expect("Provider ID"),
+        id: sandbox.id().clone(),
+        harnesses: vec![agent::Harness::ClaudeCode],
+    });
+    database.put(record.clone(), 0).await.expect("Agent");
+    let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
+        id: ProviderId::new("memory").expect("Provider ID"),
+        service: provider_service,
+        ensure_calls: Rc::new(Cell::new(0)),
+    });
+    let sandboxes = Rc::new(
+        agent::sandbox::Service::new([provider], [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>])
+            .expect("Agent Sandbox service"),
+    );
+
+    // The Session was admitted on Codex before the Agent had observed anything.
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::Codex),
+        )
+        .await
+        .expect("Session");
+    database.activate_session(session.id).await.expect("activate");
+
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    let reconciler = Rc::new(agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    ));
+
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect("parked rather than failed");
+    let parked = database.get_session(session.id).await.expect("Session");
+    assert_eq!(parked.status.lifecycle.state, agent::sessions::LifecycleState::Starting);
+    assert!(
+        parked
+            .status
+            .lifecycle
+            .failure
+            .as_deref()
+            .is_some_and(|reason| reason.contains("does not carry harness")),
+        "the parked reason names the missing harness: {:?}",
+        parked.status.lifecycle.failure
+    );
+    assert!(
+        runtime.launch_tokens.borrow().is_empty(),
+        "an uninstalled harness must not be launched"
+    );
+
+    // `agentctl codex login`, and the next Agent convergence installs and observes it.
+    observe_all_harnesses(&mut record);
+    database
+        .update_status(agent_id, record.agent.metadata.generation, record.agent.status.clone())
+        .await
+        .expect("observed status");
+
+    reconciler.reconcile(session.id).await.expect("starts once installed");
+    assert!(
+        !runtime.launch_tokens.borrow().is_empty(),
+        "the Session starts once its harness is installed"
+    );
+}
+
+/// A failed convergence pass keeps a valid observation, so the refusal must still apply.
+///
+/// The Agent materialized its Sandbox and observed only Claude Code, then a later pass failed and
+/// cleared readiness while preserving that observation. Gating on readiness would defer here, bind
+/// the name to Codex, and then skip the post-convergence check when `converge` returns the failure.
+#[tokio::test(flavor = "local")]
+async fn an_unready_agent_with_a_materialized_observation_still_refuses_an_absent_harness() {
+    let directory = TempDir::new().expect("temporary directory");
+    let SelectionFixture {
+        database,
+        record,
+        service,
+        agent_task,
+        session_task,
+    } = selection_fixture(&directory).await;
+
+    database
+        .update_status(
+            record.id,
+            record.agent.metadata.generation,
+            Status::observed(
+                record.agent.metadata.generation,
+                Some(observing(&record, &[agent::Harness::ClaudeCode])),
+                vec![Condition {
+                    kind: "Ready".into(),
+                    status: ConditionStatus::False,
+                    reason: "SshAccessFailed".into(),
+                    message: "ssh access failed".into(),
+                }],
+            ),
+        )
+        .await
+        .expect("observed status");
+
+    let name = SessionName::new("codex-session").expect("name");
+    let error = service
+        .ensure(
+            "worker",
+            &name,
+            SessionRequest {
+                harness: Some(agent::Harness::Codex),
+                ..SessionRequest::default()
+            },
+            WaitPolicy::FirstPass,
+            None,
+        )
+        .await
+        .expect_err("an absent harness is refused even while the Agent is not ready");
+    assert!(error.to_string().contains("is not installed"), "{error}");
+    assert!(matches!(
+        database.get_agent_session("worker", &name).await,
+        Err(Error::NotFound)
+    ));
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_on_an_optional_harness_the_agent_does_not_carry_is_refused_without_persisting() {
+    let directory = TempDir::new().expect("temporary directory");
+    let SelectionFixture {
+        database,
+        record,
+        service,
+        agent_task,
+        session_task,
+    } = selection_fixture(&directory).await;
+
+    database
+        .update_status(
+            record.id,
+            record.agent.metadata.generation,
+            Status::observed(
+                record.agent.metadata.generation,
+                Some(observing(&record, &[agent::Harness::ClaudeCode])),
+                record.agent.status.conditions.clone(),
+            ),
+        )
+        .await
+        .expect("observed status");
+
+    let name = SessionName::new("codex-session").expect("name");
+    let error = service
+        .ensure(
+            "worker",
+            &name,
+            SessionRequest {
+                harness: Some(agent::Harness::Codex),
+                ..SessionRequest::default()
+            },
+            WaitPolicy::FirstPass,
+            None,
+        )
+        .await
+        .expect_err("an uninstalled optional harness is refused");
+    assert!(error.to_string().contains("is not installed"), "{error}");
+    assert!(matches!(
+        database.get_agent_session("worker", &name).await,
+        Err(Error::NotFound)
+    ));
+
+    agent_task.abort();
+    session_task.abort();
 }
 
 #[tokio::test(flavor = "local")]
@@ -1923,7 +2181,9 @@ async fn session_reconciliation_never_ensures_the_agent_sandbox() {
     record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
         provider: ProviderId::new("memory").expect("Provider ID"),
         id: sandbox.id().clone(),
+        harnesses: Vec::new(),
     });
+    observe_all_harnesses(&mut record);
     database.put(record, 0).await.expect("Agent");
     let session = database
         .ensure_session(
@@ -1991,7 +2251,9 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
     record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
         provider: ProviderId::new("memory").expect("Provider ID"),
         id: sandbox.id().clone(),
+        harnesses: Vec::new(),
     });
+    observe_all_harnesses(&mut record);
     database.put(record, 0).await.expect("Agent");
     let session = database
         .ensure_session(

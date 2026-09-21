@@ -128,6 +128,7 @@ impl Provider for Adapter {
                 .and_then(super::Assignment::id)
                 .is_some_and(|id| self.preparation.network_is_running(id));
             let prepared = self.preparation.prepare(record).await?;
+            let harnesses = prepared.harnesses;
             for (name, value) in prepared.environment {
                 if environment.insert(name.clone(), value).is_some() {
                     return Err(Error::Invalid(format!(
@@ -154,6 +155,7 @@ impl Provider for Adapter {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted,
+                harnesses,
             })
         })
     }

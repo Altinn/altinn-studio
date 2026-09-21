@@ -59,6 +59,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -145,6 +146,13 @@ impl Provider for MemoryProvider {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: self.report_runtime_restart.replace(false),
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
