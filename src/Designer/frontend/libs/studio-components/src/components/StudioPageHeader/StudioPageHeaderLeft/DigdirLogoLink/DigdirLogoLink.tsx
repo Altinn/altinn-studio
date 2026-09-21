@@ -17,7 +17,7 @@ export const DigdirLogoLink = ({ title, showTitle }: DigdirLogoLinkProps): React
 
   return (
     <div className={classes.wrapper}>
-      <StudioLink href='/'>
+      <StudioLink href='/' className={classes.logoLink}>
         <DigdirLogo />
       </StudioLink>
 
