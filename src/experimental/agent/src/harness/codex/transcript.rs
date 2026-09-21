@@ -43,6 +43,13 @@ fn command_failed(name: &str, output: Option<&Value>) -> bool {
         .any(|code| code != 0)
 }
 
+fn is_command_tool(name: &str) -> bool {
+    matches!(
+        name,
+        "exec" | "exec_command" | "shell" | "shell_command" | "write_stdin"
+    )
+}
+
 /// Parses Codex rollout JSONL into ordered turns.
 ///
 /// # Errors
@@ -89,6 +96,10 @@ struct Builder {
     answered: bool,
     /// Location of each recorded tool call by `call_id`.
     tool_calls: HashMap<String, (usize, usize, usize)>,
+    /// Failure observed in nested code-mode `CommandExecution` records since
+    /// the last outer `exec` output. Codex assigns nested calls an `exec-*` ID,
+    /// distinct from the outer custom tool call's `call_id`.
+    pending_nested_command_failed: Option<bool>,
 }
 
 impl Builder {
@@ -111,6 +122,11 @@ impl Builder {
                 {
                     self.mark_tool_failed(payload);
                 }
+                Some("item_completed")
+                    if payload.pointer("/item/type").and_then(Value::as_str) == Some("CommandExecution") =>
+                {
+                    self.record_command_result(&payload["item"]);
+                }
                 _ => {}
             },
             Some("response_item") => self.push_item(payload),
@@ -124,6 +140,7 @@ impl Builder {
             self.turns.push(Turn::default());
         }
         self.answered = false;
+        self.pending_nested_command_failed = None;
     }
 
     fn push_item(&mut self, payload: &Value) {
@@ -167,8 +184,17 @@ impl Builder {
                 }
             }
             Some("function_call_output" | "custom_tool_call_output") => {
+                let nested_failed = self.pending_nested_command_failed.unwrap_or(false);
+                let mut consumed_nested_result = false;
                 if let Some(Part::ToolCall { name, failed }) = self.tool_part(payload) {
                     *failed |= command_failed(name, payload.get("output"));
+                    if name == "exec" {
+                        *failed |= nested_failed;
+                        consumed_nested_result = true;
+                    }
+                }
+                if consumed_nested_result {
+                    self.pending_nested_command_failed = None;
                 }
             }
             _ => {}
@@ -177,8 +203,30 @@ impl Builder {
 
     fn tool_part(&mut self, payload: &Value) -> Option<&mut Part> {
         let call_id = payload.get("call_id")?.as_str()?;
+        self.tool_part_by_call_id(call_id)
+    }
+
+    fn tool_part_by_call_id(&mut self, call_id: &str) -> Option<&mut Part> {
         let &(turn, message, part) = self.tool_calls.get(call_id)?;
         self.turns.get_mut(turn)?.messages.get_mut(message)?.parts.get_mut(part)
+    }
+
+    fn record_command_result(&mut self, item: &Value) {
+        let Some(id) = item.get("id").and_then(Value::as_str) else {
+            return;
+        };
+        let failed = matches!(item.get("status").and_then(Value::as_str), Some("failed" | "declined"));
+        if let Some(Part::ToolCall {
+            name,
+            failed: tool_failed,
+        }) = self.tool_part_by_call_id(id)
+        {
+            if is_command_tool(name) {
+                *tool_failed |= failed;
+            }
+        } else if id.starts_with("exec-") {
+            self.pending_nested_command_failed = Some(self.pending_nested_command_failed.unwrap_or(false) || failed);
+        }
     }
 
     fn mark_tool_failed(&mut self, payload: &Value) {
@@ -360,6 +408,76 @@ mod tests {
                 "{name}: {transcript}"
             );
         }
+    }
+
+    #[test]
+    fn direct_command_results_match_call_ids_out_of_order() {
+        let lines = [
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call", "call_id":"a", "name":"exec_command"}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call", "call_id":"b", "name":"write_stdin"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"b", "status":"failed", "exit_code":1}}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"a", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call_output", "call_id":"a", "output":[]}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call_output", "call_id":"b", "output":[]}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call", "call_id":"c", "name":"exec_command"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"c", "status":"declined", "exit_code":-1}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call_output", "call_id":"c", "output":[]}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call", "call_id":"d", "name":"exec_command"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"missing", "status":"failed", "exit_code":1}}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"d", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call_output", "call_id":"d", "output":[]}}),
+        ];
+        let transcript = lines.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
+
+        let turns = parse(transcript.as_bytes()).expect("parse");
+        let tools = turns[0]
+            .messages
+            .iter()
+            .flat_map(|message| &message.parts)
+            .filter_map(|part| match part {
+                Part::ToolCall { name, failed } => Some((name.as_str(), *failed)),
+                Part::Text { .. } => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            tools,
+            [
+                ("exec_command", false),
+                ("write_stdin", true),
+                ("exec_command", true),
+                ("exec_command", false),
+            ]
+        );
+    }
+
+    #[test]
+    fn nested_code_mode_results_are_aggregated_for_the_outer_exec() {
+        let lines = [
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"outer-a", "name":"exec"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-child-a1", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-child-a2", "status":"failed", "exit_code":7}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call", "call_id":"direct", "name":"exec_command"}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"function_call_output", "call_id":"direct", "output":[]}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"outer-a", "output":[]}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call", "call_id":"outer-b", "name":"exec"}}),
+            serde_json::json!({"type":"event_msg", "payload":{"type":"item_completed", "item":{"type":"CommandExecution", "id":"exec-child-b", "status":"completed", "exit_code":0}}}),
+            serde_json::json!({"type":"response_item", "payload":{"type":"custom_tool_call_output", "call_id":"outer-b", "output":[]}}),
+        ];
+        let transcript = lines.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
+
+        let turns = parse(transcript.as_bytes()).expect("parse");
+        let tools = turns[0]
+            .messages
+            .iter()
+            .flat_map(|message| &message.parts)
+            .filter_map(|part| match part {
+                Part::ToolCall { name, failed } => Some((name.as_str(), *failed)),
+                Part::Text { .. } => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(tools, [("exec", true), ("exec_command", false), ("exec", false)]);
     }
 
     #[test]

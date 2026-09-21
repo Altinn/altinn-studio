@@ -74,6 +74,7 @@ and all, is accepted as input.
 - `studioctl app run`: run app locally
 - `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
 - `studioctl app maskinporten`: store the Maskinporten client the app uses for local runs (`set`, `show`, `remove`)
+- `studioctl agent skills`: list, locate, and install Agent Skills distributed with studioctl
 - `studioctl env up`: start localtest
 - `studioctl env down`: stop localtest
 - `studioctl env status`: show runtime/container status

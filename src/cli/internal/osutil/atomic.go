@@ -61,68 +61,21 @@ func WriteFileAtomic(path string, data []byte, opts AtomicWriteOptions) (retErr 
 			return fmt.Errorf("secure %q: %w", tmpPath, err)
 		}
 	}
-	if err := ReplacePathAtomic(tmpPath, path); err != nil {
+	if err := commitAtomicWrite(tmpPath, path); err != nil {
 		return err
 	}
 	cleanup = false
 	return SyncDirIfSupported(dir)
 }
 
-// ReplacePathAtomic moves src onto dst in one step. On Windows a rename onto an existing file can be
-// refused, so the target is moved aside first and restored if the replace fails.
-func ReplacePathAtomic(src, dst string) error {
-	if runtime.GOOS != OSWindows {
-		if err := os.Rename(src, dst); err != nil {
-			return fmt.Errorf("rename %q to %q: %w", src, dst, err)
-		}
-		return nil
+func commitAtomicWrite(src, dst string) error {
+	if runtime.GOOS == OSWindows {
+		return ReplacePath(src, dst)
 	}
-
-	renameErr := os.Rename(src, dst)
-	if renameErr == nil {
-		return nil
+	if err := os.Rename(src, dst); err != nil {
+		return fmt.Errorf("rename %q to %q: %w", src, dst, err)
 	}
-	if !errors.Is(renameErr, os.ErrExist) && !errors.Is(renameErr, os.ErrPermission) {
-		return fmt.Errorf("rename %q to %q: %w", src, dst, renameErr)
-	}
-	return replacePathAtomicWindows(src, dst)
-}
-
-func replacePathAtomicWindows(src, dst string) error {
-	backupPath, err := reserveReplaceBackupPath(dst)
-	if err != nil {
-		return err
-	}
-
-	if moveErr := os.Rename(dst, backupPath); moveErr != nil {
-		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", dst, backupPath, moveErr)
-		if removeErr := RemoveIfExists(backupPath); removeErr != nil {
-			return errors.Join(wrappedMoveErr, removeErr)
-		}
-		return wrappedMoveErr
-	}
-	if moveErr := os.Rename(src, dst); moveErr != nil {
-		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", src, dst, moveErr)
-		if restoreErr := os.Rename(backupPath, dst); restoreErr != nil {
-			return errors.Join(wrappedMoveErr, fmt.Errorf("rename %q to %q: %w", backupPath, dst, restoreErr))
-		}
-		return wrappedMoveErr
-	}
-	return RemoveIfExists(backupPath)
-}
-
-// reserveReplaceBackupPath creates an empty file next to dst whose name is free, for dst to be moved aside to.
-func reserveReplaceBackupPath(dst string) (string, error) {
-	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
-	if err != nil {
-		return "", fmt.Errorf("reserve backup path for %q: %w", dst, err)
-	}
-	backupPath := backup.Name()
-	if closeErr := backup.Close(); closeErr != nil {
-		removeErr := RemoveIfExists(backupPath)
-		return "", errors.Join(fmt.Errorf("close %q: %w", backupPath, closeErr), removeErr)
-	}
-	return backupPath, nil
+	return nil
 }
 
 // RemoveIfExists removes path, treating a path that is already gone as done.

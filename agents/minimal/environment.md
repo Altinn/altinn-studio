@@ -1,7 +1,12 @@
 ## This computer
 
-.NET, Node.js with Yarn, Go and the GitHub CLI. No container, Kubernetes or browser tooling: changes that need a running
-container stack or a browser cannot be verified here, so say so instead of working around it.
+.NET, Node.js with Yarn, Go, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest resources.
+External Altinn app repositories belong under `/home/agent/code/apps`.
+`studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
+host-mediated API key.
+
+No container, Kubernetes or browser tooling: `studioctl` can support authentication, repository and app work, but
+LocalTest and browser verification cannot run here, so say so instead of working around it.
 
 Pull request evidence: `asciinema` and `agg` for terminal recordings. Browser screenshots and clips are not possible on
 this computer.

@@ -28,6 +28,8 @@ spec:
     - source: ../instructions.md
     - source: environment.md
   skills:
+    - source: ../../src/cli/resources/agent/skills/app-development
+      name: altinn-studio-app-development
     - source: ../skills/pr-evidence
   harnesses:
     - type: claudeCode
@@ -52,6 +54,22 @@ spec:
         - api.github.com
         - gist.github.com
         - uploads.github.com
+    - environment: AZURE_DEVOPS_PAT
+      optional: true
+      allowedHosts:
+        - dev.azure.com
+    - environment: STUDIO_PROD_API_KEY
+      optional: true
+      allowedHosts:
+        - altinn.studio
+    - environment: STUDIO_STAGING_API_KEY
+      optional: true
+      allowedHosts:
+        - staging.altinn.studio
+    - environment: STUDIO_DEV_API_KEY
+      optional: true
+      allowedHosts:
+        - dev.altinn.studio
   access:
     - type: ssh
   network:
