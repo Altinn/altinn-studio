@@ -1,18 +1,18 @@
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
 import cn from 'classnames';
 import { studioBetaTagClasses, StudioHeading } from '@studio/components';
-import { useFeatureFlagsContext } from '@studio/feature-flags';
-import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
+import { useTopBarMenuItems } from 'app-development/hooks/useTopBarMenuItems';
+import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
+
+const menuItemKeysHiddenOnOverviewPage = [HeaderMenuItemKey.About, HeaderMenuItemKey.Deploy];
 
 export const Navigation = () => {
   const { t } = useTranslation();
-  const { flags } = useFeatureFlagsContext();
-  const isRepoOwnerOrg = useIsRepoOwnerOrg();
-
-  const menuItems = getFilteredMenuListForOverviewPage(flags, isRepoOwnerOrg);
+  const menuItems = useTopBarMenuItems().filter(
+    (menuItem) => !menuItemKeysHiddenOnOverviewPage.includes(menuItem.key),
+  );
 
   return (
     <div className={classes.navigation}>
