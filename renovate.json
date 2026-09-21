@@ -225,12 +225,12 @@
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
-        "src/App/Designer/**"
+        "src/Designer/backend/**"
       ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
-      "matchFileNames": ["src/App/Designer/**"],
+      "matchFileNames": ["src/Designer/backend/**"],
       "ignoreDeps": [
         "Moq",
         "Basic.Reference.Assemblies",
