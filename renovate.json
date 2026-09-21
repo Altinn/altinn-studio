@@ -222,6 +222,15 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Quartz upgrades need a hand-written QuartzTables migration and a tables-file update in designer-backend-check-quartz-update.yml, so keep them out of the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/Designer/backend/**"],
+      "matchPackageNames": ["/^Quartz/"],
+      "groupName": "Quartz packages in Designer",
+      "groupSlug": "designer-quartz",
+      "dependencyDashboardApproval": true
+    },
+    {
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
