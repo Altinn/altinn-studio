@@ -41,6 +41,7 @@ export const TaskSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedTask}
       label={t('ux_editor.settings.navigation_validation_specific_task_label')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
@@ -75,6 +76,7 @@ export const TasksSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedTasks}
       label={t('ux_editor.settings.navigation_validation_specific_task_label_several')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
@@ -122,6 +124,7 @@ export const PagesSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedPages}
       label={t('ux_editor.settings.navigation_validation_specific_page_label')}
       emptyText={emptyText}

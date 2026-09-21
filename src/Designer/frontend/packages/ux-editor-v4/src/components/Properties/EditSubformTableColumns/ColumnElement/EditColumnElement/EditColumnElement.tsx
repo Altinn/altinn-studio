@@ -160,6 +160,7 @@ export const EditColumnElementComponentSelect = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
       description={t(
         'ux_editor.properties_panel.subform_table_columns.choose_component_description',

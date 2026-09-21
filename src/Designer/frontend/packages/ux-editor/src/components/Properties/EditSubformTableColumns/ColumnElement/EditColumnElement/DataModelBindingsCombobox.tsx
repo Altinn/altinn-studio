@@ -42,6 +42,7 @@ export const DataModelBindingsCombobox = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       label={t(
         'ux_editor.properties_panel.subform_table_columns.column_multiple_data_model_bindings_label',
       )}

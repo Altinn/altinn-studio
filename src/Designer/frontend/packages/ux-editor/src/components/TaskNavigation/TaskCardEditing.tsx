@@ -103,6 +103,7 @@ export const TaskCardEditing = ({ layoutSetModel, onClose }: TaskCardEditingProp
         onChange={(event: ChangeEvent<HTMLInputElement>) => setId(event.target.value)}
       ></StudioTextfield>
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         multiple={false}
         label={t('ux_editor.modal_properties_data_model_binding')}
         placeholder={t('ux_editor.task_card.choose_datamodel')}

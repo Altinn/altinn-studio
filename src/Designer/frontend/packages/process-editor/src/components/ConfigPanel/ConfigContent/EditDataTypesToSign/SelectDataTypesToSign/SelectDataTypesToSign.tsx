@@ -43,6 +43,7 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
     <div className={classes.container}>
       <div className={classes.dataTypeSelectAndButton}>
         <StudioSuggestion
+          clearButtonLabel={t('general.clear_selection')}
           multiple
           label={t('process_editor.configuration_panel_set_data_types_to_sign')}
           selected={value}

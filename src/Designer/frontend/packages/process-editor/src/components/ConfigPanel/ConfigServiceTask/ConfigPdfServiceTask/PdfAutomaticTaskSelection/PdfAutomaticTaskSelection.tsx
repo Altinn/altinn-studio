@@ -37,6 +37,7 @@ export const PdfAutomaticTaskSelection = (): React.ReactElement => {
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       multiple
       label={t('process_editor.configuration_panel_select_tasks_placeholder')}
       selected={selectedItems}

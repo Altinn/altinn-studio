@@ -725,6 +725,7 @@
   "general.beta": "Beta",
   "general.cancel": "Avbryt",
   "general.choose_method": "Velg metode",
+  "general.clear_selection": "Fjern valget",
   "general.close": "Lukk",
   "general.close_item": "Lukk {{item}}",
   "general.component": "Komponent",
