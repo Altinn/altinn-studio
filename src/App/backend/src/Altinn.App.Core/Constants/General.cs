@@ -42,8 +42,8 @@ public static class General
 
     /// <summary>
     /// Header name for the client-supplied idempotency key. Altinn Events reads it as a GUID and
-    /// treats a repeated key as a duplicate: the event is stored once and delivered once, however
-    /// many times the request arrives.
+    /// treats a repeated key as a duplicate: the event is stored once however many times the request
+    /// arrives. Delivery to subscribers is not deduplicated and stays at-least-once.
     /// </summary>
     internal const string IdempotencyKeyHeaderName = "Idempotency-Key";
 }

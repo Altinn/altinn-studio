@@ -8,9 +8,9 @@ using Xunit;
 namespace LocalTest.Tests.Events;
 
 /// <summary>
-/// Altinn Events stores and delivers one event per <c>Idempotency-Key</c>, which is what lets an app
-/// retry a registration without publishing the event twice. Localtest has to behave the same way, or a
-/// local run cannot show the behavior a deployed app depends on.
+/// Altinn Events stores one event per <c>Idempotency-Key</c>, which is what lets an app retry a
+/// registration without recording the event twice. Localtest has to behave the same way, or a local run
+/// cannot show the behavior a deployed app depends on.
 /// </summary>
 public class EventsRepositoryIdempotencyTests : IDisposable
 {

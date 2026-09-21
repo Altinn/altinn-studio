@@ -16,9 +16,9 @@ namespace Altinn.Platform.Events.Repository
         /// </summary>
         /// <param name="item">the cloud event object</param>
         /// <param name="idempotencyKey">
-        /// The caller's key for this registration, or null when it sent none. Altinn Events stores and
-        /// delivers one event per key, so a repeated key stores nothing further and resolves to the
-        /// event the first request created.
+        /// The caller's key for this registration, or null when it sent none. Altinn Events stores one
+        /// event per key, so a repeated key stores nothing further and resolves to the event the first
+        /// request created.
         /// </param>
         /// <returns>the created event, or the existing one when the key has been seen before</returns>
         Task<CloudEventCreateResult> Create(CloudEvent item, Guid? idempotencyKey = null);
