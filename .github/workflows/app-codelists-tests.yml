@@ -9,7 +9,6 @@ on:
       - 'src/App/AppCoreDependency.props'
       - '.github/workflows/app-codelists-tests.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

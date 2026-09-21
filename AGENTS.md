@@ -157,11 +157,9 @@ stack (see `README.md`).
   a failing run prints where each kind of exception belongs. Note that
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.
-- **Docs:** `AGENTS.md` is the source of truth for agent guidance in a directory. Where a `CLAUDE.md`
-  exists alongside it, that file just links to the `AGENTS.md` (`@AGENTS.md`) so Claude Code loads it.
-  Never leave a directory with only a `CLAUDE.md` — always create the `AGENTS.md` and point `CLAUDE.md`
-  at it. These invariants (pairing, resolvable links, root-map coverage of tracked directories) are
-  enforced by `yarn docs:validate` in CI.
+- **Docs:** `AGENTS.md` is the only agent-guidance file in a directory; never add a `CLAUDE.md`.
+  These invariants (no `CLAUDE.md`, resolvable links, root-map coverage of tracked directories)
+  are enforced by `yarn docs:validate` in CI.
 - **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.

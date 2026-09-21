@@ -1,7 +1,4 @@
----
-name: test
-description: Write and run tests for the workflow engine. Use when creating tests, adding test coverage, scaffolding test files, or running the test suite.
----
+# Tests
 
 When writing or running tests, follow these guidelines.
 

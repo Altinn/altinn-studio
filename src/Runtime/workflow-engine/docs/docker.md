@@ -1,7 +1,4 @@
----
-name: docker
-description: Manage the workflow engine's Docker Compose stack. Use when starting, stopping, rebuilding containers, or resetting the database.
----
+# Docker Compose stack
 
 Everything below runs from `src/Runtime/workflow-engine/`. The `Makefile` wraps the compose
 invocations and is kept in step with `docker-compose.yaml` — prefer it, and drop to raw
