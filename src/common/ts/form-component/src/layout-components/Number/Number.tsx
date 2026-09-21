@@ -41,6 +41,10 @@ export function Number({
 }: NumberProps) {
   const { langAsString } = useTranslation();
 
+  if (isNaN(value)) {
+    return null;
+  }
+
   if (!title) {
     return <DisplayNumber value={value} formatting={formatting} />;
   }

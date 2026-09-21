@@ -17,10 +17,6 @@ export const NumberComponent = ({ baseComponentId, overrideDisplay }: PropsFromG
   const inTable = overrideDisplay?.renderedInTable === true;
   const showLabel = renderLabel && !inTable;
 
-  if (isNaN(value)) {
-    return null;
-  }
-
   const numberFormatting = getMapToReactNumberConfig(formatting, value.toString(), currentLanguage);
 
   return (

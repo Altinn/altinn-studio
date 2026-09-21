@@ -14,6 +14,11 @@ describe('Number', () => {
     expect(screen.getByText('42')).toBeInTheDocument();
   });
 
+  it('renders nothing when the value is NaN', () => {
+    const { container } = render({ value: NaN, title: 'my.title' });
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('shows the title when provided', () => {
     render({ title: 'my.title' });
     expect(screen.getByText('my.title')).toBeInTheDocument();
