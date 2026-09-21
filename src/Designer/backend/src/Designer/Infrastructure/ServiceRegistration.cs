@@ -90,6 +90,7 @@ public static class ServiceRegistration
         services.AddScoped<IUserOrganizationService, UserOrganizationService>();
         services.AddScoped<ICanUseFeatureEvaluator, CanUseUploadDataModelEvaluator>();
         services.AddScoped<ICanUseFeatureEvaluator, CanUseAiAssistantEvaluator>();
+        services.AddScoped<ICanUseAiAssistantEvaluator, CanUseAiAssistantEvaluator>();
         services.AddTransient<IReleaseService, ReleaseService>();
         services.AddTransient<IDeploymentService, DeploymentService>();
         services.AddTransient<IAppScopesService, AppScopesService>();
@@ -135,7 +136,6 @@ public static class ServiceRegistration
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
         services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
         services.AddSingleton<AssistantAttachmentBuffer>();
-        services.AddScoped<IAiAssistantAccessService, AiAssistantAccessService>();
         services.AddHttpClient<IAssistantServiceClient, AssistantServiceClient>();
         services.RegisterDatamodeling(configuration);
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();

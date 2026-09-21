@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Hubs.Assistant;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ApiKey;
@@ -32,10 +33,10 @@ public class AssistantProxyHubTests
 
     private readonly Mock<IChatService> _chatServiceMock = new();
     private readonly Mock<IAssistantWebSocketService> _webSocketServiceMock = new();
-    private readonly Mock<IAiAssistantAccessService> _aiAssistantAccessServiceMock = new();
+    private readonly Mock<ICanUseAiAssistantEvaluator> _canUseAiAssistantEvaluatorMock = new();
     private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
 
-    public AltinityProxyHubTests()
+    public AssistantProxyHubTests()
     {
         SetupAssistantAccess(TestOrg, hasAccess: true);
     }
@@ -253,7 +254,9 @@ public class AssistantProxyHubTests
 
     private void SetupAssistantAccess(string org, bool hasAccess)
     {
-        _aiAssistantAccessServiceMock.Setup(s => s.HasAccessAsync(org)).ReturnsAsync(hasAccess);
+        _canUseAiAssistantEvaluatorMock
+            .Setup(e => e.CanUseFeatureAsync(org, It.IsAny<string>()))
+            .ReturnsAsync(hasAccess);
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -302,7 +305,7 @@ public class AssistantProxyHubTests
             Options.Create(new AssistantSettings { AgentUrl = "http://test-path" }),
             Options.Create(new ServiceRepositorySettings { RepositoryBaseURL = "http://test-repos" }),
             _webSocketServiceMock.Object,
-            _aiAssistantAccessServiceMock.Object,
+            _canUseAiAssistantEvaluatorMock.Object,
             new AssistantAttachmentBuffer(),
             _apiKeyServiceMock.Object,
             _chatServiceMock.Object
