@@ -125,7 +125,7 @@ namespace Altinn.App.logic.Validation
                 });
             }
 
-            if (model!.FilteredOptions?.Ingredients != null)
+            if (model?.FilteredOptions?.Ingredients != null)
             {
                 // Iterate the ingredients and figure out if there are any duplicates. If there are, the rows
                 // with duplicates (not the original ones) should be marked with a validation issue.

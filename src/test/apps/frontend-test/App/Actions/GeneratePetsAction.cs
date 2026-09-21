@@ -16,23 +16,26 @@ public class GeneratePetsAction : IUserAction
     {
         var originalDataElements = context.DataMutator.GetDataElementsForType("nested-group");
         var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
-        var data = originalData as NestedGroup;
+        var data =
+            originalData as NestedGroup
+            ?? throw new InvalidOperationException(
+                "Expected the 'nested-group' data element to hold a NestedGroup model");
 
         if (context.ButtonId == "generatePets")
         {
-            GeneratePets(data!);
+            GeneratePets(data);
         }
         else if (
             context.ButtonId == "generateWholeFarm"
             || context.ButtonId == "generateAnotherFarm"
         )
         {
-            GenerateFarmAnimals(data!);
+            GenerateFarmAnimals(data);
         }
 
         // This makes sure the group is now visible, and that the panel disappears, even if the user clicked any other
         // button than the one with the id "generatePets" (which in practice will let you add pets to the list manually)
-        data!.ForceShowPets = true;
+        data.ForceShowPets = true;
 
         if (context.ButtonId == "resetButton")
         {
@@ -99,7 +102,9 @@ public class GeneratePetsAction : IUserAction
 
     private static void GenerateFarmAnimals(NestedGroup data)
     {
-        var existingNumAnimals = data.Pets!.Count;
+        // The repeating group is empty until the user (or 'generatePets') adds rows
+        var pets = data.Pets ??= new List<Pet>();
+        var existingNumAnimals = pets.Count;
         var additionalAnimals = 250;
 
         var newPets = new Pet[additionalAnimals];
@@ -121,7 +126,7 @@ public class GeneratePetsAction : IUserAction
             };
         }
 
-        data.Pets.AddRange(newPets);
-        data.NumPets = data.Pets.Count;
+        pets.AddRange(newPets);
+        data.NumPets = pets.Count;
     }
 }
