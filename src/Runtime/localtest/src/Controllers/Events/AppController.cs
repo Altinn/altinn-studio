@@ -32,13 +32,19 @@ namespace Altinn.Platform.Events.Controllers
         /// Inserts a new event.
         /// </summary>
         /// <param name="cloudEvent">The event to store.</param>
+        /// <param name="idempotencyKey">
+        /// Optional client-supplied idempotency key. A repeated key stores no further event and skips
+        /// delivery, and the caller is answered as though the event had just been registered.
+        /// </param>
         /// <returns>The application metadata object.</returns>
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
+        public async Task<ActionResult<string>> Post(
+            [FromBody] CloudEvent cloudEvent,
+            [FromHeader(Name = "Idempotency-Key")] Guid? idempotencyKey)
         {
             if (string.IsNullOrEmpty(cloudEvent.Source.OriginalString) || string.IsNullOrEmpty(cloudEvent.Specversion) ||
             string.IsNullOrEmpty(cloudEvent.Type) || string.IsNullOrEmpty(cloudEvent.Subject))
@@ -51,11 +57,21 @@ namespace Altinn.Platform.Events.Controllers
                 // Force cosmos to create id
                 cloudEvent.Id = null;
 
-                string cloudEventId = await _repository.Create(cloudEvent);
+                CloudEventCreateResult result = await _repository.Create(cloudEvent, idempotencyKey);
 
-                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
+                if (result.IsDuplicate)
+                {
+                    _logger.LogInformation(
+                        "Duplicate idempotency key {IdempotencyKey} skipped. Already registered as event {CloudEventId}",
+                        idempotencyKey,
+                        result.Id);
+                }
+                else
+                {
+                    _logger.LogInformation("Cloud Event successfully stored with id: {0}", result.Id);
+                }
 
-                return Created(cloudEvent.Subject, cloudEventId);
+                return Created(cloudEvent.Subject, result.Id);
             }
             catch (Exception e)
             {

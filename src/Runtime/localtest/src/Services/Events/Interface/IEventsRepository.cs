@@ -1,5 +1,6 @@
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 
@@ -14,7 +15,19 @@ namespace Altinn.Platform.Events.Repository
         /// Creates an cloud event in repository
         /// </summary>
         /// <param name="item">the cloud event object</param>
-        /// <returns>id for created cloudevent</returns>
-        Task<string> Create(CloudEvent item);
+        /// <param name="idempotencyKey">
+        /// The caller's key for this registration, or null when it sent none. Altinn Events stores and
+        /// delivers one event per key, so a repeated key stores nothing further and resolves to the
+        /// event the first request created.
+        /// </param>
+        /// <returns>the created event, or the existing one when the key has been seen before</returns>
+        Task<CloudEventCreateResult> Create(CloudEvent item, Guid? idempotencyKey = null);
     }
+
+    /// <summary>
+    /// The outcome of registering a cloud event.
+    /// </summary>
+    /// <param name="Id">The id of the stored event - the existing one when this was a duplicate.</param>
+    /// <param name="IsDuplicate">Whether the idempotency key had already registered an event.</param>
+    public readonly record struct CloudEventCreateResult(string Id, bool IsDuplicate);
 }
