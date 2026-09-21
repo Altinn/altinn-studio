@@ -283,7 +283,7 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 
 FROM base AS full
 
-ARG PLAYWRIGHT_CLI_VERSION=0.1.19
+ARG PLAYWRIGHT_CLI_VERSION=0.1.20
 ARG RUST_VERSION=1.97.1
 
 # Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and
