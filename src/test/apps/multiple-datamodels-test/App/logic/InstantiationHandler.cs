@@ -21,7 +21,7 @@ namespace Altinn.App.logic.DataProcessing
             _registerService = registerService;
         }
 
-        public Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
         {
             return Task.CompletedTask;
         }
@@ -29,14 +29,14 @@ namespace Altinn.App.logic.DataProcessing
         public Task DataCreation(
             IInstanceDataMutator instanceDataMutator,
             object data,
-            Dictionary<string, string> prefill
+            Dictionary<string, string>? prefill
         )
         {
             if (data.GetType() == typeof(modell2))
             {
                 var form = data as modell2;
 
-                form.questions = new List<questions>
+                form!.questions = new List<questions>
                 {
                     new questions { Id = "question-1", Answer = "" },
                     new questions { Id = "question-2", Answer = "" },

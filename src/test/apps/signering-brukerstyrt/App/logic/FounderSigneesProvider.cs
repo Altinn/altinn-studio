@@ -22,7 +22,7 @@ public class FounderSigneesProvider : ISigneeProvider
         var formData = await parameters.InstanceDataAccessor.GetFormData<Skjemadata>(dataElement);
 
         List<ProvidedSignee> providedSignees = [];
-        foreach (StifterPerson stifterPerson in formData.StifterPerson)
+        foreach (StifterPerson stifterPerson in formData.StifterPerson!)
         {
             var personSignee = new ProvidedPerson
             {
@@ -67,11 +67,11 @@ public class FounderSigneesProvider : ISigneeProvider
             providedSignees.Add(personSignee);
         }
 
-        foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
+        foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet!)
         {
             var organisationSignee = new ProvidedOrganization
             {
-                Name = stifterVirksomhet.Navn,
+                Name = stifterVirksomhet.Navn!,
                 OrganizationNumber =
                     stifterVirksomhet.Organisasjonsnummer?.ToString() ?? string.Empty,
                 CommunicationConfig = new CommunicationConfig

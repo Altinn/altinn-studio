@@ -27,7 +27,7 @@ namespace Altinn.App.logic.DataProcessing
                     model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788?.Count > 0 &&
                     model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
                 {
-                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value = 1338;
+                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131!.value = 1338;
                 }
 
                 // Server-side computed values for prefilling values in a group
@@ -110,7 +110,7 @@ namespace Altinn.App.logic.DataProcessing
                 decimal newSumAboveLimit = 0;
                 int newNumAboveLimit = 0;
                 if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788 != null)
-                    foreach (var row in model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788)
+                    foreach (var row in model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788!)
                     {
                         var from = row?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value ?? 0;
                         var to = row?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value ?? 0;
@@ -225,12 +225,12 @@ namespace Altinn.App.logic.DataProcessing
                     foreach (var animal in model.ConflictingOptions.Animals)
                     {
                         animal.CommentLabels = string.Join(", ",
-                            animal.Comments.Select(c => c.TypeLabel).Distinct().Where(l => !string.IsNullOrEmpty(l)));
+                            animal.Comments!.Select(c => c.TypeLabel).Distinct().Where(l => !string.IsNullOrEmpty(l)));
 
                         // This just copies the colors into a list. The use-case for this is to test a bug that caused
                         // a backend mutation like this to confuse the frontend and we'd end up with infinite repeating
                         // PATCH requests.
-                        var sepColors = animal.Color.Split(',').Select(c => c.Trim())
+                        var sepColors = animal.Color!.Split(',').Select(c => c.Trim())
                             .Where(c => !string.IsNullOrEmpty(c)).ToList();
 
                         // To protect frontend versions that don't have this fix yet, only

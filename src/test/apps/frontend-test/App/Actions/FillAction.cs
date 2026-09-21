@@ -27,7 +27,7 @@ public class FillAction : IUserAction
         var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as Skjema;
 
-        if (data.TestCustomButtonInput == "Hello b")
+        if (data!.TestCustomButtonInput == "Hello b")
         {
             return UserActionResult.FailureResult(new ActionError()
             {

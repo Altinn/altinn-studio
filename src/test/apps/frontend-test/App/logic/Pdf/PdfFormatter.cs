@@ -17,7 +17,7 @@ namespace Altinn.App.logic.Pdf
 
                 if (skjema.Radioknapp == "1")
                 {
-                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>()
+                    layoutSettings.Components!.ExcludeFromPdf!.AddRange(new List<string>()
                     {"reasonParents",
                     "reasonSSN",
                     "reasonCohabitant1",
@@ -33,7 +33,7 @@ namespace Altinn.App.logic.Pdf
 
                 if (skjema.Radioknapp == "3")
                 {
-                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() {"reasonRelationship",
+                    layoutSettings.Components!.ExcludeFromPdf!.AddRange(new List<string>() {"reasonRelationship",
                     "reasonCohabitant1",
                     "reasonCohabitant2",
                     "reasonFarm1",
@@ -47,7 +47,7 @@ namespace Altinn.App.logic.Pdf
 
                 if (skjema.Radioknapp == "5")
                 {
-                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() {"reasonRelationship",
+                    layoutSettings.Components!.ExcludeFromPdf!.AddRange(new List<string>() {"reasonRelationship",
                     "reasonParents",
                     "reasonSSN",
                     "reasonFarm1",
@@ -62,7 +62,7 @@ namespace Altinn.App.logic.Pdf
                 if (skjema.Radioknapp == "7")
                 {
 
-                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() {
+                    layoutSettings.Components!.ExcludeFromPdf!.AddRange(new List<string>() {
                     "reasonRelationship",
                     "reasonParents",
                     "reasonSSN",
@@ -74,7 +74,7 @@ namespace Altinn.App.logic.Pdf
 
                 if (skjema.Radioknapp == "8")
                 {
-                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() {   "reasonRelationship",
+                    layoutSettings.Components!.ExcludeFromPdf!.AddRange(new List<string>() {   "reasonRelationship",
                     "reasonParents",
                     "reasonSSN",
                     "reasonCohabitant1",
@@ -89,7 +89,7 @@ namespace Altinn.App.logic.Pdf
 
                 if (skjema.Radioknapp == "9")
                 {
-                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() { "reasonRelationship",
+                    layoutSettings.Components!.ExcludeFromPdf!.AddRange(new List<string>() { "reasonRelationship",
                     "reasonParents",
                     "reasonSSN",
                     "reasonCohabitant1",
@@ -105,7 +105,7 @@ namespace Altinn.App.logic.Pdf
 
             if (data.GetType() == typeof(NestedGroup))
             {
-                UpdatePageOrder(layoutSettings.Pages.Order, (NestedGroup)data);
+                UpdatePageOrder(layoutSettings.Pages!.Order!, (NestedGroup)data);
             }
             return await Task.FromResult(layoutSettings);
         }

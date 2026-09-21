@@ -12,9 +12,9 @@ namespace Altinn.App.services.options
         public static List<string> Colors { get;} =
             ["Rød", "Grønn", "Blå", "Gul", "Svart", "Hvit", "Brun", "Oransje", "Lilla", "Rosa"];
 
-        public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
-            string balloonNum = keyValuePairs.GetValueOrDefault("balloonNum");
+            string? balloonNum = keyValuePairs.GetValueOrDefault("balloonNum");
             List<AppOption> output = new List<AppOption>();
 
             for (int i = 0; i < Colors.Count; i++)

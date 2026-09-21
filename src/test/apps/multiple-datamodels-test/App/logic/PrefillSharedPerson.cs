@@ -13,10 +13,10 @@ public class PrefillSharedPerson : IOnTaskEndingHandler
     public async Task<HookResult> Execute(OnTaskEndingContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
-        DataElement dataElement = instance.Data.Find(d => d.DataType == nameof(sharedperson));
+        DataElement? dataElement = instance.Data.Find(d => d.DataType == nameof(sharedperson));
 
         var person = (sharedperson)
-            await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));
+            await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement!));
 
         person.name = "Ola Nordmann";
         person.address = new address

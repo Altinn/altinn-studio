@@ -13,11 +13,11 @@ namespace Altinn.App.Options
         public string Id { get; set; } = "people";
 
         public Task<DataList> GetDataListAsync(
-            string language,
+            string? language,
             Dictionary<string, string> keyValuePairs
         )
         {
-            string search = "";
+            string? search = "";
             keyValuePairs.TryGetValue("search", out search);
 
             int start = 0;
@@ -50,9 +50,9 @@ namespace Altinn.App.Options
                 items = items
                     .Where(o =>
                     {
-                        var n = o.Name.ToLower();
-                        var a = o.Age.ToString();
-                        var p = o.Profession.ToLower();
+                        var n = o.Name!.ToLower();
+                        var a = o.Age!.ToString();
+                        var p = o.Profession!.ToLower();
 
                         return n.Contains(s) || a.Contains(s) || p.Contains(s);
                     })

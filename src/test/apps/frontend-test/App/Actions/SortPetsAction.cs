@@ -18,37 +18,37 @@ public class SortPetsAction : IUserAction
         var data = originalData as NestedGroup;
 
         // Valid sort orders can be found in 'pet-sort-order.json'
-        var sortOrder = data.PetSortOrder;
+        var sortOrder = data!.PetSortOrder;
 
         // Always secondary sort by age
         if (sortOrder == "ascSpecies")
         {
-            data.Pets = data.Pets.OrderBy(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
+            data.Pets = data.Pets!.OrderBy(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
             data.PetSortOrder = "descSpecies";
         }
         else if (sortOrder == "descSpecies")
         {
-            data.Pets = data.Pets.OrderByDescending(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
+            data.Pets = data.Pets!.OrderByDescending(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
             data.PetSortOrder = "ascSpecies";
         }
         else if (sortOrder == "ascName")
         {
-            data.Pets = data.Pets.OrderBy(p => p.Name).ThenBy(p => p.Age).ToList();
+            data.Pets = data.Pets!.OrderBy(p => p.Name).ThenBy(p => p.Age).ToList();
             data.PetSortOrder = "descName";
         }
         else if (sortOrder == "descName")
         {
-            data.Pets = data.Pets.OrderByDescending(p => p.Name).ThenBy(p => p.Age).ToList();
+            data.Pets = data.Pets!.OrderByDescending(p => p.Name).ThenBy(p => p.Age).ToList();
             data.PetSortOrder = "ascName";
         }
         else if (sortOrder == "ascAge")
         {
-            data.Pets = data.Pets.OrderBy(p => p.Age).ToList();
+            data.Pets = data.Pets!.OrderBy(p => p.Age).ToList();
             data.PetSortOrder = "descAge";
         }
         else if (sortOrder == "descAge")
         {
-            data.Pets = data.Pets.OrderByDescending(p => p.Age).ToList();
+            data.Pets = data.Pets!.OrderByDescending(p => p.Age).ToList();
             data.PetSortOrder = "ascAge";
         }
         else
@@ -59,7 +59,7 @@ public class SortPetsAction : IUserAction
                 Message = "Invalid sort order in data model",
                 Metadata = new Dictionary<string, string>()
                 {
-                    { "sortOrder", sortOrder },
+                    { "sortOrder", sortOrder! },
                 }
             });
         }

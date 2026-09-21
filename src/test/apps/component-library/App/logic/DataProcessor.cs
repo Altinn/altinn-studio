@@ -16,7 +16,7 @@ public class DataProcessor : IDataWriteProcessor
         IInstanceDataMutator instanceDataMutator,
         string taskId,
         DataElementChanges changes,
-        string language
+        string? language
     )
     {
         var change = changes.FormDataChanges.FirstOrDefault(change =>
@@ -75,7 +75,7 @@ public class DataProcessor : IDataWriteProcessor
         try
         {
             string dateAsJson = System.Text.Json.JsonSerializer.Serialize(date);
-            string dateAsString = System.Text.Json.JsonSerializer.Deserialize<string>(dateAsJson);
+            string? dateAsString = System.Text.Json.JsonSerializer.Deserialize<string>(dateAsJson);
 
             LayoutEvaluatorState state = new LayoutEvaluatorState(
                 dataAccessor: mutator,
@@ -95,7 +95,7 @@ public class DataProcessor : IDataWriteProcessor
 
             if (result is string)
             {
-                return result.ToString();
+                return result.ToString()!;
             }
             return System.Text.Json.JsonSerializer.Serialize(result);
         }

@@ -18,7 +18,7 @@ namespace Altinn.App.logic.DataProcessing
             _registerService = registerService;
         }
 
-        public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
         {
             if (data.GetType() == typeof(Skjema))
             {
@@ -26,14 +26,14 @@ namespace Altinn.App.logic.DataProcessing
                 int partyId;
                 if (int.TryParse(instance.InstanceOwner.PartyId, out partyId))
                 {
-                    Party party = await _registerService.GetParty(partyId);
+                    Party? party = await _registerService.GetParty(partyId);
                     model.Innledninggrp9309 = new Innledninggrp9309()
                     {
                         Kontaktinformasjongrp9311 = new Kontaktinformasjongrp9311()
                         {
                             MelderFultnavn = new MelderFultnavn()
                             {
-                                value = party.Name
+                                value = party!.Name
                             }
                         }
                     };
@@ -55,7 +55,7 @@ namespace Altinn.App.logic.DataProcessing
             {
                 var survey = data as LikertSurvey;
 
-                survey.Questions = new List<Question>
+                survey!.Questions = new List<Question>
                 {
                     new Question { Id = "question-1", Answer = "" },
                     new Question { Id = "question-2", Answer = "" },

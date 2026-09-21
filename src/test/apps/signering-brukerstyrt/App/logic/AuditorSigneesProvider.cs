@@ -19,17 +19,17 @@ public class AuditorSigneesProvider : ISigneeProvider
             .Single();
 
         var formData = await parameters.InstanceDataAccessor.GetFormData<Skjemadata>(dataElement);
-        Revisor revisor = formData.Revisor;
+        Revisor revisor = formData.Revisor!;
 
-        if (formData.Revisor.HarRevisor == "nei")
+        if (formData.Revisor!.HarRevisor == "nei")
         {
             return new SigneeProviderResult { Signees = [] };
         }
 
         var organisationSignee = new ProvidedOrganization
         {
-            Name = revisor.Navn,
-            OrganizationNumber = revisor.Organisasjonsnummer,
+            Name = revisor.Navn!,
+            OrganizationNumber = revisor.Organisasjonsnummer!,
             CommunicationConfig = new CommunicationConfig
             {
                 InboxMessage = new InboxMessage

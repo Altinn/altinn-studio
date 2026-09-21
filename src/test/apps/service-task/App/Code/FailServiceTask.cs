@@ -22,7 +22,7 @@ public class FailServiceTask : IServiceTask
     {
         Instance instance = context.InstanceDataMutator.Instance;
 
-        DataElement dataElement2 = instance.Data.Find(x => x.DataType == "Model2");
+        DataElement dataElement2 = instance.Data.Find(x => x.DataType == "Model2")!;
 
         var formDataModel2 = (Model2)
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement2));

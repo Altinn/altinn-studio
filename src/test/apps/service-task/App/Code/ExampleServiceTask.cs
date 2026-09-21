@@ -13,7 +13,7 @@ public class ExampleServiceTask : IServiceTask
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
-        DataElement dataElement = instance.Data.Find(x => x.DataType == "model");
+        DataElement dataElement = instance.Data.Find(x => x.DataType == "model")!;
 
         var formData = (model)
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));

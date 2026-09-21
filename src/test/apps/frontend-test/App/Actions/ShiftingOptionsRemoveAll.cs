@@ -17,7 +17,7 @@ public class ShiftingOptionsRemoveAll : IUserAction
         var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as Skjema;
 
-        RemoveAllRows(data);
+        RemoveAllRows(data!);
         
         return UserActionResult.SuccessResult(new List<ClientAction>());
     }

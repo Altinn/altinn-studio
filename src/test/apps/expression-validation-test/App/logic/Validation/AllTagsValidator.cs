@@ -18,7 +18,7 @@ public class AllTagsValidator(IAppOptionsService appOptionsService) : IValidator
         return Task.FromResult(true);
     }
 
-    public async Task<List<ValidationIssue>> Validate(IInstanceDataAccessor dataAccessor, string taskId, string language)
+    public async Task<List<ValidationIssue>> Validate(IInstanceDataAccessor dataAccessor, string taskId, string? language)
     {
         var dataElement = dataAccessor.Instance.Data.First(e => e.DataType == "skjema");
         var formData = await dataAccessor.GetFormData<skjema>(dataElement);
@@ -33,7 +33,7 @@ public class AllTagsValidator(IAppOptionsService appOptionsService) : IValidator
         var allTags = files.SelectMany(f => f.Tags).Distinct().ToList();
         var options = await appOptionsService.GetOptionsAsync("applicationdocs", language, new Dictionary<string, string>());
 
-        foreach (var option in options.Options)
+        foreach (var option in options.Options!)
         {
             if (!allTags.Contains(option.Value))
             {

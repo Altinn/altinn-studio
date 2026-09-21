@@ -9,12 +9,12 @@ namespace Altinn.App.logic.DataProcessing
 {
     public class InstantiationProcessor : IInstantiationProcessor
     {
-        public async Task DataCreation(Instance instance, object datamodel, Dictionary<string, string> prefill)
+        public async Task DataCreation(Instance instance, object datamodel, Dictionary<string, string>? prefill)
         {
             if (datamodel.GetType() == typeof(data))
             {
                 data model = (data)datamodel;
-                model.form.year = DateTime.Now.Year - 1;
+                model.form!.year = DateTime.Now.Year - 1;
             } 
 
             await Task.CompletedTask;

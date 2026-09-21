@@ -17,7 +17,7 @@ public class ConflictingOptionsReset : IUserAction
         var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as Skjema;
 
-        SetDefaultData(data);
+        SetDefaultData(data!);
 
         return UserActionResult.SuccessResult(new List<ClientAction>());
     }

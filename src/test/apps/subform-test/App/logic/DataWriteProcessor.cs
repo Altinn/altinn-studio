@@ -9,13 +9,13 @@ namespace Altinn.App.logic
 {
     public class DataWriteProcessor : IDataWriteProcessor
     {
-        private model _model;
+        private model? _model;
 
         public async Task ProcessDataWrite(
             IInstanceDataMutator instanceDataMutator,
             string taskId,
             DataElementChanges changes,
-            string language)
+            string? language)
         {
             foreach (var binaryChange in changes.BinaryDataChanges)
             {
@@ -38,20 +38,20 @@ namespace Altinn.App.logic
 
                         var formData = await GetModel(instanceDataMutator);
                         formData.AttachmentName ??= new List<string>();
-                        formData.AttachmentName.Add(binaryChange.FileName);
+                        formData.AttachmentName.Add(binaryChange.FileName!);
                     }
                     else if (binaryChange.Type == ChangeType.Deleted)
                     {
                         var formData = await GetModel(instanceDataMutator);
-                        formData.AttachmentName?.Remove(binaryChange.FileName);
+                        formData.AttachmentName?.Remove(binaryChange.FileName!);
                     }
                 }
             }
 
             if (_model != null)
             {
-                _model.AttachmentIdJoined = string.Join(", ", _model.AttachmentId); // Updated by frontend
-                _model.AttachmentNameJoined = string.Join(", ", _model.AttachmentName); // Updated by backend
+                _model.AttachmentIdJoined = string.Join(", ", _model.AttachmentId!); // Updated by frontend
+                _model.AttachmentNameJoined = string.Join(", ", _model.AttachmentName!); // Updated by backend
             }
 
             foreach (var formDataChange in changes.FormDataChanges)
@@ -59,7 +59,7 @@ namespace Altinn.App.logic
                 if (formDataChange.DataType.Id == "model")
                 {
                     var formData = formDataChange.CurrentFormData as model;
-                    formData.AttachmentId ??= new List<string>();
+                    formData!.AttachmentId ??= new List<string>();
                     var joined = string.Join(", ", formData.AttachmentId);
                     if (joined != formData.AttachmentIdJoined)
                     {
@@ -89,12 +89,12 @@ namespace Altinn.App.logic
                                 if (element.DataType == "attachments" && element.Filename == name)
                                 {
                                     instanceDataMutator.RemoveDataElement(element);
-                                    formData.AttachmentName.Remove(name);
+                                    formData.AttachmentName!.Remove(name);
                                     // We should update the IDs here as well, but not doing it here forces frontend
                                     // to update the IDs. Leaving it out allows us to test that it happens correctly.
                                 }
                             }
-                            formData.AttachmentNameJoined = string.Join(", ", formData.AttachmentName);
+                            formData.AttachmentNameJoined = string.Join(", ", formData.AttachmentName!);
                             formData.Navn = "debug";
                         } else if (formData.Navn != "debug")
                         {
@@ -117,7 +117,7 @@ namespace Altinn.App.logic
                 }
             }
 
-            return _model;
+            return _model!;
         }
     }
 }

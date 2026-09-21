@@ -28,7 +28,7 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
     {
         Skjemadata formData = await GetFormData(instance);
 
-        if (formData.Revisor.HarRevisor == "ja")
+        if (formData.Revisor!.HarRevisor == "ja")
         {
             return outgoingFlows.FindAll(flow => flow.TargetRef == "SigningTask_Auditor");
         }
@@ -38,7 +38,7 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
 
     private async Task<Skjemadata> GetFormData(Instance instance)
     {
-        DataElement modelData = instance.Data.Find(x => x.DataType == "Skjemadata");
+        DataElement modelData = instance.Data.Find(x => x.DataType == "Skjemadata")!;
         InstanceIdentifier instanceIdentifier = new(instance);
 
         return (Skjemadata)

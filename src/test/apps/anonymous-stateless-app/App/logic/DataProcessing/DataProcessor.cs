@@ -26,7 +26,7 @@ namespace Altinn.App.Logic.DataProcessing
     /// <param name="instance">The instance that data belongs to</param>
     /// <param name="dataId">The dataId for data if available</param>
     /// <param name="data">The data as object</param>
-    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previous, string language)
+    public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previous, string? language)
     {
       return Task.CompletedTask;
     }
@@ -44,7 +44,7 @@ namespace Altinn.App.Logic.DataProcessing
     /// <param name="instance">The instance that data belongs to</param>
     /// <param name="dataId">The dataId for data if available</param>
     /// <param name="data">The data as object</param>
-    public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string language)
+    public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language)
     {
       if (data.GetType() != typeof(Skjema))
       {
@@ -52,14 +52,14 @@ namespace Altinn.App.Logic.DataProcessing
       }
       Skjema skjema = (Skjema)data;
       SetupModel(skjema);
-      SetIdNumber(skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317);
-      SetJournalNumber(skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316);
-      CheckName(skjema.OpplysningerOmArbeidstakerengrp8819.OpplysningerOmArbeidstakerengrp8855.AnsattNavndatadef1223);
+      SetIdNumber(skjema.OpplysningerOmArbeidstakerengrp8819!.Skjemainstansgrp8854!.IdentifikasjonsnummerKravdatadef33317!);
+      SetJournalNumber(skjema.OpplysningerOmArbeidstakerengrp8819!.Skjemainstansgrp8854!.Journalnummerdatadef33316);
+      CheckName(skjema.OpplysningerOmArbeidstakerengrp8819!.OpplysningerOmArbeidstakerengrp8855!.AnsattNavndatadef1223);
 
       return Task.CompletedTask;
     }
 
-    private void CheckName(AnsattNavndatadef1223 name)
+    private void CheckName(AnsattNavndatadef1223? name)
     {
       if (name?.value == "test")
       {
@@ -67,7 +67,7 @@ namespace Altinn.App.Logic.DataProcessing
       }
     }
 
-    private void SetJournalNumber(Journalnummerdatadef33316 journalNumber)
+    private void SetJournalNumber(Journalnummerdatadef33316? journalNumber)
     {
       if (journalNumber?.value == 0)
       {
@@ -79,7 +79,7 @@ namespace Altinn.App.Logic.DataProcessing
     {
       if (idField?.value == null)
       {
-        idField.value = "1234567890";
+        idField!.value = "1234567890";
       }
       else if (idField?.value == "1337")
       {

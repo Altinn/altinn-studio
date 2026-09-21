@@ -18,7 +18,7 @@ public class ShiftingOptionsAdd : IUserAction
         var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as Skjema;
 
-        AddRows(data, 10);
+        AddRows(data!, 10);
 
         return UserActionResult.SuccessResult(new List<ClientAction>());
     }
