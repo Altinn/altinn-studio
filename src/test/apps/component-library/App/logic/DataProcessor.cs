@@ -93,9 +93,9 @@ public class DataProcessor : IDataWriteProcessor
             Expression expr = new Expression(ExpressionFunction.formatDate, args);
             var result = await ExpressionEvaluator.EvaluateExpression(state, expr, null!);
 
-            if (result is string)
+            if (result is string resultAsString)
             {
-                return result.ToString()!;
+                return resultAsString;
             }
             return System.Text.Json.JsonSerializer.Serialize(result);
         }
