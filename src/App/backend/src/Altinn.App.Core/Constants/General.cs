@@ -41,9 +41,9 @@ public static class General
     internal const string PlatformAccessTokenHeaderName = "PlatformAccessToken";
 
     /// <summary>
-    /// Header name for the client-supplied idempotency key. Altinn Events reads it as a GUID and
-    /// treats a repeated key as a duplicate: the event is stored once however many times the request
-    /// arrives. Delivery to subscribers is not deduplicated and stays at-least-once.
+    /// Header name for the client-supplied idempotency key. Altinn Events reads it as a GUID that is
+    /// globally unique and registers exactly one event: a repeated key is a duplicate, and the event is
+    /// stored once and delivered once however many times the request arrives.
     /// </summary>
     internal const string IdempotencyKeyHeaderName = "Idempotency-Key";
 }

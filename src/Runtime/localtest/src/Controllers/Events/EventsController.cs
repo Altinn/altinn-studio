@@ -33,8 +33,8 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         /// <param name="cloudEvent">The event to store.</param>
         /// <param name="idempotencyKey">
-        /// Optional client-supplied idempotency key. A repeated key stores no further event, and the
-        /// caller is answered as though the event had just been registered.
+        /// Optional client-supplied idempotency key. A repeated key stores no further event and skips
+        /// delivery, and the caller is answered as though the event had just been registered.
         /// </param>
         /// <returns>The application metadata object.</returns>
         [HttpPost]

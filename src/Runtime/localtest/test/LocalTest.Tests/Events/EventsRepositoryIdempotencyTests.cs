@@ -8,9 +8,11 @@ using Xunit;
 namespace LocalTest.Tests.Events;
 
 /// <summary>
-/// Altinn Events stores one event per <c>Idempotency-Key</c>, which is what lets an app retry a
-/// registration without recording the event twice. Localtest has to behave the same way, or a local run
-/// cannot show the behavior a deployed app depends on.
+/// An <c>Idempotency-Key</c> is globally unique and registers exactly one event, which is what lets an
+/// app retry a registration without publishing the event twice. That is the contract Altinn Events
+/// offers, so localtest has to model it, or a local run cannot show the behavior a deployed app depends
+/// on. These tests pin the whole of it: one event per key, one key per event, and one winner when
+/// registrations race.
 /// </summary>
 public class EventsRepositoryIdempotencyTests : IDisposable
 {
@@ -41,6 +43,8 @@ public class EventsRepositoryIdempotencyTests : IDisposable
     private int StoredEventCount() =>
         Directory.Exists(EventsFolder) ? Directory.GetFiles(EventsFolder).Length : 0;
 
+    private string ReadStoredEvent(string eventId) => File.ReadAllText(Path.Combine(EventsFolder, eventId));
+
     private static CloudEvent NewEvent(string type = "app.instance.created") =>
         new()
         {
@@ -64,6 +68,24 @@ public class EventsRepositoryIdempotencyTests : IDisposable
         // request generated for an event it never stored.
         Assert.Equal(first.Id, second.Id);
         Assert.Equal(1, StoredEventCount());
+    }
+
+    [Fact]
+    public async Task Create_WithSameKeyForAnUnrelatedEvent_KeepsOnlyTheFirst()
+    {
+        Guid key = Guid.NewGuid();
+
+        CloudEventCreateResult first = await _repository.Create(NewEvent("app.instance.created"), key);
+        CloudEventCreateResult second = await _repository.Create(NewEvent("app.instance.process.completed"), key);
+
+        // A key is spent by the first event it registers, and the two events are never compared, so the
+        // second is discarded on the key alone even though it is an entirely different event. This is the
+        // failure mode behind "one key, one event": nothing reports it, and the caller is told it worked.
+        Assert.True(second.IsDuplicate);
+        Assert.Equal(first.Id, second.Id);
+        Assert.Equal(1, StoredEventCount());
+        Assert.Contains("app.instance.created", ReadStoredEvent(first.Id), StringComparison.Ordinal);
+        Assert.DoesNotContain("app.instance.process.completed", ReadStoredEvent(first.Id), StringComparison.Ordinal);
     }
 
     [Fact]
