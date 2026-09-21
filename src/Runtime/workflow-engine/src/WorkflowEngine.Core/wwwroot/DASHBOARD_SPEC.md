@@ -817,12 +817,19 @@ reason sub-label and its backoff countdown.
 The trailing relation-status segments keep relation chip dot colors fresh when only a related
 workflow's status changed.
 
+Timestamps are deliberately absent from both this formula and the server's own change detection for
+the `active` array (`{databaseId}|{status}|{backoffUntil}|{step status}:{retryCount}`), so a new
+`executionStartedAt` is pushed and drawn only because the status change that accompanies it is. That
+costs nothing today — the elapsed counter reads the anchor out of `state.previousWorkflows` on every
+frame rather than from the rendered HTML — but anything new that renders a timestamp *into* card
+markup would sit stale until some other field moved, and belongs in the formula.
+
 ### Animations
 
 - **Enter**: New inbox cards slide in from top
 - **Exit**: Removed cards fade out with `complete-exit` animation (0.5s)
 - **Recent-enter**: New recent cards slide in with a brief glow highlight (`recent-glow` / `recent-glow-fail`)
-- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by matching idempotency keys in the SSE `recentKeys` set), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations.
+- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by its `databaseId` being in the `recentKeys` set built from the same SSE payload's `recent` array), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations. Keyed by `databaseId` and not by idempotency key, which is batch-level: a sibling workflow from the same batch reaching Recent must not suppress a still-active one's animation.
 - **Pulse sync**: When a card is re-rendered, the CSS processing pulse animation phase is synchronized to `performance.now() % 2000` to avoid flicker.
 
 ### Timers
