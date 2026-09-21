@@ -19,6 +19,8 @@ const (
 	ContainerVictoriaMetrics = "localtest_victoria_metrics"
 	// ContainerVictoriaTraces is the localtest VictoriaTraces container.
 	ContainerVictoriaTraces = "localtest_victoria_traces"
+	// ContainerVictoriaLogs is the localtest VictoriaLogs container.
+	ContainerVictoriaLogs = "localtest_victoria_logs"
 	// ContainerOtelCollector is the localtest OpenTelemetry collector container.
 	ContainerOtelCollector = "localtest_otel_collector"
 	// ContainerGrafana is the localtest Grafana dashboard container.
