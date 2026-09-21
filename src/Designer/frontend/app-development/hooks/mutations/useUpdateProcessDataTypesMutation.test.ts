@@ -55,6 +55,7 @@ describe('useUpdateProcessDataTypeMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.FormLayoutSettings, org, app],
+      queryKey: [QueryKey.AppValidation, org, app],
     });
   });
 });

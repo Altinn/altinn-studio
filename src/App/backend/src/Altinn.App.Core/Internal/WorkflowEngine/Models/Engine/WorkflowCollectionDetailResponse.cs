@@ -26,6 +26,14 @@ internal sealed record WorkflowCollectionDetailResponse
     public required IReadOnlyList<CollectionHeadStatus> Heads { get; init; }
 
     /// <summary>
+    /// Gets the engine clock time when the response was assembled. Null for older engines.
+    /// Compare with head creation times rather than the client clock.
+    /// </summary>
+    [JsonPropertyName("currentTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CurrentTime { get; init; }
+
+    /// <summary>
     /// Gets when the collection row was created.
     /// </summary>
     [JsonPropertyName("createdAt")]

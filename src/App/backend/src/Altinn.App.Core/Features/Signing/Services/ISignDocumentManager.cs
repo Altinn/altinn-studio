@@ -9,13 +9,13 @@ internal interface ISignDocumentManager
     Task<List<SignDocument>> GetSignDocuments(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 
     Task<List<SigneeContext>> SynchronizeSigneeContextsWithSignDocuments(
         string taskId,
         List<SigneeContext> signeeContexts,
         List<SignDocument> signDocuments,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 }

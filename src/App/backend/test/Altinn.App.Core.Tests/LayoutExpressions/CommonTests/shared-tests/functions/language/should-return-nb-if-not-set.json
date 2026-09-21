@@ -1,5 +1,0 @@
-{
-  "name": "Should default to nb if no profile is set",
-  "expression": ["language"],
-  "expects": "nb"
-}

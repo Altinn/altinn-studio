@@ -2,11 +2,20 @@
 
 mod support;
 
-use std::{cell::Cell, path::PathBuf, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    collections::VecDeque,
+    path::PathBuf,
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
-    AgentId, ConditionStatus, Error, MountSpec, SecretSpec, Status,
-    control_plane::{AgentRecord, AgentStore, ControlPlane, Controller, Notifier, Reconciler, memory},
+    AgentId, ConditionStatus, EnvironmentSpec, Error, FailureKind, MountSpec, SecretSpec, Status,
+    control_plane::{
+        AgentRecord, AgentStore, ControlPlane, Controller, Convergence, Notifier, Observers, Reconciler, WaitPolicy,
+        memory,
+    },
     sandbox::{ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
 };
 use sandbox::{
@@ -101,7 +110,12 @@ impl Provider for MemoryProvider {
         Box::pin(async move { Ok(record.agent.spec.sandbox.platform.os == "linux") })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
+        _progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             if let Some(blocking) = &self.blocking
                 && record.id == blocking.agent
@@ -122,7 +136,9 @@ impl Provider for MemoryProvider {
                 .service
                 .ensure(
                     &EnsureSandboxRequest::new(record.sandbox_name()?, spec)
-                        .with_mounts(record.agent.spec.sandbox.resolved_mounts()),
+                        .with_hostname(record.sandbox_hostname()?)
+                        .with_mounts(record.agent.spec.sandbox.resolved_mounts())
+                        .with_environment(environment),
                 )
                 .await
                 .map_err(Error::from)?;
@@ -163,6 +179,85 @@ struct UnsupportedProvider {
     id: ProviderId,
 }
 
+enum PlannedFailure {
+    Invalid(String),
+    /// The Sandbox Provider rejects the request itself (an SDK `InvalidRequest`).
+    Rejected,
+    /// Floods telemetry past the lossy channel's capacity, then fails as invalid.
+    InvalidAfterFlood(String),
+    Transient(String),
+}
+
+const TELEMETRY_FLOOD: usize = 4_096;
+
+struct PlannedProvider {
+    inner: MemoryProvider,
+    failures: RefCell<VecDeque<PlannedFailure>>,
+}
+
+impl PlannedProvider {
+    fn new(backend: Rc<sandbox_memory::Provider>, failures: impl IntoIterator<Item = PlannedFailure>) -> Self {
+        Self {
+            inner: MemoryProvider::new(backend),
+            failures: RefCell::new(failures.into_iter().collect()),
+        }
+    }
+}
+
+impl Provider for PlannedProvider {
+    fn id(&self) -> &ProviderId {
+        self.inner.id()
+    }
+
+    fn supports<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<bool, Error>> {
+        self.inner.supports(record)
+    }
+
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
+        progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+        match self.failures.borrow_mut().pop_front() {
+            Some(PlannedFailure::Invalid(message)) => Box::pin(async move { Err(Error::Invalid(message)) }),
+            Some(PlannedFailure::Rejected) => Box::pin(async move {
+                Err(Error::Sandbox(sandbox::Error::Invalid {
+                    field: "spec.resources.cpu",
+                    reason: "fractional CPUs are not supported",
+                }))
+            }),
+            Some(PlannedFailure::InvalidAfterFlood(message)) => Box::pin(async move {
+                for _ in 0..TELEMETRY_FLOOD {
+                    progress(sandbox::SandboxEvent::PhaseStarted {
+                        phase: sandbox::SandboxPhase::Validate,
+                    });
+                }
+                Err(Error::Invalid(message))
+            }),
+            Some(PlannedFailure::Transient(message)) => Box::pin(async move {
+                progress(sandbox::SandboxEvent::PhaseStarted {
+                    phase: sandbox::SandboxPhase::SandboxStart,
+                });
+                Err(Error::Sandbox(sandbox::Error::Backend(message)))
+            }),
+            None => self.inner.ensure(record, environment, progress),
+        }
+    }
+
+    fn open<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        id: &'a sandbox::SandboxId,
+    ) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+        self.inner.open(record, id)
+    }
+
+    fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        self.inner.release(record)
+    }
+}
+
 impl UnsupportedProvider {
     fn new() -> Self {
         Self {
@@ -180,7 +275,12 @@ impl Provider for UnsupportedProvider {
         Box::pin(async { Ok(false) })
     }
 
-    fn ensure<'a>(&'a self, _record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        _record: &'a AgentRecord,
+        _environment: std::collections::BTreeMap<String, String>,
+        _progress: agent::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
     }
 
@@ -202,7 +302,7 @@ fn sandbox_service(provider: Rc<dyn Provider>) -> Rc<Service> {
 }
 
 fn reconciler(store: Rc<dyn AgentStore>, provider: Rc<dyn Provider>) -> Reconciler {
-    Reconciler::new(store, sandbox_service(provider))
+    Reconciler::new(store, sandbox_service(provider), Observers::new())
 }
 
 struct Fixture {
@@ -225,8 +325,15 @@ fn fixture() -> Fixture {
 }
 
 fn apply_request(name: &str) -> agent::control_plane::ApplyRequest {
+    apply_request_in(name, std::env::temp_dir().join("agent-platform-source"))
+}
+
+fn apply_request_in(name: &str, source_directory: PathBuf) -> agent::control_plane::ApplyRequest {
     agent::control_plane::ApplyRequest {
-        source_directory: std::env::temp_dir().join("agent-platform-source"),
+        manifest_path: Some(source_directory.join("agent.yaml")),
+        env_file: None,
+        source_directory,
+        create_only: false,
         agent: agent(name),
     }
 }
@@ -266,11 +373,9 @@ async fn apply_stores_desired_state_without_running_inline() {
 async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
     let fixture = fixture();
     let root = std::env::temp_dir().join("agent-platform-sources");
-    let mut outer = apply_request("outer");
-    outer.source_directory = root.clone();
+    let outer = apply_request_in("outer", root.clone());
     fixture.control_plane.apply(outer).await.expect("outer Agent");
-    let mut inner = apply_request("inner");
-    inner.source_directory = root.join("nested");
+    let inner = apply_request_in("inner", root.join("nested"));
     fixture.control_plane.apply(inner).await.expect("inner Agent");
 
     let listed = fixture.control_plane.list().await.expect("list Agents");
@@ -287,6 +392,77 @@ async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
         .await
         .expect("nearest Agent source");
     assert_eq!(resolved.metadata.name, "inner");
+}
+
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_manifest() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-variant-sources");
+    let default = apply_request_in("default", root.clone());
+    fixture.control_plane.apply(default).await.expect("default Agent");
+
+    let mut nested = apply_request_in("nested", root.clone());
+    nested.manifest_path = Some(root.join("agent.nested.yaml"));
+    fixture.control_plane.apply(nested).await.expect("nested Agent");
+
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory(&root)
+            .await
+            .expect("default preference")
+            .metadata
+            .name,
+        "default"
+    );
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("nested").expect("variant")))
+            .await
+            .expect("variant selection")
+            .metadata
+            .name,
+        "nested"
+    );
+
+    let mut local = apply_request_in("local", root.clone());
+    local.manifest_path = Some(root.join("agent.mine.yaml"));
+    fixture.control_plane.apply(local).await.expect("local Agent");
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("mine").expect("variant")))
+            .await
+            .expect("multi-level local variant selection")
+            .metadata
+            .name,
+        "local"
+    );
+    assert!(matches!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("missing").expect("variant")))
+            .await,
+        Err(Error::Invalid(message)) if message.contains("agent.missing.yaml")
+    ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_remains_ambiguous_without_one_default_manifest() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-ambiguous-variant-sources");
+    for (name, variant) in [("nested", "nested"), ("worktree", "worktree")] {
+        let mut request = apply_request_in(name, root.clone());
+        request.manifest_path = Some(root.join(format!("agent.{variant}.yaml")));
+        fixture.control_plane.apply(request).await.expect("variant Agent");
+    }
+    let error = fixture
+        .control_plane
+        .resolve_directory(&root)
+        .await
+        .expect_err("ambiguous variants");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("--agent or --variant")));
 }
 
 #[tokio::test(flavor = "local")]
@@ -307,8 +483,7 @@ async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and
     let nested = root.join("src/feature");
     std::fs::create_dir_all(&manifest).expect("manifest directory");
     std::fs::create_dir_all(&nested).expect("nested workspace directory");
-    let mut request = apply_request("worker");
-    request.source_directory = manifest;
+    let mut request = apply_request_in("worker", manifest);
     request.agent.spec.sandbox.mounts.push(MountSpec::Bind {
         source: PathBuf::from("../.."),
         target: SandboxPath::new("/home/agent/code/altinn-studio"),
@@ -342,11 +517,131 @@ async fn bind_mounts_resolve_from_the_manifest_and_drive_directory_inference_and
 }
 
 #[tokio::test(flavor = "local")]
+async fn api_responses_carry_provenance_without_persisting_it() {
+    let fixture = fixture();
+    let request = apply_request("worker");
+    let expected = agent::Provenance {
+        source_directory: request.source_directory.clone(),
+        manifest_path: request.manifest_path.clone(),
+        env_file: None,
+    };
+
+    let applied = fixture.control_plane.apply(request.clone()).await.expect("apply");
+    assert_eq!(applied.status.provenance.as_ref(), Some(&expected));
+
+    let unchanged = fixture.control_plane.apply(request).await.expect("unchanged apply");
+    assert_eq!(unchanged.status.provenance.as_ref(), Some(&expected));
+
+    let fetched = fixture.control_plane.get("worker").await.expect("get");
+    assert_eq!(fetched.status.provenance.as_ref(), Some(&expected));
+
+    let listed = fixture.control_plane.list().await.expect("list");
+    assert_eq!(listed[0].status.provenance.as_ref(), Some(&expected));
+
+    let resolved = fixture
+        .control_plane
+        .resolve_directory(&expected.source_directory)
+        .await
+        .expect("resolve directory");
+    assert_eq!(resolved.status.provenance.as_ref(), Some(&expected));
+
+    let record = stored(&fixture, "worker").await;
+    assert_eq!(record.agent.status.provenance, None);
+    assert_eq!(record.manifest_path, expected.manifest_path);
+
+    reconcile(&fixture, "worker").await;
+    let reconciled = fixture.control_plane.get("worker").await.expect("get after reconcile");
+    assert_eq!(reconciled.status.provenance.as_ref(), Some(&expected));
+    assert!(!reconciled.status.conditions.is_empty());
+    let record = stored(&fixture, "worker").await;
+    assert_eq!(record.agent.status.provenance, None);
+}
+
+#[tokio::test(flavor = "local")]
+async fn create_only_applies_reject_existing_names() {
+    let fixture = fixture();
+    let mut request = apply_request("worker");
+    request.create_only = true;
+    fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("initial create");
+
+    let error = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect_err("repeated create must fail");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("already exists")));
+
+    request.create_only = false;
+    fixture.control_plane.apply(request).await.expect("upsert still works");
+}
+
+#[tokio::test(flavor = "local")]
+async fn applies_keep_the_recorded_manifest_path_unless_a_new_one_is_reported() {
+    let fixture = fixture();
+    let request = apply_request("worker");
+    let recorded = request.manifest_path.clone();
+    fixture.control_plane.apply(request.clone()).await.expect("apply");
+
+    let mut pathless = request.clone();
+    pathless.manifest_path = None;
+    fixture.control_plane.apply(pathless).await.expect("pathless apply");
+    assert_eq!(stored(&fixture, "worker").await.manifest_path, recorded);
+
+    let mut renamed = request.clone();
+    renamed.manifest_path = Some(request.source_directory.join("worker.yml"));
+    let applied = fixture
+        .control_plane
+        .apply(renamed.clone())
+        .await
+        .expect("renamed apply");
+    assert_eq!(stored(&fixture, "worker").await.manifest_path, renamed.manifest_path);
+    assert_eq!(
+        applied
+            .status
+            .provenance
+            .and_then(|provenance| provenance.manifest_path),
+        renamed.manifest_path
+    );
+
+    let mut foreign = request;
+    foreign.manifest_path = Some(PathBuf::from("/elsewhere/agent.yaml"));
+    let error = fixture
+        .control_plane
+        .apply(foreign)
+        .await
+        .expect_err("manifest outside sourceDirectory must fail");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("manifestPath")));
+}
+
+#[tokio::test(flavor = "local")]
+async fn changing_the_source_directory_is_rejected_by_name() {
+    let fixture = fixture();
+    fixture
+        .control_plane
+        .apply(apply_request("worker"))
+        .await
+        .expect("apply");
+
+    let mut moved = apply_request("worker");
+    moved.source_directory = std::env::temp_dir().join("agent-platform-elsewhere");
+    moved.manifest_path = Some(moved.source_directory.join("agent.yaml"));
+    let error = fixture
+        .control_plane
+        .apply(moved)
+        .await
+        .expect_err("directory change must fail");
+    assert!(matches!(error, Error::Immutable("sourceDirectory")));
+}
+
+#[tokio::test(flavor = "local")]
 async fn changing_a_mount_is_rejected_for_an_existing_agent() {
     let fixture = fixture();
     let root = TempDirectory::new("immutable-mount");
-    let mut request = apply_request("worker");
-    request.source_directory = root.path().to_path_buf();
+    let mut request = apply_request_in("worker", root.path().to_path_buf());
     request.agent.spec.sandbox.mounts.push(MountSpec::Bind {
         source: PathBuf::from("."),
         target: SandboxPath::new("/home/agent/code/first"),
@@ -447,6 +742,7 @@ async fn reconcile_resolves_sources_and_reports_sandbox_ready() {
         sandbox::image::ImageSource::Build {
             context: std::env::temp_dir().join("agent-platform-source").join("image"),
             dockerfile: PathBuf::from("Dockerfile"),
+            target: None,
         }
     );
 }
@@ -462,7 +758,7 @@ async fn reconciliation_resolves_provider_capabilities_and_persists_the_assignme
     let sandboxes =
         Rc::new(Service::new(providers, [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>]).expect("Sandbox service"));
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
-    let reconciler = Reconciler::new(store.clone(), sandboxes);
+    let reconciler = Reconciler::new(store.clone(), sandboxes, Observers::new());
     control_plane.apply(apply_request("worker")).await.expect("apply");
 
     reconciler
@@ -575,6 +871,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
         default: false,
+        defaults: agent::ModelSelection::default(),
     });
     let error = fixture
         .control_plane
@@ -639,6 +936,7 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     let mut changed = request;
     changed.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: Some("GH_PAT".into()),
@@ -653,6 +951,281 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     assert_eq!(applied.spec.secrets.len(), 1);
 }
 
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_survives_a_symlinked_parent_of_a_missing_source() {
+    // macOS and Windows temp directories canonicalize to a different spelling; a source
+    // directory that does not exist on disk must still resolve by its literal path.
+    let fixture = fixture();
+    let real = tempfile::tempdir().expect("real directory");
+    let link = tempfile::tempdir().expect("link holder");
+    let alias = link.path().join("alias");
+    std::os::unix::fs::symlink(real.path(), &alias).expect("symlink");
+    let source_directory = alias.join("missing-source");
+    let request = apply_request_in("worker", source_directory.clone());
+    let applied = fixture.control_plane.apply(request).await.expect("apply");
+
+    let resolved = fixture
+        .control_plane
+        .resolve_directory(&source_directory.join("nested"))
+        .await
+        .expect("a subdirectory of the literal source path resolves");
+
+    assert_eq!(resolved.metadata.name, applied.metadata.name);
+}
+
+#[tokio::test(flavor = "local")]
+async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
+    let fixture = fixture();
+    let root = tempfile::tempdir().expect("temporary checkout");
+    let source_directory = root.path().join("examples/worktree");
+    std::fs::create_dir_all(&source_directory).expect("source directory");
+    let mut request = apply_request_in("worker", source_directory.clone());
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        optional: false,
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: root.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let initial = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("an absent default .env does not make the mount unsafe");
+
+    let outside = tempfile::tempdir().expect("secret directory outside the checkout");
+    request.env_file = Some(outside.path().join("worker.env"));
+    let applied = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("a secret file outside every mount is accepted");
+    assert_eq!(
+        applied.status.provenance.expect("provenance").env_file,
+        request.env_file
+    );
+    assert_eq!(
+        stored(&fixture, "worker").await.env_file_path(),
+        outside.path().join("worker.env")
+    );
+    assert!(applied.metadata.generation > initial.metadata.generation);
+
+    std::fs::write(root.path().join(".env"), "GITHUB_TOKEN=checkout-token\n").expect("environment file");
+    let error = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect_err("a .env anywhere in the mount is rejected despite the external override");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("contains .env")),
+        "{error}"
+    );
+    std::fs::remove_file(root.path().join(".env")).expect("remove environment file");
+
+    let mut unchanged = request.clone();
+    unchanged.env_file = None;
+    let reapplied = fixture
+        .control_plane
+        .apply(unchanged)
+        .await
+        .expect("omitting envFile keeps the recorded path");
+    assert_eq!(reapplied.metadata.generation, applied.metadata.generation);
+
+    let mut inside = request;
+    inside.env_file = Some(root.path().join("secrets.env"));
+    let error = fixture
+        .control_plane
+        .apply(inside)
+        .await
+        .expect_err("an explicit secret file inside the mount is still rejected");
+    assert!(matches!(error, Error::Invalid(_)));
+}
+
+#[tokio::test(flavor = "local")]
+async fn git_ignored_nested_dot_env_is_rejected_case_insensitively_without_declared_secrets() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    let relative_env = PathBuf::from("ignored").join("nested").join(".EnV");
+    let ignored = checkout
+        .path()
+        .join(relative_env.parent().expect("environment file parent"));
+    std::fs::create_dir_all(&ignored).expect("ignored directory");
+    std::fs::write(checkout.path().join(".gitignore"), "ignored/\n").expect("ignore file");
+    std::fs::write(checkout.path().join(&relative_env), "PRIVATE=value\n").expect("nested environment file");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let error = fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("ignored directories are still inspected case-insensitively for .env files");
+    let expected_path = relative_env.display().to_string();
+    assert!(
+        matches!(&error, Error::Invalid(message)
+            if message.contains("spec.sandbox.mounts[0]") && message.contains(&expected_path)),
+        "{error}"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_directory_named_dot_env_is_allowed() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    std::fs::create_dir(checkout.path().join(".ENV")).expect("directory named .ENV");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect("a directory named .env is not an environment file");
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn a_dot_env_symlink_is_rejected() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    std::fs::write(checkout.path().join("credentials"), "PRIVATE=value\n").expect("target file");
+    std::os::unix::fs::symlink("credentials", checkout.path().join(".ENV")).expect("environment symlink");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("a case-variant .env symlink still exposes a file");
+}
+
+#[tokio::test(flavor = "local")]
+async fn existing_default_env_outside_bind_mount_is_allowed() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("manifest directory");
+    let checkout = tempfile::tempdir().expect("mounted checkout");
+    let external = tempfile::tempdir().expect("external environment directory");
+    std::fs::write(source.path().join(".env"), "GITHUB_TOKEN=unmounted-token\n")
+        .expect("unmounted default environment file");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.env_file = Some(external.path().join("worker.env"));
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        optional: false,
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect("an unmounted default .env is not exposed");
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    let link_holder = tempfile::tempdir().expect("link holder");
+    let alias = link_holder.path().join("alias");
+    std::os::unix::fs::symlink(checkout.path(), &alias).expect("symlink");
+    let source_directory = checkout.path().join("examples/worktree");
+    std::fs::create_dir_all(&source_directory).expect("source directory");
+    let mut request = apply_request_in("worker", source_directory);
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        optional: false,
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+    // Neither the file nor its two parent directories exist yet, and the path enters the
+    // mounted checkout through a symlink.
+    request.env_file = Some(alias.join("secrets/not-yet/worker.env"));
+
+    let error = fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("the secret file would land inside the mounted checkout");
+    assert!(matches!(error, Error::Invalid(_)), "{error}");
+}
+
+#[tokio::test(flavor = "local")]
+async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
+    let fixture = fixture();
+    let root = tempfile::tempdir().expect("temporary checkout");
+    let with_secrets = root.path().join("agents/full");
+    std::fs::create_dir_all(&with_secrets).expect("secret Agent source directory");
+    let mut secret_agent = apply_request_in("full", with_secrets);
+    let selected_secret_file = root.path().join("credentials.txt");
+    std::fs::write(&selected_secret_file, "GITHUB_TOKEN=private\n").expect("selected environment file");
+    secret_agent.env_file = Some(selected_secret_file);
+    secret_agent.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        optional: false,
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    fixture.control_plane.apply(secret_agent).await.expect("secret Agent");
+
+    let mounted = root.path().join("agents/worktree");
+    std::fs::create_dir_all(&mounted).expect("mounted Agent source directory");
+    let mut worktree = apply_request_in("worktree", mounted);
+    worktree.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: root.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let error = fixture
+        .control_plane
+        .apply(worktree)
+        .await
+        .expect_err("the mount would expose the other Agent's selected environment file");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("Agent \"full\"")),
+        "{error}"
+    );
+}
+
 #[tokio::test(flavor = "local")]
 async fn unchanged_apply_still_requests_immediate_reconciliation() {
     let store = Rc::new(memory::InMemoryAgentStore::new());
@@ -664,6 +1237,105 @@ async fn unchanged_apply_still_requests_immediate_reconciliation() {
     control_plane.apply(request).await.expect("unchanged apply");
 
     assert_eq!(notifications.0.get(), 2);
+}
+
+#[tokio::test(flavor = "local")]
+async fn selected_environment_converges_from_the_env_file_without_exporting_other_values() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("Agent source");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.environment = vec![
+        EnvironmentSpec {
+            name: "GIT_USER_NAME".into(),
+            source: Some("HOST_GIT_NAME".into()),
+        },
+        EnvironmentSpec {
+            name: "GIT_USER_EMAIL".into(),
+            source: None,
+        },
+    ];
+    std::fs::write(
+        source.path().join(".env"),
+        "HOST_GIT_NAME=First User\nGIT_USER_EMAIL=first@example.com\nUNSELECTED=private\n",
+    )
+    .expect("first environment file");
+    fixture.control_plane.apply(request.clone()).await.expect("apply");
+    reconcile(&fixture, "worker").await;
+    let record = stored(&fixture, "worker").await;
+    let first = fixture
+        .backend
+        .find(&sandbox_name(&record))
+        .await
+        .expect("Sandbox after first apply");
+    assert_eq!(
+        first.environment.get("GIT_USER_NAME").map(String::as_str),
+        Some("First User")
+    );
+    assert_eq!(
+        first.environment.get("GIT_USER_EMAIL").map(String::as_str),
+        Some("first@example.com")
+    );
+    assert!(!first.environment.contains_key("UNSELECTED"));
+
+    std::fs::write(
+        source.path().join(".env"),
+        "HOST_GIT_NAME=Second User\nGIT_USER_EMAIL=second@example.com\nUNSELECTED=still-private\n",
+    )
+    .expect("updated environment file");
+    let reapplied = fixture.control_plane.apply(request).await.expect("unchanged reapply");
+    assert_eq!(reapplied.metadata.generation, 1);
+    reconcile(&fixture, "worker").await;
+    let second = fixture
+        .backend
+        .find(&sandbox_name(&record))
+        .await
+        .expect("Sandbox after environment update");
+    assert_eq!(
+        second.environment.get("GIT_USER_NAME").map(String::as_str),
+        Some("Second User")
+    );
+    assert_eq!(
+        second.environment.get("GIT_USER_EMAIL").map(String::as_str),
+        Some("second@example.com")
+    );
+    assert!(!second.environment.contains_key("UNSELECTED"));
+}
+
+#[tokio::test(flavor = "local")]
+async fn selected_environment_requires_present_non_empty_values() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("Agent source");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.environment = vec![
+        EnvironmentSpec {
+            name: "GIT_USER_NAME".into(),
+            source: None,
+        },
+        EnvironmentSpec {
+            name: "GIT_USER_EMAIL".into(),
+            source: None,
+        },
+    ];
+    std::fs::write(source.path().join(".env"), "GIT_USER_NAME=\n").expect("incomplete environment file");
+    fixture.control_plane.apply(request).await.expect("apply");
+    let id = stored(&fixture, "worker").await.id;
+
+    let error = fixture
+        .reconciler
+        .reconcile(id)
+        .await
+        .expect_err("empty selected value must fail");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("GIT_USER_NAME") && message.contains("empty")));
+
+    std::fs::write(source.path().join(".env"), "GIT_USER_NAME=Ready\n").expect("missing environment value");
+    let error = fixture
+        .reconciler
+        .reconcile(id)
+        .await
+        .expect_err("missing selected value must fail");
+    assert!(
+        matches!(error, Error::Invalid(message) if message.contains("GIT_USER_EMAIL") && message.contains("does not define"))
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -779,19 +1451,376 @@ async fn execution_target_waits_for_agent_convergence() {
     let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
     let reconciler = Rc::new(reconciler(store.clone(), provider));
     let (controller, wakeup) = Controller::new(store.clone(), reconciler, Duration::from_mins(1), Rc::new(|_, _| {}));
-    let execution = ExecutionService::new(store, wakeup);
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, Observers::new()));
     let task = tokio::task::spawn_local(controller.run());
 
-    let target = tokio::time::timeout(Duration::from_secs(1), execution.ensure("worker"))
-        .await
-        .expect("execution target should not wait for the periodic scan")
-        .expect("ready execution target");
+    let target = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::FirstPass, None),
+    )
+    .await
+    .expect("execution target should not wait for the periodic scan")
+    .expect("ready execution target");
 
     assert_eq!(target.operating_system, "linux");
     assert_eq!(target.sandbox.provider().as_str(), "memory");
     assert!(target.sandbox.id().is_some());
     assert_eq!(backend.count(), 1);
     task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn observed_execution_reports_invalid_failure_then_returns_it() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [PlannedFailure::Invalid(
+            ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        )],
+    ));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let error = execution
+        .ensure("worker", WaitPolicy::UntilReady, Some(reporter))
+        .await
+        .expect_err("invalid preparation must fail fast");
+
+    assert!(matches!(error, Error::Invalid(message) if message.contains("GITHUB_TOKEN")));
+    assert!(events.borrow().iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition { message, failure: Some(FailureKind::Invalid), .. }
+            if message.contains(".env does not define required variable")
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_provider_rejection_is_permanent_and_fails_the_wait_immediately() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(backend, [PlannedFailure::Rejected]));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let error = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::UntilReady, Some(reporter)),
+    )
+    .await
+    .expect("a permanent rejection must not be waited through")
+    .expect_err("rejected request fails");
+
+    assert!(matches!(error, Error::Invalid(message) if message.contains("fractional CPUs")));
+    assert!(events.borrow().iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition {
+            failure: Some(FailureKind::Invalid),
+            ..
+        }
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn lagged_telemetry_observer_still_sees_the_terminal_condition() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [PlannedFailure::InvalidAfterFlood(
+            ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        )],
+    ));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let error = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::UntilReady, Some(reporter)),
+    )
+    .await
+    .expect("a dropped telemetry frame must not stall the request")
+    .expect_err("invalid preparation must fail");
+
+    assert!(matches!(error, Error::Invalid(message) if message.contains("GITHUB_TOKEN")));
+    let events = events.borrow();
+    let phases = events
+        .iter()
+        .filter(|event| matches!(event, agent::progress::Event::PhaseStarted { .. }))
+        .count();
+    assert!(
+        phases < TELEMETRY_FLOOD,
+        "telemetry should have lagged: {phases} phase events"
+    );
+    assert!(events.iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition { message, failure: Some(FailureKind::Invalid), .. }
+            if message.contains(".env does not define required variable")
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn observed_execution_waits_for_background_retry_after_transient_failure() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+    ));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    let target = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::UntilReady, Some(reporter)),
+    )
+    .await
+    .expect("background retry should complete")
+    .expect("eventual execution target");
+
+    assert!(target.sandbox.id().is_some());
+    assert_eq!(
+        events
+            .borrow()
+            .iter()
+            .filter(|event| matches!(
+                event,
+                agent::progress::Event::Condition { message, failure: Some(FailureKind::Transient), .. }
+                    if message.contains("temporary runtime failure")
+            ))
+            .count(),
+        2,
+        "Ready and SandboxReady each change once; retries with the same message emit nothing"
+    );
+    assert!(events.borrow().iter().any(|event| matches!(
+        event,
+        agent::progress::Event::Condition {
+            condition,
+            status: ConditionStatus::True,
+            ..
+        } if condition == "Ready"
+    )));
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_standing_failure_is_reported_when_observation_starts() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+    ));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store.clone(), Convergence::new(wakeup.clone(), observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    // The Agent is already failing before anyone observes it.
+    let id = store.get_by_name("worker").await.expect("record").id;
+    wakeup.reconcile(id).await.expect_err("first pass fails");
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+
+    tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::UntilReady, Some(reporter)),
+    )
+    .await
+    .expect("background retry should complete")
+    .expect("eventual execution target");
+
+    let events = events.borrow();
+    assert!(
+        matches!(
+            events.first(),
+            Some(agent::progress::Event::Condition { failure: Some(FailureKind::Transient), message, .. })
+                if message.contains("temporary runtime failure")
+        ),
+        "the standing failure must be the first thing reported: {events:?}"
+    );
+    assert_eq!(
+        events
+            .iter()
+            .filter(|event| matches!(event, agent::progress::Event::PhaseFailed { .. }))
+            .count(),
+        1,
+        "the observed failed pass closes its open phase"
+    );
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn wait_policy_and_progress_are_independent() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+    ));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = ExecutionService::new(store, Convergence::new(wakeup, observers));
+    let task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+
+    // Progress without following: the single pass streams its events and its failure is returned.
+    let events = Rc::new(RefCell::new(Vec::new()));
+    let observed = events.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| observed.borrow_mut().push(event));
+    let error = execution
+        .ensure("worker", WaitPolicy::FirstPass, Some(reporter))
+        .await
+        .expect_err("first pass fails");
+    assert!(matches!(error, Error::Daemon(message) if message.contains("temporary runtime failure")));
+    assert!(
+        events
+            .borrow()
+            .iter()
+            .any(|event| matches!(event, agent::progress::Event::PhaseFailed { .. }))
+    );
+
+    // Following without progress: the request waits through the remaining failure silently.
+    let target = tokio::time::timeout(
+        Duration::from_secs(1),
+        execution.ensure("worker", WaitPolicy::UntilReady, None),
+    )
+    .await
+    .expect("background retry should complete")
+    .expect("eventual execution target");
+    assert!(target.sandbox.id().is_some());
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn dropping_observed_execution_does_not_stop_background_reconciliation() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend.clone(),
+        [PlannedFailure::Transient("temporary runtime failure".into())],
+    ));
+    let observers = Observers::new();
+    let reconciler = Rc::new(Reconciler::new(
+        store.clone(),
+        sandbox_service(provider),
+        observers.clone(),
+    ));
+    let (controller, wakeup) =
+        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let execution = Rc::new(ExecutionService::new(store, Convergence::new(wakeup, observers)));
+    let controller_task = tokio::task::spawn_local(controller.run());
+    tokio::task::yield_now().await;
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let failed = Rc::new(Notify::new());
+    let observed = failed.clone();
+    let reporter: agent::progress::Reporter = Rc::new(move |event| {
+        if matches!(event, agent::progress::Event::Condition { failure: Some(_), .. }) {
+            observed.notify_one();
+        }
+    });
+    let waiting = execution.clone();
+    let observation_task =
+        tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady, Some(reporter)).await });
+    tokio::time::timeout(Duration::from_secs(1), failed.notified())
+        .await
+        .expect("transient failure event");
+    observation_task.abort();
+
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while backend.count() == 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("background controller should keep reconciling");
+    controller_task.abort();
 }
 
 #[tokio::test(flavor = "local")]
@@ -864,4 +1893,140 @@ async fn stale_status_write_is_rejected() {
         .await
         .expect_err("stale status should fail");
     assert!(matches!(error, Error::Conflict));
+}
+
+fn is_ssh_server_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/test" && args == &["-x", "/usr/sbin/sshd"]
+    )
+}
+
+fn is_ssh_policy_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo"
+                && args == &[
+                    "-n",
+                    "/usr/sbin/sshd",
+                    "-T",
+                    "-f",
+                    "/var/lib/agent/ssh/sshd_config",
+                    "-C",
+                    "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+                ]
+    )
+}
+
+fn exited(code: i32) -> Vec<sandbox::execution::ExecutionEvent> {
+    vec![
+        sandbox::execution::ExecutionEvent::Started { process_id: None },
+        sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code }),
+    ]
+}
+
+#[tokio::test(flavor = "local")]
+async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
+    let temporary = TempDirectory::new("ssh-access");
+    let home = agent::local::home::ControlPlaneHome::resolve(Some(&temporary.path().join("home"))).expect("home");
+    home.prepare().expect("prepare home");
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let keys = Rc::new(agent::ssh::memory::InMemoryHostKeyStore::new());
+    let ssh = Rc::new(
+        agent::ssh::Access::new(
+            &home,
+            PathBuf::from("/usr/local/bin/agentctl"),
+            keys.clone(),
+            store.clone(),
+        )
+        .with_user_home(None),
+    );
+    let reconciler = Reconciler::new(store.clone(), sandbox_service(provider), Observers::new()).with_ssh_access(ssh);
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let mut request = apply_request("worker");
+    request.agent.spec.access = vec![agent::AccessSpec::Ssh {}];
+    control_plane.apply(request).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("stored").id;
+
+    // The image lacks a server: the Agent is not Ready and the failure is permanent.
+    backend.queue_execution_events_matching(is_ssh_server_check, exited(1));
+    let error = reconciler
+        .reconcile(id)
+        .await
+        .expect_err("missing server fails the pass");
+    assert_eq!(agent::ReconcileFailure::classify(&error).kind, FailureKind::Invalid);
+    let status = store.get(id).await.expect("record").agent.status;
+    let ready = status.ready_condition().expect("Ready condition");
+    assert_eq!(ready.status, ConditionStatus::False);
+    assert_eq!(ready.reason, "SshAccessFailed");
+    assert!(ready.message.contains("cannot provide SSH access"));
+    let ssh_ready = status
+        .conditions
+        .iter()
+        .find(|condition| condition.kind == agent::Condition::SSH_READY)
+        .expect("SshReady condition");
+    assert_eq!(ssh_ready.status, ConditionStatus::False);
+    assert!(
+        status
+            .sandbox
+            .as_ref()
+            .and_then(agent::sandbox::Assignment::id)
+            .is_some()
+    );
+    assert!(!keys.contains(id));
+
+    // A server is present: the Agent is Ready and SshReady is reported alongside SandboxReady.
+    backend.queue_execution_events_matching(is_ssh_server_check, exited(0));
+    backend.queue_execution_events_matching(
+        is_ssh_policy_check,
+        vec![
+            sandbox::execution::ExecutionEvent::Started { process_id: None },
+            sandbox::execution::ExecutionEvent::Stdout(b"permituserenvironment yes\nusepam no\n".as_slice().into()),
+            sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code: 0 }),
+        ],
+    );
+    reconciler.reconcile(id).await.expect("reconcile with a server");
+    let status = store.get(id).await.expect("record").agent.status;
+    assert!(status.is_ready());
+    assert_eq!(
+        status
+            .conditions
+            .iter()
+            .map(|condition| (condition.kind.as_str(), condition.status))
+            .collect::<Vec<_>>(),
+        [
+            (agent::Condition::SANDBOX_READY, ConditionStatus::True),
+            (agent::Condition::SSH_READY, ConditionStatus::True),
+            (agent::Condition::READY, ConditionStatus::True),
+        ]
+    );
+    assert!(keys.contains(id));
+    let ssh_home = agent::ssh::SshHome::new(&home);
+    assert!(ssh_home.identity_path(id).is_file());
+    let known_hosts = std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts");
+    assert!(known_hosts.starts_with(&format!("agent-{id} ssh-ed25519 ")));
+    assert!(known_hosts.contains("\nagentctl-worker ssh-ed25519 "));
+    assert!(
+        std::fs::read_to_string(ssh_home.config_path())
+            .expect("config")
+            .contains("Host agentctl-worker\n")
+    );
+
+    control_plane.delete("worker").await.expect("delete request");
+    reconciler.reconcile(id).await.expect("delete");
+    assert!(!keys.contains(id));
+    assert!(!ssh_home.agent_directory(id).exists());
+    assert_eq!(
+        std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts"),
+        ""
+    );
+    assert!(
+        !std::fs::read_to_string(ssh_home.config_path())
+            .expect("config")
+            .contains("Host ")
+    );
 }

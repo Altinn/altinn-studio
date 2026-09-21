@@ -11,7 +11,8 @@ use uuid::Uuid;
 pub use crate::feature::SandboxBackendCapabilities;
 
 use crate::{
-    Error, PendingOperation, Platform, RootFilesystem, SandboxName, SandboxPath, execution, file_transfer, image,
+    Error, Hostname, PendingOperation, Platform, RootFilesystem, SandboxName, SandboxPath, execution, file_transfer,
+    image,
     init::InitSystem,
     mount::Mount,
     network,
@@ -114,6 +115,8 @@ pub struct CreateSandboxRequest {
     pub image: image::ResolvedImage,
     /// The stable caller-provided name.
     pub name: SandboxName,
+    /// Hostname reported inside the Sandbox, resolved by the lifecycle owner.
+    pub hostname: Hostname,
     /// Desired mutable compute and writable root filesystem resources.
     pub resources: SandboxResources,
     /// Process responsible for initializing the Sandbox after backend setup.
@@ -135,6 +138,8 @@ pub struct Sandbox {
     pub id: SandboxId,
     /// The caller-provided name.
     pub name: SandboxName,
+    /// Hostname the Sandbox reports to its guest.
+    pub hostname: Hostname,
     /// Current desired compute and writable root filesystem resources.
     pub resources: SandboxResources,
     /// Process responsible for initializing the Sandbox after backend setup.
@@ -241,6 +246,10 @@ pub trait SandboxBackend {
     ) -> LocalFuture<'a, Result<file_transfer::ByteReader, Error>>;
 
     /// Creates or replaces one regular file in a running Sandbox from a byte stream.
+    ///
+    /// The replacement is atomic: a concurrent reader in the Sandbox observes either the previous
+    /// file or the complete new one, never a truncated or partially written file. A replaced
+    /// regular file keeps its mode and ownership.
     fn write_file<'a>(
         &'a self,
         sandbox_id: &'a SandboxId,

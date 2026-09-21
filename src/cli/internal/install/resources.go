@@ -16,8 +16,12 @@ const (
 	resourcesArchiveAssetBaseName = "studioctl-resources"
 	resourcesServerDir            = config.StudioctlServerResourcesDirName
 	resourcesLocaltestDir         = "localtest"
-	resourcesTestdataDir          = "testdata"
 	resourcesInfraDir             = "infra"
+	resourcesAgentSkillsDir       = "agent/skills"
+
+	// obsoleteTestdataDirName is the host testdata directory installed by earlier versions,
+	// before localtest started using the copy baked into its image.
+	obsoleteTestdataDirName = "testdata"
 )
 
 const (
@@ -69,12 +73,22 @@ func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (er
 	}
 
 	serverDir := filepath.Join(stagingDir, resourcesServerDir)
-	if _, err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
+	if err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
 		return fmt.Errorf("install %s: %w", resourcesServerDir, err)
 	}
 
 	if err := copyDir(filepath.Join(stagingDir, resourcesLocaltestDir), s.cfg.DataDir); err != nil {
 		return fmt.Errorf("install resources: %w", err)
+	}
+	if err := installDir(
+		filepath.Join(stagingDir, filepath.FromSlash(resourcesAgentSkillsDir)),
+		s.cfg.AgentSkillsDir(),
+		nil,
+	); err != nil {
+		return fmt.Errorf("install Agent Skills: %w", err)
+	}
+	if err := removeObsoleteTestdataDir(s.cfg.DataDir); err != nil {
+		return err
 	}
 	if s.installHooks != nil {
 		if err := s.installHooks(ctx); err != nil {
@@ -145,12 +159,30 @@ func resourcesArchiveExtractOptions() extractTarGzOptions {
 	}
 }
 
-func stageLocaltestResources(srcLocaltestDir, dstLocaltestDir string) error {
-	testdataSrc := filepath.Join(srcLocaltestDir, resourcesTestdataDir)
-	testdataDst := filepath.Join(dstLocaltestDir, resourcesTestdataDir)
-	if err := copyDir(testdataSrc, testdataDst); err != nil {
-		return fmt.Errorf("stage localtest testdata: %w", err)
+// ObsoleteTestdataDir returns the legacy host testdata directory and whether it is still present.
+// Callers use it to tell the user their local copy is about to be, or has been, removed.
+func (s *Service) ObsoleteTestdataDir() (string, bool) {
+	dir := filepath.Join(s.cfg.DataDir, obsoleteTestdataDirName)
+	info, err := os.Stat(dir)
+	if err != nil || !info.IsDir() {
+		return dir, false
 	}
+	return dir, true
+}
+
+// removeObsoleteTestdataDir removes the host testdata copy left behind by earlier installs.
+// Localtest now reads testdata from the copy baked into its image, so the host copy is unused.
+func removeObsoleteTestdataDir(dataDir string) error {
+	testdataDir := filepath.Join(dataDir, obsoleteTestdataDirName)
+	if err := os.RemoveAll(testdataDir); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("remove obsolete localtest testdata dir: %w", err)
+	}
+	return nil
+}
+
+// stageLocaltestResources stages the localtest resources that are needed on the host.
+// Testdata is not staged: it is baked into the localtest image at /testdata.
+func stageLocaltestResources(srcLocaltestDir, dstLocaltestDir string) error {
 	infraSrc := filepath.Join(srcLocaltestDir, resourcesInfraDir)
 	infraDst := filepath.Join(dstLocaltestDir, resourcesInfraDir)
 	if err := copyDir(infraSrc, infraDst); err != nil {

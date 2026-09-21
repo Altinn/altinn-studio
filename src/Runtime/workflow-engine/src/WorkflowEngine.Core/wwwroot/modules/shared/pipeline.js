@@ -103,6 +103,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
         html += `<span class="step-backoff" data-backoff="${escAttr(backoff)}"></span>`;
         html += `<button class="nudge-btn" onclick="nudgeWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${action}">${label}</button>`;
     }
+    if (isBackedOff) {
+        const failTitle =
+            step.status === 'Waiting'
+                ? 'Fail now (stop waiting, mark the step Failed)'
+                : 'Fail now (stop retrying, mark the step Failed)';
+        html += `<button class="fail-btn" onclick="failWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="${failTitle}">fail</button>`;
+    }
     if (step.status === 'Failed') {
         html += `<button class="retry-btn" onclick="retryWorkflow(event,'${escJsArg(wf.databaseId)}','${escJsArg(wf.namespace)}')" title="Retry this workflow">&#8635; Retry</button>`;
     }

@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 
+import { CompCategory } from '@app/layout-contract';
+
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
@@ -7,7 +9,6 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { getComponentDef } from 'src/layout';
-import { CompCategory } from 'src/layout/common';
 import { GroupComponent } from 'src/layout/Group/GroupComponent';
 import classes from 'src/layout/Group/SummaryGroupComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';

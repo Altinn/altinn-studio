@@ -1,4 +1,5 @@
-import type { IDataModelReference } from 'src/layout/common.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import type { CompExternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 const repeatingComponents = ['RepeatingGroup', 'Likert'] as const satisfies CompTypes[];

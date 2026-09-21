@@ -1,5 +1,0 @@
-{
-  "name": "Should work with integers (false)",
-  "expression": ["greaterThanEq", 122, 123],
-  "expects": false
-}

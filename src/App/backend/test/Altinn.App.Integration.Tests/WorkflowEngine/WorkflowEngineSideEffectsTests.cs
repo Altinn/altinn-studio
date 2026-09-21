@@ -15,8 +15,8 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// registrations) each run in their own separate <c>IsHead=false</c> single-step workflow that
 /// never gates the ProcessNext response or the next transition, while critical post-commit
 /// commands (ExecuteServiceTask) stay in the Main workflow and are waited on. The scenario's
-/// events client delays every registration by 10 seconds, so any response that arrives promptly
-/// demonstrably did not wait for the events.
+/// events client holds registrations until the test releases them, proving that the process
+/// completes while its side effects are still pending.
 /// </summary>
 [Trait("Category", "Integration")]
 [Collection(WorkflowEngineTestCollection.Name)]
@@ -39,101 +39,113 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
         );
         var fixture = fixtureScope.Fixture;
 
-        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        try
+        {
+            string token = await fixture.Auth.GetUserToken(userId: 1337);
 
-        // Instantiation triggers the initial task-start transition. With events enabled, its
-        // MovedTo/InstanceCreated registrations are 10s-delayed side effects - the response can
-        // only arrive promptly because they run in the non-gating side-effects workflows.
-        using var instantiationResponse = await fixture.Instances.PostSimplified(
-            token,
-            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
-        );
-        using var readInstantiation = await instantiationResponse.Read<Instance>();
-        Assert.Equal(HttpStatusCode.Created, readInstantiation.Response.StatusCode);
-        Instance instance = readInstantiation.Data.Model!;
-        Assert.Equal("Task_1", instance.Process.CurrentTask!.ElementId);
+            // Instantiation triggers the initial task-start transition. With events enabled, its
+            // MovedTo/InstanceCreated registrations remain held until the test releases them,
+            // while the response must arrive without waiting for those side effects.
+            using var instantiationResponse = await fixture.Instances.PostSimplified(
+                token,
+                new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            );
+            using var readInstantiation = await instantiationResponse.Read<Instance>();
+            Assert.Equal(HttpStatusCode.Created, readInstantiation.Response.StatusCode);
+            Instance instance = readInstantiation.Data.Model!;
+            Assert.Equal("Task_1", instance.Process.CurrentTask!.ElementId);
 
-        using var engineClient = new HttpClient { BaseAddress = _engineBaseAddress };
-        string ns = Uri.EscapeDataString(instance.AppId);
-        string collectionKey = instance.Id.Split('/')[1];
+            using var engineClient = new HttpClient { BaseAddress = _engineBaseAddress };
+            string ns = Uri.EscapeDataString(instance.AppId);
+            string collectionKey = instance.Id.Split('/')[1];
 
-        List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
-        EngineWorkflow instantiationMain = Assert.Single(workflows, w => !IsSideEffectsWorkflow(w));
-        // One single-step sibling workflow per side effect: MovedTo + InstanceCreated.
-        List<EngineWorkflow> instantiationSideEffects = workflows.Where(IsSideEffectsWorkflow).ToList();
-        Assert.Equal(2, instantiationSideEffects.Count);
+            List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
+            EngineWorkflow instantiationMain = Assert.Single(workflows, w => !IsSideEffectsWorkflow(w));
+            // One single-step sibling workflow per side effect: MovedTo + InstanceCreated.
+            List<EngineWorkflow> instantiationSideEffects = workflows.Where(IsSideEffectsWorkflow).ToList();
+            Assert.Equal(2, instantiationSideEffects.Count);
 
-        // The transition itself settled, but its delayed side effects are still running. This is
-        // implicitly timing-based, with a wide margin: each sibling needs a 10s-delayed event
-        // registration, while the gap between the instantiation response and this query is a
-        // couple of HTTP round-trips.
-        Assert.Equal("Completed", instantiationMain.OverallStatus);
-        Assert.All(instantiationSideEffects, w => Assert.NotEqual("Completed", w.OverallStatus));
+            // The transition completed while its event registrations remain held by the test.
+            Assert.Equal("Completed", instantiationMain.OverallStatus);
+            Assert.All(instantiationSideEffects, w => Assert.NotEqual("Completed", w.OverallStatus));
 
-        // The side-effects workflows are invisible to the collection heads frontier.
-        List<Guid> headIds = await GetCollectionHeadIds(engineClient, ns, collectionKey);
-        Assert.Contains(instantiationMain.DatabaseId, headIds);
-        Assert.All(instantiationSideEffects, w => Assert.DoesNotContain(w.DatabaseId, headIds));
+            // The side-effects workflows are invisible to the collection heads frontier.
+            List<Guid> headIds = await GetCollectionHeadIds(engineClient, ns, collectionKey);
+            Assert.Contains(instantiationMain.DatabaseId, headIds);
+            Assert.All(instantiationSideEffects, w => Assert.DoesNotContain(w.DatabaseId, headIds));
 
-        // The next transition is not blocked by the still-running side effects.
-        await PatchValidFormData(fixture, token, readInstantiation);
-        using var firstProcessNextResponse = await fixture.Instances.ProcessNext(token, readInstantiation);
-        using var firstProcessState = await firstProcessNextResponse.Read<AppProcessState>();
-        Assert.Equal(HttpStatusCode.OK, firstProcessState.Response.StatusCode);
-        Assert.Equal("Task_Service", firstProcessState.Data.Model!.CurrentTask!.ElementId);
+            // The next transition is not blocked by the still-running side effects.
+            await PatchValidFormData(fixture, token, readInstantiation);
+            using var firstProcessNextResponse = await fixture.Instances.ProcessNext(token, readInstantiation);
+            using var firstProcessState = await firstProcessNextResponse.Read<AppProcessState>();
+            Assert.Equal(HttpStatusCode.OK, firstProcessState.Response.StatusCode);
+            Assert.Null(firstProcessState.Data.Model!.CurrentTask);
+            Assert.Equal("EndEvent_1", firstProcessState.Data.Model.EndEvent);
 
-        // The critical ExecuteServiceTask ran (and was waited on) in the Main workflow; the
-        // MovedToAltinnEvent moved to its own side-effects sibling workflow.
-        workflows = await ListWorkflows(engineClient, ns, collectionKey);
-        EngineWorkflow serviceTaskMain = Assert.Single(
-            workflows,
-            w => !IsSideEffectsWorkflow(w) && w.OperationId.EndsWith("-> Task_Service", StringComparison.Ordinal)
-        );
-        Assert.Equal("Completed", serviceTaskMain.OverallStatus);
-        // A simple IServiceTask's pipeline is its conclusion and nothing else, so its one step names item 0.
-        EngineStep executeServiceTaskStep = Assert.Single(
-            serviceTaskMain.Steps,
-            s => s.OperationId == "ExecuteServiceTask: 0"
-        );
-        Assert.Equal("Completed", executeServiceTaskStep.Status);
-        Assert.DoesNotContain(serviceTaskMain.Steps, s => s.OperationId == "MovedToAltinnEvent");
+            // The critical ExecuteServiceTask ran (and was waited on) in the Main workflow; the
+            // MovedToAltinnEvent moved to its own side-effects sibling workflow.
+            workflows = await ListWorkflows(engineClient, ns, collectionKey);
+            EngineWorkflow serviceTaskMain = Assert.Single(
+                workflows,
+                w => !IsSideEffectsWorkflow(w) && w.OperationId.EndsWith("-> Task_Service", StringComparison.Ordinal)
+            );
+            Assert.Equal("Completed", serviceTaskMain.OverallStatus);
+            EngineWorkflow acquireWorkflow = Assert.Single(workflows, w => w.OperationId == "Process next: acquire");
+            Assert.Equal("Completed", acquireWorkflow.OverallStatus);
+            Assert.Equal("AcquireProcessingStatus", Assert.Single(acquireWorkflow.Steps).OperationId);
+            Assert.DoesNotContain(serviceTaskMain.Steps, s => s.OperationId == "AcquireProcessingStatus");
+            // A simple IServiceTask's pipeline is its conclusion and nothing else, so its one step names item 0.
+            EngineStep executeServiceTaskStep = Assert.Single(
+                serviceTaskMain.Steps,
+                s => s.OperationId == "ExecuteServiceTask: 0"
+            );
+            Assert.Equal("Completed", executeServiceTaskStep.Status);
+            Assert.DoesNotContain(serviceTaskMain.Steps, s => s.OperationId == "MovedToAltinnEvent");
 
-        EngineWorkflow serviceTaskSideEffects = Assert.Single(
-            workflows,
-            w => IsSideEffectsWorkflow(w) && w.OperationId.Contains("-> Task_Service", StringComparison.Ordinal)
-        );
-        EngineStep movedToStep = Assert.Single(serviceTaskSideEffects.Steps);
-        Assert.Equal("MovedToAltinnEvent", movedToStep.OperationId);
-        // The sibling's OperationId names its single effect, so listings stay legible.
-        Assert.EndsWith("· MovedToAltinnEvent", serviceTaskSideEffects.OperationId, StringComparison.Ordinal);
+            EngineWorkflow serviceTaskSideEffects = Assert.Single(
+                workflows,
+                w => IsSideEffectsWorkflow(w) && w.OperationId.Contains("-> Task_Service", StringComparison.Ordinal)
+            );
+            EngineStep movedToStep = Assert.Single(serviceTaskSideEffects.Steps);
+            Assert.Equal("MovedToAltinnEvent", movedToStep.OperationId);
+            // The sibling's OperationId names its single effect, so listings stay legible.
+            Assert.EndsWith("· MovedToAltinnEvent", serviceTaskSideEffects.OperationId, StringComparison.Ordinal);
 
-        // Drive the process to the end while earlier side effects may still be pending. This is
-        // the core guarantee: the pipeline never waits on the side-effect chain.
-        using var instanceAtServiceTaskResponse = await fixture.Instances.Get(token, readInstantiation);
-        using var instanceAtServiceTask = await instanceAtServiceTaskResponse.Read<Instance>();
-        using var secondProcessNextResponse = await fixture.Instances.ProcessNext(token, instanceAtServiceTask);
-        using var secondProcessState = await secondProcessNextResponse.Read<AppProcessState>();
-        Assert.Equal(HttpStatusCode.OK, secondProcessState.Response.StatusCode);
-        Assert.Null(secondProcessState.Data.Model!.CurrentTask);
-        Assert.Equal("EndEvent_1", secondProcessState.Data.Model.EndEvent);
+            // The service task and the transition to the end completed while the event
+            // registrations are still running. Process transitions must not wait on those siblings.
+            Assert.NotEqual("Completed", serviceTaskSideEffects.OverallStatus);
+            EngineWorkflow endMain = Assert.Single(
+                workflows,
+                w => !IsSideEffectsWorkflow(w) && w.OperationId.EndsWith("-> EndEvent_1", StringComparison.Ordinal)
+            );
+            Assert.Equal("Completed", endMain.OverallStatus);
 
-        // Fire-and-forget does not mean fire-and-lose: every side-effects workflow still runs to
-        // completion. One sibling per effect: MovedTo.Task_1 + InstanceCreated (instantiation),
-        // MovedTo.Task_Service (task transition), Completed (process end).
-        List<EngineWorkflow> sideEffectWorkflows = await WaitForSideEffectsWorkflowsToComplete(
-            engineClient,
-            ns,
-            collectionKey,
-            expectedCount: 4
-        );
-        Assert.All(sideEffectWorkflows, w => Assert.Equal("Completed", w.OverallStatus));
+            Assert.Empty(await GetRegisteredEventTypes(fixture));
+            await ReleaseEvents(fixture);
 
-        // And the events were actually registered through the (delayed) events client.
-        IReadOnlyList<string> registeredEventTypes = await GetRegisteredEventTypes(fixture);
-        Assert.Contains("app.instance.process.movedTo.Task_1", registeredEventTypes);
-        Assert.Contains("app.instance.created", registeredEventTypes);
-        Assert.Contains("app.instance.process.movedTo.Task_Service", registeredEventTypes);
-        Assert.Contains("app.instance.process.completed", registeredEventTypes);
+            // Fire-and-forget does not mean fire-and-lose: every side-effects workflow still runs to
+            // completion. One sibling per effect: MovedTo.Task_1 + InstanceCreated (instantiation),
+            // MovedTo.Task_Service (task transition), Completed (process end).
+            List<EngineWorkflow> sideEffectWorkflows = await WaitForSideEffectsWorkflowsToComplete(
+                engineClient,
+                ns,
+                collectionKey,
+                expectedCount: 4
+            );
+            Assert.All(sideEffectWorkflows, w => Assert.Equal("Completed", w.OverallStatus));
+
+            // Releasing the gate lets each pending event registration complete.
+            IReadOnlyList<string> registeredEventTypes = await GetRegisteredEventTypes(fixture);
+            Assert.Contains("app.instance.process.movedTo.Task_1", registeredEventTypes);
+            Assert.Contains("app.instance.created", registeredEventTypes);
+            Assert.Contains("app.instance.process.movedTo.Task_Service", registeredEventTypes);
+            Assert.Contains("app.instance.process.completed", registeredEventTypes);
+        }
+        finally
+        {
+            // Release pending callbacks even when an assertion fails. Releasing twice is harmless.
+            await ReleaseEvents(fixture);
+        }
     }
 
     private static bool IsSideEffectsWorkflow(EngineWorkflow workflow) =>
@@ -199,6 +211,12 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
                 + $"Found {sideEffectWorkflows.Count}/{expectedCount}: [{statuses}]"
         );
         return sideEffectWorkflows;
+    }
+
+    private static async Task ReleaseEvents(AppFixture fixture)
+    {
+        using var response = await fixture.GetDirectAppClient().PostAsync("/test/side-effects/release", null);
+        response.EnsureSuccessStatusCode();
     }
 
     private static async Task<IReadOnlyList<string>> GetRegisteredEventTypes(AppFixture fixture)

@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 
 import deepEqual from 'fast-deep-equal';
+import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 
 import { useSetOptions } from 'src/features/options/useGetOptions';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
-import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 
@@ -20,7 +20,7 @@ interface Props {
 
 /**
  * If options has changed and the values no longer include the current value, we should clear the value.
- * This is especially useful when fetching options from an API with mapping, or when generating options
+ * This is especially useful when fetching options from an API with query parameters, or when generating options
  * from a repeating group. If the options changed and the selected option (or selected row in a repeating group)
  * is gone, we should not save stale/invalid data, so we clear it.
  */

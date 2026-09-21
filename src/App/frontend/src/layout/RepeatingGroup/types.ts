@@ -1,5 +1,6 @@
+import type { GridRows } from '@app/layout-contract/generated/common.generated';
+
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { GridRows } from 'src/layout/common.generated';
 import type { RepeatingGroupDef } from 'src/layout/RepeatingGroup/config.def.generated';
 
 type Comp = ReturnType<RepeatingGroupDef['evalDefaultExpressions']>;

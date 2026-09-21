@@ -20,8 +20,6 @@ void RegisterCustomAppServices(
     services.AddTransient<ISigneeProvider, FounderSigneesProvider>();
     services.AddTransient<ISigneeProvider, AuditorSigneesProvider>();
     services.AddTransient<IProcessExclusiveGateway, HasAuditorProcessGateway>();
-
-    services.ConfigureMaskinportenClient("MaskinportenSettings-TeamApps1");
 }
 
 // ###########################################################################

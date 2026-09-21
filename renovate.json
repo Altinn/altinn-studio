@@ -8,6 +8,18 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Update the shared Gitea version ARG using published rootless Docker tags",
+      "managerFilePatterns": ["/^src/gitea/Dockerfile$/"],
+      "matchStrings": [
+        "(?:^|\\r?\\n)ARG GITEA_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:\\r?\\n|$)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "docker.io/gitea/gitea",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)-rootless$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
       "managerFilePatterns": [
         "//\\.github/workflows/app-frontend-k6-browser\\.yml$//"
       ],
@@ -32,6 +44,14 @@
       "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@playwright/cli"
     }
   ],
   "separateMultipleMajor": true,
@@ -84,9 +104,28 @@
       "matchPackageNames": ["LibGit2Sharp"]
     },
     {
+      "description": "Let the custom manager update GITEA_VERSION without rewriting the ARG-based FROM instructions",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/gitea/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
+      "enabled": false
+    },
+    {
+      "description": "Keep Gitea server updates in their own PR",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["docker.io/gitea/gitea"],
       "groupName": "gitea dependency",
       "groupSlug": "gitea",
-      "matchPackageNames": ["gitea/gitea"]
+      "pinDigests": false
+    },
+    {
+      "description": "Keep Gitea runner image updates together, including digests for the rolling runner base image",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner", "docker.io/gitea/runner-images"],
+      "groupName": "gitea runner dependencies",
+      "groupSlug": "gitea-runner",
+      "pinDigests": true
     },
     {
       "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
@@ -183,15 +222,24 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Quartz upgrades need a hand-written QuartzTables migration and a tables-file update in designer-backend-check-quartz-update.yml, so keep them out of the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/Designer/backend/**"],
+      "matchPackageNames": ["/^Quartz/"],
+      "groupName": "Quartz packages in Designer",
+      "groupSlug": "designer-quartz",
+      "dependencyDashboardApproval": true
+    },
+    {
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
-        "src/App/Designer/**"
+        "src/Designer/backend/**"
       ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
-      "matchFileNames": ["src/App/Designer/**"],
+      "matchFileNames": ["src/Designer/backend/**"],
       "ignoreDeps": [
         "Moq",
         "Basic.Reference.Assemblies",

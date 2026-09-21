@@ -1,6 +1,7 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { indexDataModelReferenceForValidation } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
 
 function makeLookups(

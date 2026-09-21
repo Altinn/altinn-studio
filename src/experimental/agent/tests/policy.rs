@@ -15,6 +15,7 @@ async fn allows_general_egress_but_scopes_each_secret_to_its_hosts() {
     agent.spec.network.deny.push("blocked.example".into());
     agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: Some("GH_PAT".into()),

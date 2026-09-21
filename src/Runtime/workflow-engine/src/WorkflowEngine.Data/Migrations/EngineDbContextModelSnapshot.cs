@@ -294,6 +294,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("error_history");
 
+                    b.Property<DateTimeOffset?>("ExecutionStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("execution_started_at");
+
                     b.Property<DateTimeOffset?>("FirstDeferredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("first_deferred_at");
@@ -430,6 +434,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("engine_trace_context");
 
+                    b.Property<DateTimeOffset?>("ExecutionStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("execution_started_at");
+
                     b.Property<DateTimeOffset?>("HeartbeatAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("heartbeat_at");
@@ -525,6 +533,12 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("Namespace", "Status")
                         .HasDatabaseName("ix_workflows_namespace_status");
+
+                    b.HasIndex(new[] { "Namespace", "Id" }, "ix_workflows_namespace_id_requeued")
+                        .HasDatabaseName("ix_workflows_namespace_id_requeued")
+                        .HasFilter("status = 2");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex(new[] { "Namespace", "Id" }, "ix_workflows_namespace_id_requeued"), new[] { "ThrottledUntil" });
 
                     b.HasIndex(new[] { "Namespace", "Status" }, "ix_workflows_namespace_status_incomplete")
                         .HasDatabaseName("ix_workflows_namespace_status_incomplete")

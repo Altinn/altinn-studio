@@ -20,7 +20,7 @@ internal sealed class SigningDelegationService(
         Guid? instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartDelegateSigneeRightsActivity(taskId);
@@ -70,7 +70,7 @@ internal sealed class SigningDelegationService(
                         },
                         Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
                     };
-                    await accessManagementClient.DelegateRights(delegationRequest, ct);
+                    await accessManagementClient.DelegateRights(delegationRequest, cancellationToken);
                     state.IsAccessDelegated = true;
                     telemetry?.RecordDelegation(DelegationResult.Success);
                 }
@@ -93,7 +93,7 @@ internal sealed class SigningDelegationService(
         Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartRevokeSigneeRightsActivity(taskId);
@@ -127,7 +127,7 @@ internal sealed class SigningDelegationService(
                         },
                         Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
                     };
-                    await accessManagementClient.RevokeRights(delegationRequest, ct);
+                    await accessManagementClient.RevokeRights(delegationRequest, cancellationToken);
                     signeeContext.SigneeState.IsAccessDelegated = false;
                     telemetry?.RecordDelegationRevoke(DelegationResult.Success);
                 }

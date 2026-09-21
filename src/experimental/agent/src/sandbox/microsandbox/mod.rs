@@ -3,6 +3,7 @@
 use std::{path::Path, rc::Rc};
 
 use ::sandbox::{EnsureSandboxRequest, ErrorKind, LocalFuture, Platform, SandboxHandle, SandboxService, SandboxState};
+use futures_util::StreamExt as _;
 use sandbox_microsandbox::{MicrosandboxNetworkBackend, MicrosandboxProvider};
 
 use crate::{Error, authorization::AgentPolicyEngine, control_plane::AgentRecord, persistence};
@@ -20,6 +21,9 @@ pub use terminal::attach_terminal;
 use preparation::Preparation;
 
 use super::{Provider, ProviderEnsureOutcome, ProviderId};
+
+/// `RUST_LOG` directives that keep this Provider's runtime helper processes quiet at the default level.
+pub const LOG_DIRECTIVES: &str = sandbox_microsandbox::LOG_DIRECTIVES;
 
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
@@ -109,7 +113,12 @@ impl Provider for Adapter {
         })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        mut environment: std::collections::BTreeMap<String, String>,
+        progress: crate::progress::SandboxReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             let running_before = record
                 .agent
@@ -119,20 +128,28 @@ impl Provider for Adapter {
                 .and_then(super::Assignment::id)
                 .is_some_and(|id| self.preparation.network_is_running(id));
             let prepared = self.preparation.prepare(record).await?;
+            for (name, value) in prepared.environment {
+                if environment.insert(name.clone(), value).is_some() {
+                    return Err(Error::Invalid(format!(
+                        "Sandbox environment variable {name:?} collides with a mediated secret"
+                    )));
+                }
+            }
             let sandbox_name = record.sandbox_name()?;
             let runtime_restarted = match self.service.inspect(&sandbox_name).await {
-                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != prepared.environment,
+                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != environment,
                 Err(error) if error.is_not_found() => false,
                 Err(error) => return Err(error.into()),
             };
             let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
+                .with_hostname(record.sandbox_hostname()?)
                 .with_mounts(Self::sandbox_mounts(record))
-                .with_environment(prepared.environment);
-            let mut sandbox = self.service.ensure(&request).await?;
+                .with_environment(environment);
+            let mut sandbox = ensure_with_progress(&self.service, &request, &progress).await?;
             if prepared.bindings_changed && running_before {
                 self.preparation.restart_network(&sandbox).await?;
                 // Re-ensure starts the stopped Network with the replacement handshake bindings.
-                sandbox = self.service.ensure(&request).await?;
+                sandbox = ensure_with_progress(&self.service, &request, &progress).await?;
             }
             Ok(ProviderEnsureOutcome {
                 sandbox,
@@ -164,4 +181,20 @@ impl Provider for Adapter {
             Ok(())
         })
     }
+}
+
+async fn ensure_with_progress(
+    service: &SandboxService,
+    request: &EnsureSandboxRequest,
+    progress: &crate::progress::SandboxReporter,
+) -> Result<SandboxHandle, Error> {
+    let mut pending = service.ensure(request);
+    while let Some(event) = pending.next().await {
+        match event? {
+            ::sandbox::OperationEvent::Progress(event) => progress(event),
+            ::sandbox::OperationEvent::Ready(sandbox) => return Ok(sandbox),
+            _ => {}
+        }
+    }
+    Err(::sandbox::Error::OperationStreamEnded.into())
 }

@@ -53,7 +53,8 @@ public class RegisterERClient : IOrganizationClient
     /// <inheritdoc />
     public async Task<Organization?> GetOrganization(
         string OrgNr,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartGetOrganizationActivity(OrgNr);
@@ -61,19 +62,24 @@ public class RegisterERClient : IOrganizationClient
 
         string endpointUrl = $"organizations/{OrgNr}";
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
         );
 
         ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
-            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App),
+            cancellationToken
         );
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            organization = await JsonSerializerPermissive.DeserializeAsync<Organization>(response.Content);
+            organization = await JsonSerializerPermissive.DeserializeAsync<Organization>(
+                response.Content,
+                cancellationToken
+            );
         }
         else
         {

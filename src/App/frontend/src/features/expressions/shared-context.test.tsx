@@ -64,7 +64,7 @@ describe('Expressions shared context tests', () => {
   const sharedTests = getSharedTests('context-lists');
 
   describe.each(sharedTests.content)('$folderName', (folder) => {
-    it.each(folder.content)(
+    it.each(folder.content.filter((test) => !test.disabledFrontend))(
       '$name',
       async ({
         layouts,

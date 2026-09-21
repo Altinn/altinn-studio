@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 
+import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
+
 import { useSetOptions } from 'src/features/options/useGetOptions';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { OptionsValueType } from 'src/features/options/useGetOptions';
-import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
 import type { RuntimeNodeParent } from 'src/utils/layout/deriveRuntimeNodeRefs';
 

@@ -85,7 +85,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new EngineDbContext(options);
     }
 
-    internal EngineRepository CreateRepository()
+    internal EngineRepository CreateRepository(TimeProvider? timeProvider = null)
     {
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
@@ -96,7 +96,7 @@ public sealed class PostgresFixture : IAsyncLifetime
             _settings,
             _limiter,
             sqlBulkInserter,
-            TimeProvider.System,
+            timeProvider ?? TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
     }
@@ -138,6 +138,23 @@ public sealed class PostgresFixture : IAsyncLifetime
             timeProvider ?? TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
+    }
+
+    internal (NamespaceThrottleService Service, ThrottleStateView View) CreateThrottleService(
+        IOptions<EngineSettings> settings
+    )
+    {
+        var view = new ThrottleStateView(TimeProvider.System, settings);
+        var service = new NamespaceThrottleService(
+            NullLogger<NamespaceThrottleService>.Instance,
+            TimeProvider.System,
+            DataSource,
+            settings,
+            CreateRepository(settings),
+            view
+        );
+        _disposables.Add(service);
+        return (service, view);
     }
 
     internal DbMaintenanceService CreateMaintenanceService(TimeProvider? timeProvider = null)

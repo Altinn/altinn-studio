@@ -225,10 +225,33 @@ public sealed class EngineApiClient : IDisposable
     }
 
     /// <summary>
+    /// Fails a parked workflow and returns the raw <see cref="HttpResponseMessage"/>. Sends no body when
+    /// <paramref name="reason"/> is null, so the engine records its default reason.
+    /// </summary>
+    public Task<HttpResponseMessage> FailWorkflowRaw(Guid workflowId, string? reason = null, string? ns = null) =>
+        reason is null
+            ? _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/fail", content: null)
+            : _client.PostAsJsonAsync(
+                $"{GetBasePath(ns)}/{workflowId}/fail",
+                new FailWorkflowRequest { Reason = reason }
+            );
+
+    /// <summary>
+    /// Fails a parked workflow and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<FailWorkflowResponse> FailWorkflow(Guid workflowId, string? reason = null, string? ns = null)
+    {
+        using var response = await FailWorkflowRaw(workflowId, reason, ns);
+        return await AssertSuccessAndDeserialize<FailWorkflowResponse>(response);
+    }
+
+    /// <summary>
     /// Requests resume of a workflow and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
     public Task<HttpResponseMessage> ResumeWorkflowRaw(Guid workflowId, bool cascade = false, string? ns = null) =>
-        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/resume?cascade={cascade}", content: null);
+        // The query string is only sent when it carries information, so the default path — the one the
+        // dashboard and most callers take — is what every plain resume in the suite exercises.
+        _client.PostAsync($"{GetBasePath(ns)}/{workflowId}/resume{(cascade ? "?cascade=true" : "")}", content: null);
 
     /// <summary>
     /// Requests resume of a workflow and asserts a 2xx response. Throws on failure.
@@ -351,6 +374,59 @@ public sealed class EngineApiClient : IDisposable
 
         return await AssertSuccessAndDeserialize<WorkflowCollectionDetailResponse>(response);
     }
+
+    private string GetThrottleBasePath(string? ns = null) =>
+        $"/api/v1/{Uri.EscapeDataString(ns ?? _defaultNamespace)}/throttle";
+
+    /// <summary>
+    /// Lists all namespace throttle (circuit breaker) states, raw.
+    /// </summary>
+    public Task<HttpResponseMessage> ListThrottlesRaw() =>
+        _client.GetAsync("/api/v1/throttles", CancellationToken.None);
+
+    /// <summary>
+    /// Lists all namespace throttle (circuit breaker) states. Returns an empty list on 204 No Content.
+    /// </summary>
+    public async Task<IReadOnlyList<NamespaceThrottleResponse>> ListThrottles()
+    {
+        using var response = await ListThrottlesRaw();
+
+        if (response.StatusCode == HttpStatusCode.NoContent)
+            return [];
+
+        return await AssertSuccessAndDeserialize<List<NamespaceThrottleResponse>>(response);
+    }
+
+    /// <summary>
+    /// Gets the namespace's throttle (circuit breaker) state, raw.
+    /// </summary>
+    public Task<HttpResponseMessage> GetThrottleRaw(string? ns = null) =>
+        _client.GetAsync(GetThrottleBasePath(ns), CancellationToken.None);
+
+    /// <summary>
+    /// Gets the namespace's throttle (circuit breaker) state, or <see langword="null"/> on 404.
+    /// </summary>
+    public async Task<NamespaceThrottleResponse?> GetThrottle(string? ns = null)
+    {
+        using var response = await GetThrottleRaw(ns);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        return await AssertSuccessAndDeserialize<NamespaceThrottleResponse>(response);
+    }
+
+    /// <summary>
+    /// Force-trips the namespace's throttle (circuit breaker) and returns the raw response.
+    /// </summary>
+    public Task<HttpResponseMessage> TripThrottleRaw(string? ns = null) =>
+        _client.PostAsync($"{GetThrottleBasePath(ns)}/trip", content: null);
+
+    /// <summary>
+    /// Force-clears the namespace's throttle (circuit breaker) and returns the raw response.
+    /// </summary>
+    public Task<HttpResponseMessage> ClearThrottleRaw(string? ns = null) =>
+        _client.PostAsync($"{GetThrottleBasePath(ns)}/clear", content: null);
 
     public Task<HttpResponseMessage> MintMailboxRaw(MailboxCreateRequest request, string? ns = null) =>
         _client.PostAsJsonAsync(GetMailboxesBasePath(ns), request);

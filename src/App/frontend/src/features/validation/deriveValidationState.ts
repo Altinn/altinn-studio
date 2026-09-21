@@ -1,3 +1,5 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import {
@@ -24,7 +26,6 @@ import { getCurrentDataModelPath, getRuntimeIntermediateItem } from 'src/utils/l
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompIntermediate } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 

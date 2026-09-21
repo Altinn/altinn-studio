@@ -7,27 +7,50 @@ pub mod authorization;
 pub mod control_api;
 pub mod control_plane;
 mod controller;
+mod environment;
 pub mod harness;
 pub mod local;
 pub mod manifest;
 pub mod persistence;
 pub mod platform_api;
+pub mod progress;
 pub mod sandbox;
 pub mod sessions;
+pub mod ssh;
+pub mod upgrade;
 
 pub use control_plane::AgentId;
-pub use harness::{Harness, HarnessAuthMode, HarnessSpec};
+pub use controller::{FailureKind, ReconcileFailure};
+pub use harness::{Effort, Harness, HarnessAuthMode, HarnessSpec, Model, ModelSelection};
 pub use manifest::{
-    API_VERSION, Agent, Condition, ConditionStatus, HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec,
-    NetworkAllow, NetworkMode, NetworkSpec, PlatformManifestSpec, SandboxManifestSpec, SecretSpec, Spec, Status,
+    API_VERSION, AccessSpec, Agent, AgentVariant, AgentVariantName, Condition, ConditionStatus, EnvironmentSpec,
+    HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec, NetworkAllow, NetworkMode, NetworkSpec,
+    PlatformManifestSpec, Provenance, ResolvedManifest, SandboxManifestSpec, SecretSpec, SkillSpec, Spec, Status,
+    VARIANT_KIND,
 };
+
+/// Version embedded in a matched `agentctl`/`agentd` build.
+#[must_use]
+pub const fn build_version() -> &'static str {
+    match release_version() {
+        Some(version) => version,
+        None => env!("CARGO_PKG_VERSION"),
+    }
+}
+
+/// Release version embedded by packaging, absent from ordinary development builds.
+#[must_use]
+pub const fn release_version() -> Option<&'static str> {
+    option_env!("AGENT_VERSION")
+}
 
 use thiserror::Error;
 
 /// Errors exposed by the Agent control plane.
 #[derive(Debug, Error)]
 pub enum Error {
-    /// The Agent resource is invalid.
+    /// The Agent resource is invalid: desired state must change before another
+    /// reconciliation pass can succeed, so waiters fail fast and nothing retries.
     #[error("invalid Agent: {0}")]
     Invalid(String),
     /// The requested Agent does not exist.
@@ -42,7 +65,8 @@ pub enum Error {
     /// Persistent control-plane state could not be read or written.
     #[error("control-plane database failed: {0}")]
     Database(String),
-    /// Immutable Agent setup failed inside a running Sandbox.
+    /// Immutable Agent setup failed inside a running Sandbox. Treated as transient:
+    /// the background controller retries and waiters keep following.
     #[error("Agent Sandbox setup failed: {0}")]
     SandboxSetup(String),
     /// A generic Sandbox operation failed.

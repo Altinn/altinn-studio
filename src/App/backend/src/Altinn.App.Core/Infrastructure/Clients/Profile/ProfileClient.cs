@@ -75,7 +75,11 @@ public class ProfileClient : IProfileClient
     }
 
     /// <inheritdoc />
-    public async Task<UserProfile?> GetUserProfile(int userId, StorageAuthenticationMethod? authenticationMethod = null)
+    public async Task<UserProfile?> GetUserProfile(
+        int userId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = _telemetry?.StartGetUserProfileActivity(userId);
         UserProfile? userProfile = null;
@@ -88,17 +92,21 @@ public class ProfileClient : IProfileClient
 
         string endpointUrl = $"users/{userId}";
         JwtToken token = await GetAuthTokenResolver()
-            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
-            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App),
+            cancellationToken
         );
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content);
+            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(
+                response.Content,
+                cancellationToken
+            );
         }
         else
         {
@@ -113,7 +121,11 @@ public class ProfileClient : IProfileClient
     }
 
     /// <inheritdoc />
-    public async Task<UserProfile?> GetUserProfile(string ssn, StorageAuthenticationMethod? authenticationMethod = null)
+    public async Task<UserProfile?> GetUserProfile(
+        string ssn,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = _telemetry?.StartGetUserProfileActivity();
 
@@ -125,7 +137,7 @@ public class ProfileClient : IProfileClient
 
         string endpointUrl = "users";
         JwtToken token = await GetAuthTokenResolver()
-            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod);
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         StringContent content = new(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
@@ -133,14 +145,18 @@ public class ProfileClient : IProfileClient
             token,
             endpointUrl,
             content,
-            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App),
+            cancellationToken
         );
 
         UserProfile? userProfile = null;
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content);
+            userProfile = await JsonSerializerPermissive.DeserializeAsync<UserProfile>(
+                response.Content,
+                cancellationToken
+            );
         }
         else
         {
@@ -151,7 +167,7 @@ public class ProfileClient : IProfileClient
     }
 
     /// <inheritdoc />
-    public async Task<UserProfile?> GetUserProfile(Guid userUuid)
+    public async Task<UserProfile?> GetUserProfile(Guid userUuid, CancellationToken cancellationToken = default)
     {
         using var activity = _telemetry?.StartGetUserProfileActivity();
 
@@ -162,17 +178,18 @@ public class ProfileClient : IProfileClient
         }
 
         string endpointUrl = $"users/byuuid/{userUuid}";
-        JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod);
+        JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
-            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App)
+            _accessTokenGenerator.GenerateAccessToken(applicationMetadata.Org, applicationMetadata.AppIdentifier.App),
+            cancellationToken
         );
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            return await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content);
+            return await JsonSerializerPermissive.DeserializeAsync<UserProfile>(response.Content, cancellationToken);
         }
 
         _logger.LogError(

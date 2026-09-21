@@ -17,7 +17,7 @@ internal interface ISigningDelegationService
         Guid? instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 
     /// <summary>
@@ -29,6 +29,6 @@ internal interface ISigningDelegationService
         Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 }

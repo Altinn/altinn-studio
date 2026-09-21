@@ -5,6 +5,7 @@
   namespace: ttd-e2e-tests,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
+  executionStartedAt: {Scrubbed},
   labels: {
     app: e2e-tests,
     org: ttd
@@ -16,6 +17,7 @@
       operationId: /multi-step-1,
       processingOrder: 0,
       updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
       command: {
         type: app
       },
@@ -28,6 +30,7 @@
       operationId: /multi-step-2,
       processingOrder: 1,
       updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
       command: {
         type: app
       },
@@ -40,6 +43,7 @@
       operationId: /multi-step-3,
       processingOrder: 2,
       updatedAt: {Scrubbed},
+      executionStartedAt: {Scrubbed},
       command: {
         type: app
       },

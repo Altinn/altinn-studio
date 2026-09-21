@@ -1,4 +1,5 @@
-import type { CardConfig } from 'src/layout/Cards/config.generated';
+import type { CardConfig } from '@app/layout-contract/generated/components/Cards/config.generated';
+
 import type { CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
 

@@ -24,6 +24,7 @@ const (
 	buildDir = "build"
 
 	localtestDir = "../Runtime/localtest"
+	resourcesDir = "resources"
 
 	helpFlag = "--help"
 
@@ -327,6 +328,7 @@ func buildPlatformResources(
 		OutputDir:    outputDir,
 		ServerDir:    serverDir,
 		LocaltestDir: localtestDir,
+		ResourcesDir: resourcesDir,
 	})
 	if err != nil {
 		return "", fmt.Errorf("create resources archive: %w", err)

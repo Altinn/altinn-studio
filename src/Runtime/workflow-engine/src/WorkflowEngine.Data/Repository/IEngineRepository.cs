@@ -75,7 +75,9 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Gets the number of workflows the fetch gate could claim right now — active workflows minus
-    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c>. Unlike
+    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c> (or, when throttling is
+    /// enabled, a future <c>ThrottledUntil</c> — the count mirrors the fetch gate variant the
+    /// process selected at startup). Unlike
     /// <see cref="CountActiveWorkflows"/> this reaching zero means the engine is quiescent: a parked
     /// workflow holds no lease and no transaction, and will not wake on its own before its timer.
     /// </summary>
@@ -231,7 +233,8 @@ internal interface IEngineRepository
     /// <summary>
     /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) or a Requeued workflow
     /// by resetting it and its non-completed steps back to Enqueued. Clears CancellationRequestedAt,
-    /// BackoffUntil, HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
+    /// BackoffUntil, ThrottledUntil (an operator's explicit resume wins over the namespace circuit
+    /// breaker), HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
     /// any transitively dependent workflows that are in DependencyFailed state.
     /// Returns the list of all resumed workflow IDs (primary + cascaded), or empty if
     /// the target workflow was not in a resumable state.
@@ -263,12 +266,30 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Clears BackoffUntil on a parked workflow so it becomes claimable by the fetch gate at once —
-    /// resuming retries for <c>Requeued</c>, or re-checking the awaited outcome for <c>Waiting</c>.
-    /// Returns true only if the workflow was found, is in one of those two states, and had a non-null
-    /// BackoffUntil; false is a no-op, not an error.
+    /// Clears BackoffUntil and ThrottledUntil on a parked workflow so it becomes claimable by the
+    /// fetch gate at once — resuming retries for <c>Requeued</c>, or re-checking the awaited
+    /// outcome for <c>Waiting</c>. Clearing the throttle stamp means an operator's explicit nudge
+    /// always wins over the namespace circuit breaker. Returns true only if the workflow was
+    /// found, is in one of those two states, and had a non-null BackoffUntil or ThrottledUntil;
+    /// false is a no-op, not an error.
     /// </summary>
     Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fails a parked workflow (<c>Requeued</c> or <c>Waiting</c>) by operator decision. The workflow moves
+    /// to <c>Failed</c> with its backoff cleared, and the parked step moves to <c>Failed</c> with
+    /// <paramref name="reason"/> appended to its error history as a non-retryable entry, so the failure
+    /// reads exactly like one the engine produced by giving up itself. Compare-and-set: returns the failed
+    /// workflow when this call performed the transition, and <c>null</c> when it was not found or not parked
+    /// (including a fetch that claimed it first) — a no-op, not an error.
+    /// </summary>
+    Task<WorkflowFailureInfo?> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset failedAt,
+        string reason,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets all workflow collections in a namespace.
@@ -285,6 +306,69 @@ internal interface IEngineRepository
         string key,
         string ns,
         CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Counts <c>Requeued</c> and active (incomplete) workflows per namespace in one
+    /// <c>GROUP BY</c> served by the <c>ix_workflows_namespace_status_incomplete</c> partial
+    /// index, whose leading columns are exactly what the query reads. The input to the throttle
+    /// sweep's trip detection.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceWorkflowCounts>> GetNamespaceWorkflowCounts(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Counts <c>Requeued</c> and active workflows in one namespace, excluding rows currently
+    /// parked behind a future <c>throttled_until</c>. The throttle sweep's re-trip evaluation
+    /// during recovery must use this variant: parked workflows are still <c>Requeued</c>, so raw
+    /// counts would read as an instant re-trip and recovery could never proceed.
+    /// </summary>
+    Task<NamespaceWorkflowCounts> GetUnparkedNamespaceWorkflowCounts(
+        string ns,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets all namespace throttle state rows. Read by the sweep's snapshot refresh and by the
+    /// throttle observability endpoints.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceThrottle>> GetNamespaceThrottles(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Inserts or fully replaces a namespace throttle state row. Only
+    /// <c>NamespaceThrottleService</c> — the table's sole writer (sweep cycles and operator
+    /// overrides alike), serialized by an advisory lock — may call this.
+    /// </summary>
+    Task UpsertNamespaceThrottle(NamespaceThrottle throttle, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes a namespace throttle state row (end of the closed-state grace period).
+    /// </summary>
+    Task DeleteNamespaceThrottle(string ns, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Selects the <paramref name="count"/> <c>Requeued</c> workflows in the namespace with the
+    /// earliest <c>backoff_until</c> (NULLS FIRST — mirroring fetch order) as canaries, excluding
+    /// <paramref name="excludeWorkflowIds"/> (the outgoing canaries, on rotation). Atomically
+    /// clears the selected rows' <c>throttled_until</c>: canaries probe on the normal retry
+    /// schedule and are never parked, and a rotation may promote a previously parked row.
+    /// Returns each canary with its requeue count recorded at selection.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleCanary>> SelectThrottleCanaries(
+        string ns,
+        int count,
+        IReadOnlyList<Guid> excludeWorkflowIds,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Observes the given canary workflows for progress judgment: current workflow status plus the
+    /// requeue count of the current (first non-terminal) step. Workflows that no longer exist are
+    /// absent from the result.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleCanaryObservation>> GetThrottleCanaryObservations(
+        IReadOnlyList<Guid> workflowIds,
+        CancellationToken cancellationToken
     );
 
     /// <summary>
@@ -383,6 +467,35 @@ internal interface IEngineRepository
     );
 
     /// <summary>
+    /// Loads one page of throttle park candidates: <c>Requeued</c> workflows in the namespace —
+    /// excluding the current canaries — that are unparked or whose <c>throttled_until</c> elapses
+    /// before <paramref name="restampCutoff"/>, together with the fields the per-stamp retry
+    /// deadline clamp needs. Keyset-paginated by workflow id (<paramref name="afterWorkflowId"/>,
+    /// pass <see cref="Guid.Empty"/> for the first page) so one park pass visits each row once
+    /// even when a stamp is clamped below the cutoff.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleParkCandidate>> GetThrottleParkCandidates(
+        string ns,
+        IReadOnlyList<Guid> excludeWorkflowIds,
+        DateTimeOffset restampCutoff,
+        Guid afterWorkflowId,
+        int limit,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Bulk-stamps <c>throttled_until</c> on the given workflows via the unnest write pattern.
+    /// Guarded per row like the lease-CAS writes: only rows still in <c>Requeued</c> at write time
+    /// are stamped, so a workflow fetched by a worker between candidate load and stamp is skipped.
+    /// Touches only <c>throttled_until</c> — parking is a scheduling gate, not a state transition,
+    /// so <c>updated_at</c> is left alone. Returns the number of rows stamped.
+    /// </summary>
+    Task<int> StampThrottledUntil(
+        IReadOnlyList<(Guid WorkflowId, DateTimeOffset ThrottledUntil)> stamps,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Appends one message at the next gapless position. Idempotent on <c>(mailboxId, idempotencyKey)</c>,
     /// and the lookup runs <em>before</em> the refusals: a kept message answers
     /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox is closed or full. Refusals write
@@ -419,6 +532,31 @@ internal interface IEngineRepository
         int maxLogLength,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Releases the next recovery cohort in a namespace: the <paramref name="cohortSize"/>
+    /// oldest-created workflows still parked (<c>Requeued</c> with <c>throttled_until</c> in the
+    /// future) get <c>throttled_until = now + random() * smear</c> — a jittered smear rather than
+    /// a NULL-clear, so a released horde spreads across the poll window instead of hitting one
+    /// fetch cycle. Returns the number of workflows released — a lower bound, not a census: the
+    /// cohort is claimed <c>FOR UPDATE SKIP LOCKED</c>, so a parked row locked by a concurrent
+    /// writer is skipped and left parked. A short cohort therefore proves nothing about the
+    /// parked population; only an empty one means there was nothing left to release.
+    /// </summary>
+    Task<int> ReleaseThrottledCohort(
+        string ns,
+        int cohortSize,
+        DateTimeOffset now,
+        TimeSpan smear,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Clears every non-null <c>throttled_until</c> in the namespace. Runs during a cleared
+    /// breaker's grace period to release stragglers parked by replicas holding a stale
+    /// tripped-breaker snapshot. Returns the number of rows cleared.
+    /// </summary>
+    Task<int> ClearNamespaceThrottledUntil(string ns, CancellationToken cancellationToken);
 
     /// <summary>
     /// Closes up to <paramref name="batchSize"/> overdue mailboxes, one <c>FOR UPDATE SKIP LOCKED</c>-claimed
