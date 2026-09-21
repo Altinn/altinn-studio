@@ -9,18 +9,11 @@ processors:
     send_batch_size: 10000
 
 exporters:
-  otlp/tempo:
-    endpoint: monitoring_tempo:4317
-    tls:
-      insecure: true
-  otlphttp/loki:
-    endpoint: http://monitoring_loki:3100/otlp
-    tls:
-      insecure: true
-  prometheusremotewrite/mimir:
-    endpoint: http://monitoring_mimir:9009/api/v1/push
-    tls:
-      insecure: true
+  nop: {}
+  otlphttp/victoria-traces:
+    traces_endpoint: http://localtest_victoria_traces:10428/insert/opentelemetry/v1/traces
+  prometheusremotewrite/victoria-metrics:
+    endpoint: http://localtest_victoria_metrics:8428/api/v1/write
 
 service:
   telemetry:
@@ -30,12 +23,11 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo]
+      exporters: [otlphttp/victoria-traces]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [prometheusremotewrite/mimir]
+      exporters: [prometheusremotewrite/victoria-metrics]
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp/loki]
+      exporters: [nop]
