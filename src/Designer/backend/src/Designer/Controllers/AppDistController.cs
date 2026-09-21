@@ -62,8 +62,8 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
 
         path ??= string.Empty;
         bool isDirectory = path.Length == 0 || path.EndsWith('/');
-        string trimmedPath = path.TrimEnd('/');
-        if (trimmedPath.Length > 0 && !IsSafePath(trimmedPath))
+        string trimmedPath = isDirectory && path.Length > 0 ? path[..^1] : path;
+        if (path.Length > 0 && !IsSafePath(trimmedPath))
         {
             return BadRequest("Invalid path.");
         }
