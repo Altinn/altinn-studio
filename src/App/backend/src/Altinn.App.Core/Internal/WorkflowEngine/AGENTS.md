@@ -363,6 +363,8 @@ Each callback needs the app's workflow callback state (`instance` + storage vers
 
 5. **Startup validation**: `WorkflowEngineCommandValidator.Validate` will fail at startup if a key in `WorkflowCommandSet` isn't registered in DI
 
+6. **Dashboard phase map**: a command added to a task-end, task-abandon, task-start or process-end sequence must also be added to `stepPhase` in the engine dashboard (`src/Runtime/workflow-engine/src/WorkflowEngine.Core/wwwroot/modules/core/state.js`, mirrored in `DASHBOARD_SPEC.md` next to it). The dashboard brackets consecutive steps of one phase under the task name, and a command it does not know has no phase, so the bracket splits around it. Transition-level commands (`AcquireProcessingStatus`, `MutateProcessState`, `CommitProcessState`, `EnqueueSideEffectsWorkflow`, `MintMailbox`, `ExecuteServiceTask`) deliberately stay unmapped.
+
 ## Command Conventions
 
 - Every command has `public static string Key => "..."` and `public string GetKey() => Key`
