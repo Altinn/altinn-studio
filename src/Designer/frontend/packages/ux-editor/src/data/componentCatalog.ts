@@ -207,8 +207,8 @@ export function validateCatalogValue(
     typeof value === 'number'
   ) {
     if (definition.type === 'integer' && !Number.isInteger(value)) return 'integer';
-    if (definition.minimum !== undefined && value < definition.minimum) return 'minimum';
-    if (definition.maximum !== undefined && value > definition.maximum) return 'maximum';
+    if (definition.minimum !== undefined && value < definition.minimum) return 'min';
+    if (definition.maximum !== undefined && value > definition.maximum) return 'max';
   }
   return '';
 }

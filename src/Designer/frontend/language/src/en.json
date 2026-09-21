@@ -948,6 +948,7 @@
   "ux_editor.url_label": "Url",
   "ux_editor.warning": "Warning",
   "validation_errors.length": "Number of characters allowed is {{0}}",
+  "validation_errors.integer": "Enter a whole number.",
   "validation_errors.max": "Maximum valid value is {{0}}",
   "validation_errors.maxLength": "Use {{number}} or fewer characters",
   "validation_errors.min": "Minimum valid value is {{0}}",

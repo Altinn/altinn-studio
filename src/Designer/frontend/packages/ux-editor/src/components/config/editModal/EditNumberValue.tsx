@@ -53,6 +53,12 @@ export const EditNumberValue = <T extends ComponentType>({
       onChange={handleValueChange}
       customRequired={definition?.required}
       customValidationRules={(value) => validateCatalogValue(definition, value)}
+      customValidationMessages={(errorCode) => {
+        if (definition?.type === 'number' || definition?.type === 'integer') {
+          if (errorCode === 'min') return t('validation_errors.min', { 0: definition.minimum });
+          if (errorCode === 'max') return t('validation_errors.max', { 0: definition.maximum });
+        }
+      }}
       helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (

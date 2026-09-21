@@ -2797,6 +2797,7 @@
   "validation_errors.invalid_phone": "Ugyldig telefonnummer. Bruk format som +4712345678.",
   "validation_errors.invalid_slack_webhook_url": "Ugyldig Slack webhook-URL. Bruk format som https://hooks.slack.com/services/T0000/B0000/XXXX.",
   "validation_errors.length": "Antall tillatte tegn er {{0}}.",
+  "validation_errors.integer": "Verdien må være et heltall.",
   "validation_errors.max": "Største gyldig verdi er {{0}}.",
   "validation_errors.maxLength": "Bruk {{number}} eller færre tegn.",
   "validation_errors.min": "Minste gyldig verdi er {{0}}.",
