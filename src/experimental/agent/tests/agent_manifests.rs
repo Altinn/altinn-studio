@@ -111,6 +111,18 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
                 .collect::<Vec<_>>(),
             ["altinn-studio-app-development", "pr-evidence"]
         );
+        // The image owns the harness version, here as much as in the examples: a published
+        // manifest that named one would have to be edited for every image bump.
+        for variant in [&default, &nested, &worktree, &nested_build] {
+            for harness in &variant.spec.harnesses {
+                assert_eq!(
+                    harness.version, None,
+                    "{} pins a version for {:?}; the image owns it",
+                    variant.metadata.name, harness.kind
+                );
+            }
+        }
+
         assert_eq!(default.spec.secrets.len(), 5);
         let azure_devops_pat = default
             .spec

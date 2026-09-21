@@ -122,8 +122,14 @@ fn no_example_manifest_pins_a_harness_version() {
     let mut checked = 0;
     for example in std::fs::read_dir(&examples).expect("examples directory") {
         let directory = example.expect("examples entry").path();
+        if !directory.is_dir() {
+            continue;
+        }
         for manifest in std::fs::read_dir(&directory).expect("example directory") {
             let path = manifest.expect("example entry").path();
+            if !path.is_file() {
+                continue;
+            }
             let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
             let is_manifest = name.starts_with("agent")
                 && path
