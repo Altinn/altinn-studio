@@ -72,47 +72,20 @@ spec:
               value: http://+:8080
             - name: ASPNETCORE_ENVIRONMENT
               value: Production
-            - name: ObservabilityProxy__Downstreams__Otlp__Address
-              value: http://otel-victoria-ingest:4318/
-            - name: ObservabilityProxy__Downstreams__Traces__Address
-              value: http://victoria-traces:10428/
-            - name: ObservabilityProxy__Downstreams__Metrics__Address
-              value: http://victoria-metrics:8428/
-            - name: ObservabilityProxy__Authentication__Tokens__0__Token
-              valueFrom:
-                secretKeyRef:
-                  name: observability-proxy-tokens
-                  key: runtime-prod-ingest-token
-            - name: ObservabilityProxy__Authentication__Tokens__0__SourceIdentity
-              value: runtime-prod
-            - name: ObservabilityProxy__Authentication__Tokens__0__AllowedRouteGroups__0
-              value: otlp
-            - name: ObservabilityProxy__Authentication__Tokens__1__Token
-              valueFrom:
-                secretKeyRef:
-                  name: observability-proxy-tokens
-                  key: studio-prod-ingest-token
-            - name: ObservabilityProxy__Authentication__Tokens__1__SourceIdentity
-              value: studio-prod
-            - name: ObservabilityProxy__Authentication__Tokens__1__AllowedRouteGroups__0
-              value: otlp
-            - name: ObservabilityProxy__Authentication__Tokens__2__Token
-              valueFrom:
-                secretKeyRef:
-                  name: observability-proxy-tokens
-                  key: grafana-read-token
-            - name: ObservabilityProxy__Authentication__Tokens__2__SourceIdentity
-              value: platform-grafana
-            - name: ObservabilityProxy__Authentication__Tokens__2__AllowedRouteGroups__0
-              value: traces
-            - name: ObservabilityProxy__Authentication__Tokens__2__AllowedRouteGroups__1
-              value: metrics
+            # Downstream addresses are the Victoria service names, which this repository
+            # also defines, so they live in appsettings.json rather than being restated here.
+            - name: ObservabilityProxy__Authentication__TokensFilePath
+              value: /etc/observability-proxy/auth-tokens.json
             - name: ObservabilityProxy__RateLimiting__PermitLimit
               value: "10000"
             - name: ObservabilityProxy__RateLimiting__WindowSeconds
               value: "60"
             - name: ObservabilityProxy__RateLimiting__QueueLimit
               value: "0"
+          volumeMounts:
+            - name: auth-tokens
+              mountPath: /etc/observability-proxy
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /health/live
@@ -135,6 +108,12 @@ spec:
               memory: 128Mi
             limits:
               memory: 256Mi
+      volumes:
+        # Created by Terraform from the Studio Key Vault. Rotating a token is a Secret
+        # change; the proxy re-reads the file and no Deployment change is needed.
+        - name: auth-tokens
+          secret:
+            secretName: observability-proxy-auth
 ---
 apiVersion: v1
 kind: Service
