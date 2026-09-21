@@ -43,7 +43,7 @@ describe('useUpdateProcessDataTypeMutation', () => {
 
     await renderHook({ queryClient });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(5);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppMetadataModelIds, org, app],
     });
@@ -55,6 +55,8 @@ describe('useUpdateProcessDataTypeMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.FormLayoutSettings, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppValidation, org, app],
     });
   });
