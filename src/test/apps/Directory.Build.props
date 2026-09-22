@@ -13,13 +13,6 @@
   -->
   <PropertyGroup>
     <IsAltinnApp>true</IsAltinnApp>
-    <!--
-      Match the app templates (src/App/template/*/src/App/App.csproj), which enable
-      nullable reference types so a generated app reads the annotations the
-      Altinn.App libraries are written under. These fixtures are the closest thing
-      we have to a compatibility canary for real apps, so they compile the same way.
-    -->
-    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <!-- Exposes IsAltinnApp to the Roslyn analyzers (see IsAltinnApp() gate). -->
