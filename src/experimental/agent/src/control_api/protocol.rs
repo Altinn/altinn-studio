@@ -11,6 +11,7 @@ pub(crate) const METHOD_SHUTDOWN: &str = "control.v1.shutdown";
 pub(crate) const METHOD_GET: &str = "agents.v1.get";
 pub(crate) const METHOD_LIST: &str = "agents.v1.list";
 pub(crate) const METHOD_PROGRESS: &str = "agents.v1.progress";
+pub(crate) const METHOD_RESOURCES_WATCH: &str = "resources.v1.watch";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
@@ -95,6 +96,14 @@ pub(crate) struct ExecutionEnsureParams {
     pub name: String,
     #[serde(default, skip_serializing_if = "is_false")]
     pub follow: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ResourcesWatchParams {
+    /// Revision of the previous reply; absent requests the current state now.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub after: Option<crate::resources::Revision>,
 }
 
 #[derive(Deserialize, Serialize)]
