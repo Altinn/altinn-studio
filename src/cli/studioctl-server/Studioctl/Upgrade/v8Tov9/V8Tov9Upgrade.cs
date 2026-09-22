@@ -824,14 +824,25 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> CheckMaskinportenSettingsSection(CSharpSourceScanner scanner, string projectFolder)
     {
-        UpgradeConsole.BeginStep("Maskinporten settings");
+        UpgradeConsole.BeginStep("Maskinporten settings and scopes");
         try
         {
             var boundSections = new MaskinportenClientOverrideDetector(scanner).NamedSections();
-            var result = new MaskinportenSettingsSectionDetector(projectFolder, boundSections).Detect();
+            var detector = new MaskinportenSettingsSectionDetector(projectFolder, boundSections);
+            var sections = detector.Detect();
+
+            // The inventory reads the scopes out of the very sections the step above tells the developer to
+            // delete, so it runs after the detector and takes what it found.
+            var inventory = new MaskinportenScopeInventory(
+                scanner,
+                projectFolder,
+                detector.ConfiguredScopes()
+            ).Describe();
+
+            var result = new MigrationResult([.. sections.Messages, .. inventory.Messages]);
             return ReportMigrationResult(
                 result,
-                cleanText: "No obsolete MaskinportenSettings configuration found",
+                cleanText: "No obsolete MaskinportenSettings configuration and no Maskinporten scopes found",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }

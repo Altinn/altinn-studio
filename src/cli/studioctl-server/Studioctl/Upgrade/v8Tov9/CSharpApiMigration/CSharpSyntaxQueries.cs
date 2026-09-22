@@ -160,6 +160,88 @@ internal static class CSharpSyntaxQueries
     }
 
     /// <summary>
+    /// <para>Every string literal argument of an invocation of one of <paramref name="methodSimpleNames"/>,
+    /// paired with the location of the invocation. Used to harvest the Maskinporten scopes an app asks for -
+    /// <c>UseMaskinportenAuthorization("ks:fiks", "altinn:correspondence.write")</c> yields both.</para>
+    /// <para>Only literals are represented. A scope passed as a variable, a constant or a configuration read
+    /// is invisible here and cannot be recovered without a semantic model, so a caller reporting these must
+    /// say the list may be incomplete rather than imply it is exhaustive.</para>
+    /// </summary>
+    public static IEnumerable<(CSharpApiMatch Match, string Value)> StringArgumentsOf(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> methodSimpleNames
+    )
+    {
+        foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            var invokedName = InvokedName(invocation);
+            if (invokedName is null || !methodSimpleNames.Contains(invokedName.Identifier.Text))
+            {
+                continue;
+            }
+
+            foreach (var argument in invocation.ArgumentList.Arguments)
+            {
+                if (argument.Expression is LiteralExpressionSyntax { Token.Value: string value })
+                {
+                    yield return (
+                        new CSharpApiMatch(file.RelativePath, file.GetLine(invokedName), invokedName.Identifier.Text),
+                        value
+                    );
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// <para>Every string literal assigned to a <paramref name="memberName"/> member in an object initializer
+    /// of one of <paramref name="typeSimpleNames"/>, paired with the location of the assignment. Covers the
+    /// collection-valued shape the token-request overloads take -
+    /// <c>new MaskinportenTokenRequest { Scopes = ["ks:fiks"] }</c> - which
+    /// <see cref="StringArgumentsOf"/> cannot see because the scopes are not arguments.</para>
+    /// <para>Literals only, on the same terms and for the same reason as
+    /// <see cref="StringArgumentsOf"/>.</para>
+    /// </summary>
+    public static IEnumerable<(CSharpApiMatch Match, string Value)> InitializerStringValues(
+        ScannedCSharpFile file,
+        IReadOnlySet<string> typeSimpleNames,
+        string memberName
+    )
+    {
+        foreach (var creation in file.Root.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
+        {
+            var typeName = ConstructedTypeName(creation);
+            if (typeName is null || !typeSimpleNames.Contains(typeName) || creation.Initializer is null)
+            {
+                continue;
+            }
+
+            foreach (var expression in creation.Initializer.Expressions)
+            {
+                if (
+                    expression is not AssignmentExpressionSyntax assignment
+                    || assignment.Left is not IdentifierNameSyntax member
+                    || member.Identifier.Text != memberName
+                )
+                {
+                    continue;
+                }
+
+                foreach (var literal in assignment.Right.DescendantNodesAndSelf().OfType<LiteralExpressionSyntax>())
+                {
+                    if (literal.Token.Value is string value)
+                    {
+                        yield return (
+                            new CSharpApiMatch(file.RelativePath, file.GetLine(assignment), $"{typeName}.{memberName}"),
+                            value
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// The value of the invocation's first argument when it is a string literal, else <c>null</c>.
     /// </summary>
     private static string? FirstStringArgument(InvocationExpressionSyntax invocation) =>

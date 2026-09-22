@@ -162,6 +162,116 @@ internal sealed class MaskinportenSettingsSectionDetector
         return new MigrationResult(messages);
     }
 
+    /// <summary>
+    /// <para>The Maskinporten scopes the app's settings files declare, with the file and path each came from.
+    /// These are the sections <see cref="Detect"/> is about to tell the developer to delete, and their
+    /// <c>Scope</c> value is the one authoritative record of what the app's v8 client asked for - so
+    /// <see cref="MaskinportenScopeInventory"/> echoes it back before it is gone.</para>
+    /// <para>A section is considered Maskinporten's when the code bound the built-in client to it, when its
+    /// path says Maskinporten, or when it carries credential keys alongside a client id. An object with a
+    /// <c>Scope</c> key and nothing else to connect it to Maskinporten is left alone: <c>Scope</c> on its own
+    /// is far too common a configuration key to claim.</para>
+    /// </summary>
+    public IReadOnlyList<(string Scope, string Evidence)> ConfiguredScopes()
+    {
+        var results = new List<(string Scope, string Evidence)>();
+
+        foreach (var file in EnumerateAppSettingsFiles())
+        {
+            using var document = TryParse(file);
+            if (document is null || document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var relativeFile = Path.GetRelativePath(_projectFolder, file);
+            var bound = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var section in _boundSections)
+            {
+                if (TryResolve(document.RootElement, section, out _, out var actualPath))
+                {
+                    bound.Add(actualPath);
+                }
+            }
+
+            foreach (var (path, element) in EnumerateObjects(document.RootElement, parentPath: null))
+            {
+                if (!bound.Contains(path) && !IsMaskinportenShaped(element, path))
+                {
+                    continue;
+                }
+
+                foreach (var scope in ScopeValues(element))
+                {
+                    results.Add((scope, $"configured in {relativeFile}: {path}"));
+                }
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Whether an object is recognizably a Maskinporten client's configuration: its path says so, or it
+    /// carries a client id beside key material in either client's spelling.
+    /// </summary>
+    private static bool IsMaskinportenShaped(JsonElement element, string path)
+    {
+        if (path.Contains("maskinporten", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var keyMaterial = _builtInOnlyKeys
+            .Concat(["EncodedJwk", "EncodedX509"])
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return HasKey(element, "clientId") && HasAnyKey(element, keyMaterial);
+    }
+
+    /// <summary>
+    /// The scopes in an object's <c>Scope</c> member, which both clients spell the same way but shape
+    /// differently: a single string, a space- or comma-separated list of them, or an array.
+    /// </summary>
+    private static IEnumerable<string> ScopeValues(JsonElement element)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (!string.Equals(property.Name, "scope", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (property.Value.ValueKind == JsonValueKind.String)
+            {
+                foreach (var part in Split(property.Value.GetString()))
+                {
+                    yield return part;
+                }
+            }
+            else if (property.Value.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in property.Value.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    foreach (var part in Split(item.GetString()))
+                    {
+                        yield return part;
+                    }
+                }
+            }
+        }
+    }
+
+    private static IEnumerable<string> Split(string? value) =>
+        (value ?? string.Empty).Split(
+            [' ', ',', '\t'],
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+        );
+
     private static string Describe(string relativeFile, string path) => $"{relativeFile}: {path}";
 
     /// <summary>
