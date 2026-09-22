@@ -12,9 +12,24 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- `agentctl describe agent` shows whether a failed Agent is being retried or needs a change to its manifest, the
+  phases and step of provisioning that is running or failed with the output of the step that failed, and how long each
+  condition has been in its current state.
+- Agent status in `agentctl get -o yaml` and `-o json` includes each condition's `lastTransitionTime`, the failure
+  class and the provisioning progress.
+- Provisioning reports Agent setup and SSH access as their own phases, so time spent verifying harnesses, syncing the
+  home directory and installing instructions and Skills is visible instead of silent.
+
 ### Changed
 
 - Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
+- `agentctl apply --wait` and other commands that wait for an Agent show the provisioning phase and step already in
+  progress when they start, and catch up instead of losing output when they fall behind. Without a terminal, every
+  step's output is printed in the order it happened.
+- Image pulls and imports report downloading layers, materializing layers and assembling the root disk as separate
+  steps, instead of one progress figure that jumped between layers.
 
 ## [0.1.0-preview.5] - 2026-09-22
 
