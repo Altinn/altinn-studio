@@ -62,6 +62,20 @@ public static class Guard
     }
 
     /// <summary>
+    /// Determines whether a name is safe to use as a single path segment. A safe segment is non-empty and
+    /// contains neither a directory separator nor a reference to a parent directory.
+    /// </summary>
+    /// <param name="name">The name to check.</param>
+    /// <returns>True if the name can be used as a single path segment.</returns>
+    public static bool IsSafePathSegment(string name)
+    {
+        return !string.IsNullOrEmpty(name)
+            && !name.Contains("..", StringComparison.Ordinal)
+            && !name.Contains('/')
+            && !name.Contains('\\');
+    }
+
+    /// <summary>
     /// Assert that a full path to a sub directory is below a full path to a parent directory.
     /// </summary>
     /// <param name="parentDirectory">Full path to the parent directory.</param>

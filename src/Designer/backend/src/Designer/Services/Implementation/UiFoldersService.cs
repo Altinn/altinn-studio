@@ -107,11 +107,25 @@ public class UiFoldersService : IUiFoldersService
     /// Validates that a layout set name is safe to use. A layout set name becomes a folder name and thus a
     /// path segment, so anything containing path separators or traversal sequences must be rejected before
     /// it reaches a file operation or a log entry. Every endpoint that accepts a layout set name from the
-    /// caller must validate it through this method.
+    /// caller must validate it through this method. A layout set that already exists is not held to the
+    /// naming policy for new names, so one authored outside Designer can still be renamed and deleted.
     /// </summary>
-    private static void ValidateLayoutSetName(string layoutSetName)
+    private static void ValidateLayoutSetNameIsSafe(string layoutSetName)
     {
-        if (string.IsNullOrEmpty(layoutSetName) || !Regex.IsMatch(layoutSetName, LayoutSetNameRegEx))
+        if (!Guard.IsSafePathSegment(layoutSetName))
+        {
+            throw new InvalidLayoutSetIdException("Layout set name is not valid.");
+        }
+    }
+
+    /// <summary>
+    /// Validates that a layout set name Designer is about to create follows the naming policy Designer
+    /// enforces for the names it creates.
+    /// </summary>
+    private static void ValidateLayoutSetNameIsAllowedForNewLayoutSet(string layoutSetName)
+    {
+        ValidateLayoutSetNameIsSafe(layoutSetName);
+        if (!Regex.IsMatch(layoutSetName, LayoutSetNameRegEx))
         {
             throw new InvalidLayoutSetIdException("Layout set name is not valid.");
         }
@@ -123,7 +137,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        ValidateLayoutSetName(layoutSetName);
+        ValidateLayoutSetNameIsAllowedForNewLayoutSet(layoutSetName);
 
         IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         if (existingLayoutSets.Contains(layoutSetName))
@@ -171,7 +185,7 @@ public class UiFoldersService : IUiFoldersService
     {
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
-        ValidateLayoutSetName(oldLayoutSetName);
+        ValidateLayoutSetNameIsSafe(oldLayoutSetName);
         await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSetName, cancellationToken);
 
         // In v9 a non-subform layout set's folder name equals its process task id, so renaming such a
@@ -238,7 +252,7 @@ public class UiFoldersService : IUiFoldersService
     {
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
-        ValidateLayoutSetName(layoutSetToDeleteId);
+        ValidateLayoutSetNameIsSafe(layoutSetToDeleteId);
 
         string? dataType = (
             await TryGetLayoutSettings(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken)
