@@ -137,6 +137,21 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveLayout_PageDifferingOnlyInCaseFromAnExistingPage_ThrowsAndLeavesItUntouched()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        JsonNode layoutBefore = await repository.GetLayout(LayoutSetWithLegacyPageNames, PageNameWithSpace);
+
+        // Act and assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() =>
+            repository.SaveLayout(LayoutSetWithLegacyPageNames, PageNameWithSpace.ToUpperInvariant(), EmptyLayout())
+        );
+        JsonNode layoutAfter = await repository.GetLayout(LayoutSetWithLegacyPageNames, PageNameWithSpace);
+        Assert.Equal(layoutBefore.ToJsonString(), layoutAfter.ToJsonString());
+    }
+
+    [Fact]
     public async Task CreatePageLayoutFile_NewPageOutsideNamingPolicy_Throws()
     {
         // Arrange
