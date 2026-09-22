@@ -4,6 +4,9 @@ kind: VTSingle
 metadata:
   name: traces-a
 spec:
+  # Same hardened pod and container security context as the rest of the stack;
+  # see the note in metrics.yaml.
+  useStrictSecurity: true
   image:
     repository: victoriametrics/victoria-traces
     tag: v0.11.1
@@ -43,6 +46,7 @@ kind: VTSingle
 metadata:
   name: traces-b
 spec:
+  useStrictSecurity: true
   image:
     repository: victoriametrics/victoria-traces
     tag: v0.11.1
@@ -138,8 +142,6 @@ spec:
       labels:
         app.kubernetes.io/name: vtagent
         app.kubernetes.io/instance: traces
-      annotations:
-        linkerd.io/inject: enabled
     spec:
       securityContext:
         runAsUser: 1000
@@ -218,3 +220,20 @@ spec:
         resources:
           requests:
             storage: 50Gi
+---
+# The operator writes this for the VMAgent and VLAgent; vtagent has no CRD in
+# v0.74.1, so its PodDisruptionBudget is written by hand. One replica per node,
+# so a voluntary disruption may only take one at a time.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vtagent-traces
+  labels:
+    app.kubernetes.io/name: vtagent
+    app.kubernetes.io/instance: traces
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vtagent
+      app.kubernetes.io/instance: traces
