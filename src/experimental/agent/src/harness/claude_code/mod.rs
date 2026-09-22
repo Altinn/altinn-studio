@@ -12,6 +12,7 @@ use sandbox::secret_store::SecretReference;
 pub(super) mod authentication;
 mod bootstrap;
 mod hooks;
+mod status_line;
 pub(super) mod transcript;
 
 const PROVIDER: &str = "claude";

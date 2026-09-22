@@ -196,6 +196,7 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     // https://developers.openai.com/codex/config-reference
     let mut configuration = format!(
         "-c 'cli_auth_credentials_store=\"file\"' -c 'tui.alternate_screen=\"never\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+         -c 'tui.status_line=[\"model-with-reasoning\",\"current-dir\",\"git-branch\",\"context-used\",\"weekly-limit\",\"codex-version\",\"fast-mode\"]' \
          -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );
