@@ -179,7 +179,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     services.Configure<AssistantSettings>(configuration.GetSection("AltinitySettings"));
     services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
-    services.AddHttpClient<IAssistantServiceClient, AssistantAgentClient>();
+    services.AddHttpClient<IAssistantServiceClient, AssistantServiceClient>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,

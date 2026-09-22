@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
-public class AssistantAgentClient : IAssistantServiceClient
+public class AssistantServiceClient : IAssistantServiceClient
 {
     private const string TracesPath = "/api/traces";
     private const string TraceCleanupPath = $"{TracesPath}/delete-expired";
@@ -18,7 +18,7 @@ public class AssistantAgentClient : IAssistantServiceClient
     private readonly HttpClient _httpClient;
     private readonly AssistantSettings _assistantSettings;
 
-    public AssistantAgentClient(HttpClient httpClient, IOptions<AssistantSettings> assistantSettings)
+    public AssistantServiceClient(HttpClient httpClient, IOptions<AssistantSettings> assistantSettings)
     {
         _httpClient = httpClient;
         _assistantSettings = assistantSettings.Value;

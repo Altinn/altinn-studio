@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Services.Assistant;
 
-public class AssistantAgentClientTests
+public class AssistantServiceClientTests
 {
     private const string AgentUrl = "http://altinn-altinity-agents";
     private const string ExpectedCleanupUrl = $"{AgentUrl}/api/traces/delete-expired";
@@ -21,7 +21,7 @@ public class AssistantAgentClientTests
     public async Task TriggerTraceCleanupAsync_PostsToCleanupEndpoint()
     {
         HttpRequestMessage capturedRequest = null;
-        AssistantAgentClient client = CreateClient(HttpStatusCode.OK, request => capturedRequest = request);
+        AssistantServiceClient client = CreateClient(HttpStatusCode.OK, request => capturedRequest = request);
 
         await client.TriggerTraceCleanupAsync(CancellationToken.None);
 
@@ -33,12 +33,12 @@ public class AssistantAgentClientTests
     [Fact]
     public async Task TriggerTraceCleanupAsync_ThrowsOnNonSuccess()
     {
-        AssistantAgentClient client = CreateClient(HttpStatusCode.InternalServerError);
+        AssistantServiceClient client = CreateClient(HttpStatusCode.InternalServerError);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => client.TriggerTraceCleanupAsync(CancellationToken.None));
     }
 
-    private static AssistantAgentClient CreateClient(
+    private static AssistantServiceClient CreateClient(
         HttpStatusCode statusCode,
         Action<HttpRequestMessage> onRequest = null
     )
@@ -56,6 +56,6 @@ public class AssistantAgentClientTests
 
         HttpClient httpClient = new(mockHandler.Object);
         IOptions<AssistantSettings> settings = Options.Create(new AssistantSettings { AgentUrl = AgentUrl });
-        return new AssistantAgentClient(httpClient, settings);
+        return new AssistantServiceClient(httpClient, settings);
     }
 }
