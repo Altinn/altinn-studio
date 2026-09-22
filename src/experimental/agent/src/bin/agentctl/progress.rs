@@ -1,21 +1,26 @@
-//! Following an Agent ensure from a plain terminal.
+//! Following an Agent's provisioning from a plain terminal.
 //!
-//! [`Wait`] runs one Control API call with streamed progress rendered to
-//! stderr. On a terminal the current phase and step live
-//! on one updating line and only work that took noticeable time leaves a
-//! permanent line, so a warm ensure prints nothing. Without a terminal every
-//! completion is printed once.
+//! [`Wait`] runs one Control API call while it follows the Agent's progress
+//! with `agents.v1.progress` and renders it to stderr. On a terminal the
+//! current phase and step live on one updating line and only work that took
+//! noticeable time leaves a permanent line, so a warm ensure prints nothing.
+//! Without a terminal every completion and output line is printed once.
 
 use std::{
     cell::RefCell,
+    collections::VecDeque,
     io::{self, IsTerminal as _, Write},
+    pin::pin,
     time::{Duration, Instant},
 };
 
 use agent::{
     FailureKind,
-    progress::{Event, PhaseOutcome, ProgressUnit},
+    control_api::Client,
+    progress::{AgentProgress, OutputPosition},
+    resources::Revision,
 };
+use sandbox::progress::{Measurement, OperationStatus, Outcome, ProgressCursor, ProgressUnit, Update};
 
 /// Minimum interval between redraws of the updating line.
 const REDRAW_INTERVAL: Duration = Duration::from_millis(50);
@@ -24,10 +29,14 @@ const NOTABLE_PHASE_MS: u64 = 100;
 /// Completed steps faster than this leave no line on a terminal.
 const NOTABLE_STEP_MS: u64 = 500;
 const FALLBACK_WIDTH: usize = 80;
-/// Output lines kept per step for the failure report.
+/// Output lines of the failed step shown in the failure report.
 const RECENT_OUTPUT_LINES: usize = 5;
+/// Longest wait for the state reached when the followed call returned.
+const FINAL_READ_TIMEOUT: Duration = Duration::from_millis(500);
+/// Pause before following again after a failed progress read.
+const RETRY_INTERVAL: Duration = Duration::from_millis(250);
 
-/// One followed ensure: owns the renderer for its duration.
+/// One followed call: owns the renderer for its duration.
 ///
 /// Ctrl-C is deliberately not handled here. The default SIGINT disposition ends
 /// `agentctl` with status 130, the daemon keeps reconciling regardless, and the
@@ -38,7 +47,7 @@ const RECENT_OUTPUT_LINES: usize = 5;
 /// ```ignore
 /// let wait = Wait::start();
 /// let target = wait
-///     .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+///     .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
 ///     .await?;
 /// ```
 pub(crate) struct Wait {
@@ -52,16 +61,38 @@ impl Wait {
         }
     }
 
-    /// Returns the progress sink to hand to the client call.
-    pub(crate) fn sink(&self) -> impl FnMut(Event) + '_ {
-        move |event| self.renderer.borrow_mut().render(event)
-    }
-
-    /// Runs the ensure call to completion and settles the terminal afterwards.
-    pub(crate) async fn until<T>(&self, ensure: impl Future<Output = T>) -> T {
-        let result = ensure.await;
-        self.renderer.borrow_mut().finish();
-        result
+    /// Runs `call` to completion while rendering `agent`'s progress, then
+    /// renders the final state and settles the terminal.
+    pub(crate) async fn until<T>(&self, client: &Client, agent: &str, call: impl Future<Output = T>) -> T {
+        let mut call = pin!(call);
+        loop {
+            let (after, output) = self.renderer.borrow().position();
+            let follow = async {
+                let progress = client.agent_progress(agent, after, output).await.ok();
+                if progress.is_none() {
+                    // The Agent may not be stored yet, or the daemon is restarting.
+                    tokio::time::sleep(RETRY_INTERVAL).await;
+                }
+                progress
+            };
+            tokio::select! {
+                biased;
+                result = &mut call => {
+                    let (_, output) = self.renderer.borrow().position();
+                    let latest = tokio::time::timeout(FINAL_READ_TIMEOUT, client.agent_progress(agent, None, output));
+                    if let Ok(Ok(progress)) = latest.await {
+                        self.renderer.borrow_mut().render(&progress);
+                    }
+                    self.renderer.borrow_mut().finish();
+                    return result;
+                }
+                progress = follow => {
+                    if let Some(progress) = progress {
+                        self.renderer.borrow_mut().render(&progress);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -78,15 +109,23 @@ pub(crate) struct Renderer<W: Write = io::Stderr> {
     output: W,
     mode: Mode,
     active_line: bool,
-    phase: Option<String>,
-    step: Option<String>,
-    printed_step: bool,
     last_redraw: Option<Instant>,
     last_error: Option<String>,
     /// Consecutive failed passes with the current error.
     failures: u32,
-    /// Most recent output lines of the current step, shown when the step fails.
-    recent_output: std::collections::VecDeque<String>,
+    revision: Option<Revision>,
+    /// Pass being rendered and the position in its progress.
+    pass: Option<u64>,
+    cursor: ProgressCursor,
+    /// Pass whose failure was already reported.
+    reported_failure: Option<u64>,
+    /// A step of the current phase left a permanent line on the terminal.
+    printed_step: bool,
+    /// Output of the step in progress, shown when it fails.
+    recent_output: VecDeque<String>,
+    /// Ready condition already considered, so a standing failure is shown once.
+    seen_condition: Option<String>,
+    started: bool,
 }
 
 impl Renderer {
@@ -109,18 +148,31 @@ impl<W: Write> Renderer<W> {
             output,
             mode,
             active_line: false,
-            phase: None,
-            step: None,
-            printed_step: false,
             last_redraw: None,
             last_error: None,
             failures: 0,
-            recent_output: std::collections::VecDeque::new(),
+            revision: None,
+            pass: None,
+            cursor: ProgressCursor::new(),
+            reported_failure: None,
+            printed_step: false,
+            recent_output: VecDeque::new(),
+            seen_condition: None,
+            started: false,
         }
     }
 
-    pub(crate) fn render(&mut self, event: Event) {
-        let _ignored = self.render_inner(event);
+    /// Revision to follow from and the output already rendered.
+    fn position(&self) -> (Option<Revision>, Option<OutputPosition>) {
+        let output = self.pass.map(|pass| OutputPosition {
+            pass,
+            sequence: self.cursor.output_sequence(),
+        });
+        (self.revision, output)
+    }
+
+    pub(crate) fn render(&mut self, progress: &AgentProgress) {
+        let _ignored = self.render_inner(progress);
     }
 
     pub(crate) fn finish(&mut self) {
@@ -131,80 +183,121 @@ impl<W: Write> Renderer<W> {
         matches!(self.mode, Mode::Terminal { .. })
     }
 
-    fn render_inner(&mut self, event: Event) -> io::Result<()> {
-        match event {
-            Event::PhaseStarted { message, .. } => {
-                self.phase = Some(message);
-                self.step = None;
-                self.printed_step = false;
-                self.show_active(None)
+    fn render_inner(&mut self, progress: &AgentProgress) -> io::Result<()> {
+        self.revision = Some(progress.revision);
+        self.condition(progress)?;
+        let Some(provisioning) = &progress.provisioning else {
+            return Ok(());
+        };
+        if self.pass != Some(provisioning.pass) {
+            self.pass = Some(provisioning.pass);
+            self.cursor = ProgressCursor::new();
+            self.printed_step = false;
+            self.recent_output.clear();
+        }
+        let pass = &provisioning.progress;
+        let mut latest_output = None;
+        for update in self.cursor.updates(pass) {
+            match update {
+                Update::OutputSkipped(count) => self.skipped(count)?,
+                Update::Output(line) => {
+                    self.step_output(&line.text)?;
+                    latest_output = Some(line.text.trim());
+                }
+                Update::StepFinished(step) => {
+                    latest_output = None;
+                    // A failed step keeps its output for the failure report.
+                    if step.outcome != Outcome::Failed {
+                        self.recent_output.clear();
+                        self.step_completed(&step.name, step.elapsed_ms)?;
+                    }
+                }
+                Update::PhaseFinished(phase) if phase.outcome != Outcome::Failed => {
+                    self.phase_completed(&phase.phase.label, phase.outcome, phase.elapsed_ms)?;
+                }
+                // A failed phase is reported with its pass's failure below.
+                Update::PhaseFinished(_) => {}
             }
-            Event::PhaseCompleted {
-                message,
-                outcome,
-                elapsed_ms,
-                ..
-            } => self.phase_completed(&message, outcome, elapsed_ms),
-            Event::PhaseFailed {
-                message,
-                detail,
-                failure,
-                elapsed_ms,
-                ..
-            } => self.phase_failed(&message, &detail, failure, elapsed_ms),
-            Event::StepStarted { message, .. } => {
-                self.step = Some(message);
-                self.recent_output.clear();
-                self.show_active(None)
+        }
+        match pass.status() {
+            OperationStatus::Failed { detail } if self.reported_failure != Some(provisioning.pass) => {
+                self.reported_failure = Some(provisioning.pass);
+                let (phase, elapsed_ms) = pass
+                    .finished()
+                    .iter()
+                    .rfind(|phase| phase.outcome == Outcome::Failed)
+                    .map_or(("Provision Sandbox", 0), |phase| {
+                        (phase.phase.label.as_ref(), phase.elapsed_ms)
+                    });
+                let failure = progress.status.failure.unwrap_or(FailureKind::Transient);
+                self.phase_failed(phase, detail, failure, elapsed_ms)
             }
-            Event::StepProgress {
-                completed, total, unit, ..
-            } => {
-                if self.interactive() {
-                    self.show_active_throttled(&format_progress(completed, total, unit))
-                } else {
-                    Ok(())
+            OperationStatus::Running => {
+                let Some(current) = pass.current() else {
+                    return Ok(());
+                };
+                let mut line = format!("→ {}", current.phase.label);
+                let Some(step) = pass.current_step() else {
+                    return self.show_line(&line);
+                };
+                line.push_str(": ");
+                line.push_str(&step.name);
+                let detail = step
+                    .measurement
+                    .map(format_measurement)
+                    .or_else(|| latest_output.map(str::to_owned));
+                match detail {
+                    Some(detail) => self.show_line_throttled(&format!("{line}: {detail}")),
+                    None => self.show_line(&line),
                 }
             }
-            Event::StepOutput { detail, .. } => self.step_output(&detail),
-            Event::StepCompleted {
-                message, elapsed_ms, ..
-            } => {
-                self.clear_active_line()?;
-                self.step = None;
-                if !self.interactive() || elapsed_ms >= NOTABLE_STEP_MS {
-                    self.printed_step = true;
-                    writeln!(self.output, "  ✓ {message} ({})", duration(elapsed_ms))?;
-                }
-                self.show_active(None)
-            }
-            // Readiness is the command's outcome and reported by the command itself.
-            Event::Condition {
-                reason,
-                message,
-                failure: Some(FailureKind::Transient),
-                ..
-            } => {
-                self.clear_active_line()?;
-                let diagnostic = if message.is_empty() { reason } else { message };
-                self.error(&diagnostic)
-            }
-            Event::Condition { .. } => Ok(()),
+            _ => Ok(()),
         }
     }
 
-    fn phase_completed(&mut self, message: &str, outcome: PhaseOutcome, elapsed_ms: u64) -> io::Result<()> {
+    /// Reports a transient failure recorded outside a Sandbox pass, including
+    /// one that already stood when following started. Readiness itself is the
+    /// command's outcome and reported by the command.
+    fn condition(&mut self, progress: &AgentProgress) -> io::Result<()> {
+        let started = std::mem::replace(&mut self.started, true);
+        let Some(ready) = progress.status.ready_condition() else {
+            return Ok(());
+        };
+        let detail = ready.detail();
+        if self.seen_condition.as_deref() == Some(detail.as_str()) {
+            return Ok(());
+        }
+        self.seen_condition = Some(detail.clone());
+        let failing = progress.status.failure == Some(FailureKind::Transient);
+        let explained_by_pass = started && progress.provisioning.is_some();
+        if failing && !explained_by_pass {
+            self.clear_active_line()?;
+            self.error(&detail)?;
+        }
+        Ok(())
+    }
+
+    fn phase_completed(&mut self, label: &str, outcome: Outcome, elapsed_ms: u64) -> io::Result<()> {
         self.clear_active_line()?;
-        self.phase = None;
+        let printed_step = std::mem::take(&mut self.printed_step);
         if !self.interactive() {
-            return if outcome == PhaseOutcome::Reused {
-                writeln!(self.output, "✓ {message} (reused)")
+            return if outcome == Outcome::Reused {
+                writeln!(self.output, "✓ {label} (reused)")
             } else {
-                writeln!(self.output, "✓ {message} ({})", duration(elapsed_ms))
+                writeln!(self.output, "✓ {label} ({})", duration(elapsed_ms))
             };
         }
-        if outcome != PhaseOutcome::Reused && (elapsed_ms >= NOTABLE_PHASE_MS || self.printed_step) {
-            writeln!(self.output, "✓ {message} ({})", duration(elapsed_ms))?;
+        if outcome != Outcome::Reused && (elapsed_ms >= NOTABLE_PHASE_MS || printed_step) {
+            writeln!(self.output, "✓ {label} ({})", duration(elapsed_ms))?;
+        }
+        Ok(())
+    }
+
+    fn step_completed(&mut self, name: &str, elapsed_ms: u64) -> io::Result<()> {
+        self.clear_active_line()?;
+        if !self.interactive() || elapsed_ms >= NOTABLE_STEP_MS {
+            self.printed_step = true;
+            writeln!(self.output, "  ✓ {name} ({})", duration(elapsed_ms))?;
         }
         Ok(())
     }
@@ -215,20 +308,22 @@ impl<W: Write> Renderer<W> {
     /// itself. A transient failure is explained once, with the failed step's
     /// last output; on a terminal further identical failures only advance a
     /// counter on the updating line, because the daemon retries every pass.
-    fn phase_failed(&mut self, message: &str, detail: &str, failure: FailureKind, elapsed_ms: u64) -> io::Result<()> {
+    fn phase_failed(&mut self, label: &str, detail: &str, failure: FailureKind, elapsed_ms: u64) -> io::Result<()> {
         self.clear_active_line()?;
-        self.phase = None;
         if failure == FailureKind::Invalid {
-            return writeln!(self.output, "✗ {message} ({})", duration(elapsed_ms));
+            return writeln!(self.output, "✗ {label} ({})", duration(elapsed_ms));
         }
         // The first failed pass this command observes is always explained in full,
         // even when the standing condition already named the error.
         let explain = self.failures == 0 || self.last_error.as_deref() != Some(detail);
         if explain {
             self.failures = 0;
-            writeln!(self.output, "✗ {message} ({})", duration(elapsed_ms))?;
+            writeln!(self.output, "✗ {label} ({})", duration(elapsed_ms))?;
+            self.last_error = None;
             self.error(detail)?;
-            for line in std::mem::take(&mut self.recent_output) {
+            let recent = std::mem::take(&mut self.recent_output);
+            let skip = recent.len().saturating_sub(RECENT_OUTPUT_LINES);
+            for line in recent.iter().skip(skip) {
                 writeln!(self.output, "    {line}")?;
             }
             writeln!(
@@ -239,40 +334,30 @@ impl<W: Write> Renderer<W> {
         self.failures += 1;
         if !self.interactive() {
             if !explain {
-                writeln!(self.output, "✗ {message} ({})", duration(elapsed_ms))?;
+                writeln!(self.output, "✗ {label} ({})", duration(elapsed_ms))?;
             }
             return Ok(());
         }
         let count = self.failures;
         self.show_line(&format!(
-            "✗ {message} failed {count}× (last {}); waiting for the next retry",
+            "✗ {label} failed {count}× (last {}); waiting for the next retry",
             duration(elapsed_ms)
         ))
     }
 
-    fn step_output(&mut self, detail: &str) -> io::Result<()> {
-        for line in detail.lines().map(str::trim).filter(|line| !line.is_empty()) {
-            if self.recent_output.len() == RECENT_OUTPUT_LINES {
-                self.recent_output.pop_front();
-            }
-            self.recent_output.push_back(line.to_owned());
-        }
+    fn step_output(&mut self, line: &str) -> io::Result<()> {
+        self.recent_output.push_back(line.trim().to_owned());
         if self.interactive() {
-            return detail
-                .lines()
-                .rev()
-                .map(str::trim)
-                .find(|line| !line.is_empty())
-                .map_or(Ok(()), |line| self.show_active_throttled(line));
-        }
-        if detail.is_empty() {
             return Ok(());
         }
-        self.output.write_all(detail.as_bytes())?;
-        if !detail.ends_with('\n') {
-            writeln!(self.output)?;
+        writeln!(self.output, "{line}")
+    }
+
+    fn skipped(&mut self, count: u64) -> io::Result<()> {
+        if self.interactive() {
+            return Ok(());
         }
-        self.output.flush()
+        writeln!(self.output, "… {count} output lines skipped")
     }
 
     /// Prints one `error:` line, suppressing a repeat of the previous diagnostic.
@@ -284,28 +369,11 @@ impl<W: Write> Renderer<W> {
         writeln!(self.output, "error: {diagnostic}")
     }
 
-    fn show_active_throttled(&mut self, detail: &str) -> io::Result<()> {
+    fn show_line_throttled(&mut self, line: &str) -> io::Result<()> {
         if self.last_redraw.is_some_and(|last| last.elapsed() < REDRAW_INTERVAL) {
             return Ok(());
         }
-        self.show_active(Some(detail))
-    }
-
-    /// Redraws the updating line as `→ phase: step: detail`.
-    fn show_active(&mut self, detail: Option<&str>) -> io::Result<()> {
-        let Some(phase) = &self.phase else {
-            return Ok(());
-        };
-        let mut line = format!("→ {phase}");
-        if let Some(step) = &self.step {
-            line.push_str(": ");
-            line.push_str(step);
-        }
-        if let Some(detail) = detail {
-            line.push_str(": ");
-            line.push_str(detail);
-        }
-        self.show_line(&line)
+        self.show_line(line)
     }
 
     /// Replaces the updating line, truncated to the terminal width; no-op without a terminal.
@@ -341,12 +409,12 @@ fn truncate(text: &str, width: usize) -> String {
     kept
 }
 
-fn format_progress(completed: u64, total: Option<u64>, unit: ProgressUnit) -> String {
+pub(crate) fn format_measurement(Measurement { unit, completed, total }: Measurement) -> String {
     match (unit, total) {
         (ProgressUnit::Bytes, Some(total)) => format!("{} / {}", bytes(completed), bytes(total)),
         (ProgressUnit::Bytes, None) => bytes(completed),
         (ProgressUnit::Items, Some(total)) => format!("{completed} / {total}"),
-        (ProgressUnit::Items, None) => completed.to_string(),
+        _ => completed.to_string(),
     }
 }
 
@@ -371,7 +439,7 @@ fn scaled(value: u64, unit: u64, suffix: &str) -> String {
     format!("{whole}.{decimal} {suffix}")
 }
 
-fn duration(milliseconds: u64) -> String {
+pub(crate) fn duration(milliseconds: u64) -> String {
     if milliseconds >= 60_000 {
         format!("{}m {:02}s", milliseconds / 60_000, milliseconds % 60_000 / 1_000)
     } else if milliseconds >= 1_000 {
@@ -385,42 +453,108 @@ fn duration(milliseconds: u64) -> String {
 
 #[cfg(test)]
 mod tests {
-    use agent::progress::Phase;
+    use std::{collections::HashMap, time::Duration};
+
+    use agent::{Condition, ConditionStatus, Status, progress::Provisioning, resources::Changes};
+    use sandbox::{OutputStream, ProgressEvent, SandboxPhase, StepId, progress::Progress};
 
     use super::*;
 
-    fn started(message: &str) -> Event {
-        Event::PhaseStarted {
-            phase: Phase::SandboxStart,
-            message: message.into(),
-        }
+    /// Builds successive snapshots of one Agent's progress, as the daemon reports them.
+    struct Daemon {
+        changes: Changes,
+        pass: u64,
+        progress: Progress,
+        status: Status,
+        steps: HashMap<&'static str, StepId>,
     }
 
-    fn completed(message: &str, outcome: PhaseOutcome, elapsed_ms: u64) -> Event {
-        Event::PhaseCompleted {
-            phase: Phase::SandboxStart,
-            message: message.into(),
-            outcome,
-            elapsed_ms,
+    impl Daemon {
+        fn new() -> Self {
+            Self {
+                changes: Changes::new(),
+                pass: 1,
+                progress: Progress::new(),
+                status: Status::default(),
+                steps: HashMap::new(),
+            }
         }
-    }
 
-    fn step_completed(message: &str, elapsed_ms: u64) -> Event {
-        Event::StepCompleted {
-            phase: Phase::SandboxStart,
-            step_id: "1".into(),
-            message: message.into(),
-            elapsed_ms,
+        fn apply(&mut self, event: &ProgressEvent) -> &mut Self {
+            self.progress.apply(event);
+            self
         }
-    }
 
-    fn failed(message: &str, detail: &str) -> Event {
-        Event::PhaseFailed {
-            phase: Phase::SandboxStart,
-            message: message.into(),
-            detail: detail.into(),
-            failure: FailureKind::Transient,
-            elapsed_ms: 0,
+        fn phase(&mut self, phase: SandboxPhase) -> &mut Self {
+            self.apply(&ProgressEvent::PhaseStarted { phase: phase.phase() })
+        }
+
+        fn end_phase(&mut self, phase: SandboxPhase, outcome: Outcome, elapsed_ms: u64) -> &mut Self {
+            self.apply(&ProgressEvent::PhaseEnded {
+                phase: phase.phase(),
+                outcome,
+                elapsed: Duration::from_millis(elapsed_ms),
+            })
+        }
+
+        fn step(&mut self, name: &'static str) -> &mut Self {
+            let id = StepId::generate();
+            self.steps.insert(name, id.clone());
+            self.apply(&ProgressEvent::StepStarted {
+                id,
+                name: name.into(),
+                unit: None,
+                total: None,
+            })
+        }
+
+        fn output(&mut self, name: &'static str, text: &str) -> &mut Self {
+            let id = self.steps[name].clone();
+            self.apply(&ProgressEvent::StepOutput {
+                id,
+                stream: OutputStream::Stderr,
+                bytes: text.as_bytes().to_vec().into(),
+            })
+        }
+
+        fn end_step(&mut self, name: &'static str, elapsed_ms: u64) -> &mut Self {
+            let id = self.steps[name].clone();
+            self.apply(&ProgressEvent::StepEnded {
+                id,
+                outcome: Outcome::Completed,
+                elapsed: Duration::from_millis(elapsed_ms),
+            })
+        }
+
+        fn fail(&mut self, detail: &str) -> &mut Self {
+            self.progress.fail(detail);
+            self.status.failure = Some(FailureKind::Transient);
+            self.status.conditions = vec![Condition {
+                kind: Condition::READY.into(),
+                status: ConditionStatus::False,
+                reason: "SandboxReconcileFailed".into(),
+                message: detail.into(),
+                last_transition_time: None,
+            }];
+            self
+        }
+
+        fn retry(&mut self) -> &mut Self {
+            self.pass += 1;
+            self.progress = Progress::new();
+            self
+        }
+
+        fn snapshot(&self) -> AgentProgress {
+            self.changes.bump();
+            AgentProgress {
+                revision: self.changes.revision(),
+                status: self.status.clone(),
+                provisioning: Some(Provisioning {
+                    pass: self.pass,
+                    progress: self.progress.clone(),
+                }),
+            }
         }
     }
 
@@ -434,33 +568,34 @@ mod tests {
             .collect()
     }
 
-    fn render(interactive: bool, events: impl IntoIterator<Item = Event>) -> Vec<String> {
+    fn renderer(interactive: bool) -> Renderer<Vec<u8>> {
         let mode = if interactive {
             Mode::Terminal { width: 80 }
         } else {
             Mode::Plain
         };
-        let mut renderer = Renderer::new(Vec::new(), mode);
-        for event in events {
-            renderer.render(event);
-        }
-        renderer.finish();
-        lines(renderer)
+        Renderer::new(Vec::new(), mode)
     }
 
     #[test]
     fn a_warm_ensure_leaves_no_permanent_lines_on_a_terminal() {
-        let lines = render(
-            true,
-            [
-                started("Look up Sandbox"),
-                completed("Look up Sandbox", PhaseOutcome::Reused, 0),
-                started("Inspect Sandbox"),
-                completed("Inspect Sandbox", PhaseOutcome::Completed, 3),
-            ],
+        let mut renderer = renderer(true);
+        let mut daemon = Daemon::new();
+        renderer.render(&daemon.phase(SandboxPhase::Lookup).snapshot());
+        renderer.render(
+            &daemon
+                .end_phase(SandboxPhase::Lookup, Outcome::Reused, 0)
+                .phase(SandboxPhase::Inspect)
+                .snapshot(),
         );
+        renderer.render(
+            &daemon
+                .end_phase(SandboxPhase::Inspect, Outcome::Completed, 3)
+                .snapshot(),
+        );
+        renderer.finish();
         assert_eq!(
-            lines,
+            lines(renderer),
             vec!["→ Look up Sandbox", "→ Inspect Sandbox"],
             "only transient redraws"
         );
@@ -468,31 +603,28 @@ mod tests {
 
     #[test]
     fn noticeable_work_and_failures_leave_lines_on_a_terminal() {
-        let lines = render(
-            true,
-            [
-                started("Resolve Sandbox Image"),
-                step_completed("Check Docker Engine", 2),
-                step_completed("Build Docker image", 74_000),
-                completed("Resolve Sandbox Image", PhaseOutcome::Completed, 87_000),
-                started("Start Sandbox"),
-                Event::StepStarted {
-                    phase: Phase::SandboxStart,
-                    step_id: "1".into(),
-                    message: "Start Microsandbox VM".into(),
-                },
-                Event::StepOutput {
-                    phase: Phase::SandboxStart,
-                    step_id: "1".into(),
-                    message: "Start Microsandbox VM".into(),
-                    stream: agent::progress::OutputStream::Stderr,
-                    detail: "opening disk\nno such file\n".into(),
-                },
-                failed("Start Sandbox", "VMDK missing"),
-                started("Start Sandbox"),
-                failed("Start Sandbox", "VMDK missing"),
-            ],
-        );
+        let mut renderer = renderer(true);
+        let mut daemon = Daemon::new();
+        daemon
+            .phase(SandboxPhase::ImageResolve)
+            .step("Check Docker Engine")
+            .end_step("Check Docker Engine", 2)
+            .step("Build Docker image");
+        renderer.render(&daemon.snapshot());
+        daemon
+            .end_step("Build Docker image", 74_000)
+            .end_phase(SandboxPhase::ImageResolve, Outcome::Completed, 87_000)
+            .phase(SandboxPhase::SandboxStart)
+            .step("Start Microsandbox VM")
+            .output("Start Microsandbox VM", "opening disk\nno such file\n");
+        renderer.render(&daemon.snapshot());
+        daemon.fail("VMDK missing");
+        renderer.render(&daemon.snapshot());
+        daemon.retry().phase(SandboxPhase::SandboxStart).fail("VMDK missing");
+        renderer.render(&daemon.snapshot());
+        renderer.finish();
+
+        let lines = lines(renderer);
         let permanent: Vec<_> = lines.iter().filter(|line| !line.starts_with('→')).collect();
         assert_eq!(
             permanent,
@@ -511,21 +643,27 @@ mod tests {
     }
 
     #[test]
-    fn without_a_terminal_every_completion_is_printed_once() {
-        let lines = render(
-            false,
-            [
-                started("Look up Sandbox"),
-                completed("Look up Sandbox", PhaseOutcome::Reused, 0),
-                started("Start Sandbox"),
-                step_completed("Create Microsandbox VM", 366),
-                completed("Start Sandbox", PhaseOutcome::Completed, 367),
-            ],
-        );
+    fn without_a_terminal_every_completion_and_output_line_is_printed_once() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        renderer.render(&daemon.phase(SandboxPhase::Lookup).snapshot());
+        daemon
+            .end_phase(SandboxPhase::Lookup, Outcome::Reused, 0)
+            .phase(SandboxPhase::SandboxStart)
+            .step("Create Microsandbox VM")
+            .output("Create Microsandbox VM", "created\n");
+        renderer.render(&daemon.snapshot());
+        renderer.render(&daemon.snapshot());
+        daemon
+            .end_step("Create Microsandbox VM", 366)
+            .end_phase(SandboxPhase::SandboxStart, Outcome::Completed, 367);
+        renderer.render(&daemon.snapshot());
+        renderer.finish();
         assert_eq!(
-            lines,
+            lines(renderer),
             vec![
                 "✓ Look up Sandbox (reused)",
+                "created",
                 "  ✓ Create Microsandbox VM (366ms)",
                 "✓ Start Sandbox (367ms)",
             ]
@@ -533,15 +671,80 @@ mod tests {
     }
 
     #[test]
+    fn a_standing_failure_is_reported_once_when_following_starts() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        daemon.fail("registry unavailable");
+        let mut standing = daemon.snapshot();
+        standing.provisioning = None;
+        renderer.render(&standing);
+        renderer.render(&standing);
+        assert_eq!(lines(renderer), vec!["error: registry unavailable"]);
+    }
+
+    #[test]
     fn the_updating_line_is_truncated_to_the_terminal_width() {
         let mut renderer = Renderer::new(Vec::new(), Mode::Terminal { width: 24 });
-        renderer.render(started("Resolve Sandbox Image"));
-        renderer.render(Event::StepStarted {
-            phase: Phase::ImageResolve,
-            step_id: "1".into(),
-            message: "Build Docker image".into(),
-        });
+        let mut daemon = Daemon::new();
+        daemon.phase(SandboxPhase::ImageResolve).step("Build Docker image");
+        renderer.render(&daemon.snapshot());
         let lines = lines(renderer);
         assert_eq!(lines.last().map(String::as_str), Some("→ Resolve Sandbox Imag…"));
+    }
+
+    #[test]
+    fn replies_trimmed_to_unseen_output_render_nothing_twice_over_the_wire() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        daemon
+            .phase(SandboxPhase::ImageResolve)
+            .step("Build")
+            .output("Build", "one\n")
+            .end_step("Build", 700)
+            .step("Import");
+        renderer.render(&daemon.snapshot());
+        for completed in [1_u64, 2, 3] {
+            let id = daemon.steps["Import"].clone();
+            daemon.apply(&ProgressEvent::StepOutput {
+                id,
+                stream: OutputStream::Stdout,
+                bytes: format!("layer {completed}\n").into_bytes().into(),
+            });
+            let (_, output) = renderer.position();
+            let mut reply = daemon.snapshot();
+            if let (Some(provisioning), Some(output)) = (reply.provisioning.as_mut(), output) {
+                provisioning.progress = provisioning.progress.output_from(output.sequence);
+            }
+            // Replies reach the renderer through the wire format.
+            let reply = serde_json::from_value(serde_json::to_value(&reply).expect("reply JSON")).expect("reply");
+            renderer.render(&reply);
+            let (_, output) = renderer.position();
+            let mut quiet = daemon.snapshot();
+            if let (Some(provisioning), Some(output)) = (quiet.provisioning.as_mut(), output) {
+                provisioning.progress = provisioning.progress.output_from(output.sequence);
+            }
+            let quiet = serde_json::from_value(serde_json::to_value(&quiet).expect("reply JSON")).expect("reply");
+            renderer.render(&quiet);
+        }
+        assert_eq!(
+            lines(renderer),
+            vec!["one", "  ✓ Build (700ms)", "layer 1", "layer 2", "layer 3"]
+        );
+    }
+
+    #[test]
+    fn the_follow_position_names_the_rendered_pass_and_output() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        daemon
+            .phase(SandboxPhase::ImageResolve)
+            .step("Build")
+            .output("Build", "one\ntwo\n");
+        let snapshot = daemon.snapshot();
+        renderer.render(&snapshot);
+        assert_eq!(
+            renderer.position(),
+            (Some(snapshot.revision), Some(OutputPosition { pass: 1, sequence: 2 }))
+        );
     }
 }

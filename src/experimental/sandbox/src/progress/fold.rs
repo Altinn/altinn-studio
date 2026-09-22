@@ -64,6 +64,8 @@ pub struct FinishedPhase {
     /// Earlier finished steps no longer retained.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub omitted_steps: u64,
+    /// Output lines produced before the phase ended, which orders it among them.
+    pub output_sequence: u64,
 }
 
 /// The phase in progress.
@@ -115,6 +117,8 @@ pub struct FinishedStep {
     /// The step's final quantity, for a measured step.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub measurement: Option<Measurement>,
+    /// Output lines produced before the step ended, which orders it among them.
+    pub output_sequence: u64,
 }
 
 /// The single quantity a measured step reports.
@@ -253,6 +257,26 @@ impl Progress {
         }
     }
 
+    /// A copy without the output lines before `sequence`, for an observer that
+    /// already has them.
+    #[must_use]
+    pub fn output_from(&self, sequence: u64) -> Self {
+        Self {
+            output: OutputLog {
+                lines: self
+                    .output
+                    .lines
+                    .iter()
+                    .filter(|line| line.sequence >= sequence)
+                    .cloned()
+                    .collect(),
+                next_sequence: self.output.next_sequence,
+                partial: HashMap::new(),
+            },
+            ..self.clone()
+        }
+    }
+
     /// Folds one event into the progress.
     pub fn apply(&mut self, event: &ProgressEvent) {
         match event {
@@ -349,6 +373,7 @@ impl Progress {
                 elapsed_ms,
                 steps: current.finished_steps,
                 omitted_steps: current.omitted_steps,
+                output_sequence: self.output.next_sequence,
             });
         }
     }
@@ -370,6 +395,7 @@ impl Progress {
             name: step.name,
             outcome,
             measurement: step.measurement,
+            output_sequence: self.output.next_sequence,
         });
     }
 
@@ -467,51 +493,73 @@ impl OutputLog {
 }
 
 impl ProgressCursor {
-    /// Returns what happened since the last call and moves past it.
-    ///
-    /// Output comes first: a step's output precedes its end.
+    /// Creates a cursor at the start of an operation.
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {
+            phases: 0,
+            steps: 0,
+            output: 0,
+        }
+    }
+
+    /// Sequence number of the first output line not yet returned.
+    #[must_use]
+    pub const fn output_sequence(&self) -> u64 {
+        self.output
+    }
+
+    /// Returns what happened since the last call, in the order it happened,
+    /// and moves past it.
     pub fn updates<'a>(&mut self, progress: &'a Progress) -> Vec<Update<'a>> {
         if self.phases > progress.finished.len() || self.output > progress.output.next_sequence {
             *self = Self::default();
         }
-        let mut updates = Vec::new();
-        let first = progress.output.first_sequence();
-        if self.output < first {
-            updates.push(Update::OutputSkipped(first - self.output));
-            self.output = first;
-        }
-        updates.extend(
-            progress
-                .output
-                .lines
-                .iter()
-                .filter(|line| line.sequence >= self.output)
-                .map(Update::Output),
-        );
-        self.output = progress.output.next_sequence;
-
+        let mut finished = Vec::new();
         for phase in &progress.finished[self.phases..] {
-            push_steps(&mut updates, &phase.steps, phase.omitted_steps, self.steps);
-            updates.push(Update::PhaseFinished(phase));
+            push_steps(&mut finished, &phase.steps, phase.omitted_steps, self.steps);
+            finished.push((phase.output_sequence, Update::PhaseFinished(phase)));
             self.steps = 0;
         }
         self.phases = progress.finished.len();
         if let Some(current) = &progress.current {
             push_steps(
-                &mut updates,
+                &mut finished,
                 &current.finished_steps,
                 current.omitted_steps,
                 self.steps,
             );
             self.steps = current.omitted_steps + current.finished_steps.len() as u64;
         }
+
+        let mut updates = Vec::new();
+        let first = progress.output.first_sequence();
+        if self.output < first {
+            updates.push(Update::OutputSkipped(first - self.output));
+            self.output = first;
+        }
+        let mut finished = finished.into_iter().peekable();
+        for line in progress.output.lines.iter().filter(|line| line.sequence >= self.output) {
+            while let Some((_, update)) = finished.next_if(|(before, _)| *before <= line.sequence) {
+                updates.push(update);
+            }
+            updates.push(Update::Output(line));
+        }
+        updates.extend(finished.map(|(_, update)| update));
+        self.output = progress.output.next_sequence;
         updates
     }
 }
 
-fn push_steps<'a>(updates: &mut Vec<Update<'a>>, steps: &'a [FinishedStep], omitted: u64, seen: u64) {
+/// Adds the steps not yet seen, each with the output position it ended at.
+fn push_steps<'a>(finished: &mut Vec<(u64, Update<'a>)>, steps: &'a [FinishedStep], omitted: u64, seen: u64) {
     let skip = usize::try_from(seen.saturating_sub(omitted)).unwrap_or(usize::MAX);
-    updates.extend(steps.iter().skip(skip).map(Update::StepFinished));
+    finished.extend(
+        steps
+            .iter()
+            .skip(skip)
+            .map(|step| (step.output_sequence, Update::StepFinished(step))),
+    );
 }
 
 fn milliseconds(duration: std::time::Duration) -> u64 {
@@ -687,6 +735,7 @@ mod tests {
     fn a_summary_keeps_outcomes_and_the_output_tail() {
         let mut progress = Progress::new();
         let step = StepId::generate();
+        progress.apply(&phase_started());
         progress.apply(&step_started(&step, "Build", None));
         progress.apply(&output(&step, "one\ntwo\nthree\n"));
         progress.apply(&ended(&step));
@@ -705,6 +754,47 @@ mod tests {
     }
 
     #[test]
+    fn output_from_keeps_later_lines_and_a_cursor_reads_them_as_new() {
+        let mut progress = Progress::new();
+        let step = StepId::generate();
+        progress.apply(&phase_started());
+        progress.apply(&step_started(&step, "Build", None));
+        progress.apply(&output(&step, "one\ntwo\n"));
+        let mut cursor = ProgressCursor::default();
+        assert_eq!(cursor.updates(&progress.output_from(0)).len(), 2);
+        progress.apply(&output(&step, "three\n"));
+        let trimmed = progress.output_from(2);
+        assert_eq!(trimmed.output().lines().count(), 1);
+        assert!(matches!(
+            cursor.updates(&trimmed).as_slice(),
+            [Update::Output(line)] if line.text == "three"
+        ));
+    }
+
+    #[test]
+    fn updates_keep_output_and_endings_in_the_order_they_happened() {
+        let mut progress = Progress::new();
+        let first = StepId::generate();
+        let second = StepId::generate();
+        progress.apply(&phase_started());
+        progress.apply(&step_started(&first, "First", None));
+        progress.apply(&output(&first, "first output\n"));
+        progress.apply(&ended(&first));
+        progress.apply(&step_started(&second, "Second", None));
+        progress.apply(&output(&second, "second output\n"));
+        let order = ProgressCursor::new()
+            .updates(&progress)
+            .into_iter()
+            .map(|update| match update {
+                Update::Output(line) => line.text.clone(),
+                Update::StepFinished(step) => format!("end {}", step.name),
+                other => format!("{other:?}"),
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(order, ["first output", "end First", "second output"]);
+    }
+
+    #[test]
     fn progress_round_trips_through_json_without_partial_lines() {
         let mut progress = Progress::new();
         let step = StepId::generate();
@@ -717,5 +807,14 @@ mod tests {
         assert_eq!(json["status"]["state"], "running");
         let decoded: Progress = serde_json::from_value(json).expect("progress from JSON");
         assert_eq!(decoded.output().lines().count(), 1);
+
+        let trimmed = serde_json::to_value(progress.output_from(1)).expect("trimmed progress JSON");
+        let decoded: Progress = serde_json::from_value(trimmed).expect("trimmed progress from JSON");
+        assert_eq!(decoded.output().lines().count(), 0);
+        assert_eq!(
+            decoded.output().next_sequence,
+            1,
+            "an observer that has every line still learns where the output stands"
+        );
     }
 }

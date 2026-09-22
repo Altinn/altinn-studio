@@ -5,7 +5,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Error, control_plane, control_plane::WaitPolicy, progress::Reporter};
+use crate::{Error, control_plane, control_plane::WaitPolicy};
 
 use super::{
     AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
@@ -120,10 +120,9 @@ impl Service {
         name: &SessionName,
         request: SessionRequest,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
-        self.convergence.converge(owner.id, wait, progress.as_ref()).await?;
+        self.convergence.converge(owner.id, wait).await?;
         // On a brand-new Agent this is the first moment the answer exists.
         let converged = self.sandboxes.agent_by_name(agent).await?;
         Self::reject_omitted_optional_harness(&converged, session.harness)?;

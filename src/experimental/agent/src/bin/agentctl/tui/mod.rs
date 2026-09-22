@@ -274,7 +274,7 @@ fn spawn_create(
         let result = async {
             // The TUI has no place to render progress while on screen, so a failing
             // first pass is reported instead of waited through.
-            let target = client.ensure_execution(&agent, WaitPolicy::FirstPass, None).await?;
+            let target = client.ensure_execution(&agent, WaitPolicy::FirstPass).await?;
             PortForward::start(home_path, target.sandbox, spec.clone()).await
         }
         .await;
@@ -497,7 +497,11 @@ async fn attach(
 ) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client.ensure_session(agent, session, request, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(
+            client,
+            agent,
+            client.ensure_session(agent, session, request, WaitPolicy::UntilReady),
+        )
         .await?;
     agent::sessions::attach(home.path(), &target).await
 }
@@ -505,7 +509,7 @@ async fn attach(
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client.ensure_execution(agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
         .await?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;

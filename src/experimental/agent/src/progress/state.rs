@@ -66,8 +66,8 @@ impl ProvisioningState {
             OperationStatus::Running => 0,
         };
         Some(Provisioning {
-            pass: provisioning.pass,
             progress: provisioning.progress.summary(output),
+            ..provisioning.clone()
         })
     }
 
@@ -86,15 +86,15 @@ impl ProvisioningState {
     }
 
     pub(crate) fn apply(&self, id: AgentId, event: &::sandbox::ProgressEvent) {
-        self.update(id, |progress| progress.apply(event));
+        self.update(id, |provisioning| provisioning.progress.apply(event));
     }
 
     pub(crate) fn succeed(&self, id: AgentId) {
-        self.update(id, Progress::succeed);
+        self.update(id, |provisioning| provisioning.progress.succeed());
     }
 
     pub(crate) fn fail(&self, id: AgentId, detail: &str) {
-        self.update(id, |progress| progress.fail(detail));
+        self.update(id, |provisioning| provisioning.progress.fail(detail));
     }
 
     /// Drops a deleted Agent's state.
@@ -104,13 +104,8 @@ impl ProvisioningState {
         }
     }
 
-    fn update(&self, id: AgentId, change: impl FnOnce(&mut Progress)) {
-        let updated = self
-            .agents
-            .borrow_mut()
-            .get_mut(&id)
-            .map(|provisioning| change(&mut provisioning.progress))
-            .is_some();
+    fn update(&self, id: AgentId, change: impl FnOnce(&mut Provisioning)) {
+        let updated = self.agents.borrow_mut().get_mut(&id).map(change).is_some();
         if updated {
             self.changes.bump();
         }

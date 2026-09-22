@@ -843,6 +843,18 @@ impl Status {
     pub fn is_ready(&self) -> bool {
         Condition::any_ready(&self.conditions)
     }
+
+    /// Returns the failure detail when desired state must change before
+    /// another pass can succeed.
+    #[must_use]
+    pub fn invalid(&self) -> Option<String> {
+        if self.failure != Some(crate::FailureKind::Invalid) {
+            return None;
+        }
+        self.ready_condition()
+            .or_else(|| self.conditions.first())
+            .map(Condition::detail)
+    }
 }
 
 impl Condition {
