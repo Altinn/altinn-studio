@@ -95,8 +95,9 @@ const FORWARD_VIEW_HINTS: [Hint; 3] = [
     Hint::key("q", "back", KeyCode::Char('q')),
 ];
 
-const AGENT_HINTS: [Hint; 9] = [
+const AGENT_HINTS: [Hint; 10] = [
     Hint::key("enter", "fold", KeyCode::Enter),
+    Hint::key("p", "provisioning", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
@@ -183,6 +184,29 @@ pub(crate) struct Detail {
     pub(crate) title: String,
     pub(crate) lines: Vec<String>,
     pub(crate) scroll: usize,
+    /// Agent whose provisioning the detail follows; its lines are replaced as
+    /// progress arrives.
+    pub(crate) follows: Option<String>,
+}
+
+impl Detail {
+    pub(crate) const fn text(title: String, lines: Vec<String>) -> Self {
+        Self {
+            title,
+            lines,
+            scroll: 0,
+            follows: None,
+        }
+    }
+
+    fn provisioning(agent: String) -> Self {
+        Self {
+            title: format!("agent/{agent} provisioning"),
+            lines: vec!["Waiting for agentd…".to_owned()],
+            scroll: 0,
+            follows: Some(agent),
+        }
+    }
 }
 
 pub(crate) enum Modal {
@@ -1196,20 +1220,14 @@ impl App {
                     self.rebuild();
                 }
             }
+            KeyCode::Char('p') => self.detail = Some(Detail::provisioning(name)),
             KeyCode::Char('s') => {
-                self.detail = Some(Detail {
-                    title: format!("agent/{name}"),
-                    lines: format::describe_agent_lines(agent),
-                    scroll: 0,
-                });
+                self.detail = Some(Detail::text(
+                    format!("agent/{name}"),
+                    format::describe_agent_lines(agent),
+                ));
             }
-            KeyCode::Char('y') => {
-                self.detail = Some(Detail {
-                    title: format!("agent/{name} yaml"),
-                    lines: yaml_lines(agent),
-                    scroll: 0,
-                });
-            }
+            KeyCode::Char('y') => self.detail = Some(Detail::text(format!("agent/{name} yaml"), yaml_lines(agent))),
             KeyCode::Char('d') => {
                 let sessions = self.groups.get(group).map_or(0, |group| group.sessions.len());
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
@@ -1251,11 +1269,10 @@ impl App {
             }
             KeyCode::Char('s') => self.detail = Some(session_detail(session)),
             KeyCode::Char('y') => {
-                self.detail = Some(Detail {
-                    title: format!("session/{}/{} yaml", session.agent, session.name.as_str()),
-                    lines: yaml_lines(session),
-                    scroll: 0,
-                });
+                self.detail = Some(Detail::text(
+                    format!("session/{}/{} yaml", session.agent, session.name.as_str()),
+                    yaml_lines(session),
+                ));
             }
             KeyCode::Char('n') => self.open_new_session(group),
             _ => {}
@@ -1370,8 +1387,8 @@ impl App {
         self.modal = Some(Modal::CreateAgent(CreateForm::new(candidates, manifest.as_deref())));
     }
 
-    /// Shows an Agent this TUI just created and selects it, ahead of the watch
-    /// reply that will report it.
+    /// Shows an Agent this TUI just created, ahead of the watch reply that will
+    /// report it, selects it and follows its provisioning.
     pub(crate) fn agent_applied(&mut self, agent: Agent) {
         let name = agent.metadata.name.clone();
         let mut agents = std::mem::take(&mut self.agents);
@@ -1379,7 +1396,25 @@ impl App {
         agents.push(agent);
         let sessions = std::mem::take(&mut self.sessions);
         self.apply_snapshot(agents, sessions);
-        self.selection = Some(TreeRowId::Agent(name));
+        self.selection = Some(TreeRowId::Agent(name.clone()));
+        self.detail = Some(Detail::provisioning(name));
+    }
+
+    /// The Agent whose provisioning the open detail follows.
+    pub(crate) fn followed_agent(&self) -> Option<&str> {
+        self.detail.as_ref()?.follows.as_deref()
+    }
+
+    /// Replaces the lines of the detail following `agent`'s provisioning.
+    pub(crate) fn provisioning_followed(&mut self, agent: &str, lines: Vec<String>) {
+        if let Some(detail) = self
+            .detail
+            .as_mut()
+            .filter(|detail| detail.follows.as_deref() == Some(agent))
+        {
+            detail.scroll = detail.scroll.min(lines.len().saturating_sub(1));
+            detail.lines = lines;
+        }
     }
 
     fn open_new_session(&mut self, group: usize) {
@@ -1688,11 +1723,7 @@ fn session_detail(session: &Session) -> Detail {
         ),
         format!("ID:         {}", session.id),
     ];
-    Detail {
-        title: format!("session/{}/{}", session.agent, session.name.as_str()),
-        lines,
-        scroll: 0,
-    }
+    Detail::text(format!("session/{}/{}", session.agent, session.name.as_str()), lines)
 }
 
 #[cfg(test)]
@@ -1988,11 +2019,10 @@ mod tests {
         app.on_mouse(MouseAction::MoveTree(-100));
         assert_eq!(app.selected_index(), Some(0));
 
-        app.detail = Some(Detail {
-            title: "detail".into(),
-            lines: vec!["one".into(), "two".into(), "three".into()],
-            scroll: 0,
-        });
+        app.detail = Some(Detail::text(
+            "detail".into(),
+            vec!["one".into(), "two".into(), "three".into()],
+        ));
         app.on_mouse(MouseAction::ScrollDetail(100));
         assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(2));
         app.on_mouse(MouseAction::ScrollDetail(-100));
@@ -2755,6 +2785,26 @@ mod tests {
         let views = app.render_rows();
         assert!(!views[0].detail.contains("ports:"));
         assert!(views[2].detail.contains("ports: 9090:80 0.0.0.0:80:80"));
+    }
+
+    #[test]
+    fn a_created_agents_provisioning_is_followed_until_its_detail_closes() {
+        let mut app = populated();
+        app.agent_applied(agent("analyst"));
+        assert_eq!(app.followed_agent(), Some("analyst"));
+
+        app.provisioning_followed("worker", vec!["stale".into()]);
+        app.provisioning_followed("analyst", vec!["Ready:      True".into()]);
+        assert_eq!(
+            app.detail.as_ref().map(|detail| detail.lines.clone()),
+            Some(vec!["Ready:      True".into()])
+        );
+
+        app.on_key(key(KeyCode::Char('q')));
+        assert_eq!(app.followed_agent(), None);
+        app.select_index(1);
+        app.on_key(key(KeyCode::Char('p')));
+        assert_eq!(app.followed_agent(), Some("builder"), "p follows the selected Agent");
     }
 
     #[test]

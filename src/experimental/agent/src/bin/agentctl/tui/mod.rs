@@ -1,4 +1,5 @@
 mod app;
+mod provisioning;
 mod terminal;
 mod view;
 
@@ -39,6 +40,11 @@ enum Input {
     Event(Option<std::io::Result<Event>>),
     /// A watch reply, or why the daemon could not be watched.
     Resources(Result<Resources, String>),
+    /// The lines of an Agent's followed provisioning.
+    Provisioning {
+        agent: String,
+        lines: Vec<String>,
+    },
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
@@ -133,10 +139,12 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
+    let mut follow = Follow::default();
     spawn_watch(home.socket_path(), inputs.clone());
     loop {
         app.open_queued_create();
         app.set_forwards(forwards.entries());
+        follow.sync(app.followed_agent(), home.socket_path(), &inputs);
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
         let input = tokio::select! {
@@ -151,6 +159,10 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             }
             Input::Resources(Err(error)) => {
                 app.connection_error = Some(error);
+                continue;
+            }
+            Input::Provisioning { agent, lines } => {
+                app.provisioning_followed(&agent, lines);
                 continue;
             }
             Input::ForwardCreated(outcome) => {
@@ -287,6 +299,56 @@ fn spawn_watch(socket_path: PathBuf, inputs: Inputs) {
             }
         }
     });
+}
+
+/// The task following the provisioning an open detail shows, at most one.
+#[derive(Default)]
+struct Follow {
+    task: Option<(String, tokio::task::JoinHandle<()>)>,
+}
+
+impl Follow {
+    /// Follows `agent`, stopping the previous task when the agent changes.
+    fn sync(&mut self, agent: Option<&str>, socket_path: PathBuf, inputs: &Inputs) {
+        if self.task.as_ref().map(|(followed, _)| followed.as_str()) == agent {
+            return;
+        }
+        if let Some((_, task)) = self.task.take() {
+            task.abort();
+        }
+        self.task = agent.map(|agent| {
+            (
+                agent.to_owned(),
+                spawn_follow(socket_path, agent.to_owned(), inputs.clone()),
+            )
+        });
+    }
+}
+
+/// Follows one Agent's provisioning through `agents.v1.progress`, sending the
+/// lines to show after every reply.
+fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::task::JoinHandle<()> {
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let mut followed = provisioning::Followed::default();
+        loop {
+            let (after, output) = followed.position();
+            let lines = match client.agent_progress(&agent, after, output).await {
+                Ok(progress) => {
+                    followed.apply(progress);
+                    followed.lines()
+                }
+                Err(error) => {
+                    tokio::time::sleep(RECONNECT_INTERVAL).await;
+                    vec![format!("Cannot follow provisioning: {error}")]
+                }
+            };
+            let agent = agent.clone();
+            if inputs.send(Input::Provisioning { agent, lines }).is_err() {
+                return;
+            }
+        }
+    })
 }
 
 /// Creates a forward off the event loop so provisioning never freezes the UI.
@@ -817,11 +879,10 @@ mod tests {
         use ratatui::{Terminal, backend::TestBackend};
 
         let mut app = App::new();
-        app.detail = Some(app::Detail {
-            title: "detail".into(),
-            lines: vec!["one".into(), "two".into(), "three".into()],
-            scroll: 0,
-        });
+        app.detail = Some(app::Detail::text(
+            "detail".into(),
+            vec!["one".into(), "two".into(), "three".into()],
+        ));
         let mut state = view::ViewState::default();
         let mut hit_map = None;
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
