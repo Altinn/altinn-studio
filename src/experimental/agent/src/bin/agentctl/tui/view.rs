@@ -9,7 +9,7 @@ use ratatui::{
 use super::MANIFEST_FILE;
 use super::app::{
     App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
-    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row, RowTarget, SessionField, Tone, View,
+    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, RowTarget, SessionField, Tone, TreeRowId, View,
 };
 
 const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
@@ -191,21 +191,21 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         })
         .collect::<Vec<_>>();
     let list = List::new(items).highlight_style(Style::new().add_modifier(Modifier::REVERSED));
-    state.tree.select(Some(app.selected));
+    state.tree.select(app.selected_index());
     frame.render_stateful_widget(list, area, &mut state.tree);
     hit_map.wheel(area, WheelTarget::Tree);
     for visible in 0..usize::from(area.height) {
         let index = state.tree.offset().saturating_add(visible);
-        let Some(row) = app.rows.get(index) else {
+        let Some(target) = app.tree_id_at(index) else {
             break;
         };
         let y = area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
         let row_area = Rect::new(area.x, y, area.width, 1);
-        hit_map.click(row_area, HitTarget::Row(RowTarget::Tree(index)));
-        if matches!(row, Row::Agent(_)) {
+        hit_map.click(row_area, HitTarget::Row(RowTarget::Tree(target.clone())));
+        if let TreeRowId::Agent(agent) = target {
             hit_map.click(
                 Rect::new(area.x, y, area.width.min(2), 1),
-                HitTarget::Action(MouseAction::FoldTree(index)),
+                HitTarget::Action(MouseAction::FoldTree(agent)),
             );
         }
     }
@@ -247,13 +247,13 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
     hit_map.wheel(inner, WheelTarget::Forwards);
     for visible in 0..usize::from(inner.height) {
         let index = state.forwards.offset().saturating_add(visible);
-        if index >= app.forwards.len() {
+        let Some(entry) = app.forwards.get(index) else {
             break;
-        }
+        };
         let y = inner.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
         hit_map.click(
             Rect::new(inner.x, y, inner.width, 1),
-            HitTarget::Row(RowTarget::Forward(index)),
+            HitTarget::Row(RowTarget::Forward(entry.id)),
         );
     }
 }
@@ -969,21 +969,30 @@ mod tests {
     #[test]
     fn tree_hit_map_uses_the_rendered_offset_and_updates_after_resize() {
         let mut app = tree_app(10);
-        app.selected = 9;
+        app.select_index(9);
         let mut state = ViewState::default();
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
 
         let compact = draw_with_state(&mut terminal, &app, &mut state);
         assert_eq!(state.tree.offset(), 5);
-        assert_eq!(compact.click_at(10, 1), Some(HitTarget::Row(RowTarget::Tree(5))));
-        assert_eq!(compact.click_at(10, 5), Some(HitTarget::Row(RowTarget::Tree(9))));
+        assert_eq!(
+            compact.click_at(10, 1),
+            Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent("agent-05".into()))))
+        );
+        assert_eq!(
+            compact.click_at(10, 5),
+            Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent("agent-09".into()))))
+        );
         assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
         assert_eq!(compact.click_at(40, 1), None, "right edge is out of bounds");
 
         terminal.resize(Rect::new(0, 0, 40, 12)).expect("terminal resize");
         let resized = draw_with_state(&mut terminal, &app, &mut state);
         assert_eq!(state.tree.offset(), 5, "the viewport remains stable when it still fits");
-        assert_eq!(resized.click_at(10, 1), Some(HitTarget::Row(RowTarget::Tree(5))));
+        assert_eq!(
+            resized.click_at(10, 1),
+            Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent("agent-05".into()))))
+        );
         assert_eq!(
             resized.click_at(10, 6),
             None,
