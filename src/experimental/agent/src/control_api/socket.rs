@@ -5,7 +5,7 @@ use sandbox::LocalFuture;
 
 use crate::Error;
 
-use super::{Connector, Server, client::Connection};
+use super::{Caller, Connector, Server, client::Connection};
 
 const MAX_CONCURRENT_CONNECTIONS: usize = 64;
 const CONNECTION_DRAIN_TIMEOUT: Duration = Duration::from_mins(1);
@@ -36,7 +36,9 @@ impl PathConnector {
 impl Connector for PathConnector {
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
         Box::pin(async move {
-            let stream = tokio::net::UnixStream::connect(&self.path).await?;
+            let stream = tokio::net::UnixStream::connect(&self.path)
+                .await
+                .map_err(Error::Connect)?;
             Ok(Box::new(stream) as Box<dyn Connection>)
         })
     }
@@ -48,7 +50,10 @@ impl Connector for PathConnector {
         Box::pin(async move {
             use tokio_util::compat::FuturesAsyncReadCompatExt as _;
 
-            let stream = win_uds::net::AsyncStream::connect(&self.path).await?.compat();
+            let stream = win_uds::net::AsyncStream::connect(&self.path)
+                .await
+                .map_err(Error::Connect)?
+                .compat();
             Ok(Box::new(stream) as Box<dyn Connection>)
         })
     }
@@ -71,28 +76,7 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     }
     let listener = tokio::net::UnixListener::bind(path)?;
     crate::local::home::secure_file(path)?;
-    let mut connections = FuturesUnordered::<ConnectionFuture>::new();
-
-    loop {
-        if server.is_draining() {
-            break;
-        }
-        tokio::select! {
-            accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
-                let (stream, _) = accepted?;
-                let connection_server = server.clone();
-                connections.push(async move {
-                    if let Err(error) = connection_server.serve_connection(stream).await {
-                        connection_server.report(&error);
-                    }
-                }.boxed_local());
-            }
-            Some(()) = connections.next(), if !connections.is_empty() => {}
-            () = server.shutdown_requested() => break,
-        }
-    }
-    drain_connections(&mut connections, CONNECTION_DRAIN_TIMEOUT).await;
-    Ok(())
+    serve_listener(server, Caller::Local, || async { Ok(listener.accept().await?.0) }).await
 }
 
 #[cfg(target_os = "windows")]
@@ -130,6 +114,22 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     // above; icacls cannot open an AF_UNIX socket reparse point (error 1920).
     let listener = win_uds::net::AsyncListener::bind(path)?;
     let _cleanup = SocketCleanup(path.to_path_buf());
+    serve_listener(server, Caller::Local, || async {
+        Ok(listener.accept().await?.0.compat())
+    })
+    .await
+}
+
+/// Keeps admission and shutdown draining identical across stream transports.
+pub(super) async fn serve_listener<S, F>(
+    server: Rc<Server>,
+    caller: Caller,
+    mut accept: impl FnMut() -> F,
+) -> Result<(), Error>
+where
+    S: Connection + 'static,
+    F: Future<Output = Result<S, Error>>,
+{
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
 
     loop {
@@ -137,11 +137,11 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
             break;
         }
         tokio::select! {
-            accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
-                let (stream, _) = accepted?;
+            accepted = accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
+                let stream = accepted?;
                 let connection_server = server.clone();
                 connections.push(async move {
-                    if let Err(error) = connection_server.serve_connection(stream.compat()).await {
+                    if let Err(error) = connection_server.serve_connection(stream, caller).await {
                         connection_server.report(&error);
                     }
                 }.boxed_local());
