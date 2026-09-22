@@ -190,6 +190,9 @@ impl Service {
         let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
+            if current.deletion_timestamp.is_some() {
+                return Err(current.deleting_error());
+            }
             match current.status.state {
                 State::Failed => {
                     return Err(Error::Session(format!(
@@ -232,6 +235,9 @@ impl Service {
         tokio::time::timeout(INPUT_READY_TIMEOUT, async {
             loop {
                 let session = self.store.get_session(id).await?;
+                if session.deletion_timestamp.is_some() {
+                    return Err(session.deleting_error());
+                }
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
                     State::Idle | State::Failed => {
@@ -258,6 +264,9 @@ impl Service {
     /// conversation cannot be read.
     pub async fn turns(&self, agent: &str, name: &SessionName, last: Option<usize>) -> Result<Vec<Turn>, Error> {
         let session = self.store.get_agent_session(agent, name).await?;
+        if session.deletion_timestamp.is_some() {
+            return Err(session.deleting_error());
+        }
         let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
         let session = self.store.get_session(session.id).await?;
@@ -266,6 +275,9 @@ impl Service {
 
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
         let session = self.store.get_agent_session(agent, name).await?;
+        if session.deletion_timestamp.is_some() {
+            return Err(session.deleting_error());
+        }
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(session.not_running_error());
         }
@@ -374,6 +386,20 @@ impl Service {
         self.store.get_agent_session(agent, name).await
     }
 
+    /// Requests deletion of a Session. Its harness is stopped in the
+    /// background, and the Session stays listed with its name reserved until
+    /// then; repeating the request is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent or Session does not exist or the request
+    /// cannot be stored.
+    pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<(), Error> {
+        let session = self.store.mark_session_deleting(agent, name).await?;
+        self.wakeup.notify(session.id);
+        Ok(())
+    }
+
     /// Lists durable Sessions, optionally scoped to one active Agent incarnation.
     ///
     /// # Errors
@@ -401,7 +427,11 @@ impl Service {
 
     async fn inspect_upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
         let mut readiness = UpgradeReadiness::default();
+        // A Session being deleted is stopped by its reconciler, not relaunched.
         for session in self.store.list_all_sessions().await? {
+            if session.deletion_timestamp.is_some() {
+                continue;
+            }
             let label = format!("session/{}/{}", session.agent, session.name);
             if session.status.state == State::Working {
                 readiness.blockers.push(format!("{label} (working)"));
@@ -456,6 +486,9 @@ impl Service {
 
     async fn relaunch_sessions(&self) -> Result<(), Error> {
         for session in self.store.list_all_sessions().await? {
+            if session.deletion_timestamp.is_some() {
+                continue;
+            }
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
                 self.store.reset_session_launch_attempts(session.id).await?;
                 continue;

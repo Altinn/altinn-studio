@@ -17,7 +17,7 @@ use super::{agents, database_error};
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
     sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
-    sessions.model, sessions.effort";
+    sessions.model, sessions.effort, sessions.deletion_timestamp";
 
 /// Reconciler-owned column: the lifecycle half of the status plus the
 /// activation revision it was observed at.
@@ -45,6 +45,9 @@ pub(super) fn ensure(
     }
     let agent_id = owner.id;
     if let Some(session) = query_named(&transaction, agent_id, name)? {
+        if session.deletion_timestamp.is_some() {
+            return Err(session.deleting_error());
+        }
         // Two callers may both find no Session and both resolve one; the first
         // recorded selections bind, so a loser that explicitly chose differently
         // learns about it, while one that chose nothing gets the Session as is.
@@ -65,8 +68,8 @@ pub(super) fn ensure(
     let created_at = time::OffsetDateTime::now_utc().unix_timestamp();
     transaction
         .execute(
-            "INSERT INTO sessions (id, agent_id, name, harness, created_at, initial_prompt, model, effort) \
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            "INSERT INTO sessions (id, agent_id, name, active_name, harness, created_at, initial_prompt, model, effort) \
+             VALUES (?1, ?2, ?3, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
                 id.to_string(),
                 agent_id.to_string(),
@@ -89,7 +92,7 @@ pub(super) fn get(connection: &Connection, id: SessionId) -> Result<Session, Err
         .query_row(
             &format!(
                 "SELECT {SESSION_COLUMNS} FROM sessions JOIN agents ON agents.id = sessions.agent_id \
-                 WHERE sessions.id = ?1 AND agents.active_name IS NOT NULL"
+                 WHERE sessions.id = ?1 AND sessions.active_name IS NOT NULL AND agents.active_name IS NOT NULL"
             ),
             [id.to_string()],
             decode_row,
@@ -104,12 +107,48 @@ pub(super) fn get_by_name(connection: &Connection, agent: &str, name: &SessionNa
     query_named(connection, owner.id, name)?.ok_or(Error::NotFound)
 }
 
+/// Records the first deletion request and revokes the running launch's report
+/// token. The name stays reserved until [`finalize_deletion`], so a repeated
+/// request finds and returns the same Session.
+pub(super) fn mark_deleting(connection: &mut Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let owner = agents::get_by_name(&transaction, agent)?;
+    let mut session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    if session.deletion_timestamp.is_none() {
+        // Stored with second precision; the returned Session matches a later read.
+        let timestamp = time::OffsetDateTime::from_unix_timestamp(time::OffsetDateTime::now_utc().unix_timestamp())
+            .map_err(|error| Error::Database(format!("invalid Session deletion time: {error}")))?;
+        transaction
+            .execute(
+                "UPDATE sessions SET deletion_timestamp = ?1, launch_token = NULL WHERE id = ?2",
+                params![timestamp.unix_timestamp(), session.id.to_string()],
+            )
+            .map_err(database_error)?;
+        session.deletion_timestamp = Some(timestamp);
+    }
+    transaction.commit().map_err(database_error)?;
+    Ok(session)
+}
+
+/// Releases a deleted Session's name once its runtime is cleaned up; the row
+/// stays behind, like a finalized Agent incarnation.
+pub(super) fn finalize_deletion(connection: &Connection, id: SessionId) -> Result<(), Error> {
+    connection
+        .execute(
+            "UPDATE sessions SET active_name = NULL WHERE id = ?1 AND deletion_timestamp IS NOT NULL",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    Ok(())
+}
+
 pub(super) fn list_all(connection: &Connection) -> Result<Vec<Session>, Error> {
     query_many(
         connection,
         &format!(
             "SELECT {SESSION_COLUMNS} FROM sessions JOIN agents ON agents.id = sessions.agent_id \
-             WHERE agents.active_name IS NOT NULL ORDER BY agents.active_name, sessions.name"
+             WHERE sessions.active_name IS NOT NULL AND agents.active_name IS NOT NULL \
+             ORDER BY agents.active_name, sessions.name"
         ),
         [],
     )
@@ -120,7 +159,7 @@ pub(super) fn list_for_agent(connection: &Connection, agent: &str) -> Result<Vec
         connection,
         &format!(
             "SELECT {SESSION_COLUMNS} FROM sessions JOIN agents ON agents.id = sessions.agent_id \
-             WHERE agents.active_name = ?1 ORDER BY sessions.name"
+             WHERE sessions.active_name IS NOT NULL AND agents.active_name = ?1 ORDER BY sessions.name"
         ),
         [agent],
     )
@@ -349,6 +388,9 @@ pub(super) fn reset_launch_attempts(connection: &Connection, id: SessionId) -> R
 
 pub(super) fn attach_target(connection: &Connection, id: SessionId) -> Result<AttachTarget, Error> {
     let session = get(connection, id)?;
+    if session.deletion_timestamp.is_some() {
+        return Err(session.deleting_error());
+    }
     if session.status.lifecycle.state != LifecycleState::Running {
         return Err(session.not_running_error());
     }
@@ -374,7 +416,7 @@ fn query_named(connection: &Connection, agent: AgentId, name: &SessionName) -> R
         .query_row(
             &format!(
                 "SELECT {SESSION_COLUMNS} FROM sessions JOIN agents ON agents.id = sessions.agent_id \
-                 WHERE sessions.agent_id = ?1 AND sessions.name = ?2 AND agents.active_name IS NOT NULL"
+                 WHERE sessions.agent_id = ?1 AND sessions.active_name = ?2 AND agents.active_name IS NOT NULL"
             ),
             params![agent.to_string(), name.as_str()],
             decode_row,
@@ -417,6 +459,11 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         .map(crate::Effort::new)
         .transpose()
         .map_err(conversion_error)?;
+    let deletion_timestamp = row
+        .get::<_, Option<i64>>(13)?
+        .map(time::OffsetDateTime::from_unix_timestamp)
+        .transpose()
+        .map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
@@ -425,6 +472,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         harness,
         model_selection: crate::ModelSelection { model, effort },
         created_at,
+        deletion_timestamp,
         status: Status::new(
             Lifecycle {
                 state: lifecycle.state,

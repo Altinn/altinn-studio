@@ -1328,7 +1328,7 @@ impl App {
                         label: session.name.as_str().to_owned(),
                         badge: format!(
                             "{} · {}{} · {}",
-                            format::session_state(session.status.state),
+                            format::session_display_state(session),
                             session.harness.as_str(),
                             session
                                 .model_selection
@@ -1438,7 +1438,7 @@ fn session_detail(session: &Session) -> Detail {
         format!("Harness:    {}", session.harness.as_str()),
         format!("Model:      {}", session.model_selection.model_str().unwrap_or("-")),
         format!("Effort:     {}", session.model_selection.effort_str().unwrap_or("-")),
-        format!("State:      {}", format::session_state(session.status.state)),
+        format!("State:      {}", format::session_display_state(session)),
         format!("Turns:      {}", session.status.reported.activity.turns),
         format!("Age:        {}", format::format_age(session.created_at)),
         format!(

@@ -190,6 +190,15 @@ pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str
     }
 }
 
+/// Shows a Session being deleted as `Deleting` instead of its last runtime state.
+pub(crate) const fn session_display_state(session: &agent::sessions::Session) -> &'static str {
+    if session.deletion_timestamp.is_some() {
+        "Deleting"
+    } else {
+        session_state(session.status.state)
+    }
+}
+
 pub(crate) fn format_age(created_at: time::OffsetDateTime) -> String {
     let seconds = (time::OffsetDateTime::now_utc() - created_at).whole_seconds().max(0);
     match seconds {

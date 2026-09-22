@@ -8,7 +8,7 @@ use crate::Error;
 
 use super::database_error;
 
-pub(crate) const VERSION: u32 = 3;
+pub(crate) const VERSION: u32 = 4;
 
 const PREVIEW_1_SQL: &str = "
     CREATE TABLE agents (
@@ -64,6 +64,58 @@ const SESSION_SELECTION_COLUMNS_SQL: &str = "
     ALTER TABLE sessions ADD COLUMN effort TEXT;
 ";
 
+// Rebuilds `sessions` so a deleted Session releases its name only once its
+// runtime is cleaned up, as Agents do: the nullable `active_name` is both the
+// uniqueness key and the visibility predicate, and `name` stays on the
+// retained row. Renaming a parent table rewrites the foreign keys that
+// reference it, so the activity reports are rebuilt alongside it.
+const SESSION_DELETION_SQL: &str = "
+    ALTER TABLE session_activity_reports RENAME TO session_activity_reports_v3;
+    ALTER TABLE sessions RENAME TO sessions_v3;
+    CREATE TABLE sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        active_name TEXT,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        deletion_timestamp INTEGER,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        harness_native_id TEXT,
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        initial_prompt TEXT,
+        harness_transcript_path TEXT,
+        activity_json TEXT NOT NULL DEFAULT '{}',
+        model TEXT,
+        effort TEXT,
+        UNIQUE (agent_id, active_name)
+    );
+    INSERT INTO sessions (
+        id, agent_id, name, active_name, harness, created_at, activation_generation, lifecycle_json,
+        harness_native_id, launch_token, launch_sandbox, launched_at, launch_attempts, initial_prompt,
+        harness_transcript_path, activity_json, model, effort
+    )
+    SELECT
+        id, agent_id, name, name, harness, created_at, activation_generation, lifecycle_json,
+        harness_native_id, launch_token, launch_sandbox, launched_at, launch_attempts, initial_prompt,
+        harness_transcript_path, activity_json, model, effort
+    FROM sessions_v3;
+    CREATE TABLE session_activity_reports (
+        session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        launch_token TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        PRIMARY KEY (session_id, launch_token, event_id)
+    );
+    INSERT INTO session_activity_reports (session_id, launch_token, event_id)
+    SELECT session_id, launch_token, event_id FROM session_activity_reports_v3;
+    DROP TABLE session_activity_reports_v3;
+    DROP TABLE sessions_v3;
+";
+
 struct Migration {
     version: u32,
     name: &'static str,
@@ -89,6 +141,12 @@ const MIGRATIONS: &[Migration] = &[
         name: "session model and effort",
         schema: &[SESSION_SELECTION_COLUMNS_SQL],
         apply: add_session_selections,
+    },
+    Migration {
+        version: 4,
+        name: "session deletion",
+        schema: &[SESSION_DELETION_SQL],
+        apply: add_session_deletion,
     },
 ];
 
@@ -191,6 +249,13 @@ fn add_session_selections(transaction: &Transaction<'_>) -> Result<(), Error> {
             .map_err(database_error)?;
     }
     Ok(())
+}
+
+fn add_session_deletion(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 4)?.is_none() {
+        return Ok(());
+    }
+    transaction.execute_batch(SESSION_DELETION_SQL).map_err(database_error)
 }
 
 fn migrate_agent_instructions(transaction: &Transaction<'_>) -> Result<(), Error> {

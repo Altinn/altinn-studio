@@ -629,7 +629,7 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        3
+        4
     );
     assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
@@ -734,7 +734,7 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 4);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
@@ -791,7 +791,7 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 4);
     assert!(
         directory.path().join("backups").is_dir(),
         "a pending migration is backed up first"
@@ -832,7 +832,7 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 3);
+    assert_eq!(after.0, 4);
     let unchanged = |snapshot: &[(String, String)]| {
         snapshot
             .iter()
@@ -1252,4 +1252,172 @@ fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
         store.delete_host_key(id).await.expect("deleting twice is fine");
         assert!(store.load_host_key(id).await.expect("load").is_none());
     });
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_deleted_session_keeps_its_name_until_finalized() {
+    use agent::sessions::{ActivityEvent, LaunchRecord};
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let name = SessionName::new("s1").expect("name");
+    let session = database
+        .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "dddddddd-dddd-4ddd-8ddd-dddddddddddd".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+
+    let deleting = database
+        .mark_session_deleting("worker", &name)
+        .await
+        .expect("deletion requested");
+    let requested = deleting.deletion_timestamp.expect("deletion timestamp");
+    let repeated = database
+        .mark_session_deleting("worker", &name)
+        .await
+        .expect("repeated request");
+    assert_eq!(
+        (repeated.id, repeated.deletion_timestamp),
+        (session.id, Some(requested)),
+        "a repeated request finds the same Session and keeps the first request time"
+    );
+    assert_eq!(
+        database.list_agent_sessions("worker").await.expect("list"),
+        vec![repeated.clone()],
+        "a Session being deleted stays listed"
+    );
+    let error = database
+        .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+        .await
+        .expect_err("the name is reserved");
+    assert!(error.to_string().contains("is being deleted"), "{error}");
+    assert!(database.session_attach_target(session.id).await.is_err());
+    assert_eq!(
+        database
+            .apply_session_activity_for_launch(
+                session.id,
+                &token,
+                uuid::Uuid::new_v4(),
+                ActivityEvent::TurnCompleted,
+                time::OffsetDateTime::now_utc(),
+            )
+            .await
+            .expect("stale report"),
+        None,
+        "the running launch can no longer report"
+    );
+
+    database.finalize_session_deletion(session.id).await.expect("finalized");
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    assert!(matches!(
+        database.mark_session_deleting("worker", &name).await,
+        Err(Error::NotFound)
+    ));
+    assert!(database.list_agent_sessions("worker").await.expect("list").is_empty());
+    let replacement = database
+        .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+        .await
+        .expect("the name is reusable once finalized");
+    assert_ne!(replacement.id, session.id);
+    assert_eq!(replacement.deletion_timestamp, None);
+}
+
+#[test]
+fn version_3_database_migrates_sessions_and_activity_reports() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create version 3 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("version 1 tables");
+    connection
+        .execute_batch("ALTER TABLE sessions ADD COLUMN model TEXT; ALTER TABLE sessions ADD COLUMN effort TEXT;")
+        .expect("version 3 columns");
+    connection.pragma_update(None, "user_version", 3).expect("version 3");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                PREVIEW_AGENT_ID,
+                serde_json::to_string(Path::new("/source")).expect("source"),
+                serde_json::to_string(&support::agent("worker")).expect("desired state"),
+            ],
+        )
+        .expect("Agent");
+    let session_id = "00000000-0000-4000-8000-000000000001";
+    let token = "00000000-0000-4000-9000-000000000001";
+    connection
+        .execute(
+            "INSERT INTO sessions \
+             (id, agent_id, name, harness, created_at, launch_token, launch_sandbox, launched_at, \
+              launch_attempts, activity_json, model, effort) \
+             VALUES (?1, ?2, 's1', 'claudeCode', 1700000000, ?3, 'sandbox-1', 1700000100, 2, \
+                     '{\"turns\":3}', 'fable', 'high')",
+            rusqlite::params![session_id, PREVIEW_AGENT_ID, token],
+        )
+        .expect("version 3 Session");
+    connection
+        .execute(
+            "INSERT INTO session_activity_reports (session_id, launch_token, event_id) VALUES (?1, ?2, 'event-1')",
+            rusqlite::params![session_id, token],
+        )
+        .expect("activity report");
+    drop(connection);
+
+    let database = persistence::Database::open(&path).expect("migrate version 3 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let name = SessionName::new("s1").expect("name");
+        let session = database
+            .get_agent_session("worker", &name)
+            .await
+            .expect("migrated Session");
+        assert_eq!(session.id.to_string(), session_id);
+        assert_eq!(session.status.reported.activity.turns, 3);
+        assert_eq!(session.model_selection.model_str(), Some("fable"));
+        assert_eq!(session.model_selection.effort_str(), Some("high"));
+        assert_eq!(session.deletion_timestamp, None);
+        let again = database
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("existing Session");
+        assert_eq!(again.id, session.id, "the migrated name still identifies the Session");
+    });
+    drop(database);
+
+    assert_eq!(schema_snapshot(&path).0, 4);
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    let reports: i64 = inspect
+        .query_row("SELECT COUNT(*) FROM session_activity_reports", [], |row| row.get(0))
+        .expect("report count");
+    assert_eq!(reports, 1, "activity deduplication receipts survive the rebuild");
+    let parent: String = inspect
+        .query_row(
+            "SELECT \"table\" FROM pragma_foreign_key_list('session_activity_reports')",
+            [],
+            |row| row.get(0),
+        )
+        .expect("report foreign key");
+    assert_eq!(parent, "sessions");
+    let violations: i64 = inspect
+        .query_row("SELECT COUNT(*) FROM pragma_foreign_key_check", [], |row| row.get(0))
+        .expect("foreign key check");
+    assert_eq!(violations, 0);
+    assert!(directory.path().join("backups").is_dir());
 }

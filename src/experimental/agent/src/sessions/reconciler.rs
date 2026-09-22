@@ -136,6 +136,32 @@ impl Reconciler {
         .await
     }
 
+    /// Stops a deleted Session's harness, when its Agent still has a Sandbox
+    /// that could be running it, then releases the Session's name.
+    async fn release(&self, session: &Session) -> Result<(), Error> {
+        let agent = match self.sandboxes.agent(session.agent_id).await {
+            Ok(agent) => Some(agent),
+            Err(Error::NotFound) => None,
+            Err(error) => return Err(error),
+        };
+        if let Some(agent) = agent.filter(|agent| {
+            agent.agent.metadata.deletion_timestamp.is_none()
+                && matches!(
+                    agent.agent.status.sandbox,
+                    Some(crate::sandbox::Assignment::Materialized { .. })
+                )
+        }) {
+            let sandbox = self.sandboxes.open(&agent).await?;
+            if matches!(
+                self.runtime.observe(session, &sandbox).await?,
+                Observation::Alive { .. }
+            ) {
+                self.runtime.stop(session, &sandbox).await?;
+            }
+        }
+        self.sessions.finalize_session_deletion(session.id).await
+    }
+
     /// Consumes the first prompt before launch; recovery never replays it.
     async fn launch(
         &self,
@@ -228,6 +254,9 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                 Err(Error::NotFound) => return Ok(()),
                 Err(error) => return Err(error),
             };
+            if session.deletion_timestamp.is_some() {
+                return self.release(&session).await;
+            }
             match self.converge(&session).await {
                 Ok(lifecycle) => {
                     self.sessions

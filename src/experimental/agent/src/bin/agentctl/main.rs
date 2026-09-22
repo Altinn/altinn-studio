@@ -22,7 +22,7 @@ mod progress;
 mod self_update;
 mod tui;
 
-use format::{condition_status, format_age, format_harnesses, session_state};
+use format::{condition_status, format_age, format_harnesses, session_display_state};
 use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
@@ -138,10 +138,16 @@ enum Command {
     },
     /// Request deletion of a resource.
     Delete {
-        /// Resource kind, optionally combined with a name (for example `agent/worker`).
+        /// Resource kind, optionally combined with a name (for example `agent/worker` or `session/s1`).
         resource: String,
         /// Optional resource name when it is not part of `resource`.
         name: Option<String>,
+        /// Owning Agent of a Session; inferred from the current directory when omitted.
+        #[arg(long, conflicts_with = "variant")]
+        agent: Option<String>,
+        /// Select the Session's Agent by the variant of its closest applied manifest.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
     },
     /// Create or attach to a named Session in an Agent sandbox.
     Attach {
@@ -470,14 +476,27 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             output,
         } => get_resources(client, &resource, name, agent, variant, all_agents, output).await?,
         Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
-        Command::Delete { resource, name } => {
+        Command::Delete {
+            resource,
+            name,
+            agent,
+            variant,
+        } => {
             let (resource, name) = resource_reference(&resource, name)?;
-            if resource != Resource::Agent {
-                return Err(Error::Invalid("Session deletion is not supported".into()).into());
+            match resource {
+                Resource::Agent => {
+                    reject_session_scope(agent.as_deref(), variant.as_ref(), false)?;
+                    let name = require_name(name, "Agent")?;
+                    client.delete(&name).await?;
+                    println!("agent/{name} deleted");
+                }
+                Resource::Session => {
+                    let name = SessionName::new(require_name(name, "Session")?)?;
+                    let agent = resolve_agent_name(client, agent, variant).await?;
+                    client.delete_session(&agent, name.clone()).await?;
+                    println!("session/{agent}/{name} deletion requested");
+                }
             }
-            let name = require_name(name, "Agent")?;
-            client.delete(&name).await?;
-            println!("agent/{name} deleted");
         }
         Command::Attach {
             resource,
@@ -1242,7 +1261,7 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
                 session.harness.as_str().into(),
                 session.model_selection.model_str().unwrap_or("-").into(),
                 session.model_selection.effort_str().unwrap_or("-").into(),
-                session_state(session.status.state).into(),
+                session_display_state(session).into(),
                 format_age(session.created_at),
             ]);
             row
@@ -1851,6 +1870,35 @@ mod tests {
                 "true"
             ])
             .is_err()
+        );
+    }
+
+    #[test]
+    fn delete_accepts_agent_and_scoped_session_resources() {
+        let session = Arguments::try_parse_from(["agentctl", "delete", "session/review", "--agent", "worker"])
+            .expect("Session delete");
+        assert!(matches!(
+            session.command,
+            Command::Delete {
+                resource,
+                name: None,
+                agent: Some(agent),
+                variant: None,
+            } if resource == "session/review" && agent == "worker"
+        ));
+        assert!(Arguments::try_parse_from(["agentctl", "delete", "agent/worker"]).is_ok());
+        assert!(
+            Arguments::try_parse_from([
+                "agentctl",
+                "delete",
+                "session/review",
+                "--agent",
+                "worker",
+                "--variant",
+                "nested",
+            ])
+            .is_err(),
+            "--agent and --variant are alternatives"
         );
     }
 

@@ -345,6 +345,14 @@ pub struct Session {
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+    /// When deletion was requested. The Session stays listed, and its name
+    /// reserved, until its runtime has been stopped.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub deletion_timestamp: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -372,6 +380,11 @@ impl Session {
                 LifecycleState::Running => "its harness has not reported readiness",
             });
         Error::Invalid(format!("Session \"{}\" is not running: {detail}", self.name))
+    }
+
+    /// Describes why an operation cannot use a Session that is being deleted.
+    pub(crate) fn deleting_error(&self) -> Error {
+        Error::Invalid(format!("Session \"{}\" is being deleted", self.name))
     }
 }
 
@@ -479,6 +492,17 @@ pub trait SessionStore: SessionReports {
 
     /// Lists Sessions for the active incarnation of one Agent name.
     fn list_agent_sessions<'a>(&'a self, agent: &'a str) -> ::sandbox::LocalFuture<'a, Result<Vec<Session>, Error>>;
+
+    /// Records the first deletion request for a named Session and returns it;
+    /// repeating the request returns the same Session until it is finalized.
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Releases a deleted Session's name after its runtime was cleaned up.
+    fn finalize_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
     /// Replaces the lifecycle half of the status for the desired activation
     /// revision observed by the reconciler; the reported half is untouched.

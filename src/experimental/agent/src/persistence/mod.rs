@@ -234,6 +234,28 @@ impl crate::sessions::SessionStore for Database {
         })
     }
 
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a crate::sessions::SessionName,
+    ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::MarkSessionDeleting {
+                agent: agent.into(),
+                name: name.clone(),
+                response,
+            })
+            .await
+        })
+    }
+
+    fn finalize_session_deletion(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::FinalizeSessionDeletion { id, response })
+                .await
+        })
+    }
+
     fn update_session_lifecycle(
         &self,
         id: crate::sessions::SessionId,
@@ -537,6 +559,15 @@ enum Command {
         agent: String,
         response: oneshot::Sender<Result<Vec<crate::sessions::Session>, Error>>,
     },
+    MarkSessionDeleting {
+        agent: String,
+        name: crate::sessions::SessionName,
+        response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
+    },
+    FinalizeSessionDeletion {
+        id: crate::sessions::SessionId,
+        response: oneshot::Sender<Result<(), Error>>,
+    },
     UpdateSessionLifecycle {
         id: crate::sessions::SessionId,
         lifecycle: crate::sessions::Lifecycle,
@@ -599,6 +630,8 @@ impl Command {
             | Self::MarkDeleting { .. }
             | Self::FinalizeDeletion { .. }
             | Self::EnsureSession { .. }
+            | Self::MarkSessionDeleting { .. }
+            | Self::FinalizeSessionDeletion { .. }
             | Self::UpdateSessionLifecycle { .. }
             | Self::ActivateSession { .. }
             | Self::ClearSessionReport { .. }
@@ -802,6 +835,12 @@ fn execute_session(connection: &mut Connection, command: Command) {
         }
         Command::ListSessions { agent, response } => {
             let _ = response.send(sessions::list_for_agent(connection, &agent));
+        }
+        Command::MarkSessionDeleting { agent, name, response } => {
+            let _ = response.send(sessions::mark_deleting(connection, &agent, &name));
+        }
+        Command::FinalizeSessionDeletion { id, response } => {
+            let _ = response.send(sessions::finalize_deletion(connection, id));
         }
         Command::UpdateSessionLifecycle {
             id,

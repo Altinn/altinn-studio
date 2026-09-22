@@ -63,6 +63,7 @@ struct FakeSessions {
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
+    deleted: Rc<RefCell<Vec<(String, String)>>>,
 }
 
 fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
@@ -128,6 +129,15 @@ impl SessionApi for FakeSessions {
 
     fn list<'a>(&'a self, _agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<agent::sessions::Session>, Error>> {
         Box::pin(async { Ok(Vec::new()) })
+    }
+
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.deleted.borrow_mut().push((agent.into(), name.as_str().into()));
+        Box::pin(async { Ok(()) })
     }
 
     fn prompt<'a>(
@@ -226,6 +236,7 @@ struct ApiFixture {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     changes: Changes,
+    deleted: Rc<RefCell<Vec<(String, String)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -269,6 +280,7 @@ fn api() -> ApiFixture {
     let sent = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let changes = Changes::new();
+    let deleted = Rc::new(RefCell::new(Vec::new()));
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
@@ -282,6 +294,7 @@ fn api() -> ApiFixture {
             upgrade_blockers: upgrade_blockers.clone(),
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
+            deleted: deleted.clone(),
         }),
         Rc::new(FakeSshAccess),
         changes.clone(),
@@ -294,6 +307,7 @@ fn api() -> ApiFixture {
         ensured,
         sent,
         changes,
+        deleted,
         upgrade_blockers,
         upgrade_warnings,
         upgrade_gates,
@@ -683,6 +697,17 @@ async fn client_and_server_exchange_versioned_agent_operations() {
     client.delete("worker").await.expect("delete request");
     let deleting = client.get("worker").await.expect("marked resource");
     assert!(deleting.metadata.deletion_timestamp.is_some());
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_delete_round_trips_the_owner_and_name() {
+    let fixture = api();
+    fixture
+        .client
+        .delete_session("worker", agent::sessions::SessionName::new("s1").expect("name"))
+        .await
+        .expect("delete request");
+    assert_eq!(fixture.deleted.borrow().as_slice(), &[("worker".into(), "s1".into())]);
 }
 
 #[tokio::test(flavor = "local")]

@@ -2662,3 +2662,77 @@ async fn queued_deliveries_do_not_expire_and_remain_serialized() {
     assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first", "second"]);
     harness.finish();
 }
+
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_stops_its_harness_once_and_releases_the_name() {
+    const TOKEN: &str = "78787878-7878-4878-8878-787878787878";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    runtime.present.set(true);
+    database
+        .mark_session_deleting("worker", &session.name)
+        .await
+        .expect("deletion requested");
+
+    reconciler.reconcile(session.id).await.expect("release");
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect("finalized Session is ignored");
+    assert_eq!(runtime.stop_calls.get(), 1, "the harness is stopped once");
+    assert!(
+        runtime.launches.borrow().is_empty(),
+        "a deleted Session is never relaunched"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_being_deleted_neither_blocks_nor_joins_an_upgrade_and_refuses_prompts() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "89898989-8989-4989-8989-898989898989").await;
+    let name = SessionName::new("s1").expect("name");
+    assert_eq!(
+        harness.service.upgrade_readiness().await.expect("working").blockers,
+        ["session/worker/s1 (working)"]
+    );
+
+    harness.service.delete("worker", &name).await.expect("delete");
+    harness.service.delete("worker", &name).await.expect("repeated delete");
+    let listed = harness.service.list(Some("worker")).await.expect("list");
+    assert!(
+        listed[0].deletion_timestamp.is_some(),
+        "listed until its harness is stopped"
+    );
+    assert!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("readiness")
+            .blockers
+            .is_empty()
+    );
+    harness
+        .service
+        .relaunch_after_upgrade()
+        .await
+        .expect("relaunch skips it");
+    assert_eq!(harness.runtime.stop_calls.get(), 0);
+    let error = harness
+        .service
+        .prompt("worker", &name, "hello", false, None)
+        .await
+        .expect_err("prompt refused");
+    assert!(error.to_string().contains("is being deleted"), "{error}");
+    assert!(matches!(
+        harness
+            .service
+            .delete("worker", &SessionName::new("missing").expect("name"))
+            .await,
+        Err(Error::NotFound)
+    ));
+    harness.finish();
+}

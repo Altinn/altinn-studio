@@ -21,6 +21,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   class and the provisioning progress.
 - Provisioning reports Agent setup and SSH access as their own phases, so time spent verifying harnesses, syncing the
   home directory and installing instructions and Skills is visible instead of silent.
+- `agentctl delete session/<name>` stops a Session's harness and removes the Session. It is listed as `Deleting`
+  until the harness has stopped, and its name can be used for a new Session after that.
 
 ### Changed
 

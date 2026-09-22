@@ -22,6 +22,7 @@ pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
 pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
+pub(crate) const METHOD_SESSION_DELETE: &str = "sessions.v1.delete";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
@@ -116,6 +117,13 @@ pub(crate) struct ProgressParams {
     /// Output the caller already has, so the reply carries only later lines.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub output: Option<crate::progress::OutputPosition>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionDeleteParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
 }
 
 #[derive(Deserialize, Serialize)]
