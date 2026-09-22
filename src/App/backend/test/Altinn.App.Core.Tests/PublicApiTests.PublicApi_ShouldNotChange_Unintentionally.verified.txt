@@ -3465,8 +3465,8 @@ namespace Altinn.App.Core.Internal.Data
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Data.FixedValueError> RestoreFixedValues();
         bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
-        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Data.FixedValueError> ValidateFixedValues();
     }
 }
 namespace Altinn.App.Core.Internal.Events

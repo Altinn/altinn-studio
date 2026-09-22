@@ -158,8 +158,11 @@ public class InternalPatchService
             var previousFormDataWrapper = FormDataWrapperFactory.Create(oldModel, dataType, dataElement);
             var currentFormDataWrapper = FormDataWrapperFactory.Create(newModel, dataType, dataElement);
 
-            // Reject patches that change fixed values, but tolerate mismatches that were already stored
-            var fixedValueErrors = FixedValueValidator.GetNewErrors(currentFormDataWrapper, previousFormDataWrapper);
+            // Reject patches that change fixed values, but tolerate (and correct) mismatches that were already stored
+            var fixedValueErrors = FixedValueValidator.RestoreFixedValues(
+                currentFormDataWrapper,
+                previousFormDataWrapper
+            );
             if (fixedValueErrors.Count > 0)
             {
                 return FixedValueValidator.ToProblemDetails(fixedValueErrors);

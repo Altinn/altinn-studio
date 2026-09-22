@@ -40,7 +40,7 @@ public class TestFixedValues
     {
         var skjema = CreateSkjema();
 
-        var errors = CreateWrapper(skjema, reflection).ValidateFixedValues();
+        var errors = CreateWrapper(skjema, reflection).RestoreFixedValues();
 
         Assert.Empty(errors);
     }
@@ -50,7 +50,7 @@ public class TestFixedValues
     [InlineData(false)]
     public void EmptyModel_HasNoErrors(bool reflection)
     {
-        var errors = CreateWrapper(new Skjema(), reflection).ValidateFixedValues();
+        var errors = CreateWrapper(new Skjema(), reflection).RestoreFixedValues();
 
         Assert.Empty(errors);
     }
@@ -58,7 +58,7 @@ public class TestFixedValues
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void ChangedFixedValues_ReportsPathExpectedAndActual(bool reflection)
+    public void ChangedFixedValues_ReportsPathExpectedAndActual_AndRestoresValues(bool reflection)
     {
         var skjema = CreateSkjema();
         skjema.Skjemainnhold![1]!.OldXmlValue!.dataFormatVersion = "1";
@@ -69,7 +69,7 @@ public class TestFixedValues
             .OldXmlValue!
             .valueNullable = 42;
 
-        var errors = CreateWrapper(skjema, reflection).ValidateFixedValues();
+        var errors = CreateWrapper(skjema, reflection).RestoreFixedValues();
 
         Assert.Equal(
             new List<FixedValueError>
@@ -84,5 +84,12 @@ public class TestFixedValues
             "Property \"skjemainnhold[1].oldXmlValue.fixedInt\" has the fixed value \"-42\", but was \"0\"",
             errors[2].ToString()
         );
+
+        // The fixed values are restored, other values are kept
+        Assert.Equal("7117", skjema.Skjemainnhold[0]!.OldXmlValue!.orid);
+        Assert.Equal("46317", skjema.Skjemainnhold[1]!.OldXmlValue!.dataFormatVersion);
+        Assert.Equal(-42, skjema.Skjemainnhold[1]!.OldXmlValue!.fixedInt);
+        Assert.Equal(42, skjema.Skjemainnhold[0]!.OldXmlValue!.valueNullable);
+        Assert.Empty(CreateWrapper(skjema, reflection).RestoreFixedValues());
     }
 }

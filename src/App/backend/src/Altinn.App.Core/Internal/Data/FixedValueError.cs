@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Internal.Data;
 
 /// <summary>
-/// Describes a property in a data model whose value differs from the fixed value declared in the model class.
+/// Describes a property in a data model that had another value than the fixed value declared in the model class.
 /// </summary>
 /// <remarks>
 /// A property is considered fixed when it has <c>[BindNever]</c> and a literal initializer, such as
@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Internal.Data;
 /// </remarks>
 /// <param name="Path">Dotted path to the property, with JSON property names for the containing objects and collection indexes in brackets</param>
 /// <param name="ExpectedValue">The fixed value declared in the model class</param>
-/// <param name="ActualValue">The value found in the data model</param>
+/// <param name="ActualValue">The value found in the data model before it was restored</param>
 public sealed record FixedValueError(string Path, string? ExpectedValue, string? ActualValue)
 {
     /// <summary>

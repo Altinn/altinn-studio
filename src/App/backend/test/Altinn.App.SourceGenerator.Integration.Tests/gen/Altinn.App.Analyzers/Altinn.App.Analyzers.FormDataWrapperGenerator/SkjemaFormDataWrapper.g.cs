@@ -1817,15 +1817,15 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     #region FixedValues
 
     /// <inheritdoc />
-    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> ValidateFixedValues()
+    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> RestoreFixedValues()
     {
         var errors =
             new global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError>();
-        ValidateFixedValues(_dataModel, "", errors);
+        RestoreFixedValues(_dataModel, "", errors);
         return errors;
     }
 
-    private static void ValidateFixedValues(
+    private static void RestoreFixedValues(
         global::Altinn.App.SourceGenerator.Integration.Tests.Models.Skjema dataModel,
         string path,
         global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
@@ -1838,14 +1838,14 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
             {
                 if (item is not null)
                 {
-                    ValidateFixedValues(item, $"{path}skjemainnhold[{index}].", errors);
+                    RestoreFixedValues(item, $"{path}skjemainnhold[{index}].", errors);
                 }
                 index++;
             }
         }
     }
 
-    private static void ValidateFixedValues(
+    private static void RestoreFixedValues(
         global::Altinn.App.SourceGenerator.Integration.Tests.Models.SkjemaInnhold dataModel,
         string path,
         global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
@@ -1853,11 +1853,11 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
     {
         if (dataModel.OldXmlValue is not null)
         {
-            ValidateFixedValues(dataModel.OldXmlValue, path + "oldXmlValue.", errors);
+            RestoreFixedValues(dataModel.OldXmlValue, path + "oldXmlValue.", errors);
         }
     }
 
-    private static void ValidateFixedValues(
+    private static void RestoreFixedValues(
         global::Altinn.App.SourceGenerator.Integration.Tests.Models.OldXmlValue dataModel,
         string path,
         global::System.Collections.Generic.List<global::Altinn.App.Core.Internal.Data.FixedValueError> errors
@@ -1875,6 +1875,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     )
                 )
             );
+            dataModel.orid = "7117";
         }
         if (dataModel.dataFormatVersion != "46317")
         {
@@ -1888,6 +1889,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     )
                 )
             );
+            dataModel.dataFormatVersion = "46317";
         }
         if (dataModel.fixedInt != -42)
         {
@@ -1901,6 +1903,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFo
                     )
                 )
             );
+            dataModel.fixedInt = -42;
         }
     }
 

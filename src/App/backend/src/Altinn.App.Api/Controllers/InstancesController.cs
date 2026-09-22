@@ -1943,7 +1943,7 @@ public class InstancesController : ControllerBase
 
                 var data = deserializationResult.Ok;
 
-                var fixedValueErrors = FixedValueValidator.GetNewErrors(
+                var fixedValueErrors = FixedValueValidator.RestoreFixedValues(
                     FormDataWrapperFactory.Create(data, dataType, null),
                     previous: null
                 );

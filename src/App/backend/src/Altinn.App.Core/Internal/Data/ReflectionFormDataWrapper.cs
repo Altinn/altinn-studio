@@ -114,9 +114,9 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<FixedValueError> ValidateFixedValues()
+    public IReadOnlyList<FixedValueError> RestoreFixedValues()
     {
-        return ObjectUtils.GetFixedValueErrors(_dataModel);
+        return ObjectUtils.RestoreFixedValues(_dataModel);
     }
 
     /// <inheritdoc />

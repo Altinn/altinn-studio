@@ -278,19 +278,20 @@ public static partial class ObjectUtils
     private sealed record FixedValueProperty(PropertyInfo Property, object Expected);
 
     /// <summary>
-    /// Find properties with <c>[BindNever]</c> whose value differs from the value a new instance of the class gets from its initializer.
+    /// Set properties with <c>[BindNever]</c> back to the value a new instance of the class gets from its initializer,
+    /// and report the properties that had another value.
     /// </summary>
     /// <param name="model">The object to inspect</param>
     /// <param name="depth">Remaining recursion depth. To prevent infinite recursion we stop after this depth. (default matches json serialization)</param>
-    internal static IReadOnlyList<Internal.Data.FixedValueError> GetFixedValueErrors(object model, int depth = 64)
+    internal static IReadOnlyList<Internal.Data.FixedValueError> RestoreFixedValues(object model, int depth = 64)
     {
         ArgumentNullException.ThrowIfNull(model);
         var errors = new List<Internal.Data.FixedValueError>();
-        CollectFixedValueErrors(model, string.Empty, errors, depth);
+        RestoreFixedValuesRecursive(model, string.Empty, errors, depth);
         return errors;
     }
 
-    private static void CollectFixedValueErrors(
+    private static void RestoreFixedValuesRecursive(
         object model,
         string path,
         List<Internal.Data.FixedValueError> errors,
@@ -322,6 +323,7 @@ public static partial class ObjectUtils
                         Convert.ToString(actual, CultureInfo.InvariantCulture)
                     )
                 );
+                fixedValue.Property.SetValue(model, fixedValue.Expected);
             }
         }
 
@@ -351,14 +353,14 @@ public static partial class ObjectUtils
                 {
                     if (item is not null)
                     {
-                        CollectFixedValueErrors(item, $"{path}{jsonName}[{index}].", errors, depth - 1);
+                        RestoreFixedValuesRecursive(item, $"{path}{jsonName}[{index}].", errors, depth - 1);
                     }
                     index++;
                 }
             }
             else
             {
-                CollectFixedValueErrors(value, $"{path}{jsonName}.", errors, depth - 1);
+                RestoreFixedValuesRecursive(value, $"{path}{jsonName}.", errors, depth - 1);
             }
         }
     }

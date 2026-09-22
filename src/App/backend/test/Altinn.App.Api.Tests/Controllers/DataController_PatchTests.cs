@@ -558,6 +558,74 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Be(34730);
     }
 
+    private const string StoredXmlWithWrongFixedValue = """
+        <?xml version="1.0" encoding="utf-8"?><Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><melding><name>Ola Nielsen</name><tag-with-attribute orid="1">old</tag-with-attribute></melding></Skjema>
+        """;
+
+    [Fact]
+    public async Task StoredFixedValueMismatch_IsRestoredWhenSavingOtherChanges()
+    {
+        // An instance stored before the fixed value changed in the model still has the old value in storage.
+        // The client sends it back unchanged, so the patch is accepted and the fixed value is corrected when saving.
+        var blobPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+        await File.WriteAllTextAsync(blobPath, StoredXmlWithWrongFixedValue);
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        var pointer = JsonPointer.Create("melding", "name");
+        var patch = new JsonPatch(
+            PatchOperation.Test(pointer, JsonNode.Parse("\"Ola Nielsen\"")),
+            PatchOperation.Replace(pointer, JsonNode.Parse("\"Kari Nordmann\""))
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        var tagWithAttribute = parsedResponse
+            .NewDataModel.Should()
+            .BeOfType<JsonElement>()
+            .Which.GetProperty("melding")
+            .GetProperty("tag-with-attribute");
+        tagWithAttribute.GetProperty("orid").GetDecimal().Should().Be(34730);
+        tagWithAttribute.GetProperty("value").GetString().Should().Be("old");
+
+        var storedXml = await File.ReadAllTextAsync(blobPath);
+        storedXml.Should().Contain("<tag-with-attribute orid=\"34730\">old</tag-with-attribute>");
+        storedXml.Should().Contain("<name>Kari Nordmann</name>");
+    }
+
+    [Fact]
+    public async Task StoredFixedValueMismatch_ChangedByClient_ReturnsBadRequest()
+    {
+        // Mismatches already in storage are tolerated, but the client still can't change the value to something else
+        var blobPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+        await File.WriteAllTextAsync(blobPath, StoredXmlWithWrongFixedValue);
+
+        var pointer = JsonPointer.Create("melding", "tag-with-attribute", "orid");
+        var patch = new JsonPatch(
+            PatchOperation.Test(pointer, JsonNode.Parse("1")),
+            PatchOperation.Replace(pointer, JsonNode.Parse("2"))
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.BadRequest);
+
+        parsedResponse.Title.Should().Be("Fixed value mismatch");
+        parsedResponse
+            .Detail.Should()
+            .Be("Property \"melding.tag-with-attribute.orid\" has the fixed value \"34730\", but was \"2\"");
+        (await File.ReadAllTextAsync(blobPath)).Should().Be(StoredXmlWithWrongFixedValue);
+
+        _dataProcessorMock.VerifyNoOtherCalls();
+    }
+
     [Fact]
     public async Task InvalidTestPath_ReturnsPreconditionFailed()
     {

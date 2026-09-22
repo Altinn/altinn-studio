@@ -151,7 +151,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     #region FixedValues
 
     /// <inheritdoc />
-    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> ValidateFixedValues()
+    public global::System.Collections.Generic.IReadOnlyList<global::Altinn.App.Core.Internal.Data.FixedValueError> RestoreFixedValues()
     {
         return global::System.Array.Empty<global::Altinn.App.Core.Internal.Data.FixedValueError>();
     }

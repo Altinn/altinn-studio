@@ -3,8 +3,8 @@ using System.Text;
 namespace Altinn.App.Analyzers.SourceTextGenerator;
 
 /// <summary>
-/// Generates <c>ValidateFixedValues</c>, which compares properties with a fixed value (marked with [BindNever]
-/// and initialized with a literal) against the literal from the model class.
+/// Generates <c>RestoreFixedValues</c>, which sets properties with a fixed value (marked with [BindNever]
+/// and initialized with a literal) back to the literal from the model class and reports the ones that had another value.
 /// </summary>
 internal static class FixedValuesGenerator
 {
@@ -20,7 +20,7 @@ internal static class FixedValuesGenerator
                 $$"""
 
                     /// <inheritdoc />
-                    public global::System.Collections.Generic.IReadOnlyList<{{ErrorType}}> ValidateFixedValues()
+                    public global::System.Collections.Generic.IReadOnlyList<{{ErrorType}}> RestoreFixedValues()
                     {
                         return global::System.Array.Empty<{{ErrorType}}>();
                     }
@@ -34,21 +34,21 @@ internal static class FixedValuesGenerator
             $$"""
 
                 /// <inheritdoc />
-                public global::System.Collections.Generic.IReadOnlyList<{{ErrorType}}> ValidateFixedValues()
+                public global::System.Collections.Generic.IReadOnlyList<{{ErrorType}}> RestoreFixedValues()
                 {
                     var errors =
                         new {{ErrorList}}();
-                    ValidateFixedValues(_dataModel, "", errors);
+                    RestoreFixedValues(_dataModel, "", errors);
                     return errors;
                 }
 
             """
         );
 
-        GenerateValidateFixedValues(builder, root, []);
+        GenerateRestoreFixedValues(builder, root, []);
     }
 
-    private static void GenerateValidateFixedValues(
+    private static void GenerateRestoreFixedValues(
         StringBuilder builder,
         NodeWithFixedValues nodeWithFixedValues,
         HashSet<string> classes
@@ -63,7 +63,7 @@ internal static class FixedValuesGenerator
         builder.Append(
             $$"""
 
-                private static void ValidateFixedValues(
+                private static void RestoreFixedValues(
                     {{node.TypeName}} dataModel,
                     string path,
                     {{ErrorList}} errors
@@ -89,6 +89,7 @@ internal static class FixedValuesGenerator
                                     )
                                 )
                             );
+                            dataModel.{{fixedValue.CSharpName}} = {{fixedValue.ValueExpression}};
                         }
 
                 """
@@ -103,7 +104,7 @@ internal static class FixedValuesGenerator
                     $$"""
                             if (dataModel.{{child.Node.CSharpName}} is not null)
                             {
-                                ValidateFixedValues(dataModel.{{child.Node.CSharpName}}, path + "{{child.Node.JsonName}}.", errors);
+                                RestoreFixedValues(dataModel.{{child.Node.CSharpName}}, path + "{{child.Node.JsonName}}.", errors);
                             }
 
                     """
@@ -120,7 +121,7 @@ internal static class FixedValuesGenerator
                                 {
                                     if (item is not null)
                                     {
-                                        ValidateFixedValues(item, $"{path}{{child.Node.JsonName}}[{index}].", errors);
+                                        RestoreFixedValues(item, $"{path}{{child.Node.JsonName}}[{index}].", errors);
                                     }
                                     index++;
                                 }
@@ -135,7 +136,7 @@ internal static class FixedValuesGenerator
 
         foreach (var child in nodeWithFixedValues.Children)
         {
-            GenerateValidateFixedValues(builder, child, classes);
+            GenerateRestoreFixedValues(builder, child, classes);
         }
     }
 

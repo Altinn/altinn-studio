@@ -47,16 +47,23 @@ public class FixedValueValidatorTests
 
     private static IFormDataWrapper Wrap(Melding melding) => new ReflectionFormDataWrapper(melding, _dataType);
 
-    [Fact]
-    public void GetNewErrors_DefaultValues_ReturnsNoErrors()
+    private static void AssertRestored(Melding melding)
     {
-        var melding = new Melding() { Innhold = [new Innhold() { Value = "a" }] };
-
-        Assert.Empty(FixedValueValidator.GetNewErrors(Wrap(melding), previous: null));
+        Assert.Equal("46317", melding.dataFormatVersion);
+        Assert.All(melding.Innhold ?? [], innhold => Assert.Equal(7117, innhold.orid));
     }
 
     [Fact]
-    public void GetNewErrors_WithoutPrevious_ReportsAllMismatches()
+    public void RestoreFixedValues_DefaultValues_ReturnsNoErrors()
+    {
+        var melding = new Melding() { Innhold = [new Innhold() { Value = "a" }] };
+
+        Assert.Empty(FixedValueValidator.RestoreFixedValues(Wrap(melding), previous: null));
+        AssertRestored(melding);
+    }
+
+    [Fact]
+    public void RestoreFixedValues_WithoutPrevious_ReportsAndRestoresAllMismatches()
     {
         var melding = new Melding()
         {
@@ -64,12 +71,14 @@ public class FixedValueValidatorTests
             Innhold = [new Innhold() { Value = "a" }, new Innhold() { orid = 1, Value = "b" }],
         };
 
-        var errors = FixedValueValidator.GetNewErrors(Wrap(melding), previous: null);
+        var errors = FixedValueValidator.RestoreFixedValues(Wrap(melding), previous: null);
 
         Assert.Equal(
             new List<FixedValueError> { new("dataFormatVersion", "46317", "1"), new("innhold[1].orid", "7117", "1") },
             errors
         );
+        AssertRestored(melding);
+        Assert.Equal("b", melding.Innhold[1].Value);
         var problem = FixedValueValidator.ToProblemDetails(errors);
         Assert.Equal(400, problem.Status);
         Assert.Equal("Fixed value mismatch", problem.Title);
@@ -81,9 +90,10 @@ public class FixedValueValidatorTests
     }
 
     [Fact]
-    public void GetNewErrors_MismatchAlreadyStored_IsTolerated()
+    public void RestoreFixedValues_MismatchAlreadyStored_IsToleratedAndRestored()
     {
-        // An instance stored before the fixed value changed keeps its old value when the client saves other changes
+        // An instance stored before the fixed value changed keeps its old value when the client saves other changes.
+        // The client is not blamed, but the saved data gets the correct fixed values.
         var previous = new Melding() { dataFormatVersion = "1", Innhold = [new Innhold() { orid = 1 }] };
         var current = new Melding()
         {
@@ -92,18 +102,24 @@ public class FixedValueValidatorTests
             Innhold = [new Innhold() { orid = 1, Value = "b" }],
         };
 
-        Assert.Empty(FixedValueValidator.GetNewErrors(Wrap(current), Wrap(previous)));
+        Assert.Empty(FixedValueValidator.RestoreFixedValues(Wrap(current), Wrap(previous)));
+
+        AssertRestored(current);
+        // The stored data is left as is
+        Assert.Equal("1", previous.dataFormatVersion);
+        Assert.Equal(1, Assert.Single(previous.Innhold!).orid);
     }
 
     [Fact]
-    public void GetNewErrors_MismatchChangedFromStored_IsReported()
+    public void RestoreFixedValues_MismatchChangedFromStored_IsReported()
     {
         var previous = new Melding() { dataFormatVersion = "1", Innhold = [new Innhold() { orid = 1 }] };
         var current = new Melding() { dataFormatVersion = "2", Innhold = [new Innhold() { orid = 1 }] };
 
-        var errors = FixedValueValidator.GetNewErrors(Wrap(current), Wrap(previous));
+        var errors = FixedValueValidator.RestoreFixedValues(Wrap(current), Wrap(previous));
 
         Assert.Equal(new List<FixedValueError> { new("dataFormatVersion", "46317", "2") }, errors);
+        AssertRestored(current);
     }
 
     [Fact]
