@@ -132,7 +132,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && chmod -R a+rX "${COREPACK_HOME}"
 
 ARG CODEX_VERSION=0.155.1
-ARG CLAUDE_CODE_VERSION=2.1.278
+ARG CLAUDE_CODE_VERSION=2.1.280
 
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
