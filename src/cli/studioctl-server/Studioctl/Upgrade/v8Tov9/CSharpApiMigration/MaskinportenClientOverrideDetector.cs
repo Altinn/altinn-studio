@@ -37,8 +37,10 @@ internal sealed class MaskinportenClientOverrideDetector
         + "package is the supported way to bring your own credentials - and leave the built-in client alone: it "
         + "is what mints the service owner tokens this app's process transitions run on. Where a call names a "
         + "configuration section, the Maskinporten settings step reports that section; if it holds the client "
-        + "you use for local runs, paste it into studioctl app maskinporten set before deleting it. Call sites "
-        + "found:";
+        + "you use for local runs, paste it into studioctl app maskinporten set before deleting it. A local "
+        + "run cannot use the credentials Studio provisions, and Maskinporten grants scopes per client "
+        + "registration, so that client needs the same scopes; the scope list in that step names them. Call "
+        + "sites found:";
 
     private readonly CSharpSourceScanner _scanner;
 
