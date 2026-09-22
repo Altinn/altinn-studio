@@ -222,6 +222,9 @@ internal static class V8Tov9Upgrade
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -920,6 +923,7 @@ internal static class V8Tov9Upgrade
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             ShowBackButtonMigrator.Apply(workspace);
+            InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
             foreach (var issue in workspace.Conflicts)
@@ -1262,6 +1266,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout-sets.json", ex);
+        }
+    }
+
+    static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Invalid input validation lists");
+        try
+        {
+            return await InvalidValidationMaskMigration.MigrateSettings(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Invalid input validation lists", ex);
         }
     }
 

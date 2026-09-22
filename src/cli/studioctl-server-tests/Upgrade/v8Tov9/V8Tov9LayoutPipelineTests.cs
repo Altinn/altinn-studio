@@ -34,7 +34,7 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
                     // Keep the app developer's explanation: æøå
                     "layout": [
                       { "id": "target", "type": "Header" },
-                      { "id": "navigation", "type": "NavigationButtons", "showBackButton": true },
+                      { "id": "navigation", "type": "NavigationButtons", "showBackButton": true, "validation": { "show": ["Schema"] } },
                       { "id": "organization", "type": "OrganisationLookup", "dataModelBindings": { "organisation_lookup_orgnr": "Party.OrgNumber" } },
                       { "id": "payment", "type": "PaymentDetails", "mapping": { "Order.Total": "total" } },
                       { "id": "start", "type": "Button", "mode": "instantiate", "mapping": { "Party.Name": "name" } }
@@ -90,6 +90,7 @@ public sealed class V8Tov9LayoutPipelineTests : IDisposable
         Assert.EndsWith("\r\n", firstText, StringComparison.Ordinal);
         Assert.Contains("\"type\": \"Heading\"", firstText, StringComparison.Ordinal);
         Assert.DoesNotContain("showBackButton", firstText, StringComparison.Ordinal);
+        Assert.Contains("\"Invalid\"", firstText, StringComparison.Ordinal);
         Assert.Contains("\"type\": \"OrganizationLookup\"", firstText, StringComparison.Ordinal);
         Assert.Contains("\"orgnr\": \"Party.OrgNumber\"", firstText, StringComparison.Ordinal);
         Assert.Contains("MANUAL_CONVERSION_REQUIRED", firstText, StringComparison.Ordinal);

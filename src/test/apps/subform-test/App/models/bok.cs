@@ -34,5 +34,17 @@ namespace Altinn.App.Models.Bok
         [JsonPropertyName("Publikasjonsaar")]
         [Required]
         public decimal? Publikasjonsaar { get; set; }
+
+        [XmlElement("PageCount", Order = 5)]
+        [JsonProperty("PageCount")]
+        [JsonPropertyName("PageCount")]
+        public int? PageCount { get; set; }
+
+        [RegularExpression(@"^[+-]?[0-9]+([.,]0+)?$")]
+        [Range(-999999999999999d, 999999999999999d)]
+        [XmlElement("CopyCount", Order = 6)]
+        [JsonProperty("CopyCount")]
+        [JsonPropertyName("CopyCount")]
+        public decimal? CopyCount { get; set; }
     }
 }

@@ -14,6 +14,7 @@ import {
   preventFocusAndScrollResetOptions,
   replaceAndPreventResetOptions,
 } from 'src/features/navigation/navigationOptions';
+import { useOnSubformExitValidation } from 'src/features/validation/callbacks/onSubformExitValidation';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
@@ -304,11 +305,16 @@ export function useExitSubform() {
   const refetchInitialValidations = useRefetchInitialValidations();
   const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
   const [_, setVisitedPages] = useVisitedPages();
+  const onSubformExitValidation = useOnSubformExitValidation();
 
   return useCallback(async () => {
     const { mainPageKey, componentId, pageKey, instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
     if (!mainPageKey) {
       window.logWarn('Tried to close subform page while not in a subform.');
+      return;
+    }
+
+    if (await onSubformExitValidation()) {
       return;
     }
 
@@ -337,7 +343,15 @@ export function useExitSubform() {
 
     const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}`;
     return navigate(url, { resetReturnToView: false }, navigationOptions);
-  }, [isStateless, maybeSaveOnPageChange, navigate, navParams, refetchInitialValidations, setVisitedPages]);
+  }, [
+    isStateless,
+    maybeSaveOnPageChange,
+    navigate,
+    navParams,
+    onSubformExitValidation,
+    refetchInitialValidations,
+    setVisitedPages,
+  ]);
 }
 
 export function useEnterSubform() {
