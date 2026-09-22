@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,11 +22,14 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
 {
     private const string Org = "ttd";
     private const string SourceRepository = "app-with-legacy-layout-names";
+    private const string SourceRepositoryWithoutLayoutSets = "app-without-layoutsets";
     private const string Developer = "testUser";
     private const string LayoutSetWithLegacyPageNames = "legacySet";
     private const string LayoutSetWithLongFolderName = "subform-GjennomfoeringsplanDataV7Pdf";
     private const string PageNameWithSpace = "Text field";
     private const string PageNameWithDots = "1.Intro";
+    private const string PageNameOutsideNamingPolicy = "New page";
+    private const string PageNameFollowingNamingPolicy = "NewPage";
 
     private string _testRepositoryDirectory;
 
@@ -109,7 +113,7 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
 
         // Act and assert
         await Assert.ThrowsAsync<BadHttpRequestException>(() =>
-            repository.SaveLayout(LayoutSetWithLegacyPageNames, "New page", EmptyLayout())
+            repository.SaveLayout(LayoutSetWithLegacyPageNames, PageNameOutsideNamingPolicy, EmptyLayout())
         );
     }
 
@@ -179,7 +183,11 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
 
         // Act and assert
         await Assert.ThrowsAsync<BadHttpRequestException>(() =>
-            repository.CreatePageLayoutFile(LayoutSetWithLegacyPageNames, "New page", new AltinnPageLayout())
+            repository.CreatePageLayoutFile(
+                LayoutSetWithLegacyPageNames,
+                PageNameOutsideNamingPolicy,
+                new AltinnPageLayout()
+            )
         );
     }
 
@@ -191,7 +199,7 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
 
         // Act and assert
         Assert.Throws<BadHttpRequestException>(() =>
-            repository.EnsureLayoutCanBeCreatedInSet(LayoutSetWithLegacyPageNames, "New page")
+            repository.EnsureLayoutCanBeCreatedInSet(LayoutSetWithLegacyPageNames, PageNameOutsideNamingPolicy)
         );
     }
 
@@ -208,6 +216,47 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
         Assert.NotNull(await repository.GetLayout(LayoutSetWithLegacyPageNames, PageNameWithSpace));
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task SaveLayout_NewPageInAnAppWithoutLayoutSets_Writes(string layoutSetName)
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository(SourceRepositoryWithoutLayoutSets);
+
+        // Act
+        await repository.SaveLayout(layoutSetName, PageNameFollowingNamingPolicy, EmptyLayout());
+
+        // Assert
+        Assert.NotNull(await repository.GetLayout(layoutSetName, PageNameFollowingNamingPolicy));
+    }
+
+    [Fact]
+    public async Task SaveLayout_FirstPageOfAnAppWithoutLayoutSets_Writes()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository(SourceRepositoryWithoutLayoutSets);
+        TestDataHelper.DeleteDirectory(Path.Combine(_testRepositoryDirectory, "App", "ui"));
+
+        // Act
+        await repository.SaveLayout(string.Empty, PageNameFollowingNamingPolicy, EmptyLayout());
+
+        // Assert
+        Assert.NotNull(await repository.GetLayout(string.Empty, PageNameFollowingNamingPolicy));
+    }
+
+    [Fact]
+    public async Task EnsureLayoutCanBeCreatedInSet_AppWithoutLayoutSetsAndPageOutsideNamingPolicy_Throws()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository(SourceRepositoryWithoutLayoutSets);
+
+        // Act and assert
+        Assert.Throws<BadHttpRequestException>(() =>
+            repository.EnsureLayoutCanBeCreatedInSet(string.Empty, PageNameOutsideNamingPolicy)
+        );
+    }
+
     private static JsonNode EmptyLayout() =>
         new JsonObject
         {
@@ -215,12 +264,12 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
             ["data"] = new JsonObject { ["layout"] = new JsonArray() },
         };
 
-    private async Task<AltinnAppGitRepository> PrepareRepository()
+    private async Task<AltinnAppGitRepository> PrepareRepository(string sourceRepository = SourceRepository)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         _testRepositoryDirectory = await TestDataHelper.CopyRepositoryForTest(
             Org,
-            SourceRepository,
+            sourceRepository,
             Developer,
             targetRepository
         );
