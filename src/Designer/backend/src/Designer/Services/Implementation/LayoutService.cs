@@ -41,6 +41,9 @@ public class LayoutService(
             editingContext.Repo,
             editingContext.Developer
         );
+        // Creating a page rewrites the page that is already there before it writes the new one, so a
+        // name Designer may not create has to be rejected before the first write rather than at it.
+        appRepository.EnsureLayoutCanBeCreatedInSet(layoutSetId, pageId);
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         if (layoutSettings.Pages is not PagesWithOrder pages)
@@ -228,6 +231,14 @@ public class LayoutService(
         IEnumerable<string> order = pagesWithGroups.Groups.SelectMany((group) => group.Order);
         IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany((group) => group.Order);
         var deletedPages = originalOrder.Except(order).ToList();
+        var createdPages = order.Except(originalOrder).ToList();
+        // One request both deletes and creates layout files. A name Designer may not create has to be
+        // rejected before the first deletion, or the pages this request removes are gone while the
+        // settings that still reference them are never saved.
+        foreach (string pageId in createdPages)
+        {
+            appRepository.EnsureLayoutCanBeCreatedInSet(layoutSetId, pageId);
+        }
         foreach (string pageId in deletedPages)
         {
             appRepository.DeleteLayout(layoutSetId, pageId);
@@ -240,7 +251,6 @@ public class LayoutService(
                 }
             );
         }
-        var createdPages = order.Except(originalOrder).ToList();
         LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)

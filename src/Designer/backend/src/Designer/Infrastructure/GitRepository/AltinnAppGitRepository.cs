@@ -336,6 +336,21 @@ public class AltinnAppGitRepository : AltinnGitRepository
         await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
     }
 
+    /// <summary>
+    /// Verifies that Designer is allowed to create a layout with the given name in the given layout set,
+    /// without writing anything. A caller that writes or deletes more than one file per request calls
+    /// this for every name it is about to create before its first write, so that a rejected name cannot
+    /// leave the layout set half updated.
+    /// </summary>
+    /// <param name="layoutSetName">The name of the layout set the layout would belong to.</param>
+    /// <param name="layoutName">The name of the layout that would be created.</param>
+    /// <exception cref="BadHttpRequestException">Thrown if the layout cannot be created under that name.</exception>
+    public void EnsureLayoutCanBeCreatedInSet(string layoutSetName, string layoutName)
+    {
+        string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+        EnsureLayoutWriteIsAllowed(layoutSetName, layoutName, layoutFilePath);
+    }
+
     public async Task CreatePageLayoutFile(string layoutSetId, string pageId, AltinnPageLayout altinnPageLayout)
     {
         string layoutFilePath = GetPathToLayoutFile(layoutSetId, pageId);
