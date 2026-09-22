@@ -19,12 +19,11 @@ const CREATE_FIELD_LABEL_WIDTH: usize = 10;
 const CREATE_PICKER_VALUE_WIDTH: usize = 18;
 const CREATE_PICKER_DETAIL_OFFSET: usize = CREATE_FIELD_LABEL_WIDTH + 2 + CREATE_PICKER_VALUE_WIDTH + 2 + 8;
 const ERROR_HINTS: [Hint; 2] = [
-    Hint::key("r", "retry", crossterm::event::KeyCode::Char('r')),
+    Hint::key("esc", "dismiss", crossterm::event::KeyCode::Esc),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
 ];
-const GLOBAL_HINTS: [Hint; 4] = [
+const GLOBAL_HINTS: [Hint; 3] = [
     Hint::display("j/k", "move"),
-    Hint::key("r", "refresh", crossterm::event::KeyCode::Char('r')),
     Hint::key("F", "forwards", crossterm::event::KeyCode::Char('F')),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
 ];
@@ -142,8 +141,11 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
             Style::new().fg(Color::DarkGray),
         ),
     ];
-    if app.loading {
-        spans.push(Span::styled(" · ⟳", Style::new().fg(Color::Cyan)));
+    if let Some(error) = &app.connection_error {
+        spans.push(Span::styled(
+            format!(" · reconnecting: {error}"),
+            Style::new().fg(Color::Red),
+        ));
     }
     if app.creating > 0 {
         spans.push(Span::styled(" · creating forward…", Style::new().fg(Color::Cyan)));
@@ -305,7 +307,7 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             if app.modal.is_some() || app.detail.is_some() || app.view == View::Forwards {
                 false
             } else if app.error.is_some() {
-                matches!(hint.label, "r" | "q")
+                hint.label == "q"
             } else {
                 true
             }
@@ -963,7 +965,18 @@ mod tests {
         assert!(text.contains("agentctl"));
         assert!(text.contains("0 agents · 0 sessions · 0 running"));
         assert!(text.contains("loading…"));
-        assert!(text.contains("j/k move · r refresh · F forwards · q quit"));
+        assert!(text.contains("j/k move · F forwards · q quit"));
+    }
+
+    #[test]
+    fn a_lost_connection_keeps_the_last_reported_tree_visible() {
+        let mut app = tree_app(2);
+        app.connection_error = Some("connection refused".into());
+        let mut terminal = Terminal::new(TestBackend::new(80, 8)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(text.contains("reconnecting: connection refused"));
+        assert!(text.contains("agent-01"));
     }
 
     #[test]
@@ -1033,8 +1046,8 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(20, 8)).expect("test terminal");
 
         let hit_map = draw(&mut terminal, &app);
-        let retry = HitTarget::Action(MouseAction::Key(
-            crossterm::event::KeyCode::Char('r'),
+        let dismiss = HitTarget::Action(MouseAction::Key(
+            crossterm::event::KeyCode::Esc,
             crossterm::event::KeyModifiers::NONE,
         ));
         let quit = HitTarget::Action(MouseAction::Key(
@@ -1042,9 +1055,9 @@ mod tests {
             crossterm::event::KeyModifiers::NONE,
         ));
 
-        assert_eq!(hit_map.click_at(0, 4), Some(retry));
-        assert_eq!(hit_map.click_at(10, 4), Some(quit));
-        assert_eq!(hit_map.click_at(8, 4), None, "separator is inert");
+        assert_eq!(hit_map.click_at(0, 4), Some(dismiss));
+        assert_eq!(hit_map.click_at(14, 4), Some(quit));
+        assert_eq!(hit_map.click_at(12, 4), None, "separator is inert");
     }
 
     #[test]
