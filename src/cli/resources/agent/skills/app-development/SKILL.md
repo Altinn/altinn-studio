@@ -72,6 +72,38 @@ Altinn Studio platform developers may use `dev` or `staging`.
 - Put backend behavior behind the Altinn.App extension points already used by the app and register implementations in
   `Program.cs`; follow the app's existing organization.
 
+## Upgrading an app from v8 to v9
+
+`studioctl app upgrade v9` migrates the app and reports what it will not change for you. Read its output before
+changing anything yourself; it names every file and configuration path it found.
+
+Maskinporten needs deliberate handling, because a v9 app has **two** Maskinporten clients where v8 had one:
+
+- The client **Studio provisions** for the app. It is what a deployed app uses. The app cannot configure it, and
+  v9 never reads Maskinporten credentials from the app's own configuration.
+- The client **you store locally** with `studioctl app maskinporten set`. A local run uses it when the app calls an
+  external API for real.
+
+They are separate registrations in Maskinporten and are granted scopes separately, so an app that works deployed can
+still fail locally, and the reverse. The same scopes have to be on both.
+
+When the upgrade reports Maskinporten configuration:
+
+1. **Record the scopes before deleting anything.** The upgrade prints a scope list with the evidence for each entry,
+   including the `Scope` value read out of the sections it is telling you to delete. Once the section is gone, that
+   record is gone.
+2. **For the deployed app**, select those scopes in Studio under App settings, "Velg scopes fra Maskinporten". This
+   requires an Ansattporten sign-in on behalf of the organization that owns the app, and takes effect the next time
+   the app is built and deployed - so do it *before* deploying, or the deployed app fails on its first token request.
+3. **For local runs**, store a client with `studioctl app maskinporten set` and make sure that client already has the
+   same scopes in Maskinporten. `studioctl doctor` reports whether one is stored for the detected app.
+4. **Do not reintroduce credentials into `appsettings.json`.** v9 does not read them from there in any environment.
+   A section that configures the external `Altinn.ApiClients.Maskinporten` package is the exception and is still read
+   by that package.
+
+Do not add the `altinn:serviceowner` scopes to either client on the app's behalf: Studio adds them to the provisioned
+client automatically when a v9 app is built, and a local run does not need them.
+
 ## Run and test
 
 From the app root:
