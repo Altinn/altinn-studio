@@ -62,6 +62,7 @@ impl AgentStore for InMemoryAgentStore {
 
     fn put(&self, mut record: AgentRecord, expected_generation: u64) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
+            record.agent.status.progress = None;
             record.agent.status.provenance = None;
             let id = record.id;
             let name = record.agent.metadata.name.clone();
@@ -97,6 +98,7 @@ impl AgentStore for InMemoryAgentStore {
         mut status: Status,
     ) -> LocalFuture<'_, Result<Status, Error>> {
         Box::pin(async move {
+            status.progress = None;
             status.provenance = None;
             let mut state = self.state.borrow_mut();
             let name = state

@@ -773,6 +773,11 @@ pub struct Status {
     /// conditions, when it failed.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub failure: Option<crate::FailureKind>,
+    /// Provisioning of the latest pass while it runs or after it failed.
+    /// Projected onto API responses from the daemon's in-memory state; stores
+    /// scrub it, so it is never persisted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub progress: Option<crate::progress::Provisioning>,
     /// Local origin of the desired state. Projected onto API responses from
     /// the stored Agent record; stores scrub it, so it is never persisted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -780,7 +785,7 @@ pub struct Status {
 }
 
 impl Status {
-    /// Creates reconciler-observed state; provenance stays API-projected.
+    /// Creates reconciler-observed state; progress and provenance stay API-projected.
     #[must_use]
     pub const fn observed(
         observed_generation: u64,
@@ -792,6 +797,7 @@ impl Status {
             sandbox,
             conditions,
             failure: None,
+            progress: None,
             provenance: None,
         }
     }
@@ -801,6 +807,7 @@ impl Status {
             && self.sandbox.is_none()
             && self.conditions.is_empty()
             && self.failure.is_none()
+            && self.progress.is_none()
             && self.provenance.is_none()
     }
 
