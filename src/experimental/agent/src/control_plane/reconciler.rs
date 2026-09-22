@@ -90,10 +90,7 @@ impl Reconciler {
 
         let observer = SandboxObserver::new(record.id, self.provisioning.clone());
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
-            Ok(ensured) => {
-                observer.succeeded();
-                ensured
-            }
+            Ok(ensured) => ensured,
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
                 let message = error.to_string();
@@ -143,8 +140,9 @@ impl Reconciler {
             "SandboxRunning",
             "",
         )];
-        self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions)
+        self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
+        observer.succeeded();
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         self.update_status(&record, status, None).await?;
@@ -162,12 +160,21 @@ impl Reconciler {
         sandbox: &::sandbox::SandboxHandle,
         assignment: &crate::sandbox::Assignment,
         conditions: &mut Vec<Condition>,
+        observer: &SandboxObserver,
     ) -> Result<(), Error> {
         let Some(ssh) = &self.ssh else {
             return Ok(());
         };
+        let phase = if record.agent.spec.ssh_access() {
+            Some(observer.reporter().start_phase(crate::progress::SSH_ACCESS).await)
+        } else {
+            None
+        };
         match ssh.reconcile(record, sandbox).await {
             Ok(true) => {
+                if let Some(phase) = phase {
+                    phase.complete().await;
+                }
                 conditions.push(condition(
                     Condition::SSH_READY,
                     ConditionStatus::True,
@@ -196,7 +203,9 @@ impl Reconciler {
                     Some(assignment.clone()),
                     std::mem::take(conditions),
                 );
-                self.update_status(record, status, Some(failure.kind)).await?;
+                let stored = self.update_status(record, status, Some(failure.kind)).await;
+                observer.failed(&failure);
+                stored?;
                 Err(error)
             }
         }

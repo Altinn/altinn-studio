@@ -12,6 +12,11 @@ mod state;
 pub use observer::SandboxObserver;
 pub use state::{Provisioning, ProvisioningState};
 
+/// Platform setup inside the Sandbox: harnesses, home, instructions and Skills.
+pub const SETUP: ::sandbox::Phase = ::sandbox::Phase::new("agentSetup", "Set up Agent");
+/// Declared SSH access to the Sandbox.
+pub const SSH_ACCESS: ::sandbox::Phase = ::sandbox::Phase::new("sshAccess", "Configure SSH access");
+
 /// One Agent's stored status and the progress of its latest pass, as of one
 /// revision, returned by `agents.v1.progress`.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]

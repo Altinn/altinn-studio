@@ -61,6 +61,7 @@ impl PlatformAdapter for NoopPlatform {
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
         _harnesses: &'a [agent::Harness],
+        _steps: &'a sandbox::SandboxProgress,
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -1638,6 +1639,14 @@ async fn provisioning_is_projected_but_not_stored_and_omitted_after_success() {
     assert_eq!(
         finished.progress.status(),
         &sandbox::progress::OperationStatus::Succeeded
+    );
+    assert!(
+        finished
+            .progress
+            .finished()
+            .iter()
+            .any(|phase| phase.phase == agent::progress::SETUP && phase.outcome == sandbox::Outcome::Completed),
+        "Agent setup is reported as a phase of the pass"
     );
 }
 
