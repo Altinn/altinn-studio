@@ -114,6 +114,10 @@ internal sealed class AuthTokenFile
             ?? throw new JsonException($"Token file {path} is empty.");
 
         var tokens = new List<BearerTokenOptions>();
+        // The authenticator compares every candidate and keeps the last match, so two identities
+        // sharing one token value silently attribute both to whichever is read last. That is a
+        // Secret-authoring mistake rather than a reason to reject the file, so it is reported.
+        var identityByToken = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (accessGroup, identities) in parsed)
         {
             var routeGroups = ResolveRouteGroups(accessGroup);
@@ -134,6 +138,17 @@ internal sealed class AuthTokenFile
                 {
                     _logger.LogWarning("Token file {Path} has an empty token for {Identity}.", path, sourceIdentity);
                     continue;
+                }
+
+                if (!identityByToken.TryAdd(token, sourceIdentity))
+                {
+                    _logger.LogWarning(
+                        "Token file {Path} uses the same token value for {FirstIdentity} and {SecondIdentity}; "
+                            + "requests presenting it are attributed to whichever is read last.",
+                        path,
+                        identityByToken[token],
+                        sourceIdentity
+                    );
                 }
 
                 var entry = new BearerTokenOptions { Token = token, SourceIdentity = sourceIdentity };
