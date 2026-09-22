@@ -253,6 +253,7 @@ func testResetImages() config.ImagesConfig {
 		Monitoring: config.MonitoringImages{
 			VictoriaMetrics: config.ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "latest"},
 			VictoriaTraces:  config.ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "latest"},
+			VictoriaLogs:    config.ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "latest"},
 			OtelCollector:   config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
 			Grafana:         config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
 		},
