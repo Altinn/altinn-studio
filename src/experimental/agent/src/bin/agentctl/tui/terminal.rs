@@ -72,7 +72,7 @@ impl Tui {
         };
         Ok(Self {
             terminal,
-            view_state: view::ViewState::default(),
+            view_state: view::ViewState::for_environment(),
             pointer_shape: PointerShape::Default,
             active: true,
         })

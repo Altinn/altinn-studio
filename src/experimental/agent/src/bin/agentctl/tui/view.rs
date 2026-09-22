@@ -3,15 +3,19 @@ use ratatui::{
     layout::{Constraint, Layout, Margin, Position, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Clear, List, ListItem, ListState, Paragraph, Wrap},
+    widgets::{Block, Cell, Clear, List, ListItem, ListState, Paragraph, Row, Table, TableState, Wrap},
 };
 
 use super::MANIFEST_FILE;
 use super::app::{
     App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
-    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, RowTarget, SessionField, Tone, TreeRowId, View,
+    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, RowTarget, RowView, SessionField, Tone, TreeRowId, View,
 };
 
+/// Background of the selected row; without colour it is drawn reversed instead.
+const SELECTION: Color = Color::Rgb(52, 58, 70);
+/// Narrowest tree that still shows the detail and age columns.
+const WIDE_TREE: u16 = 70;
 const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
 const CREATE_AGENT_POPUP_HEIGHT: u16 = 8;
 const CREATE_AGENT_FIELD_ROWS: usize = 4;
@@ -30,8 +34,20 @@ const GLOBAL_HINTS: [Hint; 3] = [
 
 #[derive(Default)]
 pub(crate) struct ViewState {
-    tree: ListState,
+    tree: TableState,
     forwards: ListState,
+    /// Draw without colour; glyphs and modifiers still tell states apart.
+    no_color: bool,
+}
+
+impl ViewState {
+    /// Honours `NO_COLOR` when it is set to anything but an empty string.
+    pub(crate) fn for_environment() -> Self {
+        Self {
+            no_color: std::env::var_os("NO_COLOR").is_some_and(|value| !value.is_empty()),
+            ..Self::default()
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -125,27 +141,48 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     } else {
         render_footer(frame, footer, app, &mut hit_map);
     }
+    if state.no_color {
+        let area = frame.area();
+        let buffer = frame.buffer_mut();
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                buffer[(x, y)].set_fg(Color::Reset).set_bg(Color::Reset);
+            }
+        }
+    }
     hit_map
 }
 
 fn render_header(frame: &mut Frame, area: Rect, app: &App) {
-    let (agents, sessions, running) = app.counts();
+    let counts = app.triage_counts();
+    let mut needs_you = Style::new().fg(Color::Yellow);
+    if counts.needs_you > 0 {
+        needs_you = needs_you.add_modifier(Modifier::BOLD);
+    }
     let mut spans = vec![
         Span::styled(
             " agentctl ",
             Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED),
         ),
         Span::raw(" "),
-        Span::styled(
-            format!("{agents} agents · {sessions} sessions · {running} running"),
-            Style::new().fg(Color::DarkGray),
-        ),
     ];
     if let Some(error) = &app.connection_error {
         spans.push(Span::styled(
-            format!(" · reconnecting: {error}"),
+            format!("reconnecting: {error} · "),
             Style::new().fg(Color::Red),
         ));
+    }
+    spans.push(Span::styled(format!("{} need you", counts.needs_you), needs_you));
+    for (count, label, color) in [
+        (counts.working, "working", Color::Green),
+        (counts.starting, "starting", Color::Cyan),
+        (counts.idle, "idle", Color::DarkGray),
+        (counts.failed, "failed", Color::Red),
+        (counts.provisioning, "provisioning", Color::Cyan),
+    ] {
+        if count > 0 {
+            spans.push(Span::styled(format!(" · {count} {label}"), Style::new().fg(color)));
+        }
     }
     if app.creating > 0 {
         spans.push(Span::styled(" · creating forward…", Style::new().fg(Color::Cyan)));
@@ -166,51 +203,93 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         );
         return;
     }
-    let items = rows
-        .iter()
-        .map(|row| {
-            let mut spans = Vec::new();
-            if row.agent {
-                spans.push(Span::styled(row.marker, Style::new().fg(tone_color(row.tone))));
-            } else {
-                spans.push(Span::styled(row.marker, Style::new().fg(Color::DarkGray)));
-            }
-            if let Some(dot) = row.dot {
-                spans.push(Span::styled(dot, Style::new().fg(tone_color(row.tone))));
-                spans.push(Span::raw(" "));
-            }
-            let label_style = if row.agent {
-                Style::new().add_modifier(Modifier::BOLD)
-            } else {
-                Style::new()
-            };
-            spans.push(Span::styled(row.label.clone(), label_style));
-            spans.push(Span::styled(
-                format!("  {}", row.badge),
-                Style::new().fg(Color::DarkGray),
-            ));
-            ListItem::new(Line::from(spans))
-        })
-        .collect::<Vec<_>>();
-    let list = List::new(items).highlight_style(Style::new().add_modifier(Modifier::REVERSED));
+    let wide = area.width >= WIDE_TREE;
+    let mut header = vec![
+        Cell::default(),
+        Cell::from("NAME"),
+        Cell::from("STATE"),
+        Cell::from(Line::from("FOR").right_aligned()),
+    ];
+    let mut widths = vec![
+        Constraint::Length(1),
+        Constraint::Fill(2),
+        Constraint::Length(12),
+        Constraint::Length(4),
+    ];
+    if wide {
+        header.extend([Cell::from("DETAIL"), Cell::from(Line::from("AGE").right_aligned())]);
+        widths.extend([Constraint::Fill(3), Constraint::Length(4)]);
+    }
+    let table = Table::new(rows.iter().map(|row| tree_row(row, wide)), widths)
+        .header(Row::new(header).style(Style::new().fg(Color::DarkGray)))
+        .row_highlight_style(selection(state));
     state.tree.select(app.selected_index());
-    frame.render_stateful_widget(list, area, &mut state.tree);
-    hit_map.wheel(area, WheelTarget::Tree);
-    for visible in 0..usize::from(area.height) {
+    frame.render_stateful_widget(table, area, &mut state.tree);
+    let body = Rect::new(
+        area.x,
+        area.y.saturating_add(1),
+        area.width,
+        area.height.saturating_sub(1),
+    );
+    hit_map.wheel(body, WheelTarget::Tree);
+    for visible in 0..usize::from(body.height) {
         let index = state.tree.offset().saturating_add(visible);
         let Some(target) = app.tree_id_at(index) else {
             break;
         };
-        let y = area.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
-        let row_area = Rect::new(area.x, y, area.width, 1);
-        hit_map.click(row_area, HitTarget::Row(RowTarget::Tree(target.clone())));
+        let y = body.y.saturating_add(u16::try_from(visible).unwrap_or(u16::MAX));
+        hit_map.click(
+            Rect::new(body.x, y, body.width, 1),
+            HitTarget::Row(RowTarget::Tree(target.clone())),
+        );
         if let TreeRowId::Agent(agent) = target {
             hit_map.click(
-                Rect::new(area.x, y, area.width.min(2), 1),
+                Rect::new(body.x, y, body.width.min(4), 1),
                 HitTarget::Action(MouseAction::FoldTree(agent)),
             );
         }
     }
+}
+
+/// One tree row. Sessions are indented under their Agent, and every state
+/// has a glyph as well as a colour.
+fn tree_row(row: &RowView, wide: bool) -> Row<'static> {
+    let tone = Style::new().fg(tone_color(row.tone));
+    let (indent, name) = if row.agent {
+        ("", tone.add_modifier(Modifier::BOLD))
+    } else {
+        ("  ", Style::new())
+    };
+    let mut state = tone;
+    if row.attention && !row.agent {
+        state = state.add_modifier(Modifier::BOLD);
+    }
+    let mut cells = vec![
+        Cell::from(Span::styled(
+            if row.attention { "▐" } else { "" },
+            Style::new().fg(Color::Yellow),
+        )),
+        Cell::from(Line::from(vec![
+            Span::raw(indent),
+            Span::styled(row.marker, tone),
+            Span::raw(" "),
+            Span::styled(row.name.clone(), name),
+        ])),
+        Cell::from(Span::styled(row.state, state)),
+        Cell::from(Line::from(Span::styled(row.since.clone(), tone)).right_aligned()),
+    ];
+    if wide {
+        let detail = if row.agent {
+            tone
+        } else {
+            Style::new().fg(Color::DarkGray)
+        };
+        cells.extend([
+            Cell::from(Span::styled(row.detail.clone(), detail)),
+            Cell::from(Line::from(Span::styled(row.age.clone(), Style::new().fg(Color::DarkGray))).right_aligned()),
+        ]);
+    }
+    Row::new(cells)
 }
 
 fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
@@ -243,7 +322,7 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
         .collect::<Vec<_>>();
     let list = List::new(items)
         .block(block)
-        .highlight_style(Style::new().add_modifier(Modifier::REVERSED));
+        .highlight_style(selection(state));
     state.forwards.select(Some(app.forward_selected));
     frame.render_stateful_widget(list, area, &mut state.forwards);
     hit_map.wheel(inner, WheelTarget::Forwards);
@@ -853,10 +932,19 @@ fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {
     }
 }
 
+const fn selection(state: &ViewState) -> Style {
+    if state.no_color {
+        Style::new().add_modifier(Modifier::REVERSED)
+    } else {
+        Style::new().bg(SELECTION)
+    }
+}
+
 const fn tone_color(tone: Tone) -> Color {
     match tone {
         Tone::Green => Color::Green,
         Tone::Yellow => Color::Yellow,
+        Tone::Cyan => Color::Cyan,
         Tone::Gray => Color::DarkGray,
         Tone::Red => Color::Red,
     }
@@ -963,9 +1051,96 @@ mod tests {
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("agentctl"));
-        assert!(text.contains("0 agents · 0 sessions · 0 running"));
+        assert!(text.contains("agentctl  0 need you"));
         assert!(text.contains("loading…"));
         assert!(text.contains("j/k move · F forwards · q quit"));
+    }
+
+    fn session(agent: &str, name: &str, state: &str) -> agent::sessions::Session {
+        let lifecycle = match state {
+            "working" | "waitingForInput" => "running",
+            other => other,
+        };
+        serde_json::from_value(serde_json::json!({
+            "id": "00000000-0000-0000-0000-000000000001",
+            "agentId": "00000000-0000-0000-0000-000000000002",
+            "agent": agent,
+            "name": name,
+            "harness": "claudeCode",
+            "modelSelection": {"model": "fable"},
+            "createdAt": "2026-08-25T00:00:00Z",
+            "status": {"state": state, "lifecycle": {"state": lifecycle}}
+        }))
+        .expect("test session")
+    }
+
+    fn triage_app() -> App {
+        let mut app = tree_app(2);
+        let agents = std::mem::take(&mut app.agents);
+        app.apply_snapshot(
+            agents,
+            vec![
+                session("agent-00", "review", "waitingForInput"),
+                session("agent-00", "main", "working"),
+            ],
+        );
+        app
+    }
+
+    #[test]
+    fn the_tree_aligns_state_columns_and_marks_sessions_that_need_input() {
+        let app = triage_app();
+        let mut terminal = Terminal::new(TestBackend::new(100, 10)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let lines = text.lines().collect::<Vec<_>>();
+        assert!(lines[0].contains("1 need you · 1 working"));
+        assert!(lines[1].contains("NAME") && lines[1].contains("DETAIL") && lines[1].contains("AGE"));
+        assert!(lines[2].starts_with("▐ ▾ agent-00"), "{}", lines[2]);
+        assert!(lines[3].starts_with("    * main"), "{}", lines[3]);
+        assert!(lines[4].starts_with("▐   ! review"), "{}", lines[4]);
+        let state = text_column(lines[1], "STATE");
+        assert_eq!(text_column(lines[3], "Working"), state);
+        assert_eq!(text_column(lines[4], "Needs you"), state);
+        assert_eq!(
+            text_column(lines[4], "Claude Code · fable"),
+            text_column(lines[1], "DETAIL")
+        );
+    }
+
+    #[test]
+    fn a_narrow_tree_keeps_name_state_and_time_in_state() {
+        let app = triage_app();
+        let mut terminal = Terminal::new(TestBackend::new(50, 10)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(text.contains("Needs you"));
+        assert!(!text.contains("DETAIL"));
+        assert!(!text.contains("Claude Code"));
+    }
+
+    #[test]
+    fn no_color_draws_without_colour_but_keeps_glyphs_and_the_selection() {
+        let mut app = triage_app();
+        app.select_index(1);
+        let mut state = ViewState {
+            no_color: true,
+            ..ViewState::default()
+        };
+        let mut terminal = Terminal::new(TestBackend::new(100, 10)).expect("test terminal");
+        draw_with_state(&mut terminal, &app, &mut state);
+        let buffer = terminal.backend().buffer();
+        assert!(
+            buffer
+                .content()
+                .iter()
+                .all(|cell| cell.fg == Color::Reset && cell.bg == Color::Reset)
+        );
+        assert!(
+            buffer[(6, 3)].modifier.contains(Modifier::REVERSED),
+            "the selected row stays marked"
+        );
+        assert!(buffer_text(&terminal).contains("! review"));
     }
 
     #[test]
@@ -985,27 +1160,21 @@ mod tests {
         app.select_index(9);
         let mut state = ViewState::default();
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
+        let agent = |name: &str| Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent(name.into()))));
 
         let compact = draw_with_state(&mut terminal, &app, &mut state);
-        assert_eq!(state.tree.offset(), 5);
-        assert_eq!(
-            compact.click_at(10, 1),
-            Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent("agent-05".into()))))
-        );
-        assert_eq!(
-            compact.click_at(10, 5),
-            Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent("agent-09".into()))))
-        );
+        assert_eq!(state.tree.offset(), 6);
+        assert_eq!(compact.click_at(10, 1), None, "the column header is not a row");
+        assert_eq!(compact.click_at(10, 2), agent("agent-06"));
+        assert_eq!(compact.click_at(10, 5), agent("agent-09"));
         assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
-        assert_eq!(compact.click_at(40, 1), None, "right edge is out of bounds");
+        assert_eq!(compact.click_at(40, 2), None, "right edge is out of bounds");
 
         terminal.resize(Rect::new(0, 0, 40, 12)).expect("terminal resize");
         let resized = draw_with_state(&mut terminal, &app, &mut state);
-        assert_eq!(state.tree.offset(), 5, "the viewport remains stable when it still fits");
-        assert_eq!(
-            resized.click_at(10, 1),
-            Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent("agent-05".into()))))
-        );
+        assert_eq!(state.tree.offset(), 6, "the viewport remains stable when it still fits");
+        assert_eq!(resized.click_at(10, 2), agent("agent-06"));
+        assert_eq!(resized.click_at(10, 5), agent("agent-09"));
         assert_eq!(
             resized.click_at(10, 6),
             None,
