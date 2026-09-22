@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -49,7 +50,7 @@ public sealed class ModelSerializationService
             );
         }
         var type = GetModelTypeForDataType(dataType);
-        return DeserializeXml(data, type);
+        return RestoreFixedValues(DeserializeXml(data, type), dataType, dataElement: null);
     }
 
     /// <summary>
@@ -63,7 +64,7 @@ public sealed class ModelSerializationService
     {
         var type = GetModelTypeForDataType(dataType);
 
-        return dataElement.ContentType?.ToLowerInvariant() switch
+        var model = dataElement.ContentType?.ToLowerInvariant() switch
         {
             "application/xml" => DeserializeXml(data, type),
             "application/json" => DeserializeJson(data, type),
@@ -74,6 +75,19 @@ public sealed class ModelSerializationService
                 $"Unsupported content type {dataElement.ContentType} on data element {dataElement.Id}"
             ),
         };
+
+        return RestoreFixedValues(model, dataType, dataElement);
+    }
+
+    /// <summary>
+    /// Set properties with a fixed value (typically XSD attributes with fixed="...") back to the value declared in the model class.
+    /// Data stored with other fixed values (for example before the fixed value changed in the schema) still loads,
+    /// and gets the correct values the next time it is saved.
+    /// </summary>
+    private static object RestoreFixedValues(object model, DataType dataType, DataElement? dataElement)
+    {
+        FormDataWrapperFactory.Create(model, dataType, dataElement).RestoreFixedValues();
+        return model;
     }
 
     /// <summary>
@@ -169,7 +183,8 @@ public sealed class ModelSerializationService
     }
 
     /// <summary>
-    /// Deserialize a single object from a stream
+    /// Deserialize a single object received from a client. Fails with a 400 problem when the data
+    /// changes a property with a fixed value.
     /// </summary>
     public async Task<ServiceResult<object, ProblemDetails>> DeserializeSingleFromStream(
         Stream body,
@@ -230,6 +245,13 @@ public sealed class ModelSerializationService
                 Detail = $"Content type {contentType} is not supported for deserialization",
                 Status = StatusCodes.Status415UnsupportedMediaType,
             };
+        }
+
+        // Clients can't change fixed values (typically XSD attributes with fixed="...")
+        var fixedValueErrors = FormDataWrapperFactory.Create(model, dataType, dataElement: null).RestoreFixedValues();
+        if (fixedValueErrors.Count > 0)
+        {
+            return FixedValueValidator.ToProblemDetails(fixedValueErrors);
         }
 
         return model;

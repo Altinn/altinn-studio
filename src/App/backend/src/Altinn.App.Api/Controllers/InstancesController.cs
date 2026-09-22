@@ -1943,15 +1943,6 @@ public class InstancesController : ControllerBase
 
                 var data = deserializationResult.Ok;
 
-                var fixedValueErrors = FixedValueValidator.RestoreFixedValues(
-                    FormDataWrapperFactory.Create(data, dataType, null),
-                    previous: null
-                );
-                if (fixedValueErrors.Count > 0)
-                {
-                    return FixedValueValidator.ToProblemDetails(fixedValueErrors);
-                }
-
                 await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
 
                 var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();

@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
@@ -197,23 +196,11 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
-    [Theory]
-    [InlineData(
-        "application/json",
-        """{"melding":{"name":"Kari Nordmann","tag-with-attribute":{"orid":1,"value":"old"}}}"""
-    )]
-    [InlineData(
-        "application/xml",
-        """<Skjema><melding><name>Kari Nordmann</name><tag-with-attribute orid="1">old</tag-with-attribute></melding></Skjema>"""
-    )]
-    public async Task PutDataElement_StoredFixedValueMismatch_IsRestoredAndReturnedAsChangedField(
-        string contentType,
-        string body
-    )
+    [Fact]
+    public async Task PutDataElement_StoredFixedValueMismatch_IsRestoredOnReadAndCorrectedOnSave()
     {
         // An instance stored before the fixed value changed in the model still has the old value in storage.
-        // The client sends it back unchanged, so the update is accepted, the fixed value is corrected when saving
-        // and the client gets the corrected value back as a changed field.
+        // Reading gives the correct value, and saving with the correct value corrects the stored data.
         string org = "tdd";
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
@@ -271,30 +258,36 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             """<Skjema><melding><name>Ola Nordmann</name><tag-with-attribute orid="1">old</tag-with-attribute></melding></Skjema>"""
         );
 
-        using var updateDataElementContent = new StringContent(body, System.Text.Encoding.UTF8, contentType);
-        var response = await client.PutAsync(
-            $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
-            updateDataElementContent
+        // Reading the data gives the correct fixed value
+        var readResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
+        var readSkjema = await VerifyStatusAndDeserialize<Skjema>(readResponse, HttpStatusCode.OK);
+        readSkjema.Melding!.TagWithAttribute!.orid.Should().Be(34730);
+
+        // A client that still has the stored value is rejected
+        using var staleContent = new StringContent(
+            """{"melding":{"name":"Kari Nordmann","tag-with-attribute":{"orid":1,"value":"old"}}}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
         );
-        var changes = await VerifyStatusAndDeserialize<CalculationResult>(response, HttpStatusCode.OK);
+        var staleResponse = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", staleContent);
+        var problemDetails = await VerifyStatusAndDeserialize<ProblemDetails>(staleResponse, HttpStatusCode.BadRequest);
+        problemDetails.Title.Should().Be("Fixed value mismatch");
+        (await File.ReadAllTextAsync(blobPath)).Should().Contain("orid=\"1\"");
 
-        changes
-            .ChangedFields.Should()
-            .ContainKey("melding.tag-with-attribute.orid")
-            .WhoseValue.Should()
-            .BeOfType<JsonElement>()
-            .Which.GetDecimal()
-            .Should()
-            .Be(34730);
+        // Saving with the value the client read corrects the stored data
+        using var updateContent = new StringContent(
+            """{"melding":{"name":"Kari Nordmann","tag-with-attribute":{"orid":34730,"value":"old"}}}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+        var response = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", updateContent);
+        OutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
-        var skjema = await VerifyStatusAndDeserialize<Skjema>(readDataElementResponse, HttpStatusCode.OK);
-        skjema.Melding!.Name.Should().Be("Kari Nordmann");
-        skjema.Melding.TagWithAttribute!.orid.Should().Be(34730);
-        skjema.Melding.TagWithAttribute.value.Should().Be("old");
         (await File.ReadAllTextAsync(blobPath))
             .Should()
-            .Contain("<tag-with-attribute orid=\"34730\">old</tag-with-attribute>");
+            .Contain("<tag-with-attribute orid=\"34730\">old</tag-with-attribute>")
+            .And.Contain("<name>Kari Nordmann</name>");
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }

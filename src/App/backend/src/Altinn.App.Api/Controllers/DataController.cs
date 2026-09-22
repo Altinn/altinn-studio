@@ -288,15 +288,6 @@ public class DataController : ControllerBase
                     {
                         return deserializationResult.Error;
                     }
-
-                    var fixedValueErrors = FixedValueValidator.RestoreFixedValues(
-                        FormDataWrapperFactory.Create(appModel, dataType, null),
-                        previous: null
-                    );
-                    if (fixedValueErrors.Count > 0)
-                    {
-                        return FixedValueValidator.ToProblemDetails(fixedValueErrors);
-                    }
                 }
 
                 // runs prefill from repo configuration if config exists
@@ -1143,19 +1134,6 @@ public class DataController : ControllerBase
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
 
-        // Serialize before fixed values are restored, so that the client gets the corrected values back as changed fields
-        var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
-
-        // Reject changes to fixed values, but tolerate (and correct) mismatches that were already stored
-        var fixedValueErrors = FixedValueValidator.RestoreFixedValues(
-            FormDataWrapperFactory.Create(serviceModel, dataType, dataElement),
-            FormDataWrapperFactory.Create(oldServiceModel, dataType, dataElement)
-        );
-        if (fixedValueErrors.Count > 0)
-        {
-            return Problem(FixedValueValidator.ToProblemDetails(fixedValueErrors));
-        }
-
         // Set the new service model so that dataAccessors see the new state
         dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel, dataType, dataElement));
 
@@ -1171,6 +1149,7 @@ public class DataController : ControllerBase
         );
 
         // Run data processors keeping track of changes for diff return
+        var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
         await _patchService.RunDataProcessors(dataMutator, new DataElementChanges([requestedChange]), taskId, language);
         var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
 

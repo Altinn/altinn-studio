@@ -566,7 +566,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     public async Task StoredFixedValueMismatch_IsRestoredWhenSavingOtherChanges()
     {
         // An instance stored before the fixed value changed in the model still has the old value in storage.
-        // The client sends it back unchanged, so the patch is accepted and the fixed value is corrected when saving.
+        // The model gets the correct value when it is loaded, and the stored data is corrected when the client saves.
         var blobPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
         await File.WriteAllTextAsync(blobPath, StoredXmlWithWrongFixedValue);
         _dataProcessorMock
@@ -603,26 +603,30 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
-    public async Task StoredFixedValueMismatch_ChangedByClient_ReturnsBadRequest()
+    public async Task StoredFixedValueMismatch_IsRestoredWhenRead()
     {
-        // Mismatches already in storage are tolerated, but the client still can't change the value to something else
+        // The wrong value in storage is never exposed, but reading alone does not rewrite the stored data
         var blobPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
         await File.WriteAllTextAsync(blobPath, StoredXmlWithWrongFixedValue);
+        _dataProcessorMock
+            .Setup(p => p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), null))
+            .Returns(Task.CompletedTask);
 
-        var pointer = JsonPointer.Create("melding", "tag-with-attribute", "orid");
-        var patch = new JsonPatch(
-            PatchOperation.Test(pointer, JsonNode.Parse("1")),
-            PatchOperation.Replace(pointer, JsonNode.Parse("2"))
-        );
+        var response = await GetClient().GetAsync($"/{Org}/{App}/instances/{_instanceId}/data/{_dataGuid}");
+        var responseString = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseString);
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        var (_, _, parsedResponse) = await CallPatchApi<ProblemDetails>(patch, null, HttpStatusCode.BadRequest);
-
-        parsedResponse.Title.Should().Be("Fixed value mismatch");
-        parsedResponse
-            .Detail.Should()
-            .Be("Property \"melding.tag-with-attribute.orid\" has the fixed value \"34730\", but was \"2\"");
+        using var data = JsonDocument.Parse(responseString);
+        var tagWithAttribute = data.RootElement.GetProperty("melding").GetProperty("tag-with-attribute");
+        tagWithAttribute.GetProperty("orid").GetDecimal().Should().Be(34730);
+        tagWithAttribute.GetProperty("value").GetString().Should().Be("old");
         (await File.ReadAllTextAsync(blobPath)).Should().Be(StoredXmlWithWrongFixedValue);
 
+        _dataProcessorMock.Verify(
+            p => p.ProcessDataRead(It.IsAny<Instance>(), _dataGuid, It.IsAny<Skjema>(), null),
+            Times.Once
+        );
         _dataProcessorMock.VerifyNoOtherCalls();
     }
 
