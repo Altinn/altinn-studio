@@ -181,92 +181,105 @@ pub(super) fn milliseconds(duration: std::time::Duration) -> u64 {
     u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
 
-/// Translates one SDK event; values this build does not know are skipped rather
-/// than surfaced, since the SDK and its consumers are versioned together.
-pub(super) fn sandbox_event(event: ::sandbox::SandboxEvent) -> Option<Event> {
-    Some(match event {
-        ::sandbox::SandboxEvent::PhaseStarted { phase } => Event::PhaseStarted {
-            phase: phase_of(phase)?,
-            message: phase.to_string(),
-        },
-        ::sandbox::SandboxEvent::PhaseCompleted {
-            phase,
-            outcome,
-            elapsed,
-        } => Event::PhaseCompleted {
-            phase: phase_of(phase)?,
-            message: phase.to_string(),
-            outcome: outcome_of(outcome)?,
-            elapsed_ms: milliseconds(elapsed),
-        },
-        ::sandbox::SandboxEvent::StepStarted { phase, id, name } => Event::StepStarted {
-            phase: phase_of(phase)?,
-            step_id: id.to_string(),
-            message: name,
-        },
-        ::sandbox::SandboxEvent::StepProgress {
-            phase,
-            id,
-            name,
-            completed,
-            total,
-            unit,
-        } => Event::StepProgress {
-            phase: phase_of(phase)?,
-            step_id: id.to_string(),
-            message: name,
-            completed,
-            total,
-            unit: unit_of(unit)?,
-        },
-        ::sandbox::SandboxEvent::StepOutput {
-            phase,
-            id,
-            name,
-            stream,
-            bytes,
-        } => Event::StepOutput {
-            phase: phase_of(phase)?,
-            step_id: id.to_string(),
-            message: name,
-            stream: stream_of(stream)?,
-            detail: String::from_utf8_lossy(&bytes).into_owned(),
-        },
-        ::sandbox::SandboxEvent::StepCompleted {
-            phase,
-            id,
-            name,
-            elapsed,
-        } => Event::StepCompleted {
-            phase: phase_of(phase)?,
-            step_id: id.to_string(),
-            message: name,
-            elapsed_ms: milliseconds(elapsed),
-        },
+/// Translates SDK events into this API's events, which name each step's phase
+/// and label on every event. Values this build does not know are skipped
+/// rather than surfaced, since the SDK and its consumers are versioned together.
+#[derive(Default)]
+pub(super) struct Translator {
+    phase: Option<Phase>,
+    steps: std::collections::HashMap<::sandbox::StepId, (Phase, String, Option<ProgressUnit>)>,
+}
+
+impl Translator {
+    pub(super) fn translate(&mut self, event: ::sandbox::ProgressEvent) -> Option<Event> {
+        Some(match event {
+            ::sandbox::ProgressEvent::PhaseStarted { phase } => {
+                let id = phase_of(&phase)?;
+                self.phase = Some(id);
+                Event::PhaseStarted {
+                    phase: id,
+                    message: phase.label.into_owned(),
+                }
+            }
+            ::sandbox::ProgressEvent::PhaseEnded {
+                phase,
+                outcome,
+                elapsed,
+            } => Event::PhaseCompleted {
+                phase: phase_of(&phase)?,
+                message: phase.label.into_owned(),
+                outcome: outcome_of(outcome)?,
+                elapsed_ms: milliseconds(elapsed),
+            },
+            ::sandbox::ProgressEvent::StepStarted { id, name, unit, .. } => {
+                let phase = self.phase?;
+                self.steps
+                    .insert(id.clone(), (phase, name.clone(), unit.and_then(unit_of)));
+                Event::StepStarted {
+                    phase,
+                    step_id: id.to_string(),
+                    message: name,
+                }
+            }
+            ::sandbox::ProgressEvent::StepProgress { id, completed, total } => {
+                let (phase, name, unit) = self.steps.get(&id)?;
+                Event::StepProgress {
+                    phase: *phase,
+                    step_id: id.to_string(),
+                    message: name.clone(),
+                    completed,
+                    total,
+                    unit: (*unit)?,
+                }
+            }
+            ::sandbox::ProgressEvent::StepOutput { id, stream, bytes } => {
+                let (phase, name, _) = self.steps.get(&id)?;
+                Event::StepOutput {
+                    phase: *phase,
+                    step_id: id.to_string(),
+                    message: name.clone(),
+                    stream: stream_of(stream)?,
+                    detail: String::from_utf8_lossy(&bytes).into_owned(),
+                }
+            }
+            ::sandbox::ProgressEvent::StepEnded { id, outcome, elapsed } => {
+                let (phase, name, _) = self.steps.remove(&id)?;
+                if outcome == ::sandbox::Outcome::Failed {
+                    return None;
+                }
+                Event::StepCompleted {
+                    phase,
+                    step_id: id.to_string(),
+                    message: name,
+                    elapsed_ms: milliseconds(elapsed),
+                }
+            }
+            _ => return None,
+        })
+    }
+}
+
+fn phase_of(value: &::sandbox::Phase) -> Option<Phase> {
+    Some(match value.id.as_ref() {
+        "validate" => Phase::Validate,
+        "lookup" => Phase::Lookup,
+        "featureDiscovery" => Phase::FeatureDiscovery,
+        "imageResolve" => Phase::ImageResolve,
+        "imagePrepare" => Phase::ImagePrepare,
+        "sandboxCreate" => Phase::SandboxCreate,
+        "sandboxUpdate" => Phase::SandboxUpdate,
+        "networkStart" => Phase::NetworkStart,
+        "sandboxStart" => Phase::SandboxStart,
+        "inspect" => Phase::Inspect,
         _ => return None,
     })
 }
 
-const fn phase_of(value: ::sandbox::SandboxPhase) -> Option<Phase> {
+/// A failed phase is reported by the reconciler, which knows the failure.
+const fn outcome_of(value: ::sandbox::Outcome) -> Option<PhaseOutcome> {
     Some(match value {
-        ::sandbox::SandboxPhase::Validate => Phase::Validate,
-        ::sandbox::SandboxPhase::Lookup => Phase::Lookup,
-        ::sandbox::SandboxPhase::FeatureDiscovery => Phase::FeatureDiscovery,
-        ::sandbox::SandboxPhase::ImageResolve => Phase::ImageResolve,
-        ::sandbox::SandboxPhase::ImagePrepare => Phase::ImagePrepare,
-        ::sandbox::SandboxPhase::SandboxCreate => Phase::SandboxCreate,
-        ::sandbox::SandboxPhase::SandboxUpdate => Phase::SandboxUpdate,
-        ::sandbox::SandboxPhase::NetworkStart => Phase::NetworkStart,
-        ::sandbox::SandboxPhase::SandboxStart => Phase::SandboxStart,
-        ::sandbox::SandboxPhase::Inspect => Phase::Inspect,
-        _ => return None,
-    })
-}
-
-const fn outcome_of(value: ::sandbox::PhaseOutcome) -> Option<PhaseOutcome> {
-    Some(match value {
-        ::sandbox::PhaseOutcome::Completed => PhaseOutcome::Completed,
-        ::sandbox::PhaseOutcome::Reused => PhaseOutcome::Reused,
+        ::sandbox::Outcome::Completed => PhaseOutcome::Completed,
+        ::sandbox::Outcome::Reused => PhaseOutcome::Reused,
         _ => return None,
     })
 }
