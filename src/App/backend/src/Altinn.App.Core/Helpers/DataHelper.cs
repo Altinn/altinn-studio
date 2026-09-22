@@ -166,8 +166,7 @@ public static class DataHelper
                 throw CreateDuplicateFieldIdException(dataFields, field, dataType, metadataPropertyName);
             }
 
-            string fixedPath = field.Path.Replace("-", string.Empty);
-            string? value = data.Get(fixedPath)?.ToString();
+            string? value = data.Get(field.Path)?.ToString();
             dataFieldValues.Add(field.Id, value);
         }
 
