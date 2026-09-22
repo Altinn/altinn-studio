@@ -72,6 +72,12 @@ pub(crate) const CONFIRM_DELETE_HINTS: [Hint; 2] = [
     Hint::key("n", "cancel", KeyCode::Char('n')),
 ];
 
+/// Key hints while the filter is edited in the footer.
+pub(crate) const FILTER_HINTS: [Hint; 2] = [
+    Hint::key("enter", "keep", KeyCode::Enter),
+    Hint::key("esc", "clear", KeyCode::Esc),
+];
+
 pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
     Hint::key("enter", "forward", KeyCode::Enter),
     Hint::key("tab", "field", KeyCode::Tab),
@@ -117,6 +123,9 @@ pub(crate) struct App {
     pub(crate) groups: Vec<Group>,
     pub(crate) rows: Vec<Row>,
     pub(crate) collapsed: HashSet<String>,
+    /// Shows only Agents and Sessions whose name, state, harness or model
+    /// contains it, ignoring case; an Agent that matches keeps all its Sessions.
+    pub(crate) filter: String,
     /// Selected tree row, kept by identity so a snapshot that reorders or
     /// reshapes the tree leaves it on the same Agent or Session.
     pub(crate) selection: Option<TreeRowId>,
@@ -181,6 +190,7 @@ pub(crate) enum Modal {
     NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
+    Filter,
 }
 
 /// Text field of the new Session form that typing edits.
@@ -811,6 +821,7 @@ impl App {
             groups: Vec::new(),
             rows: Vec::new(),
             collapsed: HashSet::new(),
+            filter: String::new(),
             selection: None,
             loaded: false,
             connection_error: None,
@@ -859,20 +870,67 @@ impl App {
             .iter()
             .enumerate()
             .flat_map(|(group_index, group)| {
-                let mut rows = vec![Row::Agent(group_index)];
-                if let Some(agent) = self.agents.get(group.agent)
-                    && !self.collapsed.contains(&agent.metadata.name)
-                {
-                    rows.extend((0..group.sessions.len()).map(|position| Row::Session {
-                        group: group_index,
-                        position,
-                    }));
+                let Some(agent) = self.agents.get(group.agent) else {
+                    return Vec::new();
+                };
+                let agent_matches = self.matches(&agent.metadata.name);
+                let sessions = (0..group.sessions.len())
+                    .filter(|position| {
+                        agent_matches
+                            || self
+                                .sessions
+                                .get(group.sessions[*position])
+                                .is_some_and(|session| self.session_matches(session))
+                    })
+                    .collect::<Vec<_>>();
+                if !agent_matches && sessions.is_empty() {
+                    return Vec::new();
                 }
+                let mut rows = vec![Row::Agent(group_index)];
+                // Folding hides Sessions only while nothing is filtered, so a match is never hidden.
+                if self.filter.is_empty() && self.collapsed.contains(&agent.metadata.name) {
+                    return rows;
+                }
+                rows.extend(sessions.into_iter().map(|position| Row::Session {
+                    group: group_index,
+                    position,
+                }));
                 rows
             })
             .collect();
         if self.selected_index().is_none() {
             self.selection = self.tree_id_at(fallback.min(self.rows.len().saturating_sub(1)));
+        }
+    }
+
+    fn matches(&self, value: &str) -> bool {
+        value.to_lowercase().contains(&self.filter.to_lowercase())
+    }
+
+    fn session_matches(&self, session: &Session) -> bool {
+        let (_, _, state) = session_state(session.status.state);
+        [
+            session.name.as_str(),
+            state,
+            harness_label(session.harness),
+            session.model_selection.model_str().unwrap_or_default(),
+        ]
+        .into_iter()
+        .any(|value| self.matches(value))
+    }
+
+    /// Selects the next shown Session waiting for input, after the selection and wrapping around.
+    fn select_next_needing_input(&mut self) {
+        let start = self.selected_index().map_or(0, |index| index + 1);
+        let next = (0..self.rows.len())
+            .map(|step| (start + step) % self.rows.len())
+            .find(|index| {
+                matches!(self.rows[*index], Row::Session { group, position }
+                    if self.group_session(group, position)
+                        .is_some_and(|session| session.status.state == State::WaitingForInput))
+            });
+        if let Some(index) = next {
+            self.select_index(index);
         }
     }
 
@@ -1054,7 +1112,13 @@ impl App {
 
     fn main_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
+            KeyCode::Esc if !self.filter.is_empty() => {
+                self.filter.clear();
+                self.rebuild();
+            }
             KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Char('/') => self.modal = Some(Modal::Filter),
+            KeyCode::Tab => self.select_next_needing_input(),
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
             KeyCode::Char('z') => self.toggle_all(),
@@ -1233,6 +1297,29 @@ impl App {
                     return action;
                 }
                 self.modal = Some(Modal::PortForward(form));
+                Action::None
+            }
+            Some(Modal::Filter) => {
+                match key.code {
+                    KeyCode::Enter => return Action::None,
+                    KeyCode::Esc => {
+                        self.filter.clear();
+                        self.rebuild();
+                        return Action::None;
+                    }
+                    KeyCode::Backspace => {
+                        self.filter.pop();
+                        self.rebuild();
+                    }
+                    KeyCode::Char(character)
+                        if key.modifiers.difference(KeyModifiers::SHIFT).is_empty() && !character.is_control() =>
+                    {
+                        self.filter.push(character);
+                        self.rebuild();
+                    }
+                    _ => {}
+                }
+                self.modal = Some(Modal::Filter);
                 Action::None
             }
             None => Action::None,
@@ -1462,6 +1549,7 @@ impl App {
                 Modal::NewSession(_) => &NEW_SESSION_HINTS,
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
+                Modal::Filter => &FILTER_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -1716,6 +1804,67 @@ mod tests {
                 ..TriageCounts::default()
             }
         );
+    }
+
+    fn type_text(app: &mut App, text: &str) {
+        for character in text.chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+    }
+
+    #[test]
+    fn the_filter_matches_names_states_harnesses_and_models_and_shows_folded_matches() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Enter));
+        assert_eq!(app.rows.len(), 4, "builder is folded");
+        app.on_key(key(KeyCode::Char('/')));
+
+        type_text(&mut app, "B1");
+        assert_eq!(app.rows, [Row::Agent(0), Row::Session { group: 0, position: 0 }]);
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Backspace));
+        type_text(&mut app, "idle");
+        assert_eq!(
+            app.render_rows()
+                .iter()
+                .map(|row| row.name.as_str())
+                .collect::<Vec<_>>(),
+            ["worker", "s1"]
+        );
+        app.filter.clear();
+        type_text(&mut app, "work");
+        assert_eq!(app.rows.len(), 3, "an Agent that matches keeps all its Sessions");
+
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert!(app.modal.is_none());
+        assert_eq!(app.filter, "work", "enter keeps the filter");
+        assert_eq!(
+            app.on_key(key(KeyCode::Esc)),
+            Action::None,
+            "esc clears the filter first"
+        );
+        assert!(app.filter.is_empty());
+        assert_eq!(app.rows.len(), 4, "folding applies again");
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::Quit);
+    }
+
+    #[test]
+    fn tab_selects_the_next_session_needing_input_and_wraps() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("first"), agent("second")],
+            vec![
+                session("first", "a", "waitingForInput"),
+                session("first", "b", "working"),
+                session("second", "c", "waitingForInput"),
+            ],
+        );
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(app.selected_index(), Some(1));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(app.selected_index(), Some(4));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(app.selected_index(), Some(1), "the jump wraps around");
     }
 
     #[test]
