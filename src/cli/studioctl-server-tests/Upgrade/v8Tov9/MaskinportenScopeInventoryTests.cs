@@ -277,7 +277,8 @@ public sealed class MaskinportenScopeInventoryTests : IDisposable
 
         var warnings = Describe().Warnings;
 
-        Assert.Contains(warnings, w => w.Contains("two Maskinporten clients", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("one Maskinporten identity", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("scopes per client registration", StringComparison.Ordinal));
         Assert.Contains(warnings, w => w.Contains("studioctl app maskinporten set", StringComparison.Ordinal));
         Assert.Contains(warnings, w => w.Contains("Velg scopes fra Maskinporten", StringComparison.Ordinal));
         Assert.Contains(warnings, w => w.Contains("is not listed", StringComparison.Ordinal));

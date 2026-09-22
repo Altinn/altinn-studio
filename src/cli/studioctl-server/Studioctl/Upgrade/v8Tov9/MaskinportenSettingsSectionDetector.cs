@@ -70,8 +70,9 @@ internal sealed class MaskinportenSettingsSectionDetector
         + "does when the app is deployed. One exception: a default MaskinportenSettings section that configures "
         + "the external Altinn.ApiClients.Maskinporten package, with its Environment and key kept in user "
         + "secrets or a key vault, is still read by that package - keep it. Whatever you do with the section, "
-        + "its scopes have to be granted again on both clients: the scope list below has them, taken from "
-        + "these sections before they go. Sections found:";
+        + "the scopes it names still have to be in place - selected in Studio for the deployed app, and on the "
+        + "client you supply for local runs. The scope list below has them, taken from these sections before "
+        + "they go. Sections found:";
 
     private const string LeftoverSummary =
         "These configuration objects look like credentials for the built-in Maskinporten client - they carry "
@@ -201,8 +202,8 @@ internal sealed class MaskinportenSettingsSectionDetector
             {
                 // The same exclusion Detect makes: a default MaskinportenSettings section shaped for the
                 // external package belongs to that package, which still reads it. Its scopes are that
-                // client's, so listing them under "grant these on both of the app's clients" would send a
-                // developer to add an unrelated integration's grants to the provisioned client.
+                // client's, so listing them alongside the app's own would send a developer to add an
+                // unrelated integration's grants to the app's Maskinporten selection.
                 if (
                     string.Equals(path, DefaultSectionName, StringComparison.OrdinalIgnoreCase)
                     && IsExternalPackageObject(element)
@@ -244,8 +245,9 @@ internal sealed class MaskinportenSettingsSectionDetector
     }
 
     /// <summary>
-    /// The scopes in an object's <c>Scope</c> member, which both clients spell the same way but shape
-    /// differently: a single string, a space- or comma-separated list of them, or an array.
+    /// The scopes in an object's <c>Scope</c> member, which the built-in and external settings shapes spell
+    /// the same way but structure differently: a single string, a space- or comma-separated list of them, or
+    /// an array.
     /// </summary>
     private static IEnumerable<string> ScopeValues(JsonElement element)
     {

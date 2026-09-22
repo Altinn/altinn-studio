@@ -77,15 +77,16 @@ Altinn Studio platform developers may use `dev` or `staging`.
 `studioctl app upgrade v9` migrates the app and reports what it will not change for you. Read its output before
 changing anything yourself; it names every file and configuration path it found.
 
-Maskinporten needs deliberate handling, because a v9 app has **two** Maskinporten clients where v8 had one:
+Maskinporten needs deliberate handling. A v9 app has **one** Maskinporten identity and never configures its own
+credentials: it reads whatever the platform provisions for it. Deployed, that is the client Studio provisions. On a
+local run studioctl is the platform, and it cannot yet hand over the credentials Studio issues - so to test against a
+real external API you supply a client for studioctl to provision in their place, with
+`studioctl app maskinporten set`. That is a gap in the local harness, not a second identity for the app.
 
-- The client **Studio provisions** for the app. It is what a deployed app uses. The app cannot configure it, and
-  v9 never reads Maskinporten credentials from the app's own configuration.
-- The client **you store locally** with `studioctl app maskinporten set`. A local run uses it when the app calls an
-  external API for real.
-
-They are separate registrations in Maskinporten and are granted scopes separately, so an app that works deployed can
-still fail locally, and the reverse. The same scopes have to be on both.
+The consequence that matters is about scopes. Maskinporten grants scopes per client registration, and the client a
+local run uses is not the registration the deployed app uses. So a scope selected in Studio is not thereby available
+locally, and a scope on your local client is not thereby available once deployed. The same scopes have to be in place
+in both spots.
 
 When the upgrade reports Maskinporten configuration:
 
@@ -95,14 +96,14 @@ When the upgrade reports Maskinporten configuration:
 2. **For the deployed app**, select those scopes in Studio under App settings, "Velg scopes fra Maskinporten". This
    requires an Ansattporten sign-in on behalf of the organization that owns the app, and takes effect the next time
    the app is built and deployed - so do it *before* deploying, or the deployed app fails on its first token request.
-3. **For local runs**, store a client with `studioctl app maskinporten set` and make sure that client already has the
-   same scopes in Maskinporten. `studioctl doctor` reports whether one is stored for the detected app.
+3. **For local runs**, supply a client with `studioctl app maskinporten set` and make sure that client already has
+   the same scopes in Maskinporten. `studioctl doctor` reports whether one is stored for the detected app.
 4. **Do not reintroduce credentials into `appsettings.json`.** v9 does not read them from there in any environment.
    A section that configures the external `Altinn.ApiClients.Maskinporten` package is the exception and is still read
    by that package.
 
-Do not add the `altinn:serviceowner` scopes to either client on the app's behalf: Studio adds them to the provisioned
-client automatically when a v9 app is built, and a local run does not need them.
+Do not add the `altinn:serviceowner` scopes anywhere on the app's behalf: Studio adds them to the provisioned
+credentials automatically when a v9 app is built, and a local run does not need them.
 
 ## Run and test
 

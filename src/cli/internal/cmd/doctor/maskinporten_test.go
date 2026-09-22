@@ -54,8 +54,8 @@ func TestCheckMaskinportenClientState_WithoutAStoredClient_SaysWhatToRun(t *test
 	if !strings.Contains(check.Message, "studioctl app maskinporten set") {
 		t.Errorf("message does not say what to run: %s", check.Message)
 	}
-	if !strings.Contains(check.Message, "separate client") {
-		t.Errorf("message does not say it is a separate client: %s", check.Message)
+	if !strings.Contains(check.Message, "scopes per client registration") {
+		t.Errorf("message does not explain why the scopes must be repeated: %s", check.Message)
 	}
 }
 
@@ -87,8 +87,8 @@ func TestCheckMaskinportenClientState_WithAStoredClient_ReportsItAndTheScopeCave
 	if !strings.Contains(check.Message, "client-5") {
 		t.Errorf("message does not name the client: %s", check.Message)
 	}
-	if !strings.Contains(check.Message, "granted separately") {
-		t.Errorf("message does not carry the two-client caveat: %s", check.Message)
+	if !strings.Contains(check.Message, "scopes per client registration") {
+		t.Errorf("message does not carry the scope caveat: %s", check.Message)
 	}
 }
 

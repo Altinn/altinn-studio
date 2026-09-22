@@ -5,10 +5,13 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
 /// <para>The Maskinporten scopes an app appears to need, gathered from everything the upgrade can see and
-/// reported as one list with the evidence for each. It exists because a v9 app has two Maskinporten clients
-/// rather than one - the client Studio provisions for the deployed app, and the client the developer stores
-/// with <c>studioctl app maskinporten set</c> for local runs - and the same scopes have to be granted on
-/// both, separately. One list answers both questions.</para>
+/// reported as one list with the evidence for each.</para>
+/// <para>It exists because Maskinporten grants scopes per client registration, and a local run does not use the
+/// registration a deployed app uses. The app itself has one Maskinporten identity and never configures its own
+/// credentials - it reads whatever the platform provisions - but studioctl cannot yet provision the credentials
+/// Studio issues, so a developer testing against a real external API supplies a client for it to provision
+/// instead. That is a gap in the local harness rather than a second identity, and its practical cost is that
+/// the same scopes have to be selected in Studio and present on the supplied client. One list serves both.</para>
 /// <para>The list is deliberately not exhaustive, and says so: a scope passed as a variable, a constant or a
 /// configuration read is invisible to a syntax-only scan, and a direct
 /// <c>IMaskinportenClient.GetAccessToken(..)</c> call is not harvested at all because <c>GetAccessToken</c>
@@ -68,20 +71,20 @@ internal sealed class MaskinportenScopeInventory
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
     private const string Summary =
-        "Maskinporten scopes this app appears to need. A v9 app has two Maskinporten clients, and the same "
-        + "scopes must be granted on both, separately: the client Studio provisions for the deployed app, and "
-        + "the client you store with studioctl app maskinporten set for local runs. For the deployed app, "
-        + "select these in Studio under App settings, \"Velg scopes fra Maskinporten\" - that needs an "
-        + "Ansattporten sign-in on behalf of the organization that owns the app, and takes effect the next "
-        + "time the app is built and deployed, so do it before you deploy. For local runs, the client you "
-        + "store must already have them in Maskinporten. Scopes found:";
+        "Maskinporten scopes this app appears to need. The app has one Maskinporten identity and reads whatever "
+        + "the platform provisions for it, but Maskinporten grants scopes per client registration, and a local "
+        + "run cannot use the credentials Studio provisions - so these scopes have to be in place in two spots. "
+        + "For the deployed app, select them in Studio under App settings, \"Velg scopes fra Maskinporten\" - "
+        + "that needs an Ansattporten sign-in on behalf of the organization that owns the app, and takes effect "
+        + "the next time the app is built and deployed, so do it before you deploy. For local runs, the client "
+        + "you supply with studioctl app maskinporten set must already have them in Maskinporten. Scopes found:";
 
     private const string Unreadable =
         "This app requests Maskinporten tokens, but none of the scopes it asks for are written as literals - "
         + "they come from variables, constants or configuration - so the upgrade cannot list them. Work them "
-        + "out from the call sites yourself. They are still needed on both of the app's Maskinporten clients: "
-        + "select them in Studio under App settings, \"Velg scopes fra Maskinporten\", for the deployed app, "
-        + "and make sure the client you store with studioctl app maskinporten set has them for local runs.";
+        + "out from the call sites yourself. They are still needed in both spots: select them in Studio under "
+        + "App settings, \"Velg scopes fra Maskinporten\", for the deployed app, and make sure the client you "
+        + "supply with studioctl app maskinporten set has them for local runs.";
 
     private const string Incomplete =
         "This list covers the scopes named as literals in your code, configuration and process. A scope "
@@ -179,7 +182,7 @@ internal sealed class MaskinportenScopeInventory
         if (found.Count == 0)
         {
             // An app that asks for tokens but names no scope literal is the case this report must not stay
-            // quiet about: it needs grants on both clients and the upgrade cannot say which.
+            // quiet about: the scopes are needed in both spots and the upgrade cannot say which they are.
             return requestsTokens
                 ? new MigrationResult([new UpgradeMessage(Unreadable, UpgradeMessageStatus.Todo)])
                 : new MigrationResult();
