@@ -237,15 +237,15 @@ impl Provider for PlannedProvider {
             }),
             Some(PlannedFailure::InvalidAfterFlood(message)) => Box::pin(async move {
                 for _ in 0..TELEMETRY_FLOOD {
-                    progress(sandbox::SandboxEvent::PhaseStarted {
-                        phase: sandbox::SandboxPhase::Validate,
+                    progress(sandbox::ProgressEvent::PhaseStarted {
+                        phase: sandbox::SandboxPhase::Validate.phase(),
                     });
                 }
                 Err(Error::Invalid(message))
             }),
             Some(PlannedFailure::Transient(message)) => Box::pin(async move {
-                progress(sandbox::SandboxEvent::PhaseStarted {
-                    phase: sandbox::SandboxPhase::SandboxStart,
+                progress(sandbox::ProgressEvent::PhaseStarted {
+                    phase: sandbox::SandboxPhase::SandboxStart.phase(),
                 });
                 Err(Error::Sandbox(sandbox::Error::Backend(message)))
             }),
