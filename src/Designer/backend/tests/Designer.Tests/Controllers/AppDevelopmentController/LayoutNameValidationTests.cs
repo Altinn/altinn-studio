@@ -33,7 +33,7 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
     private const string V9AppWithoutLegacyNames = "app-with-groups-and-task-navigation";
     private const string Developer = "testUser";
     private const string LayoutSetWithLegacyPageNames = "legacySet";
-    private const string LayoutSetWithLongFolderName = "subform-GjennomfoeringsplanDataV7Pdf";
+    private const string LayoutSetWithLongFolderName = "legacy-subform-name-longer-than-28-chars";
     private const string PageNameWithSpace = "Text field";
     private const string PageNameWithDots = "1.Intro";
 

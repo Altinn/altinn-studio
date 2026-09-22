@@ -9,7 +9,7 @@
             ]
         },
         {
-            "id": "subform-GjennomfoeringsplanDataV7Pdf",
+            "id": "legacy-subform-name-longer-than-28-chars",
             "dataType": "datamodel",
             "type": "subform"
         }

@@ -30,7 +30,7 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
     private const string AppV9 = "app-with-layoutsets-v9";
     private const string AppV9WithSeveralLayoutSets = "app-with-groups-and-task-navigation";
     private const string Developer = "testUser";
-    private const string LayoutSetWithLongFolderName = "subform-GjennomfoeringsplanDataV7Pdf";
+    private const string LayoutSetWithLongFolderName = "legacy-subform-name-longer-than-28-chars";
 
     private static string LayoutSetsUrl(string repository) =>
         $"/designer/api/{Org}/{repository}/ui-folders/layout-sets";
