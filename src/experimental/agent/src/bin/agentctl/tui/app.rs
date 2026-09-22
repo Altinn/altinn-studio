@@ -5,7 +5,7 @@ use std::{
 
 use agent::{
     Agent, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection,
-    sessions::{Session, SessionName, State},
+    sessions::{Session, SessionName, State, Turn},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use sandbox::progress::{OperationStatus, Progress};
@@ -72,6 +72,12 @@ pub(crate) const CONFIRM_DELETE_HINTS: [Hint; 2] = [
     Hint::key("n", "cancel", KeyCode::Char('n')),
 ];
 
+/// Key hints while a prompt is typed in the footer.
+pub(crate) const PROMPT_HINTS: [Hint; 2] = [
+    Hint::key("enter", "send", KeyCode::Enter),
+    Hint::key("esc", "cancel", KeyCode::Esc),
+];
+
 /// Key hints while the filter is edited in the footer.
 pub(crate) const FILTER_HINTS: [Hint; 2] = [
     Hint::key("enter", "keep", KeyCode::Enter),
@@ -108,8 +114,9 @@ const AGENT_HINTS: [Hint; 10] = [
     Hint::key("z", "all", KeyCode::Char('z')),
 ];
 
-const SESSION_HINTS: [Hint; 5] = [
+const SESSION_HINTS: [Hint; 6] = [
     Hint::key("enter", "attach", KeyCode::Enter),
+    Hint::key("p", "prompt", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
@@ -141,6 +148,9 @@ pub(crate) struct App {
     pub(crate) view: View,
     pub(crate) forward_selected: usize,
     pub(crate) creating: usize,
+    /// Prompts being sent.
+    pub(crate) prompting: usize,
+    pub(crate) transcript: Option<Transcript>,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
 }
@@ -215,6 +225,51 @@ pub(crate) enum Modal {
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
     Filter,
+    Prompt(PromptForm),
+}
+
+/// A prompt for a running Session, sent without attaching to it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct PromptForm {
+    pub(crate) agent: String,
+    pub(crate) session: SessionName,
+    pub(crate) input: String,
+    /// Why the last attempt to send the input failed.
+    pub(crate) error: Option<String>,
+}
+
+impl PromptForm {
+    /// Applies one key press; a submitted or cancelled form returns its Action.
+    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter if self.input.trim().is_empty() => self.error = Some("type a prompt to send".into()),
+            KeyCode::Enter => return Some(Action::Prompt(self.clone())),
+            KeyCode::Backspace => {
+                self.input.pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty() && !character.is_control() =>
+            {
+                self.input.push(character);
+                self.error = None;
+            }
+            _ => {}
+        }
+        None
+    }
+}
+
+/// The selected Session's most recent turns, shown beside the tree.
+pub(crate) struct Transcript {
+    pub(crate) agent: String,
+    pub(crate) session: SessionName,
+    /// The Session's turn count when the turns were requested; a change reloads them.
+    requested_at: Option<u64>,
+    pub(crate) turns: Vec<Turn>,
+    pub(crate) loading: bool,
+    pub(crate) error: Option<String>,
 }
 
 /// Text field of the new Session form that typing edits.
@@ -798,6 +853,7 @@ pub(crate) enum Action {
     Exec {
         agent: String,
     },
+    Prompt(PromptForm),
     Delete {
         agent: String,
     },
@@ -866,6 +922,8 @@ impl App {
             view: View::Tree,
             forward_selected: 0,
             creating: 0,
+            prompting: 0,
+            transcript: None,
             discovering: false,
             queued_candidates: None,
         }
@@ -1275,6 +1333,14 @@ impl App {
                 ));
             }
             KeyCode::Char('n') => self.open_new_session(group),
+            KeyCode::Char('p') => {
+                self.modal = Some(Modal::Prompt(PromptForm {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                    input: String::new(),
+                    error: None,
+                }));
+            }
             _ => {}
         }
         Action::None
@@ -1324,6 +1390,13 @@ impl App {
                     return action;
                 }
                 self.modal = Some(Modal::PortForward(form));
+                Action::None
+            }
+            Some(Modal::Prompt(mut form)) => {
+                if let Some(action) = form.key(key) {
+                    return action;
+                }
+                self.modal = Some(Modal::Prompt(form));
                 Action::None
             }
             Some(Modal::Filter) => {
@@ -1398,6 +1471,68 @@ impl App {
         self.apply_snapshot(agents, sessions);
         self.selection = Some(TreeRowId::Agent(name.clone()));
         self.detail = Some(Detail::provisioning(name));
+    }
+
+    /// The selected Session whose turns need loading: newly selected, or with
+    /// more turns than when they were last requested.
+    pub(crate) fn transcript_request(&mut self) -> Option<(String, SessionName)> {
+        let Some(TreeRowId::Session { agent, session }) = &self.selection else {
+            self.transcript = None;
+            return None;
+        };
+        let turns = self
+            .sessions
+            .iter()
+            .find(|candidate| candidate.agent == *agent && candidate.name == *session)
+            .map(|session| session.status.reported.activity.turns);
+        let transcript = match &mut self.transcript {
+            Some(transcript) if transcript.agent == *agent && transcript.session == *session => {
+                if transcript.loading || transcript.requested_at == turns {
+                    return None;
+                }
+                transcript
+            }
+            _ => self.transcript.insert(Transcript {
+                agent: agent.clone(),
+                session: session.clone(),
+                requested_at: None,
+                turns: Vec::new(),
+                loading: false,
+                error: None,
+            }),
+        };
+        transcript.loading = true;
+        transcript.requested_at = turns;
+        Some((agent.clone(), session.clone()))
+    }
+
+    pub(crate) fn transcript_loaded(&mut self, agent: &str, session: &SessionName, turns: Result<Vec<Turn>, String>) {
+        let Some(transcript) = self
+            .transcript
+            .as_mut()
+            .filter(|transcript| transcript.agent == agent && transcript.session == *session)
+        else {
+            return;
+        };
+        transcript.loading = false;
+        match turns {
+            Ok(turns) => {
+                transcript.turns = turns;
+                transcript.error = None;
+            }
+            Err(error) => transcript.error = Some(error),
+        }
+    }
+
+    /// Reopens a prompt that could not be sent with its input and the reason,
+    /// unless another form is open by now.
+    pub(crate) fn prompt_failed(&mut self, mut form: PromptForm, error: String) {
+        if self.modal.is_some() {
+            self.error = Some(error);
+        } else {
+            form.error = Some(error);
+            self.modal = Some(Modal::Prompt(form));
+        }
     }
 
     /// The Agent whose provisioning the open detail follows.
@@ -1595,6 +1730,7 @@ impl App {
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
                 Modal::Filter => &FILTER_HINTS,
+                Modal::Prompt(_) => &PROMPT_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -2805,6 +2941,55 @@ mod tests {
         app.select_index(1);
         app.on_key(key(KeyCode::Char('p')));
         assert_eq!(app.followed_agent(), Some("builder"), "p follows the selected Agent");
+    }
+
+    #[test]
+    fn a_prompt_is_sent_in_place_and_a_failure_brings_its_input_back() {
+        let mut app = populated();
+        app.select_index(1);
+        app.on_key(key(KeyCode::Char('p')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::None,
+            "an empty prompt is not sent"
+        );
+        assert!(matches!(&app.modal, Some(Modal::Prompt(form)) if form.error.is_some()));
+        type_text(&mut app, "go on");
+        let Action::Prompt(form) = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected the prompt to be sent");
+        };
+        assert_eq!(
+            (form.agent.as_str(), form.session.as_str(), form.input.as_str()),
+            ("builder", "b1", "go on")
+        );
+        assert!(app.modal.is_none());
+
+        app.prompt_failed(form, "session is not running".into());
+        assert!(matches!(
+            &app.modal,
+            Some(Modal::Prompt(form)) if form.input == "go on" && form.error.as_deref() == Some("session is not running")
+        ));
+    }
+
+    #[test]
+    fn turns_load_for_the_selected_session_and_again_when_it_finishes_a_turn() {
+        let mut app = populated();
+        assert_eq!(app.transcript_request(), None, "an Agent row has no turns");
+        app.select_index(1);
+        let target = app.transcript_request().expect("the selected Session's turns");
+        assert_eq!(app.transcript_request(), None, "one request at a time");
+        app.transcript_loaded(&target.0, &target.1, Ok(Vec::new()));
+        assert_eq!(app.transcript_request(), None, "nothing changed");
+
+        let mut sessions = app.sessions.clone();
+        sessions[0].status.reported.activity.turns += 1;
+        let agents = app.agents.clone();
+        app.apply_snapshot(agents, sessions);
+        assert_eq!(app.transcript_request(), Some(target));
+
+        app.select_index(0);
+        assert_eq!(app.transcript_request(), None);
+        assert!(app.transcript.is_none());
     }
 
     #[test]

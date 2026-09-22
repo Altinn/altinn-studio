@@ -13,7 +13,7 @@ use std::{
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    resources::Resources, sessions::SessionName, sessions::SessionRequest,
+    resources::Resources, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -26,10 +26,14 @@ use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
 use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
-use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, RowTarget};
+use app::{
+    Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, PromptForm, RowTarget,
+};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
+/// Turns of the selected Session shown beside the tree.
+const TRANSCRIPT_TURNS: usize = 3;
 /// Pause before watching again after the daemon could not be reached.
 const RECONNECT_INTERVAL: Duration = Duration::from_secs(1);
 const DOUBLE_CLICK_INTERVAL: Duration = Duration::from_millis(500);
@@ -45,6 +49,12 @@ enum Input {
         agent: String,
         lines: Vec<String>,
     },
+    TranscriptLoaded {
+        agent: String,
+        session: SessionName,
+        turns: Result<Vec<Turn>, String>,
+    },
+    PromptSent(PromptForm, Result<(), String>),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
@@ -145,6 +155,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         app.open_queued_create();
         app.set_forwards(forwards.entries());
         follow.sync(app.followed_agent(), home.socket_path(), &inputs);
+        if let Some((agent, session)) = app.transcript_request() {
+            spawn_transcript(home.socket_path(), inputs.clone(), agent, session);
+        }
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
         let input = tokio::select! {
@@ -163,6 +176,17 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             }
             Input::Provisioning { agent, lines } => {
                 app.provisioning_followed(&agent, lines);
+                continue;
+            }
+            Input::TranscriptLoaded { agent, session, turns } => {
+                app.transcript_loaded(&agent, &session, turns);
+                continue;
+            }
+            Input::PromptSent(form, result) => {
+                app.prompting = app.prompting.saturating_sub(1);
+                if let Err(error) = result {
+                    app.prompt_failed(form, error);
+                }
                 continue;
             }
             Input::ForwardCreated(outcome) => {
@@ -228,6 +252,10 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 spawn_create(home, inputs.clone(), agent, spec, replace);
             }
             Action::DeleteForward { id } => forwards.remove(id),
+            Action::Prompt(form) => {
+                app.prompting += 1;
+                spawn_prompt(home.socket_path(), inputs.clone(), form);
+            }
             action => {
                 drop(events);
                 suspended(&mut app, &mut tui, home, client, action).await?;
@@ -349,6 +377,28 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
             }
         }
     })
+}
+
+/// Loads the most recent turns of the selected Session.
+fn spawn_transcript(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName) {
+    tokio::task::spawn_local(async move {
+        let turns = Client::for_path(socket_path)
+            .session_turns(&agent, session.clone(), Some(TRANSCRIPT_TURNS))
+            .await
+            .map_err(|error| error.to_string());
+        let _ = inputs.send(Input::TranscriptLoaded { agent, session, turns });
+    });
+}
+
+/// Sends a prompt to a running Session without waiting for its turn to start.
+fn spawn_prompt(socket_path: PathBuf, inputs: Inputs, form: PromptForm) {
+    tokio::task::spawn_local(async move {
+        let result = Client::for_path(socket_path)
+            .prompt_session(&form.agent, form.session.clone(), form.input.clone(), false, None)
+            .await
+            .map_err(|error| error.to_string());
+        let _ = inputs.send(Input::PromptSent(form, result));
+    });
 }
 
 /// Creates a forward off the event loop so provisioning never freezes the UI.
