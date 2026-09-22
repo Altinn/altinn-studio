@@ -19,12 +19,26 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and
   provisioning progress.
 - Provisioning shows Agent setup and SSH access as phases of their own.
+- The `agentctl` terminal UI is a live triage view: every Agent and Session with its state and how long it has been in
+  it. Sessions that need input are marked and counted, `tab` jumps to the next one, `/` filters, and `?` lists every
+  key.
+- In the terminal UI, a side panel shows the selected Session's recent turns or the selected Agent's status. `p` follows
+  an Agent's provisioning, which also opens for an Agent created with `c`, or prompts a Session without attaching.
 
 ### Changed
 
 - Commands that wait for an Agent, such as `apply --wait`, pick up provisioning already in progress and no longer drop
   output when they fall behind.
 - Image pulls and imports show downloading, materializing and assembling as separate steps.
+- The terminal UI updates as Agents and Sessions change instead of every two seconds, and keeps the last state on screen
+  while `agentd` is unreachable.
+- Terminal UI forms share one layout with aligned fields, and `NO_COLOR` turns off colour while every state keeps its
+  glyph.
+
+### Fixed
+
+- The terminal UI keeps the selection on the same Agent or Session when rows move or an Agent is folded.
+- The terminal UI's new-Session form rejects a name the Agent already uses instead of attaching to that Session.
 
 ## [0.1.0-preview.6] - 2026-09-23
 

@@ -80,6 +80,9 @@ durable outcome is the Agent's conditions, with their transition times, and its 
 with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
 drains.
 
+`agentctl tui` builds on the same two calls: it follows `resources.v1.watch` for the fleet and `agents.v1.progress` for
+one Agent's provisioning, and derives each Agent's state from its conditions and failure class.
+
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
 resolved at creation: the caller's explicit choice, else the installation's manifest `defaults`, else nothing, leaving
