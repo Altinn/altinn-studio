@@ -21,6 +21,14 @@ Agent images they work with. The Rust workspace version is a build detail and is
   class and the provisioning progress.
 - Provisioning reports Agent setup and SSH access as their own phases, so time spent verifying harnesses, syncing the
   home directory and installing instructions and Skills is visible instead of silent.
+- The `agentctl` terminal UI is a triage view of the fleet. Each Agent and Session shows its state, how long it has been
+  in that state, and its harness and model, and each Session state has a glyph. Sessions waiting for input are marked
+  and counted in the header, and `tab` jumps to the next one, unfolding its Agent or clearing a filter that hides it.
+  `/` filters by name, state, harness or model.
+- On a terminal at least 110 columns wide, the panel beside the terminal UI's tree shows the selected Session's latest
+  turns, or the selected Agent's readiness and the pass in progress or failed, with the failure's whole message. `p` on
+  an Agent follows its provisioning phase by phase, with the step in progress and its output, and opens by itself for an
+  Agent created with `c`. `p` on a Session sends it a prompt without attaching.
 
 ### Changed
 
@@ -29,6 +37,16 @@ Agent images they work with. The Rust workspace version is a build detail and is
   step's output is printed in the order it happened.
 - Image pulls and imports report downloading layers, materializing layers and assembling the root disk as separate
   steps, instead of one progress figure that jumped between layers.
+- The terminal UI shows each Agent and Session change as it happens instead of refreshing every two seconds or on `r`,
+  keeps showing the last state it received while `agentd` cannot be reached, and says why. An Agent reads as
+  provisioning, ready, retrying a transient failure, or failed until its manifest changes.
+- Terminal UI forms share one fixed-size layout with aligned fields and their own key hints, and `NO_COLOR` turns off
+  colour while every state keeps its glyph.
+
+### Fixed
+
+- Rows that move in the terminal UI no longer take the selection or a mouse click to another Agent or Session.
+- The terminal UI's new-Session form rejects a name the Agent already uses, instead of attaching to that Session.
 
 ## [0.1.0-preview.6] - 2026-09-23
 

@@ -85,6 +85,13 @@ progress, which `agentctl --wait` follows while the call it waits for runs, and 
 Agent and Session for views of the whole platform. Neither call is a mutation, and both return when the daemon drains,
 so an observer never holds up an upgrade.
 
+`agentctl tui` is a live triage view built on the same two calls. It follows `resources.v1.watch` and shows every Agent
+and Session with its state and time in state, read from typed status: an Agent is Provisioning, Ready, Retrying a
+transient failure, or Failed until its manifest changes, and a Session waiting for input is marked, counted in the
+header and reached with `tab`. On a wide terminal, the panel beside the tree shows the selected Session's recent turns
+or the selected Agent's status. `p` follows an Agent's provisioning through `agents.v1.progress`, or sends a Session a
+prompt without attaching.
+
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
 resolved at creation: the caller's explicit choice, else the installation's manifest `defaults`, else nothing, leaving
