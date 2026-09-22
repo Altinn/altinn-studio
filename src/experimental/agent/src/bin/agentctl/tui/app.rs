@@ -250,12 +250,12 @@ impl SessionForm {
     }
 
     /// Applies one key; `Some` closes the form with the returned action.
-    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+    fn key(&mut self, key: KeyEvent, sessions: &[Session]) -> Option<Action> {
         match key.code {
             KeyCode::Esc => return Some(Action::None),
-            KeyCode::Enter => match self.submit() {
+            KeyCode::Enter => match self.submit(sessions) {
                 Ok(action) => return Some(action),
-                Err(invalid) => self.error = Some(invalid.to_string()),
+                Err(invalid) => self.error = Some(invalid),
             },
             KeyCode::Tab | KeyCode::Down => self.field = self.field.next(),
             KeyCode::BackTab | KeyCode::Up => self.field = self.field.previous(),
@@ -281,17 +281,27 @@ impl SessionForm {
         None
     }
 
-    fn submit(&self) -> Result<Action, agent::Error> {
-        let session = SessionName::new(self.name.clone())?;
+    /// Validates the form. An existing name is rejected, because ensuring it
+    /// would attach to that Session instead of creating one.
+    fn submit(&self, sessions: &[Session]) -> Result<Action, String> {
+        let session = SessionName::new(self.name.clone()).map_err(|invalid| invalid.to_string())?;
+        if sessions
+            .iter()
+            .any(|existing| existing.agent == self.agent && existing.name == session)
+        {
+            return Err(format!("session {:?} already exists", session.as_str()));
+        }
         let Some(installation) = self.installation() else {
             return Ok(Action::None);
         };
         let model = (!self.model.is_empty())
             .then(|| Model::new(self.model.clone()))
-            .transpose()?;
+            .transpose()
+            .map_err(|invalid| invalid.to_string())?;
         let effort = (!self.effort.is_empty())
             .then(|| Effort::new(self.effort.clone()))
-            .transpose()?;
+            .transpose()
+            .map_err(|invalid| invalid.to_string())?;
         Ok(Action::CreateSession {
             agent: self.agent.clone(),
             session,
@@ -1279,7 +1289,7 @@ impl App {
                 }
             },
             Some(Modal::NewSession(mut form)) => {
-                if let Some(action) = form.key(key) {
+                if let Some(action) = form.key(key, &self.sessions) {
                     return action;
                 }
                 self.modal = Some(Modal::NewSession(form));
@@ -1628,7 +1638,7 @@ const fn session_state(state: State) -> (Tone, &'static str, &'static str) {
     }
 }
 
-const fn harness_label(harness: Harness) -> &'static str {
+pub(crate) const fn harness_label(harness: Harness) -> &'static str {
     match harness {
         Harness::ClaudeCode => "Claude Code",
         Harness::Codex => "Codex",
@@ -2086,6 +2096,19 @@ mod tests {
             }
         );
         assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn new_session_modal_rejects_an_existing_name_instead_of_attaching() {
+        let mut app = populated();
+        app.select_index(2);
+        app.on_key(key(KeyCode::Char('n')));
+        type_text(&mut app, "s1");
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert!(matches!(
+            &app.modal,
+            Some(Modal::NewSession(form)) if form.error.as_deref() == Some("session \"s1\" already exists")
+        ));
     }
 
     #[test]
