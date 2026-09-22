@@ -144,8 +144,9 @@ impl PlatformAdapter for Linux {
         record: &'a control_plane::AgentRecord,
         sandbox: &'a SandboxHandle,
         harnesses: &'a [crate::Harness],
+        steps: &'a ::sandbox::SandboxProgress,
     ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(self.setup(record, sandbox, harnesses))
+        Box::pin(self.setup(record, sandbox, harnesses, steps))
     }
 }
 
@@ -157,6 +158,7 @@ impl Linux {
         record: &control_plane::AgentRecord,
         sandbox: &SandboxHandle,
         harnesses: &[crate::Harness],
+        steps: &::sandbox::SandboxProgress,
     ) -> Result<(), Error> {
         let installations: Vec<&crate::HarnessSpec> = record
             .agent
@@ -166,17 +168,30 @@ impl Linux {
             .filter(|installation| harnesses.contains(&installation.kind))
             .collect();
         for installation in &installations {
+            let step = steps.start_step(format!("Verify {}", installation.kind.as_str())).await;
             harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
+            step.complete().await;
         }
+        let step = steps.start_step("Prepare workspace and Podman").await;
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
         configure_podman(sandbox).await?;
+        step.complete().await;
+        let step = steps.start_step("Sync home").await;
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
         configure_git_identity(sandbox).await?;
+        step.complete().await;
         let instructions = read_instructions(record).await?;
         let skills = read_skills(record).await?;
         for installation in &installations {
+            let step = steps
+                .start_step(format!(
+                    "Install {} instructions and Skills",
+                    installation.kind.as_str()
+                ))
+                .await;
             harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
+            step.complete().await;
         }
         Ok(())
     }

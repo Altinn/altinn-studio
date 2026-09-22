@@ -17,6 +17,11 @@ use sandbox::{
 use tempfile::TempDir;
 use tokio::io::AsyncReadExt as _;
 
+/// Setup steps whose progress is discarded.
+fn setup_phase() -> sandbox::SandboxProgress {
+    sandbox::ProgressReporter::from_callback(|_| {}).steps()
+}
+
 fn is_claude_version(spec: &sandbox::execution::ExecutionSpec) -> bool {
     matches!(
         spec.program(),
@@ -217,7 +222,7 @@ async fn linux_setup_configures_only_the_harnesses_preparation_reported() {
         .expect("Sandbox");
 
     Linux
-        .setup(&record, &sandbox, &[agent::Harness::ClaudeCode])
+        .setup(&record, &sandbox, &[agent::Harness::ClaudeCode], &setup_phase())
         .await
         .expect("setup");
 
@@ -320,7 +325,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let platform = Linux;
 
     platform
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect("first setup");
     let first_pass_writes = backend.file_writes();
@@ -333,7 +338,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         .await
         .expect("write harness-owned state");
     platform
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect("second setup");
 
@@ -500,7 +505,7 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         ],
     );
     Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect("first setup");
     sandbox
@@ -511,7 +516,7 @@ async fn linux_setup_convergently_configures_podman_container_trust() {
         .await
         .expect("replace managed configuration");
     Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect("second setup");
 
@@ -618,7 +623,7 @@ async fn linux_setup_accepts_any_installed_version_when_none_is_declared() {
         .expect("Sandbox");
 
     Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect("setup without a declared version");
 
@@ -679,7 +684,7 @@ async fn linux_setup_converges_git_identity_after_home_sync() {
         .await
         .expect("first Sandbox");
     Linux
-        .setup(&record, &first, &declared(&record))
+        .setup(&record, &first, &declared(&record), &setup_phase())
         .await
         .expect("first setup");
     let second = service
@@ -687,7 +692,7 @@ async fn linux_setup_converges_git_identity_after_home_sync() {
         .await
         .expect("updated Sandbox");
     Linux
-        .setup(&record, &second, &declared(&record))
+        .setup(&record, &second, &declared(&record), &setup_phase())
         .await
         .expect("updated setup");
 
@@ -770,7 +775,7 @@ async fn linux_setup_skips_git_identity_when_git_is_absent() {
         .expect("Sandbox");
 
     Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect("setup without Git");
 
@@ -818,7 +823,7 @@ async fn linux_setup_rejects_partial_git_identity() {
         .expect("Sandbox");
 
     let error = Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect_err("partial Git identity");
 
@@ -867,7 +872,7 @@ async fn linux_setup_rejects_a_declared_harness_version_mismatch_before_injectio
         .expect("Sandbox");
 
     let error = Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect_err("version mismatch");
 
@@ -935,7 +940,7 @@ async fn linux_setup_rejects_a_skill_tree_with_a_fifo_instead_of_blocking() {
         .expect("Sandbox");
 
     let error = Linux
-        .setup(&record, &sandbox, &declared(&record))
+        .setup(&record, &sandbox, &declared(&record), &setup_phase())
         .await
         .expect_err("FIFO must be rejected");
 

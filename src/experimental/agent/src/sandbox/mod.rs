@@ -163,12 +163,14 @@ pub trait PlatformAdapter {
     /// Reports whether this adapter supports the resolved Sandbox platform.
     fn supports(&self, platform: &Platform) -> bool;
 
-    /// Idempotently applies Agent and harness setup inside the Sandbox.
+    /// Idempotently applies Agent and harness setup inside the Sandbox,
+    /// reporting its steps through `steps`.
     fn setup<'a>(
         &'a self,
         record: &'a AgentRecord,
         sandbox: &'a SandboxHandle,
         harnesses: &'a [crate::Harness],
+        steps: &'a ::sandbox::SandboxProgress,
     ) -> LocalFuture<'a, Result<(), Error>>;
 }
 
@@ -240,7 +242,7 @@ impl Service {
     ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
         let environment = crate::environment::resolve(record).await?;
-        let outcome = provider.ensure(record, environment, progress).await?;
+        let outcome = provider.ensure(record, environment, progress.clone()).await?;
         let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self
@@ -252,7 +254,11 @@ impl Service {
                     "no Agent setup adapter supports resolved Sandbox platform {resolved_platform:?}"
                 ))
             })?;
-        adapter.setup(record, &sandbox, &outcome.harnesses).await?;
+        let phase = progress.start_phase(crate::progress::SETUP).await;
+        adapter
+            .setup(record, &sandbox, &outcome.harnesses, &progress.steps())
+            .await?;
+        phase.complete().await;
         Ok(EnsureOutcome {
             id: sandbox.snapshot().id.clone(),
             runtime_restarted: outcome.runtime_restarted,
