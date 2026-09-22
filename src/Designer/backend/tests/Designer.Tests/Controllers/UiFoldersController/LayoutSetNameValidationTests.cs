@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -27,6 +28,7 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
 {
     private const string Org = "ttd";
     private const string AppV9 = "app-with-layoutsets-v9";
+    private const string AppV9WithSeveralLayoutSets = "app-with-groups-and-task-navigation";
     private const string Developer = "testUser";
     private const string LayoutSetWithLongFolderName = "subform-GjennomfoeringsplanDataV7Pdf";
 
@@ -105,6 +107,49 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(".")]
+    [InlineData("%2E")]
+    public async Task DeleteLayoutSet_NameAddressingTheLayoutFolderItself_LeavesEveryLayoutSetInPlace(
+        string layoutSetId
+    )
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppV9WithSeveralLayoutSets, Developer, targetRepository);
+        string[] layoutFolderBefore = LayoutFolderContents();
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.DeleteAsync(
+            $"{LayoutSetsUrl(targetRepository)}/{layoutSetId}"
+        );
+
+        // Assert
+        // "." names the layout folder itself, so deleting a layout set under that name would delete
+        // every layout set in the app. The segment is normalised out of the request URI before routing,
+        // so today the request lands on the collection route and is answered 405 rather than reaching
+        // the layout set name check, which is covered at the repository level. What is asserted here is
+        // the invariant either way: the layout folder comes through the request untouched.
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(layoutFolderBefore, LayoutFolderContents());
+    }
+
+    /// <summary>
+    /// Lists every file under the layout folder of the repository under test, in a stable order.
+    /// </summary>
+    /// <returns>The repository relative path of every file under App/ui.</returns>
+    private string[] LayoutFolderContents()
+    {
+        string layoutFolder = Path.Combine(TestRepoPath, "App", "ui");
+        return
+        [
+            .. Directory
+                .EnumerateFiles(layoutFolder, "*", SearchOption.AllDirectories)
+                .Select(file => Path.GetRelativePath(layoutFolder, file))
+                .Order(StringComparer.Ordinal),
+        ];
     }
 
     private async Task<HttpResponseMessage> AddLayoutSet(string repository, string layoutSetId)

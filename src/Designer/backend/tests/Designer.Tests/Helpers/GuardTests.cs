@@ -59,4 +59,26 @@ public class GuardTests
     {
         Assert.Throws<ArgumentException>(() => Guard.AssertValidateOrganization(org));
     }
+
+    [Theory]
+    [InlineData("Side1")]
+    [InlineData("Text field")]
+    [InlineData("page..draft")]
+    [InlineData("1.Intro")]
+    public void IsSafePathSegment_NameOfAFileOrFolder_IsSafe(string name)
+    {
+        Assert.True(Guard.IsSafePathSegment(name));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(".")]
+    [InlineData("..")]
+    [InlineData("../escaped")]
+    [InlineData("a/b")]
+    [InlineData("a\\b")]
+    public void IsSafePathSegment_EmptyNameOrNameAddressingAnotherDirectory_IsNotSafe(string name)
+    {
+        Assert.False(Guard.IsSafePathSegment(name));
+    }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -28,12 +29,16 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
 
     private string _testRepositoryDirectory;
 
-    public static TheoryData<string> NamesEscapingTheLayoutFolder =>
-        ["../escaped", "nested/name", "nested\\name", "..", ""];
+    public static TheoryData<string> NamesThatAreNotSafePathSegments =>
+        ["../escaped", "nested/name", "nested\\name", "..", ".", ""];
+
+    // An empty layout set name is left out: it is how an app that does not use layout sets is addressed.
+    public static TheoryData<string> LayoutSetNamesThatAreNotSafePathSegments =>
+        ["../escaped", "nested/name", "nested\\name", "..", "."];
 
     [Theory]
-    [MemberData(nameof(NamesEscapingTheLayoutFolder))]
-    public async Task GetLayout_LayoutNameEscapingTheLayoutFolder_Throws(string layoutName)
+    [MemberData(nameof(NamesThatAreNotSafePathSegments))]
+    public async Task GetLayout_LayoutNameThatIsNotASafePathSegment_Throws(string layoutName)
     {
         // Arrange
         AltinnAppGitRepository repository = await PrepareRepository();
@@ -45,8 +50,8 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     }
 
     [Theory]
-    [MemberData(nameof(NamesEscapingTheLayoutFolder))]
-    public async Task SaveLayout_LayoutNameEscapingTheLayoutFolder_Throws(string layoutName)
+    [MemberData(nameof(NamesThatAreNotSafePathSegments))]
+    public async Task SaveLayout_LayoutNameThatIsNotASafePathSegment_Throws(string layoutName)
     {
         // Arrange
         AltinnAppGitRepository repository = await PrepareRepository();
@@ -58,10 +63,8 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     }
 
     [Theory]
-    [InlineData("../escaped")]
-    [InlineData("nested/name")]
-    [InlineData("nested\\name")]
-    public async Task GetFormLayouts_LayoutSetNameEscapingTheLayoutFolder_Throws(string layoutSetName)
+    [MemberData(nameof(LayoutSetNamesThatAreNotSafePathSegments))]
+    public async Task GetFormLayouts_LayoutSetNameThatIsNotASafePathSegment_Throws(string layoutSetName)
     {
         // Arrange
         AltinnAppGitRepository repository = await PrepareRepository();
@@ -134,6 +137,23 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
         await Assert.ThrowsAsync<BadHttpRequestException>(() =>
             repository.SaveLayout(newLayoutSetName, "Side1", EmptyLayout())
         );
+    }
+
+    [Theory]
+    [MemberData(nameof(LayoutSetNamesThatAreNotSafePathSegments))]
+    public async Task DeleteLayoutSetFolder_LayoutSetNameThatIsNotASafePathSegment_ThrowsAndDeletesNothing(
+        string layoutSetName
+    )
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        IEnumerable<string> layoutSetsBefore = await repository.GetUiFolders();
+
+        // Act and assert
+        Assert.Throws<BadHttpRequestException>(() =>
+            repository.DeleteLayoutSetFolder(layoutSetName, CancellationToken.None)
+        );
+        Assert.Equal(layoutSetsBefore, await repository.GetUiFolders());
     }
 
     [Fact]
