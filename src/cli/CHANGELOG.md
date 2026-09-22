@@ -16,14 +16,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
   Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill
   with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
 - `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
-- `studioctl app upgrade v9` now lists the Maskinporten scopes an app appears to need, with the evidence for each: the scopes named in `UseMaskinportenAuthorization` calls, a Fiks or correspondence client, a `fiksArkiv` service task, and the `Scope` value in the configuration sections the upgrade tells you to delete - so the list is there before the sections are gone. An app has one Maskinporten identity and reads whatever the platform provisions for it, but Maskinporten grants scopes per client registration and a local run cannot use the credentials Studio provisions - so the same scopes have to be selected in Studio for the deployed app and be present on the client you supply for local runs. The report says so and says where each is done. The `altinn:serviceowner` scopes are deliberately left out, since Studio adds them to the provisioned client automatically when a v9 app is built.
-- `studioctl doctor` reports whether a local Maskinporten client is configured for the app you are in, naming its client id and environment when there is one. Most apps never need one, so having none is reported as information rather than a problem.
-- The app-development skill distributed by `studioctl agent skills` now covers upgrading an app from v8 to v9, including the order the Maskinporten steps have to happen in: record the scopes, select them in Studio before deploying, then store a client for local runs.
+- `studioctl app upgrade v9` lists the Maskinporten scopes your app needs, and where to grant them.
+- `studioctl doctor` shows whether a local Maskinporten client is configured.
 
 ### Changed
 
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
-- The Maskinporten messages in `studioctl app upgrade v9` now point at the scope list and explain why the scopes have to be in place twice: a local run cannot use the credentials Studio provisions, and Maskinporten grants scopes per client registration.
+- Maskinporten guidance in `studioctl app upgrade v9` says that scopes are needed both in Studio and on the client you use locally.
 
 ### Fixed
 
