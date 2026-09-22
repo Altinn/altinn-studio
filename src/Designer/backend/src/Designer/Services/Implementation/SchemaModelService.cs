@@ -298,6 +298,7 @@ public class SchemaModelService : ISchemaModelService
                 true,
                 cancellationToken
             );
+            await UpdateXsdFromJsonSchema(altinnAppGitRepository, jsonSchema, schemaFileName);
             return serializedJsonContent;
         }
 
