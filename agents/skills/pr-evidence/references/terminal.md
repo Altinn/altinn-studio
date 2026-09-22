@@ -8,10 +8,13 @@ Prepare incidental setup before recording. Prefer familiar command names on `PAT
 avoid cluttering the demonstration with full binary paths, custom environment variables or a custom `HOME`. If such
 configuration is part of the behavior being demonstrated, show it and explain why it matters.
 
-From the artifact directory:
+Set terminal capabilities on the recorder so the demonstrated program inherits them. The prefix below removes
+`NO_COLOR` and replaces an inherited `TERM=dumb`; it runs before capture, keeping setup out of the demonstration.
+Omit the override when demonstrating behavior under those settings. From the artifact directory:
 
 ```sh
-asciinema rec --window-size 120x36 --command 'bash demo.sh' terminal.cast
+env -u NO_COLOR TERM=xterm-256color COLORTERM=truecolor \
+  asciinema rec --window-size 120x36 --command 'bash demo.sh' terminal.cast
 agg --font-size 14 terminal.cast terminal.gif
 media-preview terminal.gif
 ```
@@ -25,7 +28,7 @@ ffmpeg -i terminal.gif -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" \
   -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an terminal.mp4
 ```
 
-If colors are missing, check `NO_COLOR`, `TERM` and `COLORTERM` before recording. Containerized programs may need
-`TERM` and `COLORTERM` forwarded explicitly. For missing picker glyphs, try `agg --font-family 'JetBrains Mono'`.
+For containerized programs, forward the capabilities with `podman run -e TERM -e COLORTERM ...` and ensure
+`NO_COLOR` is unset inside the container. For missing picker glyphs, try `agg --font-family 'JetBrains Mono'`.
 Keep the application's presentation faithful to the tested revision. Inspect representative frames, not just the
 GIF's first frame; use `agg --select` when `media-preview` is unavailable.

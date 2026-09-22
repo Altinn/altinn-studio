@@ -1,11 +1,12 @@
 ---
 name: pr-evidence
-description: Capture screenshots, browser clips and terminal recordings for a pull request and attach them with gh. Use when a change has a visible or terminal-observable result that the pull request should show.
+description: Help pull request reviewers understand what changed and the resulting user or developer experience through screenshots or recordings. Use when a change affects visible UI, interactions, CLI output or terminal workflows.
 ---
 
-# Pull request evidence
+# Show the change to reviewers
 
-Show the visible behavior relevant to the change. Use screenshots for static results, GIFs for short interactions,
+Demonstrate the scenario, the relevant change and its result so a reviewer can understand the experience without
+running it locally. Use screenshots for static results, GIFs for short interactions,
 and MP4 for longer sequences where playback controls help. Before/after captures can help explain a fix.
 
 - Keep artifacts under `/home/agent/code/.artifacts/<task>/<run>/`, outside the checkout. No capture report is required.
