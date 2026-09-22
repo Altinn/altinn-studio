@@ -122,7 +122,13 @@ async fn open_sandboxes(
 
 async fn bind_insecure_tcp(port: Option<NonZeroU16>) -> Result<Option<tokio::net::TcpListener>, Error> {
     if let Some(port) = port {
-        let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port.get())).await?;
+        let address = (std::net::Ipv4Addr::LOCALHOST, port.get());
+        let listener = tokio::net::TcpListener::bind(address).await.map_err(|error| {
+            Error::Io(std::io::Error::new(
+                error.kind(),
+                format!("could not bind --insecure-tcp-port {port} at 127.0.0.1:{port}: {error}"),
+            ))
+        })?;
         tracing::warn!(
             address = %listener.local_addr()?,
             "UNAUTHENTICATED, UNENCRYPTED Control API: anyone who can reach this port can manage Agents and Sessions, submit prompts and access sensitive data; trusted development only"
@@ -256,6 +262,25 @@ async fn run_control_plane(
 #[allow(clippy::expect_used)]
 mod tests {
     use super::*;
+
+    #[tokio::test(flavor = "local")]
+    async fn tcp_bind_errors_identify_the_flag_and_address() {
+        assert!(bind_insecure_tcp(None).await.expect("disabled").is_none());
+        let occupied = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("occupied port");
+        let address = occupied.local_addr().expect("address");
+        let error = bind_insecure_tcp(NonZeroU16::new(address.port()))
+            .await
+            .expect_err("port collision");
+        assert!(
+            error
+                .to_string()
+                .contains(&format!("--insecure-tcp-port {}", address.port()))
+        );
+        assert!(error.to_string().contains(&address.to_string()));
+        assert!(matches!(error, Error::Io(error) if error.kind() == std::io::ErrorKind::AddrInUse));
+    }
 
     #[test]
     fn tcp_requires_an_explicit_nonzero_port() {

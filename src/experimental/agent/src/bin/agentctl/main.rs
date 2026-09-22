@@ -44,6 +44,22 @@ struct Arguments {
     command: Command,
 }
 
+impl Arguments {
+    fn validate(&self) -> CommandResult<()> {
+        // Clap's global-argument conflicts do not cover flags supplied at
+        // different subcommand levels. Validate the final merged arguments too.
+        if self.home.is_some() && self.endpoint.is_some() {
+            return Err(CommandError::Message(
+                "--home cannot be combined with --endpoint".into(),
+            ));
+        }
+        if self.endpoint.is_some() {
+            self.command.require_remote_support()?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Subcommand)]
 enum Command {
     /// Manage the Agent CLI installation.
@@ -425,9 +441,7 @@ fn main() -> ExitCode {
 
 fn run() -> CommandResult<ExitCode> {
     let arguments = Arguments::parse();
-    if arguments.endpoint.is_some() {
-        arguments.command.require_remote_support()?;
-    }
+    arguments.validate()?;
     let connection = ControlConnection::new(arguments.home.as_deref(), arguments.endpoint)?;
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
         if let Some(home) = &connection.home
@@ -1318,26 +1332,14 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    match client.health().await {
-        Ok(daemon) => return daemon.require_compatible(),
-        Err(Error::Connect(error))
-            if matches!(
-                error.kind(),
-                std::io::ErrorKind::NotFound | std::io::ErrorKind::ConnectionRefused
-            ) => {}
-        Err(error) => return Err(error),
+    if probe_daemon(client).await? {
+        return Ok(());
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        match client.health().await {
-            Ok(daemon) => return daemon.require_compatible(),
-            Err(Error::Connect(error))
-                if matches!(
-                    error.kind(),
-                    std::io::ErrorKind::NotFound | std::io::ErrorKind::ConnectionRefused
-                ) => {}
-            Err(error) => return Err(error),
+        if probe_daemon(client).await? {
+            return Ok(());
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
@@ -1350,6 +1352,41 @@ async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), E
         "automatic startup did not become ready within 10 seconds; {}",
         daemon_startup_diagnostics(home)
     )))
+}
+
+/// Only a health probe may turn a lost response into local daemon recovery.
+/// Mutations are never replayed: a lost response can hide a successful operation.
+async fn probe_daemon(client: &Client) -> Result<bool, Error> {
+    let mut disconnects = 0;
+    loop {
+        match client.health().await {
+            Ok(daemon) => return daemon.require_compatible().map(|()| true),
+            Err(Error::Connect(error))
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::NotFound | std::io::ErrorKind::ConnectionRefused
+                ) =>
+            {
+                return Ok(false);
+            }
+            Err(Error::Io(error) | Error::Connect(error))
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::UnexpectedEof
+                        | std::io::ErrorKind::ConnectionReset
+                        | std::io::ErrorKind::BrokenPipe
+                ) =>
+            {
+                disconnects += 1;
+                if disconnects == 3 {
+                    return Ok(false);
+                }
+                // Let an upgrade handoff finish before attempting startup.
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+            Err(error) => return Err(error),
+        }
+    }
 }
 
 fn daemon_startup_diagnostics(home: &ControlPlaneHome) -> String {
@@ -1499,27 +1536,22 @@ mod tests {
         let directory = tempfile::tempdir().expect("home");
         let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
         let client = Client::for_path(home.socket_path());
-        let error = client.health().await.expect_err("no local daemon");
-        assert!(matches!(error, Error::Connect(error) if matches!(error.kind(),
-            std::io::ErrorKind::NotFound | std::io::ErrorKind::ConnectionRefused)));
+        assert!(!probe_daemon(&client).await.expect("missing local daemon"));
     }
 
-    struct FailedHealthConnector;
+    struct FailedHealthConnector(&'static [u8]);
 
     impl agent::control_api::Connector for FailedHealthConnector {
         fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
-            Box::pin(async {
+            Box::pin(async move {
                 let (client, server) = tokio::io::duplex(4096);
+                let response = self.0;
                 tokio::task::spawn_local(async move {
                     use tokio::io::AsyncBufReadExt as _;
                     let mut server = tokio::io::BufReader::new(server);
                     let mut request = String::new();
                     server.read_line(&mut request).await.expect("request");
-                    server
-                        .get_mut()
-                        .write_all(b"not JSON\n")
-                        .await
-                        .expect("malformed response");
+                    server.get_mut().write_all(response).await.expect("malformed response");
                 });
                 Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
             })
@@ -1530,9 +1562,40 @@ mod tests {
     async fn malformed_health_does_not_spawn_a_second_daemon() {
         let directory = tempfile::tempdir().expect("home");
         let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
-        let client = Client::new(std::rc::Rc::new(FailedHealthConnector));
+        let client = Client::new(std::rc::Rc::new(FailedHealthConnector(b"not JSON\n")));
         assert!(matches!(ensure_daemon(&home, &client).await, Err(Error::Json(_))));
         assert!(!home.daemon_log_path().exists());
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn probe_retries_eof_but_does_not_hide_protocol_errors() {
+        let client = Client::new(std::rc::Rc::new(FailedHealthConnector(b"")));
+        let started = tokio::time::Instant::now();
+        assert!(!probe_daemon(&client).await.expect("closed connection"));
+        assert_eq!(started.elapsed(), Duration::from_millis(200));
+
+        for response in [b"not JSON\n".as_slice(), b"{\"jsonrpc\":\"2.0\"}\n"] {
+            let client = Client::new(std::rc::Rc::new(FailedHealthConnector(response)));
+            assert!(probe_daemon(&client).await.is_err());
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn probe_retries_transport_disconnects_but_not_permission_or_timeout_errors() {
+        struct FailingConnector(std::io::ErrorKind);
+        impl agent::control_api::Connector for FailingConnector {
+            fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+                Box::pin(async move { Err(Error::Io(self.0.into())) })
+            }
+        }
+        for kind in [std::io::ErrorKind::ConnectionReset, std::io::ErrorKind::BrokenPipe] {
+            let client = Client::new(std::rc::Rc::new(FailingConnector(kind)));
+            assert!(!probe_daemon(&client).await.expect("disconnected"));
+        }
+        for kind in [std::io::ErrorKind::PermissionDenied, std::io::ErrorKind::TimedOut] {
+            let client = Client::new(std::rc::Rc::new(FailingConnector(kind)));
+            assert!(probe_daemon(&client).await.is_err());
+        }
     }
 
     #[tokio::test(flavor = "local")]
@@ -1556,6 +1619,35 @@ mod tests {
         let arguments = Arguments::try_parse_from(["agentctl", "get", "agents", "--endpoint", "tcp://localhost:9000"])
             .expect("endpoint after command");
         assert!(arguments.endpoint.is_some());
+        arguments.validate().expect("endpoint alone");
+        for flags in [
+            [
+                "--home",
+                "/srv/agent",
+                "get",
+                "agents",
+                "--endpoint",
+                "tcp://localhost:9000",
+            ],
+            [
+                "--endpoint",
+                "tcp://localhost:9000",
+                "get",
+                "agents",
+                "--home",
+                "/srv/agent",
+            ],
+        ] {
+            let arguments =
+                Arguments::try_parse_from(std::iter::once("agentctl").chain(flags)).expect("cross-level parse");
+            assert!(
+                arguments
+                    .validate()
+                    .expect_err("conflict")
+                    .to_string()
+                    .contains("--home cannot be combined with --endpoint")
+            );
+        }
         assert!(
             Arguments::try_parse_from([
                 "agentctl",

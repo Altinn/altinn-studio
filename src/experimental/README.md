@@ -103,6 +103,12 @@ socket, or uses `AGENT_HOME`. It cannot be combined with `--home`. Client and da
 TCP is enabled only by the daemon's startup flag; automatic startup and self-update do not retain that flag.
 Stop an existing daemon for the selected home before starting it with TCP enabled.
 
+TCP connection attempts time out after 10 seconds. On either transport, ordinary API replies have a separate
+30-second deadline; provisioning and prompts keep their existing wait policies, and upgrade shutdown has a
+90-second reply deadline. A timed-out operation may still finish on the daemon and is never automatically
+replayed. Local startup retries disconnected health probes, but protocol errors and incompatible builds fail
+without starting another daemon.
+
 This first design is intentionally **unauthenticated and unencrypted**. Authentication is deferred to later work.
 The listener binds only to `127.0.0.1`, but unlike the private socket it has no per-user access protection.
 Anyone who can reach it can manage Agents, create Sessions, submit prompts that execute code, and read sensitive

@@ -1,4 +1,4 @@
-use std::{path::Path, rc::Rc, time::Duration};
+use std::{path::Path, rc::Rc};
 
 use agent::{
     Error,
@@ -45,9 +45,7 @@ impl ControlConnection {
         } else {
             // An explicitly selected daemon must already be running. Never
             // repair, upgrade, or start a daemon on the client's machine.
-            tokio::time::timeout(Duration::from_secs(10), self.client.require_compatible_daemon())
-                .await
-                .map_err(|_| Error::Daemon("timed out checking the selected daemon; start agentd on its host and check endpoint reachability".into()))??;
+            self.client.require_compatible_daemon().await?;
             Ok(())
         }
     }
