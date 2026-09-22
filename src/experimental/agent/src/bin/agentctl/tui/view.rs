@@ -3,25 +3,29 @@ use ratatui::{
     layout::{Constraint, Layout, Margin, Position, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Cell, Clear, List, ListItem, ListState, Paragraph, Row, Table, TableState, Wrap},
+    widgets::{Block, Cell, Clear, List, ListItem, ListState, Padding, Paragraph, Row, Table, TableState, Wrap},
 };
 
 use super::MANIFEST_FILE;
 use super::app::{
     App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
     NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SessionField, Tone, TreeRowId, View,
+    harness_label,
 };
 
 /// Background of the selected row; without colour it is drawn reversed instead.
 const SELECTION: Color = Color::Rgb(52, 58, 70);
 /// Narrowest tree that still shows the detail and age columns.
 const WIDE_TREE: u16 = 70;
-const CREATE_AGENT_POPUP_WIDTH: u16 = 96;
-const CREATE_AGENT_POPUP_HEIGHT: u16 = 8;
-const CREATE_AGENT_FIELD_ROWS: usize = 4;
-const CREATE_FIELD_LABEL_WIDTH: usize = 10;
-const CREATE_PICKER_VALUE_WIDTH: usize = 18;
-const CREATE_PICKER_DETAIL_OFFSET: usize = CREATE_FIELD_LABEL_WIDTH + 2 + CREATE_PICKER_VALUE_WIDTH + 2 + 8;
+/// Width of every form but create-Agent, whose pickers also show manifest paths.
+const FORM_WIDTH: u16 = 64;
+const CREATE_AGENT_FORM_WIDTH: u16 = 96;
+/// Label column shared by every form row.
+const FORM_LABEL_WIDTH: usize = 12;
+/// A picker's value between its arrows.
+const PICKER_VALUE_WIDTH: usize = 18;
+/// A picker's arrows, value and position, before its detail.
+const PICKER_WIDTH: usize = PICKER_VALUE_WIDTH + 12;
 const ERROR_HINTS: [Hint; 2] = [
     Hint::key("esc", "dismiss", crossterm::event::KeyCode::Esc),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
@@ -137,12 +141,17 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
     } else {
         render_tree(frame, body, app, state, &mut hit_map);
     }
-    if let Some(modal) = &app.modal {
-        hit_map.clear();
-        render_footer(frame, footer, app, &mut hit_map);
-        render_modal(frame, body, modal, &mut hit_map);
-    } else {
-        render_footer(frame, footer, app, &mut hit_map);
+    match &app.modal {
+        Some(Modal::Filter) => {
+            hit_map.clear();
+            render_footer(frame, footer, app, &mut hit_map);
+        }
+        // A form carries its own hints, so the footer stays empty below it.
+        Some(modal) => {
+            hit_map.clear();
+            render_modal(frame, body, modal, &mut hit_map);
+        }
+        None => render_footer(frame, footer, app, &mut hit_map),
     }
     if state.no_color {
         let area = frame.area();
@@ -528,99 +537,55 @@ fn hint_width(hint: &Hint) -> u16 {
 fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitMap) {
     match modal {
         Modal::ConfirmDelete { agent, sessions } => {
-            let lines = vec![
-                Line::from(format!("Delete agent {agent}?")),
-                Line::from(Span::styled(
-                    format!("{sessions} session(s) will be deleted with it."),
-                    Style::new().fg(Color::DarkGray),
-                )),
-                Line::default(),
-                hint_line(&CONFIRM_DELETE_HINTS),
-            ];
-            let target = popup(frame, area, " delete ", Color::Red, lines);
-            map_hint_targets(line_area(target, 3), &CONFIRM_DELETE_HINTS, hit_map);
+            Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
+                .row(Line::from(format!("Delete agent {agent}?")))
+                .row(note_line(&format!("{sessions} session(s) will be deleted with it.")))
+                .render(frame, area, FORM_WIDTH, hit_map);
         }
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
-        // Edited in the footer, so the filtered tree stays in view.
-        Modal::Filter => {}
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
-        Modal::PortForward(form) => {
-            let mut lines = vec![
-                Line::from(format!("Agent:         {}", form.agent)),
-                form_field("Local address", &form.address, form.field == ForwardField::Address),
-                form_field("Local port", &form.local, form.field == ForwardField::LocalPort),
-                form_field("Guest port", &form.guest, form.field == ForwardField::GuestPort),
-            ];
-            if form.local.is_empty() {
-                lines.push(Line::from(Span::styled(
-                    "An empty local port mirrors the guest port.",
-                    Style::new().fg(Color::DarkGray),
-                )));
-            }
-            if let Some(error) = &form.error {
-                lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
-            }
-            lines.push(Line::default());
-            let hint_row = lines.len();
-            lines.push(hint_line(&PORT_FORWARD_HINTS));
-            let title = if form.replace.is_some() {
-                " edit forward "
-            } else {
-                " port forward "
-            };
-            let target = popup(frame, area, title, Color::Cyan, lines);
-            for (row, field) in [
-                (1, ForwardField::Address),
-                (2, ForwardField::LocalPort),
-                (3, ForwardField::GuestPort),
-            ] {
-                hit_map.click(
-                    line_area(target, row),
-                    HitTarget::Action(MouseAction::FocusForwardField(field)),
-                );
-            }
-            map_hint_targets(line_area(target, hint_row), &PORT_FORWARD_HINTS, hit_map);
-        }
+        Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
+        // Typed in the footer, so the filtered tree stays in view.
+        Modal::Filter => {}
     }
 }
 
 fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionForm, hit_map: &mut HitMap) {
-    let mut harness_spans = vec![Span::raw("Harness: ")];
-    for (index, installation) in form.harnesses.iter().enumerate() {
-        if index > 0 {
-            harness_spans.push(Span::raw("  "));
-        }
-        let style = if index == form.harness {
-            Style::new().fg(Color::Cyan).add_modifier(Modifier::REVERSED)
-        } else {
-            Style::new().fg(Color::DarkGray)
-        };
-        harness_spans.push(Span::styled(installation.kind.as_str().to_owned(), style));
-    }
-    let mut lines = vec![
-        Line::from(format!("Agent:   {}", form.agent)),
-        field_line("Name:    ", &form.name, form.field == SessionField::Name, None),
-        field_line(
-            "Model:   ",
-            &form.model,
+    let harness = form
+        .installation()
+        .map_or("", |installation| harness_label(installation.kind));
+    let target = Form::new(" new session ", Color::Cyan, &NEW_SESSION_HINTS)
+        .row(labelled("Agent", false, text_input(&form.agent, false, "")))
+        .row(labelled(
+            "Name",
+            form.field == SessionField::Name,
+            text_input(&form.name, form.field == SessionField::Name, ""),
+        ))
+        .row(labelled(
+            "Model",
             form.field == SessionField::Model,
-            Some(selection_hint(form.model_default())),
-        ),
-        field_line(
-            "Effort:  ",
-            &form.effort,
+            text_input(
+                &form.model,
+                form.field == SessionField::Model,
+                &selection_hint(form.model_default()),
+            ),
+        ))
+        .row(labelled(
+            "Effort",
             form.field == SessionField::Effort,
-            Some(selection_hint(form.effort_default())),
-        ),
-        Line::from(harness_spans),
-    ];
-    if let Some(error) = &form.error {
-        lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
-    }
-    lines.push(Line::default());
-    let hint_row = lines.len();
-    lines.push(hint_line(&NEW_SESSION_HINTS));
-    let target = popup(frame, area, " new session ", Color::Cyan, lines);
+            text_input(
+                &form.effort,
+                form.field == SessionField::Effort,
+                &selection_hint(form.effort_default()),
+            ),
+        ))
+        .row(labelled(
+            "Harness",
+            false,
+            picker(harness, false, form.harness, form.harnesses.len(), "", 0),
+        ))
+        .error(form.error.as_deref())
+        .render(frame, area, FORM_WIDTH, hit_map);
     for (row, field) in [
         (1, SessionField::Name),
         (2, SessionField::Model),
@@ -631,20 +596,16 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
             HitTarget::Action(MouseAction::FocusSessionField(field)),
         );
     }
-    let harness_area = line_area(target, 4);
-    let mut x = harness_area.x.saturating_add(9);
-    for (index, installation) in form.harnesses.iter().enumerate() {
-        if index > 0 {
-            x = x.saturating_add(2);
-        }
-        let width = u16::try_from(Line::from(installation.kind.as_str()).width()).unwrap_or(u16::MAX);
-        hit_map.click(
-            Rect::new(x, harness_area.y, width.min(harness_area.right().saturating_sub(x)), 1),
-            HitTarget::Action(MouseAction::SelectHarness(index)),
+    if let Some(last) = form.harnesses.len().checked_sub(1) {
+        let previous = form.harness.checked_sub(1).unwrap_or(last);
+        let next = if form.harness >= last { 0 } else { form.harness + 1 };
+        map_picker_targets(
+            line_area(target, 4),
+            MouseAction::SelectHarness(previous),
+            MouseAction::SelectHarness(next),
+            hit_map,
         );
-        x = x.saturating_add(width);
     }
-    map_hint_targets(line_area(target, hint_row), &NEW_SESSION_HINTS, hit_map);
 }
 
 /// What an empty selection field resolves to: the manifest default or the harness's own.
@@ -655,199 +616,262 @@ fn selection_hint(manifest_default: Option<&str>) -> String {
     )
 }
 
-/// One text field of the new Session form. The cursor marks the focused field;
-/// `empty_hint` shows what an empty field resolves to.
-fn field_line(label: &str, value: &str, focused: bool, empty_hint: Option<String>) -> Line<'static> {
-    let mut spans = vec![Span::raw(format!("{label}{value}"))];
-    if focused {
-        spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
-    }
-    if let Some(hint) = empty_hint
-        && value.is_empty()
-    {
-        spans.push(Span::styled(format!(" {hint}"), Style::new().fg(Color::DarkGray)));
-    }
-    Line::from(spans)
-}
-
 fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateForm, hit_map: &mut HitMap) {
-    let popup_width = CREATE_AGENT_POPUP_WIDTH.min(area.width);
-    let detail_width = usize::from(popup_width)
-        .saturating_sub(2)
-        .saturating_sub(CREATE_PICKER_DETAIL_OFFSET);
-    let mut lines = form.agent().zip(form.candidate()).map_or_else(
-        || {
-            vec![
-                Line::from("No agent manifests found."),
-                Line::from(Span::styled(
-                    format!("Start the TUI inside a repository or directory tree containing {MANIFEST_FILE},"),
-                    Style::new().fg(Color::DarkGray),
-                )),
-                Line::from(Span::styled(
-                    "or apply one first: agentctl apply -f",
-                    Style::new().fg(Color::DarkGray),
-                )),
-            ]
-        },
-        |(agent, candidate)| picker_lines(form, agent, candidate, detail_width),
-    );
-    while lines.len() < CREATE_AGENT_FIELD_ROWS {
-        lines.push(Line::default());
-    }
     let candidate_error = form.candidate().and_then(|candidate| candidate.name.as_ref().err());
-    if let Some(error) = form.error.as_ref().or(candidate_error) {
-        lines.push(Line::from(Span::styled(error.clone(), Style::new().fg(Color::Red))));
-    } else {
-        lines.push(Line::default());
-    }
-    lines.push(hint_line(&CREATE_AGENT_HINTS));
-    let target = popup_sized(
-        frame,
-        area,
-        " create agent ",
-        Color::Cyan,
-        lines,
-        popup_width,
-        CREATE_AGENT_POPUP_HEIGHT,
-    );
-    if form.candidate().is_some() {
-        let label_width = u16::try_from(CREATE_FIELD_LABEL_WIDTH).unwrap_or(u16::MAX);
-        let value_width = u16::try_from(CREATE_PICKER_VALUE_WIDTH).unwrap_or(u16::MAX);
-        for (row, field) in [
-            (0, CreateField::Agent),
-            (1, CreateField::Variant),
-            (2, CreateField::Name),
-            (3, CreateField::EnvironmentFile),
-        ] {
-            hit_map.click(
-                line_area(target, row),
-                HitTarget::Action(MouseAction::FocusCreateField(field)),
-            );
-        }
-        for (row, field) in [(0, CreateField::Agent), (1, CreateField::Variant)] {
-            let line = line_area(target, row);
-            hit_map.click(
-                Rect::new(line.x.saturating_add(label_width), line.y, 2, 1),
-                HitTarget::Action(MouseAction::SelectCreate { field, delta: -1 }),
-            );
-            hit_map.click(
-                Rect::new(
-                    line.x
-                        .saturating_add(label_width)
-                        .saturating_add(2)
-                        .saturating_add(value_width),
-                    line.y,
-                    2,
-                    1,
-                ),
-                HitTarget::Action(MouseAction::SelectCreate { field, delta: 1 }),
-            );
-        }
-    }
-    map_hint_targets(line_area(target, 5), &CREATE_AGENT_HINTS, hit_map);
-}
-
-fn picker_lines(
-    form: &super::app::CreateForm,
-    agent: &super::app::AgentDefinition,
-    candidate: &super::app::ManifestCandidate,
-    detail_width: usize,
-) -> Vec<Line<'static>> {
-    let agent_path = abbreviate_home(&agent.directory.display().to_string());
+    let mut widget = Form::new(" create agent ", Color::Cyan, &CREATE_AGENT_HINTS)
+        .error(form.error.as_ref().or(candidate_error).map(String::as_str));
+    let Some((agent, candidate)) = form.agent().zip(form.candidate()) else {
+        widget
+            .row(Line::from("No agent manifests found."))
+            .row(note_line(&format!(
+                "Start the TUI inside a repository or directory tree containing {MANIFEST_FILE},"
+            )))
+            .row(note_line("or apply one first: agentctl apply -f"))
+            .row(Line::default())
+            .render(frame, area, CREATE_AGENT_FORM_WIDTH, hit_map);
+        return;
+    };
+    let detail_width =
+        usize::from(CREATE_AGENT_FORM_WIDTH.saturating_sub(4)).saturating_sub(FORM_LABEL_WIDTH + PICKER_WIDTH);
     let manifest_file = candidate.path.file_name().map_or_else(
         || candidate.path.display().to_string(),
         |name| name.to_string_lossy().into_owned(),
     );
-    let agent_label = agent.label();
-    let variant_label = form.variant_label().unwrap_or_default();
-    let mut lines = vec![
-        picker_line(
-            "Agent:",
-            &agent_label,
-            &agent_path,
-            form.field == super::app::CreateField::Agent,
-            form.agent,
-            form.agents.len(),
-            detail_width,
-        ),
-        picker_line(
-            "Variant:",
-            &variant_label,
-            &manifest_file,
-            form.field == super::app::CreateField::Variant,
-            form.variant,
-            agent.variants.len(),
-            detail_width,
-        ),
-    ];
-    lines.push(Line::from(name_field_spans(form)));
-    lines.push(create_text_field_line(
-        "Env file:",
-        &form.env_file,
-        form.field == super::app::CreateField::EnvironmentFile,
-        "default: .env beside manifest",
-    ));
-    lines
+    widget = widget
+        .row(labelled(
+            "Agent",
+            form.field == CreateField::Agent,
+            picker(
+                &agent.label(),
+                form.field == CreateField::Agent,
+                form.agent,
+                form.agents.len(),
+                &abbreviate_home(&agent.directory.display().to_string()),
+                detail_width,
+            ),
+        ))
+        .row(labelled(
+            "Variant",
+            form.field == CreateField::Variant,
+            picker(
+                &form.variant_label().unwrap_or_default(),
+                form.field == CreateField::Variant,
+                form.variant,
+                agent.variants.len(),
+                &manifest_file,
+                detail_width,
+            ),
+        ))
+        .row(labelled(
+            "Name",
+            form.field == CreateField::Name,
+            text_input(
+                &form.name,
+                form.field == CreateField::Name,
+                form.placeholder().unwrap_or_default(),
+            ),
+        ))
+        .row(labelled(
+            "Env file",
+            form.field == CreateField::EnvironmentFile,
+            text_input(
+                &form.env_file,
+                form.field == CreateField::EnvironmentFile,
+                "default: .env beside manifest",
+            ),
+        ));
+    let target = widget.render(frame, area, CREATE_AGENT_FORM_WIDTH, hit_map);
+    for (row, field) in [
+        (0, CreateField::Agent),
+        (1, CreateField::Variant),
+        (2, CreateField::Name),
+        (3, CreateField::EnvironmentFile),
+    ] {
+        hit_map.click(
+            line_area(target, row),
+            HitTarget::Action(MouseAction::FocusCreateField(field)),
+        );
+    }
+    for (row, field) in [(0, CreateField::Agent), (1, CreateField::Variant)] {
+        map_picker_targets(
+            line_area(target, row),
+            MouseAction::SelectCreate { field, delta: -1 },
+            MouseAction::SelectCreate { field, delta: 1 },
+            hit_map,
+        );
+    }
 }
 
-fn picker_line(
-    label: &'static str,
+fn render_port_forward(frame: &mut Frame, area: Rect, form: &super::app::ForwardForm, hit_map: &mut HitMap) {
+    let title = if form.replace.is_some() {
+        " edit forward "
+    } else {
+        " port forward "
+    };
+    let text = |label, value: &str, field, placeholder| {
+        labelled(
+            label,
+            form.field == field,
+            text_input(value, form.field == field, placeholder),
+        )
+    };
+    let target = Form::new(title, Color::Cyan, &PORT_FORWARD_HINTS)
+        .row(labelled("Agent", false, text_input(&form.agent, false, "")))
+        .row(text("Address", &form.address, ForwardField::Address, "127.0.0.1"))
+        .row(text(
+            "Local port",
+            &form.local,
+            ForwardField::LocalPort,
+            "same as guest port",
+        ))
+        .row(text("Guest port", &form.guest, ForwardField::GuestPort, ""))
+        .error(form.error.as_deref())
+        .render(frame, area, FORM_WIDTH, hit_map);
+    for (row, field) in [
+        (1, ForwardField::Address),
+        (2, ForwardField::LocalPort),
+        (3, ForwardField::GuestPort),
+    ] {
+        hit_map.click(
+            line_area(target, row),
+            HitTarget::Action(MouseAction::FocusForwardField(field)),
+        );
+    }
+}
+
+/// A modal drawn at a fixed size whatever is typed: one line per row, a line
+/// for an error, then the form's key hints. Row `n` is drawn on line
+/// `n`, which is where callers put its mouse targets.
+struct Form<'a> {
+    title: &'a str,
+    border: Color,
+    hints: &'a [Hint],
+    rows: Vec<Line<'static>>,
+    error: Line<'static>,
+}
+
+impl<'a> Form<'a> {
+    fn new(title: &'a str, border: Color, hints: &'a [Hint]) -> Self {
+        Self {
+            title,
+            border,
+            hints,
+            rows: Vec::new(),
+            error: Line::default(),
+        }
+    }
+
+    fn row(mut self, row: Line<'static>) -> Self {
+        self.rows.push(row);
+        self
+    }
+
+    /// Shows a validation or submission error above the hints.
+    fn error(mut self, error: Option<&str>) -> Self {
+        self.error = error.map_or_else(Line::default, |error| {
+            Line::from(Span::styled(error.to_owned(), Style::new().fg(Color::Red)))
+        });
+        self
+    }
+
+    fn render(self, frame: &mut Frame, area: Rect, width: u16, hit_map: &mut HitMap) -> Rect {
+        let hint_row = self.rows.len() + 1;
+        let mut lines = self.rows;
+        lines.extend([self.error, hint_line(self.hints)]);
+        let height = u16::try_from(lines.len()).unwrap_or(u16::MAX).saturating_add(2);
+        let target = centered_rect(area, width.min(area.width), height.min(area.height));
+        frame.render_widget(Clear, target);
+        let block = Block::bordered()
+            .title(self.title.to_owned())
+            .border_style(Style::new().fg(self.border))
+            .padding(Padding::horizontal(1));
+        frame.render_widget(Paragraph::new(lines).block(block), target);
+        map_hint_targets(line_area(target, hint_row), self.hints, hit_map);
+        target
+    }
+}
+
+/// A form row: the label, highlighted while the row has focus, then its value.
+fn labelled(label: &str, focused: bool, value: Vec<Span<'static>>) -> Line<'static> {
+    let style = if focused {
+        Style::new().fg(Color::Cyan)
+    } else {
+        Style::new().fg(Color::DarkGray)
+    };
+    let mut spans = vec![Span::styled(format!("{label:<FORM_LABEL_WIDTH$}"), style)];
+    spans.extend(value);
+    Line::from(spans)
+}
+
+/// A typed value followed by the cursor while focused, indented to line up
+/// with picker values. An empty value shows its placeholder in gray with the
+/// cursor over its first character, so the cursor sits flush against it.
+fn text_input(value: &str, focused: bool, placeholder: &str) -> Vec<Span<'static>> {
+    let mut spans = vec![Span::raw("  ")];
+    let cursor = Span::styled("▏", Style::new().fg(Color::Cyan));
+    if !value.is_empty() {
+        spans.push(Span::raw(value.to_owned()));
+        spans.extend(focused.then_some(cursor));
+        return spans;
+    }
+    let gray = Style::new().fg(Color::DarkGray);
+    let mut placeholder = placeholder.chars();
+    match placeholder.next() {
+        Some(first) => spans.extend([
+            Span::styled(
+                first.to_string(),
+                if focused {
+                    gray.add_modifier(Modifier::REVERSED)
+                } else {
+                    gray
+                },
+            ),
+            Span::styled(placeholder.collect::<String>(), gray),
+        ]),
+        None => spans.extend(focused.then_some(cursor)),
+    }
+    spans
+}
+
+/// A value chosen with ←/→: arrows around it, its position, then a detail
+/// shortened from the front to `detail_width`.
+fn picker(
     value: &str,
-    detail: &str,
     focused: bool,
     selected: usize,
     total: usize,
+    detail: &str,
     detail_width: usize,
-) -> Line<'static> {
-    let control = if focused { Color::Cyan } else { Color::DarkGray };
-    let value_style = if focused {
-        Style::new().fg(Color::Cyan)
+) -> Vec<Span<'static>> {
+    let (arrow, value_style) = if focused {
+        (Style::new().fg(Color::Cyan), Style::new().fg(Color::Cyan))
     } else {
-        Style::new()
+        (Style::new().fg(Color::DarkGray), Style::new())
     };
-    let value = fixed_width(value, CREATE_PICKER_VALUE_WIDTH);
     let position = format!("{}/{}", selected.saturating_add(1), total);
-    Line::from(vec![
-        Span::raw(create_field_label(label)),
-        Span::styled("◂ ", Style::new().fg(control)),
-        Span::styled(value, value_style),
-        Span::styled(" ▸", Style::new().fg(control)),
+    vec![
+        Span::styled("◂ ", arrow),
+        Span::styled(fixed_width(value, PICKER_VALUE_WIDTH), value_style),
+        Span::styled(" ▸", arrow),
         Span::styled(format!(" {position:>5}  "), Style::new().fg(Color::DarkGray)),
         Span::styled(tail_ellipsized(detail, detail_width), Style::new().fg(Color::DarkGray)),
-    ])
+    ]
 }
 
-fn create_field_label(label: &str) -> String {
-    format!("{label:<CREATE_FIELD_LABEL_WIDTH$}")
+fn map_picker_targets(line: Rect, previous: MouseAction, next: MouseAction, hit_map: &mut HitMap) {
+    let arrows = line
+        .x
+        .saturating_add(u16::try_from(FORM_LABEL_WIDTH).unwrap_or(u16::MAX));
+    let value = u16::try_from(PICKER_VALUE_WIDTH).unwrap_or(u16::MAX);
+    hit_map.click(Rect::new(arrows, line.y, 2, 1), HitTarget::Action(previous));
+    hit_map.click(
+        Rect::new(arrows.saturating_add(2).saturating_add(value), line.y, 2, 1),
+        HitTarget::Action(next),
+    );
 }
 
-fn create_text_field_label(label: &str) -> String {
-    format!("{}  ", create_field_label(label))
-}
-
-fn create_text_field_line(label: &str, value: &str, focused: bool, empty_hint: &str) -> Line<'static> {
-    let mut spans = vec![Span::raw(create_text_field_label(label))];
-    if value.is_empty() {
-        let mut hint = empty_hint.chars();
-        if let Some(first) = hint.next() {
-            let style = Style::new().fg(Color::DarkGray);
-            spans.push(Span::styled(
-                first.to_string(),
-                if focused {
-                    style.add_modifier(Modifier::REVERSED)
-                } else {
-                    style
-                },
-            ));
-            spans.push(Span::styled(hint.collect::<String>(), style));
-        }
-    } else {
-        spans.push(Span::raw(value.to_owned()));
-        if focused {
-            spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
-        }
-    }
-    Line::from(spans)
+fn note_line(note: &str) -> Line<'static> {
+    Line::from(Span::styled(note.to_owned(), Style::new().fg(Color::DarkGray)))
 }
 
 fn fixed_width(value: &str, width: usize) -> String {
@@ -881,41 +905,6 @@ fn tail_ellipsized(value: &str, width: usize) -> String {
     format!("…{}", &value[start..])
 }
 
-/// Renders the name input; an empty buffer shows the placeholder with a
-/// block cursor over its first character, so the cursor sits flush against
-/// the grayed text instead of leaving a cell-wide gap before it.
-fn name_field_spans(form: &super::app::CreateForm) -> Vec<Span<'static>> {
-    let focused = form.field == super::app::CreateField::Name;
-    let mut spans = vec![Span::raw(create_text_field_label("Name:"))];
-    if !form.name.is_empty() {
-        spans.push(Span::raw(form.name.clone()));
-        if focused {
-            spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
-        }
-        return spans;
-    }
-    let mut placeholder = form.placeholder().unwrap_or_default().chars();
-    match placeholder.next() {
-        Some(first) if focused => {
-            spans.push(Span::styled(
-                first.to_string(),
-                Style::new().fg(Color::DarkGray).add_modifier(Modifier::REVERSED),
-            ));
-            spans.push(Span::styled(
-                placeholder.collect::<String>(),
-                Style::new().fg(Color::DarkGray),
-            ));
-        }
-        Some(first) => spans.push(Span::styled(
-            format!("{first}{}", placeholder.collect::<String>()),
-            Style::new().fg(Color::DarkGray),
-        )),
-        None if focused => spans.push(Span::styled("▏", Style::new().fg(Color::Cyan))),
-        None => {}
-    }
-    spans
-}
-
 fn abbreviate_home(path: &str) -> String {
     abbreviate(path, std::env::var("HOME").ok().as_deref())
 }
@@ -927,23 +916,6 @@ fn abbreviate(path: &str, home: Option<&str>) -> String {
             (rest.is_empty() || rest.starts_with('/')).then(|| format!("~{rest}"))
         })
         .unwrap_or_else(|| path.to_owned())
-}
-
-fn form_field(label: &str, value: &str, selected: bool) -> Line<'static> {
-    let mut spans = vec![Span::raw(format!(
-        "{label}:{}",
-        " ".repeat(14usize.saturating_sub(label.len()))
-    ))];
-    let style = if selected {
-        Style::new().fg(Color::Cyan)
-    } else {
-        Style::new()
-    };
-    spans.push(Span::styled(value.to_owned(), style));
-    if selected {
-        spans.push(Span::styled("▏", Style::new().fg(Color::Cyan)));
-    }
-    Line::from(spans)
 }
 
 fn hint_line(hints: &[Hint]) -> Line<'static> {
@@ -959,39 +931,9 @@ fn hint_line(hints: &[Hint]) -> Line<'static> {
     Line::from(spans)
 }
 
-fn popup(frame: &mut Frame, area: Rect, title: &str, border: Color, lines: Vec<Line<'_>>) -> Rect {
-    let height = u16::try_from(lines.len()).unwrap_or(u16::MAX).saturating_add(2);
-    let content = lines
-        .iter()
-        .map(Line::width)
-        .max()
-        .and_then(|width| u16::try_from(width).ok())
-        .unwrap_or(u16::MAX)
-        .saturating_add(2);
-    let width = (area.width / 2).max(content).min(area.width);
-    popup_sized(frame, area, title, border, lines, width, height)
-}
-
-fn popup_sized(
-    frame: &mut Frame,
-    area: Rect,
-    title: &str,
-    border: Color,
-    lines: Vec<Line<'_>>,
-    width: u16,
-    height: u16,
-) -> Rect {
-    let target = centered_rect(area, width.min(area.width), height.min(area.height));
-    frame.render_widget(Clear, target);
-    let block = Block::bordered()
-        .title(title.to_owned())
-        .border_style(Style::new().fg(border));
-    frame.render_widget(Paragraph::new(lines).block(block), target);
-    target
-}
-
+/// Line `line` of a form's content, inside its border and padding.
 fn line_area(popup: Rect, line: usize) -> Rect {
-    let inner = popup.inner(Margin::new(1, 1));
+    let inner = popup.inner(Margin::new(2, 1));
     let y = inner.y.saturating_add(u16::try_from(line).unwrap_or(u16::MAX));
     if y >= inner.bottom() {
         Rect::default()
@@ -1434,6 +1376,36 @@ mod tests {
         }));
     }
 
+    fn modal_border(terminal: &Terminal<TestBackend>) -> Vec<(usize, usize)> {
+        buffer_text(terminal)
+            .lines()
+            .enumerate()
+            .filter_map(|(row, line)| line.find('┌').or_else(|| line.find('└')).map(|column| (row, column)))
+            .collect()
+    }
+
+    #[test]
+    fn forms_keep_their_size_when_an_error_appears_and_leave_the_footer_empty() {
+        let mut app = tree_app(1);
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char('n'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let valid = modal_border(&terminal);
+        let footer = buffer_text(&terminal).lines().rev().take(2).collect::<String>();
+        assert!(footer.trim().is_empty(), "form hints are not repeated in the footer");
+
+        if let Some(Modal::NewSession(form)) = &mut app.modal {
+            form.name = "a-much-longer-session-name-than-before".into();
+            form.error = Some("session name is invalid".into());
+        }
+        draw(&mut terminal, &app);
+        assert!(buffer_text(&terminal).contains("session name is invalid"));
+        assert_eq!(modal_border(&terminal), valid);
+    }
+
     #[test]
     fn create_agent_modal_shows_the_picker_and_placeholder_name() {
         use super::super::app::{CreateField, CreateForm, ManifestCandidate};
@@ -1457,21 +1429,21 @@ mod tests {
         let hit_map = draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         assert!(text.contains("create agent"));
-        assert!(text.contains("Agent:    ◂ full"));
-        assert!(text.contains("Variant:  ◂ default"));
-        assert!(text.contains("Name:       full"));
-        assert!(text.contains("Env file:   default: .env beside manifest"));
+        assert!(text.contains("Agent       ◂ full"));
+        assert!(text.contains("Variant     ◂ default"));
+        assert!(text.contains("Name          full"));
+        assert!(text.contains("Env file      default: .env beside manifest"));
         assert!(text.contains("enter create · tab/↑/↓ field · ←/→ select · esc cancel"));
         let initial_geometry = create_modal_geometry(&text);
-        let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
+        let agent_line = text.lines().find(|line| line.contains("│ Agent")).expect("Agent row");
         let variant_line = text
             .lines()
-            .find(|line| line.contains("Variant:"))
+            .find(|line| line.contains("│ Variant"))
             .expect("Variant row");
-        let name_line = text.lines().find(|line| line.contains("Name:")).expect("Name row");
+        let name_line = text.lines().find(|line| line.contains("│ Name")).expect("Name row");
         let env_line = text
             .lines()
-            .find(|line| line.contains("Env file:"))
+            .find(|line| line.contains("│ Env file"))
             .expect("environment row");
         assert_eq!(text_column(agent_line, "◂"), text_column(variant_line, "◂"));
         assert_eq!(
@@ -1512,11 +1484,11 @@ mod tests {
         form.name = "copy".into();
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
-        assert!(text.contains("Agent:    ◂ broken"));
-        assert!(text.contains("Variant:  ◂ default"));
+        assert!(text.contains("Agent       ◂ broken"));
+        assert!(text.contains("Variant     ◂ default"));
         assert!(text.contains("manifest cannot be decoded"));
-        assert!(text.contains("Name:       copy▏"));
-        assert!(text.contains("Env file:   default: .env beside manifest"));
+        assert!(text.contains("Name          copy▏"));
+        assert!(text.contains("Env file      default: .env beside manifest"));
         assert_eq!(create_modal_geometry(&text), initial_geometry);
     }
 
@@ -1536,10 +1508,10 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(100, 16)).expect("test terminal");
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
-        let agent_line = text.lines().find(|line| line.contains("Agent:")).expect("Agent row");
+        let agent_line = text.lines().find(|line| line.contains("│ Agent")).expect("Agent row");
         let agent_line = agent_line.replace('\\', "/");
         assert!(agent_line.contains('…'));
-        assert!(agent_line.contains("/not/fit/inside/the/create/agent/modal/agents/full"));
+        assert!(agent_line.contains("/fit/inside/the/create/agent/modal/agents/full"));
         assert!(!agent_line.contains("/a/source/directory"));
         assert!(
             agent_line.trim_end().ends_with('│'),
@@ -1548,29 +1520,16 @@ mod tests {
     }
 
     #[test]
-    fn create_agent_placeholder_first_character_is_the_block_cursor() {
-        use super::super::app::{CreateField, CreateForm, ManifestCandidate};
-
-        let mut form = CreateForm::new(
-            vec![ManifestCandidate::new(
-                std::path::PathBuf::from("/sources/full/agent.yaml"),
-                Ok("full".into()),
-            )],
-            None,
-        );
-        form.field = CreateField::Name;
-        let spans = name_field_spans(&form);
+    fn a_text_input_puts_the_cursor_over_its_placeholder_or_after_its_value() {
+        let spans = text_input("", true, "full");
         assert_eq!(spans[1].content, "f");
         assert!(spans[1].style.add_modifier.contains(Modifier::REVERSED));
         assert_eq!(spans[2].content, "ull");
 
-        let typed = CreateForm {
-            name: "my".into(),
-            ..form
-        };
-        let spans = name_field_spans(&typed);
+        let spans = text_input("my", true, "full");
         assert_eq!(spans[1].content, "my");
         assert_eq!(spans[2].content, "▏");
+        assert_eq!(text_input("", false, "").len(), 1, "only the indent");
     }
 
     #[test]
