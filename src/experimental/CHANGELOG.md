@@ -22,6 +22,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
   actions while retaining all keyboard controls.
 - Agent Skill entries may declare an installed `name` separately from their source directory.
+- A harness installation may be declared `optional`, so an Agent is created without it when its host login is
+  absent. Altinn Agents declare Codex this way, and signing in on the host installs it on the next convergence.
+- Altinn Agents install the repository's text-review and Norwegian copy-editing Skills, so a Session has them as
+  well as a local checkout.
 - Agent manifests may mark a mediated secret as optional, so an absent or empty value omits that binding instead of
   blocking Agent provisioning.
 - Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
@@ -30,7 +34,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
+- Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
 
 ### Fixed

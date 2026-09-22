@@ -19,7 +19,7 @@ const PROVIDER: &str = "codex";
 const ACCESS_SECRET: &str = "codex-access-token";
 const REFRESH_SECRET: &str = "codex-refresh-token";
 const ACCOUNT_SECRET: &str = "codex-account-id";
-const ACCESS_ENVIRONMENT: &str = "AGENT_CODEX_ACCESS_TOKEN";
+pub(super) const ACCESS_ENVIRONMENT: &str = "AGENT_CODEX_ACCESS_TOKEN";
 const ACCOUNT_ENVIRONMENT: &str = "AGENT_CODEX_ACCOUNT_ID";
 const ACCESS_PLACEHOLDER: &str = concat!(
     "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.",
@@ -32,6 +32,10 @@ const CHATGPT_HOST: &str = "chatgpt.com";
 
 pub(super) fn owns_secret(reference: &SecretReference) -> bool {
     reference.as_str() == ACCESS_SECRET
+}
+
+pub(super) async fn authentication_ready(database: &persistence::Database) -> Result<bool, Error> {
+    authentication::is_ready(database).await
 }
 
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {

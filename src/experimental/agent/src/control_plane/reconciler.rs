@@ -126,6 +126,7 @@ impl Reconciler {
         let assignment = crate::sandbox::Assignment::Materialized {
             provider,
             id: ensured.id,
+            harnesses: ensured.harnesses.clone(),
         };
         let mut conditions = vec![condition(
             Condition::SANDBOX_READY,
@@ -275,4 +276,12 @@ fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
+        || previous
+            .sandbox
+            .as_ref()
+            .and_then(crate::sandbox::Assignment::installed_harnesses)
+            != current
+                .sandbox
+                .as_ref()
+                .and_then(crate::sandbox::Assignment::installed_harnesses)
 }

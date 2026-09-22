@@ -16,7 +16,6 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/app-codelists-codeql.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
   schedule:
     - cron: '15 1 * * 0'

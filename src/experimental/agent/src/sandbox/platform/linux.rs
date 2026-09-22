@@ -143,14 +143,29 @@ impl PlatformAdapter for Linux {
         &'a self,
         record: &'a control_plane::AgentRecord,
         sandbox: &'a SandboxHandle,
+        harnesses: &'a [crate::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(self.setup(record, sandbox))
+        Box::pin(self.setup(record, sandbox, harnesses))
     }
 }
 
 impl Linux {
-    async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        for installation in &record.agent.spec.harnesses {
+    /// Sets up only the harnesses preparation reported installing, so setup and preparation
+    /// cannot disagree about an optional installation whose host login was absent.
+    async fn setup(
+        &self,
+        record: &control_plane::AgentRecord,
+        sandbox: &SandboxHandle,
+        harnesses: &[crate::Harness],
+    ) -> Result<(), Error> {
+        let installations: Vec<&crate::HarnessSpec> = record
+            .agent
+            .spec
+            .harnesses
+            .iter()
+            .filter(|installation| harnesses.contains(&installation.kind))
+            .collect();
+        for installation in &installations {
             harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
         }
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
@@ -160,7 +175,7 @@ impl Linux {
         configure_git_identity(sandbox).await?;
         let instructions = read_instructions(record).await?;
         let skills = read_skills(record).await?;
-        for installation in &record.agent.spec.harnesses {
+        for installation in &installations {
             harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
         }
         Ok(())
