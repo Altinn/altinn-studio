@@ -159,7 +159,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
     }
 
     /// <summary>
-    /// Proxies the start workflow request to Assistant agent with a short-lived Designer API key
+    /// Proxies the start workflow request to Assistant with a short-lived Designer API key
     /// </summary>
     /// <param name="request">The workflow start request</param>
     /// <returns>Agent response</returns>
@@ -203,7 +203,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
-        var agentResponse = await ForwardRequestToAssistantAgentAsync(
+        var agentResponse = await ForwardRequestToAssistantAsync(
             enrichedWithAttachments,
             developer,
             apiKey,
@@ -338,7 +338,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         }
     }
 
-    private async Task<JsonElement> ForwardRequestToAssistantAgentAsync(
+    private async Task<JsonElement> ForwardRequestToAssistantAsync(
         JsonElement request,
         string developer,
         string apiKey,
