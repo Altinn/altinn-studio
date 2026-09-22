@@ -76,6 +76,13 @@ internal sealed class MaskinportenScopeInventory
         + "time the app is built and deployed, so do it before you deploy. For local runs, the client you "
         + "store must already have them in Maskinporten. Scopes found:";
 
+    private const string Unreadable =
+        "This app requests Maskinporten tokens, but none of the scopes it asks for are written as literals - "
+        + "they come from variables, constants or configuration - so the upgrade cannot list them. Work them "
+        + "out from the call sites yourself. They are still needed on both of the app's Maskinporten clients: "
+        + "select them in Studio under App settings, \"Velg scopes fra Maskinporten\", for the deployed app, "
+        + "and make sure the client you store with studioctl app maskinporten set has them for local runs.";
+
     private const string Incomplete =
         "This list covers the scopes named as literals in your code, configuration and process. A scope "
         + "passed as a variable or read from configuration, or one requested through a direct "
@@ -108,6 +115,7 @@ internal sealed class MaskinportenScopeInventory
     public MigrationResult Describe()
     {
         var found = new SortedDictionary<string, SortedSet<string>>(StringComparer.Ordinal);
+        var requestsTokens = false;
 
         void Add(string scope, string evidence)
         {
@@ -127,6 +135,14 @@ internal sealed class MaskinportenScopeInventory
 
         foreach (var file in _scanner.Files)
         {
+            // Tracked separately from the scopes harvested below: a call whose scopes are a variable or a
+            // configuration read contributes no rows, and silence there would read as "this app needs no
+            // scopes" when the truth is "this tool cannot see which".
+            requestsTokens =
+                requestsTokens
+                || CSharpSyntaxQueries.InvokedMethods(file, _scopeMethods).Any()
+                || CSharpSyntaxQueries.TypeReferences(file, _tokenRequestTypes).Any();
+
             foreach (var (match, value) in CSharpSyntaxQueries.StringArgumentsOf(file, _scopeMethods))
             {
                 Add(value, $"{match.Symbol} at {match.Location}");
@@ -162,7 +178,11 @@ internal sealed class MaskinportenScopeInventory
 
         if (found.Count == 0)
         {
-            return new MigrationResult();
+            // An app that asks for tokens but names no scope literal is the case this report must not stay
+            // quiet about: it needs grants on both clients and the upgrade cannot say which.
+            return requestsTokens
+                ? new MigrationResult([new UpgradeMessage(Unreadable, UpgradeMessageStatus.Todo)])
+                : new MigrationResult();
         }
 
         var messages = new List<UpgradeMessage>();

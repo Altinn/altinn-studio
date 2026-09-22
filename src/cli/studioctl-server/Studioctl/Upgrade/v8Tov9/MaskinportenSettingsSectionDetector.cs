@@ -199,6 +199,18 @@ internal sealed class MaskinportenSettingsSectionDetector
 
             foreach (var (path, element) in EnumerateObjects(document.RootElement, parentPath: null))
             {
+                // The same exclusion Detect makes: a default MaskinportenSettings section shaped for the
+                // external package belongs to that package, which still reads it. Its scopes are that
+                // client's, so listing them under "grant these on both of the app's clients" would send a
+                // developer to add an unrelated integration's grants to the provisioned client.
+                if (
+                    string.Equals(path, DefaultSectionName, StringComparison.OrdinalIgnoreCase)
+                    && IsExternalPackageObject(element)
+                )
+                {
+                    continue;
+                }
+
                 if (!bound.Contains(path) && !IsMaskinportenShaped(element, path))
                 {
                     continue;

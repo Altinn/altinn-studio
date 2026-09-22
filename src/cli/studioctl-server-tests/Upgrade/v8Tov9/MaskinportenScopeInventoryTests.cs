@@ -75,6 +75,74 @@ public sealed class MaskinportenScopeInventoryTests : IDisposable
     }
 
     [Fact]
+    public void TokenRequestInitializer_DoesNotMistakeAMethodArgumentForAScope()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            builder.UseMaskinportenAuthorization(
+                new MaskinportenTokenRequest { Scopes = LoadScopes("Maskinporten:Scopes") }
+            );
+            """
+        );
+
+        var rows = Rows(Describe());
+
+        Assert.DoesNotContain(rows, row => row.StartsWith("Maskinporten:Scopes - ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TokenRequestInitializer_ReadsAnArrayCreationToo()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            builder.UseMaskinportenAuthorization(
+                new MaskinportenTokenRequest { Scopes = new[] { "my:array.scope" } }
+            );
+            """
+        );
+
+        Assert.Contains(Rows(Describe()), row => row.StartsWith("my:array.scope - ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ScopesPassedAsAVariable_StillWarnThatTheyExist()
+    {
+        _app.Write("Program.cs", "builder.UseMaskinportenAuthorization(scopeFromConfiguration);");
+
+        var result = Describe();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Todos, todo => todo.Contains("written as literals", StringComparison.Ordinal));
+        Assert.Contains(result.Todos, todo => todo.Contains("Velg scopes fra Maskinporten", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Todos,
+            todo => todo.Contains("studioctl app maskinporten set", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void ExternalPackageDefaultSection_ScopesAreNotClaimedForTheAppClients()
+    {
+        _app.Write(
+            "appsettings.json",
+            """
+            {
+              "MaskinportenSettings": {
+                "Environment": "test",
+                "ClientId": "abc",
+                "EncodedJwk": "xyz",
+                "Scope": "someone:elses.scope"
+              }
+            }
+            """
+        );
+
+        Assert.Empty(Describe().Messages);
+    }
+
+    [Fact]
     public void FiksRegistration_InfersTheFiksScope()
     {
         _app.Write("Program.cs", "services.AddFiksArkiv();");

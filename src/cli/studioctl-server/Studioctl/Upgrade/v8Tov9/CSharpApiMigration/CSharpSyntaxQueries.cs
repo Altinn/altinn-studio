@@ -227,18 +227,55 @@ internal static class CSharpSyntaxQueries
                     continue;
                 }
 
-                foreach (var literal in assignment.Right.DescendantNodesAndSelf().OfType<LiteralExpressionSyntax>())
+                foreach (var value in DirectStringElements(assignment.Right))
                 {
-                    if (literal.Token.Value is string value)
-                    {
-                        yield return (
-                            new CSharpApiMatch(file.RelativePath, file.GetLine(assignment), $"{typeName}.{memberName}"),
-                            value
-                        );
-                    }
+                    yield return (
+                        new CSharpApiMatch(file.RelativePath, file.GetLine(assignment), $"{typeName}.{memberName}"),
+                        value
+                    );
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// <para>The string literals an expression contributes <em>as its own elements</em>: the expression itself
+    /// when it is a literal, and the direct elements of a collection expression, an array creation or a
+    /// collection initializer. Nothing is taken from anywhere else.</para>
+    /// <para>The restriction is the point. Descending into arbitrary expressions would read
+    /// <c>Scopes = LoadScopes("Maskinporten:Scopes")</c> as the scope <c>Maskinporten:Scopes</c> - a
+    /// configuration key reported as a scope, which is worse than not reporting the assignment at all,
+    /// because a developer cannot tell an invented scope from a real one and would carry it into a live
+    /// Maskinporten client.</para>
+    /// </summary>
+    private static IEnumerable<string> DirectStringElements(ExpressionSyntax expression)
+    {
+        if (expression is LiteralExpressionSyntax { Token.Value: string single })
+        {
+            return [single];
+        }
+
+        IEnumerable<ExpressionSyntax>? elements = expression switch
+        {
+            CollectionExpressionSyntax collection => collection
+                .Elements.OfType<ExpressionElementSyntax>()
+                .Select(static element => element.Expression),
+            ArrayCreationExpressionSyntax { Initializer: { } initializer } => initializer.Expressions,
+            ImplicitArrayCreationExpressionSyntax implicitArray => implicitArray.Initializer.Expressions,
+            BaseObjectCreationExpressionSyntax { Initializer: { } initializer } => initializer.Expressions,
+            _ => null,
+        };
+
+        if (elements is null)
+        {
+            return [];
+        }
+
+        // OfType<string> drops both non-literal tokens and null values without a null-forgiving cast.
+        return elements
+            .OfType<LiteralExpressionSyntax>()
+            .Select(static literal => literal.Token.Value)
+            .OfType<string>();
     }
 
     /// <summary>
