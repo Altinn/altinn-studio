@@ -85,9 +85,9 @@ keda:
   ttlSecondsAfterFinished: 300
   # Hard cap on total Job runtime. Pod is killed if it exceeds this even
   # while polling for work. Set to a value larger than the longest legitimate
-  # workflow you expect. Default 1800 = 30 min; raise if workflows can run
+  # workflow you expect. Default 7200 = 2 hours; raise if workflows can run
   # longer, lower if you want orphaned idle runners reaped faster.
-  activeDeadlineSeconds: 1800
+  activeDeadlineSeconds: 7200
   # K8s keeps the last N successful / failed Job records visible.
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5

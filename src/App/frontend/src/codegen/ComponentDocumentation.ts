@@ -13,31 +13,31 @@ type PropertyRow = {
   definition: PropertyDefinition;
 };
 
-type PropertyLink = Readonly<{
-  path: string;
-  target: 'common-properties' | 'grid' | 'page-break';
-}>;
+const propertiesRenderedFirst = ['type', 'readOnly', 'required', 'showValidations'] as const;
+const propertyGroupMinimumRows = 3;
 
 const labels = {
   en: {
-    property: 'Property',
+    common: 'The component also supports the [common component properties](../common-properties/).',
     type: 'Type',
     required: 'Required',
-    description: 'Description',
-    yes: 'Yes',
-    no: 'No',
+    optional: 'Optional',
     defaultValue: 'Default',
     allowedValues: 'Allowed values',
+    dataModelBinding: 'data model binding',
+    dataModelBindingHref: '/en/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/',
+    dataModelBindingLinkText: 'How to use data model bindings.',
   },
   nb: {
-    property: 'Egenskap',
+    common: 'Komponenten støtter også de [felles komponentegenskapene](../common-properties/).',
     type: 'Type',
     required: 'Påkrevd',
-    description: 'Beskrivelse',
-    yes: 'Ja',
-    no: 'Nei',
+    optional: 'Valgfri',
     defaultValue: 'Standardverdi',
     allowedValues: 'Tillatte verdier',
+    dataModelBinding: 'datamodellbinding',
+    dataModelBindingHref: '/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/',
+    dataModelBindingLinkText: 'Slik bruker du datamodellbindinger.',
   },
 } as const;
 
@@ -53,15 +53,7 @@ export function generateComponentDocumentation(
       renderComponent(component, commonPropertyNames, locale),
     ]),
   );
-  const grid = commonProperties.grid;
-  const pageBreak = commonProperties.pageBreak;
-  componentDocumentation.set('_common', renderTable(commonProperties, locale, false));
-  if (grid?.type === 'object') {
-    componentDocumentation.set('_grid', renderTable(grid.properties, locale));
-  }
-  if (pageBreak?.type === 'object') {
-    componentDocumentation.set('_pageBreak', renderTable(pageBreak.properties, locale));
-  }
+  componentDocumentation.set('_common', renderProperties(commonProperties, locale));
   return componentDocumentation;
 }
 
@@ -73,78 +65,168 @@ function renderComponent(
   const properties = Object.fromEntries(
     Object.entries(component.properties).filter(([name]) => !commonPropertyNames.has(name)),
   );
-  const commonPropertiesText =
-    locale === 'nb'
-      ? `Komponenten støtter også de felles egenskapene ${renderCommonPropertyLinks(locale)}.`
-      : `The component also supports the common properties ${renderCommonPropertyLinks(locale)}.`;
-  return [commonPropertiesText, '', renderTable(properties, locale)].join('\n');
+  const renderedProperties = renderProperties(properties, locale);
+  return commonPropertyNames.size ? `${labels[locale].common}\n\n${renderedProperties}` : renderedProperties;
 }
 
-function renderCommonPropertyLinks(locale: DocumentationLocale): string {
-  const links: PropertyLink[] = [
-    { path: 'id', target: 'common-properties' },
-    { path: 'hidden', target: 'common-properties' },
-    { path: 'grid', target: 'grid' },
-    { path: 'pageBreak', target: 'page-break' },
-  ];
-  const rendered = links.map(({ path, target }) => renderPropertyLink(path, target, locale));
-  return locale === 'nb'
-    ? `${rendered.slice(0, -1).join(', ')} og ${rendered.at(-1)}`
-    : `${rendered.slice(0, -1).join(', ')}, and ${rendered.at(-1)}`;
-}
-
-function renderTable(
+function renderProperties(
   properties: Readonly<Record<string, PropertyDefinition>>,
   locale: DocumentationLocale,
-  includeNestedProperties = true,
 ): string {
-  const text = labels[locale];
-  const rows = collectRows(properties, '', includeNestedProperties);
-  const header = `| ${text.property} | ${text.type} | ${text.required} | ${text.defaultValue} | ${text.description} |`;
-  const separator = '| --- | --- | --- | --- | --- |';
-  const tableRows = rows.map(({ path, definition }) =>
-    [
-      formatPropertyPath(path, locale),
-      `\`${escapeTableCell(formatType(definition))}\``,
-      definition.required ? text.yes : text.no,
-      formatDefaultValue(definition),
-      escapeTableCell(formatDescription(definition, locale)),
-    ].join(' | '),
-  );
-
-  return [header, separator, ...tableRows.map((row) => `| ${row} |`), ''].join('\n');
+  const rendered: string[] = [];
+  for (const [name, definition] of sortTopLevelProperties(properties)) {
+    const row = { path: name, definition };
+    const nestedRows = collectNestedRows(definition, name);
+    if (shouldGroupProperty(definition, nestedRows)) {
+      rendered.push(renderPropertyGroup(row, nestedRows, locale));
+    } else {
+      rendered.push(renderProperty(row, locale), ...nestedRows.map((nestedRow) => renderProperty(nestedRow, locale)));
+    }
+  }
+  return `${rendered.join('\n\n')}\n`;
 }
 
-function collectRows(
+function shouldGroupProperty(definition: PropertyValueDefinition, nestedRows: readonly PropertyRow[]): boolean {
+  const isDataModelBindingCollection =
+    nestedRows.length > 0 && nestedRows.every((row) => row.definition.semanticType === 'dataModelBinding');
+  return isDataModelBindingCollection || countNestedRows(definition) >= propertyGroupMinimumRows;
+}
+
+function renderPropertyGroup(
+  parent: PropertyRow,
+  children: readonly PropertyRow[],
+  locale: DocumentationLocale,
+): string {
+  return [
+    `<details class="component-property-group" id="${escapeHtml(parent.path.toLowerCase())}">`,
+    indent(renderPropertySummary(parent, locale, true)),
+    '  <div class="component-property-group-content">',
+    indent(renderPropertyDescription(parent.definition, locale), 4),
+    '    <div class="component-property-list">',
+    indent(children.map((row) => renderProperty(row, locale)).join('\n\n'), 6),
+    '    </div>',
+    '  </div>',
+    '</details>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function renderProperty({ path, definition }: PropertyRow, locale: DocumentationLocale): string {
+  const description = formatDescription(definition, locale);
+  const anchor = path.toLowerCase();
+  const summaryTag = description ? 'summary' : 'div';
+  const containerTag = description ? 'details' : 'div';
+
+  return [
+    `<${containerTag} class="card adocs-expand adocs-expand-small component-property${description ? '' : ' component-property--static'}" id="${escapeHtml(anchor)}">`,
+    indent(renderPropertySummary({ path, definition }, locale, description !== undefined, summaryTag)),
+    indent(renderPropertyDescription(definition, locale)),
+    `</${containerTag}>`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function renderPropertySummary(
+  { path, definition }: PropertyRow,
+  locale: DocumentationLocale,
+  expandable: boolean,
+  tag = 'summary',
+): string {
+  const text = labels[locale];
+  const type = formatType(definition, locale);
+  const renderedType =
+    definition.semanticType === 'dataModelBinding'
+      ? `<a href="${text.dataModelBindingHref}">${escapeHtml(type)}</a>`
+      : escapeHtml(type);
+  const defaultValue = hasMeaningfulDefault(definition) ? JSON.stringify(definition.default) : undefined;
+  const renderedDefault =
+    defaultValue === undefined
+      ? ''
+      : `<span class="component-property-default">${text.defaultValue}: <span class="component-property-value">${escapeHtml(defaultValue)}</span></span>`;
+
+  return [
+    `<${tag} class="component-property-summary">`,
+    expandable ? '  <span class="component-property-chevron" aria-hidden="true"></span>' : '',
+    `  <span class="component-property-name" title="${escapeHtml(path)}">${escapeHtml(path)}</span>`,
+    '  <span class="component-property-summary-meta">',
+    `    <span class="component-property-required${definition.required ? ' is-required' : ''}">${definition.required ? text.required : text.optional}</span>`,
+    indent(renderedDefault, 4),
+    `    <span class="component-property-type" title="${escapeHtml(type)}">${text.type}: <span class="component-property-value">${renderedType}</span></span>`,
+    '  </span>',
+    `</${tag}>`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function renderPropertyDescription(definition: PropertyDefinition, locale: DocumentationLocale): string {
+  const description = formatDescription(definition, locale);
+  return description
+    ? `<div class="a-collapseContent-inside component-property-details"><div class="component-property-description">${description}</div></div>`
+    : '';
+}
+
+function sortTopLevelProperties(
   properties: Readonly<Record<string, PropertyDefinition>>,
-  parentPath = '',
-  includeNestedProperties = true,
-): PropertyRow[] {
+): [string, PropertyDefinition][] {
+  const priority = new Map<string, number>(propertiesRenderedFirst.map((name, index) => [name, index]));
+  return Object.entries(properties)
+    .map(([name, definition], index) => ({ name, definition, index }))
+    .sort((left, right) => {
+      const leftPriority = priority.get(left.name) ?? propertiesRenderedFirst.length;
+      const rightPriority = priority.get(right.name) ?? propertiesRenderedFirst.length;
+      return leftPriority - rightPriority || left.index - right.index;
+    })
+    .map(({ name, definition }) => [name, definition]);
+}
+
+function collectNestedRows(definition: PropertyValueDefinition, path: string): PropertyRow[] {
   const rows: PropertyRow[] = [];
-  for (const [name, definition] of Object.entries(properties)) {
-    const path = parentPath ? `${parentPath}.${name}` : name;
-    rows.push({ path, definition });
-    if (includeNestedProperties) {
-      collectNestedRows(definition, path, rows);
+  if (definition.semanticType === 'dataModelBinding') {
+    return rows;
+  }
+  if (definition.type === 'object') {
+    for (const [name, nestedDefinition] of Object.entries(definition.properties)) {
+      const nestedPath = `${path}.${name}`;
+      rows.push({ path: nestedPath, definition: nestedDefinition });
+      rows.push(...collectNestedRows(nestedDefinition, nestedPath));
+    }
+  } else if (definition.type === 'array') {
+    rows.push(...collectNestedRows(definition.items, `${path}[]`));
+  } else if (definition.type === 'union') {
+    for (const variant of definition.variants) {
+      rows.push(...collectNestedRows(variant, pathForVariant(path, variant)));
+    }
+  } else if (definition.type === 'intersection') {
+    for (const part of definition.parts) {
+      rows.push(...collectNestedRows(part, path));
     }
   }
   return rows;
 }
 
-function collectNestedRows(definition: PropertyValueDefinition, path: string, rows: PropertyRow[]): void {
-  if (definition.type === 'object') {
-    rows.push(...collectRows(definition.properties, path));
-  } else if (definition.type === 'array') {
-    collectNestedRows(definition.items, `${path}[]`, rows);
-  } else if (definition.type === 'union') {
-    for (const variant of definition.variants) {
-      collectNestedRows(variant, pathForVariant(path, variant), rows);
-    }
-  } else if (definition.type === 'intersection') {
-    for (const part of definition.parts) {
-      collectNestedRows(part, path, rows);
-    }
+function countNestedRows(definition: PropertyValueDefinition): number {
+  if (definition.semanticType === 'dataModelBinding') {
+    return 0;
   }
+  if (definition.type === 'object') {
+    return Object.values(definition.properties).reduce(
+      (count, nestedDefinition) => count + 1 + countNestedRows(nestedDefinition),
+      0,
+    );
+  }
+  if (definition.type === 'array') {
+    return countNestedRows(definition.items);
+  }
+  if (definition.type === 'union') {
+    return definition.variants.reduce((count, variant) => count + countNestedRows(variant), 0);
+  }
+  if (definition.type === 'intersection') {
+    return definition.parts.reduce((count, part) => count + countNestedRows(part), 0);
+  }
+  return 0;
 }
 
 function pathForVariant(path: string, variant: PropertyValueDefinition): string {
@@ -159,20 +241,23 @@ function pathForVariant(path: string, variant: PropertyValueDefinition): string 
   return path.endsWith('[]') ? `${path.slice(0, -2)}${suffix}` : `${path}${suffix}`;
 }
 
-function formatType(definition: PropertyValueDefinition): string {
+function formatType(definition: PropertyValueDefinition, locale: DocumentationLocale): string {
+  if (definition.semanticType === 'dataModelBinding') {
+    return labels[locale].dataModelBinding;
+  }
   let type: string;
   if ('allowedValues' in definition && definition.allowedValues?.length) {
     type = formatAllowedValues(definition.allowedValues);
   } else if (definition.type === 'array') {
-    const itemType = formatType(definition.items);
+    const itemType = formatType(definition.items, locale);
     type =
       definition.items.type === 'union' || definition.items.type === 'intersection'
         ? `(${itemType})[]`
         : `${itemType}[]`;
   } else if (definition.type === 'union') {
-    type = definition.variants.map(formatType).join(' | ');
+    type = definition.variants.map((variant) => formatType(variant, locale)).join(' | ');
   } else if (definition.type === 'intersection') {
-    type = definition.parts.map(formatType).join(' & ');
+    type = definition.parts.map((part) => formatType(part, locale)).join(' & ');
   } else if (definition.type === 'constant') {
     type = JSON.stringify(definition.value);
   } else {
@@ -201,40 +286,35 @@ function formatAllowedValues(values: readonly (string | number)[]): string {
   return values.map((value) => JSON.stringify(value)).join(' | ');
 }
 
-function formatDescription(definition: PropertyDefinition, locale: DocumentationLocale): string {
-  const text = labels[locale];
+function formatDescription(definition: PropertyDefinition, locale: DocumentationLocale): string | undefined {
   const details = [getLocalizedText(definition.description, locale)];
   if ('allowedValues' in definition && definition.allowedValues) {
     details.push(
-      `${text.allowedValues}: ${definition.allowedValues.map((value) => JSON.stringify(value)).join(', ')}.`,
+      `${labels[locale].allowedValues}: ${definition.allowedValues.map((value) => JSON.stringify(value)).join(', ')}.`,
     );
   }
-  return details.filter(Boolean).join(' ');
-}
-
-function formatDefaultValue(definition: PropertyDefinition): string {
-  return definition.default === undefined ? '' : `\`${escapeTableCell(JSON.stringify(definition.default))}\``;
-}
-
-function formatPropertyPath(path: string, locale: DocumentationLocale): string {
-  if (path === 'grid') {
-    return renderPropertyLink(path, 'grid', locale);
+  if (definition.semanticType === 'dataModelBinding') {
+    details.push(`<a href="${labels[locale].dataModelBindingHref}">${labels[locale].dataModelBindingLinkText}</a>`);
   }
-  if (path === 'pageBreak') {
-    return renderPropertyLink(path, 'page-break', locale);
-  }
-  return `\`${path}\``;
+  return details.filter(Boolean).join(' ') || undefined;
 }
 
-function renderPropertyLink(path: string, target: PropertyLink['target'], _locale: DocumentationLocale): string {
-  const anchor = target === 'common-properties' ? `#${path.toLowerCase()}` : '';
-  return `[\`${path}\`](../${target}/${anchor})`;
+function hasMeaningfulDefault(definition: PropertyDefinition): boolean {
+  return definition.default !== undefined && definition.default !== null && definition.default !== '';
 }
 
 function getLocalizedText(value: LocalizedText | undefined, locale: DocumentationLocale): string | undefined {
   return value?.[locale];
 }
 
-function escapeTableCell(value: string): string {
-  return value.replaceAll('|', '\\|').replaceAll('\n', ' ');
+function escapeHtml(value: string): string {
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+}
+
+function indent(value: string, spaces = 2): string {
+  const indentation = ' '.repeat(spaces);
+  return value
+    .split('\n')
+    .map((line) => (line ? `${indentation}${line}` : line))
+    .join('\n');
 }

@@ -1181,4 +1181,109 @@ public class WorkflowHandlerTests
 
         public void Dispose() => _listener.Dispose();
     }
+
+    // ── ExecutionStartedAt ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Handle_StampsExecutionStartedAt_OnWorkflowAndStep_FromTheClock()
+    {
+        var executor = MockExecutor(ExecutionResult.Success());
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(executor.Object, timeProvider: time);
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+        Assert.Null(workflow.ExecutionStartedAt);
+        Assert.Null(step.ExecutionStartedAt);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(_t0, workflow.ExecutionStartedAt);
+        Assert.Equal(_t0, step.ExecutionStartedAt);
+    }
+
+    [Fact]
+    public async Task Handle_StepStartedWriteBack_AlreadyCarriesTheStamp()
+    {
+        // The stamp reaches a status read only through the write-back, and the first one for a step is
+        // the "step.started" fire-and-forget. It must carry the stamp on both rows, so a dashboard reading
+        // a Processing step sees when the attempt began rather than the previous attempt's value.
+        var executor = MockExecutor(ExecutionResult.Success());
+        var time = new FakeTimeProvider(_t0);
+        var buffer = MockBuffer();
+        DateTimeOffset? workflowStamp = null;
+        DateTimeOffset? stepStamp = null;
+        int dirtyStepCount = -1;
+        buffer
+            .Setup(b =>
+                b.SubmitAndForget(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
+                    "step.started",
+                    It.IsAny<Activity?>()
+                )
+            )
+            .Callback<Workflow, CancellationToken, IReadOnlyList<Step>?, string?, Activity?>(
+                (w, _, steps, _, _) =>
+                {
+                    workflowStamp = w.ExecutionStartedAt;
+                    dirtyStepCount = steps?.Count ?? 0;
+                    stepStamp = steps is [{ } only] ? only.ExecutionStartedAt : null;
+                }
+            );
+        var handler = CreateHandler(executor.Object, buffer: buffer.Object, timeProvider: time);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, dirtyStepCount);
+        Assert.Equal(_t0, workflowStamp);
+        Assert.Equal(_t0, stepStamp);
+    }
+
+    [Fact]
+    public async Task Handle_ReExecutionAfterDeferral_MovesExecutionStartedAtToTheNewAttempt()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5)), ExecutionResult.Success());
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(executor.Object, timeProvider: time);
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Status);
+        Assert.Equal(_t0, workflow.ExecutionStartedAt);
+        Assert.Equal(_t0, step.ExecutionStartedAt);
+
+        time.Advance(TimeSpan.FromMinutes(5));
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        // The stamp is the start of the most recent attempt, so it follows the re-execution — unlike
+        // FirstDeferredAt, which stays anchored on the first deferral.
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
+        Assert.Equal(_t0.AddMinutes(5), workflow.ExecutionStartedAt);
+        Assert.Equal(_t0.AddMinutes(5), step.ExecutionStartedAt);
+        Assert.Equal(_t0, step.FirstDeferredAt);
+    }
+
+    [Fact]
+    public async Task Handle_AlreadyCompletedStep_IsNotRestamped()
+    {
+        // A completed step is skipped on a later attempt (e.g. after a retry of a later step), so its
+        // stamp keeps describing the attempt that actually ran it.
+        var executor = MockExecutor(ExecutionResult.Success());
+        var time = new FakeTimeProvider(_t0);
+        var handler = CreateHandler(executor.Object, timeProvider: time);
+        var done = CreateStep("done", processingOrder: 0);
+        done.Status = PersistentItemStatus.Completed;
+        done.ExecutionStartedAt = _t0.AddHours(-1);
+        var pending = CreateStep("pending", processingOrder: 1);
+        var workflow = CreateWorkflow(done, pending);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(_t0.AddHours(-1), done.ExecutionStartedAt);
+        Assert.Equal(_t0, pending.ExecutionStartedAt);
+    }
 }

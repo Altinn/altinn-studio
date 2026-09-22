@@ -215,6 +215,7 @@ const AllowedValidationMasks = {
     type: 'string',
     allowedValues: [
       'Schema',
+      'Invalid',
       'Component',
       'Expression',
       'CustomBackend',
@@ -389,6 +390,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the address.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre adressen.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     zipCode: {
@@ -400,6 +402,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the zip code.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre postnummeret.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     postPlace: {
@@ -411,6 +414,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the post place.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre poststedet.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     careOf: {
@@ -422,6 +426,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store care of.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre c/o-adressen.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     houseNumber: {
@@ -433,6 +438,7 @@ const IDataModelBindingsForAddress = {
         en: 'Describes the location in the data model where the component should store the house number.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre husnummeret.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -591,25 +597,6 @@ const IButtonProps = {
     },
   },
   additionalProperties: false,
-} as const;
-
-const ButtonMode = {
-  type: 'string',
-  allowedValues: ['submit', 'save', 'instantiate'],
-  title: { en: 'Mode', nb: 'Modus' },
-  description: { en: 'The mode of the button', nb: 'Knappens modus.' },
-  default: 'submit',
-} as const;
-
-const IMapping = {
-  type: 'object',
-  properties: {},
-  additionalProperties: { type: 'string' },
-  title: { en: 'Mapping', nb: 'Kobling' },
-  description: {
-    en: 'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
-    nb: 'En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.',
-  },
 } as const;
 
 const TRBLabel = {
@@ -974,6 +961,7 @@ const IDataModelBindingsOptionsSimple = {
         en: 'Describes the location in the data model where the component should store its values.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre verdiene.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     label: {
@@ -985,6 +973,7 @@ const IDataModelBindingsOptionsSimple = {
         en: 'Describes the location in the data model where the component should store its labels',
         nb: 'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     metadata: {
@@ -996,6 +985,7 @@ const IDataModelBindingsOptionsSimple = {
         en: 'Describes the location in the data model where the component should store its metadata',
         nb: 'Angir hvor i datamodellen komponenten skal lagre metadata.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -1017,6 +1007,7 @@ const IDataModelBindingsForGroupCheckbox = {
         en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
         nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     checked: {
@@ -1028,6 +1019,7 @@ const IDataModelBindingsForGroupCheckbox = {
         en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
         nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -1056,6 +1048,7 @@ const IDataModelBindingsForCustom = {
     type: 'object',
     properties: IDataModelReference['properties'],
     additionalProperties: false,
+    semanticType: 'dataModelBinding',
   },
   title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
   description: {
@@ -1217,6 +1210,7 @@ const IDataModelBindingsSimple = {
         en: 'Describes the location in the data model where the component should store its value(s). A simple binding is used for components that only store a single value, usually a string.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre verdien. En enkel binding brukes for komponenter som lagrer én verdi, vanligvis en streng.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -1235,6 +1229,7 @@ const IDataModelBindingsList = {
         en: 'Describes the location in the data model where the component should store its values. A list binding should be pointed to an array structure in the data model, and is used for components that store multiple simple values (e.g. a list of strings).',
         nb: 'Angir hvor i datamodellen komponenten skal lagre verdiene. En listebinding brukes for komponenter som lagrer flere enkle verdier.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -2090,6 +2085,7 @@ const IDataModelBindingsLikert = {
         en: 'Dot notation location for the answers. This must point to a property of the objects inside the question array. The answer for each question will be stored in the answer property of the corresponding question object.',
         nb: 'Plassering i punktnotasjon for svarene. Må peke på en egenskap i objektene i spørsmålslisten.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     questions: {
@@ -2101,6 +2097,7 @@ const IDataModelBindingsLikert = {
         en: 'Dot notation location for a likert structure (array of objects), where the data is stored',
         nb: 'Plassering i punktnotasjon for Likert-strukturen, en liste med objekter, der dataene lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -2152,6 +2149,7 @@ const IDataModelBindingsForList = {
         en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
         nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     checked: {
@@ -2163,6 +2161,7 @@ const IDataModelBindingsForList = {
         en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
         nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2170,6 +2169,7 @@ const IDataModelBindingsForList = {
     type: 'object',
     properties: IDataModelReference['properties'],
     additionalProperties: false,
+    semanticType: 'dataModelBinding',
   },
   title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
   description: {
@@ -2218,6 +2218,7 @@ const IDataModelBindingsForMap = {
       type: 'object',
       properties: IDataModelReference['properties'],
       additionalProperties: false,
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometries: {
@@ -2228,6 +2229,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to an array of objects like {data: string, label: string} (these can also be configured via separate bindings)',
         nb: 'Skal peke på en liste med objekter på formen {data: string, label: string}. Verdiene kan også konfigureres med separate bindinger.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryLabel: {
@@ -2238,6 +2240,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a string (defaults to a "label" property on the geometries array objects)',
         nb: 'Skal peke på en streng. Standard er «label»-egenskapen i objektene i geometrilisten.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryData: {
@@ -2248,6 +2251,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a string (defaults to a "data" property on the geometries array objects)',
         nb: 'Skal peke på en streng. Standard er «data»-egenskapen i objektene i geometrilisten.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryIsEditable: {
@@ -2258,6 +2262,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a boolean indicating if this geometry is editable. This has no default value, geometries will not be editable if this is not specified.',
         nb: 'Skal peke på en boolsk verdi som angir om geometrien kan redigeres. Geometrien kan ikke redigeres hvis egenskapen ikke er satt.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryIsHidden: {
@@ -2268,6 +2273,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a boolean indicating if this geometry is hidden. Geometries will be visible by default if this is not specified.',
         nb: 'Skal peke på en boolsk verdi som angir om geometrien er skjult. Geometrien er synlig hvis egenskapen ikke er satt.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     geometryStyle: {
@@ -2278,6 +2284,7 @@ const IDataModelBindingsForMap = {
         en: 'Should point to a JSON-serialized Leaflet PathOptions object (e.g. \'{"color":"#ff0000","weight":2,"fillOpacity":0.3}\') used as the style for this geometry. Overrides the default style. Invalid JSON is ignored.',
         nb: 'Skal peke på et JSON-serialisert Leaflet PathOptions-objekt som brukes som stil for geometrien. Overstyrer standardstilen. Ugyldig JSON ignoreres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2526,6 +2533,7 @@ const IDataModelBindingsForGroupMultiselect = {
         en: 'Dot notation location for a repeating structure (array of objects), where you want to save the content of checked checkboxes',
         nb: 'Plassering i punktnotasjon for den repeterende strukturen der verdiene fra avkryssede bokser skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     checked: {
@@ -2537,6 +2545,7 @@ const IDataModelBindingsForGroupMultiselect = {
         en: 'If deletionStrategy=soft and group is set, this value points to where you want to save deleted status.',
         nb: 'Hvis deletionStrategy er soft og group er satt, peker verdien til feltet der slettestatusen skal lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2570,6 +2579,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the ssn of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre fødselsnummeret til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
     fullName: {
@@ -2584,6 +2594,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre navnet på personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     lastName: {
@@ -2598,6 +2609,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the last name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre etternavnet til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     middleName: {
@@ -2612,6 +2624,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the middle name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre mellomnavnet til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
     firstName: {
@@ -2626,6 +2639,7 @@ const IDataModelBindingsForPersonLookup = {
         en: 'Describes the location in the data model where the component should store the first name of the person to look up.',
         nb: 'Angir hvor i datamodellen komponenten skal lagre fornavnet til personen som slås opp.',
       },
+      semanticType: 'dataModelBinding',
       required: false,
     },
   },
@@ -2649,6 +2663,7 @@ const IDataModelBindingsForGroup = {
         en: 'Dot notation location for a repeating group structure (array of objects), where the data is stored',
         nb: 'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -2738,7 +2753,7 @@ const IGroupEditProperties = {
       title: { en: 'Open by default', nb: 'Åpen som standard' },
       description: {
         en: 'If set to true, a row of the repeating group will be opened by default, if the group has no rows already. If set to "first" or "last", the first or last row will be opened by default',
-        nb: 'Åpner en rad som standard når gruppen er tom.',
+        nb: 'Hvis satt til true, åpnes en rad som standard når gruppen er tom. Hvis satt til "first" eller "last", åpnes henholdsvis den første eller siste raden som standard.',
       },
       default: false,
       required: false,
@@ -2843,6 +2858,7 @@ const IDataModelBindingsForTable = {
         en: 'Array of objects where the data is stored',
         nb: 'Liste over objektene der dataene lagres.',
       },
+      semanticType: 'dataModelBinding',
       required: true,
     },
   },
@@ -4972,6 +4988,7 @@ const generatedContract = {
                 en: 'Dot notation location for a repeating group structure (array of objects), where the data is stored',
                 nb: 'Plassering i punktnotasjon for den repeterende gruppestrukturen, en liste med objekter, der dataene lagres.',
               },
+              semanticType: 'dataModelBinding',
               required: true,
             },
           },
@@ -5276,22 +5293,6 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
-          required: false,
-        },
-        mode: {
-          type: 'string',
-          allowedValues: ButtonMode['allowedValues'],
-          title: ButtonMode['title'],
-          description: ButtonMode['description'],
-          default: 'submit',
-          required: false,
-        },
-        mapping: {
-          type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
           required: false,
         },
       },
@@ -7194,12 +7195,15 @@ const generatedContract = {
           },
           required: false,
         },
-        mapping: {
+        queryParameters: {
           type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
+          properties: IQueryParameters['properties'],
+          additionalProperties: IQueryParameters['additionalProperties'],
+          title: IQueryParameters['title'],
+          description: {
+            en: 'Values used to prefill the new instance.',
+            nb: 'Verdier som brukes til å forhåndsutfylle det nye eksemplaret.',
+          },
           required: false,
         },
       },
@@ -8292,6 +8296,7 @@ const generatedContract = {
                 en: 'Describes the location in the data model where the component should store the organization number of the organization to look up.',
                 nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnummeret til organisasjonen som slås opp.',
               },
+              semanticType: 'dataModelBinding',
               required: true,
             },
             name: {
@@ -8306,6 +8311,7 @@ const generatedContract = {
                 en: 'Describes the location in the data model where the component should store the name of the organization.',
                 nb: 'Angir hvor i datamodellen komponenten skal lagre organisasjonsnavnet.',
               },
+              semanticType: 'dataModelBinding',
               required: false,
             },
           },
@@ -8634,12 +8640,15 @@ const generatedContract = {
           },
           required: false,
         },
-        mapping: {
+        refetchDependencies: {
           type: 'object',
-          properties: IMapping['properties'],
-          additionalProperties: IMapping['additionalProperties'],
-          title: IMapping['title'],
-          description: IMapping['description'],
+          properties: IQueryParameters['properties'],
+          additionalProperties: IQueryParameters['additionalProperties'],
+          title: IQueryParameters['title'],
+          description: {
+            en: 'Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.',
+            nb: 'Uttrykk som utløser ny henting etter at endrede skjemadata er lagret. Verdiene sendes ikke til serveren.',
+          },
           required: false,
         },
       },

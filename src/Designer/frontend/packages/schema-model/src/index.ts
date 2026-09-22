@@ -25,6 +25,7 @@ export {
   splitPointerInBaseAndName,
 } from './lib/utils';
 export * from './lib/mutations/custom-properties';
+export { removeEmptyCombinations } from './lib/mutations/remove-empty-combinations';
 export * from './lib/mutations/ui-schema-reducers';
 export { mergePrefillConfig } from './lib/mappers/prefill';
 export { SchemaModel } from './lib/SchemaModel';

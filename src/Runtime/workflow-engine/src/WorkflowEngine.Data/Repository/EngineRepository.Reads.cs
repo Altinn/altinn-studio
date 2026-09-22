@@ -107,6 +107,7 @@ internal sealed partial class EngineRepository
                 Key = entity.Key,
                 Namespace = entity.Namespace,
                 Heads = headStatuses,
+                CurrentTime = timeProvider.GetUtcNow(),
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt,
             };
@@ -442,7 +443,9 @@ internal sealed partial class EngineRepository
             logger.CountingWorkflows("runnable");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context.GetRunnableWorkflows().CountAsync(cancellationToken);
+            var result = await context
+                .GetRunnableWorkflows(applyThrottleGate: settings.Value.Throttling.Enabled)
+                .CountAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result);
 

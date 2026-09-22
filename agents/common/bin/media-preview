@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Reports what a capture contains so it can be checked before it is attached to a pull request.
+#
+#   media-preview FILE [FILE...]
+#
+# Prints dimensions, duration and size for each file. For a video or GIF it also writes
+# FILE.preview.png, a contact sheet of eight evenly spaced frames, which an agent can read as an
+# image to see what the clip actually shows.
+set -euo pipefail
+
+[ $# -ge 1 ] || { sed -n '2,8p' "$0" >&2; exit 64; }
+
+status=0
+for file in "$@"; do
+    if [ ! -r "$file" ]; then
+        echo "media-preview: cannot read $file" >&2
+        status=66
+        continue
+    fi
+    if ! probe="$(ffprobe -v error -select_streams v:0 \
+        -show_entries stream=width,height,nb_frames:format=duration,size \
+        -of default=noprint_wrappers=1 "$file")"; then
+        echo "media-preview: $file is not a media file ffprobe understands" >&2
+        status=65
+        continue
+    fi
+    width="$(sed -n 's/^width=//p' <<<"$probe")"
+    height="$(sed -n 's/^height=//p' <<<"$probe")"
+    duration="$(sed -n 's/^duration=//p' <<<"$probe")"
+    size="$(sed -n 's/^size=//p' <<<"$probe")"
+    printf '%s: %sx%s, %s s, %s bytes\n' "$file" "$width" "$height" "${duration:-0}" "$size"
+
+    frames="$(ffprobe -v error -count_frames -select_streams v:0 \
+        -show_entries stream=nb_read_frames -of csv=p=0 "$file" 2>/dev/null || echo 1)"
+    if [ "${frames:-1}" -gt 1 ]; then
+        sheet="${file}.preview.png"
+        step=$(( (frames + 7) / 8 ))
+        ffmpeg -hide_banner -loglevel error -y -i "$file" \
+            -vf "select=not(mod(n\,${step})),scale=480:-1,tile=4x2" -frames:v 1 "$sheet"
+        printf '  contact sheet: %s (%d frames sampled every %d)\n' "$sheet" "$frames" "$step"
+    fi
+done
+exit "$status"

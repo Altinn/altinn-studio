@@ -74,7 +74,16 @@ public sealed record Step : PersistentItem
     /// </summary>
     public string? StateOut { get; set; }
 
-    internal DateTimeOffset? ExecutionStartedAt { get; set; }
+    /// <summary>
+    /// When the engine most recently began executing this step. Stamped at the start of every attempt —
+    /// a retry, a re-execution after a deferral and a reclaim alike — and persisted by that attempt's
+    /// write-backs (the first of which is fire-and-forget, so a persisted read of a
+    /// <see cref="PersistentItemStatus.Processing"/> step may still show the previous attempt until the
+    /// step settles). <c>null</c> until the step has run once; cleared on resume alongside the other
+    /// per-attempt anchors. Against <see cref="PersistentItem.UpdatedAt"/> on a settled step it yields
+    /// the last attempt's duration.
+    /// </summary>
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <inheritdoc/>
     public override string ToString() => $"[{nameof(Step)}.{Command.Type}] {OperationId} ({Status})";

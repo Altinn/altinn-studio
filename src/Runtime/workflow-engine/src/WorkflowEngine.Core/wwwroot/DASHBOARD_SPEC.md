@@ -10,7 +10,9 @@ The dashboard has two tabs: **Live** and **Query**.
 
 ### Live Tab (default)
 
-Three collapsible sections, top to bottom:
+Three collapsible sections, top to bottom (plus a conditional **Throttled Namespaces** panel above them, see below):
+
+0. **Throttled Namespaces** — Failure-storm circuit breakers (see the failure-throttling ADR). Hidden entirely while no breaker state exists — the common case. Polls `GET /api/v1/throttles` every 10 s (no SSE stream; breakers change on sweep cadence). One row per namespace breaker: state pill (Tripped red / Recovering orange / Clear green), namespace, tripped-at (relative), current window, canary count, last observed requeued/active counts. Row actions call the manual override endpoints with a **two-click confirm** (first click arms the button as "Confirm?", reverting after 3 s): **Force trip** (`POST /api/v1/{ns}/throttle/trip`, shown unless already Tripped) and **Force clear** (`POST /api/v1/{ns}/throttle/clear`, shown unless already Clear). Overrides are one-shot: a force-clear does not stop the next sweep from re-tripping, and a force-trip does not stop canary-driven recovery. A 409 (throttling disabled) renders as the standard "Failed" button feedback.
 
 1. **Scheduled** — Workflows with a future `startAt`. Collapsed by default, fetched lazily on expand via `GET /dashboard/scheduled`. Badge in section header shows count from SSE. Cards are categorized by time-to-start: ≤10s, ≤1m, ≤5m, later.
 
@@ -325,6 +327,22 @@ The namespace and workflow id are URL-encoded route segments. Both 200 and 202 c
 (409 for the wrong state, 400 for a bad request) carries problem details, whose `detail` becomes the button's
 tooltip. The contracts are documented in the technical guide's [API reference](../../../docs/technical-guide.md#api-reference).
 
+**Retry now** / **Check now** also clears the workflow's `throttled_until` stamp: an explicit poke wins over
+the namespace circuit breaker, so the workflow gets its re-check even while its namespace is throttled.
+
+### Throttle endpoints (shared with the public API)
+
+The Throttled Namespaces panel uses the engine's public throttle endpoints directly rather than
+dashboard-prefixed wrappers:
+
+| Endpoint                       | Method | Used for                                              |
+| ------------------------------ | ------ | ----------------------------------------------------- |
+| `/api/v1/throttles`            | GET    | Breaker list (200 array / 204 when none — panel hides) |
+| `/api/v1/{ns}/throttle/trip`   | POST   | Force-trip override (202; 409 when throttling disabled) |
+| `/api/v1/{ns}/throttle/clear`  | POST   | Force-clear override (202; 200 already clear; 404; 409 disabled) |
+
+Breaker shape: `{ namespace, state: "Tripped"|"Recovering"|"Clear", trippedAt, currentWindow, canaryCount, lastEvaluatedAt?, lastRequeuedCount, lastActiveCount, updatedAt? }`
+
 ---
 
 ## Workflow Card Anatomy
@@ -534,7 +552,7 @@ section's Chains view.
 **Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
 tooltip), side-chain badge where applicable, one status-colored dot per step (clickable — opens the
 step modal), duration, status pill. Terminal rows show their real duration; active rows tick via
-the shared `[data-timer]` loop when the live section registered a timer. Side rows indent under
+the shared `[data-timer]` loop while the live section still holds the workflow. Side rows indent under
 their head with the violet side-chain card chrome and an elbow connector to the spine line. The
 root workflow (where a root id is given) gets a cyan spine marker and a brightened name.
 
@@ -799,18 +817,24 @@ reason sub-label and its backoff countdown.
 The trailing relation-status segments keep relation chip dot colors fresh when only a related
 workflow's status changed.
 
+Timestamps are deliberately absent from both this formula and the server's own change detection for
+the `active` array (`{databaseId}|{status}|{backoffUntil}|{step status}:{retryCount}`), so a new
+`executionStartedAt` is pushed and drawn only because the status change that accompanies it is. That
+costs nothing today — the elapsed counter reads the anchor out of `state.previousWorkflows` on every
+frame rather than from the rendered HTML — but anything new that renders a timestamp *into* card
+markup would sit stale until some other field moved, and belongs in the formula.
+
 ### Animations
 
 - **Enter**: New inbox cards slide in from top
 - **Exit**: Removed cards fade out with `complete-exit` animation (0.5s)
-- **Exit-fail**: Failed workflows use a red-tinted exit animation
 - **Recent-enter**: New recent cards slide in with a brief glow highlight (`recent-glow` / `recent-glow-fail`)
-- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by matching idempotency keys in the SSE `recentKeys` set), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations.
+- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by its `databaseId` being in the `recentKeys` set built from the same SSE payload's `recent` array), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations. Keyed by `databaseId` and not by idempotency key, which is batch-level: a sibling workflow from the same batch reaching Recent must not suppress a still-active one's animation.
 - **Pulse sync**: When a card is re-rendered, the CSS processing pulse animation phase is synchronized to `performance.now() % 2000` to avoid flicker.
 
 ### Timers
 
-Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Timer state stored in `state.workflowTimers[databaseId]`. Timers freeze (`frozenAt`) when a workflow leaves active state but the card hasn't been removed yet (during exit animation).
+Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Each frame re-reads the anchor from the live section's own copy of the workflow (`state.previousWorkflows[databaseId]`), so a card re-anchors on `executionStartedAt` as soon as a new attempt stamps it and its number stays continuous with the settled duration the same workflow shows once it lands in Recent. A workflow that leaves the active set loses that copy, so nothing ticks its card any more: the live section stamps the card's counter with its final elapsed on the way out, and that frozen number is what the card shows for the length of its exit animation. Re-renders skip a card already marked exiting, so the frozen value survives until the card is removed.
 
 ### Late-Bound Callbacks
 
@@ -843,10 +867,12 @@ Extracts the BPMN transition from `workflow.operationId`. Expected format: `"Pro
 
 Maps step command names to phases:
 
-- **`end`**: EndTask, CommonTaskFinalization, EndTaskLegacyHook, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook, AbandonTaskLegacyHook
-- **`start`**: UnlockTaskData, StartTask, StartTaskLegacyHook, OnTaskStartingHook, CommonTaskInitialization
-- **`process-end`**: OnProcessEndingHook
+- **`end`**: EndTask, CommonTaskFinalization, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook
+- **`start`**: UnlockTaskData, CleanupGeneratedFromTask, StartTask, OnTaskStartingHook, CommonTaskInitialization
+- **`process-end`**: OnProcessEndingHook, EndProcessLegacyHook
 - **`null`**: Everything else (service tasks, webhooks)
+
+The sets mirror the app library's `WorkflowCommandSet` (the app's `Internal/WorkflowEngine/AGENTS.md`, "How to Add a New Command"). A task-phase command missing here maps to `null`, which ends the bracket before it and starts a new one after it — the task name is then drawn twice around an untagged step.
 
 Phases drive the bracket lines and task name labels shown on the pipeline. The `pipeline.js` renderer groups consecutive steps with the same phase and renders labels at the center of each group.
 
@@ -858,6 +884,7 @@ The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappi
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
 - **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
+- **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. Settled card and chain durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The **live** counter falls back to `updatedAt` before `createdAt`, because a live workflow with no stamp is `Enqueued` or `Held` and for those `updatedAt` is when it entered the queue — the enqueue leaves it null, every later path back into the queue sets it — so a workflow the operator has just resumed counts from the resume instead of showing its whole age until a worker claims it. A settled workflow must never take that fallback: there `updatedAt` is when it finished. The persisted value trails the worker by at most one write-back — the `step.started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

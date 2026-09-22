@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
@@ -16,7 +16,7 @@ namespace Altinn.App.Models.TransitionControl
         [XmlElement("path", Order = 1)]
         [JsonProperty("path")]
         [JsonPropertyName("path")]
-        public string path { get; set; }
+        public string? path { get; set; }
 
         /// <summary>Delay injected on every attempt, regardless of attempts/end state.</summary>
         [XmlElement("delayMs", Order = 2)]
@@ -39,18 +39,7 @@ namespace Altinn.App.Models.TransitionControl
         [XmlElement("endState", Order = 4)]
         [JsonProperty("endState")]
         [JsonPropertyName("endState")]
-        public string endState { get; set; }
-
-        /// <summary>What the service task does after a successful settle: "auto" (auto-advance to
-        /// Task_2, today's behavior), "park" (succeed WITHOUT advancing - the process stays on
-        /// the service task until an out-of-band process/next releases it, simulating a task that
-        /// waits for an external callback) or "parkThenRelease" (park, then the app's own
-        /// background task releases it after ~5s - the callback arriving on its own). Only
-        /// meaningful on the postCommit path.</summary>
-        [XmlElement("advance", Order = 5)]
-        [JsonProperty("advance")]
-        [JsonPropertyName("advance")]
-        public string advance { get; set; }
+        public string? endState { get; set; }
 
         /// <summary>Which service task the postCommit path routes through: "default" (Task_Service,
         /// no layout - the frontend renders its built-in waiting/failure views) or "layout"
@@ -59,7 +48,7 @@ namespace Altinn.App.Models.TransitionControl
         [XmlElement("serviceView", Order = 6)]
         [JsonProperty("serviceView")]
         [JsonPropertyName("serviceView")]
-        public string serviceView { get; set; }
+        public string? serviceView { get; set; }
 
         /// <summary>How many times the service task DEFERS before it settles. A deferral is not a
         /// failure: the step reports "ran fine, the outcome isn't here yet", the engine parks the

@@ -104,7 +104,13 @@ public class PaymentControllerTests
         await using var sp = _services.BuildServiceProvider();
 
         var controller = sp.GetRequiredService<PaymentController>();
-        var result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+        var result = await controller.GetPaymentInformation(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            CancellationToken.None
+        );
         Assert.IsType<BadRequestObjectResult>(result);
 
         _services.VerifyMocks();
@@ -116,7 +122,13 @@ public class PaymentControllerTests
         SetupAltinnTaskExtensionMock("currentTask", null, Times.Once());
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
-        var result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+        var result = await controller.GetPaymentInformation(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            CancellationToken.None
+        );
         Assert.IsType<BadRequestObjectResult>(result);
         _services.VerifyMocks();
     }
@@ -140,7 +152,13 @@ public class PaymentControllerTests
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
         // Act
-        var result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+        var result = await controller.GetPaymentInformation(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<OkObjectResult>(result);
@@ -162,7 +180,7 @@ public class PaymentControllerTests
         var controller = sp.GetRequiredService<PaymentController>();
 
         // Act
-        var result = await controller.GetOrderDetails("org", "app", PartyId, _instanceGuid);
+        var result = await controller.GetOrderDetails("org", "app", PartyId, _instanceGuid, CancellationToken.None);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -182,7 +200,7 @@ public class PaymentControllerTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<PaymentException>(async () =>
-            await controller.GetOrderDetails("org", "app", PartyId, _instanceGuid)
+            await controller.GetOrderDetails("org", "app", PartyId, _instanceGuid, CancellationToken.None)
         );
 
         Assert.Contains("IOrderDetailsCalculator", exception.Message);
@@ -235,7 +253,8 @@ public class PaymentControllerTests
                     Timestamp = DateTime.UtcNow,
                     MerchantId = 222,
                 },
-                "somekey"
+                "somekey",
+                CancellationToken.None
             )
         );
         Assert.Contains("AppCodes:PaymentsCallback is not configured", exception.Message);
@@ -269,7 +288,8 @@ public class PaymentControllerTests
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
-            previousDerived
+            previousDerived,
+            CancellationToken.None
         );
         // Reaching past the auth gate is sufficient — the not-a-payment-task path returns Ok.
         Assert.IsType<OkObjectResult>(result);
@@ -296,7 +316,8 @@ public class PaymentControllerTests
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
-            wrongKey
+            wrongKey,
+            CancellationToken.None
         );
         Assert.IsType<UnauthorizedObjectResult>(result);
         _services.VerifyMocks();
@@ -324,7 +345,8 @@ public class PaymentControllerTests
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
-            callbackKey
+            callbackKey,
+            CancellationToken.None
         );
         Assert.IsType<BadRequestObjectResult>(result);
 
@@ -355,7 +377,8 @@ public class PaymentControllerTests
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
-            callbackKey
+            callbackKey,
+            CancellationToken.None
         );
         var response = Assert.IsType<OkObjectResult>(result);
         var responseString = JsonSerializer.Serialize(response.Value);
@@ -389,7 +412,13 @@ public class PaymentControllerTests
         _services
             .Mock<IPaymentProcessor>()
             .Setup(pp =>
-                pp.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<string?>())
+                pp.GetPaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync((PaymentStatus.Paid, new PaymentDetails { PaymentId = "some-payment-id" }))
             .Verifiable(Times.Once());
@@ -432,7 +461,8 @@ public class PaymentControllerTests
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
-            callbackKey
+            callbackKey,
+            CancellationToken.None
         );
         var response = Assert.IsType<OkObjectResult>(result);
         Assert.Contains("Payment status is Paid for instance 12345", response.Value?.ToString());
@@ -470,7 +500,8 @@ public class PaymentControllerTests
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
-            callbackKey
+            callbackKey,
+            CancellationToken.None
         );
         var response = Assert.IsType<OkObjectResult>(result);
         Assert.Contains("No payment information stored yet for instance", response.Value?.ToString());
@@ -534,7 +565,13 @@ public class PaymentControllerTests
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
 
-        var result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+        var result = await controller.GetPaymentInformation(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            CancellationToken.None
+        );
 
         var ok = Assert.IsType<OkObjectResult>(result);
         var info = Assert.IsType<PaymentInformation>(ok.Value);
@@ -601,7 +638,7 @@ public class PaymentControllerTests
         var controller = sp.GetRequiredService<PaymentController>();
 
         InvalidOperationException actual = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid)
+            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid, CancellationToken.None)
         );
 
         Assert.Same(processorException, actual);
@@ -682,7 +719,13 @@ public class PaymentControllerTests
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
 
-        IActionResult result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+        IActionResult result = await controller.GetPaymentInformation(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            CancellationToken.None
+        );
 
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(fallbackResult, ok.Value);
@@ -786,7 +829,13 @@ public class PaymentControllerTests
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
 
-        var result = await controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid);
+        var result = await controller.GetPaymentInformation(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            CancellationToken.None
+        );
 
         var ok = Assert.IsType<OkObjectResult>(result);
         var info = Assert.IsType<PaymentInformation>(ok.Value);
@@ -864,7 +913,7 @@ public class PaymentControllerTests
         var controller = sp.GetRequiredService<PaymentController>();
 
         PlatformHttpException actual = await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid)
+            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid, CancellationToken.None)
         );
 
         Assert.Same(storageException, actual);
@@ -939,7 +988,8 @@ public class PaymentControllerTests
                     Timestamp = DateTime.UtcNow,
                     MerchantId = 222,
                 },
-                "somekey"
+                "somekey",
+                CancellationToken.None
             )
         );
         Assert.Contains("INetsWebhookSecretProvider", exception.Message);
@@ -964,7 +1014,13 @@ public class PaymentControllerTests
         var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
         _services
             .Mock<IOrderDetailsCalculator>()
-            .Setup(odc => odc.CalculateOrderDetails(It.Is<Instance>(i => i.Id == instanceId), It.IsAny<string?>()))
+            .Setup(odc =>
+                odc.CalculateOrderDetails(
+                    It.Is<Instance>(i => i.Id == instanceId),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(orderDetails)
             .Verifiable(times);
     }

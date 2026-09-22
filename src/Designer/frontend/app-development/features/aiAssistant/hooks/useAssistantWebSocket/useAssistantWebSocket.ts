@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
-import { altinityWebSocketHub, altinityAttachmentsUploadPath } from 'app-shared/api/paths';
+import { assistantWebSocketHub, assistantAttachmentsUploadPath } from 'app-shared/api/paths';
 import type {
   WorkflowEvent,
   WorkflowRequest,
@@ -31,7 +31,7 @@ export const useAssistantWebSocket = (): UseAssistantWebSocketResult => {
   useEffect(() => {
     // One shared connection per browser tab (WSConnector.getInstance is keyed by hub URL).
     const wsInstance = WSConnector.getInstance(
-      [altinityWebSocketHub()],
+      [assistantWebSocketHub()],
       [AltinityClientsName.ReceiveAgentMessage],
     );
     wsInstanceRef.current = wsInstance;
@@ -212,7 +212,7 @@ async function uploadAttachment(file: {
 
   const { post } = await import('app-shared/utils/networking');
   const result = await post<{ attachmentId: string }, FormData>(
-    altinityAttachmentsUploadPath(),
+    assistantAttachmentsUploadPath(),
     formData,
   );
   return result!.attachmentId;

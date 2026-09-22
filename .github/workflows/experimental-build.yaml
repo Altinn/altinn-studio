@@ -8,9 +8,10 @@ on:
       - 'Cargo.lock'
       - 'rustfmt.toml'
       - 'src/experimental/**'
+      - 'agents/**'
+      - '.claude/skills/**'
       - '.github/workflows/experimental-build.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -86,6 +87,9 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh
+
       - name: Check dependencies
         run: make deps-check
 
@@ -120,9 +124,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Every path the Agent manifests under agents/ resolve, because the manifest
+          # tests assert each declared input exists.
           sparse-checkout: |
             src/experimental
             src/ci/github-runner/coordinator
+            src/cli/resources/agent/skills
+            .claude/skills
+            agents
 
       - name: Install native build dependencies
         if: runner.os == 'Linux'
@@ -154,3 +163,6 @@ jobs:
           -p agent
           -p sandbox-microsandbox
           --all-targets --all-features --locked
+
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh

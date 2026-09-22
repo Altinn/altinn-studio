@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -44,7 +45,8 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         IReadOnlyList<WorkflowRequest> workflows,
         string ns = "test-ns",
         string? idempotencyKey = null,
-        Dictionary<string, string>? labels = null
+        Dictionary<string, string>? labels = null,
+        DateTimeOffset? createdAt = null
     )
     {
         var request = new WorkflowEnqueueRequest { Workflows = workflows, Labels = labels };
@@ -53,7 +55,7 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
             ns,
             idempotencyKey ?? Guid.NewGuid().ToString("N"),
             collectionKey,
-            DateTimeOffset.UtcNow,
+            createdAt ?? DateTimeOffset.UtcNow,
             null
         );
         var buffered = new BufferedEnqueueRequest(
@@ -160,14 +162,21 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
-    public async Task GetCollection_IncludesHeadCreatedAt()
+    public async Task GetCollection_IncludesHeadCreatedAtAndCurrentEngineTime()
     {
         // The collection detail exposes each head's creation time so a consumer can anchor
         // "how long has this been running" to the engine's clock without a per-workflow lookup.
-        var repo = fixture.CreateRepository();
-        var results = await EnqueueWithCollection(repo, "created-at-collection", [CreateWorkflowRequest("a")]);
+        var clock = new FakeTimeProvider(new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero));
+        var repo = fixture.CreateRepository(clock);
+        var results = await EnqueueWithCollection(
+            repo,
+            "created-at-collection",
+            [CreateWorkflowRequest("a")],
+            createdAt: clock.GetUtcNow()
+        );
         var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
 
+        clock.Advance(TimeSpan.FromSeconds(15));
         var collection = await repo.GetCollection(
             "created-at-collection",
             "test-ns",
@@ -179,6 +188,18 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
         Assert.NotNull(workflow);
         Assert.Equal(workflow.CreatedAt, head.CreatedAt);
+        Assert.Equal(clock.GetUtcNow(), collection.CurrentTime);
+        Assert.Equal(TimeSpan.FromSeconds(15), collection.CurrentTime - head.CreatedAt);
+
+        clock.Advance(TimeSpan.FromSeconds(5));
+        var refreshed = await repo.GetCollection(
+            "created-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(refreshed);
+        Assert.Equal(clock.GetUtcNow(), refreshed.CurrentTime);
+        Assert.Equal(head.CreatedAt, Assert.Single(refreshed.Heads).CreatedAt);
     }
 
     [Fact]

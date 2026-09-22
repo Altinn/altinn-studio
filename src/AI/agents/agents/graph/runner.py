@@ -113,6 +113,7 @@ from shared.utils.langfuse_utils import (
     flush_langfuse,
 )
 from agents.services.llm import (
+    GATE_FAILED_ACTION,
     MINIMUM_INTENT_CONFIDENCE,
     parse_intent_async,
     suggest_goal_correction,
@@ -126,6 +127,11 @@ _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 _UNSAFE_GOAL_MESSAGE = (
     "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
     "en utrygg eller utilsiktet endring. Du kan gjerne omformulere den."
+)
+_GATE_UNAVAILABLE_MESSAGE = (
+    "Jeg får ikke kontakt med modellen som vurderer forespørsler akkurat nå, så "
+    "jeg stopper her i stedet for å endre appen uten den sjekken. Prøv igjen om "
+    "litt."
 )
 _UNCLEAR_GOAL_MESSAGE = (
     "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive "
@@ -156,7 +162,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     - Intent validation (write runs only): see _validate_intent.
     """
     _raise_if_cancelled(state, event_sink)
-    scope_result = await check_scope_async(state.user_goal)
+    scope_result = await check_scope_async(state.user_goal, state.conversation_history)
     # The scope check is an LLM call, so a cancel can land while it runs.
     _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:
@@ -212,7 +218,7 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
                     "done": True,
                     "success": True,
                     "status": "completed",
-                    "message": "Out-of-scope question declined",
+                    "message": "Spørsmålet ligger utenfor det assistenten kan hjelpe med",
                 },
             ),
         ],
@@ -221,26 +227,17 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
 
 
 async def _validate_intent(state: AgentState):
-    """Parse intent and reject unsafe or unclear goals.
+    """Parse intent and reject unsafe or unclear goals, for write runs only.
 
-    Deliberately runs ONLY for write-mode sessions (`allow_app_changes`),
-    skipping both the keyword blocklist and the LLM classifier for
-    read-only runs. This is a conscious trade-off, not an oversight:
-
-    - Read-only enforcement is structural, not goal-based: write tools
-      require an explicit user approval via the permission broker,
-      file access is repo-contained, and web_fetch is allowlisted to
-      Digdir-controlled hosts. There is no channel this gate would close.
-    - The screening exists to protect the WRITE path, and its false
-      positives are unacceptable for Q&A: legitimate developer questions
-      ("how do I configure an API key?") trip the credential keywords
-      before the LLM can classify them as questions.
-
-    Note the parser sees only attachment FILENAMES — PDF content is never
-    screened here in either mode; injection via attachment content is
-    mitigated in the prompts, not in this gate.
+    Read-only runs are held back structurally rather than by this gate.
     """
     parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
+
+    if parsed.action == GATE_FAILED_ACTION:
+        _log.error(
+            "Intent gate could not run for session %s: %s", state.session_id, parsed.reason
+        )
+        raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
@@ -423,7 +420,7 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
                     "done": True,
                     "success": False,
                     "status": "error",
-                    "message": f"Workflow failed: {e!s}"
+                    "message": "Noe gikk galt, og forespørselen stoppet.  Prøv igjen om litt.",
                 }
             ))
         finally:

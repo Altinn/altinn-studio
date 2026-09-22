@@ -44,6 +44,14 @@
       "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@playwright/cli"
     }
   ],
   "separateMultipleMajor": true,
@@ -214,15 +222,24 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Quartz upgrades need a hand-written QuartzTables migration and a tables-file update in designer-backend-check-quartz-update.yml, so keep them out of the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/Designer/backend/**"],
+      "matchPackageNames": ["/^Quartz/"],
+      "groupName": "Quartz packages in Designer",
+      "groupSlug": "designer-quartz",
+      "dependencyDashboardApproval": true
+    },
+    {
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
-        "src/App/Designer/**"
+        "src/Designer/backend/**"
       ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
-      "matchFileNames": ["src/App/Designer/**"],
+      "matchFileNames": ["src/Designer/backend/**"],
       "ignoreDeps": [
         "Moq",
         "Basic.Reference.Assemblies",

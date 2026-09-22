@@ -11,7 +11,7 @@ internal interface ISigneeContextsManager
     Task<List<SigneeContext>> GenerateSigneeContexts(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 
     /// <summary>
@@ -20,6 +20,6 @@ internal interface ISigneeContextsManager
     Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 }

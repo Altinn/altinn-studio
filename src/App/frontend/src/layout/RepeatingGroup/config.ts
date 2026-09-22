@@ -263,7 +263,8 @@ export const Config = new CG.component({
             .setDescription(
               'If set to true, a row of the repeating group will be opened by default, if the group has no ' +
                 'rows already. If set to "first" or "last", the first or last row will be opened by default',
-              'Åpner en rad som standard når gruppen er tom.',
+              'Hvis satt til true, åpnes en rad som standard når gruppen er tom. ' +
+                'Hvis satt til "first" eller "last", åpnes henholdsvis den første eller siste raden som standard.',
             ),
         ),
         new CG.prop(

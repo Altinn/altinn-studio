@@ -50,6 +50,7 @@ struct BackendState {
     by_name: BTreeMap<SandboxName, SandboxId>,
     executions: BTreeSet<(SandboxId, execution::ExecutionId)>,
     files: BTreeMap<(SandboxId, SandboxPath), Vec<u8>>,
+    file_writes: Vec<SandboxPath>,
     execution_specs: Vec<execution::ExecutionSpec>,
     matched_execution_events: VecDeque<MatchedExecutionEvents>,
     queued_execution_events: VecDeque<Vec<execution::ExecutionEvent>>,
@@ -116,6 +117,12 @@ impl Provider {
     #[must_use]
     pub fn execution_specs(&self) -> Vec<execution::ExecutionSpec> {
         self.state.borrow().execution_specs.clone()
+    }
+
+    /// Returns the path of every file write observed by this Provider, in order.
+    #[must_use]
+    pub fn file_writes(&self) -> Vec<SandboxPath> {
+        self.state.borrow().file_writes.clone()
     }
 
     /// Supplies the events returned by the next terminal Execution.
@@ -326,6 +333,7 @@ impl SandboxBackend for Provider {
                     image: request.image,
                     init_system: request.init_system,
                     name: request.name,
+                    hostname: request.hostname,
                     resources: request.resources,
                     state: SandboxState::Stopped,
                     mounts: request.mounts,
@@ -595,10 +603,9 @@ impl SandboxBackend for Provider {
                 source,
             })?;
             self.ensure_running(sandbox_id)?;
-            self.state
-                .borrow_mut()
-                .files
-                .insert((sandbox_id.clone(), path.clone()), bytes);
+            let mut storage = self.state.borrow_mut();
+            storage.files.insert((sandbox_id.clone(), path.clone()), bytes);
+            storage.file_writes.push(path.clone());
             Ok(())
         })
     }
@@ -986,10 +993,15 @@ fn memory_manifest_digest(request: &image::ResolveRequest) -> String {
     let mut digest = Sha256::new();
     digest.update(b"sandbox.memory-image-manifest.v1\0");
     match &request.source {
-        image::ImageSource::Build { context, dockerfile } => {
+        image::ImageSource::Build {
+            context,
+            dockerfile,
+            target,
+        } => {
             update_digest_part(&mut digest, b"build");
             update_digest_part(&mut digest, context.as_os_str().as_encoded_bytes());
             update_digest_part(&mut digest, dockerfile.as_os_str().as_encoded_bytes());
+            update_optional_digest_part(&mut digest, target.as_deref());
         }
         image::ImageSource::Reference { reference } => {
             update_digest_part(&mut digest, b"reference");

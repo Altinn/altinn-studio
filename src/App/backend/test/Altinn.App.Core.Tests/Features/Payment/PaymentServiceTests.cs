@@ -54,7 +54,7 @@ public sealed class PaymentServiceTests
     {
         _fixture
             .Mock<IOrderDetailsCalculator>()
-            .Setup(p => p.CalculateOrderDetails(_instance, Language))
+            .Setup(p => p.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
             .ReturnsAsync(orderDetails);
 
         _fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
@@ -143,7 +143,7 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IOrderDetailsCalculator>()
-            .Setup(odc => odc.CalculateOrderDetails(_instance, Language))
+            .Setup(odc => odc.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Could not calculate order details"));
 
         _fixture.Mock<IPaymentProcessor>().Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
@@ -166,7 +166,7 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IOrderDetailsCalculator>()
-            .Setup(pp => pp.CalculateOrderDetails(_instance, Language))
+            .Setup(pp => pp.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
             .ReturnsAsync(orderDetails)
             .Verifiable(Times.Once);
 
@@ -177,7 +177,7 @@ public sealed class PaymentServiceTests
             .Verifiable(Times.AtLeastOnce);
         _fixture
             .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.StartPayment(_instance, orderDetails, Language))
+            .Setup(pp => pp.StartPayment(_instance, orderDetails, Language, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("ddasdfg"))
             .Verifiable(Times.Once);
 
@@ -202,7 +202,7 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IOrderDetailsCalculator>()
-            .Setup(p => p.CalculateOrderDetails(_instance, Language))
+            .Setup(p => p.CalculateOrderDetails(_instance, Language, It.IsAny<CancellationToken>()))
             .ReturnsAsync(orderDetails);
         _fixture
             .Mock<IDataService>()
@@ -284,7 +284,15 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IPaymentProcessor>()
-            .Setup(x => x.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<decimal>(), Language))
+            .Setup(x =>
+                x.GetPaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    Language,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new PaymentException("Some exception"));
 
         // Act & Assert
@@ -310,7 +318,15 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<decimal>(), Language))
+            .Setup(pp =>
+                pp.GetPaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    Language,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
                 (PaymentStatus.Paid, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "redirect url" })
             );
@@ -396,7 +412,9 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()))
+            .Setup(pp =>
+                pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(true)
             .Verifiable(Times.Once);
 
@@ -447,7 +465,9 @@ public sealed class PaymentServiceTests
             .ReturnsAsync((Guid.NewGuid(), paymentInformation));
         _fixture
             .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>()))
+            .Setup(pp =>
+                pp.TerminatePayment(It.IsAny<Instance>(), It.IsAny<PaymentInformation>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(false)
             .Verifiable(Times.Once);
 
@@ -511,7 +531,15 @@ public sealed class PaymentServiceTests
 
         _fixture
             .Mock<IPaymentProcessor>()
-            .Setup(pp => pp.GetPaymentStatus(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<decimal>(), Language))
+            .Setup(pp =>
+                pp.GetPaymentStatus(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<decimal>(),
+                    Language,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
                 (PaymentStatus.Paid, new PaymentDetails { PaymentId = "paymentId", RedirectUrl = "redirect url" })
             );
@@ -631,7 +659,8 @@ public sealed class PaymentServiceTests
                     _instance,
                     paymentInformation.PaymentDetails!.PaymentId,
                     orderDetails.TotalPriceIncVat,
-                    null
+                    null,
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync((PaymentStatus.Paid, paymentInformation.PaymentDetails!))
@@ -684,7 +713,8 @@ public sealed class PaymentServiceTests
                     _instance,
                     paymentInformation.PaymentDetails!.PaymentId,
                     orderDetails.TotalPriceIncVat,
-                    null
+                    null,
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync((PaymentStatus.Paid, paymentInformation.PaymentDetails!))
@@ -738,7 +768,8 @@ public sealed class PaymentServiceTests
                     _instance,
                     paymentInformation.PaymentDetails!.PaymentId,
                     orderDetails.TotalPriceIncVat,
-                    null
+                    null,
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync((PaymentStatus.Created, paymentInformation.PaymentDetails!))
@@ -767,6 +798,148 @@ public sealed class PaymentServiceTests
         );
 
         // Assert
+        _fixture.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task StartPayment_StoresPaymentInformation_WhenRequestIsCancelledAfterPaymentWasCreated()
+    {
+        // A payment that exists at the processor must always get its reference stored, or nothing could ever
+        // terminate or verify it. The data service honours the token it is given, as the real client does.
+        OrderDetails orderDetails = CreateOrderDetails();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        PaymentDetails paymentDetails =
+            CreatePaymentInformation().PaymentDetails
+            ?? throw new NullReferenceException("PaymentDetails should not be null");
+        using var cts = new CancellationTokenSource();
+
+        SetupPaymentProcessor(orderDetails);
+        _fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(p => p.StartPayment(_instance, orderDetails, Language, cts.Token))
+            .ReturnsAsync(() =>
+            {
+                cts.Cancel();
+                return paymentDetails;
+            })
+            .Verifiable(Times.Once);
+        _fixture
+            .Mock<IDataService>()
+            .Setup(ds =>
+                ds.GetByType<PaymentInformation>(
+                    _instance,
+                    PaymentDataTypeId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    cts.Token
+                )
+            )
+            .ReturnsAsync((Guid.Empty, null));
+        _fixture
+            .Mock<IDataService>()
+            .Setup(ds =>
+                ds.InsertJsonObject(
+                    It.IsAny<InstanceIdentifier>(),
+                    PaymentDataTypeId,
+                    It.IsAny<PaymentInformation>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                (
+                    InstanceIdentifier _,
+                    string _,
+                    object _,
+                    StorageAuthenticationMethod? _,
+                    CancellationToken cancellationToken
+                ) =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return Task.FromResult(new DataElement());
+                }
+            )
+            .Verifiable(Times.Once);
+
+        await using var sp = _fixture.BuildServiceProvider();
+        var paymentService = sp.GetRequiredService<IPaymentService>();
+        (PaymentInformation paymentInformation, bool alreadyPaid) = await paymentService.StartPayment(
+            _instance,
+            paymentConfiguration,
+            Language,
+            cts.Token
+        );
+
+        paymentInformation.Status.Should().Be(PaymentStatus.Created);
+        paymentInformation.PaymentDetails.Should().BeSameAs(paymentDetails);
+        alreadyPaid.Should().BeFalse();
+        _fixture.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task StartPayment_DeletesStalePaymentInformation_WhenRequestIsCancelledAfterPaymentWasTerminated()
+    {
+        // Once the processor has terminated the earlier payment, its record must be deleted even if the request
+        // ends right then; left behind, the next attempt would try to terminate the same payment again. The
+        // cancellable work that follows the deletion still observes the cancellation.
+        OrderDetails orderDetails = CreateOrderDetails();
+        ValidAltinnPaymentConfiguration paymentConfiguration = CreatePaymentConfiguration();
+        PaymentInformation stalePaymentInformation = CreatePaymentInformation();
+        using var cts = new CancellationTokenSource();
+
+        _fixture.Mock<IPaymentProcessor>().Setup(pp => pp.PaymentProcessorId).Returns(orderDetails.PaymentProcessorId);
+        _fixture
+            .Mock<IPaymentProcessor>()
+            .Setup(pp => pp.TerminatePayment(_instance, stalePaymentInformation, cts.Token))
+            .ReturnsAsync(() =>
+            {
+                cts.Cancel();
+                return true;
+            })
+            .Verifiable(Times.Once);
+        _fixture
+            .Mock<IDataService>()
+            .Setup(ds =>
+                ds.GetByType<PaymentInformation>(
+                    _instance,
+                    PaymentDataTypeId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    cts.Token
+                )
+            )
+            .ReturnsAsync((Guid.NewGuid(), stalePaymentInformation));
+        _fixture
+            .Mock<IDataService>()
+            .Setup(ds =>
+                ds.DeleteById(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(
+                (InstanceIdentifier _, Guid _, StorageAuthenticationMethod? _, CancellationToken cancellationToken) =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return Task.FromResult(true);
+                }
+            )
+            .Verifiable(Times.Once);
+        _fixture
+            .Mock<IOrderDetailsCalculator>()
+            .Setup(c => c.CalculateOrderDetails(_instance, Language, cts.Token))
+            .Returns(
+                (Instance _, string? _, CancellationToken cancellationToken) =>
+                    Task.FromCanceled<OrderDetails>(cancellationToken)
+            )
+            .Verifiable(Times.Once);
+
+        await using var sp = _fixture.BuildServiceProvider();
+        var paymentService = sp.GetRequiredService<IPaymentService>();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            paymentService.StartPayment(_instance, paymentConfiguration, Language, cts.Token)
+        );
         _fixture.VerifyMocks();
     }
 

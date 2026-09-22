@@ -253,11 +253,12 @@ interface IProcessWorkflowProcessing {
    */
   progress?: IProcessWorkflowProgress;
   /**
-   * When the in-flight transition was started (enqueued), on the server's clock (ISO timestamp).
-   * Lets a client that reconnects mid-transition (page refresh, second session) measure how long
-   * the transition has actually been running instead of measuring from its own page load.
+   * When the in-flight transition was enqueued, on the workflow engine's clock (ISO timestamp).
+   * Compare with currentTime to measure elapsed processing time across page reloads.
    */
   startedAt?: string;
+  /** Engine clock time when the status was sampled (ISO timestamp). Omitted by older engines. */
+  currentTime?: string;
 }
 
 /**

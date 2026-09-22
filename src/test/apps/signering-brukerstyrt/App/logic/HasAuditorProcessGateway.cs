@@ -28,7 +28,9 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
     {
         Skjemadata formData = await GetFormData(instance);
 
-        if (formData.Revisor.HarRevisor == "ja")
+        // The auditor block is absent until the user answers the "har revisor" question, and
+        // anything other than an explicit "ja" routes past the auditor signing task.
+        if (formData.Revisor?.HarRevisor == "ja")
         {
             return outgoingFlows.FindAll(flow => flow.TargetRef == "SigningTask_Auditor");
         }
@@ -38,7 +40,13 @@ public class HasAuditorProcessGateway : IProcessExclusiveGateway
 
     private async Task<Skjemadata> GetFormData(Instance instance)
     {
-        DataElement modelData = instance.Data.Find(x => x.DataType == "Skjemadata");
+        // "Skjemadata" is declared with minCount 1 in applicationmetadata.json, so a missing
+        // element means the app is misconfigured rather than that the user has not filled it in.
+        DataElement modelData =
+            instance.Data.Find(x => x.DataType == "Skjemadata")
+            ?? throw new InvalidOperationException(
+                "Expected a 'Skjemadata' data element on the instance"
+            );
         InstanceIdentifier instanceIdentifier = new(instance);
 
         return (Skjemadata)

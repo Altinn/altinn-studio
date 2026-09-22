@@ -7,7 +7,6 @@ on:
       - 'src/AI/agents/**'
       - '.github/workflows/altinity-build-test.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}

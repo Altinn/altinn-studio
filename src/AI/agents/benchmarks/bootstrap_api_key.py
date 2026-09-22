@@ -1,20 +1,4 @@
-"""Mint a Designer user API key for the benchmark runner — LOCAL DEV ONLY.
-
-The agent API and the Gitea proxy authenticate `X-Api-Key` against
-Designer's `api_keys` table (SHA-256 of HashSalt + raw key). Gitea
-personal access tokens are a different credential system and do NOT
-work. Creating a key normally requires a logged-in browser session;
-for the local docker stack this script does what setup.js does for
-Gitea state — write it straight into the database via `docker exec`.
-
-    python -m benchmarks.bootstrap_api_key [--username localgiteaadmin] \
-        [--name benchmark-runner] [--write-env]
-
-Idempotent: an existing non-revoked key with the same name is revoked
-and replaced (raw keys are unrecoverable from their hashes, so rotation
-is the only option). `--write-env` upserts AGENT_DESIGNER_API_KEY in
-`benchmarks/.env`.
-"""
+"""Mint a Designer user API key for the benchmark runner — LOCAL DEV ONLY."""
 
 from __future__ import annotations
 

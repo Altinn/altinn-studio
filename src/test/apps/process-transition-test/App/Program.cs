@@ -25,11 +25,6 @@ void RegisterCustomAppServices(
     // durability/options). The engine runs the pipeline as critical post-commit steps, so
     // delays/failures are frontend-observable (committed = the service task).
     services.AddTransient<IPipelineServiceTask, ScenarioServiceTask>();
-
-    // Background driver for the parkThenRelease lever: releases a parked service task after a few
-    // seconds via an ordinary authorized process/next, imitating an external callback.
-    services.AddSingleton<ParkedTaskReleaser>();
-    services.AddHttpClient();
 }
 
 // ###########################################################################

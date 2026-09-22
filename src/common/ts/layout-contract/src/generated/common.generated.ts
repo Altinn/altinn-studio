@@ -7,7 +7,14 @@ import { RepeatingGroupSummaryOverridesWithRef } from '@app/layout-contract/gene
 import { SubformSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Subform/config.generated';
 
 export type AllowedValidationMasks = (
-  'Schema' | 'Component' | 'Expression' | 'CustomBackend' | 'Required' | 'AllExceptRequired' | 'All'
+  | 'Schema'
+  | 'Invalid'
+  | 'Component'
+  | 'Expression'
+  | 'CustomBackend'
+  | 'Required'
+  | 'AllExceptRequired'
+  | 'All'
 )[];
 
 export type AnySummaryOverride =
@@ -466,10 +473,6 @@ export interface ILikertColumnProperties {
   columns?: { value: string | number; divider?: 'before' | 'after' | 'both' }[];
 }
 
-export interface IMapping {
-  [key: string]: string;
-}
-
 export interface INavigationBasePageGroup {
   id: string;
   type?: 'default' | 'info';
@@ -643,4 +646,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 362ff3fb3d6c23171b39e84afd540b0a561f759ff59e1149da84b7125aae72fd
+// Source hash: 12f5cd46bcdb5feadb5669df5ef04c0a92ce527beeeae7bf64dfc2d125d30473

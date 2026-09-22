@@ -8,30 +8,21 @@ import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
-import { Lang } from 'src/features/language/Lang';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ProcessTaskType } from 'src/types';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { AttachmentState } from 'src/features/attachments/types';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { CompInternal } from 'src/layout/layout';
 
 const PENDING_STATUS_MESSAGES: Partial<Record<AttachmentState, ValidLanguageKey>> = {
   Pending: 'general.wait_for_attachments_scanning',
   uploading: 'general.wait_for_attachments',
 };
 
-export type IButtonProvidedProps =
-  | (PropsFromGenericComponent<'Button'> & CompInternal<'Button'>)
-  | (PropsFromGenericComponent<'InstantiationButton'> & CompInternal<'InstantiationButton'>);
-
-export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFromGenericComponent<'Button'>) => {
+export const ButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'Button'>) => {
   const item = useItemWhenType(baseComponentId, 'Button');
-  const mode = item.type === 'Button' ? item.mode : undefined;
   const { innerGrid } = useComponentStructureData(baseComponentId);
-  const props: IButtonProvidedProps = { baseComponentId, ...componentProps, ...item };
 
   const currentTaskType = useTaskTypeFromBackend();
   const { data: process } = useProcessQuery();
@@ -45,19 +36,6 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');
-  }
-
-  if (mode && !(mode === 'save' || mode === 'submit')) {
-    const GenericButton = getComponentFromMode(mode);
-    if (!GenericButton) {
-      return null;
-    }
-
-    return (
-      <GenericButton {...props}>
-        <Lang id={item.textResourceBindings?.title} />
-      </GenericButton>
-    );
   }
 
   function submitTask() {

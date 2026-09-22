@@ -18,6 +18,8 @@ RUN apt-get update \
         ca-certificates \
         clang \
         curl \
+        fonts-jetbrains-mono \
+        fonts-liberation \
         git \
         iproute2 \
         jq \
@@ -25,7 +27,9 @@ RUN apt-get update \
         libssl-dev \
         lldb \
         linux-perf \
+        neovim \
         nftables \
+        openssh-server \
         pkg-config \
         podman \
         podman-docker \
@@ -37,6 +41,7 @@ RUN apt-get update \
         systemd \
         tmux \
     && rm -rf /var/lib/apt/lists/* \
+    && nvim --version \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
@@ -44,13 +49,30 @@ RUN apt-get update \
     && rm -rf /usr/local/cargo/registry /usr/local/cargo/git \
     && chmod -R a+rX /usr/local/cargo /usr/local/rustup
 
+COPY nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
+
+RUN nvim --headless \
+    "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    +quit
+
 ARG TARGETARCH
-ARG GH_VERSION=2.98.0
+ARG GH_VERSION=2.100.0
+ARG GH_STACK_VERSION=0.1.1
+ARG ASCIINEMA_VERSION=3.2.1
+ARG AGG_VERSION=1.9.0
 ARG NODE_VERSION=22.23.2
 
 RUN case "${TARGETARCH}" in \
-        amd64) NODE_ARCH=x64; GH_SHA256=3b8ac6b30336802fc1a858d7c084e11cdf24ac1a761ca90b68022d7d729208de ;; \
-        arm64) NODE_ARCH=arm64; GH_SHA256=cf689084f3a3618f7eae4a2420d335d74626d65f5e594b9828d125d69f800d86 ;; \
+        amd64) NODE_ARCH=x64; RUST_ARCH=x86_64; \
+            GH_SHA256=e4d4bb4498e8d007abe545b6568926793ace1b6447da598294a610018cb164be; \
+            GH_STACK_SHA256=9ed103934fab0f90d3341fdfc4a342785396d39f5621fc7313a62602ce2b5462; \
+            ASCIINEMA_SHA256=1b405bbda565b33c3c4718de67fedc3535580603c0694b1ff3fb04f363430a20; \
+            AGG_SHA256=f111e315cd71056b116302342553dd765b7297579ed511f111d0cedb442aeda6 ;; \
+        arm64) NODE_ARCH=arm64; RUST_ARCH=aarch64; \
+            GH_SHA256=ea4e7a581a32ccad6cc7923cb1576ac5859ba4b9a16ab22eb8f8a96e78e2e961; \
+            GH_STACK_SHA256=2da13f8c46f2770237c744b341ab6be9f07508585a6762634c4a88aa355460bc; \
+            ASCIINEMA_SHA256=b516a6d896844c0ffbc96e0a55afe4cbcc79216abde0fc64fdda4e39bee421ea; \
+            AGG_SHA256=2b4be407b97e00e1c313a41d154ced8fa3d02c560c8f47a0db4950a2576444c9 ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
     && NODE_ARCHIVE="node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" \
@@ -65,16 +87,32 @@ RUN case "${TARGETARCH}" in \
     && echo "${GH_SHA256}  /tmp/gh.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/gh.tar.gz -C /tmp \
     && install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /usr/local/bin/gh \
-    && rm -rf /tmp/node.tar.xz /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" \
+    && curl -fsSL \
+        "https://github.com/github/gh-stack/releases/download/v${GH_STACK_VERSION}/linux-${TARGETARCH}" \
+        -o /tmp/gh-stack \
+    && echo "${GH_STACK_SHA256}  /tmp/gh-stack" | sha256sum -c - \
+    && curl -fsSL \
+        "https://github.com/asciinema/asciinema/releases/download/v${ASCIINEMA_VERSION}/asciinema-${RUST_ARCH}-unknown-linux-gnu" \
+        -o /tmp/asciinema \
+    && echo "${ASCIINEMA_SHA256}  /tmp/asciinema" | sha256sum -c - \
+    && install -m 0755 /tmp/asciinema /usr/local/bin/asciinema \
+    && curl -fsSL \
+        "https://github.com/asciinema/agg/releases/download/v${AGG_VERSION}/agg-${RUST_ARCH}-unknown-linux-gnu" \
+        -o /tmp/agg \
+    && echo "${AGG_SHA256}  /tmp/agg" | sha256sum -c - \
+    && install -m 0755 /tmp/agg /usr/local/bin/agg \
+    && rm -rf /tmp/node.tar.xz /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" /tmp/asciinema /tmp/agg \
     && node --version \
-    && gh --version
+    && gh --version \
+    && asciinema --version \
+    && agg --version
 
 # Route GitHub credentials through the gh CLI so plain git commands authenticate with the
 # host-mediated token.
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-ARG CODEX_VERSION=0.149.1
-ARG CLAUDE_CODE_VERSION=2.1.260
+ARG CODEX_VERSION=0.155.1
+ARG CLAUDE_CODE_VERSION=2.1.278
 
 # Node ignores the system trust store, and Buildah drops default environment from build stages,
 # so a build inside an Agent needs the system store selected per step for npm to trust mediation.
@@ -85,28 +123,60 @@ RUN NODE_OPTIONS=--use-openssl-ca npm install --global "@openai/codex@${CODEX_VE
     && codex --version
 
 # A nested Microsandbox runtime needs /dev/kvm; tmpfiles.conf hands the device to the kvm group.
+# OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
+# Password and keyboard authentication remain disabled by the platform-owned SSH policy.
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --login agent --home /home/agent --move-home ubuntu \
+    && passwd --delete agent \
     && groupmod --new-name agent ubuntu \
     && usermod --append --groups kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
-    && install -d -m 0755 -o agent -g agent /home/agent/.claude /home/agent/code \
+    && install -d -m 0755 -o agent -g agent \
+        /home/agent/.local/share/gh/extensions/gh-stack /home/agent/code \
+    && install -m 0755 -o agent -g agent \
+        /tmp/gh-stack /home/agent/.local/share/gh/extensions/gh-stack/gh-stack \
+    && printf '%s\n' \
+        'owner: github' \
+        'name: gh-stack' \
+        'host: github.com' \
+        "tag: v${GH_STACK_VERSION}" \
+        'ispinned: true' \
+        'path: /home/agent/.local/share/gh/extensions/gh-stack/gh-stack' \
+        >/home/agent/.local/share/gh/extensions/gh-stack/manifest.yml \
+    && chown -R agent:agent /home/agent/.local \
+    && rm -f /tmp/gh-stack \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
 
 COPY tmpfiles.conf /usr/lib/tmpfiles.d/agent-dev.conf
-COPY --chown=agent:agent --chmod=0600 claude-state.json /home/agent/.claude/.claude.json
-
-# One best-effort clone at boot for the checkout variants; a bind-mounted checkout already has
-# `.git`, so the unit exits without touching it.
 COPY workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 workspace-init.sh /usr/local/libexec/agent-workspace-init
 
-RUN systemctl enable agent-workspace-init.service
+# agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
+# ssh.service and socket are masked so the image cannot expose its package-generated host keys.
+RUN systemctl mask ssh.service ssh.socket \
+    && rm -f /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
-# The checkout is a bind mount shared with the host. Keep Cargo's registry and build output on the
-# Sandbox root filesystem so host and Sandbox builds do not invalidate each other.
+# All guest Executions inherit init.scope, whose default task limit is too low
+# for concurrent harnesses. The kernel pid limit remains the Sandbox boundary.
+# The guest also has no udev to activate hvc0's device unit, so its generated
+# serial login would otherwise wait 90 seconds at boot.
+#
+# The kernel's inotify defaults suit one interactive desktop, not a guest running
+# concurrent harnesses, nested Agents and build tooling, each with its own file
+# watchers. These values match the ones the self-hosted CI runners raise in
+# src/ci/github-runner/run.sh.
+RUN install -d /etc/systemd/system/init.scope.d \
+    && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && install -d /usr/lib/sysctl.d \
+    && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
+        >/usr/lib/sysctl.d/50-agent-inotify.conf \
+    && systemctl mask serial-getty@hvc0.service \
+    && systemctl enable agent-workspace-init.service
+
+# Keep Cargo's registry and build output on the Sandbox root filesystem so a worktree mount does
+# not share target state with the host and a fresh checkout keeps reusable artifacts outside Git.
 ENV CARGO_HOME=/home/agent/.cargo
 ENV CARGO_TARGET_DIR=/home/agent/.cache/cargo-target
 ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
@@ -115,6 +185,7 @@ ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 ENV DOCKER_HOST=unix:///run/podman/podman.sock
 ENV DISABLE_AUTOUPDATER=1
 ENV GH_NO_UPDATE_NOTIFIER=1
+ENV GH_NO_EXTENSION_UPDATE_NOTIFIER=1
 ENV HOME=/home/agent
 ENV PATH=/home/agent/.local/bin:/home/agent/.cargo/bin:${PATH}
 

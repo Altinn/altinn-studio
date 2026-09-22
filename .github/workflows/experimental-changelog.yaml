@@ -1,0 +1,48 @@
+name: experimental - Changelog entry
+
+# Requires pull requests that change the experimental Agent stack to add an entry to
+# src/experimental/CHANGELOG.md under [Unreleased], using src/experimental/changelog.sh. Apply the
+# 'skip-changelog' label to pull requests with no user-visible change (refactors, test-only or
+# CI-only work); the labeled/unlabeled triggers re-evaluate the check when the label is toggled.
+# Markdown-only changes do not trigger the check, except the changelog itself, so that a pull
+# request editing only the changelog is still validated.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+    paths:
+      - 'src/experimental/**'
+      - 'agents/**'
+      - '.github/workflows/experimental-changelog.yaml'
+      - '!src/experimental/**/*.md'
+      - '!agents/**/*.md'
+      - 'src/experimental/CHANGELOG.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  require-changelog-entry:
+    name: Require experimental Agent changelog entry
+    if: ${{ !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate changelog structure
+        run: src/experimental/changelog.sh validate
+
+      - name: Require an Unreleased entry
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: src/experimental/changelog.sh check-unreleased "$BASE_SHA" "$HEAD_SHA"

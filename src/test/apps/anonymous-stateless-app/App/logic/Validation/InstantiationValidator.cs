@@ -7,8 +7,8 @@ namespace Altinn.App.Logic.Validation;
 
 public class InstantiationValidator : IInstantiationValidator
 {
-  public async Task<InstantiationValidationResult> Validate(Instance instance)
+  public async Task<InstantiationValidationResult?> Validate(Instance instance)
   {
-    return await Task.FromResult((InstantiationValidationResult)null);
+    return await Task.FromResult((InstantiationValidationResult?)null);
   }
 }

@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e
+FROM node:24-bookworm-slim@sha256:2fe369e969550cde8e867afc3fe370b260140cab4a23d467074295b42163d553
 
 RUN corepack enable
 
@@ -8,7 +8,11 @@ COPY package.json yarn.lock ./
 COPY .yarnrc.yml ./
 COPY .yarn/releases ./.yarn/releases
 
-RUN yarn --immutable
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn --immutable
 
 COPY server.js ./
 

@@ -14,10 +14,16 @@ import (
 	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appimage"
 	"altinn.studio/studioctl/internal/appnaming"
+	"altinn.studio/studioctl/internal/appsecrets"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/osutil"
 )
+
+// ContainerKeysDir is where a containerized run persists its data-protection keys - the path the platform
+// mounts a volume at for a deployed app.
+const ContainerKeysDir = "/mnt/keys"
 
 var (
 	errAppProjectNotFound   = errors.New("app project not found")
@@ -37,6 +43,7 @@ type DotnetRunSpec struct {
 	Dir            string
 	ProjectPath    string
 	BaseURL        string
+	SecretsDir     string
 	AppArgs        []string
 	BuildArgs      []string
 	TargetPathArgs []string
@@ -52,7 +59,9 @@ type DotnetRunOptions struct {
 
 // DockerRunSpec contains container execution details for `studioctl app run --mode container`.
 type DockerRunSpec struct {
-	Config types.ContainerConfig
+	SecretsDir string
+	KeysDir    string
+	Config     types.ContainerConfig
 }
 
 // DockerRunOptions contains docker run-specific app options.
@@ -110,16 +119,28 @@ func (s *Service) BuildDotnetRunSpec(
 		port = "0"
 	}
 	baseURL := nativeAppBaseURL(port)
+	// Created and filled here rather than at the point the app starts, because `studioctl app env` only
+	// prints an environment - and that environment is how an app started from an IDE is configured, so the
+	// directory and the codes the app reads from it have to be in place by the time the spec is printed,
+	// not by the time `app run` would have launched something.
+	secretsDir, err := s.ensureAppSecretsDir(appPath)
+	if err != nil {
+		return DotnetRunSpec{}, err
+	}
+	if err := s.provisionAppSecrets(secretsDir); err != nil {
+		return DotnetRunSpec{}, err
+	}
 
 	return DotnetRunSpec{
 		Dir:            filepath.Dir(projectPath),
 		ProjectPath:    projectPath,
 		BaseURL:        baseURL,
+		SecretsDir:     secretsDir,
 		Port:           nativeAppPort(port),
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl),
+		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl, secretsDir, ""),
 	}, nil
 }
 
@@ -205,19 +226,35 @@ func (s *Service) BuildDockerRunSpec(
 	if imageTag == "" {
 		imageTag = appimage.DefaultLocalTag(appPath)
 	}
+	secretsDir, err := s.ensureAppSecretsDir(appPath)
+	if err != nil {
+		return DockerRunSpec{}, err
+	}
+	if err := s.provisionAppSecrets(secretsDir); err != nil {
+		return DockerRunSpec{}, err
+	}
+	keysDir := s.appKeysDirOrEmpty(appPath)
+	keysDirEnv := ""
+	if keysDir != "" {
+		keysDirEnv = ContainerKeysDir
+	}
 
 	return DockerRunSpec{
+		SecretsDir: secretsDir,
+		KeysDir:    keysDir,
 		Config: types.ContainerConfig{
-			Labels:         appcontainers.Labels(appPath),
-			HealthCheck:    nil,
-			Name:           localtestAppContainerNamePrefix + appName,
-			Image:          imageTag,
+			Labels:      appcontainers.Labels(appPath),
+			HealthCheck: nil,
+			Name:        localtestAppContainerNamePrefix + appName,
+			Image:       imageTag,
+			// User, UsernsMode and the mounts' SELinux labels depend on the runtime and are set by
+			// PrepareDockerRun once it is known.
 			User:           "",
 			UsernsMode:     "",
 			RestartPolicy:  "",
 			ExtraHosts:     nil,
 			NetworkAliases: nil,
-			Volumes:        nil,
+			Volumes:        appMounts(secretsDir, keysDir),
 			Networks: []string{
 				components.NetworkName,
 			},
@@ -229,15 +266,66 @@ func (s *Service) BuildDockerRunSpec(
 					Protocol:      "tcp",
 				},
 			},
+			// The container is named the mount point its secrets directory is mounted at, and is told where
+			// its keys go, exactly as a deployed app is told both.
 			Env: newAppRunEnv(
 				nil,
 				"http://*:"+appcontainers.DefaultContainerPort,
 				topology,
 				opts.AppFrontendAssetBaseUrl,
+				appsecrets.ContainerDir,
+				keysDirEnv,
 			),
 			Command: args,
 			CapAdd:  nil,
 			Detach:  true,
 		},
 	}, nil
+}
+
+// PrepareDockerRun readies a spec for the runtime it is about to run on. The keys directory it mounts is
+// created first (a missing one is otherwise created by the runtime, on Linux as root, where everything else
+// under the studioctl home is the developer's; the secrets directory is there already, created and
+// provisioned when the spec was built), and the container runs as the developer with the userns and SELinux
+// handling the localtest containers use: the mounted secrets are owner-only on the host, and a deployed app
+// likewise runs as the one user that can read its secret. The image's own user (uid 1000) could not read
+// them on a Linux host with another uid.
+func (s *Service) PrepareDockerRun(spec *DockerRunSpec, toolchain types.ContainerToolchain) error {
+	if spec.KeysDir != "" {
+		if err := os.MkdirAll(spec.KeysDir, osutil.DirPermOwnerOnly); err != nil {
+			return fmt.Errorf("create app directory %s: %w", filepath.Base(spec.KeysDir), err)
+		}
+	}
+	user, usernsMode, relabel := components.RuntimeUser(toolchain)
+	spec.Config.User = user
+	spec.Config.UsernsMode = usernsMode
+	spec.Config.Volumes = components.RelabelBindMounts(spec.Config.Volumes, relabel)
+	return nil
+}
+
+// appMounts gives the container what the platform gives a deployed app: its secrets directory read-only at
+// /mnt/app-secrets and a writable directory for data-protection keys at /mnt/keys. The secrets mount is
+// always there - every run has a secrets directory - while the keys mount depends on studioctl having
+// somewhere to persist them. The secrets directory is mounted rather than the file, so that a client stored
+// while the container runs - an atomic replace on the host - is seen inside it.
+func appMounts(secretsDir, keysDir string) []types.VolumeMount {
+	mounts := []types.VolumeMount{
+		{
+			HostPath:       secretsDir,
+			ContainerPath:  appsecrets.ContainerDir,
+			Type:           types.VolumeMountTypeBind,
+			SELinuxRelabel: types.SELinuxRelabelNone,
+			ReadOnly:       true,
+		},
+	}
+	if keysDir != "" {
+		mounts = append(mounts, types.VolumeMount{
+			HostPath:       keysDir,
+			ContainerPath:  ContainerKeysDir,
+			Type:           types.VolumeMountTypeBind,
+			SELinuxRelabel: types.SELinuxRelabelNone,
+			ReadOnly:       false,
+		})
+	}
+	return mounts
 }

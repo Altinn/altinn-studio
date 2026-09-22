@@ -45,7 +45,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             config.FilenameTextResourceKey,
             config.AutoPdfTaskIds,
             StorageAuthenticationMethod.ServiceOwner(),
-            ct: context.CancellationToken
+            cancellationToken: context.CancellationToken
         );
 
         _logger.LogDebug(

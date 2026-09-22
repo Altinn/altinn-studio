@@ -43,20 +43,31 @@ public class SignClient : ISignClient
     /// <inheritdoc/>
     public async Task SignDataElements(
         SignatureContext signatureContext,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         string apiUrl = $"instances/{signatureContext.InstanceIdentifier}/sign";
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
         );
-        using HttpResponseMessage response = await _client.PostAsync(token, apiUrl, BuildSignRequest(signatureContext));
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            apiUrl,
+            BuildSignRequest(signatureContext),
+            cancellationToken: cancellationToken
+        );
         if (response.IsSuccessStatusCode)
         {
             return;
         }
 
-        throw await PlatformHttpException.Create(response, "Failed to sign dataelements");
+        throw await PlatformHttpException.Create(
+            response,
+            "Failed to sign dataelements",
+            cancellationToken: cancellationToken
+        );
     }
 
     private static JsonContent BuildSignRequest(SignatureContext signatureContext)

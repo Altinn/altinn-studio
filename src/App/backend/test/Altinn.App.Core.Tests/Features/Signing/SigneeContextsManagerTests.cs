@@ -75,9 +75,15 @@ public sealed class SigneeContextsManagerTests : IDisposable
 
         // Setup default party lookup behavior
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
-                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _, CancellationToken _) =>
                 {
                     if (lookup.Ssn is not null)
                     {

@@ -63,11 +63,7 @@ class AppModel:
 
 
 def load_app(root: Path) -> AppModel:
-    """Load the app at `root` (repo root containing `App/`).
-
-    Picks the layout set whose Settings.json has a `pages.order`; when
-    several exist, the one with the most ordered pages wins.
-    """
+    """Load the app at `root` (repo root containing `App/`)."""
     model = AppModel()
 
     best_order: list[str] = []
@@ -115,12 +111,7 @@ _ENUMERATION_RE = re.compile(r"^(?=[a-zæøå0-9.)]*\d)[a-zæøå]?[\d.)]+\s+")
 
 
 def normalize_title(text: str) -> str:
-    """Normalize a field title for cross-run comparison.
-
-    Lowercase, strip diacritic-free noise and leading enumeration, and
-    collapse whitespace — so "A.1 Leverandørvirksomhetens navn:" matches
-    "leverandørvirksomhetens navn" regardless of naming style.
-    """
+    """Normalize a field title for cross-run comparison."""
     text = unicodedata.normalize("NFKC", text).lower().strip()
     text = _ENUMERATION_RE.sub("", text)
     text = _NOISE_RE.sub(" ", text)

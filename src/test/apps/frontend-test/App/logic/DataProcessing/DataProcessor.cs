@@ -23,11 +23,13 @@ namespace Altinn.App.logic.DataProcessing
             if (data.GetType() == typeof(NestedGroup))
             {
                 NestedGroup model = (NestedGroup)data;
-                if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788 != null &&
-                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788?.Count > 0 &&
-                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0]?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value == 1337)
+                // The group, its rows and the amount are all optional, so walk down to the first
+                // row's original amount and only rewrite it when it is actually there.
+                var firstOriginalAmount = model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?
+                    .FirstOrDefault()?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131;
+                if (firstOriginalAmount?.value == 1337)
                 {
-                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788[0].SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value = 1338;
+                    firstOriginalAmount.value = 1338;
                 }
 
                 // Server-side computed values for prefilling values in a group
@@ -110,7 +112,7 @@ namespace Altinn.App.logic.DataProcessing
                 decimal newSumAboveLimit = 0;
                 int newNumAboveLimit = 0;
                 if (model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788 != null)
-                    foreach (var row in model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788)
+                    foreach (var row in model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788)
                     {
                         var from = row?.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131?.value ?? 0;
                         var to = row?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value ?? 0;
@@ -224,13 +226,15 @@ namespace Altinn.App.logic.DataProcessing
                 {
                     foreach (var animal in model.ConflictingOptions.Animals)
                     {
+                        // An animal may legitimately have no comments and no color yet
+                        var comments = animal.Comments ?? new List<AnimalComment>();
                         animal.CommentLabels = string.Join(", ",
-                            animal.Comments.Select(c => c.TypeLabel).Distinct().Where(l => !string.IsNullOrEmpty(l)));
+                            comments.Select(c => c.TypeLabel).Distinct().Where(l => !string.IsNullOrEmpty(l)));
 
                         // This just copies the colors into a list. The use-case for this is to test a bug that caused
                         // a backend mutation like this to confuse the frontend and we'd end up with infinite repeating
                         // PATCH requests.
-                        var sepColors = animal.Color.Split(',').Select(c => c.Trim())
+                        var sepColors = (animal.Color ?? string.Empty).Split(',').Select(c => c.Trim())
                             .Where(c => !string.IsNullOrEmpty(c)).ToList();
 
                         // To protect frontend versions that don't have this fix yet, only
