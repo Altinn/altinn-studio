@@ -85,7 +85,11 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         lines.push(format!("Failure:    {}", failure_kind(failure)));
     }
     if let Some(provisioning) = &agent.status.progress {
-        lines.extend(provisioning_lines(&provisioning.progress));
+        let progress = &provisioning.progress;
+        lines.extend(provisioning_lines(
+            progress,
+            progress.output().lines().map(|line| line.text.as_str()),
+        ));
     }
     lines.push("Conditions:".to_owned());
     if agent.status.conditions.is_empty() {
@@ -110,20 +114,22 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
     lines
 }
 
-/// Renders the latest pass: its phases, the step in progress and, when it
-/// failed, the detail and the last output lines.
-fn provisioning_lines(progress: &sandbox::progress::Progress) -> Vec<String> {
+/// Renders a pass: its phases with the steps they still retain, the step in
+/// progress, the failure detail when it failed, then `output` under its own
+/// heading.
+pub(crate) fn provisioning_lines<'a>(
+    progress: &sandbox::progress::Progress,
+    output: impl IntoIterator<Item = &'a str>,
+) -> Vec<String> {
     let mut lines = vec!["Provisioning:".to_owned()];
     for phase in progress.finished() {
-        let mark = match phase.outcome {
-            sandbox::Outcome::Failed => "✗",
-            _ => "✓",
-        };
         lines.push(format!(
-            "  {mark} {} ({})",
+            "  {} {} ({})",
+            outcome_mark(phase.outcome),
             phase.phase.label,
             crate::progress::duration(phase.elapsed_ms)
         ));
+        lines.extend(phase.steps.iter().map(step_line));
     }
     if let Some(current) = progress.current() {
         lines.push(format!(
@@ -131,21 +137,46 @@ fn provisioning_lines(progress: &sandbox::progress::Progress) -> Vec<String> {
             current.phase.label,
             format_age(current.started_at)
         ));
+        lines.extend(current.finished_steps.iter().map(step_line));
         if let Some(step) = progress.current_step() {
-            let amount = step.measurement.map_or_else(String::new, |measurement| {
-                format!(": {}", crate::progress::format_measurement(measurement))
-            });
-            lines.push(format!("    {}{amount}", step.name));
+            lines.push(format!("    {}{}", step.name, measurement(step.measurement)));
         }
     }
     if let sandbox::progress::OperationStatus::Failed { detail } = progress.status() {
         lines.push(format!("  Failed: {detail}"));
-        lines.extend(progress.output().lines().map(|line| format!("    {}", line.text)));
+    }
+    let mut output = output.into_iter().peekable();
+    if output.peek().is_some() {
+        lines.push("  Output:".to_owned());
+        lines.extend(output.map(|line| format!("    {line}")));
     }
     lines
 }
 
-const fn failure_kind(kind: agent::FailureKind) -> &'static str {
+fn step_line(step: &sandbox::progress::FinishedStep) -> String {
+    format!(
+        "    {} {}{} ({})",
+        outcome_mark(step.outcome),
+        step.name,
+        measurement(step.measurement),
+        crate::progress::duration(step.elapsed_ms)
+    )
+}
+
+const fn outcome_mark(outcome: sandbox::Outcome) -> &'static str {
+    match outcome {
+        sandbox::Outcome::Failed => "✗",
+        _ => "✓",
+    }
+}
+
+fn measurement(measurement: Option<sandbox::progress::Measurement>) -> String {
+    measurement.map_or_else(String::new, |measurement| {
+        format!(": {}", crate::progress::format_measurement(measurement))
+    })
+}
+
+pub(crate) const fn failure_kind(kind: agent::FailureKind) -> &'static str {
     match kind {
         agent::FailureKind::Invalid => "Invalid (change the Agent to continue)",
         agent::FailureKind::Transient => "Transient (retrying in the background)",
@@ -279,6 +310,7 @@ mod tests {
         for expected in [
             "Provisioning:",
             "  Failed: registry unavailable",
+            "  Output:",
             "    connection reset",
         ] {
             assert!(
