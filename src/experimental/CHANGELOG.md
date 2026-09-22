@@ -12,6 +12,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.5] - 2026-09-22
+
 ### Added
 
 - Codex and Claude Code Sessions show their model, working directory, Git branch, context usage, usage limits, harness
