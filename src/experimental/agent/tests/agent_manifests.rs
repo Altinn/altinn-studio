@@ -79,6 +79,10 @@ fn self_development_variants_are_local_independent_builds() {
     ));
     let dockerfile = std::fs::read_to_string(directory.join("Dockerfile")).expect("self-dev Dockerfile");
     assert!(!dockerfile.contains("ghcr.io/altinn/altinn-studio/agent"));
+    for manifest in ["agent.yaml", "agent.nested.yaml", "agent.worktree.yaml"] {
+        let text = std::fs::read_to_string(directory.join(manifest)).expect(manifest);
+        assert!(!text.contains("agents/"), "{manifest} does not consume the Altinn tree");
+    }
 }
 
 #[test]

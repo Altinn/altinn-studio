@@ -34,9 +34,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- Pull request evidence guidance uses shared browser and terminal recipes, with readable pacing and no fixed clip
+- Pull request evidence guidance is shorter, with readable pacing and no fixed clip
   duration. The GIF conversion helper now accepts files up to 10 MiB instead of 8 MiB.
-
 - Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
 
