@@ -69,14 +69,18 @@ internal sealed class MaskinportenSettingsSectionDetector
         + "maskinporten set first, and studioctl provisions the client to the app for local runs the way Studio "
         + "does when the app is deployed. One exception: a default MaskinportenSettings section that configures "
         + "the external Altinn.ApiClients.Maskinporten package, with its Environment and key kept in user "
-        + "secrets or a key vault, is still read by that package - keep it. Sections found:";
+        + "secrets or a key vault, is still read by that package - keep it. Whatever you do with the section, "
+        + "the scopes it names still have to be in place - selected in Studio for the deployed app, and on the "
+        + "client you supply for local runs. The scope list below has them, taken from these sections before "
+        + "they go. Sections found:";
 
     private const string LeftoverSummary =
         "These configuration objects look like credentials for the built-in Maskinporten client - they carry "
         + "the keys its settings had - but nothing in the app binds them, and v9 reads nothing there either. "
         + "Most likely leftovers: delete them, and if one is the client you use for local runs, paste it into "
         + "studioctl app maskinporten set first. (An object configuring the external "
-        + "Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) "
+        + "Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) Any "
+        + "scopes they name are in the scope list below, which is where to check them before deleting. "
         + "Objects found:";
 
     private readonly string _projectFolder;
@@ -161,6 +165,129 @@ internal sealed class MaskinportenSettingsSectionDetector
 
         return new MigrationResult(messages);
     }
+
+    /// <summary>
+    /// <para>The Maskinporten scopes the app's settings files declare, with the file and path each came from.
+    /// These are the sections <see cref="Detect"/> is about to tell the developer to delete, and their
+    /// <c>Scope</c> value is the one authoritative record of what the app's v8 client asked for - so
+    /// <see cref="MaskinportenScopeInventory"/> echoes it back before it is gone.</para>
+    /// <para>A section is considered Maskinporten's when the code bound the built-in client to it, when its
+    /// path says Maskinporten, or when it carries credential keys alongside a client id. An object with a
+    /// <c>Scope</c> key and nothing else to connect it to Maskinporten is left alone: <c>Scope</c> on its own
+    /// is far too common a configuration key to claim.</para>
+    /// </summary>
+    public IReadOnlyList<(string Scope, string Evidence)> ConfiguredScopes()
+    {
+        var results = new List<(string Scope, string Evidence)>();
+
+        foreach (var file in EnumerateAppSettingsFiles())
+        {
+            using var document = TryParse(file);
+            if (document is null || document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var relativeFile = Path.GetRelativePath(_projectFolder, file);
+            var bound = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var section in _boundSections)
+            {
+                if (TryResolve(document.RootElement, section, out _, out var actualPath))
+                {
+                    bound.Add(actualPath);
+                }
+            }
+
+            foreach (var (path, element) in EnumerateObjects(document.RootElement, parentPath: null))
+            {
+                // The same exclusion Detect makes: a default MaskinportenSettings section shaped for the
+                // external package belongs to that package, which still reads it. Its scopes are that
+                // client's, so listing them alongside the app's own would send a developer to add an
+                // unrelated integration's grants to the app's Maskinporten selection.
+                if (
+                    string.Equals(path, DefaultSectionName, StringComparison.OrdinalIgnoreCase)
+                    && IsExternalPackageObject(element)
+                )
+                {
+                    continue;
+                }
+
+                if (!bound.Contains(path) && !IsMaskinportenShaped(element, path))
+                {
+                    continue;
+                }
+
+                foreach (var scope in ScopeValues(element))
+                {
+                    results.Add((scope, $"configured in {relativeFile}: {path}"));
+                }
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Whether an object is recognizably a Maskinporten client's configuration: its path says so, or it
+    /// carries a client id beside key material in either client's spelling.
+    /// </summary>
+    private static bool IsMaskinportenShaped(JsonElement element, string path)
+    {
+        if (path.Contains("maskinporten", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var keyMaterial = _builtInOnlyKeys
+            .Concat(["EncodedJwk", "EncodedX509"])
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return HasKey(element, "clientId") && HasAnyKey(element, keyMaterial);
+    }
+
+    /// <summary>
+    /// The scopes in an object's <c>Scope</c> member, which the built-in and external settings shapes spell
+    /// the same way but structure differently: a single string, a space- or comma-separated list of them, or
+    /// an array.
+    /// </summary>
+    private static IEnumerable<string> ScopeValues(JsonElement element)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (!string.Equals(property.Name, "scope", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (property.Value.ValueKind == JsonValueKind.String)
+            {
+                foreach (var part in Split(property.Value.GetString()))
+                {
+                    yield return part;
+                }
+            }
+            else if (property.Value.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in property.Value.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.String)
+                    {
+                        continue;
+                    }
+
+                    foreach (var part in Split(item.GetString()))
+                    {
+                        yield return part;
+                    }
+                }
+            }
+        }
+    }
+
+    private static IEnumerable<string> Split(string? value) =>
+        (value ?? string.Empty).Split(
+            [' ', ',', '\t'],
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+        );
 
     private static string Describe(string relativeFile, string path) => $"{relativeFile}: {path}";
 

@@ -16,10 +16,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
   Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill
   with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
 - `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
+- `studioctl app upgrade v9` lists the Maskinporten scopes your app needs, and where to grant them.
+- `studioctl doctor` shows whether a local Maskinporten client is configured.
 
 ### Changed
 
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
+- Maskinporten guidance in `studioctl app upgrade v9` says that scopes are needed both in Studio and on the client you use locally.
 
 ### Fixed
 
