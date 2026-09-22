@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Models.Model;
@@ -12,11 +14,18 @@ namespace Altinn.App.logic;
 
 public class DataProcessor : IDataWriteProcessor
 {
+    private readonly ITranslationService _translationService;
+
+    public DataProcessor(ITranslationService translationService)
+    {
+        _translationService = translationService;
+    }
+
     public async Task ProcessDataWrite(
         IInstanceDataMutator instanceDataMutator,
         string taskId,
         DataElementChanges changes,
-        string language
+        string? language
     )
     {
         var change = changes.FormDataChanges.FirstOrDefault(change =>
@@ -75,13 +84,13 @@ public class DataProcessor : IDataWriteProcessor
         try
         {
             string dateAsJson = System.Text.Json.JsonSerializer.Serialize(date);
-            string dateAsString = System.Text.Json.JsonSerializer.Deserialize<string>(dateAsJson);
+            string? dateAsString = System.Text.Json.JsonSerializer.Deserialize<string>(dateAsJson);
 
             LayoutEvaluatorState state = new LayoutEvaluatorState(
                 dataAccessor: mutator,
-                null!,
-                null!,
-                null!,
+                componentModel: null,
+                translationService: _translationService,
+                frontEndSettings: new FrontEndSettings(),
                 language: "nb",
                 timeZone: TimeZoneInfo.Local
             );
@@ -91,11 +100,17 @@ public class DataProcessor : IDataWriteProcessor
                 new("dd.MM.yyyy HH:mm:ss")
             };
             Expression expr = new Expression(ExpressionFunction.formatDate, args);
-            var result = await ExpressionEvaluator.EvaluateExpression(state, expr, null!);
+            ComponentContext context = new ComponentContext(
+                dataAccessor: mutator,
+                component: null,
+                rowIndices: null,
+                dataElementIdentifier: null
+            );
+            var result = await ExpressionEvaluator.EvaluateExpression(state, expr, context);
 
-            if (result is string)
+            if (result is string resultAsString)
             {
-                return result.ToString();
+                return resultAsString;
             }
             return System.Text.Json.JsonSerializer.Serialize(result);
         }

@@ -18,15 +18,15 @@ namespace Altinn.App.logic.Validation
             return true;
         }
 
-        public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string language)
+        public Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
             NestedGroup model = (NestedGroup)data;
-            String comments = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788
-                .FirstOrDefault()?.nestedgrp1234
+            String? comments = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?
+                .FirstOrDefault()?.nestedgrp1234?
                 .FirstOrDefault()?.SkattemeldingEndringEtterFristKommentardatadef37133?.value;
-            String name = model?.Endringsmeldinggrp9786?.Avgivergrp9787?.OppgavegiverNavndatadef68?.value;
+            String? name = model?.Endringsmeldinggrp9786?.Avgivergrp9787?.OppgavegiverNavndatadef68?.value;
             var newValue = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?
                 .FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value;
 
