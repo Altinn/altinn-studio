@@ -301,7 +301,6 @@ public class SchemaModelService : ISchemaModelService
             return serializedJsonContent;
         }
 
-        altinnAppGitRepository.DeleteModelMetadata(relativeFilePath.Replace(".schema.json", ".metadata.json"));
         await SaveModelFilesFromXsd(
             altinnRepoEditingContext,
             altinnAppGitRepository,
@@ -309,6 +308,9 @@ public class SchemaModelService : ISchemaModelService
             xsdMemoryStream,
             jsonSchema,
             serializedJsonContent
+        );
+        altinnAppGitRepository.DeleteModelMetadata(
+            Path.Combine(altinnAppGitRepository.GetRelativeModelFolder(), $"{schemaFileName}.metadata.json")
         );
 
         return serializedJsonContent;
