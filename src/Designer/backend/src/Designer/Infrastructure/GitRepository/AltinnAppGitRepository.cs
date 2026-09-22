@@ -1121,14 +1121,17 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     /// <summary>
     /// Verifies that a layout set name Designer is about to create follows the naming policy for new
-    /// names. Layout sets that already exist are not held to the policy.
+    /// names. Layout sets that already exist are not held to the policy. A new layout set has a name, so
+    /// an empty one is rejected like any other name the policy does not allow.
     /// </summary>
     /// <param name="layoutSetName">The layout set name that is about to be created.</param>
     /// <exception cref="BadHttpRequestException">Thrown if the name is not allowed for a new layout set.</exception>
     private static void EnsureAllowedNewLayoutSetName(string layoutSetName)
     {
         EnsureSafeLayoutSetName(layoutSetName);
-        if (!string.IsNullOrEmpty(layoutSetName) && !s_allowedNewLayoutSetNameRegex.IsMatch(layoutSetName))
+        // The safety check lets an empty name through, because on a read it means the app does not use
+        // layout sets, so it is this check that has to turn one away.
+        if (string.IsNullOrEmpty(layoutSetName) || !s_allowedNewLayoutSetNameRegex.IsMatch(layoutSetName))
         {
             throw new BadHttpRequestException(InvalidLayoutSetNameMessage);
         }
@@ -1156,13 +1159,14 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// whatever it is called. Whether a layout set or a layout already exists is decided by the exact
     /// name, so that the rule holds equally on a case sensitive and a case insensitive file system.
     /// Asking the file system for a path would answer that "MIN SIDE" already exists wherever
-    /// "Min side" does.
+    /// "Min side" does. An app that does not use layout sets has no layout set name to hold to the
+    /// policy, and its layouts are written whether or not the layout folder is there yet.
     /// </summary>
     /// <param name="layoutSetName">The name of the layout set the layout belongs to.</param>
     /// <param name="layoutName">The name of the layout file.</param>
     private void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName)
     {
-        if (!LayoutSetFolderExistsByExactName(layoutSetName))
+        if (!string.IsNullOrEmpty(layoutSetName) && !LayoutSetFolderExistsByExactName(layoutSetName))
         {
             EnsureAllowedNewLayoutSetName(layoutSetName);
         }
@@ -1173,8 +1177,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Determines whether the layout folder holds a layout set folder named exactly this. An empty name
-    /// means the app does not use layout sets, in which case the layout folder itself is the layout set.
+    /// Determines whether the layout folder holds a layout set folder named exactly this. Only an app
+    /// that uses layout sets has such a folder, so the caller asks this of a name it has.
     /// </summary>
     /// <param name="layoutSetName">The layout set name to look for.</param>
     /// <returns>True if a layout set folder of exactly that name is there.</returns>
@@ -1183,10 +1187,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
         if (!DirectoryExistsByRelativePath(LayoutsFolderName))
         {
             return false;
-        }
-        if (string.IsNullOrEmpty(layoutSetName))
-        {
-            return true;
         }
         return GetDirectoriesByRelativeDirectory(LayoutsFolderName).Contains(layoutSetName, StringComparer.Ordinal);
     }
