@@ -2887,11 +2887,6 @@ namespace Altinn.App.Core.Helpers.Serialization
         public object DeserializeXml(System.ReadOnlySpan<byte> data, System.Type modelType) { }
         public object GetEmpty(Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         public System.ReadOnlyMemory<byte> SerializeToJson(object model) { }
-        [System.Obsolete("SerializeToStorage needs a DataElement parameter to support json in storage")]
-        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
-                "data",
-                "contentType"})]
-        public System.ValueTuple<System.ReadOnlyMemory<byte>, string> SerializeToStorage(object model, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "data",
                 "contentType"})]

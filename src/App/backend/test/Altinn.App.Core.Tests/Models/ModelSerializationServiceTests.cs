@@ -62,26 +62,6 @@ public class ModelSerializationServiceTests
     }
 
     [Fact]
-    public void SerializeToStorage_SerializesXmlWithObsoleteMethod()
-    {
-        // Arrange
-        var testObject = new TestDataModel { Name = "Test", Value = 42 };
-
-        var dataType = CreateDataType(["application/xml"]);
-
-        // Act
-        var (data, _) = _sut.SerializeToStorage(testObject, dataType);
-
-        // Assert
-        var xml = System.Text.Encoding.UTF8.GetString(data.Span);
-
-        Assert.Equal(
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?><TestDataModel xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><Name>Test</Name><Value>42</Value></TestDataModel>",
-            xml
-        );
-    }
-
-    [Fact]
     public void SerializeToStorage_SerializesXmlWithNullDataElement()
     {
         // Arrange

@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Result;
@@ -69,25 +68,6 @@ public sealed class ModelSerializationService
     {
         FormDataWrapperFactory.Create(model, dataType, dataElement).RestoreFixedValues();
         return model;
-    }
-
-    /// <summary>
-    /// Serialize an object to binary data for storage, respecting classRef and content type in dataType
-    /// </summary>
-    /// <param name="model">The object to serialize (must match the classRef in DataType)</param>
-    /// <param name="dataType">The data type</param>
-    /// <returns>the binary data and the content type (currently only application/xml, but likely also json in the future)</returns>
-    /// <exception cref="InvalidOperationException">If the classRef in dataType does not match type of the model</exception>
-    [Obsolete("SerializeToStorage needs a DataElement parameter to support json in storage")]
-    public (ReadOnlyMemory<byte> data, string contentType) SerializeToStorage(object model, DataType dataType)
-    {
-        if (DataClient.TypeAllowsJson(dataType))
-        {
-            throw new InvalidOperationException(
-                $"Data type {dataType.Id} allows application/json and must use SerializeToStorage with DataElement specified"
-            );
-        }
-        return SerializeToStorage(model, dataType, null);
     }
 
     /// <summary>
