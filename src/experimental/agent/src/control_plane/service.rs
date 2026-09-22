@@ -248,6 +248,27 @@ impl ControlPlane {
             .map(|records| records.into_iter().map(|record| self.resource(record)).collect())
     }
 
+    /// Reads an Agent's stored status and the complete progress of its latest
+    /// pass. When `output` names that pass, only later output is included.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent does not exist or storage fails.
+    pub async fn progress(
+        &self,
+        name: &str,
+        output: Option<crate::progress::OutputPosition>,
+    ) -> Result<(crate::Status, Option<crate::progress::Provisioning>), Error> {
+        let record = self.store.get_by_name(name).await?;
+        let provisioning = self.provisioning.get(record.id).map(|mut provisioning| {
+            if let Some(output) = output.filter(|output| output.pass == provisioning.pass) {
+                provisioning.progress = provisioning.progress.output_from(output.sequence);
+            }
+            provisioning
+        });
+        Ok((record.agent.status, provisioning))
+    }
+
     /// Resolves the closest Agent source directory containing `directory`.
     ///
     /// # Errors

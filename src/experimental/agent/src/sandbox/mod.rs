@@ -130,7 +130,7 @@ pub trait Provider {
         &'a self,
         record: &'a AgentRecord,
         environment: std::collections::BTreeMap<String, String>,
-        progress: crate::progress::SandboxReporter,
+        progress: ::sandbox::ProgressReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
@@ -236,7 +236,7 @@ impl Service {
     pub async fn ensure(
         &self,
         record: &AgentRecord,
-        progress: crate::progress::SandboxReporter,
+        progress: ::sandbox::ProgressReporter,
     ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
         let environment = crate::environment::resolve(record).await?;
