@@ -23,7 +23,7 @@ import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormProvider';
-import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
+import { UiPreferencesProvider } from 'src/features/form/layout/UiPreferencesContext';
 import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
@@ -326,7 +326,7 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
         {...queries}
         queryClient={queryClient}
       >
-        <UiConfigProvider>
+        <UiPreferencesProvider>
           <Router>
             <NavigationFocusStateProvider>
               <GlobalFormDataReadersProvider>
@@ -334,7 +334,7 @@ function DefaultProviders({ children, queries, apis, queryClient, Router = Defau
               </GlobalFormDataReadersProvider>
             </NavigationFocusStateProvider>
           </Router>
-        </UiConfigProvider>
+        </UiPreferencesProvider>
       </AppQueriesProvider>
     </ApiProvider>
   );
