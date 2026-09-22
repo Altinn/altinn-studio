@@ -114,6 +114,48 @@ fn decodes_the_minimal_manifest() {
     );
 }
 
+/// The image owns the harness version, so a manifest that repeats it only creates a second place
+/// to forget. The examples are what people copy, so none of them may pin one.
+#[test]
+fn no_example_manifest_pins_a_harness_version() {
+    let examples = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples");
+    let mut checked = 0;
+    for example in std::fs::read_dir(&examples).expect("examples directory") {
+        let directory = example.expect("examples entry").path();
+        if !directory.is_dir() {
+            continue;
+        }
+        for manifest in std::fs::read_dir(&directory).expect("example directory") {
+            let path = manifest.expect("example entry").path();
+            if !path.is_file() {
+                continue;
+            }
+            let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+            let is_manifest = name.starts_with("agent")
+                && path
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("yaml"));
+            if !is_manifest {
+                continue;
+            }
+            let agent = manifest::resolve(&path)
+                .unwrap_or_else(|error| panic!("{} should resolve: {error}", path.display()))
+                .agent;
+            for harness in &agent.spec.harnesses {
+                assert_eq!(
+                    harness.version,
+                    None,
+                    "{} pins a version for {:?}; the image owns it",
+                    path.display(),
+                    harness.kind
+                );
+            }
+            checked += 1;
+        }
+    }
+    assert!(checked > 0, "no example manifests were checked");
+}
+
 #[test]
 fn decodes_the_self_development_manifest() {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/self-dev/agent.worktree.yaml");
@@ -204,6 +246,27 @@ fn decodes_explicit_non_secret_environment_with_an_optional_source() {
 }
 
 #[test]
+fn optional_secret_round_trips_without_changing_the_required_default() {
+    let mut agent = support::agent("worker");
+    agent.spec.secrets.push(SecretSpec {
+        environment: "OPTIONAL_TOKEN".into(),
+        optional: true,
+        placeholder: None,
+        allowed_hosts: vec!["example.com".into()],
+        source: None,
+    });
+
+    let encoded = serde_yaml_ng::to_string(&agent).expect("encoded manifest");
+    let decoded = manifest::decode(encoded.as_bytes()).expect("manifest with optional secret");
+    assert!(decoded.spec.secrets[0].optional);
+    assert!(encoded.contains("optional: true"));
+
+    agent.spec.secrets[0].optional = false;
+    let required = serde_yaml_ng::to_string(&agent).expect("encoded required secret");
+    assert!(!required.contains("optional:"));
+}
+
+#[test]
 fn rejects_invalid_duplicate_and_unpaired_environment_names() {
     let mut invalid = support::agent("worker");
     invalid.spec.environment.push(EnvironmentSpec {
@@ -251,6 +314,7 @@ fn rejects_environment_collisions_with_secrets_and_harness_owned_values() {
     });
     secret_collision.spec.secrets.push(SecretSpec {
         environment: "API_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["example.com".into()],
         source: Some("SHARED_VALUE".into()),
@@ -354,12 +418,14 @@ fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
     agent.spec.secrets = vec![
         SecretSpec {
             environment: "FIRST_TOKEN".into(),
+            optional: false,
             placeholder: None,
             allowed_hosts: vec!["example.com".into()],
             source: None,
         },
         SecretSpec {
             environment: "SECOND_TOKEN".into(),
+            optional: false,
             placeholder: Some("$AGENT_SECRET_FIRST_TOKEN".into()),
             allowed_hosts: vec!["example.com".into()],
             source: None,
@@ -371,6 +437,56 @@ fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
         .expect_err("effective placeholders must remain unambiguous");
 
     assert!(matches!(error, agent::Error::Invalid(message) if message.contains("spec.secrets[1]")));
+}
+
+#[test]
+fn decodes_an_optional_harness_installation_and_omits_the_flag_by_default() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-minimal:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "4Gi"
+      rootFilesystem:
+        capacity: "32Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+    - type: codex
+      auth: mediated
+      optional: true
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest with an optional harness should decode");
+    let claude = agent
+        .spec
+        .harness(Harness::ClaudeCode)
+        .expect("Claude Code installation");
+    let codex = agent.spec.harness(Harness::Codex).expect("Codex installation");
+    assert!(!claude.optional);
+    assert!(codex.optional);
+
+    // The flag is absent from a required installation's serialized form, so manifests that never
+    // opt in are unchanged by this field existing.
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert!(value["spec"]["harnesses"][0].get("optional").is_none());
+    assert_eq!(value["spec"]["harnesses"][1]["optional"], true);
 }
 
 #[test]
@@ -426,6 +542,7 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
     agent.spec.harnesses.push(codex);
     agent.spec.secrets.push(SecretSpec {
         environment: "AGENT_CODEX_ACCESS_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["chatgpt.com".into()],
         source: None,
@@ -462,16 +579,19 @@ fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
     let mut agent = support::agent("worker");
     agent.spec.skills = vec![agent::SkillSpec {
         source: PathBuf::from("skills/.."),
+        name: None,
     }];
     let error = agent.validate().expect_err("a source ending in .. has no skill name");
-    assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("spec.skills[0].source")));
+    assert!(matches!(error, agent::Error::Invalid(message) if message.starts_with("spec.skills[0]")));
 
     agent.spec.skills = vec![
         agent::SkillSpec {
             source: PathBuf::from("skills/evidence"),
+            name: None,
         },
         agent::SkillSpec {
             source: PathBuf::from("../shared/evidence/"),
+            name: None,
         },
     ];
     let error = agent
@@ -484,6 +604,10 @@ fn rejects_skills_without_a_directory_name_or_with_duplicate_names() {
     agent.spec.skills.pop();
     agent.validate().expect("one named skill is valid");
     assert_eq!(agent.spec.skills[0].name(), Some("evidence"));
+
+    agent.spec.skills[0].name = Some("installed-evidence".into());
+    agent.validate().expect("an explicit skill name is valid");
+    assert_eq!(agent.spec.skills[0].name(), Some("installed-evidence"));
 }
 
 #[test]

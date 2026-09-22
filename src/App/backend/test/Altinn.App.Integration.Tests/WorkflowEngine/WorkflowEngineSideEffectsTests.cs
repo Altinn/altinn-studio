@@ -17,6 +17,11 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// commands (ExecuteServiceTask) stay in the Main workflow and are waited on. The scenario's
 /// events client holds registrations until the test releases them, proving that the process
 /// completes while its side effects are still pending.
+///
+/// It also closes the idempotency chain: every registration must carry the engine's id for the step
+/// that raised it, so a step the engine retries presents Altinn Events the same <c>Idempotency-Key</c>
+/// and the event is stored and delivered once. The engine reports that same id as the step's
+/// <c>databaseId</c>, which is what the key is matched against here.
 /// </summary>
 [Trait("Category", "Integration")]
 [Collection(WorkflowEngineTestCollection.Name)]
@@ -120,7 +125,7 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
             );
             Assert.Equal("Completed", endMain.OverallStatus);
 
-            Assert.Empty(await GetRegisteredEventTypes(fixture));
+            Assert.Empty(await GetRegisteredEvents(fixture));
             await ReleaseEvents(fixture);
 
             // Fire-and-forget does not mean fire-and-lose: every side-effects workflow still runs to
@@ -135,11 +140,28 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
             Assert.All(sideEffectWorkflows, w => Assert.Equal("Completed", w.OverallStatus));
 
             // Releasing the gate lets each pending event registration complete.
-            IReadOnlyList<string> registeredEventTypes = await GetRegisteredEventTypes(fixture);
+            IReadOnlyList<RegisteredEvent> registeredEvents = await GetRegisteredEvents(fixture);
+            List<string> registeredEventTypes = registeredEvents.Select(e => e.EventType).ToList();
             Assert.Contains("app.instance.process.movedTo.Task_1", registeredEventTypes);
             Assert.Contains("app.instance.created", registeredEventTypes);
             Assert.Contains("app.instance.process.movedTo.Task_Service", registeredEventTypes);
             Assert.Contains("app.instance.process.completed", registeredEventTypes);
+
+            // Every registration carries an idempotency key, and each names its own step: a key shared
+            // by two events would have Altinn Events discard the second as a duplicate of the first.
+            Assert.All(registeredEvents, e => Assert.False(string.IsNullOrEmpty(e.IdempotencyKey)));
+            Assert.Equal(
+                registeredEvents.Count,
+                registeredEvents.Select(e => e.IdempotencyKey).Distinct(StringComparer.Ordinal).Count()
+            );
+
+            // The key is the engine's own id for the step that raised the event, which is what makes it
+            // stable across that step's retries. Matched against the step captured before the release.
+            RegisteredEvent movedToServiceTask = Assert.Single(
+                registeredEvents,
+                e => e.EventType == "app.instance.process.movedTo.Task_Service"
+            );
+            Assert.Equal(movedToStep.DatabaseId.ToString(), movedToServiceTask.IdempotencyKey);
         }
         finally
         {
@@ -219,12 +241,12 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
         response.EnsureSuccessStatusCode();
     }
 
-    private static async Task<IReadOnlyList<string>> GetRegisteredEventTypes(AppFixture fixture)
+    private static async Task<IReadOnlyList<RegisteredEvent>> GetRegisteredEvents(AppFixture fixture)
     {
         using var response = await fixture.GetDirectAppClient().GetAsync("/test/side-effects/events");
         response.EnsureSuccessStatusCode();
         string body = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<List<string>>(body)!;
+        return JsonSerializer.Deserialize<List<RegisteredEvent>>(body)!;
     }
 
     private static async Task PatchValidFormData(
@@ -266,8 +288,15 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
     );
 
     private sealed record EngineStep(
+        [property: JsonPropertyName("databaseId")] Guid DatabaseId,
         [property: JsonPropertyName("operationId")] string OperationId,
         [property: JsonPropertyName("status")] string Status
+    );
+
+    /// <summary>One event registration as the scenario's events client saw it.</summary>
+    private sealed record RegisteredEvent(
+        [property: JsonPropertyName("eventType")] string EventType,
+        [property: JsonPropertyName("idempotencyKey")] string? IdempotencyKey
     );
 
     private sealed record EngineCollection([property: JsonPropertyName("heads")] List<EngineHead> Heads);

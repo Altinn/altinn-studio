@@ -27,6 +27,7 @@ RUN apt-get update \
         libssl-dev \
         lldb \
         linux-perf \
+        neovim \
         nftables \
         openssh-server \
         pkg-config \
@@ -40,6 +41,7 @@ RUN apt-get update \
         systemd \
         tmux \
     && rm -rf /var/lib/apt/lists/* \
+    && nvim --version \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
@@ -47,8 +49,15 @@ RUN apt-get update \
     && rm -rf /usr/local/cargo/registry /usr/local/cargo/git \
     && chmod -R a+rX /usr/local/cargo /usr/local/rustup
 
+COPY nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
+
+RUN nvim --headless \
+    "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+    +quit
+
 ARG TARGETARCH
 ARG GH_VERSION=2.100.0
+ARG GH_STACK_VERSION=0.1.1
 ARG ASCIINEMA_VERSION=3.2.1
 ARG AGG_VERSION=1.9.0
 ARG NODE_VERSION=22.23.2
@@ -56,10 +65,12 @@ ARG NODE_VERSION=22.23.2
 RUN case "${TARGETARCH}" in \
         amd64) NODE_ARCH=x64; RUST_ARCH=x86_64; \
             GH_SHA256=e4d4bb4498e8d007abe545b6568926793ace1b6447da598294a610018cb164be; \
+            GH_STACK_SHA256=9ed103934fab0f90d3341fdfc4a342785396d39f5621fc7313a62602ce2b5462; \
             ASCIINEMA_SHA256=1b405bbda565b33c3c4718de67fedc3535580603c0694b1ff3fb04f363430a20; \
             AGG_SHA256=f111e315cd71056b116302342553dd765b7297579ed511f111d0cedb442aeda6 ;; \
         arm64) NODE_ARCH=arm64; RUST_ARCH=aarch64; \
             GH_SHA256=ea4e7a581a32ccad6cc7923cb1576ac5859ba4b9a16ab22eb8f8a96e78e2e961; \
+            GH_STACK_SHA256=2da13f8c46f2770237c744b341ab6be9f07508585a6762634c4a88aa355460bc; \
             ASCIINEMA_SHA256=b516a6d896844c0ffbc96e0a55afe4cbcc79216abde0fc64fdda4e39bee421ea; \
             AGG_SHA256=2b4be407b97e00e1c313a41d154ced8fa3d02c560c8f47a0db4950a2576444c9 ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
@@ -76,6 +87,10 @@ RUN case "${TARGETARCH}" in \
     && echo "${GH_SHA256}  /tmp/gh.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/gh.tar.gz -C /tmp \
     && install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /usr/local/bin/gh \
+    && curl -fsSL \
+        "https://github.com/github/gh-stack/releases/download/v${GH_STACK_VERSION}/linux-${TARGETARCH}" \
+        -o /tmp/gh-stack \
+    && echo "${GH_STACK_SHA256}  /tmp/gh-stack" | sha256sum -c - \
     && curl -fsSL \
         "https://github.com/asciinema/asciinema/releases/download/v${ASCIINEMA_VERSION}/asciinema-${RUST_ARCH}-unknown-linux-gnu" \
         -o /tmp/asciinema \
@@ -96,8 +111,8 @@ RUN case "${TARGETARCH}" in \
 # host-mediated token.
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-ARG CODEX_VERSION=0.153.4
-ARG CLAUDE_CODE_VERSION=2.1.266
+ARG CODEX_VERSION=0.155.1
+ARG CLAUDE_CODE_VERSION=2.1.278
 
 # Node ignores the system trust store, and Buildah drops default environment from build stages,
 # so a build inside an Agent needs the system store selected per step for npm to trust mediation.
@@ -117,7 +132,20 @@ RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --append --groups kvm agent \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
-    && install -d -m 0755 -o agent -g agent /home/agent/code \
+    && install -d -m 0755 -o agent -g agent \
+        /home/agent/.local/share/gh/extensions/gh-stack /home/agent/code \
+    && install -m 0755 -o agent -g agent \
+        /tmp/gh-stack /home/agent/.local/share/gh/extensions/gh-stack/gh-stack \
+    && printf '%s\n' \
+        'owner: github' \
+        'name: gh-stack' \
+        'host: github.com' \
+        "tag: v${GH_STACK_VERSION}" \
+        'ispinned: true' \
+        'path: /home/agent/.local/share/gh/extensions/gh-stack/gh-stack' \
+        >/home/agent/.local/share/gh/extensions/gh-stack/manifest.yml \
+    && chown -R agent:agent /home/agent/.local \
+    && rm -f /tmp/gh-stack \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
 
@@ -157,6 +185,7 @@ ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 ENV DOCKER_HOST=unix:///run/podman/podman.sock
 ENV DISABLE_AUTOUPDATER=1
 ENV GH_NO_UPDATE_NOTIFIER=1
+ENV GH_NO_EXTENSION_UPDATE_NOTIFIER=1
 ENV HOME=/home/agent
 ENV PATH=/home/agent/.local/bin:/home/agent/.cargo/bin:${PATH}
 

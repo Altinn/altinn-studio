@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,7 +15,7 @@ namespace Altinn.App.Models
     [XmlElement("form", Order = 1)]
     [JsonProperty("form")]
     [JsonPropertyName("form")]
-    public form form { get; set; }
+    public form? form { get; set; }
 
   }
 
@@ -24,7 +24,7 @@ namespace Altinn.App.Models
     [XmlElement("name", Order = 1)]
     [JsonProperty("name")]
     [JsonPropertyName("name")]
-    public string name { get; set; }
+    public string? name { get; set; }
 
     [MinLength(9)]
     [MaxLength(9)]
@@ -32,7 +32,7 @@ namespace Altinn.App.Models
     [XmlElement("orgNumber", Order = 2)]
     [JsonProperty("orgNumber")]
     [JsonPropertyName("orgNumber")]
-    public string orgNumber { get; set; }
+    public string? orgNumber { get; set; }
 
     [Range(2000d, Double.MaxValue)]
     [XmlElement("year", Order = 3)]
@@ -51,7 +51,7 @@ namespace Altinn.App.Models
     [XmlElement("sources", Order = 5)]
     [JsonProperty("sources")]
     [JsonPropertyName("sources")]
-    public List<sources> sources { get; set; }
+    public List<sources>? sources { get; set; }
 
   }
 
@@ -68,7 +68,7 @@ namespace Altinn.App.Models
     [XmlElement("type", Order = 1)]
     [JsonProperty("type")]
     [JsonPropertyName("type")]
-    public string type { get; set; }
+    public string? type { get; set; }
 
   }
 }

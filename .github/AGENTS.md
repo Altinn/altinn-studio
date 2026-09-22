@@ -1,7 +1,78 @@
 # AGENTS.md — GitHub CI (`.github`)
 
 GitHub Actions workflows (`workflows/`) and composite actions (`actions/`).
-Guidance is organized by topic.
+Rules by topic; each is what the existing workflows already do.
+
+## Pull request triggers and drafts
+
+**CI does not run while a pull request is a draft.** Marking it ready runs
+everything once.
+
+```yaml
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/<area>/**'
+      - '.github/workflows/<this-workflow>.yaml'
+      - '!**/AGENTS.md'
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+```
+
+Guard every job that does work, rather than filtering at `on:`. Listing
+`ready_for_review` *without* the guard is the one combination that is strictly
+wrong: the workflow then runs on every draft push and again on ready. Teardown
+work goes in a separate job keyed on `github.event.action == 'closed'` — see
+[`apps-storybook-preview.yaml`](workflows/apps-storybook-preview.yaml).
+
+A few workflows run on drafts deliberately, for example
+[`pr-labeler.yml`](workflows/pr-labeler.yml) and
+[`approve-pr.yaml`](workflows/approve-pr.yaml) (PR metadata, not CI),
+[`lint-pr.yaml`](workflows/lint-pr.yaml) (title check, seconds, useful early),
+and `release-*` (`types: [closed]` only).
+
+## Concurrency
+
+```yaml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+```
+
+The `||` chain keys on the PR, then the ref, then the run id, so unrelated
+dispatches never cancel each other. Workflows that deploy or publish set
+`cancel-in-progress: false`, or `${{ github.event_name == 'pull_request' }}`
+when they do both.
+
+## Path filters
+
+Scope `paths` to what the workflow tests, always including its own file, and
+exclude `'!**/AGENTS.md'`.
+
+## Runners
+
+`ubuntu-latest` for short checks; `self-hosted-ubuntu` (the image in
+[`src/ci/github-runner`](../src/ci/github-runner/Dockerfile)) when the baked-in
+toolchains or the local cache help. Jobs serving fork PRs pick per event:
+
+```yaml
+runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'self-hosted-ubuntu' }}
+```
+
+Every job sets `timeout-minutes` — a normal run plus headroom, not an hour.
+
+## Permissions, pinning and checkout
+
+- Pin third-party actions to a full SHA with the version in a trailing comment
+  (`actions/checkout@3d3c42e… # v7.0.1`); Renovate moves them.
+- Declare `permissions:` explicitly, narrowest that works, default
+  `contents: read`. Never give a PR-triggered job `packages: write` or any
+  other write scope over shared infrastructure.
+- `actions/checkout` uses `persist-credentials: false` unless the job pushes,
+  and `fetch-depth: 1` unless it needs history.
 
 ## Caching
 

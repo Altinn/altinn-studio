@@ -59,6 +59,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -145,6 +146,13 @@ impl Provider for MemoryProvider {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: self.report_runtime_restart.replace(false),
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
@@ -870,6 +878,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection::default(),
     });
@@ -936,6 +945,7 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     let mut changed = request;
     changed.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: Some("GH_PAT".into()),
@@ -982,6 +992,7 @@ async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
     let mut request = apply_request_in("worker", source_directory.clone());
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1132,6 +1143,7 @@ async fn existing_default_env_outside_bind_mount_is_allowed() {
     request.env_file = Some(external.path().join("worker.env"));
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1162,6 +1174,7 @@ async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
     let mut request = apply_request_in("worker", source_directory);
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1195,6 +1208,7 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
     secret_agent.env_file = Some(selected_secret_file);
     secret_agent.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,

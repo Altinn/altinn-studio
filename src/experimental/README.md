@@ -102,6 +102,10 @@ with the consequence that those files are reapplied on every Agent pass.
 
 `spec.harnesses` declares the harness installations available to Sessions and selects the default used for new Sessions.
 A declared `version` is verified against the image at setup; omit it when the image owns the version, so image bumps need no manifest change.
+Set `optional: true` when an absent host login should omit that installation instead of blocking Agent creation, so a
+manifest can offer a harness that not everyone has signed in to. The check runs on every convergence, so signing in on
+the host installs the harness on the next pass; until then a Session on it is refused, naming the login. The default
+installation cannot usefully be optional, since it is what a Session selecting no harness gets.
 Each installation may declare `defaults` with a `model` and an `effort` level for its new Sessions, in the harness's
 own vocabulary. The published manifests select `model: fable` for Claude Code because a mediated token cannot list
 Fable in the `/model` picker.
@@ -142,6 +146,8 @@ contains any active Agent's secret file is refused at apply time, because the Sa
 values from the mounted directory. The Sandbox sees an inert placeholder in the named environment variable. The Network Backend substitutes
 the current real value only for an authorized request to an allowed host; rotation does not require copying new
 material into the Sandbox. A custom placeholder is optional for clients that validate token shape.
+Set `optional: true` when a missing or empty environment-file value should omit that secret binding instead of
+rejecting the Agent apply. Required secrets remain the default.
 
 Policy is evaluated for live Sandbox-originated operations and fails closed when the destination, authorization,
 secret resolution or trusted mediation path is unavailable. Host-destined traffic is restricted to the registered

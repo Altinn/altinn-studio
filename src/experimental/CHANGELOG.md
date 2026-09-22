@@ -12,6 +12,43 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- Codex and Claude Code Sessions show their model, working directory, Git branch, context usage, usage limits, harness
+  version and Fast mode in a persistent status line.
+- Altinn Agents can authenticate ordinary HTTPS Git commands to Azure DevOps with an optional host-mediated personal
+  access token, including cloning the `altinn-studio-infra` repository without exposing the token in the Sandbox.
+- Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
+  `habamax` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
+- Agent images include the `gh stack` extension for creating and managing stacked pull requests.
+- The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
+  actions while retaining all keyboard controls.
+- Agent Skill entries may declare an installed `name` separately from their source directory.
+- A harness installation may be declared `optional`, so an Agent is created without it when its host login is
+  absent. Altinn Agents declare Codex this way, and signing in on the host installs it on the next convergence.
+- Altinn Agents install the repository's text-review and Norwegian copy-editing Skills, so a Session has them as
+  well as a local checkout.
+- Agent manifests may mark a mediated secret as optional, so an absent or empty value omits that binding instead of
+  blocking Agent provisioning.
+- Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
+  app checkouts. They log `studioctl` in to each configured production, staging or development Studio environment
+  with a host-mediated API key. Full images also prepare LocalTest hostnames for browser testing.
+
+### Changed
+
+- Pull request evidence guidance is shorter, with readable pacing and no fixed clip
+  duration. The GIF conversion helper now accepts files up to 10 MiB instead of 8 MiB.
+- Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
+  harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
+
+### Fixed
+
+- Agent Sessions set `XDG_RUNTIME_DIR`, so `skopeo`, `buildah` and other tools that expect a user runtime
+  directory run instead of failing with a permission error on a path they cannot read.
+- `podman run --init` works in full Agents; the `catatonit` binary the flag needs was missing from the image.
+- Chromium in a full Altinn Agent trusts the same host-mediated certificate authorities as command-line tools, so
+  browser tests can load HTTPS dependencies without disabling certificate verification.
+
 ## [0.1.0-preview.4] - 2026-09-18
 
 ### Added

@@ -26,6 +26,11 @@ make test      # 6. Unit tests
 - Avoid nolint, the bar should be high
 - Respect fieldalignment lints (`make lint-fix` auto-corrects struct field ordering)
 
+### Bundled app-development skill
+
+`resources/agent/skills/app-development/SKILL.md` ships with studioctl. Keep its commands and workflows current when
+changing studioctl's user-facing flags, output, or behavior.
+
 ### Shared .NET libraries
 
 Libraries shared between the .NET projects in this area live under [`common/`](common/AGENTS.md) and are

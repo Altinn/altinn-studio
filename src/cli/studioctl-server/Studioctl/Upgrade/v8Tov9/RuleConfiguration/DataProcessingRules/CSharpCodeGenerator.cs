@@ -69,6 +69,10 @@ internal sealed class CSharpCodeGenerator
             return result;
         }
 
+        var primitiveResult = GeneratePrimitiveProcessor();
+        if (primitiveResult != null)
+            return primitiveResult;
+
         // Check for JS functions used by multiple rules
         var functionUsageCount = new Dictionary<string, List<string>>();
         foreach (var ruleEntry in _rules)
@@ -123,6 +127,96 @@ internal sealed class CSharpCodeGenerator
 
         return result;
     }
+
+    private DataProcessorGenerationResult? GeneratePrimitiveProcessor()
+    {
+        var functions = new Dictionary<string, (string Method, string Body)>();
+        try
+        {
+            foreach (var rule in _rules.Values)
+            {
+                if (
+                    rule.SelectedFunction == null
+                    || rule.InputParams == null
+                    || rule.InputParams.Count == 0
+                    || rule.OutParams == null
+                    || !rule.OutParams.ContainsKey("outParam0")
+                )
+                    return null;
+                if (_typeResolver != null && ConfiguredPaths(rule).Any(path => _typeResolver.ResolveType(path) == null))
+                    return null;
+                if (functions.ContainsKey(rule.SelectedFunction))
+                    continue;
+                var function = _jsParser.GetDataProcessingFunction(rule.SelectedFunction);
+                if (function?.FunctionAst == null)
+                    return null;
+                var body = new PrimitiveRuleConverter(function.ParameterName).Convert(function.FunctionAst);
+                functions.Add(rule.SelectedFunction, ($"Calculate_{functions.Count}", body));
+            }
+        }
+        catch (NotSupportedException)
+        {
+            // Array/object rules still use the existing converter; do not guess their semantics.
+            return null;
+        }
+
+        var className = SanitizeClassName(_layoutSetName) + "DataProcessor";
+        var code = new IndentedStringBuilder();
+        GenerateUsingStatements(code);
+        code.AppendLine("using Altinn.App.Core.Internal.Expressions;");
+        code.AppendLine("#nullable enable");
+        code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
+        code.AppendLine($"public class {className} : IDataWriteProcessor");
+        code.OpenBrace();
+        GenerateProcessDataWriteMethod(code);
+        foreach (var (id, rule) in _rules)
+        {
+            code.AppendLine($"private Task Rule_{SanitizeFunctionName(id)}(IFormDataWrapper wrapper)");
+            code.OpenBrace();
+            code.AppendLine("var obj = new Dictionary<string, object?>");
+            code.OpenBrace();
+            foreach (
+                var (key, path) in (
+                    rule.InputParams ?? throw new InvalidOperationException("Validated inputs are missing.")
+                )
+            )
+                code.AppendLine(
+                    $"[{PrimitiveRuleConverter.Quote(key)}] = wrapper.Get({PrimitiveRuleConverter.Quote(path)}),"
+                );
+            code.CloseBrace();
+            code.AppendLine(";");
+            code.AppendLine(
+                $"var result = {functions[(rule.SelectedFunction ?? throw new InvalidOperationException("Validated function is missing."))].Method}(obj);"
+            );
+            code.AppendLine(
+                $"wrapper.Set({PrimitiveRuleConverter.Quote((rule.OutParams ?? throw new InvalidOperationException("Validated output is missing."))["outParam0"])}, ExpressionValue.FromObject(result is JsUndefined ? null : result));"
+            );
+            code.AppendLine("return Task.CompletedTask;");
+            code.CloseBrace();
+        }
+        foreach (var (method, body) in functions.Values)
+        {
+            code.AppendLine($"private static object? {method}(Dictionary<string, object?> obj)");
+            code.OpenBrace();
+            foreach (var line in body.Split('\n'))
+                code.AppendLine(line);
+            code.CloseBrace();
+        }
+        foreach (var line in PrimitiveRuleConverter.Runtime.Split('\n'))
+            code.AppendLine(line);
+        code.CloseBrace();
+        return new DataProcessorGenerationResult
+        {
+            Success = true,
+            ClassName = className,
+            GeneratedCode = code.ToString(),
+            TotalRules = _rules.Count,
+            SuccessfulConversions = _rules.Count,
+        };
+    }
+
+    private static IEnumerable<string> ConfiguredPaths(DataProcessingRule rule) =>
+        (rule.InputParams?.Values.AsEnumerable() ?? []).Concat(rule.OutParams?.Values.AsEnumerable() ?? []);
 
     private void GenerateUsingStatements(IndentedStringBuilder code)
     {
@@ -327,7 +421,7 @@ internal sealed class CSharpCodeGenerator
                 code.AppendLine();
 
                 // Try to convert the return expression
-                var converter = new StatementConverter(new Dictionary<string, string>(), "");
+                var converter = new StatementConverter();
 
                 // Mark the parameter variables as already declared to avoid redeclaration
                 converter.MarkVariablesAsDeclared(allPossibleKeys);
@@ -444,6 +538,12 @@ internal sealed class CSharpCodeGenerator
 
             try
             {
+                if (_typeResolver != null)
+                {
+                    foreach (var path in ConfiguredPaths(rule))
+                        if (_typeResolver.ResolveType(path) == null)
+                            throw new InvalidOperationException($"Failed to resolve type for path '{path}'.");
+                }
                 if (jsFunction != null)
                 {
                     // Check if this function is shared
@@ -578,8 +678,7 @@ internal sealed class CSharpCodeGenerator
                         code.AppendLine();
 
                         // Try to convert to C#
-                        // Pass empty dictionaries so that input params are treated as local variables
-                        var converter = new StatementConverter(new Dictionary<string, string>(), "");
+                        var converter = new StatementConverter();
 
                         // Generate local variable declarations for input parameters
                         // This allows the function body to treat them as local variables

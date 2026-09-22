@@ -16,6 +16,7 @@ RUN apt-get update \
         libicu-dev \
         libkrb5-dev \
         libssl-dev \
+        neovim \
         openssh-server \
         pkg-config \
         procps \
@@ -74,6 +75,7 @@ RUN case "${TARGETARCH}" in \
 
 ARG YARN_VERSION=4.18.0
 ARG GH_VERSION=2.100.0
+ARG GH_STACK_VERSION=0.1.1
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
@@ -87,8 +89,10 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && chmod -R a+rX "${COREPACK_HOME}"
 
 RUN case "${TARGETARCH}" in \
-        amd64) GH_SHA256=e4d4bb4498e8d007abe545b6568926793ace1b6447da598294a610018cb164be ;; \
-        arm64) GH_SHA256=ea4e7a581a32ccad6cc7923cb1576ac5859ba4b9a16ab22eb8f8a96e78e2e961 ;; \
+        amd64) GH_SHA256=e4d4bb4498e8d007abe545b6568926793ace1b6447da598294a610018cb164be; \
+            GH_STACK_SHA256=9ed103934fab0f90d3341fdfc4a342785396d39f5621fc7313a62602ce2b5462 ;; \
+        arm64) GH_SHA256=ea4e7a581a32ccad6cc7923cb1576ac5859ba4b9a16ab22eb8f8a96e78e2e961; \
+            GH_STACK_SHA256=2da13f8c46f2770237c744b341ab6be9f07508585a6762634c4a88aa355460bc ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
     && GH_ARCHIVE="gh_${GH_VERSION}_linux_${TARGETARCH}.tar.gz" \
@@ -96,14 +100,22 @@ RUN case "${TARGETARCH}" in \
     && echo "${GH_SHA256}  /tmp/gh.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/gh.tar.gz -C /tmp \
     && install -m 0755 "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /usr/local/bin/gh \
+    && curl -fsSL \
+        "https://github.com/github/gh-stack/releases/download/v${GH_STACK_VERSION}/linux-${TARGETARCH}" \
+        -o /tmp/gh-stack \
+    && echo "${GH_STACK_SHA256}  /tmp/gh-stack" | sha256sum -c - \
     && rm -rf /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}" \
     && gh --version
 
-# Route GitHub credentials through the gh CLI so plain git commands authenticate with the
-# host-mediated token. Written system-wide, below any user configuration, because the home
-# directory is resynchronized from the host on every sandbox setup.
+# Route GitHub and Azure DevOps credentials through helpers so plain git commands authenticate
+# with host-mediated tokens. Written system-wide, below any user configuration, because the home
+# directory is resynchronized from the host on every sandbox setup. The Azure DevOps helper emits
+# only the inert guest placeholder; the mediated network replaces it inside Basic authentication.
+COPY --chmod=0755 common/bin/azure-devops-git-credential /usr/local/bin/
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential' \
-    && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential'
+    && git config --system credential.https://gist.github.com.helper '!/usr/local/bin/gh auth git-credential' \
+    && git config --system credential.https://dev.azure.com.helper \
+        '!/usr/local/bin/azure-devops-git-credential'
 
 # Terminal evidence for pull requests: asciinema records a command, agg renders the cast to a GIF.
 # JetBrains Mono includes the picker glyphs used by the terminal UI.
@@ -135,8 +147,10 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
-ARG CODEX_VERSION=0.154.0
-ARG CLAUDE_CODE_VERSION=2.1.268
+ARG CODEX_VERSION=0.155.1
+ARG CLAUDE_CODE_VERSION=2.1.278
+ARG STUDIOCTL_VERSION=v0.1.0-preview.26
+ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
 # OpenSSH rejects even public-key authentication for a locked account when PAM is disabled.
 # Password and keyboard authentication remain disabled by the platform-owned SSH policy.
@@ -151,12 +165,69 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && groupmod --new-name agent ubuntu \
     && printf 'agent ALL=(ALL) NOPASSWD:ALL\n' >/etc/sudoers.d/agent \
     && chmod 0440 /etc/sudoers.d/agent \
-    && install -d -m 0755 -o agent -g agent /home/agent/.claude /home/agent/code \
+    && install -d -m 0755 -o agent -g agent \
+        /home/agent/.claude \
+        /home/agent/.config \
+        /home/agent/.config/altinn-studio \
+        /home/agent/.local \
+        /home/agent/.local/bin \
+        /home/agent/.local/share/gh/extensions/gh-stack \
+        /home/agent/code \
+        /home/agent/code/apps \
+    && install -m 0755 -o agent -g agent \
+        /tmp/gh-stack /home/agent/.local/share/gh/extensions/gh-stack/gh-stack \
+    && printf '%s\n' \
+        'owner: github' \
+        'name: gh-stack' \
+        'host: github.com' \
+        "tag: v${GH_STACK_VERSION}" \
+        'ispinned: true' \
+        'path: /home/agent/.local/share/gh/extensions/gh-stack/gh-stack' \
+        >/home/agent/.local/share/gh/extensions/gh-stack/manifest.yml \
+    && chown -R agent:agent /home/agent/.local \
+    && rm -f /tmp/gh-stack \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \
     && touch /etc/machine-id
 
+# The released installer verifies the studioctl binary and its matching resource archive against
+# the release checksum file. Run it as the Agent user so self-updates and runtime state remain
+# writable after the home directory is mounted and synchronized by the Agent platform. A pristine
+# image has no legacy data to migrate; seed the migrations belonging to this pinned release so the
+# installer does not require the container runtime that is intentionally absent from minimal.
+# TODO: Remove common/studioctl-migrations.json when STUDIOCTL_VERSION includes fresh-install baseline migrations.
+COPY --chown=agent:agent --chmod=0644 common/studioctl-migrations.json /home/agent/.config/altinn-studio/migrations.json
+RUN curl -fsSL \
+        "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
+        -o /tmp/studioctl-install.sh \
+    && echo "${STUDIOCTL_INSTALL_SCRIPT_SHA256}  /tmp/studioctl-install.sh" | sha256sum -c - \
+    && sudo --user=agent env \
+        HOME=/home/agent \
+        PATH=/home/agent/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+        /bin/sh /tmp/studioctl-install.sh \
+            --version "${STUDIOCTL_VERSION}" \
+            --install-dir /home/agent/.local/bin \
+    && rm -f /tmp/studioctl-install.sh \
+    && test "$(/home/agent/.local/bin/studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
+    && test -x /home/agent/.config/altinn-studio/bin/studioctl-server/studioctl-server \
+    && test -f /home/agent/.config/altinn-studio/data/infra/otel-collector.yaml \
+    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
+        echo "studioctl installation left files under /home/agent not owned by agent" >&2; exit 1; \
+    fi
+
+# Nothing creates a per-user runtime directory here: systemd-logind owns that job and a Session is
+# a tmux process rather than a login. Without one, XDG_RUNTIME_DIR is unset and the containers
+# tools fall back to /run/containers/$UID, which rootful Podman owns and the Agent user cannot
+# traverse, so skopeo and buildah fail with a permission error instead of running unauthenticated.
+# The directory is created both here, for an image run without an init, and by tmpfiles for a
+# booted Agent, whose /run is a fresh tmpfs.
+COPY common/tmpfiles.conf /usr/lib/tmpfiles.d/agent.conf
+RUN install -d -m 0700 -o agent -g agent /run/user/1000
+
 COPY common/workspace-init.service /etc/systemd/system/agent-workspace-init.service
 COPY --chmod=0755 common/workspace-init.sh /usr/local/libexec/agent-workspace-init
+COPY common/studioctl-auth-init.service /etc/systemd/system/agent-studioctl-auth-init.service
+COPY --chmod=0755 common/studioctl-auth-init.sh /usr/local/libexec/agent-studioctl-auth-init
+COPY common/nvim-sysinit.vim /etc/xdg/nvim/sysinit.vim
 
 # agentd owns the loopback SSH server policy, unit and per-Agent state. The distribution's own
 # ssh.service and socket-activated ssh.socket would listen on every interface with package-generated
@@ -179,6 +250,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
         >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
+    && systemctl enable agent-studioctl-auth-init.service \
     && systemctl enable agent-workspace-init.service \
     && dotnet --version \
     && go version \
@@ -186,14 +258,21 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && yarn --version \
     && claude --version \
     && codex --version \
+    && test "$(id -u agent)" = 1000 \
+    && nvim --version \
+    && nvim --headless \
+        "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
+        +quit \
     && test "$(readlink /etc/localtime)" = /usr/share/zoneinfo/Europe/Oslo
 
 ENV DISABLE_AUTOUPDATER=1
 ENV GH_NO_UPDATE_NOTIFIER=1
+ENV GH_NO_EXTENSION_UPDATE_NOTIFIER=1
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
 ENV HOME=/home/agent
 ENV PATH=/home/agent/.local/bin:${PATH}
+ENV XDG_RUNTIME_DIR=/run/user/1000
 
 FROM base AS minimal
 
@@ -204,7 +283,7 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 
 FROM base AS full
 
-ARG PLAYWRIGHT_CLI_VERSION=0.1.19
+ARG PLAYWRIGHT_CLI_VERSION=0.1.20
 ARG RUST_VERSION=1.97.1
 
 # Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and
@@ -223,10 +302,12 @@ ENV PATH=/home/agent/.cargo/bin:${PATH}
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
+        catatonit \
         clang \
         ffmpeg \
         iproute2 \
         libcap-ng-dev \
+        libnss3-tools \
         lldb \
         linux-perf \
         nftables \
@@ -338,9 +419,12 @@ ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 COPY common/full-tmpfiles.conf /usr/lib/tmpfiles.d/agent-full.conf
 COPY common/full-hosts-init.service /etc/systemd/system/agent-full-hosts-init.service
+COPY common/browser-ca-init.service /etc/systemd/system/agent-browser-ca-init.service
+COPY --chmod=0755 common/browser-ca-init.sh /usr/local/libexec/agent-browser-ca-init
 
 RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --append --groups kvm agent \
+    && systemctl enable agent-browser-ca-init.service \
     && systemctl enable agent-full-hosts-init.service
 
 USER agent

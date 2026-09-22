@@ -17,6 +17,7 @@ const (
 	resourcesServerDir            = config.StudioctlServerResourcesDirName
 	resourcesLocaltestDir         = "localtest"
 	resourcesInfraDir             = "infra"
+	resourcesAgentSkillsDir       = "agent/skills"
 
 	// obsoleteTestdataDirName is the host testdata directory installed by earlier versions,
 	// before localtest started using the copy baked into its image.
@@ -72,12 +73,19 @@ func (s *Service) InstallBundleResources(ctx context.Context, bundle Bundle) (er
 	}
 
 	serverDir := filepath.Join(stagingDir, resourcesServerDir)
-	if _, err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
+	if err := installDir(serverDir, s.cfg.StudioctlServerInstallDir(), s.validatePayloadDir); err != nil {
 		return fmt.Errorf("install %s: %w", resourcesServerDir, err)
 	}
 
 	if err := copyDir(filepath.Join(stagingDir, resourcesLocaltestDir), s.cfg.DataDir); err != nil {
 		return fmt.Errorf("install resources: %w", err)
+	}
+	if err := installDir(
+		filepath.Join(stagingDir, filepath.FromSlash(resourcesAgentSkillsDir)),
+		s.cfg.AgentSkillsDir(),
+		nil,
+	); err != nil {
+		return fmt.Errorf("install Agent Skills: %w", err)
 	}
 	if err := removeObsoleteTestdataDir(s.cfg.DataDir); err != nil {
 		return err
