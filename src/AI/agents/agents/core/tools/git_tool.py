@@ -46,7 +46,7 @@ def _session_branch_name(ctx: LoopContext) -> str:
     if name:
         return name
     short_id = (ctx.session_id or "anon")[:8] or "anon"
-    name = f"altinity_session_{short_id}"
+    name = f"assistant_{short_id}"
     ctx.extras["session_branch"] = name
     return name
 

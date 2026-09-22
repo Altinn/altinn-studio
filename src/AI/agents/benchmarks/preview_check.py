@@ -164,7 +164,7 @@ def _main() -> None:
     from .app_model import load_app
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--branch", required=True, help="session branch, e.g. altinity_session_1a2b3c4d")
+    parser.add_argument("--branch", required=True, help="session branch, e.g. assistant_1a2b3c4d")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(prefix="altinity-preview-") as tmp:
