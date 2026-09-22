@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -28,6 +30,7 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
 {
     private const string Org = "ttd";
     private const string AppWithLegacyNames = "app-with-legacy-layout-names";
+    private const string V9AppWithoutLegacyNames = "app-with-groups-and-task-navigation";
     private const string Developer = "testUser";
     private const string LayoutSetWithLegacyPageNames = "legacySet";
     private const string LayoutSetWithLongFolderName = "subform-GjennomfoeringsplanDataV7Pdf";
@@ -105,7 +108,8 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, AppWithLegacyNames, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, V9AppWithoutLegacyNames, Developer, targetRepository);
+        AddSubformLayoutSet(targetRepository, LayoutSetWithLongFolderName);
         string url = $"{UiFoldersPrefix(targetRepository)}/layout-sets";
 
         // Act
@@ -113,8 +117,10 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        string responseContent = await response.Content.ReadAsStringAsync();
-        Assert.Contains(LayoutSetWithLongFolderName, responseContent, StringComparison.Ordinal);
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(
+            await response.Content.ReadAsStringAsync()
+        );
+        Assert.Contains(layoutSets, layoutSet => layoutSet.Id == LayoutSetWithLongFolderName);
     }
 
     [Fact]
@@ -294,6 +300,32 @@ public class LayoutNameValidationTests(WebApplicationFactory<Program> factory)
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    /// <summary>
+    /// Writes a subform layout set into the repository under test. A v9 app derives its layout sets from
+    /// the folders under ui rather than from layout-sets.json, so only a folder that is really there
+    /// exercises that derivation.
+    /// </summary>
+    /// <param name="repository">The repository to write the layout set into.</param>
+    /// <param name="layoutSetName">The name of the layout set folder to write.</param>
+    private static void AddSubformLayoutSet(string repository, string layoutSetName)
+    {
+        string layoutSetPath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoryDirectory(Org, repository, Developer),
+            "App",
+            "ui",
+            layoutSetName
+        );
+        Directory.CreateDirectory(Path.Combine(layoutSetPath, "layouts"));
+        JsonObject settings = new()
+        {
+            ["pages"] = new JsonObject { ["order"] = new JsonArray("Side1") },
+            ["type"] = "subform",
+        };
+        File.WriteAllText(Path.Combine(layoutSetPath, "Settings.json"), settings.ToJsonString());
+        JsonObject layout = new() { ["data"] = new JsonObject { ["layout"] = new JsonArray() } };
+        File.WriteAllText(Path.Combine(layoutSetPath, "layouts", "Side1.json"), layout.ToJsonString());
     }
 
     private async Task<HttpResponseMessage> RenamePage(string repository, string pageName, string newPageName)

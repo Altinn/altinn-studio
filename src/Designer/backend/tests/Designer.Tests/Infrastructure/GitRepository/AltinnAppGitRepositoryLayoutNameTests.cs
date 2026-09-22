@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Http;
 using Xunit;
@@ -133,6 +134,43 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
         await Assert.ThrowsAsync<BadHttpRequestException>(() =>
             repository.SaveLayout(newLayoutSetName, "Side1", EmptyLayout())
         );
+    }
+
+    [Fact]
+    public async Task CreatePageLayoutFile_NewPageOutsideNamingPolicy_Throws()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+
+        // Act and assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() =>
+            repository.CreatePageLayoutFile(LayoutSetWithLegacyPageNames, "New page", new AltinnPageLayout())
+        );
+    }
+
+    [Fact]
+    public async Task EnsureLayoutCanBeCreatedInSet_NewPageOutsideNamingPolicy_Throws()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+
+        // Act and assert
+        Assert.Throws<BadHttpRequestException>(() =>
+            repository.EnsureLayoutCanBeCreatedInSet(LayoutSetWithLegacyPageNames, "New page")
+        );
+    }
+
+    [Fact]
+    public async Task EnsureLayoutCanBeCreatedInSet_PageThatAlreadyExists_DoesNotThrow()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+
+        // Act
+        repository.EnsureLayoutCanBeCreatedInSet(LayoutSetWithLegacyPageNames, PageNameWithSpace);
+
+        // Assert
+        Assert.NotNull(await repository.GetLayout(LayoutSetWithLegacyPageNames, PageNameWithSpace));
     }
 
     private static JsonNode EmptyLayout() =>
