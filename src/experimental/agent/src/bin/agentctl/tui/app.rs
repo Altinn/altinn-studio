@@ -4,10 +4,11 @@ use std::{
 };
 
 use agent::{
-    Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
-    sessions::{LifecycleState, Session, SessionName, State},
+    Agent, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection,
+    sessions::{Session, SessionName, State},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use sandbox::progress::{OperationStatus, Progress};
 
 use crate::{format, forward::ForwardSpec};
 
@@ -770,17 +771,36 @@ pub(crate) enum Action {
 pub(crate) enum Tone {
     Green,
     Yellow,
+    Cyan,
     Gray,
     Red,
 }
 
+/// One tree row as the renderer draws it.
 pub(crate) struct RowView {
-    pub(crate) marker: &'static str,
-    pub(crate) dot: Option<&'static str>,
-    pub(crate) label: String,
-    pub(crate) badge: String,
-    pub(crate) tone: Tone,
     pub(crate) agent: bool,
+    /// A Session waits for input, or an Agent has one that does.
+    pub(crate) attention: bool,
+    /// An Agent's fold marker or a Session's state glyph, readable without colour.
+    pub(crate) marker: &'static str,
+    pub(crate) name: String,
+    pub(crate) state: &'static str,
+    pub(crate) tone: Tone,
+    /// How long the row has been in its state, when known.
+    pub(crate) since: String,
+    pub(crate) detail: String,
+    pub(crate) age: String,
+}
+
+/// Sessions by state and Agents provisioning, for the header.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct TriageCounts {
+    pub(crate) needs_you: usize,
+    pub(crate) working: usize,
+    pub(crate) starting: usize,
+    pub(crate) idle: usize,
+    pub(crate) failed: usize,
+    pub(crate) provisioning: usize,
 }
 
 impl App {
@@ -888,13 +908,22 @@ impl App {
         }
     }
 
-    pub(crate) fn counts(&self) -> (usize, usize, usize) {
-        let running = self
-            .sessions
-            .iter()
-            .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
-            .count();
-        (self.agents.len(), self.sessions.len(), running)
+    pub(crate) fn triage_counts(&self) -> TriageCounts {
+        let mut counts = TriageCounts {
+            provisioning: self.agents.iter().filter(|agent| provisioning(agent).is_some()).count(),
+            ..TriageCounts::default()
+        };
+        for session in &self.sessions {
+            let count = match session.status.state {
+                State::WaitingForInput => &mut counts.needs_you,
+                State::Working => &mut counts.working,
+                State::Starting => &mut counts.starting,
+                State::Idle => &mut counts.idle,
+                State::Failed => &mut counts.failed,
+            };
+            *count += 1;
+        }
+        counts
     }
 
     pub(crate) const fn idle(&self) -> bool {
@@ -1351,65 +1380,75 @@ impl App {
                 Row::Agent(group) => {
                     let agent = self.group_agent(group)?;
                     let sessions = &self.groups.get(group)?.sessions;
-                    let running = sessions
+                    let attention = sessions
                         .iter()
                         .filter_map(|index| self.sessions.get(*index))
-                        .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
-                        .count();
+                        .any(|session| session.status.state == State::WaitingForInput);
                     let marker = if self.collapsed.contains(&agent.metadata.name) {
-                        "▸ "
+                        "▸"
                     } else {
-                        "▾ "
+                        "▾"
                     };
-                    let (tone, status) = agent_tone(agent);
+                    let (tone, state, status) = agent_state(agent);
+                    let count = match sessions.len() {
+                        0 => String::new(),
+                        1 => "1 session".to_owned(),
+                        count => format!("{count} sessions"),
+                    };
                     let forwards = self
                         .forwards
                         .iter()
                         .filter(|entry| entry.agent == agent.metadata.name)
                         .map(ForwardEntry::mapping)
                         .collect::<Vec<_>>();
-                    let forward_badge = if forwards.is_empty() {
+                    let ports = if forwards.is_empty() {
                         String::new()
                     } else {
-                        format!(" · ports: {}", forwards.join(" "))
+                        format!("ports: {}", forwards.join(" "))
                     };
-                    let badge = format!("{running}/{} · {status}{forward_badge}", sessions.len());
+                    let detail = [status, count, ports]
+                        .into_iter()
+                        .filter(|part| !part.is_empty())
+                        .collect::<Vec<_>>()
+                        .join(" · ");
                     Some(RowView {
-                        marker,
-                        dot: None,
-                        label: agent.metadata.name.clone(),
-                        badge,
-                        tone,
                         agent: true,
+                        attention,
+                        marker,
+                        name: agent.metadata.name.clone(),
+                        state,
+                        tone,
+                        since: agent
+                            .status
+                            .ready_condition()
+                            .and_then(|condition| condition.last_transition_time)
+                            .map_or_else(String::new, format::format_age),
+                        detail,
+                        age: String::new(),
                     })
                 }
                 Row::Session { group, position } => {
                     let session = self.group_session(group, position)?;
-                    let last = position + 1 == self.groups.get(group)?.sessions.len();
-                    let marker = if last { "  └─ " } else { "  ├─ " };
-                    let tone = session_tone(session.status.state);
-                    let dot = if session.status.state == State::Idle {
-                        "○"
-                    } else {
-                        "●"
-                    };
+                    let (tone, marker, state) = session_state(session.status.state);
+                    let harness = harness_label(session.harness);
                     Some(RowView {
-                        marker,
-                        dot: Some(dot),
-                        label: session.name.as_str().to_owned(),
-                        badge: format!(
-                            "{} · {}{} · {}",
-                            format::session_state(session.status.state),
-                            session.harness.as_str(),
-                            session
-                                .model_selection
-                                .model_str()
-                                .map(|model| format!(" · {model}"))
-                                .unwrap_or_default(),
-                            format::format_age(session.created_at)
-                        ),
-                        tone,
                         agent: false,
+                        attention: session.status.state == State::WaitingForInput,
+                        marker,
+                        name: session.name.as_str().to_owned(),
+                        state,
+                        tone,
+                        since: session
+                            .status
+                            .reported
+                            .activity
+                            .last_event_at
+                            .map_or_else(String::new, format::format_age),
+                        detail: session
+                            .model_selection
+                            .model_str()
+                            .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}")),
+                        age: format::format_age(session.created_at),
                     })
                 }
             })
@@ -1447,35 +1486,64 @@ fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
     }
 }
 
-fn agent_tone(agent: &Agent) -> (Tone, String) {
+/// Reads an Agent's state from its typed status: deletion first, then the pass
+/// in progress, readiness and the class of the last failure.
+fn agent_state(agent: &Agent) -> (Tone, &'static str, String) {
     if agent.metadata.deletion_timestamp.is_some() {
-        return (Tone::Red, "Terminating".to_owned());
+        return (Tone::Red, "Terminating", String::new());
     }
-    let ready = agent.status.ready_condition();
-    ready.map_or_else(
-        || (Tone::Gray, "Pending".to_owned()),
-        |condition| {
-            let tone = if condition.status == ConditionStatus::True {
-                Tone::Green
-            } else {
-                Tone::Yellow
-            };
-            let reason = if condition.reason.is_empty() {
-                format::condition_status(condition.status).to_owned()
-            } else {
-                condition.reason.clone()
-            };
-            (tone, reason)
-        },
-    )
+    if let Some(progress) = provisioning(agent) {
+        return (Tone::Cyan, "Provisioning", progress_summary(progress));
+    }
+    let Some(ready) = agent.status.ready_condition() else {
+        return (Tone::Gray, "Pending", String::new());
+    };
+    match (ready.status, agent.status.failure) {
+        (ConditionStatus::True, _) => (Tone::Green, "Ready", String::new()),
+        (_, Some(FailureKind::Invalid)) => (Tone::Red, "Failed", ready.detail()),
+        (_, Some(FailureKind::Transient)) => (Tone::Yellow, "Retrying", ready.detail()),
+        (_, None) => (Tone::Cyan, "Starting", ready.detail()),
+    }
 }
 
-const fn session_tone(state: State) -> Tone {
+/// The Agent's pass while it is running.
+fn provisioning(agent: &Agent) -> Option<&Progress> {
+    let progress = &agent.status.progress.as_ref()?.progress;
+    (*progress.status() == OperationStatus::Running).then_some(progress)
+}
+
+/// The phase in progress and its current step, with the step's measurement.
+fn progress_summary(progress: &Progress) -> String {
+    let Some(phase) = progress.current() else {
+        return String::new();
+    };
+    let mut summary = phase.phase.label.to_string();
+    if let Some(step) = progress.current_step() {
+        summary.push_str(" · ");
+        summary.push_str(&step.name);
+        if let Some(measurement) = step.measurement {
+            summary.push_str(": ");
+            summary.push_str(&crate::progress::format_measurement(measurement));
+        }
+    }
+    summary
+}
+
+/// A Session state's tone, glyph and label.
+const fn session_state(state: State) -> (Tone, &'static str, &'static str) {
     match state {
-        State::Working | State::WaitingForInput => Tone::Green,
-        State::Starting => Tone::Yellow,
-        State::Idle => Tone::Gray,
-        State::Failed => Tone::Red,
+        State::WaitingForInput => (Tone::Yellow, "!", "Needs you"),
+        State::Working => (Tone::Green, "*", "Working"),
+        State::Starting => (Tone::Cyan, "~", "Starting"),
+        State::Idle => (Tone::Gray, "-", "Idle"),
+        State::Failed => (Tone::Red, "x", "Failed"),
+    }
+}
+
+const fn harness_label(harness: Harness) -> &'static str {
+    match harness {
+        Harness::ClaudeCode => "Claude Code",
+        Harness::Codex => "Codex",
     }
 }
 
@@ -1634,12 +1702,20 @@ mod tests {
             ]
         );
         let views = app.render_rows();
-        assert_eq!(views[0].label, "builder");
-        assert_eq!(views[1].label, "b1");
-        assert_eq!(views[2].label, "worker");
-        assert_eq!(views[3].label, "s1");
-        assert_eq!(views[4].label, "s2");
-        assert_eq!(app.counts(), (2, 3, 1));
+        assert_eq!(views[0].name, "builder");
+        assert_eq!(views[1].name, "b1");
+        assert_eq!(views[2].name, "worker");
+        assert_eq!(views[3].name, "s1");
+        assert_eq!(views[4].name, "s2");
+        assert_eq!(
+            app.triage_counts(),
+            TriageCounts {
+                working: 1,
+                starting: 1,
+                idle: 1,
+                ..TriageCounts::default()
+            }
+        );
     }
 
     #[test]
@@ -2229,29 +2305,119 @@ mod tests {
         assert_eq!(app.selected_index(), Some(0), "the watch reply keeps the selection");
     }
 
+    fn failed_agent(name: &str, failure: FailureKind) -> Agent {
+        let mut agent = agent(name);
+        agent.status.conditions.push(agent::Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::False,
+            reason: "ImageBuildFailed".into(),
+            message: "Dockerfile not found".into(),
+            last_transition_time: None,
+        });
+        agent.status.failure = Some(failure);
+        agent
+    }
+
+    fn provisioning_agent(name: &str) -> Agent {
+        let phase = sandbox::SandboxPhase::ImageResolve.phase();
+        let step = sandbox::StepId::generate();
+        let mut progress = Progress::new();
+        for event in [
+            sandbox::ProgressEvent::PhaseStarted { phase },
+            sandbox::ProgressEvent::StepStarted {
+                id: step.clone(),
+                name: "Pull OCI image".into(),
+                unit: Some(sandbox::ProgressUnit::Bytes),
+                total: Some(2048),
+            },
+            sandbox::ProgressEvent::StepProgress {
+                id: step,
+                completed: 1024,
+                total: None,
+            },
+        ] {
+            progress.apply(&event);
+        }
+        let mut agent = failed_agent(name, FailureKind::Transient);
+        agent.status.progress = Some(agent::progress::Provisioning {
+            pass: agent::resources::Changes::new().revision(),
+            progress,
+        });
+        agent
+    }
+
     #[test]
-    fn tones_reflect_agent_conditions_and_session_states() {
+    fn agent_state_comes_from_typed_status_and_the_pass_in_progress() {
         let mut terminating = ready_agent("done");
         terminating.metadata.deletion_timestamp = Some(time::OffsetDateTime::now_utc());
         let mut app = App::new();
         app.apply_snapshot(
-            vec![ready_agent("alive"), terminating, agent("fresh")],
             vec![
-                session("alive", "up", "waitingForInput"),
-                session("alive", "down", "failed"),
+                ready_agent("alive"),
+                terminating,
+                agent("fresh"),
+                failed_agent("broken", FailureKind::Invalid),
+                failed_agent("flaky", FailureKind::Transient),
+                provisioning_agent("pulling"),
             ],
+            Vec::new(),
         );
-        let views = app.render_rows();
-        assert_eq!(views[0].tone, Tone::Green);
-        assert!(views[0].badge.contains("SandboxReady"));
-        assert_eq!(views[1].tone, Tone::Red);
-        assert_eq!(views[2].tone, Tone::Green);
-        assert!(views[3].badge.contains("Terminating"));
-        assert_eq!(views[3].tone, Tone::Red);
-        assert_eq!(views[4].tone, Tone::Gray);
-        assert!(views[4].badge.contains("Pending"));
-        assert_eq!(views[1].dot, Some("●"));
-        assert!(views[1].badge.contains("Failed"));
+        let states = app
+            .render_rows()
+            .into_iter()
+            .map(|row| (row.name, row.state, row.tone, row.detail))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            states,
+            [
+                ("alive".into(), "Ready", Tone::Green, String::new()),
+                ("broken".into(), "Failed", Tone::Red, "Dockerfile not found".into()),
+                ("done".into(), "Terminating", Tone::Red, String::new()),
+                ("flaky".into(), "Retrying", Tone::Yellow, "Dockerfile not found".into()),
+                ("fresh".into(), "Pending", Tone::Gray, String::new()),
+                (
+                    "pulling".into(),
+                    "Provisioning",
+                    Tone::Cyan,
+                    "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
+                ),
+            ]
+        );
+        assert_eq!(app.triage_counts().provisioning, 1);
+    }
+
+    #[test]
+    fn every_session_state_has_its_own_glyph_and_input_needs_attention() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![ready_agent("fleet")],
+            ["waitingForInput", "working", "starting", "idle", "failed"]
+                .iter()
+                .enumerate()
+                .map(|(index, state)| session("fleet", &format!("s{index}"), state))
+                .collect(),
+        );
+        let rows = app.render_rows();
+        assert!(
+            rows[0].attention,
+            "the Agent shows that one of its Sessions needs input"
+        );
+        assert_eq!(rows[0].detail, "5 sessions");
+        let sessions = rows[1..]
+            .iter()
+            .map(|row| (row.marker, row.state, row.attention))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            sessions,
+            [
+                ("!", "Needs you", true),
+                ("*", "Working", false),
+                ("~", "Starting", false),
+                ("-", "Idle", false),
+                ("x", "Failed", false),
+            ]
+        );
+        assert_eq!(rows[1].detail, "Claude Code");
     }
 
     #[test]
@@ -2415,8 +2581,8 @@ mod tests {
             },
         ]);
         let views = app.render_rows();
-        assert!(!views[0].badge.contains("ports:"));
-        assert!(views[2].badge.contains("ports: 9090:80 0.0.0.0:80:80"));
+        assert!(!views[0].detail.contains("ports:"));
+        assert!(views[2].detail.contains("ports: 9090:80 0.0.0.0:80:80"));
     }
 
     #[test]
