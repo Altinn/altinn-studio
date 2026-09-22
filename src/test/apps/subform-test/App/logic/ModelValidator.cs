@@ -16,7 +16,7 @@ namespace Altinn.App.logic
             return true;
         }
 
-        public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string language)
+        public async Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
             model model = (model)data;

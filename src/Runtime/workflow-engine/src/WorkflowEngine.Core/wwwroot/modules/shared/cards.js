@@ -307,6 +307,9 @@ const rerenderCards = (wfKey) => {
     for (const el of document.querySelectorAll(`[data-wfkey="${CSS.escape(wfKey)}"]`)) {
         const card = /** @type {HTMLElement} */ (el);
         if (card.closest('#scheduled-workflows')) continue;
+        // A card playing its exit animation is about to be removed, and it no longer has a live
+        // entry to tick — repainting it would replace its last elapsed with the placeholder.
+        if (card.dataset.exiting) continue;
         const isStatic = !card.closest('#live-workflows');
         const compact = card.classList.contains('compact');
         setCardHTMLKeepingPipelineScroll(

@@ -39,11 +39,12 @@ public sealed class ControlledEventsClient : IEventsClient
         string eventType,
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
         CancellationToken cancellationToken = default
     )
     {
         await SideEffectsState.WaitForRelease(cancellationToken);
-        SideEffectsState.RecordEvent(eventType);
+        SideEffectsState.RecordEvent(eventType, idempotencyKey);
         return Guid.NewGuid().ToString();
     }
 }
@@ -51,7 +52,7 @@ public sealed class ControlledEventsClient : IEventsClient
 internal static class SideEffectsState
 {
     private static readonly object _lock = new();
-    private static readonly List<string> _registeredEventTypes = new();
+    private static readonly List<RegisteredEvent> _registeredEvents = new();
     private static readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public static Task WaitForRelease(CancellationToken cancellationToken) =>
@@ -59,28 +60,34 @@ internal static class SideEffectsState
 
     public static void Release() => _release.TrySetResult();
 
-    public static void RecordEvent(string eventType)
+    public static void RecordEvent(string eventType, Guid? idempotencyKey)
     {
         lock (_lock)
         {
-            _registeredEventTypes.Add(eventType);
+            _registeredEvents.Add(new RegisteredEvent(eventType, idempotencyKey?.ToString()));
         }
     }
 
-    public static IReadOnlyList<string> GetRegisteredEventTypes()
+    public static IReadOnlyList<RegisteredEvent> GetRegisteredEvents()
     {
         lock (_lock)
         {
-            return _registeredEventTypes.ToArray();
+            return _registeredEvents.ToArray();
         }
     }
 }
+
+/// <summary>
+/// One event registration as the client saw it. The key is what proves the engine's step identity
+/// reached the outbound call, so the test can match it against the step the engine reports.
+/// </summary>
+internal sealed record RegisteredEvent(string EventType, string IdempotencyKey);
 
 public sealed class SideEffectsEndpoints : IEndpointConfigurator
 {
     public void ConfigureEndpoints(WebApplication app)
     {
-        app.MapGet("/test/side-effects/events", () => Results.Json(SideEffectsState.GetRegisteredEventTypes()));
+        app.MapGet("/test/side-effects/events", () => Results.Json(SideEffectsState.GetRegisteredEvents()));
         app.MapPost(
             "/test/side-effects/release",
             () =>

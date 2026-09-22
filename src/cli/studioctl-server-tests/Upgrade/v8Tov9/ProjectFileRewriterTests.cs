@@ -110,4 +110,17 @@ public sealed class ProjectFileRewriterTests : IDisposable
         Assert.Equal("9.0.5", VersionOf(doc, "Altinn.App.Api"));
         Assert.Equal("9.0.5", VersionOf(doc, "Altinn.App.Core"));
     }
+
+    [Theory]
+    [InlineData("swashbuckle.aspnetcore", "Swashbuckle.AspNetCore")]
+    [InlineData("microsoft.extensions.logging.debug", "Microsoft.Extensions.Logging.Debug")]
+    public async Task RemovePackageReference_MatchesNuGetIdsCaseInsensitively(string declared, string requested)
+    {
+        var path = _app.Write(
+            "App.csproj",
+            $"<Project><ItemGroup><PackageReference Include=\"{declared}\" Version=\"1.0.0\" /></ItemGroup></Project>"
+        );
+        Assert.True(await new ProjectFileRewriter(path).RemovePackageReference(requested));
+        Assert.Empty(XDocument.Load(path).Descendants("PackageReference"));
+    }
 }

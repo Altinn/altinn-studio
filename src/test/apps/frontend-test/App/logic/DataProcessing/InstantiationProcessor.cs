@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Actions;
@@ -18,7 +19,7 @@ namespace Altinn.App.logic.DataProcessing
             _registerService = registerService;
         }
 
-        public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
         {
             if (data.GetType() == typeof(Skjema))
             {
@@ -26,7 +27,9 @@ namespace Altinn.App.logic.DataProcessing
                 int partyId;
                 if (int.TryParse(instance.InstanceOwner.PartyId, out partyId))
                 {
-                    Party party = await _registerService.GetParty(partyId);
+                    Party party = await _registerService.GetParty(partyId)
+                        ?? throw new InvalidOperationException(
+                            $"Could not look up party {partyId} for the instance owner");
                     model.Innledninggrp9309 = new Innledninggrp9309()
                     {
                         Kontaktinformasjongrp9311 = new Kontaktinformasjongrp9311()
@@ -53,7 +56,7 @@ namespace Altinn.App.logic.DataProcessing
 
             if (data.GetType() == typeof(LikertSurvey))
             {
-                var survey = data as LikertSurvey;
+                LikertSurvey survey = (LikertSurvey)data;
 
                 survey.Questions = new List<Question>
                 {

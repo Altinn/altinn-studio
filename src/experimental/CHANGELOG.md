@@ -12,8 +12,12 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.5] - 2026-09-22
+
 ### Added
 
+- Codex and Claude Code Sessions show their model, working directory, Git branch, context usage, usage limits, harness
+  version and Fast mode in a persistent status line.
 - Altinn Agents can authenticate ordinary HTTPS Git commands to Azure DevOps with an optional host-mediated personal
   access token, including cloning the `altinn-studio-infra` repository without exposing the token in the Sandbox.
 - Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
@@ -22,6 +26,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
   actions while retaining all keyboard controls.
 - Agent Skill entries may declare an installed `name` separately from their source directory.
+- A harness installation may be declared `optional`, so an Agent is created without it when its host login is
+  absent. Altinn Agents declare Codex this way, and signing in on the host installs it on the next convergence.
+- Altinn Agents install the repository's text-review and Norwegian copy-editing Skills, so a Session has them as
+  well as a local checkout.
 - Agent manifests may mark a mediated secret as optional, so an absent or empty value omits that binding instead of
   blocking Agent provisioning.
 - Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
@@ -30,7 +38,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
+- Pull request evidence guidance is shorter, with readable pacing and no fixed clip
+  duration. The GIF conversion helper now accepts files up to 10 MiB instead of 8 MiB.
+- Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
 
 ### Fixed

@@ -125,6 +125,13 @@ type EventMap = {
   ['selection.changed']: (selectionChangedEvent: SelectionChangedEvent) => void;
 };
 
+const modelerEventNames: Array<keyof EventMap> = [
+  'commandStack.changed',
+  'shape.added',
+  'shape.remove',
+  'selection.changed',
+];
+
 describe('useBpmnEditor', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -223,7 +230,7 @@ async function setup(
   const { result } = utils;
   const div: HTMLDivElement = document.createElement('div');
   result.current(div);
-  await waitFor(expect(getModeler).toHaveBeenCalled);
+  await waitForEventListenerRegistration();
   return utils;
 }
 
@@ -259,8 +266,21 @@ async function setupWithBpmnContext(): Promise<
   const { result } = utils;
   const div = document.createElement('div');
   result.current.bpmnEditor(div);
-  await waitFor(expect(getModeler).toHaveBeenCalled);
+  await waitForEventListenerRegistration();
   return utils;
+}
+
+/**
+ * The modeler is initialized before the event listeners are registered, so waiting for the
+ * registrations is what guarantees that an event triggered right after setup is received.
+ * All of them are awaited so that no test depends on the order the listeners are registered in.
+ */
+async function waitForEventListenerRegistration(): Promise<void> {
+  await waitFor(() =>
+    modelerEventNames.forEach((eventName) =>
+      expect(on).toHaveBeenCalledWith(eventName, expect.any(Function)),
+    ),
+  );
 }
 
 type UseBpmnEditorAndContextResult = {

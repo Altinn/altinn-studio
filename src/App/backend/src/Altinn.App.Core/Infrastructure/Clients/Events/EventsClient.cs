@@ -57,6 +57,7 @@ public class EventsClient : IEventsClient
         string eventType,
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -100,6 +101,7 @@ public class EventsClient : IEventsClient
             token,
             "app",
             new StringContent(serializedCloudEvent, Encoding.UTF8, "application/json"),
+            idempotencyKey,
             accessToken,
             cancellationToken
         );

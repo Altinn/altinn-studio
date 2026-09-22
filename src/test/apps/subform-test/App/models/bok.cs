@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,17 +16,17 @@ namespace Altinn.App.Models.Bok
         [XmlElement("Tittel", Order = 1)]
         [JsonProperty("Tittel")]
         [JsonPropertyName("Tittel")]
-        public string Tittel { get; set; }
+        public string? Tittel { get; set; }
 
         [XmlElement("Forfatter", Order = 2)]
         [JsonProperty("Forfatter")]
         [JsonPropertyName("Forfatter")]
-        public string Forfatter { get; set; }
+        public string? Forfatter { get; set; }
 
         [XmlElement("Serie", Order = 3)]
         [JsonProperty("Serie")]
         [JsonPropertyName("Serie")]
-        public string Serie { get; set; }
+        public string? Serie { get; set; }
 
         [Range(Double.MinValue, Double.MaxValue)]
         [XmlElement("Publikasjonsaar", Order = 4)]

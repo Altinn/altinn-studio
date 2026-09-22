@@ -8,7 +8,6 @@ on:
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-format.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

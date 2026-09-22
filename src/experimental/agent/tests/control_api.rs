@@ -219,6 +219,7 @@ impl ExecutionApi for FakeExecutions {
                     id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
                         .parse()
                         .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
+                    harnesses: Vec::new(),
                 },
                 operating_system: "linux".into(),
             })

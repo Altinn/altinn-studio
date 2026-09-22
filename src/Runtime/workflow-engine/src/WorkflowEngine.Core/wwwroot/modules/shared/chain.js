@@ -27,12 +27,12 @@ const freshest = (/** @type {Workflow} */ wf) => state.previousWorkflows[wf.data
 
 /**
  * Duration label for a chain row. Terminal workflows show their real duration; active
- * workflows tick via the shared timer loop when the live section registered a timer.
+ * workflows tick via the shared timer loop when the live section holds the workflow.
  * @param {Workflow} wf @returns {string}
  */
 const durationHTML = (wf) => {
     if (!TERMINAL_STATUSES.has(wf.status)) {
-        return state.workflowTimers[wf.databaseId]
+        return state.previousWorkflows[wf.databaseId]
             ? `<span class="chain-time" data-timer="${escAttr(wf.databaseId)}"></span>`
             : '';
     }
