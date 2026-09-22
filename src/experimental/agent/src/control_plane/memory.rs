@@ -90,7 +90,12 @@ impl AgentStore for InMemoryAgentStore {
         })
     }
 
-    fn update_status(&self, id: AgentId, generation: u64, mut status: Status) -> LocalFuture<'_, Result<(), Error>> {
+    fn update_status(
+        &self,
+        id: AgentId,
+        generation: u64,
+        mut status: Status,
+    ) -> LocalFuture<'_, Result<Status, Error>> {
         Box::pin(async move {
             status.provenance = None;
             let mut state = self.state.borrow_mut();
@@ -106,8 +111,9 @@ impl AgentStore for InMemoryAgentStore {
             if record.agent.metadata.generation != generation {
                 return Err(Error::Conflict);
             }
-            record.agent.status = status;
-            Ok(())
+            status.stamp_transitions(&record.agent.status, OffsetDateTime::now_utc());
+            record.agent.status = status.clone();
+            Ok(status)
         })
     }
 

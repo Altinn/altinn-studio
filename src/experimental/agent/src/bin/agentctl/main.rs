@@ -1859,6 +1859,7 @@ mod tests {
             status: agent::ConditionStatus::False,
             reason: "SecretMissing".into(),
             message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+            last_transition_time: None,
         };
 
         assert_eq!(

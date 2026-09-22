@@ -73,10 +73,12 @@ impl Reconcile<AgentId> for BlockingAgentReady {
                             status: ConditionStatus::True,
                             reason: "SandboxReady".into(),
                             message: String::new(),
+                            last_transition_time: None,
                         }],
                     ),
                 )
                 .await
+                .map(drop)
         })
     }
 }
@@ -224,6 +226,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         }],
     );
     AgentRecord {
@@ -1900,6 +1903,7 @@ async fn an_unready_agent_with_a_materialized_observation_still_refuses_an_absen
                     status: ConditionStatus::False,
                     reason: "SshAccessFailed".into(),
                     message: "ssh access failed".into(),
+                    last_transition_time: None,
                 }],
             ),
         )

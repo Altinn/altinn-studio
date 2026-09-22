@@ -105,23 +105,26 @@ pub(super) fn update_status(
     connection: &mut Connection,
     id: AgentId,
     generation: u64,
-    status: &Status,
-) -> Result<(), Error> {
+    mut status: Status,
+) -> Result<Status, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let record = get(&transaction, id)?;
     if record.agent.metadata.generation != generation {
         return Err(Error::Conflict);
     }
+    status.provenance = None;
+    status.stamp_transitions(&record.agent.status, time::OffsetDateTime::now_utc());
     let changed = transaction
         .execute(
             "UPDATE agents SET status_json = ?1 WHERE id = ?2 AND active_name IS NOT NULL",
-            params![encode_status(status)?, id.to_string()],
+            params![encode_status(&status)?, id.to_string()],
         )
         .map_err(database_error)?;
     if changed != 1 {
         return Err(Error::Conflict);
     }
-    transaction.commit().map_err(database_error)
+    transaction.commit().map_err(database_error)?;
+    Ok(status)
 }
 
 pub(super) fn mark_deleting(connection: &mut Connection, name: &str) -> Result<AgentRecord, Error> {
