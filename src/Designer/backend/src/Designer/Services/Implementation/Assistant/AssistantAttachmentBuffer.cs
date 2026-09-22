@@ -3,13 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
+namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
 /// <summary>
 /// Temporary in-memory buffer for attachments uploaded before a workflow is started.
 /// Entries are keyed by an attachment ID and automatically evicted after a TTL.
 /// </summary>
-public sealed class AltinityAttachmentBuffer : IDisposable
+public sealed class AssistantAttachmentBuffer : IDisposable
 {
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan EvictionInterval = TimeSpan.FromMinutes(5);
@@ -22,10 +22,10 @@ public sealed class AltinityAttachmentBuffer : IDisposable
     private readonly TimeSpan _ttl;
     private readonly Timer _evictionTimer;
 
-    public AltinityAttachmentBuffer()
+    public AssistantAttachmentBuffer()
         : this(DefaultTtl) { }
 
-    public AltinityAttachmentBuffer(TimeSpan ttl)
+    public AssistantAttachmentBuffer(TimeSpan ttl)
     {
         _ttl = ttl;
         _evictionTimer = new Timer(_ => EvictExpired(), null, EvictionInterval, EvictionInterval);

@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Altinn.Studio.Designer.Services.Interfaces.Altinity;
+namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 
 /// <summary>
-/// HTTP client for forwarding requests to the Altinity agents service.
+/// HTTP client for forwarding requests to the Assistant service.
 /// </summary>
-public interface IAltinityAgentClient
+public interface IAssistantServiceClient
 {
     /// <summary>
     /// Records a user thumbs-up/thumbs-down on an assistant message as a Langfuse score against the given trace.

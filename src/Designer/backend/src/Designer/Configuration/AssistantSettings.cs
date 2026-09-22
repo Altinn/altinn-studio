@@ -1,12 +1,12 @@
 namespace Altinn.Studio.Designer.Configuration;
 
 /// <summary>
-/// Configuration for Altinity AI agent integration
+/// Configuration for Assistant integration
 /// </summary>
-public class AltinitySettings
+public class AssistantSettings
 {
     /// <summary>
-    /// URL to the Altinity agent service (e.g., http://localhost:8071)
+    /// URL to the Assistant service (e.g., http://localhost:8071)
     /// </summary>
     public required string AgentUrl { get; set; }
 

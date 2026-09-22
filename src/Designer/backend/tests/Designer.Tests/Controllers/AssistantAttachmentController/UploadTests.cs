@@ -1,16 +1,16 @@
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
-namespace Designer.Tests.Controllers.AltinityAttachmentController;
+namespace Designer.Tests.Controllers.AssistantAttachmentController;
 
 public class UploadTests
 {
-    private static Altinn.Studio.Designer.Controllers.AltinityAttachmentController CreateController() =>
-        new(new AltinityAttachmentBuffer());
+    private static Altinn.Studio.Designer.Controllers.AssistantAttachmentController CreateController() =>
+        new(new AssistantAttachmentBuffer());
 
     private static IFormFile CreateFile(string fileName, long length = 4)
     {
@@ -40,7 +40,7 @@ public class UploadTests
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         var response =
-            Assert.IsType<Altinn.Studio.Designer.Controllers.AltinityAttachmentController.AttachmentUploadResponse>(
+            Assert.IsType<Altinn.Studio.Designer.Controllers.AssistantAttachmentController.AttachmentUploadResponse>(
                 okResult.Value
             );
         Assert.False(string.IsNullOrWhiteSpace(response.AttachmentId));

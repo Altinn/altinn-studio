@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +10,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Accepts file uploads for the Altinity AI assistant before a workflow is started.
+/// Accepts file uploads for the assistant before a workflow is started.
 /// Returns an attachment ID that can be referenced in the SignalR StartWorkflow call.
 /// </summary>
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("designer/api/altinity/attachments")]
-public class AltinityAttachmentController : ControllerBase
+[Route("designer/api/assistant/attachments")]
+public class AssistantAttachmentController : ControllerBase
 {
     private const long MaxAttachmentBytes = 20 * 1024 * 1024; // 20 MB
 
@@ -33,9 +33,9 @@ public class AltinityAttachmentController : ControllerBase
         ".webp",
     };
 
-    private readonly AltinityAttachmentBuffer _store;
+    private readonly AssistantAttachmentBuffer _store;
 
-    public AltinityAttachmentController(AltinityAttachmentBuffer store)
+    public AssistantAttachmentController(AssistantAttachmentBuffer store)
     {
         _store = store;
     }
@@ -69,7 +69,7 @@ public class AltinityAttachmentController : ControllerBase
         await file.CopyToAsync(memoryStream);
         var dataBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
 
-        var attachment = new AltinityAttachmentBuffer.StoredAttachment(
+        var attachment = new AssistantAttachmentBuffer.StoredAttachment(
             Name: file.FileName,
             MimeType: file.ContentType,
             Size: file.Length,

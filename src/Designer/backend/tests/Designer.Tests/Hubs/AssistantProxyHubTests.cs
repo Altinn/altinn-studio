@@ -7,12 +7,12 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Hubs.Altinity;
+using Altinn.Studio.Designer.Hubs.Assistant;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ApiKey;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Designer.Tests.Hubs;
 
-public class AltinityProxyHubTests
+public class AssistantProxyHubTests
 {
     private const string TestDeveloper = "testUser";
     private const string TestOrg = "ttd";
@@ -31,7 +31,7 @@ public class AltinityProxyHubTests
     private readonly string _testConnectionId = Guid.NewGuid().ToString();
 
     private readonly Mock<IChatService> _chatServiceMock = new();
-    private readonly Mock<IAltinityWebSocketService> _webSocketServiceMock = new();
+    private readonly Mock<IAssistantWebSocketService> _webSocketServiceMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
     private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
 
@@ -235,7 +235,7 @@ public class AltinityProxyHubTests
         Assert.Equal(TestDeveloper, Assert.Single(cancelRequest.Headers.GetValues("X-Developer")));
     }
 
-    private AltinityProxyHub CreateHub()
+    private AssistantProxyHub CreateHub()
     {
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
         httpContextAccessor.Setup(a => a.HttpContext).Returns(GetHttpContextForDeveloper(TestDeveloper));
@@ -243,15 +243,15 @@ public class AltinityProxyHubTests
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient(_agentHttpHandler));
 
-        var hub = new AltinityProxyHub(
+        var hub = new AssistantProxyHub(
             httpContextAccessor.Object,
             httpClientFactory.Object,
-            new Mock<ILogger<AltinityProxyHub>>().Object,
-            Options.Create(new AltinitySettings { AgentUrl = "http://test-path" }),
+            new Mock<ILogger<AssistantProxyHub>>().Object,
+            Options.Create(new AssistantSettings { AgentUrl = "http://test-path" }),
             Options.Create(new ServiceRepositorySettings { RepositoryBaseURL = "http://test-repos" }),
             _webSocketServiceMock.Object,
             _userOrganizationServiceMock.Object,
-            new AltinityAttachmentBuffer(),
+            new AssistantAttachmentBuffer(),
             _apiKeyServiceMock.Object,
             _chatServiceMock.Object
         );

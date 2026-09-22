@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Altinn.Studio.Designer.Telemetry;
 using Quartz;
 
@@ -10,11 +10,11 @@ namespace Altinn.Studio.Designer.Scheduling;
 [DisallowConcurrentExecution]
 public class LangfuseTraceCleanupJob : IJob
 {
-    private readonly IAltinityAgentClient _altinityAgentClient;
+    private readonly IAssistantServiceClient _assistantClient;
 
-    public LangfuseTraceCleanupJob(IAltinityAgentClient altinityAgentClient)
+    public LangfuseTraceCleanupJob(IAssistantServiceClient assistantAgentClient)
     {
-        _altinityAgentClient = altinityAgentClient;
+        _assistantClient = assistantAgentClient;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -27,7 +27,7 @@ public class LangfuseTraceCleanupJob : IJob
 
         try
         {
-            await _altinityAgentClient.TriggerTraceCleanupAsync(context.CancellationToken);
+            await _assistantClient.TriggerTraceCleanupAsync(context.CancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

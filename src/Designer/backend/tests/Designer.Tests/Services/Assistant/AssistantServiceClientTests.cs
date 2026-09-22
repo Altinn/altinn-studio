@@ -4,15 +4,15 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace Designer.Tests.Services.Altinity;
+namespace Designer.Tests.Services.Assistant;
 
-public class AltinityAgentClientTests
+public class AssistantServiceClientTests
 {
     private const string AgentUrl = "http://altinn-altinity-agents";
     private const string ExpectedCleanupUrl = $"{AgentUrl}/api/traces/delete-expired";
@@ -21,7 +21,7 @@ public class AltinityAgentClientTests
     public async Task TriggerTraceCleanupAsync_PostsToCleanupEndpoint()
     {
         HttpRequestMessage capturedRequest = null;
-        AltinityAgentClient client = CreateClient(HttpStatusCode.OK, request => capturedRequest = request);
+        AssistantServiceClient client = CreateClient(HttpStatusCode.OK, request => capturedRequest = request);
 
         await client.TriggerTraceCleanupAsync(CancellationToken.None);
 
@@ -33,12 +33,12 @@ public class AltinityAgentClientTests
     [Fact]
     public async Task TriggerTraceCleanupAsync_ThrowsOnNonSuccess()
     {
-        AltinityAgentClient client = CreateClient(HttpStatusCode.InternalServerError);
+        AssistantServiceClient client = CreateClient(HttpStatusCode.InternalServerError);
 
         await Assert.ThrowsAsync<HttpRequestException>(() => client.TriggerTraceCleanupAsync(CancellationToken.None));
     }
 
-    private static AltinityAgentClient CreateClient(
+    private static AssistantServiceClient CreateClient(
         HttpStatusCode statusCode,
         Action<HttpRequestMessage> onRequest = null
     )
@@ -55,7 +55,7 @@ public class AltinityAgentClientTests
             .ReturnsAsync(new HttpResponseMessage { StatusCode = statusCode, Content = new StringContent("") });
 
         HttpClient httpClient = new(mockHandler.Object);
-        IOptions<AltinitySettings> settings = Options.Create(new AltinitySettings { AgentUrl = AgentUrl });
-        return new AltinityAgentClient(httpClient, settings);
+        IOptions<AssistantSettings> settings = Options.Create(new AssistantSettings { AgentUrl = AgentUrl });
+        return new AssistantServiceClient(httpClient, settings);
     }
 }

@@ -10,21 +10,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Hubs.Altinity;
+using Altinn.Studio.Designer.Hubs.Assistant;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
+namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
 /// <summary>
-/// Manages one persistent WebSocket connection per developer to the Altinity agents service.
+/// Manages one persistent WebSocket connection per developer to the Assistant service.
 /// The connection outlives individual SignalR connections so that in-flight workflows
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
 /// Every replica sees every event, so persistence is deduplicated on the agent's event id.
 /// </para>
 /// </summary>
-public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
+public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 {
     private const int WebSocketBufferSize = 1024 * 1024;
     private const string WebSocketPath = "/ws";
@@ -45,9 +45,9 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         PropertyNameCaseInsensitive = true,
     };
 
-    private readonly ILogger<AltinityWebSocketService> _logger;
-    private readonly AltinitySettings _settings;
-    private readonly IHubContext<AltinityProxyHub, IAltinityClient> _hubContext;
+    private readonly ILogger<AssistantWebSocketService> _logger;
+    private readonly AssistantSettings _settings;
+    private readonly IHubContext<AssistantProxyHub, IAssistantClient> _hubContext;
     private readonly IServiceScopeFactory _scopeFactory;
 
     private readonly ConcurrentDictionary<string, DeveloperConnection> _connections = new();
@@ -58,10 +58,10 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     // app's thread without any browser tab involved.
     private readonly ConcurrentDictionary<string, AltinnRepoEditingContext> _sessionContexts = new();
 
-    public AltinityWebSocketService(
-        ILogger<AltinityWebSocketService> logger,
-        IOptions<AltinitySettings> settings,
-        IHubContext<AltinityProxyHub, IAltinityClient> hubContext,
+    public AssistantWebSocketService(
+        ILogger<AssistantWebSocketService> logger,
+        IOptions<AssistantSettings> settings,
+        IHubContext<AssistantProxyHub, IAssistantClient> hubContext,
         IServiceScopeFactory scopeFactory
     )
     {
