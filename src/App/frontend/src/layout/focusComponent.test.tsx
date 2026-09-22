@@ -143,6 +143,32 @@ describe('focusComponent', () => {
     expect(screen.getByLabelText('Name')).toHaveFocus();
   });
 
+  it('scrolls to a mounted component without focusable content and consumes the request', () => {
+    function StaticTarget() {
+      const focusContainerRef = useFocusContainerRef('node-a');
+      return (
+        <div ref={focusContainerRef}>
+          <h2>Information</h2>
+        </div>
+      );
+    }
+    function PendingRequest() {
+      return <span data-testid='request'>{useFocusComponentRequest()?.nodeId ?? 'none'}</span>;
+    }
+    render(
+      <>
+        <StaticTarget />
+        <PendingRequest />
+      </>,
+    );
+    const container = screen.getByRole('heading', { name: 'Information' }).parentElement!;
+
+    act(() => setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null }));
+
+    expect(container.scrollIntoView).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('request')).toHaveTextContent('none');
+  });
+
   it('returns false when direct focus cannot reach a usable field', () => {
     expect(tryFocusComponent({ nodeId: 'node-a', errorBinding: null })).toBe(false);
   });
