@@ -686,6 +686,61 @@ async fn client_and_server_exchange_versioned_agent_operations() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn resource_watch_returns_current_state_then_waits_for_the_next_change() {
+    let fixture = api();
+    let initial = fixture.client.watch_resources(None).await.expect("initial state");
+    assert!(initial.agents.is_empty());
+    assert!(initial.sessions.is_empty());
+
+    let watcher = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let revision = initial.revision;
+    let watch = tokio::task::spawn_local(async move { watcher.watch_resources(Some(revision)).await });
+    tokio::task::yield_now().await;
+    assert!(!watch.is_finished(), "a current revision waits for a change");
+
+    let applied = fixture.client.apply(request("worker")).await.expect("apply");
+    fixture.changes.bump();
+    let changed = watch.await.expect("watch task").expect("changed state");
+    assert_ne!(changed.revision, revision);
+    assert_eq!(changed.agents, vec![applied]);
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn resource_watch_replies_unchanged_after_the_keepalive() {
+    let fixture = api();
+    let current = fixture.client.watch_resources(None).await.expect("initial state");
+    let started = tokio::time::Instant::now();
+    let unchanged = fixture
+        .client
+        .watch_resources(Some(current.revision))
+        .await
+        .expect("keepalive state");
+    assert_eq!(unchanged, current);
+    assert_eq!(started.elapsed(), Duration::from_secs(30));
+}
+
+#[tokio::test(flavor = "local")]
+async fn resource_watch_neither_holds_nor_outlives_an_upgrade_drain() {
+    let fixture = api();
+    let current = fixture.client.watch_resources(None).await.expect("initial state");
+    let watcher = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let watch = tokio::task::spawn_local(async move { watcher.watch_resources(Some(current.revision)).await });
+    tokio::task::yield_now().await;
+
+    fixture
+        .client
+        .shutdown_for_upgrade()
+        .await
+        .expect("a pending watch is not an admitted mutation");
+    let released = watch.await.expect("watch task").expect("state on drain");
+    assert_eq!(released.revision, current.revision);
+}
+
+#[tokio::test(flavor = "local")]
 async fn agent_progress_returns_the_status_then_waits_for_the_next_change() {
     let fixture = api();
     fixture.client.apply(request("worker")).await.expect("apply");

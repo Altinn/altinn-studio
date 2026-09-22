@@ -15,15 +15,19 @@ use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, PROTOCOL_VERSION,
-    ProgressParams, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams,
+    PROTOCOL_VERSION, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
+    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response,
+    read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
 /// progress costs one reply.
 const PROGRESS_SETTLE: Duration = Duration::from_millis(50);
+/// Quiet period after a resource change before a watch replies, so a burst of
+/// changes, such as byte progress during an image pull, costs one reply.
+const WATCH_SETTLE: Duration = Duration::from_millis(150);
 /// Longest a watch waits without a change; the unchanged reply tells the
 /// watcher the daemon is still there.
 const WATCH_KEEPALIVE: Duration = Duration::from_secs(30);
@@ -447,6 +451,7 @@ impl Server {
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
             METHOD_PROGRESS => self.handle_progress(request.id, request.params).await,
+            METHOD_RESOURCES_WATCH => self.handle_resources_watch(request.id, request.params).await,
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
@@ -572,6 +577,28 @@ impl Server {
                 provisioning,
             });
         result_response(id, progress)
+    }
+
+    /// Long-polls for a resource change after the caller's revision, then
+    /// returns every Agent and Session. Draining returns at once so an upgrade
+    /// is never held by a watcher.
+    async fn handle_resources_watch(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<ResourcesWatchParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "after must be a resource revision");
+        };
+        tokio::select! {
+            _changed = self.changes.changed_since(params.after, WATCH_SETTLE, WATCH_KEEPALIVE) => {}
+            () = self.shutdown_requested() => {}
+        }
+        let revision = self.changes.revision();
+        let resources = async {
+            Ok(crate::resources::Resources {
+                revision,
+                agents: self.agents.list().await?,
+                sessions: self.sessions.list(None).await?,
+            })
+        };
+        result_response(id, resources.await)
     }
 
     async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
