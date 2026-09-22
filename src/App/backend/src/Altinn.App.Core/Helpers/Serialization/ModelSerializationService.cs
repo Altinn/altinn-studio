@@ -39,25 +39,6 @@ public sealed class ModelSerializationService
     /// </summary>
     /// <param name="data">The binary data</param>
     /// <param name="dataType">The data type used to get content type and the classRef for the object to be returned</param>
-    /// <returns>The model specified in </returns>
-    [Obsolete("DeserializeFromStorage needs a DataElement parameter to support json in storage")]
-    public object DeserializeFromStorage(ReadOnlySpan<byte> data, DataType dataType)
-    {
-        if (DataClient.TypeAllowsJson(dataType))
-        {
-            throw new InvalidOperationException(
-                $"Data type {dataType.Id} allows application/json and must use DeserializeFromStorage with DataElement specified"
-            );
-        }
-        var type = GetModelTypeForDataType(dataType);
-        return RestoreFixedValues(DeserializeXml(data, type), dataType, dataElement: null);
-    }
-
-    /// <summary>
-    /// Deserialize binary data from storage to a model of the classRef specified in the dataType
-    /// </summary>
-    /// <param name="data">The binary data</param>
-    /// <param name="dataType">The data type used to get content type and the classRef for the object to be returned</param>
     /// <param name="dataElement"></param>
     /// <returns>The model specified in </returns>
     public object DeserializeFromStorage(ReadOnlySpan<byte> data, DataType dataType, DataElement dataElement)

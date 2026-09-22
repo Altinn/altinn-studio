@@ -179,7 +179,7 @@ public class ModelSerializationServiceTests
     {
         // Arrange
         var testObject = new TestDataModel { Name = "Test", Value = 42 };
-        var data = _sut.SerializeToJson(testObject);
+        var data = _sut.SerializeToXml(testObject);
 
         var mismatchingDataType = new DataType()
         {
@@ -190,7 +190,11 @@ public class ModelSerializationServiceTests
         // Act
         var act = () =>
         {
-            _sut.DeserializeFromStorage(data.Span, mismatchingDataType);
+            _sut.DeserializeFromStorage(
+                data.Span,
+                mismatchingDataType,
+                new DataElement() { Id = Guid.NewGuid().ToString(), ContentType = "application/xml" }
+            );
         };
 
         // Assert
@@ -229,25 +233,6 @@ public class ModelSerializationServiceTests
 
         // Act
         var result = _sut.DeserializeFromStorage(data.Span, dataType, dataElement);
-
-        // Assert
-        Assert.IsType<TestDataModel>(result);
-        var model = (TestDataModel)result;
-        Assert.Equal("Test", model.Name);
-        Assert.Equal(42, model.Value);
-    }
-
-    [Fact]
-    public void DeserializeFromStorage_WithDefaultContentType_DeserializesXml()
-    {
-        // Arrange
-        var testObject = new TestDataModel { Name = "Test", Value = 42 };
-        var data = _sut.SerializeToXml(testObject);
-
-        var dataType = CreateDataType(["application/xml"]);
-
-        // Act
-        var result = _sut.DeserializeFromStorage(data.Span, dataType);
 
         // Assert
         Assert.IsType<TestDataModel>(result);

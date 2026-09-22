@@ -2881,8 +2881,6 @@ namespace Altinn.App.Core.Helpers.Serialization
     public sealed class ModelSerializationService
     {
         public ModelSerializationService(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        [System.Obsolete("DeserializeFromStorage needs a DataElement parameter to support json in storage")]
-        public object DeserializeFromStorage(System.ReadOnlySpan<byte> data, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         public object DeserializeFromStorage(System.ReadOnlySpan<byte> data, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.Platform.Storage.Interface.Models.DataElement dataElement) { }
         public object DeserializeJson(System.ReadOnlySpan<byte> data, System.Type modelType) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Result.ServiceResult<object, Microsoft.AspNetCore.Mvc.ProblemDetails>> DeserializeSingleFromStream(System.IO.Stream body, string? contentType, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
