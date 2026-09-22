@@ -23,6 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` converts primitive calculation rules without the previous shared-function parameter limit, preserves arithmetic grouping, missing-input guards, early returns and JavaScript rounding, and writes their results through the v9 data-model API. Package removal also recognizes package names regardless of letter case.
+- `studioctl app run` on macOS 27 no longer times out with "no matching app metadata endpoint was discovered". The app port discovery no longer relies on `netstat`, which stopped listing TCP sockets in that release.
 - Installing `studioctl` on a new machine no longer requires Docker or another container runtime. Legacy data
   migrations are recorded as already satisfied on a fresh installation and still run normally during updates.
 - `studioctl self update` no longer requires Podman or Docker to be running while it applies installation migrations.
