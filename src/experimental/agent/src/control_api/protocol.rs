@@ -30,6 +30,7 @@ pub(crate) const CODE_INTERNAL: i32 = -32603;
 pub(crate) const CODE_NOT_FOUND: i32 = -32004;
 pub(crate) const CODE_IMMUTABLE: i32 = -32009;
 pub(crate) const CODE_UPDATING: i32 = -32010;
+pub(crate) const CODE_NOT_PERMITTED: i32 = -32011;
 pub(crate) const MAX_MESSAGE_BYTES: usize = 4 * 1024 * 1024;
 
 pub(crate) enum ReadMessage {

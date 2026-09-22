@@ -1,4 +1,4 @@
-use std::{io::IsTerminal as _, path::PathBuf, process::ExitCode, rc::Rc, time::Duration};
+use std::{io::IsTerminal as _, num::NonZeroU16, path::PathBuf, process::ExitCode, rc::Rc, time::Duration};
 
 use agent::{
     Error,
@@ -18,6 +18,10 @@ struct Arguments {
     /// Agent control-plane home.
     #[arg(long)]
     home: Option<PathBuf>,
+    /// Also listen on 127.0.0.1:PORT without authentication or encryption.
+    /// Grants access to Agent resources, Sessions, prompts and secrets; trusted development only.
+    #[arg(short = 'p', long, value_name = "PORT")]
+    insecure_tcp_port: Option<NonZeroU16>,
 }
 
 fn main() -> ExitCode {
@@ -44,7 +48,7 @@ fn run() -> Result<(), Error> {
     let _lock = acquire_home_lock(&home)?;
     let database = persistence::Database::open(&home.path().join("agent.db"))?;
     let runtime = LocalRuntime::new()?;
-    runtime.block_on(run_control_plane(home, database))
+    runtime.block_on(run_control_plane(home, database, arguments.insecure_tcp_port))
 }
 
 fn acquire_home_lock(home: &ControlPlaneHome) -> Result<agent::local::home::Lock, Error> {
@@ -116,7 +120,41 @@ async fn open_sandboxes(
     ))
 }
 
-async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
+async fn bind_insecure_tcp(port: Option<NonZeroU16>) -> Result<Option<tokio::net::TcpListener>, Error> {
+    if let Some(port) = port {
+        let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port.get())).await?;
+        tracing::warn!(
+            address = %listener.local_addr()?,
+            "UNAUTHENTICATED, UNENCRYPTED Control API: anyone who can reach this port can manage Agents and Sessions, submit prompts and access sensitive data; trusted development only"
+        );
+        Ok(Some(listener))
+    } else {
+        Ok(None)
+    }
+}
+
+async fn serve_control_api(
+    server: Rc<Server>,
+    path: &std::path::Path,
+    tcp_listener: Option<tokio::net::TcpListener>,
+) -> Result<(), Error> {
+    // Both listeners share the same control plane and must finish draining
+    // before an upgrade releases this daemon's home lock.
+    tokio::try_join!(server.clone().serve_path(path), async {
+        if let Some(listener) = tcp_listener {
+            server.serve_tcp(listener).await?;
+        }
+        Ok::<_, Error>(())
+    })?;
+    Ok(())
+}
+
+async fn run_control_plane(
+    home: ControlPlaneHome,
+    database: persistence::Database,
+    insecure_tcp_port: Option<NonZeroU16>,
+) -> Result<(), Error> {
+    let tcp_listener = bind_insecure_tcp(insecure_tcp_port).await?;
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
     let policy = Rc::new(agent::authorization::AgentPolicyEngine::new());
@@ -189,7 +227,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let socket_path = home.socket_path();
 
     let result = tokio::select! {
-        result = server.serve_path(&socket_path) => result,
+        result = serve_control_api(server, &socket_path, tcp_listener) => result,
         result = tokio::signal::ctrl_c() => result.map_err(Error::from),
         result = &mut controller_task => match result {
             Ok(()) => Err(Error::Daemon("reconciliation controller stopped".into())),
@@ -212,4 +250,32 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let _ = session_controller_task.await;
     let _ = platform_api_task.await;
     result
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tcp_requires_an_explicit_nonzero_port() {
+        assert!(
+            Arguments::try_parse_from(["agentd"])
+                .expect("default")
+                .insecure_tcp_port
+                .is_none()
+        );
+        for flag in ["-p", "--insecure-tcp-port"] {
+            assert_eq!(
+                Arguments::try_parse_from(["agentd", flag, "9000"])
+                    .expect("port")
+                    .insecure_tcp_port
+                    .map(NonZeroU16::get),
+                Some(9000)
+            );
+            for port in ["0", "65536", "127.0.0.1:9000"] {
+                assert!(Arguments::try_parse_from(["agentd", flag, port]).is_err());
+            }
+        }
+    }
 }

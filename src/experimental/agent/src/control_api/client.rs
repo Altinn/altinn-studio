@@ -20,20 +20,20 @@ pub trait Connection: AsyncRead + AsyncWrite + Unpin {}
 
 impl<T: AsyncRead + AsyncWrite + Unpin> Connection for T {}
 
-/// Opens one connection for one local API call.
+/// Opens one connection for one API call.
 pub trait Connector {
-    /// Connects to the local control plane.
+    /// Connects to the control plane.
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>>;
 }
 
-/// Calls an Agent control plane over a local stream transport.
+/// Calls an Agent control plane over a replaceable stream transport.
 pub struct Client {
     connector: Rc<dyn Connector>,
     next_id: Cell<u64>,
 }
 
 impl Client {
-    /// Creates a client with a replaceable local connector.
+    /// Creates a client with a replaceable connector.
     #[must_use]
     pub fn new(connector: Rc<dyn Connector>) -> Self {
         Self {
@@ -48,7 +48,7 @@ impl Client {
         Self::new(Rc::new(super::socket::PathConnector::new(path)))
     }
 
-    /// Checks whether the local daemon speaks the expected Control API.
+    /// Returns the daemon's Control API and build versions.
     ///
     /// # Errors
     ///

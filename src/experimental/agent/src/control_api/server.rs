@@ -11,12 +11,12 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, pro
 use super::outbox::Outbox;
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
-    CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification,
-    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    CODE_NOT_PERMITTED, CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION,
+    LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH,
+    METHOD_LIST, METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams,
+    Notification, PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams,
+    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -295,6 +295,15 @@ impl Drop for ShutdownCheck<'_> {
     }
 }
 
+/// Trust assigned by the listener, never by the request payload.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Caller {
+    /// A caller using the owner-protected local socket.
+    Local,
+    /// A caller using an unauthenticated remote transport.
+    RemoteUnauthenticated,
+}
+
 /// Serves the Agent Control API.
 pub struct Server {
     agents: Rc<dyn AgentApi>,
@@ -337,12 +346,21 @@ impl Server {
         super::socket::serve(self, path).await
     }
 
+    /// Serves unauthenticated JSON-RPC on an explicitly enabled loopback TCP listener.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the listener is not loopback-bound or cannot accept connections.
+    pub async fn serve_tcp(self: Rc<Self>, listener: tokio::net::TcpListener) -> Result<(), Error> {
+        super::tcp::serve(self, listener).await
+    }
+
     /// Serves one JSON object per line until the client closes its stream.
     ///
     /// # Errors
     ///
     /// Returns an error when a message is malformed, exceeds the limit, or cannot be read or written.
-    pub async fn serve_connection<S>(&self, stream: S) -> Result<(), Error>
+    pub async fn serve_connection<S>(&self, stream: S, caller: Caller) -> Result<(), Error>
     where
         S: AsyncRead + AsyncWrite + Unpin,
     {
@@ -380,7 +398,7 @@ impl Server {
                 }
             };
             let outbox = Outbox::new();
-            let mut response = std::pin::pin!(self.handle(request, outbox.reporter()));
+            let mut response = std::pin::pin!(self.handle(request, outbox.reporter(), caller));
             let response = loop {
                 tokio::select! {
                     () = outbox.readied() => flush(&outbox, stream.get_mut()).await?,
@@ -406,9 +424,18 @@ impl Server {
         }
     }
 
-    async fn handle(&self, request: Request, progress: crate::progress::Reporter) -> Response {
+    async fn handle(&self, request: Request, progress: crate::progress::Reporter, caller: Caller) -> Response {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
+        }
+        if caller == Caller::RemoteUnauthenticated
+            && matches!(request.method.as_str(), METHOD_AUTH_LOGIN | METHOD_SHUTDOWN)
+        {
+            return error_response(
+                request.id,
+                CODE_NOT_PERMITTED,
+                "this operation requires the local control socket",
+            );
         }
         let _mutation = if is_mutating(&request.method) {
             let Some(mutation) = self.lifecycle.admit_mutation() else {
