@@ -2,7 +2,7 @@ use std::{path::PathBuf, rc::Rc};
 
 use ignore::WalkBuilder;
 
-use crate::{Agent, AgentId, Error, MountSpec};
+use crate::{Agent, AgentId, Error, MountSpec, progress::ProvisioningState};
 
 use super::{AgentRecord, SharedAgentStore, Wakeup};
 
@@ -42,13 +42,25 @@ impl Notifier for Wakeup {
 pub struct ControlPlane {
     store: SharedAgentStore,
     notifier: Rc<dyn Notifier>,
+    provisioning: ProvisioningState,
 }
 
 impl ControlPlane {
     /// Creates an Agent Control Plane facade.
     #[must_use]
     pub fn new(store: SharedAgentStore, notifier: Rc<dyn Notifier>) -> Self {
-        Self { store, notifier }
+        Self {
+            store,
+            notifier,
+            provisioning: ProvisioningState::default(),
+        }
+    }
+
+    /// Projects the reconciler's in-memory provisioning state onto returned Agents.
+    #[must_use]
+    pub fn with_provisioning(mut self, provisioning: ProvisioningState) -> Self {
+        self.provisioning = provisioning;
+        self
     }
 
     /// Stores desired state and returns without waiting for reconciliation.
@@ -96,7 +108,7 @@ impl ControlPlane {
                         && current.env_file == env_file
                     {
                         self.notifier.notify(current.id);
-                        return Ok(resource(current));
+                        return Ok(self.resource(current));
                     }
 
                     let expected_generation = current.agent.metadata.generation;
@@ -221,7 +233,7 @@ impl ControlPlane {
     ///
     /// Returns an error when the Agent does not exist or storage fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.store.get_by_name(name).await.map(resource)
+        self.store.get_by_name(name).await.map(|record| self.resource(record))
     }
 
     /// Lists every active Agent ordered by name.
@@ -233,7 +245,7 @@ impl ControlPlane {
         self.store
             .list()
             .await
-            .map(|records| records.into_iter().map(resource).collect())
+            .map(|records| records.into_iter().map(|record| self.resource(record)).collect())
     }
 
     /// Resolves the closest Agent source directory containing `directory`.
@@ -310,7 +322,7 @@ impl ControlPlane {
                 })
                 .collect::<Vec<_>>();
             if let [index] = defaults.as_slice() {
-                return Ok(resource(matches.swap_remove(*index).0));
+                return Ok(self.resource(matches.swap_remove(*index).0));
             }
         }
         if matches.len() != 1 {
@@ -324,7 +336,10 @@ impl ControlPlane {
                 names.join(", ")
             )));
         }
-        matches.pop().map(|(record, _)| resource(record)).ok_or(Error::NotFound)
+        matches
+            .pop()
+            .map(|(record, _)| self.resource(record))
+            .ok_or(Error::NotFound)
     }
 
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
@@ -390,15 +405,19 @@ async fn reject_dot_env_in_bind_mounts(agent: &Agent) -> Result<(), Error> {
     .map_err(|error| Error::Daemon(format!("bind-mount .env inspection failed: {error}")))?
 }
 
-/// Converts a stored record to its API representation, projecting provenance into status.
-fn resource(record: AgentRecord) -> Agent {
-    let mut agent = record.agent;
-    agent.status.provenance = Some(crate::Provenance {
-        source_directory: record.source_directory,
-        manifest_path: record.manifest_path,
-        env_file: record.env_file,
-    });
-    agent
+impl ControlPlane {
+    /// Converts a stored record to its API representation, projecting
+    /// provisioning progress and provenance into status.
+    fn resource(&self, record: AgentRecord) -> Agent {
+        let mut agent = record.agent;
+        agent.status.progress = self.provisioning.summary(record.id);
+        agent.status.provenance = Some(crate::Provenance {
+            source_directory: record.source_directory,
+            manifest_path: record.manifest_path,
+            env_file: record.env_file,
+        });
+        agent
+    }
 }
 
 fn validate_immutable_fields(current: &AgentRecord, desired: &Agent) -> Result<(), Error> {

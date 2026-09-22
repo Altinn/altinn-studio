@@ -7,10 +7,12 @@
 
 mod event;
 mod hub;
+mod state;
 
 pub use event::{Event, OutputStream, Phase, PhaseOutcome, ProgressUnit};
 pub use hub::{Hub, SandboxObserver};
 pub(crate) use hub::{Receive, Subscription};
+pub use state::{Provisioning, ProvisioningState};
 
 /// Synchronous event callback used at Agent-layer seams.
 pub type Reporter = std::rc::Rc<dyn Fn(Event)>;

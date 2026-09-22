@@ -284,11 +284,29 @@ fn status_updates_stamp_condition_transitions_and_keep_the_failure_class() {
             None,
             vec![ready_false("ProviderSelected", "provisioning", Some(entered))],
         );
+        let changes = store.changes();
         store.put(record.clone(), 0).await.expect("Agent stored");
+        let written = changes.revision();
+        store.get(record.id).await.expect("Agent read");
+        assert_eq!(
+            changes.revision(),
+            written,
+            "reads do not advance the resource revision"
+        );
 
         let mut retry = Status::observed(1, None, vec![ready_false("ProviderSelected", "another detail", None)]);
         retry.failure = Some(agent::FailureKind::Transient);
+        retry.progress = Some(agent::progress::Provisioning {
+            pass: 1,
+            progress: sandbox::progress::Progress::new(),
+        });
         let stored = store.update_status(record.id, 1, retry).await.expect("status updated");
+        assert_ne!(
+            changes.revision(),
+            written,
+            "status writes advance the resource revision"
+        );
+        assert_eq!(stored.progress, None, "progress is projected, never stored");
         assert_eq!(
             stored.conditions[0].last_transition_time,
             Some(entered),

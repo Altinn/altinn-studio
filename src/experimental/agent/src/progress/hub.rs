@@ -6,7 +6,7 @@ use tokio::sync::broadcast;
 
 use crate::{AgentId, ReconcileFailure};
 
-use super::{Event, SandboxReporter};
+use super::{Event, ProvisioningState, SandboxReporter};
 
 const EVENT_CAPACITY: usize = 1_024;
 
@@ -56,12 +56,15 @@ impl Hub {
         let _ignored = self.sender.send(Envelope { id, event });
     }
 
-    /// Observes one Sandbox ensure for an Agent, forwarding SDK progress as telemetry.
+    /// Observes one Sandbox ensure for an Agent, folding SDK progress into the
+    /// Agent's provisioning state and forwarding it as telemetry.
     #[must_use]
-    pub fn observe_sandbox(&self, id: AgentId) -> SandboxObserver {
+    pub fn observe_sandbox(&self, id: AgentId, state: ProvisioningState) -> SandboxObserver {
         SandboxObserver {
             hub: self.clone(),
+            state,
             id,
+            started: Rc::new(Cell::new(false)),
             open_phase: Rc::new(Cell::new(None)),
         }
     }
@@ -70,7 +73,9 @@ impl Hub {
 /// Forwards one Sandbox ensure's SDK progress and closes its open phase on failure.
 pub struct SandboxObserver {
     hub: Hub,
+    state: ProvisioningState,
     id: AgentId,
+    started: Rc<Cell<bool>>,
     open_phase: Rc<Cell<Option<(super::Phase, String, Instant)>>>,
 }
 
@@ -79,10 +84,16 @@ impl SandboxObserver {
     #[must_use]
     pub fn reporter(&self) -> SandboxReporter {
         let hub = self.hub.clone();
+        let state = self.state.clone();
         let id = self.id;
+        let started = self.started.clone();
         let open_phase = self.open_phase.clone();
         let translator = std::cell::RefCell::new(super::event::Translator::default());
         Rc::new(move |event| {
+            if !started.replace(true) {
+                state.begin(id);
+            }
+            state.apply(id, &event);
             if let Some(event) = translator.borrow_mut().translate(event) {
                 match &event {
                     Event::PhaseStarted { phase, message, .. } => {
@@ -96,8 +107,16 @@ impl SandboxObserver {
         })
     }
 
-    /// Reports that the ensure failed while a phase was open.
+    /// Records that the ensure succeeded.
+    pub fn succeeded(&self) {
+        self.begin_once();
+        self.state.succeed(self.id);
+    }
+
+    /// Reports that the ensure failed, closing the phase that was open.
     pub fn failed(&self, failure: &ReconcileFailure) {
+        self.begin_once();
+        self.state.fail(self.id, &failure.message);
         if let Some((phase, message, started)) = self.open_phase.take() {
             self.hub.publish(
                 self.id,
@@ -109,6 +128,16 @@ impl SandboxObserver {
                     elapsed_ms: super::event::milliseconds(started.elapsed()),
                 },
             );
+        }
+    }
+}
+
+impl SandboxObserver {
+    /// Starts this pass's record unless an event already started it, so an
+    /// outcome never lands on the previous pass.
+    fn begin_once(&self) {
+        if !self.started.replace(true) {
+            self.state.begin(self.id);
         }
     }
 }
