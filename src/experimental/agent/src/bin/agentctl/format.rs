@@ -80,8 +80,11 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         format!("Access:     {}", format_access(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
-        "Conditions:".to_owned(),
     ];
+    if let Some(failure) = agent.status.failure {
+        lines.push(format!("Failure:    {}", failure_kind(failure)));
+    }
+    lines.push("Conditions:".to_owned());
     if agent.status.conditions.is_empty() {
         lines.push("  None".to_owned());
         return lines;
@@ -95,12 +98,20 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
                 condition.kind.clone(),
                 condition_status(condition.status).into(),
                 condition.reason.clone(),
+                condition.last_transition_time.map_or_else(|| "-".into(), format_age),
                 condition.message.clone(),
             ]
         })
         .collect::<Vec<_>>();
-    lines.extend(table_lines(&["TYPE", "STATUS", "REASON", "MESSAGE"], &rows));
+    lines.extend(table_lines(&["TYPE", "STATUS", "REASON", "AGE", "MESSAGE"], &rows));
     lines
+}
+
+const fn failure_kind(kind: agent::FailureKind) -> &'static str {
+    match kind {
+        agent::FailureKind::Invalid => "Invalid (change the Agent to continue)",
+        agent::FailureKind::Transient => "Transient (retrying in the background)",
+    }
 }
 
 pub(crate) const fn condition_status(status: ConditionStatus) -> &'static str {
@@ -189,6 +200,29 @@ fn row_line(values: &[String], widths: &[usize]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn describe_shows_the_failure_class_and_condition_age() {
+        let mut agent: Agent =
+            serde_yaml_ng::from_str(include_str!("../../../examples/minimal/agent.yaml")).expect("example manifest");
+        agent.status.failure = Some(agent::FailureKind::Transient);
+        agent.status.conditions = vec![agent::Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::False,
+            reason: "SandboxReconcileFailed".into(),
+            message: "registry unavailable".into(),
+            last_transition_time: Some(time::OffsetDateTime::now_utc() - time::Duration::minutes(3)),
+        }];
+
+        let lines = describe_agent_lines(&agent);
+        assert!(lines.contains(&"Failure:    Transient (retrying in the background)".to_owned()));
+        assert!(lines.iter().any(|line| line.contains(" AGE ")));
+        assert!(
+            lines
+                .iter()
+                .any(|line| line.contains("SandboxReconcileFailed") && line.contains(" 3m "))
+        );
+    }
 
     #[test]
     fn session_state_output_does_not_depend_on_debug_names() {

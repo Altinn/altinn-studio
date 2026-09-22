@@ -80,8 +80,7 @@ impl Reconciler {
                     "Sandbox provisioning has not completed",
                 )],
             );
-            self.update_status(&record, status.clone(), None).await?;
-            record.agent.status = status;
+            record.agent.status = self.update_status(&record, status, None).await?;
         }
 
         let observer = self.observers.observe_sandbox(record.id);
@@ -227,27 +226,34 @@ impl Reconciler {
             Some(failure.kind),
         )
         .await
+        .map(drop)
     }
 
+    /// Records the pass's observed status and failure class, publishes it to
+    /// followers, and returns it as stored.
     async fn update_status(
         &self,
         record: &AgentRecord,
-        status: Status,
+        mut status: Status,
         failure: Option<FailureKind>,
-    ) -> Result<(), Error> {
+    ) -> Result<Status, Error> {
+        status.failure = failure;
         let notify = session_relevant_transition(&record.agent.status, &status);
-        let observed = ObservedStatus {
-            conditions: status.conditions.clone(),
-            failure,
-        };
-        self.store
+        let stored = self
+            .store
             .update_status(record.id, record.agent.metadata.generation, status)
             .await?;
-        self.observers.publish_status(record.id, observed);
+        self.observers.publish_status(
+            record.id,
+            ObservedStatus {
+                conditions: stored.conditions.clone(),
+                failure: stored.failure,
+            },
+        );
         if notify {
             self.notify_sessions(record.id);
         }
-        Ok(())
+        Ok(stored)
     }
 
     fn notify_sessions(&self, id: crate::AgentId) {
@@ -269,6 +275,7 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
         status,
         reason: reason.into(),
         message: message.into(),
+        last_transition_time: None,
     }
 }
 

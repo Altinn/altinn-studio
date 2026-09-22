@@ -325,12 +325,12 @@ impl crate::control_plane::AgentStore for Database {
         id: AgentId,
         generation: u64,
         status: Status,
-    ) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+    ) -> sandbox::LocalFuture<'_, Result<Status, Error>> {
         Box::pin(async move {
             self.request(|response| Command::UpdateStatus {
                 id,
                 generation,
-                status,
+                status: Box::new(status),
                 response,
             })
             .await
@@ -455,8 +455,8 @@ enum Command {
     UpdateStatus {
         id: AgentId,
         generation: u64,
-        status: Status,
-        response: oneshot::Sender<Result<(), Error>>,
+        status: Box<Status>,
+        response: oneshot::Sender<Result<Status, Error>>,
     },
     MarkDeleting {
         name: String,
@@ -690,7 +690,7 @@ fn execute(connection: &mut Connection, command: Command) {
             status,
             response,
         } => {
-            let _ = response.send(agents::update_status(connection, id, generation, &status));
+            let _ = response.send(agents::update_status(connection, id, generation, *status));
         }
         Command::MarkDeleting { name, response } => {
             let _ = response.send(agents::mark_deleting(connection, &name));
