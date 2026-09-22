@@ -58,7 +58,10 @@ internal sealed class RemovedMaskinportenShimDetector
         + "client does not have, declare them on it in Studio. If it authenticates with a PKCS#12 certificate "
         + "or a certificate-store thumbprint, that integration cannot move to the built-in client as it "
         + "stands - either register a JWK in Maskinporten, or keep the integration on a client of its own "
-        + "with the Altinn.ApiClients.Maskinporten package. Usages found:";
+        + "with the Altinn.ApiClients.Maskinporten package. To exercise this integration from a local run, "
+        + "store a test client with studioctl app maskinporten set: that is a second client, granted its "
+        + "scopes separately from the provisioned one, and the Maskinporten settings step lists the scopes "
+        + "this app appears to need on both. Usages found:";
 
     private const string EformidlingSummary =
         "The eFormidling status check handlers are removed in v9: naming either "

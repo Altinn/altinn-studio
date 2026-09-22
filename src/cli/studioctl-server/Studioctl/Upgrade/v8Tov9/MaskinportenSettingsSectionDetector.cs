@@ -69,14 +69,17 @@ internal sealed class MaskinportenSettingsSectionDetector
         + "maskinporten set first, and studioctl provisions the client to the app for local runs the way Studio "
         + "does when the app is deployed. One exception: a default MaskinportenSettings section that configures "
         + "the external Altinn.ApiClients.Maskinporten package, with its Environment and key kept in user "
-        + "secrets or a key vault, is still read by that package - keep it. Sections found:";
+        + "secrets or a key vault, is still read by that package - keep it. Whatever you do with the section, "
+        + "its scopes have to be granted again on both clients: the scope list below has them, taken from "
+        + "these sections before they go. Sections found:";
 
     private const string LeftoverSummary =
         "These configuration objects look like credentials for the built-in Maskinporten client - they carry "
         + "the keys its settings had - but nothing in the app binds them, and v9 reads nothing there either. "
         + "Most likely leftovers: delete them, and if one is the client you use for local runs, paste it into "
         + "studioctl app maskinporten set first. (An object configuring the external "
-        + "Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) "
+        + "Altinn.ApiClients.Maskinporten package is still read by that package and is not reported.) Any "
+        + "scopes they name are in the scope list below, which is where to check them before deleting. "
         + "Objects found:";
 
     private readonly string _projectFolder;
