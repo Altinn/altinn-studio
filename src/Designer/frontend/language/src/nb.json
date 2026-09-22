@@ -1554,7 +1554,7 @@
   "schema_editor.reference": "Referanse",
   "schema_editor.reference_to": "Refererer til",
   "schema_editor.regex": "Regex",
-  "schema_editor.replace_data_model": "Erstatt datamodell",
+  "schema_editor.replace_data_model": "Erstatt XSD",
   "schema_editor.required": "Påkrevd",
   "schema_editor.string": "Tekst",
   "schema_editor.textRow-deletion-confirm": "Ja, slett raden",
