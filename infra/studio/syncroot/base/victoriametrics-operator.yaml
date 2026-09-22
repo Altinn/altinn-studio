@@ -24,7 +24,11 @@ spec:
     namespace: default
   path: ./
   prune: true
-  timeout: 1m
+  # The observability Kustomization dependsOn this one, and a dependency is only
+  # satisfied once it reports Ready, which requires wait. The timeout has to cover
+  # the HelmRelease install, which has its own 5m timeout.
+  wait: true
+  timeout: 10m
   postBuild:
     substitute:
       ENVIRONMENT: ${ENVIRONMENT}
