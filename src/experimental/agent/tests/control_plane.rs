@@ -1675,6 +1675,48 @@ async fn observed_execution_waits_for_background_retry_after_transient_failure()
 }
 
 #[tokio::test(flavor = "local")]
+async fn provisioning_is_projected_but_not_stored_and_omitted_after_success() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
+        backend,
+        [PlannedFailure::Transient("temporary runtime failure".into())],
+    ));
+    let observers = Observers::new();
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()))
+        .with_provisioning(observers.provisioning());
+    let reconciler = Reconciler::new(store.clone(), sandbox_service(provider), observers.clone());
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("stored Agent").id;
+
+    reconciler.reconcile(id).await.expect_err("planned transient failure");
+    let failed = control_plane.get("worker").await.expect("failed Agent");
+    assert_eq!(failed.status.failure, Some(FailureKind::Transient));
+    let provisioning = failed.status.progress.expect("failed provisioning");
+    assert!(matches!(
+        provisioning.progress.status(),
+        sandbox::progress::OperationStatus::Failed { detail } if detail.contains("temporary runtime failure")
+    ));
+    assert_eq!(
+        store.get(id).await.expect("stored Agent").agent.status.progress,
+        None,
+        "provisioning is projected, never stored"
+    );
+
+    reconciler.reconcile(id).await.expect("retry succeeds");
+    let ready = control_plane.get("worker").await.expect("ready Agent");
+    assert!(ready.status.is_ready());
+    assert_eq!(ready.status.failure, None);
+    assert_eq!(ready.status.progress, None, "a succeeded pass is not listed");
+    let finished = observers.provisioning().get(id).expect("finished pass");
+    assert!(finished.pass > provisioning.pass);
+    assert_eq!(
+        finished.progress.status(),
+        &sandbox::progress::OperationStatus::Succeeded
+    );
+}
+
+#[tokio::test(flavor = "local")]
 async fn a_standing_failure_is_reported_when_observation_starts() {
     let store = Rc::new(memory::InMemoryAgentStore::new());
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));

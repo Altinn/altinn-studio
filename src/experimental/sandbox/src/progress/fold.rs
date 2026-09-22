@@ -223,6 +223,36 @@ impl Progress {
         self.current.as_ref().and_then(|phase| phase.steps.last())
     }
 
+    /// A smaller copy for listings: finished phases keep their outcome but not
+    /// their steps, and only the last `output_lines` lines are kept.
+    #[must_use]
+    pub fn summary(&self, output_lines: usize) -> Self {
+        let finished = self
+            .finished
+            .iter()
+            .map(|phase| FinishedPhase {
+                steps: Vec::new(),
+                omitted_steps: phase.omitted_steps + phase.steps.len() as u64,
+                ..phase.clone()
+            })
+            .collect();
+        let current = self.current.as_ref().map(|phase| ActivePhase {
+            finished_steps: Vec::new(),
+            omitted_steps: phase.omitted_steps + phase.finished_steps.len() as u64,
+            ..phase.clone()
+        });
+        Self {
+            finished,
+            current,
+            output: OutputLog {
+                lines: self.output.tail(output_lines).cloned().collect(),
+                next_sequence: self.output.next_sequence,
+                partial: HashMap::new(),
+            },
+            status: self.status.clone(),
+        }
+    }
+
     /// Folds one event into the progress.
     pub fn apply(&mut self, event: &ProgressEvent) {
         match event {
@@ -651,6 +681,27 @@ mod tests {
         let fresh = Progress::new();
         assert!(cursor.updates(&fresh).is_empty());
         assert_eq!(cursor, ProgressCursor::default());
+    }
+
+    #[test]
+    fn a_summary_keeps_outcomes_and_the_output_tail() {
+        let mut progress = Progress::new();
+        let step = StepId::generate();
+        progress.apply(&step_started(&step, "Build", None));
+        progress.apply(&output(&step, "one\ntwo\nthree\n"));
+        progress.apply(&ended(&step));
+        progress.fail("build failed");
+        let summary = progress.summary(2);
+        assert!(summary.finished()[0].steps.is_empty());
+        assert_eq!(summary.finished()[0].omitted_steps, 1);
+        assert_eq!(summary.finished()[0].outcome, Outcome::Failed);
+        let lines = summary
+            .output()
+            .lines()
+            .map(|line| line.text.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(lines, ["two", "three"]);
+        assert_eq!(summary.status(), progress.status());
     }
 
     #[test]

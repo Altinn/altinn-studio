@@ -112,12 +112,13 @@ pub(super) fn update_status(
     if record.agent.metadata.generation != generation {
         return Err(Error::Conflict);
     }
+    status.progress = None;
     status.provenance = None;
     status.stamp_transitions(&record.agent.status, time::OffsetDateTime::now_utc());
     let changed = transaction
         .execute(
             "UPDATE agents SET status_json = ?1 WHERE id = ?2 AND active_name IS NOT NULL",
-            params![encode_status(&status)?, id.to_string()],
+            params![serde_json::to_string(&status)?, id.to_string()],
         )
         .map_err(database_error)?;
     if changed != 1 {
@@ -174,9 +175,10 @@ fn encode_desired(agent: &Agent) -> Result<String, Error> {
     serde_json::to_string(&desired).map_err(Error::from)
 }
 
-/// Serializes status for storage, scrubbing API-projected provenance.
+/// Serializes status for storage, scrubbing API-projected progress and provenance.
 fn encode_status(status: &Status) -> Result<String, Error> {
     let mut status = status.clone();
+    status.progress = None;
     status.provenance = None;
     serde_json::to_string(&status).map_err(Error::from)
 }

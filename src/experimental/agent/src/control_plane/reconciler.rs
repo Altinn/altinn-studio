@@ -85,7 +85,10 @@ impl Reconciler {
 
         let observer = self.observers.observe_sandbox(record.id);
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
-            Ok(ensured) => ensured,
+            Ok(ensured) => {
+                observer.succeeded();
+                ensured
+            }
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
                 observer.failed(&failure);

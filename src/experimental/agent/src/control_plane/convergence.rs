@@ -9,7 +9,8 @@ use tokio::sync::watch;
 
 use crate::{
     AgentId, Error, FailureKind, ReconcileFailure,
-    progress::{Event, Hub, Receive, Reporter, SandboxObserver, Subscription},
+    progress::{Event, Hub, ProvisioningState, Receive, Reporter, SandboxObserver, Subscription},
+    resources::Changes,
 };
 
 use super::{ObservedStatus, StatusWatch, Wakeup};
@@ -29,6 +30,7 @@ pub enum WaitPolicy {
 pub struct Observers {
     telemetry: Hub,
     statuses: StatusWatch,
+    provisioning: ProvisioningState,
 }
 
 impl Observers {
@@ -38,8 +40,23 @@ impl Observers {
         Self::default()
     }
 
+    /// Creates empty observers whose provisioning updates advance `changes`.
+    #[must_use]
+    pub fn with_changes(changes: Changes) -> Self {
+        Self {
+            provisioning: ProvisioningState::new(changes),
+            ..Self::default()
+        }
+    }
+
+    /// Returns the latest provisioning of every Agent.
+    #[must_use]
+    pub fn provisioning(&self) -> ProvisioningState {
+        self.provisioning.clone()
+    }
+
     pub(crate) fn observe_sandbox(&self, id: AgentId) -> SandboxObserver {
-        self.telemetry.observe_sandbox(id)
+        self.telemetry.observe_sandbox(id, self.provisioning.clone())
     }
 
     pub(crate) fn publish_status(&self, id: AgentId, status: ObservedStatus) {
@@ -48,6 +65,7 @@ impl Observers {
 
     pub(crate) fn forget(&self, id: AgentId) {
         self.statuses.forget(id);
+        self.provisioning.forget(id);
     }
 }
 
