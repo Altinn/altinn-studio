@@ -6,6 +6,14 @@ kind: VMSingle
 metadata:
   name: metrics-a
 spec:
+  # Strict security makes the operator apply its hardened pod and container
+  # security context: non-root, RuntimeDefault seccomp, read-only root
+  # filesystem, no privilege escalation and all capabilities dropped - the same
+  # shape the hand-written vtagent StatefulSet in traces.yaml sets by hand. The
+  # read-only root filesystem is safe because every path written at runtime is
+  # volume backed: -storageDataPath on the storage volume, and the agent's
+  # -remoteWrite.tmpDataPath on the stateful volume.
+  useStrictSecurity: true
   image:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
@@ -49,6 +57,7 @@ kind: VMSingle
 metadata:
   name: metrics-b
 spec:
+  useStrictSecurity: true
   image:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
@@ -91,6 +100,10 @@ kind: VMAgent
 metadata:
   name: metrics
 spec:
+  # One replica per node, so a voluntary disruption may only take one at a time.
+  podDisruptionBudget:
+    maxUnavailable: 1
+  useStrictSecurity: true
   replicaCount: 2
   image:
     repository: victoriametrics/vmagent

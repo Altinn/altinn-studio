@@ -8,8 +8,11 @@ resources:
 
 patches:
   # The observability artifact carries the Victoria custom resources in prod, so
-  # it cannot reconcile before the operator has installed their CRDs. Prod only:
-  # dev and staging have no operator Kustomization to depend on.
+  # it cannot reconcile before the operator has installed their CRDs. The
+  # operator Kustomization sets wait: true, so this dependency holds until its
+  # HelmRelease is actually Ready and the CRDs are registered, rather than only
+  # until the HelmRelease object has been applied. Prod only: dev and staging
+  # have no operator Kustomization to depend on.
   - target:
       group: kustomize.toolkit.fluxcd.io
       version: v1

@@ -6,6 +6,9 @@ kind: VLSingle
 metadata:
   name: logs-a
 spec:
+  # Same hardened pod and container security context as the rest of the stack;
+  # see the note in metrics.yaml.
+  useStrictSecurity: true
   image:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
@@ -45,6 +48,7 @@ kind: VLSingle
 metadata:
   name: logs-b
 spec:
+  useStrictSecurity: true
   image:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
@@ -84,6 +88,10 @@ kind: VLAgent
 metadata:
   name: logs
 spec:
+  # One replica per node, so a voluntary disruption may only take one at a time.
+  podDisruptionBudget:
+    maxUnavailable: 1
+  useStrictSecurity: true
   replicaCount: 2
   image:
     repository: victoriametrics/vlagent
