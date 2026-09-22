@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
-import { useNavigatePage, useNavigateToComponent } from 'src/hooks/useNavigatePage';
+import { useExitSubform, useNavigatePage, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import {
   FocusComponentRequestFromUrl,
   setFocusComponentRequest,
@@ -146,6 +146,54 @@ describe('useNavigateToComponent', () => {
     await user.click(screen.getByRole('button', { name: 'Navigate and focus' }));
 
     await waitFor(() => expect(input).toHaveFocus());
+    expect(routerRef.current?.state.location.state).toEqual({
+      preventFocusReset: true,
+      focusComponentRequest: { nodeId: 'target', errorBinding: null },
+    });
+  });
+
+  it('returns from a subform with a clean URL and focuses its component through navigation state', async () => {
+    const user = userEvent.setup();
+    function ExitSubform() {
+      const exitSubform = useExitSubform();
+      return <button onClick={() => exitSubform()}>Exit subform</button>;
+    }
+    function Target() {
+      const ref = useRef<HTMLDivElement | null>(null);
+      const handleMount = useHandleFocusComponent('target', ref);
+      const containerRef = useCallback(
+        (div: HTMLDivElement | null) => {
+          ref.current = div;
+          handleMount();
+        },
+        [handleMount],
+      );
+      return (
+        <div ref={containerRef}>
+          <input aria-label='Target field' />
+        </div>
+      );
+    }
+    const { routerRef } = await renderWithInstanceAndLayout({
+      renderer: (
+        <>
+          <ExitSubform />
+          <Target />
+          <FocusComponentRequestFromUrl />
+        </>
+      ),
+      initialPath:
+        '/ttd/test/instance/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/Task_1/FormLayout/target/data-element/SubformPage',
+      alwaysRouteToChildren: true,
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Exit subform' }));
+
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Target field' })).toHaveFocus());
+    expect(routerRef.current?.state.location.pathname).toBe(
+      '/ttd/test/instance/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/Task_1/FormLayout',
+    );
+    expect(routerRef.current?.state.location.search).toBe('');
     expect(routerRef.current?.state.location.state).toEqual({
       preventFocusReset: true,
       focusComponentRequest: { nodeId: 'target', errorBinding: null },
