@@ -322,19 +322,21 @@ export function useExitSubform() {
       return [...visitedPages, pageKey];
     });
 
-    const searchParams = new URLSearchParams();
-    searchParams.set(SearchParams.ExitSubform, 'true');
-    if (componentId) {
-      searchParams.set(SearchParams.FocusComponentId, componentId);
-    }
-
-    const search = `?${searchParams.toString()}`;
+    const navigationOptions = componentId
+      ? {
+          ...preventFocusAndScrollResetOptions,
+          state: withFocusComponentRequestState(preventFocusAndScrollResetOptions.state, {
+            nodeId: componentId,
+            errorBinding: null,
+          }),
+        }
+      : preventFocusAndScrollResetOptions;
     if (isStateless) {
-      return navigate(`/${mainPageKey}${search}`, { resetReturnToView: false }, preventFocusAndScrollResetOptions);
+      return navigate(`/${mainPageKey}`, { resetReturnToView: false }, navigationOptions);
     }
 
-    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}${search}`;
-    return navigate(url, { resetReturnToView: false }, preventFocusAndScrollResetOptions);
+    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}`;
+    return navigate(url, { resetReturnToView: false }, navigationOptions);
   }, [isStateless, maybeSaveOnPageChange, navigate, navParams, refetchInitialValidations, setVisitedPages]);
 }
 
