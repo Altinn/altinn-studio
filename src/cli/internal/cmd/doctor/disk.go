@@ -27,7 +27,9 @@ func (s *Service) buildDisk(app *App) *Disk {
 	}
 
 	if app != nil && app.Found && app.Path != "" {
-		checks = append(checks, s.checkMaskinportenClientState(app.Path))
+		if check, reportable := s.checkMaskinportenClientState(app.Path); reportable {
+			checks = append(checks, check)
+		}
 	}
 
 	hasIssues := false

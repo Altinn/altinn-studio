@@ -2,77 +2,65 @@ package doctor
 
 import (
 	"errors"
-	"fmt"
 
 	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 )
 
+// maskinportenCheckID names the disk check, in the report and in the tests that assert on it.
+const maskinportenCheckID = "maskinporten_client"
+
 // checkMaskinportenClientState reports whether a Maskinporten client is stored for the detected app.
 //
-// The app has one Maskinporten identity and never configures its own credentials: it reads whatever the
-// platform provisions. Deployed, Studio provisions them; on a local run studioctl is the platform and cannot
-// yet hand over the credentials Studio issues, so a developer testing against a real external API supplies a
-// client for it to provision instead. Maskinporten grants scopes per client registration, so that supplied
-// client needs the same scopes selected in Studio. Not every app calls an external API from a local run, so
-// a missing client is information rather than a problem - the check says which state you are in and what to
-// run to change it.
-func (s *Service) checkMaskinportenClientState(appPath string) DiskCheck {
-	const id = "maskinporten_client"
+// It reports state, not advice: most apps never call an external API from a local run, so having no client
+// is the ordinary case and says nothing about the health of the installation. What a client is for, and why
+// its scopes have to match the ones selected in Studio, belongs to `app upgrade v9` and the app-development
+// skill, which have the app in front of them; repeating it here would put a paragraph about an integration
+// most apps do not have in the middle of a health report.
+//
+// The second return is false when the check has nothing to say - an app whose id cannot be read, because
+// detection accepts a project file alone and metadata may not exist yet. That is a fact about the app's
+// metadata rather than about Maskinporten, and reporting it here would attribute it to the wrong thing and
+// color the whole report through Disk.HasIssues.
+func (s *Service) checkMaskinportenClientState(appPath string) (DiskCheck, bool) {
+	// The zero value is never read when the second return is false; a named variable keeps it out of
+	// exhaustruct's way without spelling out every field twice.
+	var unreported DiskCheck
 
 	appID, err := appsvc.ReadAppID(appPath)
 	if err != nil {
-		return DiskCheck{
-			ID:      id,
-			Level:   diskLevelWarn,
-			Path:    appPath,
-			Message: "cannot read the app id: " + err.Error(),
-		}
+		return unreported, false
 	}
 
 	dir, err := s.cfg.AppSecretsDir(appID)
 	if err != nil {
-		return DiskCheck{
-			ID:      id,
-			Level:   diskLevelWarn,
-			Path:    appPath,
-			Message: "cannot place the app's secrets directory: " + err.Error(),
-		}
+		return unreported, false
 	}
 
 	client, err := appsecrets.LoadMaskinportenClient(dir)
 	if errors.Is(err, appsecrets.ErrNoMaskinportenClient) {
 		return DiskCheck{
-			ID:    id,
-			Level: diskLevelInfo,
-			Path:  dir,
-			Message: "no Maskinporten client stored for " + appID +
-				"; supply one with 'studioctl app maskinporten set' to call an external API from a local run. " +
-				"A local run cannot use the credentials Studio provisions, and Maskinporten grants scopes per " +
-				"client registration, so the client you supply needs the same scopes selected in Studio.",
-		}
+			ID:      maskinportenCheckID,
+			Level:   diskLevelInfo,
+			Path:    dir,
+			Message: "no local Maskinporten client configured",
+		}, true
 	}
 	if err != nil {
+		// A file is there and cannot be used, which does break a local run that needs it.
 		return DiskCheck{
-			ID:      id,
+			ID:      maskinportenCheckID,
 			Level:   diskLevelWarn,
 			Path:    dir,
-			Message: "cannot read the stored Maskinporten client: " + err.Error(),
-		}
+			Message: "stored Maskinporten client cannot be read: " + err.Error(),
+		}, true
 	}
 
 	summary := client.Summary()
 	return DiskCheck{
-		ID:    id,
-		Level: diskLevelOK,
-		Path:  dir,
-		Message: fmt.Sprintf(
-			"Maskinporten client stored for %s (client id %s, %s). A local run uses it in place of the "+
-				"credentials Studio provisions, and Maskinporten grants scopes per client registration, so it "+
-				"needs the same scopes selected in Studio.",
-			appID,
-			summary.ClientID,
-			summary.Environment,
-		),
-	}
+		ID:      maskinportenCheckID,
+		Level:   diskLevelOK,
+		Path:    dir,
+		Message: "local Maskinporten client configured (" + summary.ClientID + ", " + summary.Environment + ")",
+	}, true
 }

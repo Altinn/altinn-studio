@@ -46,16 +46,16 @@ func TestCheckMaskinportenClientState_WithoutAStoredClient_SaysWhatToRun(t *test
 
 	service := newServiceWithHome(t)
 
-	check := service.checkMaskinportenClientState(newAppFolder(t))
+	check, reportable := service.checkMaskinportenClientState(newAppFolder(t))
 
+	if !reportable {
+		t.Fatal("check not reported for an app with readable metadata")
+	}
 	if check.Level != diskLevelInfo {
 		t.Fatalf("Level = %q, want %q (message: %s)", check.Level, diskLevelInfo, check.Message)
 	}
-	if !strings.Contains(check.Message, "studioctl app maskinporten set") {
-		t.Errorf("message does not say what to run: %s", check.Message)
-	}
-	if !strings.Contains(check.Message, "scopes per client registration") {
-		t.Errorf("message does not explain why the scopes must be repeated: %s", check.Message)
+	if check.Message != "no local Maskinporten client configured" {
+		t.Errorf("message = %q, want the terse form", check.Message)
 	}
 }
 
@@ -79,28 +79,58 @@ func TestCheckMaskinportenClientState_WithAStoredClient_ReportsItAndTheScopeCave
 		t.Fatalf("StoreMaskinportenClient() error = %v", err)
 	}
 
-	check := service.checkMaskinportenClientState(appPath)
+	check, reportable := service.checkMaskinportenClientState(appPath)
 
+	if !reportable {
+		t.Fatal("check not reported for an app with a stored client")
+	}
 	if check.Level != diskLevelOK {
 		t.Fatalf("Level = %q, want %q (message: %s)", check.Level, diskLevelOK, check.Message)
 	}
 	if !strings.Contains(check.Message, "client-5") {
 		t.Errorf("message does not name the client: %s", check.Message)
 	}
-	if !strings.Contains(check.Message, "scopes per client registration") {
-		t.Errorf("message does not carry the scope caveat: %s", check.Message)
+	if strings.Contains(check.Message, "scopes") {
+		t.Errorf("message should stay terse and leave scope guidance to the upgrade: %s", check.Message)
 	}
 }
 
-func TestCheckMaskinportenClientState_WithoutAppMetadata_Warns(t *testing.T) {
+// An app can be detected from a project file alone, so missing metadata is an ordinary state rather than a
+// Maskinporten problem. Reporting it here once warned, which flowed through Disk.HasIssues into doctor's
+// overall verdict and blamed Maskinporten for it.
+func TestCheckMaskinportenClientState_WithoutAppMetadata_IsNotReported(t *testing.T) {
 	t.Parallel()
 
 	service := newServiceWithHome(t)
 
-	check := service.checkMaskinportenClientState(t.TempDir())
+	_, reportable := service.checkMaskinportenClientState(t.TempDir())
 
-	if check.Level != diskLevelWarn {
-		t.Fatalf("Level = %q, want %q (message: %s)", check.Level, diskLevelWarn, check.Message)
+	if reportable {
+		t.Fatal("check reported for an app whose id cannot be read")
+	}
+}
+
+func TestBuildDisk_WithAnUnidentifiableApp_DoesNotReportIssues(t *testing.T) {
+	t.Parallel()
+
+	service := newServiceWithHome(t)
+
+	// Compared against the no-app report rather than asserted outright: the other disk checks run against a
+	// config with only Home set, so they fail here for reasons of their own. What matters is that the
+	// unidentifiable app adds nothing - neither a row nor a contribution to the verdict.
+	withApp := service.buildDisk(&App{Found: true, Path: t.TempDir()})
+	withoutApp := service.buildDisk(&App{Found: false})
+
+	for _, check := range withApp.Checks {
+		if check.ID == maskinportenCheckID {
+			t.Fatalf("maskinporten check present for an app with no readable id: %+v", check)
+		}
+	}
+	if len(withApp.Checks) != len(withoutApp.Checks) {
+		t.Errorf("check count = %d with the app, %d without", len(withApp.Checks), len(withoutApp.Checks))
+	}
+	if withApp.HasIssues != withoutApp.HasIssues {
+		t.Errorf("HasIssues = %v with the app, %v without", withApp.HasIssues, withoutApp.HasIssues)
 	}
 }
 
@@ -112,7 +142,7 @@ func TestBuildDisk_WithoutADetectedApp_OmitsTheMaskinportenCheck(t *testing.T) {
 	disk := service.buildDisk(&App{Found: false})
 
 	for _, check := range disk.Checks {
-		if check.ID == "maskinporten_client" {
+		if check.ID == maskinportenCheckID {
 			t.Fatalf("maskinporten check present without a detected app: %+v", check)
 		}
 	}
@@ -127,7 +157,7 @@ func TestBuildDisk_WithADetectedApp_IncludesTheMaskinportenCheck(t *testing.T) {
 
 	var found bool
 	for _, check := range disk.Checks {
-		if check.ID == "maskinporten_client" {
+		if check.ID == maskinportenCheckID {
 			found = true
 		}
 	}
