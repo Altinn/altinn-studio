@@ -119,8 +119,10 @@ pub(crate) struct App {
     /// Selected tree row, kept by identity so a snapshot that reorders or
     /// reshapes the tree leaves it on the same Agent or Session.
     pub(crate) selection: Option<TreeRowId>,
-    pub(crate) loading: bool,
     pub(crate) loaded: bool,
+    /// Why the daemon cannot be watched; the last state it reported stays shown.
+    pub(crate) connection_error: Option<String>,
+    /// A failed action, shown until dismissed.
     pub(crate) error: Option<String>,
     pub(crate) detail: Option<Detail>,
     pub(crate) modal: Option<Modal>,
@@ -731,7 +733,6 @@ impl ForwardField {
 pub(crate) enum Action {
     None,
     Quit,
-    Refresh,
     Attach {
         agent: String,
         session: SessionName,
@@ -791,8 +792,8 @@ impl App {
             rows: Vec::new(),
             collapsed: HashSet::new(),
             selection: None,
-            loading: false,
             loaded: false,
+            connection_error: None,
             error: None,
             detail: None,
             modal: None,
@@ -897,7 +898,7 @@ impl App {
     }
 
     pub(crate) const fn idle(&self) -> bool {
-        !self.loading && self.modal.is_none() && self.detail.is_none()
+        self.modal.is_none() && self.detail.is_none()
     }
 
     pub(crate) fn on_key(&mut self, key: KeyEvent) -> Action {
@@ -908,12 +909,23 @@ impl App {
             self.detail_key(key);
             return Action::None;
         }
-        // The error screen renders over the forwards view, so its keys must
-        // win over forwards_key while an error is shown.
-        if self.view == View::Forwards && self.error.is_none() {
+        if self.error.is_some() {
+            return self.error_key(key);
+        }
+        if self.view == View::Forwards {
             return self.forwards_key(key);
         }
         self.main_key(key)
+    }
+
+    /// The error screen renders over the tree or forwards view until dismissed.
+    fn error_key(&mut self, key: KeyEvent) -> Action {
+        match key.code {
+            KeyCode::Esc | KeyCode::Enter => self.error = None,
+            KeyCode::Char('q') => return Action::Quit,
+            _ => {}
+        }
+        Action::None
     }
 
     pub(crate) fn on_mouse(&mut self, action: MouseAction) -> Action {
@@ -1016,7 +1028,6 @@ impl App {
             KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
-            KeyCode::Char('r') => return Action::Refresh,
             KeyCode::Char('z') => self.toggle_all(),
             KeyCode::Char('F') => self.view = View::Forwards,
             KeyCode::Char('c') => return Action::OpenCreate,
@@ -1233,8 +1244,16 @@ impl App {
         self.modal = Some(Modal::CreateAgent(CreateForm::new(candidates, manifest.as_deref())));
     }
 
-    pub(crate) fn select_agent(&mut self, name: &str) {
-        self.select_row(&RowTarget::Tree(TreeRowId::Agent(name.to_owned())));
+    /// Shows an Agent this TUI just created and selects it, ahead of the watch
+    /// reply that will report it.
+    pub(crate) fn agent_applied(&mut self, agent: Agent) {
+        let name = agent.metadata.name.clone();
+        let mut agents = std::mem::take(&mut self.agents);
+        agents.retain(|existing| existing.metadata.name != name);
+        agents.push(agent);
+        let sessions = std::mem::take(&mut self.sessions);
+        self.apply_snapshot(agents, sessions);
+        self.selection = Some(TreeRowId::Agent(name));
     }
 
     fn open_new_session(&mut self, group: usize) {
@@ -2200,12 +2219,14 @@ mod tests {
     }
 
     #[test]
-    fn select_agent_moves_the_selection_to_that_row() {
+    fn a_created_agent_is_shown_and_selected_before_the_watch_reports_it() {
         let mut app = populated();
-        app.select_agent("worker");
-        assert_eq!(app.selected_index(), Some(2));
-        app.select_agent("missing");
-        assert_eq!(app.selected_index(), Some(2));
+        app.agent_applied(agent("analyst"));
+        assert_eq!(app.selected_index(), Some(0));
+        assert_eq!(app.agents.len(), 3);
+
+        app.apply_snapshot(vec![agent("worker"), agent("builder"), agent("analyst")], Vec::new());
+        assert_eq!(app.selected_index(), Some(0), "the watch reply keeps the selection");
     }
 
     #[test]
@@ -2324,10 +2345,10 @@ mod tests {
         let mut app = populated();
         app.on_key(key(KeyCode::Char('F')));
         app.error = Some("control plane unreachable".into());
-        assert_eq!(app.on_key(key(KeyCode::Char('r'))), Action::Refresh);
         assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit);
-        assert_eq!(app.view, View::Forwards);
-        app.error = None;
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(app.error.is_none());
+        assert_eq!(app.view, View::Forwards, "dismissing the error returns to the forwards");
         app.on_key(key(KeyCode::Char('q')));
         assert_eq!(app.view, View::Tree);
     }
