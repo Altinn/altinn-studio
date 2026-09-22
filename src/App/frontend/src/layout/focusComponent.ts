@@ -110,8 +110,16 @@ export function useHandleFocusComponent(nodeId: string, containerDivRef: React.R
   const focus = useCallback(
     (binding: string | null) => {
       const div = containerDivRef.current;
+      if (!div?.isConnected) {
+        return false;
+      }
+
       const field = findElementToFocus(div, binding);
-      if (!div || !field?.isConnected) {
+      if (!field) {
+        div.scrollIntoView({ behavior: 'instant' });
+        return true;
+      }
+      if (!field.isConnected) {
         return false;
       }
 
@@ -175,9 +183,15 @@ export function findElementToFocus(div: HTMLDivElement | null, binding: string |
 
   const targetElements = Array.from(
     div.querySelectorAll<HTMLElement>(
-      ['input', 'textarea', 'select', 'button', '[tabindex]:not([tabindex="-1"])', '[contenteditable="true"]'].join(
-        ',',
-      ),
+      [
+        'input',
+        'textarea',
+        'select',
+        'button',
+        'a[href]',
+        '[tabindex]:not([tabindex="-1"])',
+        '[contenteditable="true"]',
+      ].join(','),
     ),
   );
 
