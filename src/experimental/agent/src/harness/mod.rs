@@ -348,7 +348,7 @@ pub(crate) async fn prepare(harness: Harness, database: &persistence::Database) 
 
 pub(crate) struct MediatedSecret {
     pub(crate) environment: &'static str,
-    pub(crate) placeholder: &'static str,
+    pub(crate) placeholder: String,
     pub(crate) reference: sandbox::secret_store::SecretReference,
     pub(crate) allowed_hosts: Vec<String>,
 }
