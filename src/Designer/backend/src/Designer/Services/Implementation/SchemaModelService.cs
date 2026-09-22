@@ -365,12 +365,16 @@ public class SchemaModelService : ISchemaModelService
         string serializedJsonContent
     )
     {
+        // Everything that can fail is done before the first file is written, so that a schema which
+        // cannot be converted all the way leaves the existing model files untouched.
         string schemaFileName = altinnAppGitRepository.GetSchemaName(xsdFileNameWithExtension);
-        await altinnAppGitRepository.SaveXsd(xsdMemoryStream, xsdFileNameWithExtension);
-        await altinnAppGitRepository.SaveJsonSchema(serializedJsonContent, schemaFileName);
         ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
-        await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaFileName);
+        string csharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+
+        await altinnAppGitRepository.SaveXsd(xsdMemoryStream, xsdFileNameWithExtension);
+        await altinnAppGitRepository.SaveJsonSchema(serializedJsonContent, schemaFileName);
+        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
         await UpdateApplicationMetadata(
             altinnRepoEditingContext,
             altinnAppGitRepository,
@@ -558,16 +562,25 @@ public class SchemaModelService : ISchemaModelService
         string schemaFileName
     )
     {
+        string csharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
+    }
+
+    private async Task<string> GenerateCSharpClasses(
+        AltinnAppGitRepository altinnAppGitRepository,
+        ModelMetadata modelMetadata
+    )
+    {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         AltinnStudioSettings altinnStudioSettings = await altinnAppGitRepository.GetAltinnStudioSettings();
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
         bool separateNamespace = NamespaceNeedsToBeSeparated(applicationMetadata, csharpModelName);
-        string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(
+
+        return _modelMetadataToCsharpConverter.CreateModelFromMetadata(
             modelMetadata,
             separateNamespace,
             altinnStudioSettings.UseNullableReferenceTypes
         );
-        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
     }
 
     private async Task UpdateApplicationMetadata(
