@@ -1,7 +1,8 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeleteWrapperProps } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
+import { StudioDropdown } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   jsonMetadata1Mock,
@@ -21,11 +22,11 @@ const user = userEvent.setup();
 
 // Test data:
 const deleteText = textMock('schema_editor.delete_data_model');
-const continueText = textMock('schema_editor.confirm_deletion');
-const cancelText = textMock('general.cancel');
-const confirmText = textMock('schema_editor.delete_model_confirm');
 
 const selectedOption = convertMetadataToOption(jsonMetadata1Mock);
+const confirmText = textMock('schema_editor.delete_model_confirm', {
+  schemaName: selectedOption.label,
+});
 const defaultProps: DeleteWrapperProps = { selectedOption };
 
 jest.mock('bpmn-moddle', () =>
@@ -46,59 +47,53 @@ const render = (
     [QueryKey.DataModelsMetadata, org, app],
     [jsonMetadata1Mock, jsonMetadata2Mock],
   );
-  return renderWithProviders(queries, queryClient)(<DeleteWrapper {...defaultProps} {...props} />);
+  return renderWithProviders(
+    queries,
+    queryClient,
+  )(
+    <StudioDropdown>
+      <StudioDropdown.List>
+        <StudioDropdown.Item>
+          <DeleteWrapper {...defaultProps} {...props} />
+        </StudioDropdown.Item>
+      </StudioDropdown.List>
+    </StudioDropdown>,
+  );
 };
 
 describe('DeleteWrapper', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should not be able to open the delete dialog if no option is selected', () => {
-    render({ selectedOption: null });
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
-  });
-
-  it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
-    render();
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
-    await user.click(getDeleteButton());
-    expect(getDeleteMessage()).toBeInTheDocument();
-  });
-
-  it('should call deleteAction callback and close dialog when clicking continue button', async () => {
+  it('should ask the user to confirm the deletion when clicking the delete button', async () => {
+    window.confirm = jest.fn();
     render();
     await user.click(getDeleteButton());
-    await user.click(getContinueButton());
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    expect(window.confirm).toHaveBeenCalledWith(confirmText);
   });
 
-  it('should close the delete dialog when clicking cancel', async () => {
+  it('should not delete the data model when the user cancels the confirmation', async () => {
+    window.confirm = jest.fn().mockReturnValue(false);
     render();
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
     await user.click(getDeleteButton());
-    expect(getDeleteMessage()).toBeInTheDocument();
-    await user.click(getCancelButton());
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
+    expect(queriesMock.deleteDataModel).not.toHaveBeenCalled();
   });
 
-  it('should remove deleted data types from signing tasks', async () => {
+  it('should remove deleted data types from signing tasks when the user confirms', async () => {
+    window.confirm = jest.fn().mockReturnValue(true);
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.DataModelsJson, org, app], []);
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], []);
     render({}, {}, queryClient);
     await user.click(getDeleteButton());
-    await user.click(getContinueButton());
-    expect(queryDeleteMessage()).not.toBeInTheDocument();
     expect(queriesMock.deleteDataModel).toHaveBeenCalledWith(
       org,
       app,
       jsonMetadata1Mock.repositoryRelativeUrl,
     );
-    expect(queriesMock.updateBpmnXml).toHaveBeenCalled();
+    await waitForBpmnToBeUpdated();
   });
 });
 
 const getDeleteButton = () => screen.getByRole('button', { name: deleteText });
-const getContinueButton = () => screen.getByRole('button', { name: continueText });
-const getCancelButton = () => screen.getByRole('button', { name: cancelText });
-const getDeleteMessage = () => screen.getByText(confirmText);
-const queryDeleteMessage = () => screen.queryByText(confirmText);
+const waitForBpmnToBeUpdated = () =>
+  waitFor(() => expect(queriesMock.updateBpmnXml).toHaveBeenCalled());

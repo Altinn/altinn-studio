@@ -2,3 +2,10 @@
   cursor: pointer;
   min-width: 20vw;
 }
+
+.select.select {
+  --dsc-field-content-spacing: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--ds-size-3);
+}
