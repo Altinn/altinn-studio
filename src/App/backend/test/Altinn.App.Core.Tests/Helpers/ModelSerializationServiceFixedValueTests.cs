@@ -115,4 +115,40 @@ public class ModelSerializationServiceFixedValueTests
         Assert.True(result.Success);
         AssertRestored(result.Ok);
     }
+
+    [Theory]
+    [InlineData("application/xml")]
+    [InlineData("application/json")]
+    public void SerializeToStorage_WrongFixedValues_Throws(string contentType)
+    {
+        // Data is restored on load and rejected from clients, so only app code can get here with wrong values
+        var dataElement = new DataElement() { Id = Guid.NewGuid().ToString(), ContentType = contentType };
+        var melding = new Melding() { dataFormatVersion = "1", Innhold = [new Innhold() { orid = 1 }] };
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            CreateService().SerializeToStorage(melding, _dataType, dataElement)
+        );
+
+        Assert.Equal(
+            "Data of type melding can't be stored, because properties with a fixed value were changed. "
+                + "Property \"dataFormatVersion\" has the fixed value \"46317\", but was \"1\" "
+                + "Property \"innhold[0].orid\" has the fixed value \"7117\", but was \"1\"",
+            exception.Message
+        );
+    }
+
+    [Theory]
+    [InlineData("application/xml")]
+    [InlineData("application/json")]
+    public void SerializeToStorage_CorrectFixedValues_RoundTrips(string contentType)
+    {
+        var dataElement = new DataElement() { Id = Guid.NewGuid().ToString(), ContentType = contentType };
+        var melding = new Melding() { Navn = "a", Innhold = [new Innhold() { Value = "b" }] };
+        var service = CreateService();
+
+        var (data, actualContentType) = service.SerializeToStorage(melding, _dataType, dataElement);
+
+        Assert.Equal(contentType, actualContentType);
+        AssertRestored(service.DeserializeFromStorage(data.Span, _dataType, dataElement));
+    }
 }

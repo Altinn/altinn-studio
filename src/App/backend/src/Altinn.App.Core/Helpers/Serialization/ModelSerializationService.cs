@@ -77,7 +77,9 @@ public sealed class ModelSerializationService
     /// <param name="dataType">The data type</param>
     /// <param name="dataElement">The existing data element to preserve content type</param>
     /// <returns>the binary data and the content type (application/xml or application/json)</returns>
-    /// <exception cref="InvalidOperationException">If the classRef in dataType does not match type of the model</exception>
+    /// <exception cref="InvalidOperationException">
+    /// If the classRef in dataType does not match type of the model, or a property with a fixed value has another value
+    /// </exception>
     public (ReadOnlyMemory<byte> data, string contentType) SerializeToStorage(
         object model,
         DataType dataType,
@@ -89,6 +91,16 @@ public sealed class ModelSerializationService
         {
             throw new InvalidOperationException(
                 $"DataType {dataType.Id} expects {type.FullName}, found {model.GetType().FullName}"
+            );
+        }
+
+        // Fixed values are restored when data is loaded from storage and rejected when clients change them,
+        // so a mismatch here means that app code changed a fixed value.
+        var fixedValueErrors = FormDataWrapperFactory.Create(model, dataType, dataElement).RestoreFixedValues();
+        if (fixedValueErrors.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Data of type {dataType.Id} can't be stored, because properties with a fixed value were changed. {string.Join(" ", fixedValueErrors)}"
             );
         }
 

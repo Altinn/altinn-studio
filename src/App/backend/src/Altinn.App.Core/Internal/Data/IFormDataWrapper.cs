@@ -99,7 +99,8 @@ public interface IFormDataWrapper
     /// A property is considered fixed when it has <c>[BindNever]</c> and a literal initializer.
     /// Altinn Studio generates such properties for XSD attributes with a <c>fixed</c> value.
     /// Data received from clients is rejected when the returned list is not empty, while data stored with other fixed values
-    /// (for example before the fixed value changed in the schema) is corrected when it is loaded and saved again.
+    /// (for example before the fixed value changed in the schema) is corrected when it is loaded. Storing data with
+    /// other fixed values fails, since only app code can produce such data.
     /// </remarks>
     /// <returns>One entry per property that was corrected, or an empty list if all fixed values were already correct</returns>
     IReadOnlyList<FixedValueError> RestoreFixedValues();
