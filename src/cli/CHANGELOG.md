@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl agent skills` now distributes an Altinn Studio app-development skill and installs it for Codex,
   Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill
   with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
+- `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
 
 ### Changed
 
@@ -30,6 +31,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - When a legacy conditional-rendering rule cannot be converted, all other layout changes are completed first. The affected layout gets a detailed manual-conversion marker, the upgrade reports a `TODO`, and its `RuleConfiguration.json` and `RuleHandler.js` are kept for reference. A later run recognizes the marker instead of failing on the intentionally invalid JSON.
 - Conflicting layout bindings now produce TODOs without preventing other layouts from being upgraded. JSON comments are preserved while layouts are migrated, including comments on removed properties. Legacy rule files remain available when their layouts need manual work.
 - When multiple legacy layout sets map to the same task folder, the upgrade now leaves `layout-sets.json` and the source folders untouched and reports how to resolve the collision instead of starting a partial migration.
+- `studioctl app upgrade v9` no longer tells apps keeping the external `Altinn.ApiClients.Maskinporten` package to avoid a configuration section named `MaskinportenSettings` - that advice was stale, and the section name is safe to use again.
 
 ## [0.1.0-preview.26] - 2026-09-18
 

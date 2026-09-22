@@ -14,9 +14,16 @@ import {
   preventFocusAndScrollResetOptions,
   replaceAndPreventResetOptions,
 } from 'src/features/navigation/navigationOptions';
+import { useOnSubformExitValidation } from 'src/features/validation/callbacks/onSubformExitValidation';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
+import {
+  type FocusComponentRequest,
+  setFocusComponentRequest,
+  tryFocusComponent,
+  withFocusComponentRequestState,
+} from 'src/layout/focusComponent';
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
@@ -29,6 +36,7 @@ export interface NavigateToPageOptions {
   skipAutoSave?: boolean;
   resetReturnToView?: boolean;
   searchParams?: URLSearchParams;
+  focusComponentRequest?: FocusComponentRequest;
 }
 
 /**
@@ -236,10 +244,16 @@ export function useNavigateToPage() {
     async (page?: string, options?: NavigateToPageOptions) => {
       debounceImmediately('forced');
       const preventScrollReset =
-        options?.preventScrollReset || options?.searchParams?.has(SearchParams.FocusComponentId);
+        options?.preventScrollReset ||
+        options?.focusComponentRequest !== undefined ||
+        options?.searchParams?.has(SearchParams.FocusComponentId);
+      const resetOptions = preventScrollReset ? preventFocusAndScrollResetOptions : undefined;
       const navOptions: NavigateOptions = {
+        ...resetOptions,
         replace: options?.replace ?? false,
-        ...(preventScrollReset ? preventFocusAndScrollResetOptions : undefined),
+        state: options?.focusComponentRequest
+          ? withFocusComponentRequestState(resetOptions?.state, options.focusComponentRequest)
+          : resetOptions?.state,
       };
       if (!page) {
         window.logWarn('navigateToPage called without page');
@@ -291,11 +305,16 @@ export function useExitSubform() {
   const refetchInitialValidations = useRefetchInitialValidations();
   const maybeSaveOnPageChange = useMaybeSaveOnPageChange();
   const [_, setVisitedPages] = useVisitedPages();
+  const onSubformExitValidation = useOnSubformExitValidation();
 
   return useCallback(async () => {
     const { mainPageKey, componentId, pageKey, instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
     if (!mainPageKey) {
       window.logWarn('Tried to close subform page while not in a subform.');
+      return;
+    }
+
+    if (await onSubformExitValidation()) {
       return;
     }
 
@@ -309,20 +328,30 @@ export function useExitSubform() {
       return [...visitedPages, pageKey];
     });
 
-    const searchParams = new URLSearchParams();
-    searchParams.set(SearchParams.ExitSubform, 'true');
-    if (componentId) {
-      searchParams.set(SearchParams.FocusComponentId, componentId);
-    }
-
-    const search = `?${searchParams.toString()}`;
+    const navigationOptions = componentId
+      ? {
+          ...preventFocusAndScrollResetOptions,
+          state: withFocusComponentRequestState(preventFocusAndScrollResetOptions.state, {
+            nodeId: componentId,
+            errorBinding: null,
+          }),
+        }
+      : preventFocusAndScrollResetOptions;
     if (isStateless) {
-      return navigate(`/${mainPageKey}${search}`, { resetReturnToView: false }, preventFocusAndScrollResetOptions);
+      return navigate(`/${mainPageKey}`, { resetReturnToView: false }, navigationOptions);
     }
 
-    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}${search}`;
-    return navigate(url, { resetReturnToView: false }, preventFocusAndScrollResetOptions);
-  }, [isStateless, maybeSaveOnPageChange, navigate, navParams, refetchInitialValidations, setVisitedPages]);
+    const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${mainPageKey}`;
+    return navigate(url, { resetReturnToView: false }, navigationOptions);
+  }, [
+    isStateless,
+    maybeSaveOnPageChange,
+    navigate,
+    navParams,
+    onSubformExitValidation,
+    refetchInitialValidations,
+    setVisitedPages,
+  ]);
 }
 
 export function useEnterSubform() {
@@ -474,7 +503,7 @@ export function useNavigateToComponent() {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const navigateToPage = useNavigateToPage();
   const currentPageId = useCurrentView();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   return async (
     indexedId: string,
@@ -482,22 +511,25 @@ export function useNavigateToComponent() {
     options: Omit<NavigateToComponentOptions, 'shouldFocus'> | undefined,
   ) => {
     const targetPage = layoutLookups.componentToPage[baseComponentId];
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set(SearchParams.FocusComponentId, indexedId);
-    const errorBindingKey = options?.error?.['bindingKey'];
-    if (errorBindingKey) {
-      newSearchParams.set(SearchParams.FocusErrorBinding, errorBindingKey);
+    const errorBindingKey = options?.error?.['bindingKey'] ?? null;
+    if (targetPage === currentPageId && tryFocusComponent({ nodeId: indexedId, errorBinding: errorBindingKey })) {
+      return;
     }
+
+    const request = { nodeId: indexedId, errorBinding: errorBindingKey };
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete(SearchParams.FocusComponentId);
+    newSearchParams.delete(SearchParams.FocusErrorBinding);
 
     if (targetPage && targetPage !== currentPageId) {
       await navigateToPage(targetPage, {
         ...options?.pageNavOptions,
         searchParams: newSearchParams,
-        replace:
-          !!newSearchParams.get(SearchParams.FocusComponentId) || !!newSearchParams.get(SearchParams.ExitSubform),
+        replace: true,
+        focusComponentRequest: request,
       });
     } else {
-      setSearchParams(newSearchParams, preventFocusAndScrollResetOptions);
+      setFocusComponentRequest(request);
     }
   };
 }

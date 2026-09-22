@@ -13,8 +13,6 @@ import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
-import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -77,7 +75,6 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   );
 
   useRedirectToStoredPage();
-  useSetExpandedWidth();
 
   if (shouldNavigateToStart) {
     return <NavigateToStartUrl />;
@@ -171,22 +168,6 @@ function useRedirectToStoredPage() {
       }
     }
   }, [pageKey, currentViewCacheKey, isValidPageId, navigateToPage]);
-}
-
-/**
- * Sets the expanded width for the current page if it is defined in the currently viewed layout-page
- */
-function useSetExpandedWidth() {
-  const currentPageId = useCurrentView();
-  const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const expandedWidthFromLayout = currentPageId ? layoutCollection[currentPageId]?.data.expandedWidth : undefined;
-  const expandedWidthFromSettings = usePageSettings().expandedWidth;
-  const expandedWidth = expandedWidthFromLayout ?? expandedWidthFromSettings ?? false;
-  const { setExpandedWidth } = useUiConfigContext();
-
-  useEffect(() => {
-    setExpandedWidth(expandedWidth);
-  }, [expandedWidth, setExpandedWidth]);
 }
 
 const emptyArray = [];
