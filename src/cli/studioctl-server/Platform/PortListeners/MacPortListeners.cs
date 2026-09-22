@@ -4,8 +4,8 @@ namespace Altinn.Studio.StudioctlServer.Platform.PortListeners;
 
 internal sealed class MacPortListeners(MacPortListeners.CommandRunner runCommand) : IPortListenerSource
 {
-    private const string LsofArguments = "-Fpcn -nP -iTCP -sTCP:LISTEN";
-    private readonly Dictionary<int, string?> _commandLines = [];
+    private const string LsofArguments = "-Fpcn -nPw -iTCP -sTCP:LISTEN";
+    private readonly Dictionary<int, string> _commandLines = [];
 
     public MacPortListeners()
         : this(RunProcess) { }
@@ -131,14 +131,13 @@ internal sealed class MacPortListeners(MacPortListeners.CommandRunner runCommand
         if (_commandLines.TryGetValue(processId, out var cached))
             return cached;
 
-        string? commandLine = null;
         var result = await runCommand("ps", $"-p {processId} -o command=", cancellationToken);
-        if (result.ExitCode == 0)
-        {
-            commandLine = result.StandardOutput.Trim();
-            if (commandLine.Length == 0)
-                commandLine = null;
-        }
+        if (result.ExitCode != 0)
+            return null;
+
+        var commandLine = result.StandardOutput.Trim();
+        if (commandLine.Length == 0)
+            return null;
 
         _commandLines[processId] = commandLine;
         return commandLine;

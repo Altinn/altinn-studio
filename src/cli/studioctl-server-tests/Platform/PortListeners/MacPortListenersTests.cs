@@ -41,9 +41,9 @@ public sealed class MacPortListenersTests
 
         Assert.Equal(
             [
-                new PortListener(1001, 6001, ListenerBindScope.Loopback, "editor"),
-                new PortListener(1002, 6002, ListenerBindScope.Loopback, "mediaplayer"),
-                new PortListener(1002, 6003, ListenerBindScope.Any, "mediaplayer"),
+                new PortListener(1001, 6001, ListenerBindScope.Loopback, "editor", "command 1001"),
+                new PortListener(1002, 6002, ListenerBindScope.Loopback, "mediaplayer", "command 1002"),
+                new PortListener(1002, 6003, ListenerBindScope.Any, "mediaplayer", "command 1002"),
                 new PortListener(7788, 5005, ListenerBindScope.Loopback, "dotnet", "dotnet App.dll"),
                 new PortListener(7788, 5006, ListenerBindScope.Any, "dotnet", "dotnet App.dll"),
                 new PortListener(7788, 5007, ListenerBindScope.Specific, "dotnet", "dotnet App.dll"),
@@ -69,7 +69,7 @@ public sealed class MacPortListenersTests
         var listener = Assert.Single(
             await new MacPortListeners(commands.Run).Get(TestContext.Current.CancellationToken)
         );
-        Assert.Equal(new PortListener(7788, 5005, ListenerBindScope.Any, "dotnet"), listener);
+        Assert.Equal(new PortListener(7788, 5005, ListenerBindScope.Any, "dotnet", "command 7788"), listener);
     }
 
     [Fact]
@@ -135,6 +135,29 @@ public sealed class MacPortListenersTests
         Assert.Equal([1001, 1001, 7788], commands.CommandLineLookups.Order());
     }
 
+    [Fact]
+    public async Task Get_RetriesBlankCommandLineOnNextPoll()
+    {
+        var commands = new FakeCommands(
+            """
+            p7788
+            cdotnet
+            f200
+            n*:5005
+            """
+        );
+        commands.CommandLines[7788] = string.Empty;
+        var listeners = new MacPortListeners(commands.Run);
+
+        var listener = Assert.Single(await listeners.Get(TestContext.Current.CancellationToken));
+        Assert.Null(listener.CommandLine);
+
+        commands.CommandLines[7788] = "dotnet App.dll";
+        listener = Assert.Single(await listeners.Get(TestContext.Current.CancellationToken));
+        Assert.Equal("dotnet App.dll", listener.CommandLine);
+        Assert.Equal([7788, 7788], commands.CommandLineLookups);
+    }
+
     [Fact(Skip = "requires macOS lsof", SkipUnless = nameof(IsMacOS), SkipType = typeof(MacPortListenersTests))]
     public async Task Get_DiscoversListenerOwnedByCurrentProcess()
     {
@@ -174,7 +197,7 @@ public sealed class MacPortListenersTests
             Assert.Equal("ps", fileName);
             var processId = int.Parse(arguments.Split(' ')[1], System.Globalization.CultureInfo.InvariantCulture);
             CommandLineLookups.Add(processId);
-            var commandLine = CommandLines.GetValueOrDefault(processId, string.Empty);
+            var commandLine = CommandLines.GetValueOrDefault(processId, $"command {processId}");
             return Task.FromResult(new MacPortListeners.CommandResult(0, commandLine, string.Empty));
         }
     }
