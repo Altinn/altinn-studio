@@ -1,6 +1,6 @@
 ---
 name: pr-evidence
-description: Capture screenshots, browser clips and terminal recordings for a pull request and attach them with gh.
+description: Capture screenshots, browser clips and terminal recordings for a pull request and attach them with gh. Use when a change has a visible or terminal-observable result that the pull request should show.
 ---
 
 # Pull request evidence
