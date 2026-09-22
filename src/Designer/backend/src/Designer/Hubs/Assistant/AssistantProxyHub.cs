@@ -11,9 +11,9 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
@@ -21,36 +21,36 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ApiKeyType = Altinn.Studio.Designer.Models.ApiKey.ApiKeyType;
 
-namespace Altinn.Studio.Designer.Hubs.Altinity;
+namespace Altinn.Studio.Designer.Hubs.Assistant;
 
 /// <summary>
-/// SignalR Hub for proxying Altinity agent communication with user authentication
+/// SignalR Hub for proxying assistant communication with user authentication
 /// </summary>
 [Authorize(Policy = AltinnPolicy.MustHaveAiAssistantPermission)]
-public class AltinityProxyHub : Hub<IAltinityClient>
+public class AssistantProxyHub : Hub<IAssistantClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<AltinityProxyHub> _logger;
-    private readonly AltinitySettings _altinitySettings;
+    private readonly ILogger<AssistantProxyHub> _logger;
+    private readonly AssistantSettings _assistantSettings;
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
-    private readonly IAltinityWebSocketService _webSocketService;
-    private readonly AltinityAttachmentBuffer _attachmentStore;
+    private readonly IAssistantWebSocketService _webSocketService;
+    private readonly AssistantAttachmentBuffer _attachmentStore;
     private readonly IApiKeyService _apiKeyService;
     private readonly IUserOrganizationService _userOrganizationService;
     private readonly IChatService _chatService;
 
     private static readonly ConcurrentDictionary<string, HashSet<string>> s_connectionToSessionIds = new();
 
-    public AltinityProxyHub(
+    public AssistantProxyHub(
         IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory,
-        ILogger<AltinityProxyHub> logger,
-        IOptions<AltinitySettings> altinitySettings,
+        ILogger<AssistantProxyHub> logger,
+        IOptions<AssistantSettings> assistantSettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
-        IAltinityWebSocketService webSocketService,
+        IAssistantWebSocketService webSocketService,
         IUserOrganizationService userOrganizationService,
-        AltinityAttachmentBuffer attachmentStore,
+        AssistantAttachmentBuffer attachmentStore,
         IApiKeyService apiKeyService,
         IChatService chatService
     )
@@ -58,7 +58,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         _httpContextAccessor = httpContextAccessor;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
-        _altinitySettings = altinitySettings.Value;
+        _assistantSettings = assistantSettings.Value;
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
         _userOrganizationService = userOrganizationService;
@@ -75,7 +75,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         await Groups.AddToGroupAsync(connectionId, developer);
 
         _logger.LogInformation(
-            "Altinity hub connection established for user: {Developer}, connectionId: {ConnectionId}",
+            "Assistant hub connection established for user: {Developer}, connectionId: {ConnectionId}",
             developer,
             connectionId
         );
@@ -88,7 +88,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         {
             _logger.LogError(
                 ex,
-                "Failed to establish WebSocket to Altinity for developer {Developer}. Aborting connection.",
+                "Failed to establish WebSocket to Assistant for developer {Developer}. Aborting connection.",
                 developer
             );
             Context.Abort();
@@ -153,13 +153,13 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         // Don't close the developer WS — it persists across tab reconnects.
         // It will be cleaned up by the service when the developer has no active sessions.
 
-        _logger.LogInformation("Altinity hub disconnected for user: {Developer}", developer);
+        _logger.LogInformation("Assistant hub disconnected for user: {Developer}", developer);
 
         await base.OnDisconnectedAsync(exception);
     }
 
     /// <summary>
-    /// Proxies the start workflow request to Altinity agent with a short-lived Designer API key
+    /// Proxies the start workflow request to Assistant agent with a short-lived Designer API key
     /// </summary>
     /// <param name="request">The workflow start request</param>
     /// <returns>Agent response</returns>
@@ -171,7 +171,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         await ValidateOrgMembershipAsync(request, developer);
 
         _logger.LogInformation(
-            "Starting Altinity workflow for user: {Developer}, session: {SessionId}",
+            "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
             developer,
             sessionId
         );
@@ -200,10 +200,10 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         await _webSocketService.EnsureConnectedAsync(developer);
         await _webSocketService.RegisterSessionAsync(sessionId, editingContext);
 
-        string apiKey = await CreateAltinityApiKeyAsync(developer, sessionId);
+        string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
-        var agentResponse = await ForwardRequestToAltinityAgentAsync(
+        var agentResponse = await ForwardRequestToAssistantAgentAsync(
             enrichedWithAttachments,
             developer,
             apiKey,
@@ -268,9 +268,9 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         return (JsonSerializer.SerializeToElement(requestDict), attachmentIds);
     }
 
-    private async Task<string> CreateAltinityApiKeyAsync(string developer, string sessionId)
+    private async Task<string> CreateAssistantApiKeyAsync(string developer, string sessionId)
     {
-        string keyName = $"altinity-{Guid.NewGuid()}";
+        string keyName = $"assistant-{Guid.NewGuid()}";
         DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddMinutes(20);
 
         var (rawKey, _) = await _apiKeyService.CreateAsync(developer, keyName, ApiKeyType.System, expiresAt);
@@ -338,7 +338,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         }
     }
 
-    private async Task<JsonElement> ForwardRequestToAltinityAgentAsync(
+    private async Task<JsonElement> ForwardRequestToAssistantAgentAsync(
         JsonElement request,
         string developer,
         string apiKey,
@@ -346,8 +346,8 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     )
     {
         var enrichedRequest = EnrichRequestWithRepoUrl(request);
-        using var httpRequest = CreateAltinityHttpRequest(enrichedRequest, developer, apiKey, sessionId);
-        var response = await SendRequestToAltinityAsync(httpRequest);
+        using var httpRequest = CreateAssistantHttpRequest(enrichedRequest, developer, apiKey, sessionId);
+        var response = await SendRequestToAssistantAsync(httpRequest);
 
         return response;
     }
@@ -383,14 +383,14 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         return JsonSerializer.SerializeToElement(requestDict);
     }
 
-    private HttpRequestMessage CreateAltinityHttpRequest(
+    private HttpRequestMessage CreateAssistantHttpRequest(
         JsonElement request,
         string developer,
         string apiKey,
         string sessionId
     )
     {
-        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_altinitySettings.AgentUrl}/api/agent/start")
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_assistantSettings.AgentUrl}/api/agent/start")
         {
             Content = JsonContent.Create(request),
         };
@@ -431,7 +431,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
         using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            $"{_altinitySettings.AgentUrl}/api/agent/permission/{sessionId}"
+            $"{_assistantSettings.AgentUrl}/api/agent/permission/{sessionId}"
         )
         {
             Content = new StringContent(
@@ -442,7 +442,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         };
         httpRequest.Headers.Add("X-Developer", developer);
 
-        return await SendRequestToAltinityAsync(httpRequest);
+        return await SendRequestToAssistantAsync(httpRequest);
     }
 
     /// <summary>
@@ -459,25 +459,25 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         // it verifies the caller owns the session.
         using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,
-            $"{_altinitySettings.AgentUrl}/api/agent/cancel/{sessionId}"
+            $"{_assistantSettings.AgentUrl}/api/agent/cancel/{sessionId}"
         );
         httpRequest.Headers.Add("X-Developer", developer);
-        var response = await SendRequestToAltinityAsync(httpRequest);
+        var response = await SendRequestToAssistantAsync(httpRequest);
 
         _logger.LogInformation("Session {SessionId} cancelled successfully", sessionId);
         return response;
     }
 
-    private async Task<JsonElement> SendRequestToAltinityAsync(HttpRequestMessage httpRequest)
+    private async Task<JsonElement> SendRequestToAssistantAsync(HttpRequestMessage httpRequest)
     {
         var httpClient = _httpClientFactory.CreateClient();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_altinitySettings.TimeoutSeconds));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_assistantSettings.TimeoutSeconds));
         using var response = await httpClient.SendAsync(httpRequest, cts.Token);
         string responseContent = await response.Content.ReadAsStringAsync(cts.Token);
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("Altinity agent returned error: {StatusCode}", response.StatusCode);
+            _logger.LogError("Assistant agent returned error: {StatusCode}", response.StatusCode);
             throw new HubException($"Agent returned {response.StatusCode}: {responseContent}");
         }
 

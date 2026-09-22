@@ -1,20 +1,20 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
-public class AltinityAttachmentBufferTests
+public class AssistantAttachmentBufferTests
 {
-    private static AltinityAttachmentBuffer.StoredAttachment CreateAttachment(string name = "test.pdf") =>
+    private static AssistantAttachmentBuffer.StoredAttachment CreateAttachment(string name = "test.pdf") =>
         new(name, "application/pdf", 1024, "data:application/pdf;base64,dGVzdA==");
 
     [Fact]
     public void Store_ReturnsUniqueId()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
         var id1 = buffer.Store(CreateAttachment("a.pdf"));
         var id2 = buffer.Store(CreateAttachment("b.pdf"));
 
@@ -25,7 +25,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void TryGet_ReturnsStoredAttachment()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
         var attachment = CreateAttachment();
         var id = buffer.Store(attachment);
 
@@ -40,7 +40,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void TryGet_ReturnsFalse_ForUnknownId()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
 
         var found = buffer.TryGet("nonexistent", out var result);
 
@@ -51,7 +51,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void PeekAll_ReturnsMatchingAttachments_WithoutRemoving()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
         var id1 = buffer.Store(CreateAttachment("a.pdf"));
         var id2 = buffer.Store(CreateAttachment("b.pdf"));
         var id3 = buffer.Store(CreateAttachment("c.pdf"));
@@ -71,7 +71,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void PeekAll_IgnoresUnknownIds()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
         var id = buffer.Store(CreateAttachment());
 
         var peeked = buffer.PeekAll(new[] { id, "unknown-id" });
@@ -82,7 +82,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void RemoveAll_RemovesSpecifiedEntries()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
         var id1 = buffer.Store(CreateAttachment("a.pdf"));
         var id2 = buffer.Store(CreateAttachment("b.pdf"));
 
@@ -95,7 +95,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void RemoveAll_AfterPeek_CompletesClaimCycle()
     {
-        var buffer = new AltinityAttachmentBuffer();
+        var buffer = new AssistantAttachmentBuffer();
         var id = buffer.Store(CreateAttachment());
 
         var peeked = buffer.PeekAll(new[] { id });
@@ -112,7 +112,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void TryGet_ReturnsFalse_ForExpiredEntry()
     {
-        var buffer = new AltinityAttachmentBuffer(TimeSpan.FromMilliseconds(100));
+        var buffer = new AssistantAttachmentBuffer(TimeSpan.FromMilliseconds(100));
         var id = buffer.Store(CreateAttachment());
 
         Assert.True(buffer.TryGet(id, out _));
@@ -125,7 +125,7 @@ public class AltinityAttachmentBufferTests
     [Fact]
     public void PeekAll_ExcludesExpiredEntries()
     {
-        var buffer = new AltinityAttachmentBuffer(TimeSpan.FromMilliseconds(100));
+        var buffer = new AssistantAttachmentBuffer(TimeSpan.FromMilliseconds(100));
         var id = buffer.Store(CreateAttachment());
 
         Thread.Sleep(300);

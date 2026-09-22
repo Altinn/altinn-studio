@@ -4,24 +4,24 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Studio.Designer.Services.Implementation.Altinity;
+namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
-public class AltinityAgentClient : IAltinityAgentClient
+public class AssistantAgentClient : IAssistantServiceClient
 {
     private const string TracesPath = "/api/traces";
     private const string TraceCleanupPath = $"{TracesPath}/delete-expired";
     private const string DeveloperHeader = "X-Developer";
 
     private readonly HttpClient _httpClient;
-    private readonly AltinitySettings _altinitySettings;
+    private readonly AssistantSettings _assistantSettings;
 
-    public AltinityAgentClient(HttpClient httpClient, IOptions<AltinitySettings> altinitySettings)
+    public AssistantAgentClient(HttpClient httpClient, IOptions<AssistantSettings> assistantSettings)
     {
         _httpClient = httpClient;
-        _altinitySettings = altinitySettings.Value;
+        _assistantSettings = assistantSettings.Value;
     }
 
     public async Task SendFeedbackAsync(
@@ -32,7 +32,7 @@ public class AltinityAgentClient : IAltinityAgentClient
         CancellationToken cancellationToken
     )
     {
-        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TracesPath}/{traceId}/feedback");
+        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TracesPath}/{traceId}/feedback");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
         {
             Content = JsonContent.Create(new { thumbs_up = thumbsUp, comment }),
@@ -43,13 +43,13 @@ public class AltinityAgentClient : IAltinityAgentClient
         if (!response.IsSuccessStatusCode)
         {
             string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"Altinity feedback returned {response.StatusCode}: {responseContent}");
+            throw new HttpRequestException($"Assistant feedback returned {response.StatusCode}: {responseContent}");
         }
     }
 
     public async Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken)
     {
-        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TracesPath}/{traceId}/feedback");
+        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TracesPath}/{traceId}/feedback");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, requestUri);
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
@@ -58,21 +58,23 @@ public class AltinityAgentClient : IAltinityAgentClient
         {
             string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new HttpRequestException(
-                $"Altinity clear feedback returned {response.StatusCode}: {responseContent}"
+                $"Assistant clear feedback returned {response.StatusCode}: {responseContent}"
             );
         }
     }
 
     public async Task TriggerTraceCleanupAsync(CancellationToken cancellationToken)
     {
-        var requestUri = new Uri($"{_altinitySettings.AgentUrl}{TraceCleanupPath}");
+        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TraceCleanupPath}");
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
         using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"Altinity trace cleanup returned {response.StatusCode}: {responseContent}");
+            throw new HttpRequestException(
+                $"Assistant trace cleanup returned {response.StatusCode}: {responseContent}"
+            );
         }
     }
 }

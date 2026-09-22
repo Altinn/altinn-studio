@@ -1,14 +1,14 @@
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
-namespace Altinn.Studio.Designer.Services.Interfaces.Altinity;
+namespace Altinn.Studio.Designer.Services.Interfaces.Assistant;
 
 /// <summary>
-/// Manages the per-developer WebSocket connection to the Altinity agents service.
+/// Manages the per-developer WebSocket connection to the Assistant agents service.
 /// The connection stays alive independently of browser tab lifecycle so that
 /// in-flight workflows can stream events back to any reconnected tab.
 /// </summary>
-public interface IAltinityWebSocketService
+public interface IAssistantWebSocketService
 {
     /// <summary>
     /// Ensures a live WebSocket to the agents service exists for this developer.

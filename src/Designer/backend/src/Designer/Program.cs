@@ -24,9 +24,9 @@ using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
 using Altinn.Studio.Designer.Services.Implementation;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
@@ -177,9 +177,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
-    services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
-    services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
-    services.AddHttpClient<IAltinityAgentClient, AltinityAgentClient>();
+    services.Configure<AssistantSettings>(configuration.GetSection("AltinitySettings"));
+    services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
+    services.AddHttpClient<IAssistantServiceClient, AssistantAgentClient>();
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,
@@ -230,7 +230,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
-    services.AddSingleton<AltinityAttachmentBuffer>();
+    services.AddSingleton<AssistantAttachmentBuffer>();
     var signalRBuilder = services.AddSignalR();
     var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)

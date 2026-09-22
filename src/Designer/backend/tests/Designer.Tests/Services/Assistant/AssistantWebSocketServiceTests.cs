@@ -5,11 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Hubs.Altinity;
+using Altinn.Studio.Designer.Hubs.Assistant;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.Services.Implementation.Altinity;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,9 +18,9 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Services.Altinity;
+namespace Designer.Tests.Services.Assistant;
 
-public class AltinityWebSocketServiceTests
+public class AssistantWebSocketServiceTests
 {
     private static readonly Guid s_threadId = Guid.NewGuid();
     private static readonly AltinnRepoEditingContext s_editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
@@ -45,7 +45,7 @@ public class AltinityWebSocketServiceTests
                 )
             )
             .ReturnsAsync(persisted);
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = CreateAssistantMessage();
 
@@ -75,7 +75,7 @@ public class AltinityWebSocketServiceTests
     [Fact]
     public async Task TryPersistAssistantMessage_SkipsUnregisteredSessions()
     {
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         JsonNode message = CreateAssistantMessage();
 
         await service.TryPersistAssistantMessageAsync(message);
@@ -96,7 +96,7 @@ public class AltinityWebSocketServiceTests
     [Fact]
     public async Task TryPersistAssistantMessage_IgnoresOtherEventTypes()
     {
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = new JsonObject
         {
@@ -123,7 +123,7 @@ public class AltinityWebSocketServiceTests
                 )
             )
             .ThrowsAsync(new InvalidOperationException("db down"));
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = CreateAssistantMessage();
 
@@ -157,7 +157,7 @@ public class AltinityWebSocketServiceTests
                 )
             )
             .ReturnsAsync((ChatMessageEntity)null);
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = CreateAssistantMessage();
 
@@ -189,7 +189,7 @@ public class AltinityWebSocketServiceTests
                 )
             )
             .ReturnsAsync(CreateMessageEntity());
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = new JsonObject
         {
@@ -218,7 +218,7 @@ public class AltinityWebSocketServiceTests
                 )
             )
             .ReturnsAsync(CreateMessageEntity());
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         service.TrackSessionContext(otherThreadId.ToString(), otherContext);
 
@@ -243,7 +243,7 @@ public class AltinityWebSocketServiceTests
     [Fact]
     public async Task TryPersistAssistantMessage_SkipsMessagesWithoutContent()
     {
-        AltinityWebSocketService service = CreateService();
+        AssistantWebSocketService service = CreateService();
         service.TrackSessionContext(s_threadId.ToString(), s_editingContext);
         JsonNode message = new JsonObject
         {
@@ -257,16 +257,16 @@ public class AltinityWebSocketServiceTests
         _chatServiceMock.VerifyNoOtherCalls();
     }
 
-    private AltinityWebSocketService CreateService()
+    private AssistantWebSocketService CreateService()
     {
         var services = new ServiceCollection();
         services.AddTransient(_ => _chatServiceMock.Object);
         ServiceProvider provider = services.BuildServiceProvider();
 
-        return new AltinityWebSocketService(
-            NullLogger<AltinityWebSocketService>.Instance,
-            Options.Create(new AltinitySettings { AgentUrl = "http://altinn-altinity-agents" }),
-            Mock.Of<IHubContext<AltinityProxyHub, IAltinityClient>>(),
+        return new AssistantWebSocketService(
+            NullLogger<AssistantWebSocketService>.Instance,
+            Options.Create(new AssistantSettings { AgentUrl = "http://altinn-altinity-agents" }),
+            Mock.Of<IHubContext<AssistantProxyHub, IAssistantClient>>(),
             provider.GetRequiredService<IServiceScopeFactory>()
         );
     }
