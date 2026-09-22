@@ -1,5 +1,6 @@
 using System.Reflection;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Helpers;
@@ -46,6 +47,25 @@ public static class DataHelper
         Dictionary<string, string?> currentDataValues,
         string dataType,
         object updatedData,
+        string? metadataPropertyName
+    )
+    {
+        IFormDataWrapper wrapper = FormDataWrapperFactory.Create(
+            updatedData,
+            new DataType { Id = dataType },
+            dataElement: null
+        );
+        return GetUpdatedDataValues(dataFields, currentDataValues, dataType, wrapper, metadataPropertyName);
+    }
+
+    /// <summary>
+    /// Identifies updated data values by reading paths through IFormDataWrapper, which supports indexing into repeating groups.
+    /// </summary>
+    internal static Dictionary<string, string?> GetUpdatedDataValues(
+        List<DataField>? dataFields,
+        Dictionary<string, string?> currentDataValues,
+        string dataType,
+        IFormDataWrapper updatedData,
         string? metadataPropertyName
     )
     {
@@ -114,7 +134,7 @@ public static class DataHelper
     private static Dictionary<string, string?> GetDataFieldValues(
         List<DataField>? dataFields,
         string dataType,
-        object data,
+        IFormDataWrapper data,
         string? metadataPropertyName
     )
     {
@@ -147,9 +167,7 @@ public static class DataHelper
             }
 
             string fixedPath = field.Path.Replace("-", string.Empty);
-            string[] keys = fixedPath.Split(".");
-
-            string? value = GetValueFromDatamodel(keys, data);
+            string? value = data.Get(fixedPath)?.ToString();
             dataFieldValues.Add(field.Id, value);
         }
 
@@ -220,43 +238,5 @@ public static class DataHelper
         }
 
         return updatedValues;
-    }
-
-    private static string? GetValueFromDatamodel(string[] keys, object data, int index = 0)
-    {
-        string key = keys[index];
-        bool isLastKey = (keys.Length - 1) == index;
-        Type current = data.GetType();
-
-        PropertyInfo? property = current.GetProperty(
-            key,
-            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance
-        );
-
-        if (property == null)
-        {
-            string errorMessage =
-                $"Could not find the field {string.Join(".", keys)}, property {key} is not defined in the data model.";
-            throw new IndexOutOfRangeException(errorMessage);
-        }
-        else
-        {
-            object? propertyValue = property.GetValue(data, null);
-            if (isLastKey)
-            {
-                return propertyValue == null ? null : propertyValue.ToString();
-            }
-            else
-            {
-                // no need to look further down, it is not defined yet.
-                if (propertyValue == null)
-                {
-                    return null;
-                }
-
-                // recurivly assign values
-                return GetValueFromDatamodel(keys, propertyValue, index + 1);
-            }
-        }
     }
 }
