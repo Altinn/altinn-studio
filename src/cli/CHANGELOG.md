@@ -16,10 +16,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
   Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill
   with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
 - `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
+- `studioctl app upgrade v9` now lists the Maskinporten scopes an app appears to need, with the evidence for each: the scopes named in `UseMaskinportenAuthorization` calls, a Fiks or correspondence client, a `fiksArkiv` service task, and the `Scope` value in the configuration sections the upgrade tells you to delete - so the list is there before the sections are gone. A v9 app has two Maskinporten clients rather than one, the client Studio provisions for the deployed app and the client you store for local runs, and the same scopes have to be granted on each separately; the report says so and says where each is done. The `altinn:serviceowner` scopes are deliberately left out, since Studio adds them to the provisioned client automatically when a v9 app is built.
+- `studioctl doctor` reports whether a Maskinporten client is stored for the app you are in, and says what to run when there is none. Not every app needs one, so this is information rather than a problem.
+- The app-development skill distributed by `studioctl agent skills` now covers upgrading an app from v8 to v9, including the order the Maskinporten steps have to happen in: record the scopes, select them in Studio before deploying, then store a client for local runs.
 
 ### Changed
 
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
+- The Maskinporten messages in `studioctl app upgrade v9` now point at the scope list and say that the client you store for local runs is a second client, granted its scopes separately from the one Studio provisions.
 
 ### Fixed
 
