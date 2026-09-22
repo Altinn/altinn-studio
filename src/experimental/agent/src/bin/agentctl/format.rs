@@ -231,6 +231,35 @@ pub(crate) fn format_age(created_at: time::OffsetDateTime) -> String {
     }
 }
 
+/// Renders turns as `agentctl turns` prints them: a heading per turn, then one
+/// line per text part or tool call, marked with its author.
+pub(crate) fn turn_lines(turns: &[agent::sessions::Turn]) -> Vec<String> {
+    use agent::sessions::{Part, Role};
+    let mut lines = Vec::new();
+    for (index, turn) in turns.iter().enumerate() {
+        if index > 0 {
+            lines.push(String::new());
+        }
+        lines.push(format!("=== turn {} ===", index + 1));
+        for message in &turn.messages {
+            let who = match message.role {
+                Role::User => "user",
+                Role::Assistant => "assistant",
+            };
+            for part in &message.parts {
+                lines.push(match part {
+                    Part::Text { text } => format!("[{who}] {text}"),
+                    Part::ToolCall { name, failed } => {
+                        let mark = if *failed { " (failed)" } else { "" };
+                        format!("[{who}] -> {name}{mark}")
+                    }
+                });
+            }
+        }
+    }
+    lines
+}
+
 pub(crate) fn table_lines(headers: &[&str], rows: &[Vec<String>]) -> Vec<String> {
     let widths = headers
         .iter()

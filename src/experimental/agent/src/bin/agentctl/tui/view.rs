@@ -17,6 +17,8 @@ use super::app::{
 const SELECTION: Color = Color::Rgb(52, 58, 70);
 /// Narrowest tree that still shows the detail and age columns.
 const WIDE_TREE: u16 = 70;
+/// Narrowest body that shows the selected Session's turns beside the tree.
+const TRANSCRIPT_TREE: u16 = 110;
 /// Width of every form but create-Agent, whose pickers also show manifest paths.
 const FORM_WIDTH: u16 = 64;
 const CREATE_AGENT_FORM_WIDTH: u16 = 96;
@@ -138,11 +140,17 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
         render_error(frame, body, error, &mut hit_map);
     } else if app.view == View::Forwards {
         render_forwards(frame, body, app, state, &mut hit_map);
+    } else if let Some(transcript) = app.transcript.as_ref().filter(|_| body.width >= TRANSCRIPT_TREE) {
+        let [tree, turns] = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+            .spacing(1)
+            .areas(body);
+        render_tree(frame, tree, app, state, &mut hit_map);
+        render_transcript(frame, turns, transcript);
     } else {
         render_tree(frame, body, app, state, &mut hit_map);
     }
     match &app.modal {
-        Some(Modal::Filter) => {
+        Some(Modal::Filter | Modal::Prompt(_)) => {
             hit_map.clear();
             render_footer(frame, footer, app, &mut hit_map);
         }
@@ -216,6 +224,9 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     }
     if app.creating > 0 {
         spans.push(Span::styled(" · creating forward…", Style::new().fg(Color::Cyan)));
+    }
+    if app.prompting > 0 {
+        spans.push(Span::styled(" · sending prompt…", Style::new().fg(Color::Cyan)));
     }
     if app.discovering {
         spans.push(Span::styled(" · scanning manifests…", Style::new().fg(Color::Cyan)));
@@ -317,6 +328,63 @@ fn tree_viewport(app: &App, offset: usize, height: usize) -> (usize, Option<usiz
         }
         offset = selected + 1 - capacity;
     }
+}
+
+/// The selected Session's recent turns, wrapped to the panel, the newest at the bottom.
+fn render_transcript(frame: &mut Frame, area: Rect, transcript: &super::app::Transcript) {
+    let block = Block::bordered()
+        .title(format!(" {} · recent turns ", transcript.session.as_str()))
+        .border_style(Style::new().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    let mut lines = crate::format::turn_lines(&transcript.turns);
+    if let Some(error) = &transcript.error {
+        lines.push(format!("Turns unavailable: {error}"));
+    } else if lines.is_empty() {
+        lines.push(
+            if transcript.loading {
+                "Loading…"
+            } else {
+                "No turns yet."
+            }
+            .to_owned(),
+        );
+    }
+    let rows = lines
+        .iter()
+        .flat_map(|line| wrap(line, usize::from(inner.width)))
+        .collect::<Vec<_>>();
+    let visible = rows[rows.len().saturating_sub(usize::from(inner.height))..]
+        .iter()
+        .map(|row| {
+            let style = if row.starts_with("===") {
+                Style::new().fg(Color::DarkGray)
+            } else if row.starts_with("[user]") {
+                Style::new().fg(Color::Cyan)
+            } else {
+                Style::new()
+            };
+            Line::from(Span::styled(row.clone(), style))
+        })
+        .collect::<Vec<_>>();
+    frame.render_widget(Paragraph::new(visible).block(block), area);
+}
+
+/// Splits a line into rows of at most `width` cells.
+fn wrap(line: &str, width: usize) -> Vec<String> {
+    let mut rows = vec![String::new()];
+    let mut used = 0;
+    for character in line.chars() {
+        let cells = Line::from(character.to_string()).width();
+        if used + cells > width.max(1) {
+            rows.push(String::new());
+            used = 0;
+        }
+        if let Some(row) = rows.last_mut() {
+            row.push(character);
+        }
+        used += cells;
+    }
+    rows
 }
 
 /// One tree row. Sessions are indented under their Agent, and every state
@@ -432,24 +500,37 @@ fn render_error(frame: &mut Frame, area: Rect, error: &str, hit_map: &mut HitMap
 
 fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
     let [contextual, global] = Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
-    if matches!(app.modal, Some(Modal::Filter)) {
+    let input = match &app.modal {
+        Some(Modal::Filter) => Some(("/".to_owned(), app.filter.as_str(), None)),
+        Some(Modal::Prompt(form)) => Some((
+            format!("{} › ", form.session.as_str()),
+            form.input.as_str(),
+            form.error.as_deref(),
+        )),
+        _ => None,
+    };
+    if let Some((prompt, text, error)) = input {
+        let width = usize::from(global.width).saturating_sub(Line::from(prompt.as_str()).width() + 1);
         frame.render_widget(
             Line::from(vec![
-                Span::styled("/", Style::new().fg(Color::Cyan)),
-                Span::raw(app.filter.clone()),
+                Span::styled(prompt, Style::new().fg(Color::Cyan)),
+                Span::raw(tail_ellipsized(text, width)),
                 Span::styled("▏", Style::new().fg(Color::Cyan)),
             ]),
             global,
         );
-        render_hint_line(
-            frame,
-            contextual,
-            app.hints(),
-            Color::Cyan,
-            Color::DarkGray,
-            hit_map,
-            |_| true,
-        );
+        match error {
+            Some(error) => frame.render_widget(Span::styled(error.to_owned(), Style::new().fg(Color::Red)), contextual),
+            None => render_hint_line(
+                frame,
+                contextual,
+                app.hints(),
+                Color::Cyan,
+                Color::DarkGray,
+                hit_map,
+                |_| true,
+            ),
+        }
         return;
     }
     render_hint_line(
@@ -545,8 +626,8 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
-        // Typed in the footer, so the filtered tree stays in view.
-        Modal::Filter => {}
+        // Typed in the footer, so the tree and the Session's turns stay in view.
+        Modal::Filter | Modal::Prompt(_) => {}
     }
 }
 
@@ -1162,6 +1243,65 @@ mod tests {
             "the selected row stays marked"
         );
         assert!(buffer_text(&terminal).contains("! review"));
+    }
+
+    #[test]
+    fn a_selected_session_shows_its_latest_turns_beside_the_tree() {
+        let mut app = triage_app();
+        app.select_index(2);
+        let (agent, session) = app.transcript_request().expect("turns are requested");
+        let turns = serde_json::from_value(serde_json::json!([
+            {"messages": [{"role": "user", "parts": [{"kind": "text", "text": "first question"}]}]},
+            {"messages": [
+                {"role": "user", "parts": [{"kind": "text", "text": "update the snapshot?"}]},
+                {"role": "assistant", "parts": [
+                    {"kind": "toolCall", "name": "Bash"},
+                    {"kind": "text", "text": "The snapshot changed as expected. Shall I accept it and rerun the suite?"}
+                ]}
+            ]}
+        ]))
+        .expect("test turns");
+        app.transcript_loaded(&agent, &session, Ok(turns));
+        let mut terminal = Terminal::new(TestBackend::new(120, 9)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(text.contains("review · recent turns"));
+        assert!(text.contains("[assistant] -> Bash"));
+        assert!(
+            text.contains("rerun the suite?"),
+            "the newest line wraps into view:\n{text}"
+        );
+        assert!(!text.contains("first question"), "older lines give way to newer ones");
+
+        terminal.backend_mut().resize(100, 9);
+        draw(&mut terminal, &app);
+        assert!(
+            !buffer_text(&terminal).contains("recent turns"),
+            "a narrow terminal keeps the tree only"
+        );
+    }
+
+    #[test]
+    fn a_prompt_is_typed_in_the_footer_below_the_turns() {
+        let mut app = triage_app();
+        app.select_index(2);
+        for code in [
+            crossterm::event::KeyCode::Char('p'),
+            crossterm::event::KeyCode::Char('y'),
+            crossterm::event::KeyCode::Char('e'),
+            crossterm::event::KeyCode::Char('s'),
+        ] {
+            app.on_key(crossterm::event::KeyEvent::new(
+                code,
+                crossterm::event::KeyModifiers::NONE,
+            ));
+        }
+        let mut terminal = Terminal::new(TestBackend::new(120, 9)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let footer = text.lines().rev().take(2).collect::<Vec<_>>();
+        assert!(footer[0].starts_with("review › yes▏"), "{footer:?}");
+        assert!(footer[1].starts_with("enter send · esc cancel"), "{footer:?}");
     }
 
     #[test]
