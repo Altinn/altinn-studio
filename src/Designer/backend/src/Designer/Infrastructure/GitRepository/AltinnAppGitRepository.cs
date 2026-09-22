@@ -347,14 +347,13 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// <exception cref="BadHttpRequestException">Thrown if the layout cannot be created under that name.</exception>
     public void EnsureLayoutCanBeCreatedInSet(string layoutSetName, string layoutName)
     {
-        string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
-        EnsureLayoutWriteIsAllowed(layoutSetName, layoutName, layoutFilePath);
+        EnsureLayoutWriteIsAllowed(layoutSetName, layoutName);
     }
 
     public async Task CreatePageLayoutFile(string layoutSetId, string pageId, AltinnPageLayout altinnPageLayout)
     {
         string layoutFilePath = GetPathToLayoutFile(layoutSetId, pageId);
-        EnsureLayoutWriteIsAllowed(layoutSetId, pageId, layoutFilePath);
+        EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
         await WriteObjectByRelativePathAsync(layoutFilePath, altinnPageLayout.Structure);
     }
 
@@ -605,7 +604,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
-        EnsureLayoutWriteIsAllowed(layoutSetName, layoutFileName, layoutFilePath);
+        EnsureLayoutWriteIsAllowed(layoutSetName, layoutFileName);
         string serializedLayout = layout.ToJsonString(s_jsonOptions);
         await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true, cancellationToken);
     }
@@ -1154,21 +1153,61 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// Applies the naming policy for new names to a layout write, but only to the parts of that write
     /// that bring something new into existence: a layout set folder that is not there yet, or a layout
     /// file that is not there yet. Writing to a layout or a layout set that already exists is allowed
-    /// whatever it is called.
+    /// whatever it is called. Whether a layout set or a layout already exists is decided by the exact
+    /// name, so that the rule holds equally on a case sensitive and a case insensitive file system.
+    /// Asking the file system for a path would answer that "MIN SIDE" already exists wherever
+    /// "Min side" does.
     /// </summary>
     /// <param name="layoutSetName">The name of the layout set the layout belongs to.</param>
     /// <param name="layoutName">The name of the layout file.</param>
-    /// <param name="layoutFilePath">The repository relative path the layout is written to.</param>
-    private void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName, string layoutFilePath)
+    private void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName)
     {
-        if (!DirectoryExistsByRelativePath(GetPathToLayoutSet(layoutSetName, true)))
+        if (!LayoutSetFolderExistsByExactName(layoutSetName))
         {
             EnsureAllowedNewLayoutSetName(layoutSetName);
         }
-        if (!FileExistsByRelativePath(layoutFilePath))
+        if (!LayoutFileExistsByExactName(layoutSetName, layoutName))
         {
             EnsureAllowedNewLayoutName(layoutName);
         }
+    }
+
+    /// <summary>
+    /// Determines whether the layout folder holds a layout set folder named exactly this. An empty name
+    /// means the app does not use layout sets, in which case the layout folder itself is the layout set.
+    /// </summary>
+    /// <param name="layoutSetName">The layout set name to look for.</param>
+    /// <returns>True if a layout set folder of exactly that name is there.</returns>
+    private bool LayoutSetFolderExistsByExactName(string layoutSetName)
+    {
+        if (!DirectoryExistsByRelativePath(LayoutsFolderName))
+        {
+            return false;
+        }
+        if (string.IsNullOrEmpty(layoutSetName))
+        {
+            return true;
+        }
+        return GetDirectoriesByRelativeDirectory(LayoutsFolderName).Contains(layoutSetName, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether the layouts folder of a layout set holds a layout file named exactly this. A
+    /// layout set whose folder is not there holds no layouts.
+    /// </summary>
+    /// <param name="layoutSetName">The name of the layout set to look in.</param>
+    /// <param name="layoutName">The layout name to look for.</param>
+    /// <returns>True if a layout file of exactly that name is there.</returns>
+    private bool LayoutFileExistsByExactName(string layoutSetName, string layoutName)
+    {
+        string layoutsFolderPath = GetPathToLayoutSet(layoutSetName);
+        if (!DirectoryExistsByRelativePath(layoutsFolderPath))
+        {
+            return false;
+        }
+        return GetFilesByRelativeDirectory(layoutsFolderPath)
+            .Select(Path.GetFileName)
+            .Contains($"{layoutName}.json", StringComparer.Ordinal);
     }
 
     // can be null if app does not use layout set
