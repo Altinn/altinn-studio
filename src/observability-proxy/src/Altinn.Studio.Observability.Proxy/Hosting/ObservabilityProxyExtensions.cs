@@ -37,20 +37,26 @@ internal static class ObservabilityProxyExtensions
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
             {
-                if (!context.Request.Path.StartsWithSegments(pathPrefix))
+                // Only observability traffic is limited, and only per authenticated identity.
+                // StaticBearerTokenMiddleware runs before the limiter and answers 401 to anything on
+                // this prefix it cannot authenticate, so every request that reaches here on the
+                // prefix carries a source identity and there is no unauthenticated partition.
+                if (
+                    !context.Request.Path.StartsWithSegments(pathPrefix)
+                    || context.Features.Get<ObservabilitySourceFeature>() is not { } observabilitySource
+                )
                 {
                     return RateLimitPartition.GetNoLimiter("non-observability");
                 }
 
-                var sourceIdentity =
-                    context.Features.Get<ObservabilitySourceFeature>()?.Source.SourceIdentity ?? "anonymous";
+                var sourceIdentity = observabilitySource.Source.SourceIdentity;
 
                 return RateLimitPartition.GetFixedWindowLimiter(
                     sourceIdentity,
                     _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = Math.Max(1, rateLimitingOptions.PermitLimit),
+                        PermitLimit = Math.Max(1, rateLimitingOptions.PermitLimitFor(sourceIdentity)),
                         QueueLimit = Math.Max(0, rateLimitingOptions.QueueLimit),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         Window = TimeSpan.FromSeconds(Math.Max(1, rateLimitingOptions.WindowSeconds)),

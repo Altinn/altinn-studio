@@ -100,9 +100,23 @@ internal sealed class BearerTokenOptions
 
 internal sealed class RateLimitingOptions
 {
+    /// <summary>
+    /// Permits per window for a source identity with no entry in <see cref="PermitLimits"/>. Sized
+    /// for an identity that is one cluster.
+    /// </summary>
     public int PermitLimit { get; set; } = 10000;
+
+    /// <summary>
+    /// Per-identity overrides, keyed by source identity. The shared runtime identities cover tens of
+    /// clusters each, so one bucket sized for a single cluster would reject legitimate traffic.
+    /// </summary>
+    public Dictionary<string, int> PermitLimits { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public int WindowSeconds { get; set; } = 60;
 
     public int QueueLimit { get; set; }
+
+    /// <summary>Permits per window for <paramref name="sourceIdentity"/>, or the default.</summary>
+    public int PermitLimitFor(string sourceIdentity) =>
+        PermitLimits.TryGetValue(sourceIdentity, out var permitLimit) ? permitLimit : PermitLimit;
 }

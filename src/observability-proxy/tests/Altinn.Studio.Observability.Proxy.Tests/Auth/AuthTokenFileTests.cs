@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Altinn.Studio.Observability.Proxy.Auth;
 using Altinn.Studio.Observability.Proxy.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -58,6 +59,22 @@ public sealed class AuthTokenFileTests : IDisposable
     }
 
     [Fact]
+    public void TwoIdentitiesSharingOneTokenValue_AreReported()
+    {
+        // The authenticator keeps the last match, so a copy-pasted token silently attributes one
+        // source's telemetry to another. The warning names both identities and never the token.
+        Write(new { ingest = new { studio_dev = "shared-secret", studio_staging = "shared-secret" } });
+        var logger = new RecordingLogger();
+
+        Assert.Equal(2, CreateTokenFile(out _, logger).GetTokens().Count);
+
+        var warning = Assert.Single(logger.Warnings);
+        Assert.Contains("studio_dev", warning, StringComparison.Ordinal);
+        Assert.Contains("studio_staging", warning, StringComparison.Ordinal);
+        Assert.DoesNotContain("shared-secret", warning, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MalformedFile_KeepsTheTokensAlreadyLoaded()
     {
         // Replacing every token with nothing would turn one bad Secret into an outage for all
@@ -108,13 +125,43 @@ public sealed class AuthTokenFileTests : IDisposable
         File.WriteAllText(_path, JsonSerializer.Serialize(content));
     }
 
-    private AuthTokenFile CreateTokenFile(out TestTimeProvider timeProvider)
+    private AuthTokenFile CreateTokenFile(out TestTimeProvider timeProvider, ILogger<AuthTokenFile>? logger = null)
     {
         var options = new ObservabilityProxyOptions();
         options.Authentication.TokensFilePath = _path;
         timeProvider = new TestTimeProvider();
 
-        return new AuthTokenFile(new StaticOptionsMonitor(options), NullLogger<AuthTokenFile>.Instance, timeProvider);
+        return new AuthTokenFile(
+            new StaticOptionsMonitor(options),
+            logger ?? NullLogger<AuthTokenFile>.Instance,
+            timeProvider
+        );
+    }
+
+    private sealed class RecordingLogger : ILogger<AuthTokenFile>
+    {
+        public List<string> Warnings { get; } = [];
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        )
+        {
+            ArgumentNullException.ThrowIfNull(formatter);
+
+            if (logLevel == LogLevel.Warning)
+            {
+                Warnings.Add(formatter(state, exception));
+            }
+        }
     }
 
     private sealed class TestTimeProvider : TimeProvider
