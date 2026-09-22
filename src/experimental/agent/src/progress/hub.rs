@@ -81,8 +81,9 @@ impl SandboxObserver {
         let hub = self.hub.clone();
         let id = self.id;
         let open_phase = self.open_phase.clone();
+        let translator = std::cell::RefCell::new(super::event::Translator::default());
         Rc::new(move |event| {
-            if let Some(event) = super::event::sandbox_event(event) {
+            if let Some(event) = translator.borrow_mut().translate(event) {
                 match &event {
                     Event::PhaseStarted { phase, message, .. } => {
                         open_phase.set(Some((*phase, message.clone(), Instant::now())));

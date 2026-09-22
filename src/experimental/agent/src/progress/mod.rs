@@ -16,4 +16,4 @@ pub(crate) use hub::{Receive, Subscription};
 pub type Reporter = std::rc::Rc<dyn Fn(Event)>;
 
 /// Callback used by Sandbox Providers to forward SDK progress.
-pub type SandboxReporter = std::rc::Rc<dyn Fn(::sandbox::SandboxEvent)>;
+pub type SandboxReporter = std::rc::Rc<dyn Fn(::sandbox::ProgressEvent)>;
