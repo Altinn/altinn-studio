@@ -124,6 +124,25 @@ public class ReplaceXsdTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("ttd", "hvem-er-hvem", "testUser")]
+    public async Task ReplaceXsd_WhenModelDoesNotExist_ShouldReturnNotFound(
+        string org,
+        string sourceRepository,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+        var response = await SendReplaceXsdRequest(org, targetRepository, "App/models/deletedModel.schema.json");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.False(
+            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, "App/models/deletedModel.schema.json")
+        );
+    }
+
     private static XElement GetRootElement(XDocument xsd) =>
         Assert.Single(xsd.Root!.Elements(XNamespace.Get("http://www.w3.org/2001/XMLSchema") + "element"));
 

@@ -284,6 +284,14 @@ public class SchemaModelService : ISchemaModelService
             altinnRepoEditingContext.Developer
         );
 
+        if (!altinnAppGitRepository.FileExistsByRelativePath(relativeFilePath))
+        {
+            throw new FileNotFoundException(
+                $"The data model {relativeFilePath} does not exist and cannot be replaced.",
+                relativeFilePath
+            );
+        }
+
         string schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
         MemoryStream xsdMemoryStream = RenameXsdRootElement(GetXsdMemoryStream(xsdStream), schemaFileName);
         JsonSchema jsonSchema = GenerateJsonSchemaFromXsd(xsdMemoryStream);
