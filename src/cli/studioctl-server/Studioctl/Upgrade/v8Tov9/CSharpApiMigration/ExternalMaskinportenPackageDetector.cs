@@ -26,8 +26,8 @@ internal sealed class ExternalMaskinportenPackageDetector
     /// <summary>
     /// Types whose simple name belongs unambiguously to the external package, so a bare reference is
     /// evidence on its own. Deliberately excludes <c>MaskinportenSettings</c>, whose simple name is shared
-    /// with the built-in client's settings record - that overlap is the config section collision, and it is
-    /// <see cref="MaskinportenSettingsCollisionDetector"/>'s job.
+    /// with the built-in client's settings record, so a bare reference is not evidence of the external
+    /// package; <see cref="MaskinportenSettingsSectionDetector"/> is the one that reports on that section.
     /// </summary>
     private static readonly IReadOnlySet<string> _distinctiveExternalTypes = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -72,9 +72,7 @@ internal sealed class ExternalMaskinportenPackageDetector
         + "declare the package explicitly in App.csproj (<PackageReference Include=\""
         + PackageId
         + "\" Version=\"...\" />), or migrate to the built-in IMaskinportenClient, which every v9 app already has "
-        + "and which Studio configures automatically when the app is deployed. If you keep the external package, "
-        + "make sure your own settings do not live in a configuration section named MaskinportenSettings - that "
-        + "name is now owned by the provisioned client. Usages found:";
+        + "and which Studio configures automatically when the app is deployed. Usages found:";
 
     private const string ConditionalReferenceSummary =
         "This app declares the external Altinn.ApiClients.Maskinporten package behind an MSBuild condition, so "

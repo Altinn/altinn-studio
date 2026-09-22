@@ -33,6 +33,16 @@
     "Serie": {
       "type": "string"
     },
+    "PageCount": {
+      "@xsdType": "int",
+      "type": "integer"
+    },
+    "CopyCount": {
+      "@xsdType": "integer",
+      "type": "integer",
+      "minimum": -999999999999999,
+      "maximum": 999999999999999
+    },
     "Publikasjonsaar": {
       "type": "integer"
     }
