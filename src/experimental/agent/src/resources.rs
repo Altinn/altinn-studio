@@ -117,6 +117,21 @@ impl<'de> serde::Deserialize<'de> for Revision {
     }
 }
 
+/// Every Agent and Session as of one revision.
+///
+/// The revision is taken before the state is read, so a change made while it
+/// is read is also reported by the next watch from this revision.
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct Resources {
+    /// Revision to watch from next.
+    pub revision: Revision,
+    /// Active Agents ordered by name, with provisioning progress projected.
+    pub agents: Vec<crate::Agent>,
+    /// Durable Sessions of those Agents.
+    pub sessions: Vec<crate::sessions::Session>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -9,10 +9,10 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
-    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, ProgressParams, ReadMessage, Request,
-    Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams,
-    ShutdownParams, ShutdownResult, read_message,
+    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, ProgressParams,
+    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -185,6 +185,21 @@ impl Client {
             },
         )
         .await
+    }
+
+    /// Waits for an Agent or Session to change after `after`, then returns
+    /// every Agent and Session. Without a revision, or with one from an earlier
+    /// daemon process, it returns the current state at once; with a current
+    /// revision it may return the unchanged state after a keepalive interval.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or daemon reads fail.
+    pub async fn watch_resources(
+        &self,
+        after: Option<crate::resources::Revision>,
+    ) -> Result<crate::resources::Resources, Error> {
+        self.call(METHOD_RESOURCES_WATCH, ResourcesWatchParams { after }).await
     }
 
     /// Describes how to reach an Agent over SSH.
