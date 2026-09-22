@@ -48,7 +48,7 @@ langfuse.run_experiment(dataset items, task=AgentTask, evaluators, run_evaluator
         │
         │  per item, one at a time
         ▼
-POST /api/agent/start on the local stack ──► agent works ──► pushes altinity_session_<id>
+POST /api/agent/start on the local stack ──► agent works ──► pushes assistant_<id>
         │                                                          │
         ▼                                                          ▼
 poll /api/agent/status until terminal                     clone the session branch
@@ -156,7 +156,7 @@ BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
 ```
 
 `BENCH_REPO_URL` points at a **disposable app repo you own**. The
-benchmark pushes an `altinity_session_*` branch to it per run, so use a
+benchmark pushes an `assistant_*` branch to it per run, so use a
 blank test app, not anything you care about. The URL is as the *agent
 container* resolves it (`gitea-proxy:81` on the local stack); the org is
 derived from the URL path.
@@ -175,7 +175,7 @@ the repo).
 python -m benchmarks.runner ensure-configs
 
 # (re)build the rubric from a known-good session branch
-git -c 'http.extraHeader=X-Api-Key: <key>' clone --branch altinity_session_<id> \
+git -c 'http.extraHeader=X-Api-Key: <key>' clone --branch assistant_<id> \
     http://localhost/repos/<org>/<app>.git /tmp/golden
 python -m benchmarks.runner rubric --from-app /tmp/golden \
     --update-item trace-34fddc78028268ea87078ae2d15e1715
