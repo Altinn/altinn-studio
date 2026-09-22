@@ -35,6 +35,7 @@ export const dataTypePath = (org, app, dataModelName) => `${apiBasePath}/${org}/
 export const dataModelsJsonPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/json`; // Get
 export const dataModelsXsdPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/upload`; // Post
+export const replaceDataModelXsdPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/datamodel/xsd?${s({ modelPath })}`; // Put
 export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${apiBasePath}/${org}/${app}/datamodels/xsd-from-repo?${s({ filePath })}`; // Post
 export const dataModelPrefillPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/prefill?${s({ modelPath })}`; // Get, Put
 

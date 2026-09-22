@@ -382,6 +382,7 @@ export const queriesMock: ServicesContextProps = {
   updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  replaceDataModelXsd: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   upsertTextResources: jest.fn().mockImplementation(async (_org, _app, language) => {
     return Promise.resolve<ITextResourcesWithLanguage>(emptyTextResourceListMock(language));
