@@ -203,12 +203,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string apiKey = await CreateAssistantApiKeyAsync(developer, sessionId);
 
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
-        var agentResponse = await ForwardRequestToAssistantAsync(
-            enrichedWithAttachments,
-            developer,
-            apiKey,
-            sessionId
-        );
+        var agentResponse = await ForwardRequestToAssistantAsync(enrichedWithAttachments, developer, apiKey, sessionId);
 
         // Remove attachments from buffer only after successful forwarding
         _attachmentStore.RemoveAll(attachmentIds);
