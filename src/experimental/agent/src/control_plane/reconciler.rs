@@ -2,7 +2,8 @@ use std::rc::Rc;
 
 use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status};
 
-use super::{AgentRecord, ObservedStatus, Observers, SharedAgentStore};
+use super::{AgentRecord, SharedAgentStore};
+use crate::progress::{ProvisioningState, SandboxObserver};
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
@@ -16,19 +17,23 @@ pub struct Reconciler {
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
     ssh: Option<Rc<crate::ssh::Access>>,
-    observers: Observers,
+    provisioning: ProvisioningState,
 }
 
 impl Reconciler {
     /// Creates an Agent reconciler over persistent resources and runtime-resolved Sandboxes.
     #[must_use]
-    pub fn new(store: SharedAgentStore, sandboxes: Rc<crate::sandbox::Service>, observers: Observers) -> Self {
+    pub fn new(
+        store: SharedAgentStore,
+        sandboxes: Rc<crate::sandbox::Service>,
+        provisioning: ProvisioningState,
+    ) -> Self {
         Self {
             store,
             sandboxes,
             sessions: None,
             ssh: None,
-            observers,
+            provisioning,
         }
     }
 
@@ -83,7 +88,7 @@ impl Reconciler {
             record.agent.status = self.update_status(&record, status, None).await?;
         }
 
-        let observer = self.observers.observe_sandbox(record.id);
+        let observer = SandboxObserver::new(record.id, self.provisioning.clone());
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => {
                 observer.succeeded();
@@ -91,7 +96,6 @@ impl Reconciler {
             }
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
-                observer.failed(&failure);
                 let message = error.to_string();
                 let status = Status::observed(
                     record.agent.metadata.generation,
@@ -111,7 +115,10 @@ impl Reconciler {
                         ),
                     ],
                 );
-                self.update_status(&record, status, Some(failure.kind)).await?;
+                // The failure class is stored before followers see the pass fail.
+                let stored = self.update_status(&record, status, Some(failure.kind)).await;
+                observer.failed(&failure);
+                stored?;
                 return Err(error);
             }
         };
@@ -204,7 +211,7 @@ impl Reconciler {
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
             .await?;
-        self.observers.forget(record.id);
+        self.provisioning.forget(record.id);
         Ok(())
     }
 
@@ -232,8 +239,7 @@ impl Reconciler {
         .map(drop)
     }
 
-    /// Records the pass's observed status and failure class, publishes it to
-    /// followers, and returns it as stored.
+    /// Records the pass's observed status and failure class and returns it as stored.
     async fn update_status(
         &self,
         record: &AgentRecord,
@@ -246,13 +252,6 @@ impl Reconciler {
             .store
             .update_status(record.id, record.agent.metadata.generation, status)
             .await?;
-        self.observers.publish_status(
-            record.id,
-            ObservedStatus {
-                conditions: stored.conditions.clone(),
-                failure: stored.failure,
-            },
-        );
         if notify {
             self.notify_sessions(record.id);
         }

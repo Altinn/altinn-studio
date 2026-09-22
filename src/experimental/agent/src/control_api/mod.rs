@@ -1,7 +1,6 @@
 //! Versioned Agent Control API with JSON-RPC 2.0/JSONL and replaceable stream transports.
 
 mod client;
-mod outbox;
 mod protocol;
 mod server;
 mod socket;

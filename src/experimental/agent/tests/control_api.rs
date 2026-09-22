@@ -2,11 +2,7 @@
 
 mod support;
 
-use std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-    time::Duration,
-};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use agent::{
     Error,
@@ -14,7 +10,7 @@ use agent::{
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
-    progress::Reporter,
+    resources::Changes,
 };
 use sandbox::LocalFuture;
 use tokio::{
@@ -49,9 +45,7 @@ impl SshAccessApi for FakeSshAccess {
         })
     }
 }
-struct FakeExecutions {
-    progress_ensures: Rc<Cell<usize>>,
-}
+struct FakeExecutions;
 /// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
 type SentMessage = (String, bool, Option<std::time::Duration>);
 
@@ -119,7 +113,6 @@ impl SessionApi for FakeSessions {
         _name: &'a agent::sessions::SessionName,
         request: agent::sessions::SessionRequest,
         _wait: WaitPolicy,
-        _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
         self.ensured.borrow_mut().push(request);
         Box::pin(async { Err(Error::NotFound) })
@@ -200,15 +193,7 @@ impl ExecutionApi for FakeExecutions {
         &'a self,
         name: &'a str,
         _wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        if let Some(progress) = progress {
-            self.progress_ensures.set(self.progress_ensures.get() + 1);
-            progress(agent::progress::Event::PhaseStarted {
-                phase: agent::progress::Phase::ImagePrepare,
-                message: "Prepare Sandbox Image".into(),
-            });
-        }
         Box::pin(async move {
             if name != "worker" {
                 return Err(Error::NotFound);
@@ -240,7 +225,7 @@ struct ApiFixture {
     client: Client,
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
-    progress_ensures: Rc<Cell<usize>>,
+    changes: Changes,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -283,16 +268,14 @@ fn api() -> ApiFixture {
     let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
-    let progress_ensures = Rc::new(Cell::new(0));
+    let changes = Changes::new();
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
-        Rc::new(FakeExecutions {
-            progress_ensures: progress_ensures.clone(),
-        }),
+        Rc::new(FakeExecutions),
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
             sent: sent.clone(),
@@ -301,6 +284,7 @@ fn api() -> ApiFixture {
             upgrade_gates: upgrade_gates.clone(),
         }),
         Rc::new(FakeSshAccess),
+        changes.clone(),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
@@ -309,7 +293,7 @@ fn api() -> ApiFixture {
         client,
         ensured,
         sent,
-        progress_ensures,
+        changes,
         upgrade_blockers,
         upgrade_warnings,
         upgrade_gates,
@@ -425,14 +409,14 @@ async fn login_returns_only_non_secret_readiness() {
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
-    assert_eq!(daemon.protocol_version.as_deref(), Some("v3"));
+    assert_eq!(daemon.protocol_version.as_deref(), Some("v4"));
     assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
 }
 
 #[test]
 fn daemon_identity_rejects_preview_1_and_mixed_builds() {
     let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
-        "protocolVersion": "v3",
+        "protocolVersion": "v4",
         "buildVersion": agent::build_version(),
         "futureCapability": true
     }))
@@ -445,7 +429,7 @@ fn daemon_identity_rejects_preview_1_and_mixed_builds() {
             build_version: None,
         },
         agent::control_api::DaemonInfo {
-            protocol_version: Some("v3".into()),
+            protocol_version: Some("v4".into()),
             build_version: Some("another-build".into()),
         },
     ] {
@@ -651,10 +635,9 @@ async fn client_and_server_exchange_versioned_agent_operations() {
         applied
     );
     let execution = client
-        .ensure_execution("worker", WaitPolicy::FirstPass, None)
+        .ensure_execution("worker", WaitPolicy::FirstPass)
         .await
         .expect("execution target");
-    assert_eq!(fixture.progress_ensures.get(), 0);
     assert_eq!(execution.operating_system, "linux");
     assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
@@ -672,7 +655,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             agent::sessions::SessionName::new("s1").expect("Session name"),
             request.clone(),
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -683,7 +665,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             agent::sessions::SessionName::new("s2").expect("Session name"),
             agent::sessions::SessionRequest::default(),
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -705,60 +686,46 @@ async fn client_and_server_exchange_versioned_agent_operations() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn opted_in_ensure_routes_notifications_before_the_matching_response() {
+async fn agent_progress_returns_the_status_then_waits_for_the_next_change() {
     let fixture = api();
-    let events = Rc::new(RefCell::new(Vec::new()));
-    let observed = events.clone();
-    let target = fixture
+    fixture.client.apply(request("worker")).await.expect("apply");
+    let current = fixture
         .client
-        .ensure_execution(
-            "worker",
-            WaitPolicy::UntilReady,
-            Some(&mut |event| observed.borrow_mut().push(event)),
-        )
+        .agent_progress("worker", None, None)
         .await
-        .expect("streaming execution target");
+        .expect("current progress");
+    assert!(current.provisioning.is_none(), "no pass has run");
+    assert!(current.status.conditions.is_empty());
 
-    assert_eq!(target.operating_system, "linux");
-    assert_eq!(fixture.progress_ensures.get(), 1);
-    assert_eq!(
-        events.borrow().as_slice(),
-        &[agent::progress::Event::PhaseStarted {
-            phase: agent::progress::Phase::ImagePrepare,
-            message: "Prepare Sandbox Image".into(),
-        }]
-    );
+    let follower = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let revision = current.revision;
+    let follow = tokio::task::spawn_local(async move { follower.agent_progress("worker", Some(revision), None).await });
+    tokio::task::yield_now().await;
+    assert!(!follow.is_finished(), "a current revision waits for a change");
+    fixture.changes.bump();
+    let changed = follow.await.expect("follow task").expect("changed progress");
+    assert_ne!(changed.revision, revision);
+
+    let missing = fixture
+        .client
+        .agent_progress("missing", None, None)
+        .await
+        .expect_err("unknown Agent");
+    assert!(matches!(missing, Error::Rpc(error) if error.is_not_found()));
 }
 
 #[tokio::test(flavor = "local")]
-async fn unknown_notifications_are_skipped_but_malformed_frames_fail_the_call() {
-    let unknown = ScriptedConnector {
-        frames: concat!(
-            r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{"type":"fromTheFuture"}}"#,
-            "\n",
-            r#"{"jsonrpc":"2.0","method":"telemetry.v2.sample","params":{}}"#,
-            "\n",
-            r#"{"jsonrpc":"2.0","id":1,"result":{"sandbox":{"state":"materialized","provider":"memory","id":"ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"},"operatingSystem":"linux"}}"#,
-            "\n",
-        ),
+async fn a_frame_that_is_not_the_response_fails_the_call() {
+    let notification = ScriptedConnector {
+        frames: concat!(r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{}}"#, "\n"),
     };
-    let client = Client::new(Rc::new(unknown));
-    let mut event_count = 0;
-    let target = client
-        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| event_count += 1))
-        .await
-        .expect("response after unknown notifications");
-    assert_eq!(event_count, 0);
-    assert_eq!(target.operating_system, "linux");
-
-    let malformed = ScriptedConnector {
-        frames: concat!(r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{"#, "\n"),
-    };
-    let client = Client::new(Rc::new(malformed));
+    let client = Client::new(Rc::new(notification));
     let error = client
-        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| {}))
+        .ensure_execution("worker", WaitPolicy::UntilReady)
         .await
-        .expect_err("corrupted frame is a protocol error");
+        .expect_err("a notification is not a response");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
 }
 
