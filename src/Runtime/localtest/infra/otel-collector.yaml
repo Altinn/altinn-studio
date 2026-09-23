@@ -13,11 +13,11 @@ processors:
 
 exporters:
   otlphttp/victoria-logs:
-    logs_endpoint: http://localtest_victoria_logs:9428/insert/opentelemetry/v1/logs
+    logs_endpoint: http://localtest-victoria-logs:9428/insert/opentelemetry/v1/logs
   otlphttp/victoria-traces:
-    traces_endpoint: http://localtest_victoria_traces:10428/insert/opentelemetry/v1/traces
+    traces_endpoint: http://localtest-victoria-traces:10428/insert/opentelemetry/v1/traces
   prometheusremotewrite/victoria-metrics:
-    endpoint: http://localtest_victoria_metrics:8428/api/v1/write
+    endpoint: http://localtest-victoria-metrics:8428/api/v1/write
 
 service:
   telemetry:
