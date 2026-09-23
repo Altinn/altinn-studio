@@ -5,6 +5,7 @@ import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
@@ -18,7 +19,7 @@ export function useLabel({
   const item = useItemFor(baseComponentId);
   const { readOnly, required, showOptionalMarking, textResourceBindings } = {
     readOnly: item['readOnly'],
-    required: item['required'],
+    required: getRequired(item),
     showOptionalMarking: item['labelSettings']?.['optionalIndicator'] !== false,
     textResourceBindings: {
       title: item.textResourceBindings?.['title'],

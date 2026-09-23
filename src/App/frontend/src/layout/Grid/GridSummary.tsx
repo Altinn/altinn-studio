@@ -45,6 +45,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
@@ -271,7 +272,7 @@ function SummaryCell(props: CellProps) {
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
   const item = useItemFor(props.labelFrom);
-  const required = 'required' in item ? item.required : undefined;
+  const required = getRequired(item);
   const readOnly = 'readOnly' in item ? item.readOnly : undefined;
   const showOptionalMarking = !('labelSettings' in item) || item.labelSettings?.optionalIndicator !== false;
   const title =
@@ -502,7 +503,7 @@ function SummaryCellWithLabel({
   const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
     ITextResourceBindings | undefined;
   const title = trb && 'title' in trb ? trb.title : undefined;
-  const required = refItem && 'required' in refItem ? refItem.required : undefined;
+  const required = refItem ? getRequired(refItem) : undefined;
   const readOnly = refItem && 'readOnly' in refItem ? refItem.readOnly : undefined;
   const labelSettings = refItem && 'labelSettings' in refItem ? refItem.labelSettings : undefined;
 

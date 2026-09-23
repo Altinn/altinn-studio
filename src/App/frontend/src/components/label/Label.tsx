@@ -11,6 +11,7 @@ import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -53,7 +54,7 @@ export function LabelInner(props: LabelInnerProps) {
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
   const item = { ..._item, ...overrideItemProps };
   const { grid, textResourceBindings: _trb } = item;
-  const required = 'required' in item && item.required;
+  const required = getRequired(item);
   const readOnly = 'readOnly' in item && item.readOnly;
   const labelSettings = 'labelSettings' in item ? item.labelSettings : undefined;
 
