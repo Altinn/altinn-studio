@@ -22,9 +22,6 @@ const stagingLabel = textMock(
 const productionLabel = textMock(
   'process_editor.configuration_panel.environment_config.scope_production',
 );
-const optionalSectionLabel = textMock(
-  'process_editor.configuration_panel.eformidling.optional_legend',
-);
 
 const fieldLabel = (property: string): string =>
   textMock(`process_editor.configuration_panel.eformidling.${property}_label`);
@@ -65,7 +62,7 @@ describe('ConfigEFormidlingServiceTask', () => {
       const { updateModdleProperties, element, eFormidlingConfig } =
         renderConfigEFormidlingServiceTask();
 
-      await expandOptionalField(user, fieldLabel(labelKey));
+      await expandField(user, fieldLabel(labelKey));
       await typeGlobalValue(user, typedValue);
 
       expect(updateModdleProperties).toHaveBeenCalledTimes(1);
@@ -97,7 +94,7 @@ describe('ConfigEFormidlingServiceTask', () => {
     const { updateModdleProperties, element, eFormidlingConfig } =
       renderConfigEFormidlingServiceTask({ availableDataTypeIds: ['model', 'attachment'] });
 
-    await expandOptionalField(user, fieldLabel('data_types'));
+    await expandField(user, fieldLabel('data_types'));
     expect(screen.getByLabelText(globalLabel, { exact: false })).toHaveFocus();
     await user.keyboard('attachment{Enter}');
 
@@ -174,24 +171,6 @@ describe('ConfigEFormidlingServiceTask', () => {
     expect(screen.getByLabelText(productionLabel)).toHaveValue('production-type');
   });
 
-  it.each(['process', 'standard', 'type', 'type_version', 'security_level'])(
-    'keeps the required field %s out of the disclosure',
-    (labelKey) => {
-      renderConfigEFormidlingServiceTask();
-
-      expect(getDisclosureAround(fieldLabel(labelKey))).toBeNull();
-    },
-  );
-
-  it.each(['receiver', 'dpf_shipment_type', 'data_types'])(
-    'folds the optional field %s into the disclosure',
-    (labelKey) => {
-      renderConfigEFormidlingServiceTask();
-
-      expect(getDisclosureAround(fieldLabel(labelKey))).not.toBeNull();
-    },
-  );
-
   it('tags each group with whether the developer has to answer it', () => {
     renderConfigEFormidlingServiceTask();
 
@@ -203,19 +182,23 @@ describe('ConfigEFormidlingServiceTask', () => {
     ).toBeInTheDocument();
   });
 
-  it('says how many of the folded-away fields the file has a value for', () => {
-    renderConfigEFormidlingServiceTask({
-      eFormidlingConfig: {
-        receiver: [{ $type: environmentConfigType, value: '991825827' }],
-        dpfShipmentType: [{ $type: environmentConfigType, value: 'altinn3.skjema' }],
-      },
-    });
+  it('closes only the selected optional editor when several are open', async () => {
+    const user = userEvent.setup();
+    renderConfigEFormidlingServiceTask();
+    await expandField(user, fieldLabel('receiver'));
+    await expandField(user, fieldLabel('dpf_shipment_type'));
 
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('general.close_item', { item: fieldLabel('receiver') }),
+      }),
+    );
+
+    expect(getFieldButton(fieldLabel('receiver'))).toHaveFocus();
     expect(
-      screen.getByText(
-        textMock('process_editor.configuration_panel.eformidling.optional_filled_count', {
-          fieldCount: 2,
-        }),
+      within(screen.getByRole('group', { name: fieldLabel('dpf_shipment_type') })).getByRole(
+        'textbox',
+        { name: globalLabel },
       ),
     ).toBeInTheDocument();
   });
@@ -306,11 +289,6 @@ function getFieldButton(label: string): HTMLElement {
   return screen.getByRole('button', { name: label });
 }
 
-/** A closed `<details>` hides nothing from jsdom's accessibility tree, so the DOM is asked instead. */
-function getDisclosureAround(fieldButtonLabel: string): HTMLElement | null {
-  return getFieldButton(fieldButtonLabel).closest('details');
-}
-
 function getGroupOf(fieldButtonLabel: string): HTMLElement {
   // eslint-disable-next-line testing-library/no-node-access
   const group = getFieldButton(fieldButtonLabel).closest('fieldset');
@@ -320,11 +298,6 @@ function getGroupOf(fieldButtonLabel: string): HTMLElement {
 
 async function expandField(user: UserEvent, label: string): Promise<void> {
   await user.click(getFieldButton(label));
-}
-
-async function expandOptionalField(user: UserEvent, label: string): Promise<void> {
-  await user.click(screen.getByText(optionalSectionLabel));
-  await expandField(user, label);
 }
 
 async function typeGlobalValue(user: UserEvent, value: string): Promise<void> {

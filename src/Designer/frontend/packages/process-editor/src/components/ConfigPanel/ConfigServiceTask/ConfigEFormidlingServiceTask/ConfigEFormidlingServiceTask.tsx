@@ -1,13 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAlert,
-  StudioDetails,
-  StudioFormGroup,
-  StudioList,
-  StudioParagraph,
-  StudioTag,
-} from '@studio/components';
+import { StudioAlert, StudioFormGroup, StudioList, StudioParagraph } from '@studio/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import {
   EnvBooleanConfigField,
@@ -34,7 +27,6 @@ const fieldLabelKeys: Record<EFormidlingProperty, string> = {
   dataTypes: 'process_editor.configuration_panel.eformidling.data_types_label',
 };
 
-/** The required eFormidling fields stand open; only the optional ones fold away. */
 export const ConfigEFormidlingServiceTask = (): ReactElement => {
   const { t } = useTranslation();
   const { availableDataTypeIds } = useBpmnApiContext();
@@ -47,12 +39,6 @@ export const ConfigEFormidlingServiceTask = (): ReactElement => {
     typeVersion: config.typeVersion.entries,
     securityLevel: config.securityLevel.entries,
   });
-
-  const configuredOptionalFieldCount = [
-    config.receiver,
-    config.dpfShipmentType,
-    config.dataTypes,
-  ].filter(({ entries }) => entries.length > 0).length;
 
   return (
     <StudioList.Unordered className={classes.taskConfigList}>
@@ -102,40 +88,29 @@ export const ConfigEFormidlingServiceTask = (): ReactElement => {
       </StudioList.Item>
 
       <StudioList.Item>
-        <StudioDetails>
-          <StudioDetails.Summary>
-            <span>{t('process_editor.configuration_panel.eformidling.optional_legend')}</span>
-            {configuredOptionalFieldCount > 0 && (
-              <StudioTag data-color='info' data-size='sm'>
-                {t('process_editor.configuration_panel.eformidling.optional_filled_count', {
-                  fieldCount: configuredOptionalFieldCount,
-                })}
-              </StudioTag>
+        <StudioFormGroup
+          className={classes.group}
+          legend={t('process_editor.configuration_panel.eformidling.optional_legend')}
+        >
+          <EnvTextConfigField
+            {...config.receiver}
+            description={t('process_editor.configuration_panel.eformidling.receiver_description')}
+            label={t(fieldLabelKeys.receiver)}
+          />
+          <EnvTextConfigField
+            {...config.dpfShipmentType}
+            description={t(
+              'process_editor.configuration_panel.eformidling.dpf_shipment_type_description',
             )}
-          </StudioDetails.Summary>
-          <StudioDetails.Content className={classes.group}>
-            <EnvTextConfigField
-              {...config.receiver}
-              description={t('process_editor.configuration_panel.eformidling.receiver_description')}
-              label={t(fieldLabelKeys.receiver)}
-            />
-            <EnvTextConfigField
-              {...config.dpfShipmentType}
-              description={t(
-                'process_editor.configuration_panel.eformidling.dpf_shipment_type_description',
-              )}
-              label={t(fieldLabelKeys.dpfShipmentType)}
-            />
-            <EnvDataTypeListConfigField
-              {...config.dataTypes}
-              dataTypeIds={availableDataTypeIds ?? []}
-              description={t(
-                'process_editor.configuration_panel.eformidling.data_types_description',
-              )}
-              label={t(fieldLabelKeys.dataTypes)}
-            />
-          </StudioDetails.Content>
-        </StudioDetails>
+            label={t(fieldLabelKeys.dpfShipmentType)}
+          />
+          <EnvDataTypeListConfigField
+            {...config.dataTypes}
+            dataTypeIds={availableDataTypeIds ?? []}
+            description={t('process_editor.configuration_panel.eformidling.data_types_description')}
+            label={t(fieldLabelKeys.dataTypes)}
+          />
+        </StudioFormGroup>
       </StudioList.Item>
     </StudioList.Unordered>
   );

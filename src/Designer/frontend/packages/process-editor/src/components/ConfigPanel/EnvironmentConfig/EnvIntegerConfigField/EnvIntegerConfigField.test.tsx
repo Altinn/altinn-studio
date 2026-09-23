@@ -37,7 +37,9 @@ describe('EnvIntegerConfigField', () => {
     await user.clear(screen.getByRole('textbox', { name: globalLabel }));
     await user.type(screen.getByRole('textbox', { name: globalLabel }), '3.5');
 
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(
+      screen.getByRole('button', { name: textMock('general.close_item', { item: fieldLabel }) }),
+    );
 
     const input = screen.getByRole('textbox', { name: globalLabel });
     expect(input).toHaveValue('3.5');
@@ -47,7 +49,9 @@ describe('EnvIntegerConfigField', () => {
 
     await user.clear(input);
     await user.type(input, '4');
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(
+      screen.getByRole('button', { name: textMock('general.close_item', { item: fieldLabel }) }),
+    );
 
     expect(getCollapsedButton()).toHaveFocus();
     expect(getCollapsedButton()).toHaveTextContent('4');

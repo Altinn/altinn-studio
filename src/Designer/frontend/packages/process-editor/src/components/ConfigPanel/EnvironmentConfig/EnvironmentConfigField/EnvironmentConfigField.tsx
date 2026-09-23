@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StudioAlert,
@@ -7,7 +7,8 @@ import {
   StudioDeleteButton,
   StudioDisplayTile,
   StudioDropdown,
-  StudioFormGroup,
+  StudioLabelWrapper,
+  StudioParagraph,
   StudioProperty,
 } from '@studio/components';
 import { PlusIcon, XMarkIcon } from '@studio/icons';
@@ -70,6 +71,7 @@ export function EnvironmentConfigField<TValue>({
   onChange,
 }: EnvironmentConfigFieldProps<TValue>): ReactElement {
   const { t } = useTranslation();
+  const descriptionId = useId();
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [focusTarget, setFocusTarget] = useState<{ scope?: EnvironmentScope }>();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
@@ -215,64 +217,80 @@ export function EnvironmentConfigField<TValue>({
   );
 
   return (
-    <StudioFormGroup
+    <StudioProperty.Fieldset
       ref={fieldsetRef}
-      legend={label}
-      description={description}
-      required={required}
-      tagText={required ? t('general.required') : undefined}
+      compact
+      aria-describedby={descriptionId}
+      legend={
+        <StudioLabelWrapper
+          required={required}
+          tagText={required ? t('general.required') : undefined}
+        >
+          {label}
+        </StudioLabelWrapper>
+      }
+      menubar={
+        <StudioButton
+          aria-label={t('general.close_item', { item: label })}
+          title={t('general.close_item', { item: label })}
+          icon={<XMarkIcon />}
+          onClick={collapse}
+          variant='tertiary'
+        />
+      }
     >
-      {unknownEnvironments.length > 0 && (
-        <StudioAlert data-color='warning'>
-          {t('process_editor.configuration_panel.environment_config.unknown_environments_alert', {
-            count: unknownEnvironments.length,
-            environments: unknownEnvironments.join(', '),
-          })}
-        </StudioAlert>
-      )}
-      {resolved.duplicateEntries.length > 0 && (
-        <StudioAlert data-color='warning'>
-          {t(
-            combineDuplicateValues
-              ? 'process_editor.configuration_panel.environment_config.combined_environments_alert'
-              : 'process_editor.configuration_panel.environment_config.duplicate_environments_alert',
-          )}
-        </StudioAlert>
-      )}
-      <div className={classes.rows}>
-        {renderRow(globalScope)}
-        {overrideEnvironments.map(renderRow)}
-        {resolved.unknownEntries.map(renderUnknownEntryRow)}
-        {availableEnvironments.length > 0 && (
-          <StudioDropdown
-            icon={<PlusIcon />}
-            triggerButtonText={t(
-              'process_editor.configuration_panel.environment_config.add_override',
-            )}
-            triggerButtonVariant='tertiary'
-          >
-            <StudioDropdown.List>
-              {availableEnvironments.map((environment) => (
-                <StudioDropdown.Item key={environment}>
-                  <StudioDropdown.Button
-                    onClick={() => {
-                      addDraft(environment);
-                      setFocusTarget({ scope: environment });
-                    }}
-                  >
-                    {t(getEnvironmentScopeTextKey(environment))}
-                  </StudioDropdown.Button>
-                </StudioDropdown.Item>
-              ))}
-            </StudioDropdown.List>
-          </StudioDropdown>
+      <div className={classes.content}>
+        <StudioParagraph className={classes.description} id={descriptionId}>
+          {description && <>{description} </>}
+          {t('process_editor.configuration_panel.environment_config.default_description')}
+        </StudioParagraph>
+        {unknownEnvironments.length > 0 && (
+          <StudioAlert data-color='warning'>
+            {t('process_editor.configuration_panel.environment_config.unknown_environments_alert', {
+              count: unknownEnvironments.length,
+              environments: unknownEnvironments.join(', '),
+            })}
+          </StudioAlert>
         )}
+        {resolved.duplicateEntries.length > 0 && (
+          <StudioAlert data-color='warning'>
+            {t(
+              combineDuplicateValues
+                ? 'process_editor.configuration_panel.environment_config.combined_environments_alert'
+                : 'process_editor.configuration_panel.environment_config.duplicate_environments_alert',
+            )}
+          </StudioAlert>
+        )}
+        <div className={classes.rows}>
+          {renderRow(globalScope)}
+          {overrideEnvironments.map(renderRow)}
+          {resolved.unknownEntries.map(renderUnknownEntryRow)}
+          {availableEnvironments.length > 0 && (
+            <StudioDropdown
+              icon={<PlusIcon />}
+              triggerButtonText={t(
+                'process_editor.configuration_panel.environment_config.add_override',
+              )}
+              triggerButtonVariant='tertiary'
+            >
+              <StudioDropdown.List>
+                {availableEnvironments.map((environment) => (
+                  <StudioDropdown.Item key={environment}>
+                    <StudioDropdown.Button
+                      onClick={() => {
+                        addDraft(environment);
+                        setFocusTarget({ scope: environment });
+                      }}
+                    >
+                      {t(getEnvironmentScopeTextKey(environment))}
+                    </StudioDropdown.Button>
+                  </StudioDropdown.Item>
+                ))}
+              </StudioDropdown.List>
+            </StudioDropdown>
+          )}
+        </div>
       </div>
-      <div className={classes.footer}>
-        <StudioButton icon={<XMarkIcon />} onClick={collapse} variant='secondary'>
-          {t('general.close')}
-        </StudioButton>
-      </div>
-    </StudioFormGroup>
+    </StudioProperty.Fieldset>
   );
 }
