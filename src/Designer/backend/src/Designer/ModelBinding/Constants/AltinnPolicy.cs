@@ -44,12 +44,6 @@ public static class AltinnPolicy
     public const string MustHaveAdminPermission = "MustHaveAdminPermission";
 
     /// <summary>
-    /// MustHaveAiAssistantPermission
-    /// User must have permission to access the AI assistant.
-    /// </summary>
-    public const string MustHaveAiAssistantPermission = "MustHaveAiAssistantPermission";
-
-    /// <summary>
     /// MustBeOrgOwner
     /// User must be in the Owners team of the organization.
     /// </summary>

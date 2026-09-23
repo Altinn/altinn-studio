@@ -99,7 +99,7 @@ extend-exclude = [
 # comments are prose), .txt and .tmpl.
 [type.data]
 extend-glob = [
-    "*.json", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
+    "*.json", "*.jsonl", "*.xml", "*.xsd", "*.bpmn", "*.csproj", "*.props", "*.sln*",
     "*.svg", "*.css", "*.env", "*.snap", "*.lock",
 ]
 check-file = false

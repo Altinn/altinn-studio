@@ -1054,6 +1054,7 @@
       "items": {
         "enum": [
           "Schema",
+          "Invalid",
           "Component",
           "Expression",
           "CustomBackend",
@@ -1190,16 +1191,6 @@
         "second",
         "success",
         "danger"
-      ]
-    },
-    "ButtonMode": {
-      "title": "Mode",
-      "description": "The mode of the button",
-      "default": "submit",
-      "enum": [
-        "submit",
-        "save",
-        "instantiate"
       ]
     },
     "ButtonPosition": {
@@ -2220,12 +2211,6 @@
                 }
               },
               "additionalProperties": false
-            },
-            "mode": {
-              "$ref": "#/definitions/ButtonMode"
-            },
-            "mapping": {
-              "$ref": "#/definitions/IMapping"
             }
           },
           "required": [
@@ -2244,9 +2229,7 @@
             "fullWidth": true,
             "position": true,
             "type": true,
-            "textResourceBindings": true,
-            "mode": true,
-            "mapping": true
+            "textResourceBindings": true
           },
           "required": [
             "id",
@@ -4120,8 +4103,9 @@
               },
               "additionalProperties": false
             },
-            "mapping": {
-              "$ref": "#/definitions/IMapping"
+            "queryParameters": {
+              "description": "Values used to prefill the new instance.",
+              "$ref": "#/definitions/IQueryParameters"
             }
           },
           "required": [
@@ -4137,7 +4121,7 @@
             "pageBreak": true,
             "type": true,
             "textResourceBindings": true,
-            "mapping": true
+            "queryParameters": true
           },
           "required": [
             "id",
@@ -5402,8 +5386,9 @@
               },
               "additionalProperties": false
             },
-            "mapping": {
-              "$ref": "#/definitions/IMapping"
+            "refetchDependencies": {
+              "description": "Expression values that trigger a refetch after changed form data is saved. These values are not sent to the server.",
+              "$ref": "#/definitions/IQueryParameters"
             }
           },
           "required": [
@@ -5419,7 +5404,7 @@
             "pageBreak": true,
             "type": true,
             "textResourceBindings": true,
-            "mapping": true
+            "refetchDependencies": true
           },
           "required": [
             "id",
@@ -9297,15 +9282,6 @@
           ]
         }
       ]
-    },
-    "IMapping": {
-      "title": "Mapping",
-      "description": "A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).",
-      "type": "object",
-      "properties": {},
-      "additionalProperties": {
-        "type": "string"
-      }
     },
     "InputSummaryOverridesWithRef": {
       "title": "InputSummaryOverridesWithRef",

@@ -59,7 +59,7 @@ func workflowEngineDbImage(ctx *Options) resource.ImageResource {
 	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.WorkflowEngineDb.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+		PullPolicy: pullPolicyFor(ctx.Images.Core.WorkflowEngineDb),
 	}
 }
 
@@ -88,7 +88,7 @@ func workflowEngineImage(ctx *Options) resource.ImageResource {
 	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.WorkflowEngine.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+		PullPolicy: pullPolicyFor(ctx.Images.Core.WorkflowEngine),
 	}
 }
 

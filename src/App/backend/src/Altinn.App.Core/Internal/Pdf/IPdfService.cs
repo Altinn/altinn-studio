@@ -16,11 +16,11 @@ public interface IPdfService
     /// </summary>
     /// <param name="instanceDataMutator">The instance data mutator used for deferred storage.</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
-    /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
+    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     Task GenerateAndStorePdf(
         IInstanceDataMutator instanceDataMutator,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -31,14 +31,14 @@ public interface IPdfService
     /// <param name="customFileNameTextResourceKey">A text resource element id for the file name of the PDF. If null, a default file name will be used.</param>
     /// <param name="autoGeneratePdfForTaskIds">Enable auto-pdf for a list of tasks. Will not respect pdfLayoutName on those tasks, but use the main layout-set of the given tasks and render the components in summary mode. This setting will be ignored if the PDF task has a pdf layout set defined.</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
-    /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
+    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     /// <returns>The created binary data change representing the deferred PDF.</returns>
     Task<BinaryDataChange> GenerateAndStorePdf(
         IInstanceDataMutator instanceDataMutator,
         string? customFileNameTextResourceKey,
         List<string>? autoGeneratePdfForTaskIds = null,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     ) => throw new NotImplementedException();
 
     /// <summary>
@@ -49,7 +49,7 @@ public interface IPdfService
     /// <param name="subformPdfContext">The subform-specific context containing component and data element identifiers.</param>
     /// <param name="metadata">Optional metadata to associate with the created data element.</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
-    /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
+    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     /// <returns>The created binary data change representing the deferred PDF.</returns>
     internal Task<BinaryDataChange> GenerateAndStoreSubformPdf(
         IInstanceDataMutator instanceDataMutator,
@@ -57,7 +57,7 @@ public interface IPdfService
         SubformPdfContext subformPdfContext,
         List<KeyValueEntry>? metadata = null,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     ) => throw new NotImplementedException();
 
     /// <summary>
@@ -65,8 +65,8 @@ public interface IPdfService
     /// </summary>
     /// <param name="instance">The instance details.</param>
     /// <param name="taskId">The task id for which the PDF is generated</param>
-    /// <param name="ct">Cancellation token for when a request should be stopped before it's completed.</param>
-    Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct);
+    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
+    Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken);
 
     /// <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" select="summary"/>
     /// <param name="instance">
@@ -75,8 +75,8 @@ public interface IPdfService
     /// <param name="taskId">
     ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='taskId']"/>
     /// </param>
-    /// <param name="ct">
-    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='ct']"/>
+    /// <param name="cancellationToken">
+    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='cancellationToken']"/>
     /// </param>
     /// <param name="isPreview">Indicates whether the PDF is a preview version.</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
@@ -85,7 +85,7 @@ public interface IPdfService
         string taskId,
         bool isPreview,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -96,6 +96,6 @@ public interface IPdfService
         string taskId,
         bool isPreview,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
-    ) => GeneratePdf(dataAccessor.Instance, taskId, isPreview, authenticationMethod, ct);
+        CancellationToken cancellationToken = default
+    ) => GeneratePdf(dataAccessor.Instance, taskId, isPreview, authenticationMethod, cancellationToken);
 }

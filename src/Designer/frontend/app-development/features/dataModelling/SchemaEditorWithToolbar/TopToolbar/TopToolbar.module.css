@@ -3,11 +3,8 @@
   background: #fff;
   border-bottom: 1px solid #c9c9c9;
   display: flex;
+  gap: 1rem;
   padding: 8px;
-}
-
-.toolbar > * {
-  margin-right: 1rem;
 }
 
 .toolbar button[class*='selected'] {
@@ -19,17 +16,19 @@
   padding-top: 4px;
 }
 
-.generateButtonWrapper {
-  flex: 1;
-}
-
-.toggleButtonGroupWrapper {
-  flex: 0.5;
-}
-
 .right {
   display: flex;
-  flex: 3;
   gap: 1rem;
-  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.dataModelGroup {
+  display: flex;
+  align-items: center;
+}
+
+.dataModelGroup > button {
+  --dsc-button-border-color: var(--ds-color-neutral-border-default);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
 }

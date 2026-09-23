@@ -7,3 +7,5 @@ reporting completion.
 This example intentionally has no boot-time repository checkout. You may clone a repository on demand only when the
 Agent is configured with GitHub access; use the installed `gh repo clone OWNER/REPOSITORY` command. Preserve existing
 workspaces; never delete and reclone one as a retry strategy.
+
+Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.

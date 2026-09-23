@@ -1,3 +1,4 @@
+#nullable enable
 namespace Altinn.App.models
 {
     /// <summary>
@@ -5,10 +6,10 @@ namespace Altinn.App.models
     /// </summary>
     public class Country
     {
-        public string Code { get; set; }
-        public string Value1 { get; set; }
-        public string Value2 { get; set; }
-        public string Value3 { get; set; }
+        public string? Code { get; set; }
+        public string? Value1 { get; set; }
+        public string? Value2 { get; set; }
+        public string? Value3 { get; set; }
 
     }
 }

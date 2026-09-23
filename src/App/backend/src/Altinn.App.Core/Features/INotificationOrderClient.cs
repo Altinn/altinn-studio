@@ -11,7 +11,7 @@ public interface INotificationOrderClient
     /// Orders a notification based on the provided request.
     /// </summary>
     /// <param name="request">The <see cref="NotificationOrderRequest"/>. </param>
-    /// <param name="ct">Cancellation token for the operation.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
     /// <returns></returns>
-    Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken ct);
+    Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken cancellationToken);
 }

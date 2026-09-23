@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -42,11 +43,11 @@ namespace Altinn.App.Models
 
     [XmlAttribute("blankettnummer")]
     [BindNever]
-    public  string blankettnummer {get; set; } = "RF-1366";
+    public string? blankettnummer { get; set; } = "RF-1366";
 
     [XmlAttribute("tittel")]
     [BindNever]
-    public  string tittel {get; set; } = "Endringsmelding";
+    public string? tittel { get; set; } = "Endringsmelding";
 
     [Range(1,Int32.MaxValue)]
     [XmlAttribute("gruppeid")]
@@ -54,22 +55,22 @@ namespace Altinn.App.Models
     public decimal gruppeid {get; set;} = 9785;
 
     [XmlAttribute("etatid")]
-    public string etatid { get; set; }
+    public string? etatid { get; set; }
 
     [XmlElement("Endringsmelding-grp-9786")]
     [JsonProperty("Endringsmelding-grp-9786")]
     [JsonPropertyName("Endringsmelding-grp-9786")]
-    public Endringsmeldinggrp9786 Endringsmeldinggrp9786 { get; set; }
+    public Endringsmeldinggrp9786? Endringsmeldinggrp9786 { get; set; }
 
     [XmlElement("PrefillValues")]
     [JsonProperty("PrefillValues")]
     [JsonPropertyName("PrefillValues")]
-    public string PrefillValues { get; set; }
+    public string? PrefillValues { get; set; }
 
     [XmlElement("PrefillValuesShadow")]
     [JsonProperty("PrefillValuesShadow")]
     [JsonPropertyName("PrefillValuesShadow")]
-    public string PrefillValuesShadow { get; set; }
+    public string? PrefillValuesShadow { get; set; }
 
     [XmlElement("PrefillValuesEnabled")]
     [JsonProperty("PrefillValuesEnabled")]
@@ -84,7 +85,7 @@ namespace Altinn.App.Models
     [XmlElement("Pets")]
     [JsonProperty("Pets")]
     [JsonPropertyName("Pets")]
-    public List<Pet> Pets { get; set; }
+    public List<Pet>? Pets { get; set; }
 
     [XmlElement("ForceShowPets")]
     [JsonProperty("ForceShowPets")]
@@ -99,12 +100,12 @@ namespace Altinn.App.Models
     [XmlElement("HiddenPets")]
     [JsonProperty("HiddenPets")]
     [JsonPropertyName("HiddenPets")]
-    public string HiddenPets { get; set; }
+    public string? HiddenPets { get; set; }
 
     [XmlElement("PetSortOrder")]
     [JsonProperty("PetSortOrder")]
     [JsonPropertyName("PetSortOrder")]
-    public string PetSortOrder { get; set; }
+    public string? PetSortOrder { get; set; }
 
     [XmlElement("PetsUseOptionComponent")]
     [JsonProperty("PetsUseOptionComponent")]
@@ -127,22 +128,22 @@ namespace Altinn.App.Models
     [XmlElement("UniqueId")]
     [JsonProperty("UniqueId")]
     [JsonPropertyName("UniqueId")]
-    public string UniqueId { get; set; }
+    public string? UniqueId { get; set; }
 
     [XmlElement("Species")]
     [JsonProperty("Species")]
     [JsonPropertyName("Species")]
-    public string Species { get; set; }
+    public string? Species { get; set; }
 
     [XmlElement("SpeciesLabel")]
     [JsonProperty("SpeciesLabel")]
     [JsonPropertyName("SpeciesLabel")]
-    public string SpeciesLabel { get; set; }
+    public string? SpeciesLabel { get; set; }
 
     [XmlElement("Name")]
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [XmlElement("Age")]
     [JsonProperty("Age")]
@@ -159,7 +160,7 @@ namespace Altinn.App.Models
     [XmlElement("Avgiver-grp-9787")]
     [JsonProperty("Avgiver-grp-9787")]
     [JsonPropertyName("Avgiver-grp-9787")]
-    public Avgivergrp9787 Avgivergrp9787 { get; set; }
+    public Avgivergrp9787? Avgivergrp9787 { get; set; }
 
     [XmlElement("OversiktOverEndringene-grp-9788")]
     [JsonProperty("OversiktOverEndringene-grp-9788")]
@@ -169,7 +170,7 @@ namespace Altinn.App.Models
     [XmlElement("Gruppe2")]
     [JsonProperty("Gruppe2")]
     [JsonPropertyName("Gruppe2")]
-    public List<Gruppe2> Gruppe2 { get; set; }
+    public List<Gruppe2>? Gruppe2 { get; set; }
 
   }
   public class Avgivergrp9787{
@@ -181,22 +182,22 @@ namespace Altinn.App.Models
     [XmlElement("OppgavegiverNavn-datadef-68")]
     [JsonProperty("OppgavegiverNavn-datadef-68")]
     [JsonPropertyName("OppgavegiverNavn-datadef-68")]
-    public OppgavegiverNavndatadef68 OppgavegiverNavndatadef68 { get; set; }
+    public OppgavegiverNavndatadef68? OppgavegiverNavndatadef68 { get; set; }
 
     [XmlElement("OppgavegiverFodselsnummer-datadef-26")]
     [JsonProperty("OppgavegiverFodselsnummer-datadef-26")]
     [JsonPropertyName("OppgavegiverFodselsnummer-datadef-26")]
-    public OppgavegiverFodselsnummerdatadef26 OppgavegiverFodselsnummerdatadef26 { get; set; }
+    public OppgavegiverFodselsnummerdatadef26? OppgavegiverFodselsnummerdatadef26 { get; set; }
 
     [XmlElement("KontaktpersonEPost-datadef-27688")]
     [JsonProperty("KontaktpersonEPost-datadef-27688")]
     [JsonPropertyName("KontaktpersonEPost-datadef-27688")]
-    public KontaktpersonEPostdatadef27688 KontaktpersonEPostdatadef27688 { get; set; }
+    public KontaktpersonEPostdatadef27688? KontaktpersonEPostdatadef27688 { get; set; }
 
     [XmlElement("KontaktpersonTelefonnummer-datadef-3")]
     [JsonProperty("KontaktpersonTelefonnummer-datadef-3")]
     [JsonPropertyName("KontaktpersonTelefonnummer-datadef-3")]
-    public KontaktpersonTelefonnummerdatadef3 KontaktpersonTelefonnummerdatadef3 { get; set; }
+    public KontaktpersonTelefonnummerdatadef3? KontaktpersonTelefonnummerdatadef3 { get; set; }
 
   }
   public class OppgavegiverNavndatadef68{
@@ -208,7 +209,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(175)]
     [XmlText()]
-    public string value { get; set; }
+    public string? value { get; set; }
 
   }
   public class OppgavegiverFodselsnummerdatadef26{
@@ -218,7 +219,7 @@ namespace Altinn.App.Models
     public decimal orid {get; set;} = 26;
 
     [XmlText()]
-    public string value { get; set; }
+    public string? value { get; set; }
 
   }
   public class KontaktpersonEPostdatadef27688{
@@ -230,7 +231,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(45)]
     [XmlText()]
-    public string value { get; set; }
+    public string? value { get; set; }
 
   }
   public class KontaktpersonTelefonnummerdatadef3{
@@ -242,7 +243,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(13)]
     [XmlText()]
-    public string value { get; set; }
+    public string? value { get; set; }
 
   }
   public class OversiktOverEndringenegrp9788{
@@ -264,7 +265,7 @@ namespace Altinn.App.Models
     [XmlElement("SkattemeldingEndringEtterFristPost-datadef-37130")]
     [JsonProperty("SkattemeldingEndringEtterFristPost-datadef-37130")]
     [JsonPropertyName("SkattemeldingEndringEtterFristPost-datadef-37130")]
-    public SkattemeldingEndringEtterFristPostdatadef37130 SkattemeldingEndringEtterFristPostdatadef37130 { get; set; }
+    public SkattemeldingEndringEtterFristPostdatadef37130? SkattemeldingEndringEtterFristPostdatadef37130 { get; set; }
 
     [XmlElement("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
     [JsonProperty("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
@@ -279,17 +280,17 @@ namespace Altinn.App.Models
     [XmlElement("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     [JsonProperty("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     [JsonPropertyName("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
-    public SkattemeldingEndringEtterFristKommentardatadef37133 SkattemeldingEndringEtterFristKommentardatadef37133 { get; set; }
+    public SkattemeldingEndringEtterFristKommentardatadef37133? SkattemeldingEndringEtterFristKommentardatadef37133 { get; set; }
 
     [XmlElement("fileUpload")]
     [JsonProperty("fileUpload")]
     [JsonPropertyName("fileUpload")]
-    public string fileUpload { get; set; }
+    public string? fileUpload { get; set; }
 
     [XmlElement("fileUploadList")]
     [JsonProperty("fileUploadList")]
     [JsonPropertyName("fileUploadList")]
-    public List<string> fileUploadList { get; set; }
+    public List<string>? fileUploadList { get; set; }
 
     [XmlElement("isPrefill")]
     [JsonProperty("isPrefill")]
@@ -299,17 +300,17 @@ namespace Altinn.App.Models
     [XmlElement("nested-grp-1234")]
     [JsonProperty("nested-grp-1234")]
     [JsonPropertyName("nested-grp-1234")]
-    public List<nestedgrp1234> nestedgrp1234 { get; set; }
+    public List<nestedgrp1234>? nestedgrp1234 { get; set; }
 
     [XmlElement("source")]
     [JsonProperty("source")]
     [JsonPropertyName("source")]
-    public string source { get; set; }
+    public string? source { get; set; }
 
     [XmlElement("reference")]
     [JsonProperty("reference")]
     [JsonPropertyName("reference")]
-    public string reference { get; set; }
+    public string? reference { get; set; }
 
   }
 
@@ -332,7 +333,7 @@ namespace Altinn.App.Models
     [XmlElement("felt1")]
     [JsonProperty("felt1")]
     [JsonPropertyName("felt1")]
-    public SkattemeldingEndringEtterFristPostdatadef37130 Felt1 { get; set; }
+    public SkattemeldingEndringEtterFristPostdatadef37130? Felt1 { get; set; }
 
     [XmlElement("teller")]
     [JsonProperty("teller")]
@@ -349,7 +350,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(35)]
     [XmlText()]
-    public string value { get; set; }
+    public string? value { get; set; }
 
   }
   public class SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131{
@@ -383,7 +384,7 @@ namespace Altinn.App.Models
     [MinLength(1)]
     [MaxLength(500)]
     [XmlText()]
-    public string value { get; set; }
+    public string? value { get; set; }
 
   }
   public class nestedgrp1234{
@@ -405,57 +406,57 @@ namespace Altinn.App.Models
     [XmlElement("SkattemeldingEndringEtterFristPost-datadef-37130")]
     [JsonProperty("SkattemeldingEndringEtterFristPost-datadef-37130")]
     [JsonPropertyName("SkattemeldingEndringEtterFristPost-datadef-37130")]
-    public SkattemeldingEndringEtterFristPostdatadef37130 SkattemeldingEndringEtterFristPostdatadef37130 { get; set; }
+    public SkattemeldingEndringEtterFristPostdatadef37130? SkattemeldingEndringEtterFristPostdatadef37130 { get; set; }
 
     [XmlElement("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
     [JsonProperty("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
     [JsonPropertyName("SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131")]
-    public SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 { get; set; }
+    public SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131? SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 { get; set; }
 
     [XmlElement("SkattemeldingEndringEtterFristNyttBelop-datadef-37132")]
     [JsonProperty("SkattemeldingEndringEtterFristNyttBelop-datadef-37132")]
     [JsonPropertyName("SkattemeldingEndringEtterFristNyttBelop-datadef-37132")]
-    public SkattemeldingEndringEtterFristNyttBelopdatadef37132 SkattemeldingEndringEtterFristNyttBelopdatadef37132 { get; set; }
+    public SkattemeldingEndringEtterFristNyttBelopdatadef37132? SkattemeldingEndringEtterFristNyttBelopdatadef37132 { get; set; }
 
     [XmlElement("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     [JsonProperty("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     [JsonPropertyName("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
-    public SkattemeldingEndringEtterFristKommentardatadef37133 SkattemeldingEndringEtterFristKommentardatadef37133 { get; set; }
+    public SkattemeldingEndringEtterFristKommentardatadef37133? SkattemeldingEndringEtterFristKommentardatadef37133 { get; set; }
 
     [XmlElement("fileUpload")]
     [JsonProperty("fileUpload")]
     [JsonPropertyName("fileUpload")]
-    public string fileUpload { get; set; }
+    public string? fileUpload { get; set; }
 
     [XmlElement("fileUploadList")]
     [JsonProperty("fileUploadList")]
     [JsonPropertyName("fileUploadList")]
-    public List<string> fileUploadList { get; set; }
+    public List<string>? fileUploadList { get; set; }
 
     [XmlElement("extraOptionsToggle")]
     [JsonProperty("extraOptionsToggle")]
     [JsonPropertyName("extraOptionsToggle")]
-    public string extraOptionsToggle { get; set; }
+    public string? extraOptionsToggle { get; set; }
 
     [XmlElement("extraOptions")]
     [JsonProperty("extraOptions")]
     [JsonPropertyName("extraOptions")]
-    public string extraOptions { get; set; }
+    public string? extraOptions { get; set; }
 
     [XmlElement("source")]
     [JsonProperty("source")]
     [JsonPropertyName("source")]
-    public string source { get; set; }
+    public string? source { get; set; }
 
     [XmlElement("reference")]
     [JsonProperty("reference")]
     [JsonPropertyName("reference")]
-    public string reference { get; set; }
+    public string? reference { get; set; }
 
     [XmlElement("hideComment")]
     [JsonProperty("hideComment")]
     [JsonPropertyName("hideComment")]
-    public string hideComment { get; set; }
+    public string? hideComment { get; set; }
 
   }
 }

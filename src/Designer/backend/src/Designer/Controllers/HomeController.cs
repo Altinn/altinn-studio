@@ -88,8 +88,7 @@ public class HomeController : Controller
             return LocalRedirect(redirectTo);
         }
 
-        string callbackUrl = "/designer/api/v1/studio-oidc/callback?redirect_to=" + Uri.EscapeDataString(redirectTo);
-        return Challenge(new AuthenticationProperties { RedirectUri = callbackUrl });
+        return Challenge(new AuthenticationProperties { RedirectUri = redirectTo });
     }
 
     /// <summary>

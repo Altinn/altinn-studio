@@ -53,12 +53,13 @@ export const renderHookWithProviders =
     queries: Partial<ServicesContextProps> = {},
     queryClient?: QueryClient,
     featureFlags: FeatureFlag[] = [],
+    path?: string,
   ) =>
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
         <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
-          <TestAppRouter>
+          <TestAppRouter initialPath={path}>
             <ServicesContextProvider
               {...queriesMock}
               {...queries}

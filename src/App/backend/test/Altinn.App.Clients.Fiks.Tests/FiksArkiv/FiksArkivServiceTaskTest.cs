@@ -292,7 +292,6 @@ public class FiksArkivServiceTaskTest
 
         var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
         var success = Assert.IsType<ServiceTaskSuccessResult>(concluded.Result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("archive-failed", success.Action);
         sender.Verify();
     }
@@ -329,7 +328,6 @@ public class FiksArkivServiceTaskTest
 
         var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
         var success = Assert.IsType<ServiceTaskSuccessResult>(concluded.Result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("reject", success.Action);
         sender.Verify();
     }
@@ -474,7 +472,6 @@ public class FiksArkivServiceTaskTest
         ServiceTaskExchangeResult result = await OnMessage(fixture)(CreateContext(dataMutator.Object), reply);
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("fiks-arkiv-success", success.Action);
         dataMutator.Verify();
         instanceClient.Verify();
@@ -528,7 +525,6 @@ public class FiksArkivServiceTaskTest
         );
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Null(success.Action);
         instanceClient.Verify();
     }
@@ -549,8 +545,7 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(SuccessfulArchiveReceipt())
         );
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
+        Assert.IsType<ServiceTaskSuccessResult>(result);
         instanceClient.VerifyNoOtherCalls();
     }
 
@@ -574,7 +569,6 @@ public class FiksArkivServiceTaskTest
         );
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("reject", success.Action);
     }
 
@@ -597,7 +591,6 @@ public class FiksArkivServiceTaskTest
         );
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("archive-failed", success.Action);
     }
 
@@ -619,7 +612,6 @@ public class FiksArkivServiceTaskTest
         );
 
         var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
         Assert.Equal("reject", success.Action);
     }
 

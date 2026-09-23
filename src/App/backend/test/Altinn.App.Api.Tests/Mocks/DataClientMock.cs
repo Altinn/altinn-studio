@@ -566,20 +566,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         return new DataElementWithStorageMetadata(dataElement, _storageMetadata.GetVersions(instanceIdentifier));
     }
 
-    public Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        throw new NotImplementedException();
-    }
-
     async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.UpdateBinaryDataWithStorageMetadata(
         InstanceIdentifier instanceIdentifier,
         string? contentType,

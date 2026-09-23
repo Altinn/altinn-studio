@@ -32,9 +32,11 @@ class LayoutPropsTool(Tool):
     description = (
         "Get the canonical schema for one layout component type: allowed "
         "properties, required properties, and their types — extracted live "
-        "from the official Altinn layout schema.  Call this BEFORE adding "
-        "or editing any layout component; the validator rejects unknown "
-        "properties and your memory of the schema may be stale."
+        "from the official Altinn layout schema, plus `constraints`: the "
+        "pairings the schema permits but the renderer rejects.  Call this "
+        "BEFORE adding or editing any layout component; the validator "
+        "rejects unknown properties and your memory of the schema may be "
+        "stale."
     )
     input_schema = LayoutPropsArgs
     is_concurrency_safe = True

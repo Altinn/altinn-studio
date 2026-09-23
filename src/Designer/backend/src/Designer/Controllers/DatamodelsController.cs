@@ -216,6 +216,45 @@ public class DatamodelsController : ControllerBase
     }
 
     /// <summary>
+    /// Replaces the data model at <paramref name="modelPath"/> with an uploaded XSD. The model keeps
+    /// its name, so references to it, e.g. the data type in the application metadata, are kept intact.
+    /// </summary>
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("datamodel/xsd")]
+    public async Task<ActionResult<string>> ReplaceXsd(
+        string org,
+        string repository,
+        [FromQuery] string? modelPath,
+        [FromForm(Name = "file")] IFormFile? theFile,
+        CancellationToken cancellationToken
+    )
+    {
+        Guard.AssertArgumentNotNull(theFile, nameof(theFile));
+        if (string.IsNullOrWhiteSpace(modelPath))
+        {
+            return BadRequest($"{nameof(modelPath)} is required.");
+        }
+
+        string fileNameWithExtension = GetFileNameFromUploadedFile(theFile!);
+        Guard.AssertFileExtensionIsOfType(fileNameWithExtension, ".xsd");
+
+        string decodedPath = Uri.UnescapeDataString(modelPath!);
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+        string jsonSchema = await _schemaModelService.ReplaceSchemaFromXsd(
+            editingContext,
+            decodedPath,
+            theFile!.OpenReadStream(),
+            cancellationToken
+        );
+
+        return Ok(jsonSchema);
+    }
+
+    /// <summary>
     /// Creates a new model in the repository.
     /// </summary>
     /// <param name="org">The org owning the repository.</param>

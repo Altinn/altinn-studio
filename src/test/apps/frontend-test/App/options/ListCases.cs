@@ -15,7 +15,7 @@ namespace Altinn.App.Options
     {
         public string Id { get; set; } = "people";
 
-        public Task<DataList> GetDataListAsync(string language, Dictionary<string, string> keyValuePairs)
+        public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             int start = 0;
             int count = 10;

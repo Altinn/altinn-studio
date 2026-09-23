@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -14,39 +15,36 @@ using TestApp.Shared;
 namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineSideEffects;
 
 /// <summary>
-/// Service task that completes without auto-advance, so the process stays on Task_Service until
-/// the next manual process/next. Used to prove the next transition waits on ExecuteServiceTask
-/// (critical, in the Main workflow) while the Altinn event registrations run non-blocking.
+/// Service task that succeeds and advances to the end. Used to prove that ExecuteServiceTask
+/// and its dependent transition finish while the Altinn event registrations run non-blocking.
 /// </summary>
-public sealed class ManualServiceTask : IServiceTask
+public sealed class SuccessfulServiceTask : IServiceTask
 {
     public string Type => "write";
 
     public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
         SnapshotLogger.LogInfo("IServiceTask.Execute.SideEffectsScenario");
-        return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+        return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 }
 
 /// <summary>
-/// Replaces the platform Events client with one that records each registration and delays it long
-/// enough that the side-effects workflow cannot possibly be finished when the ProcessNext response
-/// arrives. If ProcessNext still returned quickly, the API demonstrably did not wait for the
-/// side effects.
+/// Holds event registrations until the test releases them, so the test can verify that process
+/// transitions finish independently of their side effects.
 /// </summary>
-public sealed class DelayingEventsClient : IEventsClient
+public sealed class ControlledEventsClient : IEventsClient
 {
-    public static readonly TimeSpan Delay = TimeSpan.FromSeconds(10);
-
     public async Task<string> AddEvent(
         string eventType,
         Instance instance,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
+        CancellationToken cancellationToken = default
     )
     {
-        await Task.Delay(Delay);
-        SideEffectsState.RecordEvent(eventType);
+        await SideEffectsState.WaitForRelease(cancellationToken);
+        SideEffectsState.RecordEvent(eventType, idempotencyKey);
         return Guid.NewGuid().ToString();
     }
 }
@@ -54,30 +52,50 @@ public sealed class DelayingEventsClient : IEventsClient
 internal static class SideEffectsState
 {
     private static readonly object _lock = new();
-    private static readonly List<string> _registeredEventTypes = new();
+    private static readonly List<RegisteredEvent> _registeredEvents = new();
+    private static readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public static void RecordEvent(string eventType)
+    public static Task WaitForRelease(CancellationToken cancellationToken) =>
+        _release.Task.WaitAsync(cancellationToken);
+
+    public static void Release() => _release.TrySetResult();
+
+    public static void RecordEvent(string eventType, Guid? idempotencyKey)
     {
         lock (_lock)
         {
-            _registeredEventTypes.Add(eventType);
+            _registeredEvents.Add(new RegisteredEvent(eventType, idempotencyKey?.ToString()));
         }
     }
 
-    public static IReadOnlyList<string> GetRegisteredEventTypes()
+    public static IReadOnlyList<RegisteredEvent> GetRegisteredEvents()
     {
         lock (_lock)
         {
-            return _registeredEventTypes.ToArray();
+            return _registeredEvents.ToArray();
         }
     }
 }
+
+/// <summary>
+/// One event registration as the client saw it. The key is what proves the engine's step identity
+/// reached the outbound call, so the test can match it against the step the engine reports.
+/// </summary>
+internal sealed record RegisteredEvent(string EventType, string IdempotencyKey);
 
 public sealed class SideEffectsEndpoints : IEndpointConfigurator
 {
     public void ConfigureEndpoints(WebApplication app)
     {
-        app.MapGet("/test/side-effects/events", () => Results.Json(SideEffectsState.GetRegisteredEventTypes()));
+        app.MapGet("/test/side-effects/events", () => Results.Json(SideEffectsState.GetRegisteredEvents()));
+        app.MapPost(
+            "/test/side-effects/release",
+            () =>
+            {
+                SideEffectsState.Release();
+                return Results.NoContent();
+            }
+        );
     }
 }
 
@@ -85,10 +103,10 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IServiceTask, ManualServiceTask>();
+        services.AddTransient<IServiceTask, SuccessfulServiceTask>();
         // Last registration wins: replaces the real EventsClient (scenario services register
         // after AddAltinnAppServices).
-        services.AddTransient<IEventsClient, DelayingEventsClient>();
+        services.AddTransient<IEventsClient, ControlledEventsClient>();
         services.AddSingleton<IEndpointConfigurator, SideEffectsEndpoints>();
         // The basic app has events registration disabled - this scenario is specifically about
         // the Altinn event side effects, so enable it.

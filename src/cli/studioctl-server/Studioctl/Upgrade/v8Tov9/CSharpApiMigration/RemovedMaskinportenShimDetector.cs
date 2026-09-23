@@ -53,11 +53,15 @@ internal sealed class RemovedMaskinportenShimDetector
         + "IX509CertificateProvider). Use the built-in IMaskinportenClient instead: inject it and call "
         + "GetAccessToken(scopes)/GetAltinnExchangedToken(scopes), or attach authorization to an HttpClient "
         + "registration with UseMaskinportenAuthorization(scopes)/UseMaskinportenAltinnAuthorization(scopes). "
-        + "Configuration comes from a MaskinportenSettings section (authority/clientId/jwk), which Studio "
-        + "provisions automatically when the app is deployed - so in most cases the app no longer needs to "
-        + "supply credentials at all. Note that the built-in client authenticates with a JWK: if this app "
-        + "authenticates with a PKCS#12 certificate or a certificate-store thumbprint, register a JWK in "
-        + "Maskinporten before porting. Usages found:";
+        + "It needs no configuration: an app has one Maskinporten identity, and Studio provisions its "
+        + "credentials automatically when the app is deployed. If this app needs scopes the provisioned "
+        + "client does not have, declare them on it in Studio. If it authenticates with a PKCS#12 certificate "
+        + "or a certificate-store thumbprint, that integration cannot move to the built-in client as it "
+        + "stands - either register a JWK in Maskinporten, or keep the integration on a client of its own "
+        + "with the Altinn.ApiClients.Maskinporten package. To exercise this integration from a local run, "
+        + "supply a test client with studioctl app maskinporten set: a local run cannot use the credentials "
+        + "Studio provisions, and Maskinporten grants scopes per client registration, so that client needs the "
+        + "same scopes. The Maskinporten settings step lists the ones this app appears to need. Usages found:";
 
     private const string EformidlingSummary =
         "The eFormidling status check handlers are removed in v9: naming either "

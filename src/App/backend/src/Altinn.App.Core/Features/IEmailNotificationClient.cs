@@ -11,8 +11,8 @@ public interface IEmailNotificationClient
     /// Orders a new email notification
     /// </summary>
     /// <param name="emailNotification"></param>
-    /// <param name="ct"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns>The id of the email notification order</returns>
     /// <exception cref="EmailNotificationException"></exception>
-    Task<EmailOrderResponse> Order(EmailNotification emailNotification, CancellationToken ct);
+    Task<EmailOrderResponse> Order(EmailNotification emailNotification, CancellationToken cancellationToken);
 }

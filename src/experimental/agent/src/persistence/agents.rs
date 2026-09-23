@@ -160,6 +160,7 @@ pub(super) fn finalize_deletion(connection: &mut Connection, id: AgentId, genera
         return Err(Error::Conflict);
     }
     secrets::delete_agent_secrets(&transaction, id)?;
+    secrets::delete_secret(&transaction, &super::ssh_host_key_name(id))?;
     transaction.commit().map_err(database_error)
 }
 

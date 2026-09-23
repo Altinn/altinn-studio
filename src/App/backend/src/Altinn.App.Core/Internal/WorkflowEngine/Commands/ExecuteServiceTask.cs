@@ -1,11 +1,9 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -149,32 +147,6 @@ internal sealed class ExecuteServiceTask(
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
-
-            // The pipeline concluded without advancing: the process pauses at the durable service task, so
-            // processing ownership is released. Auto-advance keeps it for the transition it schedules, and a
-            // deferral has not concluded at all. A stage that only moves the pipeline on to its next engine
-            // step never hands ownership back, so the conclusion is read off the item and the continuation:
-            // the pipeline's own last item, or the verdict that closed the task from an exchange. This branch
-            // also covers the null a legacy app-supplied implementation can still return.
-            if (
-                result is SuccessfulProcessEngineCommandResult { AutoAdvanceProcess: false } concluded
-                && (
-                    pipelineItem is PipelineConclusion.FinalStep
-                    || concluded.MailboxContinuation is MailboxContinuation.Conclude
-                )
-            )
-            {
-                if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
-                {
-                    return FailedProcessEngineCommandResult.Permanent(
-                        "Pausing a service task requires callback state restored into an InstanceDataUnitOfWork.",
-                        nameof(InvalidOperationException)
-                    );
-                }
-
-                unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
-                processState.Status = ProcessStatus.Idle;
-            }
 
             return result;
         }
@@ -566,18 +538,16 @@ internal sealed class ExecuteServiceTask(
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            ServiceTaskSuccessResult { AutoAdvanceProcess: true } success => new SuccessfulProcessEngineCommandResult
+            ServiceTaskSuccessResult success => new SuccessfulProcessEngineCommandResult
             {
-                AutoAdvanceProcess = true,
-                AutoAdvanceAction = success.Action,
+                ProcessNextContinuation = new(success.Action),
             },
-            ServiceTaskSuccessResult => new SuccessfulProcessEngineCommandResult(),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
                 task,
                 result,
                 nameof(ServiceTaskResult),
-                $"{nameof(ServiceTaskResult.Success)}, {nameof(ServiceTaskResult.SuccessWithoutAutoAdvance)}, "
+                $"{nameof(ServiceTaskResult.Success)}, "
                     + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                     + $"{nameof(ServiceTaskResult.FailedPermanent)} or {nameof(ServiceTaskResult.Defer)}"
             ),

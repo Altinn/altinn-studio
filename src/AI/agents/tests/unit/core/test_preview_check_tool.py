@@ -45,7 +45,7 @@ def _ctx(
     )
     if committed:
         ctx.extras["session_committed"] = True
-        ctx.extras["session_branch"] = "altinity_session_abcdef12"
+        ctx.extras["session_branch"] = "assistant_abcdef12"
     if app_name:
         ctx.extras["app_name"] = app_name
     return ctx
@@ -127,7 +127,7 @@ class TestResults:
 
         monkeypatch.setattr(ENGINE_PATH, capture)
         await PreviewRenderCheckTool().run(_args(), _ctx(tmp_path))
-        assert seen["branch"] == "altinity_session_abcdef12"
+        assert seen["branch"] == "assistant_abcdef12"
         assert seen["org"] == "ttd"
         assert seen["app"] == "test-app"
         assert seen["page_order"] == ["Side1", "Side2"]

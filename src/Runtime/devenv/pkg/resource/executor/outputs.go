@@ -15,6 +15,9 @@ type Output interface {
 // ImageOutput contains runtime facts for an applied image resource.
 type ImageOutput struct {
 	ImageID string
+	// Stale reports that the image could not be pulled and the copy already on the machine
+	// was used instead, so it may be older than the reference resolves to.
+	Stale bool
 }
 
 // ContainerOutput contains runtime facts for an applied container resource.

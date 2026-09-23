@@ -11,7 +11,7 @@ public interface INotificationCancelClient
     /// Cancels a previously ordered notification.
     /// </summary>
     /// <param name="notificationOrderId">The order ID of the notification to cancel.</param>
-    /// <param name="ct">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task Cancel(Guid notificationOrderId, CancellationToken ct);
+    Task Cancel(Guid notificationOrderId, CancellationToken cancellationToken);
 }

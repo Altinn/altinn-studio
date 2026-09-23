@@ -70,10 +70,6 @@ Analysers
 @identifiers mimeTypeAnalyser enabledFileAnalysers
 Analyser
 
-# deprecated layout-settings alias apps still have on disk; see AutoSaveBehaviorLegacy
-@identifiers autoSaveBehaviour
-Behaviour
-
 # MaskinportenSettings member name apps configure by key
 @identifiers ExhangeToAltinnToken
 Exhange
@@ -98,8 +94,9 @@ Axe
 
 # --------------------------------------------------- codes and slugs ---
 
-# Altinn service-owner org slugs (als, staf) used as config/test values
-@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/development/setup.js
+# Altinn service-owner org slugs (als, staf) used as config/test values and
+# in the AI assistant beta allow list
+@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/backend/src/Designer/Evaluators/CanUseAiAssistantEvaluator.cs src/Designer/development/setup.js
 als
 staf
 
@@ -211,13 +208,6 @@ designet
 Organisation
 organisation
 
-# Designer serializes AutoSaveBehaviour into layout-settings JSON that
-# deployed apps read (the app side accepts it as a legacy alias). Renaming
-# the property changes the wire key — a product fix, not a spelling fix.
-@identifiers AutoSaveBehaviour AutoSaveBehaviourType
-@paths src/Designer/backend/**
-Behaviour
-
 # NIN = national identity number, a domain abbreviation (like SSN).
 @paths src/App/backend/src/Altinn.App.Core/Features/Signing/** src/Runtime/localtest/src/Notifications/**
 nin
@@ -288,6 +278,10 @@ litres
 # login page; no Nordic letter or signal word on the line for the classifier
 @paths src/Designer/development/fake-ansattporten/main.go
 selv
+
+# "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
+@paths src/AI/agents/agents/prompts/intent_security.md
+ser
 
 # didi is the dependency-injection package bpmn-js pulls in (see yarn.lock)
 @paths src/Designer/frontend/jest.config.js

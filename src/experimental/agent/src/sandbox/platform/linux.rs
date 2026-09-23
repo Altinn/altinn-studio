@@ -7,14 +7,20 @@ use ignore::WalkBuilder;
 
 use crate::{Error, control_plane, harness};
 
-use super::super::PlatformAdapter;
+use super::{super::PlatformAdapter, files::write_if_changed};
 
+/// The platform-owned Sandbox user every Session, Execution and SSH login runs as.
+pub(crate) const USER: &str = "agent";
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
 pub(crate) const CONTAINER_HOST: &str = "unix:///run/podman/podman.sock";
 const HOME_ARCHIVE: &str = "/tmp/agent-home.tar";
-const UTF8_LOCALE: &str = "C.UTF-8";
-const PORTABLE_TERMINAL: &str = "xterm-256color";
+/// Locale every Sandbox process runs with; the image ships it, so UTF-8 output
+/// renders regardless of the host's locale.
+pub(crate) const UTF8_LOCALE: &str = "C.UTF-8";
+/// Terminal type every Sandbox terminal runs with. Host-specific TERM names are
+/// not necessarily installed in the Sandbox image; this baseline is.
+pub(crate) const PORTABLE_TERMINAL: &str = "xterm-256color";
 const PODMAN: &str = "/usr/bin/podman";
 const SETUP_STDERR_LINES: usize = 3;
 const SYSTEMD_READY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
@@ -137,27 +143,83 @@ impl PlatformAdapter for Linux {
         &'a self,
         record: &'a control_plane::AgentRecord,
         sandbox: &'a SandboxHandle,
+        harnesses: &'a [crate::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(self.setup(record, sandbox))
+        Box::pin(self.setup(record, sandbox, harnesses))
     }
 }
 
 impl Linux {
-    async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        for installation in &record.agent.spec.harnesses {
+    /// Sets up only the harnesses preparation reported installing, so setup and preparation
+    /// cannot disagree about an optional installation whose host login was absent.
+    async fn setup(
+        &self,
+        record: &control_plane::AgentRecord,
+        sandbox: &SandboxHandle,
+        harnesses: &[crate::Harness],
+    ) -> Result<(), Error> {
+        let installations: Vec<&crate::HarnessSpec> = record
+            .agent
+            .spec
+            .harnesses
+            .iter()
+            .filter(|installation| harnesses.contains(&installation.kind))
+            .collect();
+        for installation in &installations {
             harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
         }
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
         configure_podman(sandbox).await?;
         let archive = archive_home(record.source_directory.clone(), record.agent.spec.home.source.clone()).await?;
         sync_home(sandbox, archive).await?;
+        configure_git_identity(sandbox).await?;
         let instructions = read_instructions(record).await?;
         let skills = read_skills(record).await?;
-        for installation in &record.agent.spec.harnesses {
+        for installation in &installations {
             harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
         }
         Ok(())
     }
+}
+
+async fn configure_git_identity(sandbox: &SandboxHandle) -> Result<(), Error> {
+    let environment = &sandbox.snapshot().environment;
+    let (Some(name), Some(email)) = (environment.get("GIT_USER_NAME"), environment.get("GIT_USER_EMAIL")) else {
+        if environment.contains_key("GIT_USER_NAME") || environment.contains_key("GIT_USER_EMAIL") {
+            return Err(Error::Invalid(
+                "GIT_USER_NAME and GIT_USER_EMAIL must both be configured".into(),
+            ));
+        }
+        return Ok(());
+    };
+    let present = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/env"),
+            ["git".into(), "--version".into()],
+        ))
+        .await?;
+    match present.status.code {
+        127 => return Ok(()),
+        0 => {}
+        code => {
+            return Err(Error::SandboxSetup(format!(
+                "Git presence check exited with code {code}"
+            )));
+        }
+    }
+    run_git_config(sandbox, "user.name", name).await?;
+    run_git_config(sandbox, "user.email", email).await
+}
+
+async fn run_git_config(sandbox: &SandboxHandle, key: &str, value: &str) -> Result<(), Error> {
+    let args = ["git", "config", "--global", key, value];
+    let output = sandbox
+        .run_execution(
+            ExecutionSpec::command(SandboxPath::new("/usr/bin/env"), args.into_iter().map(str::to_owned))
+                .with_environment([("HOME".into(), HOME.into())]),
+        )
+        .await?;
+    checked_output("/usr/bin/env", &args, &output)
 }
 
 async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
@@ -195,13 +257,13 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
         ],
     )
     .await?;
-    write_file(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
-    write_file(sandbox, PODMAN_CA_HOOK_CONF, PODMAN_CA_HOOK_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_CA_HOOK, PODMAN_CA_HOOK_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CA_HOOK_CONF, PODMAN_CA_HOOK_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CA_HOOK, PODMAN_CA_HOOK_CONTENTS).await?;
     run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0755", PODMAN_CA_HOOK]).await?;
     run_checked(
         sandbox,
@@ -229,7 +291,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
 /// because the guest has no D-Bus system bus and only root reaches systemd's
 /// private socket. A `degraded` system counts as ready: a failed optional unit,
 /// such as a best-effort workspace clone, must not block the Podman configuration.
-async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
+pub(super) async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
     let deadline = tokio::time::Instant::now() + SYSTEMD_READY_TIMEOUT;
     loop {
         // `--wait` blocks for as long as boot takes, so the deadline bounds the wait itself
@@ -270,13 +332,6 @@ async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
         }
         tokio::time::sleep(SYSTEMD_READY_POLL).await;
     }
-}
-
-async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Result<(), Error> {
-    sandbox
-        .write_file(&SandboxPath::new(path), Box::pin(Cursor::new(contents.to_vec())))
-        .await
-        .map_err(Error::from)
 }
 
 /// Concatenates the instruction files in manifest order, each terminated by a newline and
@@ -442,6 +497,14 @@ pub(crate) async fn run_checked<const N: usize>(
             args.into_iter().map(str::to_owned),
         ))
         .await?;
+    checked_output(executable, &args, &output)
+}
+
+fn checked_output(
+    executable: &str,
+    args: &[&str],
+    output: &::sandbox::execution::ExecutionOutput,
+) -> Result<(), Error> {
     if output.status.success() {
         return Ok(());
     }

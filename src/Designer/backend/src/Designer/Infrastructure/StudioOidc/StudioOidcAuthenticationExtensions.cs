@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -24,6 +27,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Altinn.Studio.Designer.Infrastructure.StudioOidc;
@@ -166,6 +170,18 @@ public static class StudioOidcAuthenticationExtensions
                         }
                     };
 
+                    options.Events.OnTicketReceived = ResolveStudioIdentity;
+
+                    options.Events.OnRemoteFailure = context =>
+                    {
+                        RejectLogin(
+                            context,
+                            context.Failure?.Message ?? "Remote authentication failed.",
+                            context.Failure
+                        );
+                        return Task.CompletedTask;
+                    };
+
                     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
                     {
                         context.ProtocolMessage.ClientId = oidcSettings.ClientId;
@@ -190,6 +206,70 @@ public static class StudioOidcAuthenticationExtensions
             );
 
         return services;
+    }
+
+    private static async Task ResolveStudioIdentity(TicketReceivedContext context)
+    {
+        IServiceProvider services = context.HttpContext.RequestServices;
+        ClaimsPrincipal incoming = context.Principal!;
+
+        string? pid = incoming.FindFirst("pid")?.Value;
+        string? sub = incoming.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(pid) || string.IsNullOrEmpty(sub))
+        {
+            RejectLogin(context, "The identity provider did not return pid and sub.");
+            return;
+        }
+
+        string? givenName = incoming.FindFirst("given_name")?.Value;
+        string? familyName = incoming.FindFirst("family_name")?.Value;
+        PidHash pidHash = PidHash.FromPid(pid, services.GetRequiredService<DeveloperMappingSettings>());
+
+        string username;
+        try
+        {
+            username = await services
+                .GetRequiredService<IStudioOidcUsernameProvider>()
+                .ResolveUsernameAsync(sub, pidHash, givenName, familyName);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            RejectLogin(context, ex.Message, ex);
+            return;
+        }
+
+        var claims = new List<Claim> { new(ClaimTypes.Name, username), new("pid", pid), new("sub", sub) };
+        if (givenName is not null)
+        {
+            claims.Add(new Claim("given_name", givenName));
+        }
+        if (familyName is not null)
+        {
+            claims.Add(new Claim("family_name", familyName));
+        }
+
+        context.Principal = new ClaimsPrincipal(
+            new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)
+        );
+
+        string fullName = $"{givenName} {familyName}".Trim();
+        await services
+            .GetRequiredService<IUserProvisioningService>()
+            .EnsureUserExistsAsync(username, string.IsNullOrEmpty(fullName) ? null : fullName);
+    }
+
+    private static void RejectLogin(
+        HandleRequestContext<RemoteAuthenticationOptions> context,
+        string reason,
+        Exception? exception = null
+    )
+    {
+        context
+            .HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger(typeof(StudioOidcAuthenticationExtensions))
+            .LogWarning(exception, "Studio OIDC login rejected: {Reason}", reason);
+        context.Response.Redirect("/");
+        context.HandleResponse();
     }
 
     private static StudioOidcLoginSettings? FetchOidcSettingsFromConfiguration(

@@ -9,7 +9,6 @@ on:
       - '.github/workflows/runtime-operator-build.yml'
       - 'src/App/azure-pipelines/deploy-app.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

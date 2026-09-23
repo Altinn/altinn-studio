@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,12 +15,12 @@ namespace Altinn.App.Models.modell3
     [XmlElement("tekstfelt", Order = 1)]
     [JsonProperty("tekstfelt")]
     [JsonPropertyName("tekstfelt")]
-    public string tekstfelt { get; set; }
+    public string? tekstfelt { get; set; }
 
     [XmlElement("kontaktinfo", Order = 2)]
     [JsonProperty("kontaktinfo")]
     [JsonPropertyName("kontaktinfo")]
-    public List<kontaktinfo> kontaktinfo { get; set; }
+    public List<kontaktinfo>? kontaktinfo { get; set; }
 
   }
 
@@ -37,12 +37,12 @@ namespace Altinn.App.Models.modell3
     [XmlElement("epost", Order = 1)]
     [JsonProperty("epost")]
     [JsonPropertyName("epost")]
-    public string epost { get; set; }
+    public string? epost { get; set; }
 
     [XmlElement("mobilnummer", Order = 2)]
     [JsonProperty("mobilnummer")]
     [JsonPropertyName("mobilnummer")]
-    public string mobilnummer { get; set; }
+    public string? mobilnummer { get; set; }
 
   }
 }

@@ -1,0 +1,25 @@
+{
+    "language": "nb",
+    "resources": [
+        {
+            "id": "appName",
+            "value": "app-with-legacy-layout-names"
+        },
+        {
+            "id": "intro-title",
+            "value": "Introduksjon"
+        },
+        {
+            "id": "text-field-title",
+            "value": "Tekstfelt"
+        },
+        {
+            "id": "side1-title",
+            "value": "Side 1"
+        },
+        {
+            "id": "subform-title",
+            "value": "Underskjema"
+        }
+    ]
+}

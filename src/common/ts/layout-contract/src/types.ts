@@ -49,47 +49,49 @@ export type PropertyMetadata = Readonly<{
   deprecated?: boolean;
 }>;
 
-export type PropertyValueDefinition =
-  | Readonly<{
-      type: 'string';
-      expression?: true;
-      allowedValues?: readonly string[];
-      pattern?: string;
-    }>
-  | Readonly<{ type: 'date'; expression?: true }>
-  | Readonly<{
-      type: 'number';
-      expression?: true;
-      allowedValues?: readonly number[];
-      minimum?: number;
-      maximum?: number;
-    }>
-  | Readonly<{
-      type: 'integer';
-      expression?: true;
-      allowedValues?: readonly number[];
-      minimum?: number;
-      maximum?: number;
-    }>
-  | Readonly<{ type: 'boolean'; expression?: true }>
-  | Readonly<{ type: 'null' }>
-  | Readonly<{ type: 'any'; expression?: true }>
-  | Readonly<{ type: 'constant'; value: string | number | boolean | null }>
-  | Readonly<{
-      type: 'array';
-      expression?: true;
-      items: PropertyValueDefinition;
-      minItems?: number;
-      maxItems?: number;
-    }>
-  | Readonly<{
-      type: 'object';
-      expression?: true;
-      properties: Readonly<Record<string, PropertyDefinition>>;
-      additionalProperties?: false | PropertyValueDefinition;
-    }>
-  | Readonly<{ type: 'union'; variants: readonly PropertyValueDefinition[] }>
-  | Readonly<{ type: 'intersection'; parts: readonly PropertyValueDefinition[] }>;
+export type PropertyValueDefinition = Readonly<{ semanticType?: 'dataModelBinding' }> &
+  (
+    | Readonly<{
+        type: 'string';
+        expression?: true;
+        allowedValues?: readonly string[];
+        pattern?: string;
+      }>
+    | Readonly<{ type: 'date'; expression?: true }>
+    | Readonly<{
+        type: 'number';
+        expression?: true;
+        allowedValues?: readonly number[];
+        minimum?: number;
+        maximum?: number;
+      }>
+    | Readonly<{
+        type: 'integer';
+        expression?: true;
+        allowedValues?: readonly number[];
+        minimum?: number;
+        maximum?: number;
+      }>
+    | Readonly<{ type: 'boolean'; expression?: true }>
+    | Readonly<{ type: 'null' }>
+    | Readonly<{ type: 'any'; expression?: true }>
+    | Readonly<{ type: 'constant'; value: string | number | boolean | null }>
+    | Readonly<{
+        type: 'array';
+        expression?: true;
+        items: PropertyValueDefinition;
+        minItems?: number;
+        maxItems?: number;
+      }>
+    | Readonly<{
+        type: 'object';
+        expression?: true;
+        properties: Readonly<Record<string, PropertyDefinition>>;
+        additionalProperties?: false | PropertyValueDefinition;
+      }>
+    | Readonly<{ type: 'union'; variants: readonly PropertyValueDefinition[] }>
+    | Readonly<{ type: 'intersection'; parts: readonly PropertyValueDefinition[] }>
+  );
 
 export type PropertyDefinition = Readonly<
   PropertyMetadata &

@@ -27,10 +27,14 @@ internal sealed class InstanceCreatedAltinnEvent : IWorkflowEngineCommand
         {
             using (_telemetry?.StartProcessRegisterEventActivity(instance))
             {
+                // The engine's step id is stable across every attempt of this step, so a retried
+                // registration presents Events the same key and cannot raise the event twice.
                 await _eventsClient.AddEvent(
                     "app.instance.created",
                     instance,
-                    StorageAuthenticationMethod.ServiceOwner()
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    parameters.Payload.StepId,
+                    parameters.CancellationToken
                 );
             }
 

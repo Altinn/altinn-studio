@@ -1,6 +1,9 @@
 *
 !Dockerfile
-!claude-state.json
+!nvim-sysinit.vim
+!ssh.service
+!ssh-tmpfiles.conf
+!sshd_config
 !tmpfiles.conf
 !workspace-init.service
 !workspace-init.sh

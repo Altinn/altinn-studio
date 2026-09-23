@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -27,11 +28,20 @@ namespace Altinn.Studio.Designer.Controllers;
 public class ProcessModelingController : ControllerBase
 {
     private readonly IProcessModelingService _processModelingService;
+    private readonly IUiFoldersService _uiFoldersService;
+    private readonly IAppVersionService _appVersionService;
     private readonly IMediator _mediator;
 
-    public ProcessModelingController(IProcessModelingService processModelingService, IMediator mediator)
+    public ProcessModelingController(
+        IProcessModelingService processModelingService,
+        IUiFoldersService uiFoldersService,
+        IAppVersionService appVersionService,
+        IMediator mediator
+    )
     {
         _processModelingService = processModelingService;
+        _uiFoldersService = uiFoldersService;
+        _appVersionService = appVersionService;
         _mediator = mediator;
     }
 
@@ -67,6 +77,25 @@ public class ProcessModelingController : ControllerBase
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+
+        // In a v9 app a task id change renames the task's layout set folder, so the new id must follow the
+        // layout set naming policy. Validate before the process definition is written.
+        if (metadataObject?.TaskIdChange is not null && _appVersionService.IsV9App(editingContext))
+        {
+            try
+            {
+                await _uiFoldersService.ValidateTaskIdChange(
+                    editingContext,
+                    metadataObject.TaskIdChange.OldId,
+                    metadataObject.TaskIdChange.NewId,
+                    cancellationToken
+                );
+            }
+            catch (Exception exception) when (exception is InvalidLayoutSetIdException or NonUniqueLayoutSetIdException)
+            {
+                return BadRequest(exception.Message);
+            }
+        }
 
         await using Stream stream = content!.OpenReadStream();
         try

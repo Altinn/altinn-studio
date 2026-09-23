@@ -46,15 +46,16 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
 - Stages share state through `ServiceTaskContext.InstanceDataMutator` and nothing else: a completed
   stage's data changes are saved into the workflow state and visible to every stage after it.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
-  that must *record* something records it and returns success.
+  that must _record_ something records it and returns success.
 
 ### Stage results
 
 `ServiceTaskStageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
 `FailedRetryable(msg)`, `FailedPermanent(msg)`. A plain stage cannot conclude the task or advance the
 process — that is reserved for the pipeline's conclusion, and for a mailbox-opening stage's `Conclude`
-(see below). The concluding step returns `ServiceTaskResult`, which adds `Success(action?)` /
-`SuccessWithoutAutoAdvance()`.
+(see below). The concluding step returns `ServiceTaskResult`. Returning `Success(action?)` completes
+the task and advances the process, using the optional action to select the next transition. Work that
+is still waiting for an outcome uses `Defer` or a mailbox reply handler.
 
 ## Waiting: Defer and wait budgets
 
@@ -94,7 +95,7 @@ pipeline.Stage(SendIt, new MailboxOptions { Timeout = ... }, out MailboxHandle h
 
 The stage's work is handed a `ServiceTaskMailbox`: `Id` is the reply address, `Deadline` is when the
 mailbox stops accepting answers. For an answer to be routable, the stage must publish `Id` in whatever
-field the receiving system echoes back — the id *is* the address; nothing else routes a reply. A retried
+field the receiving system echoes back — the id _is_ the address; nothing else routes a reply. A retried
 or deferred attempt of the stage is handed the same mailbox: the mint is its own durable step immediately
 before the stage, so it never runs twice.
 
@@ -113,8 +114,8 @@ address that does not exist — where waiting out the exchange would only delay 
 
 - A conclusion ends the **whole task**: every mailbox the task has opened is closed before anything
   downstream starts, no receiver is enqueued, the pipeline items composed after the stage never run, and
-  the process advances (or not) per the carried result — `Success(action?)` advances, `FailedPermanent`
-  fails the task with the mailboxes closed.
+  the carried result determines what happens next: `Success(action?)` advances the process,
+  and `FailedPermanent` fails the task with the mailboxes closed.
 - A wrapped `FailedRetryable` or `Defer` concludes nothing: it acts exactly as the stage vocabulary's own
   member, and every open mailbox stays open.
 - It is honored from **every** mailbox-opening stage, wherever that stage sits in the composition: the
@@ -137,7 +138,7 @@ Exactly one handler answers each mailbox, named by the handle the opening `Stage
   `AwaitNextReply()` to be called again on the next message.
 - `HandleReplies(handle, onMessage, onClosed)` — an exchange the pipeline **carries on past**. `onMessage`
   returns `ServiceTaskStageExchangeResult`: any `ServiceTaskStageResult`, or `AwaitNextReply()`.
-  `Completed()` here means *this exchange is concluded, run the pipeline's next segment* — concluding the
+  `Completed()` here means _this exchange is concluded, run the pipeline's next segment_ — concluding the
   task and advancing the process are deliberately not in this vocabulary.
 
 `onMessage` runs once per message, each as its own durable unit of work. Messages arrive one at a time in
@@ -152,13 +153,13 @@ message can arrive. It cannot ask for another message, and it decides whether th
 
 What each verdict does to the exchange:
 
-| Verdict | Effect |
-| --- | --- |
-| `AwaitNextReply()` | This message is handled; wait for the next. |
-| `Success(...)` / `Completed()` | Concludes the exchange. The mailbox is **closed first**, so no later message can land in an exchange already answered. |
-| `FailedPermanent` | Concludes the exchange as failed; the mailbox is closed, whatever waited is not started. |
-| `FailedRetryable` | Retries **this message** with nothing closed or started. A handler that will answer the same every time holds the exchange to its deadline — conclude with `FailedPermanent` instead. |
-| `Defer` | Parks the receiver against this same message. |
+| Verdict                        | Effect                                                                                                                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AwaitNextReply()`             | This message is handled; wait for the next.                                                                                                                                           |
+| `Success(...)` / `Completed()` | Concludes the exchange. The mailbox is **closed first**, so no later message can land in an exchange already answered.                                                                |
+| `FailedPermanent`              | Concludes the exchange as failed; the mailbox is closed, whatever waited is not started.                                                                                              |
+| `FailedRetryable`              | Retries **this message** with nothing closed or started. A handler that will answer the same every time holds the exchange to its deadline — conclude with `FailedPermanent` instead. |
+| `Defer`                        | Parks the receiver against this same message.                                                                                                                                         |
 
 Whether the app expects one answer or several is its expectation of the counterparty, not something the
 runtime records: a one-answer protocol concludes on its first message, and a stray `AwaitNextReply` on one
@@ -173,8 +174,8 @@ reads A's exchange to the end before B's begins.
 
 - Messages for a later exchange wait in its mailbox until the pipeline reaches its handler — never lost,
   and never handled early.
-- Each deadline runs from its own send: a send composed *before* an earlier exchange's handler spends its
-  budget while that exchange runs; a send composed *after* it starts its clock only when the earlier
+- Each deadline runs from its own send: a send composed _before_ an earlier exchange's handler spends its
+  budget while that exchange runs; a send composed _after_ it starts its clock only when the earlier
   exchange concludes. Up-front sends buy overlapping clocks, later sends buy undiminished budgets — stage
   placement is the whole lever.
 - A failure in a `HandleReplies` handler fails the task like a stage failure and closes only that
