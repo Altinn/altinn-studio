@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Altinn.Studio.Observability.Proxy.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -23,12 +22,18 @@ namespace Altinn.Studio.Observability.Proxy.Auth;
 /// rotation both entries hold the same value, which is not reported.
 ///
 /// A top-level key the proxy does not know grants nothing, so a typo denies access rather than
-/// widening it.
+/// widening it. A token shorter than <see cref="MinimumTokenLength"/>, or one that is still a
+/// pipeline placeholder, is rejected and reported by identity; the rest of the file still applies.
 /// </summary>
 internal sealed class AuthTokenFile
 {
     private const string IngestGroup = "ingest";
     private const string QueryGroup = "query";
+
+    /// <summary>Accepted tokens are at least this long; anything shorter is rejected when read.</summary>
+    public const int MinimumTokenLength = 32;
+
+    private const string PlaceholderMarker = "__";
 
     private static readonly IReadOnlyList<string> IngestRouteGroups = [ObservabilityPaths.OtlpRouteGroup];
 
@@ -107,61 +112,79 @@ internal sealed class AuthTokenFile
         }
         catch (JsonException exception)
         {
-            _logger.LogError(exception, "Token file {Path} is not valid JSON; keeping the previous tokens.", path);
+            // Any file that is not the documented shape is handled as unreadable, whether the JSON
+            // itself is broken or a group, identity or entry is the wrong type or null. The
+            // exception names the part of the file that is wrong, never a token.
+            _logger.LogError(
+                exception,
+                "Token file {Path} is not a valid token file; keeping the previous tokens.",
+                path
+            );
         }
     }
 
     private List<BearerTokenOptions> Parse(string content, string path)
     {
-        var parsed =
-            JsonSerializer.Deserialize(content, AuthTokenFileJson.Default.DictionaryStringDictionaryStringListString)
-            ?? throw new JsonException($"Token file {path} is empty.");
+        using var document = JsonDocument.Parse(content);
+        var accessGroups = ExpectObject(document.RootElement, "The top level");
 
         var tokens = new List<BearerTokenOptions>();
         // The authenticator compares every candidate and keeps the last match, so two identities
         // sharing one token value silently attribute both to whichever is read last. That is a
         // Secret-authoring mistake rather than a reason to reject the file, so it is reported.
         var identityByToken = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var (accessGroup, identities) in parsed)
+        foreach (var accessGroup in accessGroups)
         {
-            var routeGroups = ResolveRouteGroups(accessGroup);
+            var identities = new List<(string Name, List<string> Tokens)>();
+            foreach (var identity in ExpectObject(accessGroup.Value, $"Access group {accessGroup.Name}"))
+            {
+                identities.Add(
+                    (identity.Name, ExpectTokenList(identity.Value, $"Identity {identity.Name} in {accessGroup.Name}"))
+                );
+            }
+
+            var routeGroups = ResolveRouteGroups(accessGroup.Name);
             if (routeGroups.Count == 0)
             {
                 _logger.LogWarning(
-                    "Token file {Path} has an unknown access group {AccessGroup}; its {Count} token(s) grant nothing.",
+                    "Token file {Path} has an unknown access group {AccessGroup}; its {Count} identity(ies) grant nothing.",
                     path,
-                    accessGroup,
+                    accessGroup.Name,
                     identities.Count
                 );
                 continue;
             }
 
-            foreach (var (sourceIdentity, identityTokens) in identities)
+            foreach (var identity in identities)
             {
-                foreach (var token in identityTokens.Distinct(StringComparer.Ordinal))
+                foreach (var token in identity.Tokens.Distinct(StringComparer.Ordinal))
                 {
-                    if (string.IsNullOrWhiteSpace(token))
+                    if (RejectionReason(token) is { } reason)
                     {
-                        _logger.LogWarning(
-                            "Token file {Path} has an empty token for {Identity}.",
+                        // Named by identity only. Not even the token's tag is logged: the tag of a
+                        // short token is enough to recover it by trying every candidate.
+                        _logger.LogError(
+                            "Token file {Path} has a token for {Identity} in {AccessGroup} that {Reason}; it is not accepted.",
                             path,
-                            sourceIdentity
+                            identity.Name,
+                            accessGroup.Name,
+                            reason
                         );
                         continue;
                     }
 
-                    if (!identityByToken.TryAdd(token, sourceIdentity))
+                    if (!identityByToken.TryAdd(token, identity.Name))
                     {
                         _logger.LogWarning(
                             "Token file {Path} uses the same token value for {FirstIdentity} and {SecondIdentity}; "
                                 + "requests presenting it are attributed to whichever is read last.",
                             path,
                             identityByToken[token],
-                            sourceIdentity
+                            identity.Name
                         );
                     }
 
-                    var entry = new BearerTokenOptions { Token = token, SourceIdentity = sourceIdentity };
+                    var entry = new BearerTokenOptions { Token = token, SourceIdentity = identity.Name };
                     foreach (var routeGroup in routeGroups)
                     {
                         entry.AllowedRouteGroups.Add(routeGroup);
@@ -173,6 +196,66 @@ internal sealed class AuthTokenFile
         }
 
         return tokens;
+    }
+
+    /// <summary>
+    /// Why <paramref name="token"/> is not accepted, or <c>null</c> when it is. A generated token is
+    /// 64 hex characters. A <c>__name__</c> value is the pipeline's placeholder for a vault secret
+    /// that did not exist when the Secret was written; it is in the pipeline definition, so anyone
+    /// who has read that could present it.
+    /// </summary>
+    private static string? RejectionReason(string token)
+    {
+        if (
+            token.Length >= 2 * PlaceholderMarker.Length
+            && token.StartsWith(PlaceholderMarker, StringComparison.Ordinal)
+            && token.EndsWith(PlaceholderMarker, StringComparison.Ordinal)
+        )
+        {
+            return "is an unreplaced pipeline placeholder";
+        }
+
+        return token.Length < MinimumTokenLength ? $"is shorter than {MinimumTokenLength} characters" : null;
+    }
+
+    private static JsonElement.ObjectEnumerator ExpectObject(JsonElement element, string what)
+    {
+        return element.ValueKind == JsonValueKind.Object
+            ? element.EnumerateObject()
+            : throw new JsonException($"{what} is {Describe(element)}, not an object.");
+    }
+
+    private static List<string> ExpectTokenList(JsonElement element, string what)
+    {
+        if (element.ValueKind != JsonValueKind.Array)
+        {
+            throw new JsonException($"{what} is {Describe(element)}, not a list of tokens.");
+        }
+
+        var tokens = new List<string>();
+        foreach (var entry in element.EnumerateArray())
+        {
+            tokens.Add(
+                entry.ValueKind == JsonValueKind.String
+                    ? entry.GetString() ?? string.Empty
+                    : throw new JsonException($"{what} has an entry that is {Describe(entry)}, not a string.")
+            );
+        }
+
+        return tokens;
+    }
+
+    private static string Describe(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Null => "null",
+            JsonValueKind.Object => "an object",
+            JsonValueKind.Array => "a list",
+            JsonValueKind.String => "a string",
+            JsonValueKind.Number => "a number",
+            _ => "a boolean",
+        };
     }
 
     private static IReadOnlyList<string> ResolveRouteGroups(string accessGroup)
@@ -187,7 +270,3 @@ internal sealed class AuthTokenFile
             : [];
     }
 }
-
-/// <summary>Source-generated so the file can be read without reflection-based serialization.</summary>
-[JsonSerializable(typeof(Dictionary<string, Dictionary<string, List<string>>>))]
-internal sealed partial class AuthTokenFileJson : JsonSerializerContext;
