@@ -14,8 +14,16 @@ spec:
     repository: victoriametrics/victoria-traces
     tag: v0.11.1
   retentionPeriod: 100y
+  secrets:
+    - observability-backend-auth-keys
   extraArgs:
     retention.maxDiskUsagePercent: "80"
+    # Admin auth keys; see logs.yaml.
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/partition-manage
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-streams
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
   storage:
     accessModes:
       - ReadWriteOnce
@@ -56,8 +64,15 @@ spec:
     repository: victoriametrics/victoria-traces
     tag: v0.11.1
   retentionPeriod: 100y
+  secrets:
+    - observability-backend-auth-keys
   extraArgs:
     retention.maxDiskUsagePercent: "80"
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/partition-manage
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-streams
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
   storage:
     accessModes:
       - ReadWriteOnce
