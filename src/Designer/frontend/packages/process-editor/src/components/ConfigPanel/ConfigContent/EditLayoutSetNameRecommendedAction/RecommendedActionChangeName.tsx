@@ -13,7 +13,7 @@ import { useUpdateLayoutSetId } from '../../../../hooks/useUpdateLayoutSetId';
 
 export const RecommendedActionChangeName = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
-  const { layoutSets } = useBpmnApiContext();
+  const { layoutSets, pendingApiOperations } = useBpmnApiContext();
   const updateLayoutSetId = useUpdateLayoutSetId();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const { t } = useTranslation();
@@ -24,7 +24,8 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
 
   const saveNewName = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (newNameError || newName === '') {
+    // Renaming before the new task is saved would rename a layout set whose task the saved process does not have yet.
+    if (newNameError || newName === '' || pendingApiOperations) {
       return false;
     }
     updateLayoutSetId(bpmnDetails.element.id, newName);
@@ -41,7 +42,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
       description={t('process_editor.recommended_action.new_name_description')}
       saveButtonText={t('general.save')}
       skipButtonText={t('general.skip')}
-      hideSaveButton={Boolean(newNameError) || newName === ''}
+      hideSaveButton={Boolean(newNameError) || newName === '' || pendingApiOperations}
       onSave={saveNewName}
       onSkip={cancelAction}
     >

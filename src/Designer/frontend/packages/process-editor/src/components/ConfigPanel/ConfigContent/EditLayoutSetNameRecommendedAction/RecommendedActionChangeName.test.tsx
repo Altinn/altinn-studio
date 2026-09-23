@@ -79,6 +79,21 @@ describe('RecommendedActionChangeName', () => {
     expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 
+  it('does not rename while the new task is still being saved', async () => {
+    const user = userEvent.setup();
+    renderRecommendedActionChangeName({ pendingApiOperations: true });
+    const newNameInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.recommended_action.new_name_label'),
+    });
+    await user.type(newNameInput, 'newName{enter}');
+
+    expect(
+      screen.queryByRole('button', { name: textMock('general.save') }),
+    ).not.toBeInTheDocument();
+    expect(updateLayoutSetIdMock).not.toHaveBeenCalled();
+    expect(removeActionMock).not.toHaveBeenCalled();
+  });
+
   it('calls removeAction, but not updateLayoutSetId, when skip button is clicked', async () => {
     const user = userEvent.setup();
     renderRecommendedActionChangeName();
