@@ -6,7 +6,6 @@ using Altinn.Studio.Observability.Proxy.Routing;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Yarp.ReverseProxy.Transforms;
 
 namespace Altinn.Studio.Observability.Proxy.Hosting;
 
@@ -67,27 +66,10 @@ internal static class ObservabilityProxyExtensions
                 ObservabilityReverseProxyConfig.CreateRoutes(proxyOptions),
                 ObservabilityReverseProxyConfig.CreateClusters(proxyOptions)
             )
-            .AddTransforms(transformContext =>
-            {
-                transformContext.AddRequestTransform(requestContext =>
-                {
-                    requestContext.ProxyRequest.Headers.Remove("Authorization");
-
-                    var sourceIdentity = requestContext
-                        .HttpContext.Features.Get<ObservabilitySourceFeature>()
-                        ?.Source.SourceIdentity;
-                    if (!string.IsNullOrWhiteSpace(sourceIdentity))
-                    {
-                        requestContext.ProxyRequest.Headers.Remove("X-Observability-Source");
-                        requestContext.ProxyRequest.Headers.TryAddWithoutValidation(
-                            "X-Observability-Source",
-                            sourceIdentity
-                        );
-                    }
-
-                    return ValueTask.CompletedTask;
-                });
-            });
+            .AddTransforms(ObservabilityRequestTransforms.Apply)
+            // The forwarding handler would otherwise add a traceparent after the transforms have
+            // run. Nothing behind the proxy records traces, and nothing here exports them.
+            .ConfigureHttpClient((_, handler) => handler.ActivityHeadersPropagator = null);
 
         return builder;
     }
