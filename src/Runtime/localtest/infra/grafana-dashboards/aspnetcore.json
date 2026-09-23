@@ -76,7 +76,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -195,7 +195,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.50, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -206,7 +206,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.75, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -218,7 +218,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.90, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -230,7 +230,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -242,7 +242,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.98, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -254,7 +254,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -266,7 +266,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.999, sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval])) by (le))",
@@ -282,7 +282,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -421,7 +421,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\", http_response_status_code=~\"4..|5..\"}[$__rate_interval]) or vector(0)) / sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval]))",
@@ -432,7 +432,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\", http_response_status_code=~\"4..\"}[$__rate_interval]) or vector(0)) / sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval]))",
@@ -444,7 +444,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\", http_response_status_code=~\"5..\"}[$__rate_interval]) or vector(0)) / sum(rate(http_server_request_duration_seconds_bucket{job=\"$job\", instance=\"$instance\"}[$__rate_interval]))",
@@ -460,7 +460,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -540,7 +540,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum(kestrel_active_connections{job=\"$job\", instance=\"$instance\"})",
@@ -555,7 +555,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -635,7 +635,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum(http_server_active_requests{job=\"$job\", instance=\"$instance\"})",
@@ -650,7 +650,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -703,7 +703,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -720,7 +720,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -773,7 +773,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -790,7 +790,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -842,7 +842,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum by (url_scheme) (\r\n    max_over_time(http_server_request_duration_seconds_count{job=\"$job\", instance=\"$instance\"}[$__rate_interval])\r\n  )",
@@ -857,7 +857,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -909,7 +909,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum by (method_route) (\r\n    label_replace(max_over_time(http_server_request_duration_seconds_count{job=\"$job\", instance=\"$instance\"}[$__rate_interval]), \"method_route\", \"http/$1\", \"network_protocol_version\", \"(.*)\")\r\n  )",
@@ -924,7 +924,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -1055,7 +1055,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -1099,7 +1099,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -1229,7 +1229,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -1284,7 +1284,7 @@
         "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "metrics"
         },
         "definition": "label_values(http_server_active_requests,job)",
         "hide": 0,
@@ -1307,7 +1307,7 @@
         "current": {},
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "metrics"
         },
         "definition": "label_values(http_server_active_requests{job=~\"$job\"},instance)",
         "hide": 0,

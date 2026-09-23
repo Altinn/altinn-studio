@@ -34,7 +34,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -84,7 +84,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_processes_started_total{job=\"$app\"}[$__range])",
@@ -100,7 +100,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -150,7 +150,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__range])",
@@ -166,7 +166,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -217,7 +217,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__range]) / increase(altinn_app_lib_processes_started_total{job=\"$app\"}[$__range])",
@@ -233,7 +233,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -283,7 +283,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{job=\"$app\"}[$__range])) by (le))",
@@ -299,7 +299,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -350,7 +350,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_data_patched_total{job=\"$app\", result=\"success\"}[$__range])",
@@ -366,7 +366,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -420,7 +420,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(http_server_request_duration_seconds_count{job=\"$app\", http_response_status_code=~\"5..\"}[$__range])",
@@ -436,7 +436,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -516,7 +516,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "rate(altinn_app_lib_processes_started_total{job=\"$app\"}[$__rate_interval]) * 60",
@@ -528,7 +528,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "rate(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__rate_interval]) * 60",
@@ -545,7 +545,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -609,7 +609,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_processes_duration_bucket{job=\"$app\", le!=\"+Inf\", le!=\"0\"}[$__range])",
@@ -626,7 +626,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -702,7 +702,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{job=\"$app\"}[10m])) by (le))",
@@ -730,7 +730,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -781,7 +781,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"email\", result=\"success\"}[$__range])",
@@ -797,7 +797,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -852,7 +852,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"email\", result!=\"success\"}[$__range])",
@@ -868,7 +868,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -948,7 +948,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "sum by(type) (rate(altinn_app_lib_notification_orders_total{job=\"$app\"}[10m]) * 60)",
@@ -964,7 +964,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1015,7 +1015,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"sms\", result=\"success\"}[$__range])",
@@ -1031,7 +1031,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1086,7 +1086,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "metrics"
           },
           "editorMode": "code",
           "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"sms\", result!=\"success\"}[$__range])",
@@ -1113,7 +1113,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "metrics"
         },
         "definition": "label_values(process_runtime_dotnet_thread_pool_threads_count,job)",
         "hide": 0,
