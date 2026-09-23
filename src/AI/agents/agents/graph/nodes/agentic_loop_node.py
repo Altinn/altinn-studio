@@ -229,6 +229,9 @@ async def handle(state: AgentState) -> AgentState:
         permission_requester=(
             None if state.allow_app_changes else lambda action: permission_broker.request(state.session_id, action)
         ),
+        report_status=lambda message: sink.send(
+            AgentEvent(type="status", session_id=state.session_id, data={"message": message})
+        ),
     )
     ctx.extras["app_name"] = state.app_name
 
