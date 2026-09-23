@@ -3,6 +3,9 @@ apiVersion: operator.victoriametrics.com/v1
 kind: VTSingle
 metadata:
   name: traces-a
+  annotations:
+    # Never pruned by Flux; see the note on the VMSingle in metrics.yaml.
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   # Same hardened pod and container security context as the rest of the stack;
   # see the note in metrics.yaml.
@@ -45,6 +48,8 @@ apiVersion: operator.victoriametrics.com/v1
 kind: VTSingle
 metadata:
   name: traces-b
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   useStrictSecurity: true
   image:
