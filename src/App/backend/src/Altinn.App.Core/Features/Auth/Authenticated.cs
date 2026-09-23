@@ -324,7 +324,8 @@ public abstract class Authenticated
             var partiesTask = _getPartyList(UserId);
             await Task.WhenAll(lookupPartyTask, partiesTask);
 
-            var parties = await partiesTask ?? [];
+            var partyList = await partiesTask;
+            var parties = partyList ?? [];
             if (parties.Count == 0)
                 parties.Add(userProfile.Party);
 
@@ -342,8 +343,11 @@ public abstract class Authenticated
             if (validateSelectedParty && !representsSelf)
             {
                 // The selected party must either be the profile/default party or a party the user can represent,
-                // which can be validated against the user's party list.
-                canRepresent = await _validateSelectedParty(UserId, SelectedPartyId);
+                // which can be validated against the user's party list. Only ask for a separate validation when the
+                // list could not be loaded, so the parties are not fetched twice.
+                canRepresent = partyList is not null
+                    ? PartyListHelper.ContainsPartyWithAccess(partyList, SelectedPartyId)
+                    : await _validateSelectedParty(UserId, SelectedPartyId);
             }
 
             var partiesAllowedToInstantiate = InstantiationHelper.FilterPartiesByAllowedPartyTypes(

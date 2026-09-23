@@ -43,7 +43,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
     [Fact]
     public async Task Index_InvalidParty_RedirectsToPartySelection403()
     {
-        // Arrange: user 1337 with selected party 500600 that validation rejects
+        // Arrange: user 1337 with selected party 500600, which is not in the user's party list
         int userId = 1337;
         int userPartyId = 501337;
         int selectedPartyId = 500600;
@@ -71,7 +71,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                     },
                     new()
                     {
-                        PartyId = selectedPartyId,
+                        PartyId = 500000,
                         PartyTypeName = PartyType.Organisation,
                         Name = "Some Org",
                     },

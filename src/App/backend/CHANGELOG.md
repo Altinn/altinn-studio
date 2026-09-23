@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
+- The parties a user can choose between in party selection now come from Access Management's `enduser/authorizedparties` API instead of the Authorization `parties` API. A party the user can only reach through access delegated to a single instance, for example to sign it, is no longer offered in party selection and cannot be chosen as the party to act for. The user can still open that instance. `IAuthorizationClient.GetPartyList` and `ValidateSelectedParty` return the same list, and the app now calls the platform at `PlatformSettings.ApiAccessManagementEndpoint`. Locally, update localtest so that it serves the new API.
 
 ## [9.0.0-preview.6] - 2026-09-18
 
