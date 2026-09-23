@@ -9,7 +9,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Custom process tasks can validate their configuration at app startup by implementing `IProcessTask.ValidateConfiguration`. The hook receives the BPMN task id, hosting environment and application metadata.
+
 ### Changed
+
+- Signing and payment configuration is now checked at startup. Delegated signing requires exactly one matching signee provider and, in staging and production, a correspondence resource for the current environment. Unreadable process configuration and invalid workflow command registrations also prevent startup, so these errors can be fixed before users reach the affected tasks.
 
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
