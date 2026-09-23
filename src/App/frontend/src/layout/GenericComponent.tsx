@@ -40,12 +40,6 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
 }: IGenericComponentProps<Type>) {
   const nodeId = useIndexedId(baseComponentId);
   const layoutDiagnosticErrors = FormStore.layoutDiagnostics.useNodeErrors(nodeId);
-  const component = useComponentConfig(baseComponentId);
-  const grid = overrideItemProps?.grid ?? component.grid;
-  const formComponentContext = useMemo<IFormComponentContext>(
-    () => ({ grid, baseComponentId, overrideItemProps, overrideDisplay }),
-    [grid, baseComponentId, overrideItemProps, overrideDisplay],
-  );
 
   if (layoutDiagnosticErrors && Object.keys(layoutDiagnosticErrors).length > 0) {
     return (
@@ -58,13 +52,11 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
 
   return (
     <ComponentErrorBoundary nodeId={nodeId}>
-      <FormComponentContextProvider value={formComponentContext}>
-        <ActualGenericComponent<Type>
-          baseComponentId={baseComponentId}
-          overrideItemProps={overrideItemProps}
-          overrideDisplay={overrideDisplay}
-        />
-      </FormComponentContextProvider>
+      <GenericComponentWithContext<Type>
+        baseComponentId={baseComponentId}
+        overrideItemProps={overrideItemProps}
+        overrideDisplay={overrideDisplay}
+      />
     </ComponentErrorBoundary>
   );
 }
@@ -72,12 +64,36 @@ const MemoGenericComponent = React.memo(NonMemoGenericComponent);
 MemoGenericComponent.displayName = 'GenericComponent';
 export const GenericComponent = MemoGenericComponent as typeof NonMemoGenericComponent;
 
-function ActualGenericComponent<Type extends CompTypes = CompTypes>({
+function GenericComponentWithContext<Type extends CompTypes = CompTypes>({
   baseComponentId,
   overrideItemProps,
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
   const component = useComponentConfig(baseComponentId);
+  const grid = overrideItemProps?.grid ?? component.grid;
+  const formComponentContext = useMemo<IFormComponentContext>(
+    () => ({ grid, baseComponentId, overrideItemProps, overrideDisplay }),
+    [grid, baseComponentId, overrideItemProps, overrideDisplay],
+  );
+
+  return (
+    <FormComponentContextProvider value={formComponentContext}>
+      <ActualGenericComponent<Type>
+        baseComponentId={baseComponentId}
+        overrideItemProps={overrideItemProps}
+        overrideDisplay={overrideDisplay}
+        component={component}
+      />
+    </FormComponentContextProvider>
+  );
+}
+
+function ActualGenericComponent<Type extends CompTypes = CompTypes>({
+  baseComponentId,
+  overrideItemProps,
+  overrideDisplay,
+  component,
+}: IGenericComponentProps<Type> & { component: CompExternal }) {
   const grid = overrideItemProps?.grid ?? component?.grid;
   const renderAsSummary =
     overrideItemProps && 'renderAsSummary' in overrideItemProps && overrideItemProps.renderAsSummary !== undefined
