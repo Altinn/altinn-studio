@@ -1151,9 +1151,7 @@ const common = {
     new CG.obj(
       new CG.prop(
         'thousandSeparator',
-        new CG.union(new CG.expr(ExprVal.Boolean).setFallback(false), new CG.expr(ExprVal.String).setFallback(''))
-          .setExpressionFallback(false)
-          .optional(),
+        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).setExpressionFallback(false).optional(),
       ),
       new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).setFallback('.').optional()),
       new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
