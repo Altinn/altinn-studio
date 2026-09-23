@@ -58,13 +58,15 @@ export function TopToolbar({
         />
       )}
       <StudioDivider orientation='vertical' />
-      <SchemaSelect
-        dataModels={dataModels}
-        disabled={false}
-        selectedOption={selectedOption}
-        setSelectedOption={setSelectedOption}
-      />
-      <DataModelMenu selectedOption={selectedOption} />
+      <div className={classes.dataModelGroup}>
+        <SchemaSelect
+          dataModels={dataModels}
+          disabled={false}
+          selectedOption={selectedOption}
+          setSelectedOption={setSelectedOption}
+        />
+        <DataModelMenu selectedOption={selectedOption} />
+      </div>
       <div className={classes.right}>
         {modelPath && (
           <GenerateModelsButton

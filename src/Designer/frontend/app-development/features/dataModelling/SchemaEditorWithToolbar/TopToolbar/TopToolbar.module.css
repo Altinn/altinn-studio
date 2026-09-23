@@ -21,3 +21,14 @@
   gap: 1rem;
   margin-left: auto;
 }
+
+.dataModelGroup {
+  display: flex;
+  align-items: center;
+}
+
+.dataModelGroup > button {
+  --dsc-button-border-color: var(--ds-color-neutral-border-default);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
