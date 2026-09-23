@@ -8,9 +8,12 @@ them up.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import subprocess
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 
 import httpx
 from pydantic import BaseModel, ConfigDict
@@ -28,6 +31,31 @@ _UPGRADE_PATH = "/api/v1/studioctl/apps/upgrades"
 _EXIT_SUCCESS = 0
 _EXIT_UNSUPPORTED_VERSION = 2
 _EXIT_MANUAL_ACTION_REQUIRED = 3
+
+
+class _UpgradeQueue:
+    """Runs one upgrade at a time and tells waiting users their place in the queue."""
+
+    def __init__(self) -> None:
+        self._lock = asyncio.Lock()
+        self._upgrades_in_progress = 0
+
+    @asynccontextmanager
+    async def turn(self, report_status: Callable[[str], None]) -> AsyncIterator[None]:
+        upgrades_ahead = self._upgrades_in_progress
+        self._upgrades_in_progress += 1
+        try:
+            if upgrades_ahead:
+                report_status(f"Venter i kø ({upgrades_ahead} foran)")
+            async with self._lock:
+                if upgrades_ahead:
+                    report_status("Oppgraderer appen til v9")
+                yield
+        finally:
+            self._upgrades_in_progress -= 1
+
+
+_upgrade_queue = _UpgradeQueue()
 
 
 class UpgradeAppToV9Args(BaseModel):
@@ -66,7 +94,8 @@ class UpgradeAppToV9Tool(WriteToolMixin):
 
     async def run(self, args: UpgradeAppToV9Args, ctx: LoopContext) -> ToolResult:
         try:
-            response = await _post_upgrade(ctx.repo_path)
+            async with _upgrade_queue.turn(ctx.report_status):
+                response = await _post_upgrade(ctx.repo_path)
         except httpx.HTTPError as exc:
             return ToolResult(
                 content=f"Could not reach the upgrade service (studioctl-server): {exc}",

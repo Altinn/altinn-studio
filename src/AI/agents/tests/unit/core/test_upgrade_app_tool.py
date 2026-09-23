@@ -7,20 +7,36 @@ these run without a server or a real repo.
 
 from __future__ import annotations
 
+import asyncio
 import subprocess
 from pathlib import Path
 
 import httpx
+import pytest
 
 from agents.core import LoopContext, UpgradeAppToV9Tool
+from agents.core.tools import upgrade_app_tool
+
+_SUCCESS_PAYLOAD = {"message": "", "exitCode": 0, "output": "", "error": "", "steps": []}
 
 
-def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
-    return LoopContext(
+@pytest.fixture(autouse=True)
+def _fresh_upgrade_queue(monkeypatch):
+    # asyncio.Lock binds to the event loop it first waits in, and each test gets a new loop.
+    monkeypatch.setattr(upgrade_app_tool, "_upgrade_queue", upgrade_app_tool._UpgradeQueue())
+
+
+def _ctx(
+    repo: Path, *, allow_app_changes: bool = True, statuses: list[str] | None = None
+) -> LoopContext:
+    ctx = LoopContext(
         session_id="s1",
         repo_path=str(repo),
         allow_app_changes=allow_app_changes,
     )
+    if statuses is not None:
+        ctx.report_status = statuses.append
+    return ctx
 
 
 def _response(status_code: int, payload: dict) -> httpx.Response:
@@ -36,6 +52,20 @@ def _stub_post_upgrade(monkeypatch, *, response=None, exc=None, recorder=None) -
         return response
 
     monkeypatch.setattr("agents.core.tools.upgrade_app_tool._post_upgrade", fake_post)
+
+
+def _stub_post_upgrade_blocked_until(monkeypatch, release: asyncio.Event, recorder: list[str]) -> None:
+    async def fake_post(project_folder: str) -> httpx.Response:
+        recorder.append(project_folder)
+        await release.wait()
+        return _response(200, _SUCCESS_PAYLOAD)
+
+    monkeypatch.setattr("agents.core.tools.upgrade_app_tool._post_upgrade", fake_post)
+
+
+async def _let_tasks_run() -> None:
+    for _ in range(5):
+        await asyncio.sleep(0)
 
 
 def _stub_git_status(monkeypatch, paths: list[str]) -> None:
@@ -195,6 +225,61 @@ class TestUpgradeAppToV9:
         await _run(UpgradeAppToV9Tool(), ctx)
 
         assert recorder == [str(tmp_path)]
+
+    async def test_reports_no_queue_status_when_queue_is_empty(
+        self, monkeypatch, tmp_path: Path
+    ):
+        _stub_post_upgrade(monkeypatch, response=_response(200, _SUCCESS_PAYLOAD))
+        _stub_git_status(monkeypatch, [])
+        statuses: list[str] = []
+
+        await _run(UpgradeAppToV9Tool(), _ctx(tmp_path, statuses=statuses))
+
+        assert statuses == []
+
+    async def test_reports_queue_position_when_another_upgrade_is_running(
+        self, monkeypatch, tmp_path: Path
+    ):
+        release = asyncio.Event()
+        _stub_post_upgrade_blocked_until(monkeypatch, release, recorder=[])
+        _stub_git_status(monkeypatch, [])
+        statuses: list[str] = []
+
+        running = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(tmp_path)))
+        await _let_tasks_run()
+        queued = asyncio.create_task(
+            _run(UpgradeAppToV9Tool(), _ctx(tmp_path, statuses=statuses))
+        )
+        await _let_tasks_run()
+
+        assert statuses == ["Venter i kø (1 foran)"]
+
+        release.set()
+        await asyncio.gather(running, queued)
+
+        assert statuses == ["Venter i kø (1 foran)", "Oppgraderer appen til v9"]
+
+    async def test_waits_for_the_running_upgrade_before_posting(
+        self, monkeypatch, tmp_path: Path
+    ):
+        release = asyncio.Event()
+        recorder: list[str] = []
+        _stub_post_upgrade_blocked_until(monkeypatch, release, recorder)
+        _stub_git_status(monkeypatch, [])
+        first_repo = tmp_path / "first"
+        second_repo = tmp_path / "second"
+
+        first = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(first_repo)))
+        await _let_tasks_run()
+        second = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(second_repo)))
+        await _let_tasks_run()
+
+        assert recorder == [str(first_repo)]
+
+        release.set()
+        await asyncio.gather(first, second)
+
+        assert recorder == [str(first_repo), str(second_repo)]
 
     async def test_read_only_session_denies_with_escalation(self, tmp_path: Path):
         tool = UpgradeAppToV9Tool()
