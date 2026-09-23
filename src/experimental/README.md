@@ -86,6 +86,70 @@ unexpected harness exits use bounded backoff.
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
 
+## Optional TCP control connection
+
+Normally, `agentctl` starts `agentd` when needed and connects through a private local socket. No configuration
+is needed. TCP is an optional way to connect to a daemon you start yourself, such as one running outside your
+development container.
+
+**Use TCP only for trusted development.** This first version has no authentication or encryption; authentication
+will come later. Anyone who can reach the port can manage Agents, run code through Session prompts, and read
+sensitive data. Do not expose or forward it to untrusted users or networks.
+
+### Start and connect
+
+If a daemon is already running for the same Agent home, stop it first. Then start it with TCP enabled:
+
+```sh
+agentd --insecure-tcp-port 9000 # or: agentd -p 9000
+```
+
+In another terminal on the same machine, connect to it:
+
+```sh
+agentctl --endpoint tcp://127.0.0.1:9000 get agents
+```
+
+The local socket stays available. Clients using either connection see the same Agents and Sessions.
+Use matching builds of `agentctl` and `agentd`.
+
+### What works over TCP?
+
+- Supported: `apply` (including `--wait`), `get`, `describe`, `delete`, `wait`, `create`, `prompt`, `turns`,
+  and `ssh-info`. Paths returned by `ssh-info` refer to the daemon's machine.
+- Still local-only: `attach`, `exec`, `port-forward`, `ssh`, `ssh-proxy`, `ssh-config`, harness login,
+  `self`, and the terminal UI. These commands reject `--endpoint`.
+
+Remote terminal access and named contexts are planned for later work. The daemon also rejects credential import
+and upgrade shutdown over TCP; this does not make the other commands safe for untrusted callers.
+
+### Connecting from a container
+
+The daemon listens only on `127.0.0.1` on its host. Inside a container, that address points to the container,
+not the host. Your container networking must provide a way to reach the host's port; whether
+`host.docker.internal` works depends on your setup. The endpoint flag does not configure this networking.
+
+Files are not uploaded. For `apply`, the manifest, source directories, and environment files must be available
+at the same absolute paths on both machines. Looking up an Agent from the current directory also relies on
+matching paths; use an explicit Agent name when they differ.
+
+<details>
+<summary>Connection details and troubleshooting</summary>
+
+- `--endpoint` accepts `tcp://HOST:PORT`, with a DNS name, IPv4 address, or bracketed IPv6 address and a nonzero port.
+  It cannot be combined with `--home`, and it ignores `AGENT_HOME`.
+- With `--endpoint`, the client never starts or updates a local daemon, or switches to the local socket if the
+  connection fails. Automatic daemon startup and self-update do not preserve the TCP startup flag.
+- TCP connections time out after 10 seconds. Ordinary API replies have a separate 30-second timeout on either
+  connection type. Provisioning and prompts keep their own wait policies; upgrade shutdown allows 90 seconds.
+- A timed-out operation may still finish on the daemon. The client does not automatically send it again.
+- During local startup, disconnected health checks are retried. Invalid responses and incompatible builds fail
+  without starting another daemon.
+- TCP does not have the local socket's per-user access protection. Requests and responses may contain secrets.
+  Both programs print security warnings to standard error, leaving command output usable by scripts.
+
+</details>
+
 ## Images, home and harnesses
 
 See the [harness compatibility test plan](agent/HARNESSES.md) when updating harness installations.

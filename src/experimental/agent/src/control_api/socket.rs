@@ -1,14 +1,15 @@
 use std::{path::PathBuf, rc::Rc, time::Duration};
 
-use futures_util::{FutureExt as _, StreamExt as _, stream::FuturesUnordered};
+use futures_util::{FutureExt as _, Stream, StreamExt as _, stream::FuturesUnordered};
 use sandbox::LocalFuture;
 
 use crate::Error;
 
-use super::{Connector, Server, client::Connection};
+use super::{Caller, Connector, Server, client::Connection};
 
 const MAX_CONCURRENT_CONNECTIONS: usize = 64;
 const CONNECTION_DRAIN_TIMEOUT: Duration = Duration::from_mins(1);
+const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
 type ConnectionFuture = futures_util::future::LocalBoxFuture<'static, ()>;
 
 async fn drain_connections(connections: &mut FuturesUnordered<ConnectionFuture>, timeout: Duration) {
@@ -36,7 +37,9 @@ impl PathConnector {
 impl Connector for PathConnector {
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
         Box::pin(async move {
-            let stream = tokio::net::UnixStream::connect(&self.path).await?;
+            let stream = tokio::net::UnixStream::connect(&self.path)
+                .await
+                .map_err(Error::Connect)?;
             Ok(Box::new(stream) as Box<dyn Connection>)
         })
     }
@@ -48,7 +51,10 @@ impl Connector for PathConnector {
         Box::pin(async move {
             use tokio_util::compat::FuturesAsyncReadCompatExt as _;
 
-            let stream = win_uds::net::AsyncStream::connect(&self.path).await?.compat();
+            let stream = win_uds::net::AsyncStream::connect(&self.path)
+                .await
+                .map_err(Error::Connect)?
+                .compat();
             Ok(Box::new(stream) as Box<dyn Connection>)
         })
     }
@@ -71,28 +77,7 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     }
     let listener = tokio::net::UnixListener::bind(path)?;
     crate::local::home::secure_file(path)?;
-    let mut connections = FuturesUnordered::<ConnectionFuture>::new();
-
-    loop {
-        if server.is_draining() {
-            break;
-        }
-        tokio::select! {
-            accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
-                let (stream, _) = accepted?;
-                let connection_server = server.clone();
-                connections.push(async move {
-                    if let Err(error) = connection_server.serve_connection(stream).await {
-                        connection_server.report(&error);
-                    }
-                }.boxed_local());
-            }
-            Some(()) = connections.next(), if !connections.is_empty() => {}
-            () = server.shutdown_requested() => break,
-        }
-    }
-    drain_connections(&mut connections, CONNECTION_DRAIN_TIMEOUT).await;
-    Ok(())
+    serve_listener(server, Caller::Local, || async { Ok(listener.accept().await?.0) }).await
 }
 
 #[cfg(target_os = "windows")]
@@ -130,18 +115,34 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     // above; icacls cannot open an AF_UNIX socket reparse point (error 1920).
     let listener = win_uds::net::AsyncListener::bind(path)?;
     let _cleanup = SocketCleanup(path.to_path_buf());
+    serve_listener(server, Caller::Local, || async {
+        Ok(listener.accept().await?.0.compat())
+    })
+    .await
+}
+
+/// Keeps admission and shutdown draining identical across stream transports.
+pub(super) async fn serve_listener<S, F>(
+    server: Rc<Server>,
+    caller: Caller,
+    accept: impl FnMut() -> F,
+) -> Result<(), Error>
+where
+    S: Connection + 'static,
+    F: Future<Output = Result<S, Error>>,
+{
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
+    let mut incoming = std::pin::pin!(incoming_connections(accept, |error| server.report(error)));
 
     loop {
         if server.is_draining() {
             break;
         }
         tokio::select! {
-            accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
-                let (stream, _) = accepted?;
+            Some(stream) = incoming.next(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
                 let connection_server = server.clone();
                 connections.push(async move {
-                    if let Err(error) = connection_server.serve_connection(stream.compat()).await {
+                    if let Err(error) = connection_server.serve_connection(stream, caller).await {
                         connection_server.report(&error);
                     }
                 }.boxed_local());
@@ -152,6 +153,24 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     }
     drain_connections(&mut connections, CONNECTION_DRAIN_TIMEOUT).await;
     Ok(())
+}
+
+/// Retain the retry delay across select iterations while other connections run.
+/// Accept failures do not invalidate the listener (for example descriptor pressure
+/// or a peer disconnecting before accept). Binding errors still fail startup.
+fn incoming_connections<S, F>(accept: impl FnMut() -> F, report: impl Fn(&Error)) -> impl Stream<Item = S>
+where
+    F: Future<Output = Result<S, Error>>,
+{
+    futures_util::stream::unfold((accept, report), |(mut accept, report)| async move {
+        loop {
+            match accept().await {
+                Ok(stream) => return Some((stream, (accept, report))),
+                Err(error) => report(&error),
+            }
+            tokio::time::sleep(ACCEPT_RETRY_DELAY).await;
+        }
+    })
 }
 
 #[cfg(target_os = "windows")]
@@ -214,6 +233,51 @@ impl Drop for SocketCleanup {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test(flavor = "current_thread", start_paused = true)]
+    async fn accept_errors_back_off_without_blocking_other_work() {
+        use std::{cell::RefCell, collections::VecDeque, io};
+
+        let mut results = VecDeque::from([
+            Err(Error::Io(io::ErrorKind::ConnectionAborted.into())),
+            Err(Error::Io(io::Error::other("too many open files"))),
+            Ok(42),
+        ]);
+        let errors = RefCell::new(Vec::new());
+        let mut incoming = std::pin::pin!(incoming_connections(
+            || std::future::ready(results.pop_front().expect("accept attempt")),
+            |error| errors.borrow_mut().push(error.to_string()),
+        ));
+        let started = tokio::time::Instant::now();
+        // Like the serve loop, keep polling other work during accept backoff.
+        // Canceling next() must not reset the stream's retry timer.
+        tokio::select! {
+            _ = incoming.next() => panic!("accept skipped its backoff"),
+            () = tokio::time::sleep(Duration::from_millis(50)) => {}
+        }
+        assert_eq!(errors.borrow().len(), 1);
+        assert_eq!(incoming.next().await, Some(42));
+        assert_eq!(errors.borrow().len(), 2);
+        assert_eq!(started.elapsed(), ACCEPT_RETRY_DELAY * 2);
+    }
+
+    #[tokio::test(flavor = "current_thread", start_paused = true)]
+    async fn persistent_accept_errors_remain_cancellable() {
+        let attempts = std::cell::Cell::new(0);
+        let mut incoming = std::pin::pin!(incoming_connections(
+            || {
+                attempts.set(attempts.get() + 1);
+                std::future::ready(Err::<(), _>(Error::Io(std::io::Error::other("descriptor pressure"))))
+            },
+            |_| {},
+        ));
+        assert!(
+            tokio::time::timeout(Duration::from_millis(250), incoming.next())
+                .await
+                .is_err()
+        );
+        assert_eq!(attempts.get(), 3, "persistent errors must not spin");
+    }
 
     #[tokio::test(flavor = "current_thread")]
     async fn shutdown_drain_is_bounded_by_its_deadline() {

@@ -7,7 +7,7 @@ use std::{
 
 use agent::{
     Agent, AgentVariantName, Error,
-    control_api::Client,
+    control_api::{Client, TcpConnector},
     control_plane::ApplyRequest,
     control_plane::WaitPolicy,
     local::home::ControlPlaneHome,
@@ -17,11 +17,13 @@ use agent::{
 };
 use clap::{Parser, Subcommand, ValueEnum};
 
+mod connection;
 mod format;
 mod progress;
 mod self_update;
 mod tui;
 
+use connection::ControlConnection;
 use format::{condition_status, format_age, format_harnesses, session_state};
 use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
@@ -34,8 +36,28 @@ struct Arguments {
     /// Agent control-plane home.
     #[arg(long, global = true)]
     home: Option<PathBuf>,
+    /// Connect to a running daemon over unauthenticated, unencrypted TCP.
+    /// Omit to use the local socket and automatic daemon startup.
+    #[arg(long, global = true, value_name = "tcp://HOST:PORT", conflicts_with = "home")]
+    endpoint: Option<TcpConnector>,
     #[command(subcommand)]
     command: Command,
+}
+
+impl Arguments {
+    fn validate(&self) -> CommandResult<()> {
+        // Clap's global-argument conflicts do not cover flags supplied at
+        // different subcommand levels. Validate the final merged arguments too.
+        if self.home.is_some() && self.endpoint.is_some() {
+            return Err(CommandError::Message(
+                "--home cannot be combined with --endpoint".into(),
+            ));
+        }
+        if self.endpoint.is_some() {
+            self.command.require_remote_support()?;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Subcommand)]
@@ -250,6 +272,34 @@ enum Command {
     },
 }
 
+impl Command {
+    fn require_remote_support(&self) -> CommandResult<()> {
+        match self {
+            Self::Apply { .. }
+            | Self::Get { .. }
+            | Self::Describe { .. }
+            | Self::Delete { .. }
+            | Self::Wait { .. }
+            | Self::Create { .. }
+            | Self::Prompt { .. }
+            | Self::Turns { .. }
+            | Self::SshInfo { .. } => Ok(()),
+            Self::Self_ { .. }
+            | Self::Claude { .. }
+            | Self::Codex { .. }
+            | Self::Attach { .. }
+            | Self::Exec { .. }
+            | Self::PortForward { .. }
+            | Self::Ssh { .. }
+            | Self::SshProxy { .. }
+            | Self::SshConfig { .. }
+            | Self::Tui => Err(CommandError::Message(
+                "this command currently requires the default local endpoint; omit --endpoint and run it on the daemon host".into(),
+            )),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Resource {
     Agent,
@@ -391,19 +441,21 @@ fn main() -> ExitCode {
 
 fn run() -> CommandResult<ExitCode> {
     let arguments = Arguments::parse();
-    let home = ControlPlaneHome::resolve(arguments.home.as_deref())?;
-    let client = Client::for_path(home.socket_path());
+    arguments.validate()?;
+    let connection = ControlConnection::new(arguments.home.as_deref(), arguments.endpoint)?;
     LocalRuntime::new().map_err(Error::from)?.block_on(async move {
-        if !matches!(arguments.command, Command::Self_ { .. }) {
-            self_update::resume_pending_before_command(&home)?;
+        if let Some(home) = &connection.home
+            && !matches!(arguments.command, Command::Self_ { .. })
+        {
+            self_update::resume_pending_before_command(home)?;
         }
         if !matches!(
             arguments.command,
             Command::Create { .. } | Command::Prompt { .. } | Command::Self_ { .. } | Command::SshConfig { .. }
         ) {
-            ensure_daemon(&home, &client).await?;
+            connection.ensure_daemon().await?;
         }
-        execute(arguments.command, &home, &client).await
+        execute(arguments.command, &connection).await
     })
 }
 
@@ -411,16 +463,17 @@ fn run() -> CommandResult<ExitCode> {
     clippy::too_many_lines,
     reason = "keep command dispatch together; behavior lives in the handlers"
 )]
-async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> CommandResult<ExitCode> {
+async fn execute(command: Command, connection: &ControlConnection) -> CommandResult<ExitCode> {
+    let client = &connection.client;
     match command {
-        Command::Self_ { command } => self_update::execute(command, home).await?,
+        Command::Self_ { command } => self_update::execute(command, connection.local_home()?).await?,
         Command::Claude {
             command: ClaudeCommand::Login { from_stdin },
         } => {
             let token = if from_stdin {
                 read_token_from_stdin()?
             } else {
-                agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, home.path())?
+                agent::harness::acquire_host_credential(agent::Harness::ClaudeCode, connection.local_home()?.path())?
             };
             let imported = client
                 .auth_login(agent::Harness::ClaudeCode, token.to_string(), from_stdin)
@@ -433,7 +486,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             let credential = if from_stdin {
                 read_stdin_to_end()?
             } else {
-                agent::harness::acquire_host_credential(agent::Harness::Codex, home.path())?
+                agent::harness::acquire_host_credential(agent::Harness::Codex, connection.local_home()?.path())?
             };
             let imported = client
                 .auth_login(agent::Harness::Codex, credential.to_string(), from_stdin)
@@ -485,7 +538,18 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             variant,
             selection,
-        } => attach(home, client, &resource, name, agent, variant, selection).await?,
+        } => {
+            attach(
+                connection.local_home()?,
+                client,
+                &resource,
+                name,
+                agent,
+                variant,
+                selection,
+            )
+            .await?;
+        }
         Command::Exec {
             stdin,
             tty,
@@ -493,13 +557,25 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             variant,
             command,
-        } => return exec_command(home, client, resource, agent, variant, &command, stdin, tty).await,
+        } => {
+            return exec_command(
+                connection.local_home()?,
+                client,
+                resource,
+                agent,
+                variant,
+                &command,
+                stdin,
+                tty,
+            )
+            .await;
+        }
         Command::PortForward {
             agent,
             variant,
             arguments,
         } => {
-            return port_forward(home, client, agent, variant, &arguments).await;
+            return port_forward(connection.local_home()?, client, agent, variant, &arguments).await;
         }
         Command::Ssh {
             agent,
@@ -507,10 +583,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             resource,
             command,
         } => return ssh(client, resource, agent, variant, &command).await,
-        Command::SshProxy { resource } => return ssh_proxy(home, client, resource).await,
+        Command::SshProxy { resource } => return ssh_proxy(connection.local_home()?, client, resource).await,
         Command::SshConfig {
             command: SshConfigCommand::Install,
-        } => install_ssh_config(home)?,
+        } => install_ssh_config(connection.local_home()?)?,
         Command::SshInfo {
             resource,
             agent,
@@ -522,14 +598,14 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             selection,
             input,
             timeout,
-        } => create_session(home, client, target, selection, input, timeout).await?,
+        } => create_session(connection, target, selection, input, timeout).await?,
         Command::Prompt {
             target,
             input,
             completion,
-        } => prompt_session(home, client, target, input, completion).await?,
+        } => prompt_session(connection, target, input, completion).await?,
         Command::Turns { target, last } => turns(client, target, last).await?,
-        Command::Tui => return tui::run(home, client).await,
+        Command::Tui => return tui::run(connection.local_home()?, client).await,
         Command::Wait {
             condition,
             timeout,
@@ -869,18 +945,18 @@ async fn session_target(client: &Client, target: SessionTarget) -> CommandResult
 }
 
 async fn create_session(
-    home: &ControlPlaneHome,
-    client: &Client,
+    connection: &ControlConnection,
     target: SessionTarget,
     selection: SessionSelection,
     input: PromptInput,
     timeout: Duration,
 ) -> CommandResult<()> {
+    let client = &connection.client;
     let resource = target.resource.clone();
     let request = selection.request(read_prompt_arg(input)?);
     let wait = progress::Wait::start();
     let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
-        ensure_daemon(home, client).await?;
+        connection.ensure_daemon().await?;
         let (agent, session) = session_target(client, target).await?;
         client.ensure_session(
             &agent, session.clone(), request, WaitPolicy::UntilReady, Some(&mut wait.sink()),
@@ -894,13 +970,13 @@ async fn create_session(
 }
 
 async fn prompt_session(
-    home: &ControlPlaneHome,
-    client: &Client,
+    connection: &ControlConnection,
     target: SessionTarget,
     input: PromptInput,
     completion: CompletionOptions,
 ) -> CommandResult<()> {
-    ensure_daemon(home, client).await?;
+    let client = &connection.client;
+    connection.ensure_daemon().await?;
     let (agent, session) = session_target(client, target).await?;
     let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
     client
@@ -1256,14 +1332,14 @@ fn print_table(headers: &[&str], rows: &[Vec<String>]) {
 }
 
 async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), Error> {
-    if let Ok(daemon) = client.health().await {
-        return daemon.require_compatible();
+    if probe_daemon(client).await? {
+        return Ok(());
     }
     let mut daemon = spawn_daemon(home)?;
     for _ in 0..100 {
         tokio::time::sleep(Duration::from_millis(100)).await;
-        if let Ok(daemon) = client.health().await {
-            return daemon.require_compatible();
+        if probe_daemon(client).await? {
+            return Ok(());
         }
         if let Some(status) = daemon.try_wait()? {
             return Err(Error::Daemon(format!(
@@ -1276,6 +1352,41 @@ async fn ensure_daemon(home: &ControlPlaneHome, client: &Client) -> Result<(), E
         "automatic startup did not become ready within 10 seconds; {}",
         daemon_startup_diagnostics(home)
     )))
+}
+
+/// Only a health probe may turn a lost response into local daemon recovery.
+/// Mutations are never replayed: a lost response can hide a successful operation.
+async fn probe_daemon(client: &Client) -> Result<bool, Error> {
+    let mut disconnects = 0;
+    loop {
+        match client.health().await {
+            Ok(daemon) => return daemon.require_compatible().map(|()| true),
+            Err(Error::Connect(error))
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::NotFound | std::io::ErrorKind::ConnectionRefused
+                ) =>
+            {
+                return Ok(false);
+            }
+            Err(Error::Io(error) | Error::Connect(error))
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::UnexpectedEof
+                        | std::io::ErrorKind::ConnectionReset
+                        | std::io::ErrorKind::BrokenPipe
+                ) =>
+            {
+                disconnects += 1;
+                if disconnects == 3 {
+                    return Ok(false);
+                }
+                // Let an upgrade handoff finish before attempting startup.
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+            Err(error) => return Err(error),
+        }
+    }
 }
 
 fn daemon_startup_diagnostics(home: &ControlPlaneHome) -> String {
@@ -1420,6 +1531,184 @@ mod tests {
         assert!(!home.daemon_log_path().exists(), "no second daemon was spawned");
     }
 
+    #[tokio::test(flavor = "local")]
+    async fn missing_local_socket_reports_an_unavailable_daemon() {
+        let directory = tempfile::tempdir().expect("home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        let client = Client::for_path(home.socket_path());
+        assert!(!probe_daemon(&client).await.expect("missing local daemon"));
+    }
+
+    struct FailedHealthConnector(&'static [u8]);
+
+    impl agent::control_api::Connector for FailedHealthConnector {
+        fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+            Box::pin(async move {
+                let (client, server) = tokio::io::duplex(4096);
+                let response = self.0;
+                tokio::task::spawn_local(async move {
+                    use tokio::io::AsyncBufReadExt as _;
+                    let mut server = tokio::io::BufReader::new(server);
+                    let mut request = String::new();
+                    server.read_line(&mut request).await.expect("request");
+                    server.get_mut().write_all(response).await.expect("malformed response");
+                });
+                Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn malformed_health_does_not_spawn_a_second_daemon() {
+        let directory = tempfile::tempdir().expect("home");
+        let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+        let client = Client::new(std::rc::Rc::new(FailedHealthConnector(b"not JSON\n")));
+        assert!(matches!(ensure_daemon(&home, &client).await, Err(Error::Json(_))));
+        assert!(!home.daemon_log_path().exists());
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn probe_retries_eof_but_does_not_hide_protocol_errors() {
+        let client = Client::new(std::rc::Rc::new(FailedHealthConnector(b"")));
+        let started = tokio::time::Instant::now();
+        assert!(!probe_daemon(&client).await.expect("closed connection"));
+        assert_eq!(started.elapsed(), Duration::from_millis(200));
+
+        for response in [b"not JSON\n".as_slice(), b"{\"jsonrpc\":\"2.0\"}\n"] {
+            let client = Client::new(std::rc::Rc::new(FailedHealthConnector(response)));
+            assert!(probe_daemon(&client).await.is_err());
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn probe_retries_transport_disconnects_but_not_permission_or_timeout_errors() {
+        struct FailingConnector(std::io::ErrorKind);
+        impl agent::control_api::Connector for FailingConnector {
+            fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
+                Box::pin(async move { Err(Error::Io(self.0.into())) })
+            }
+        }
+        for kind in [std::io::ErrorKind::ConnectionReset, std::io::ErrorKind::BrokenPipe] {
+            let client = Client::new(std::rc::Rc::new(FailingConnector(kind)));
+            assert!(!probe_daemon(&client).await.expect("disconnected"));
+        }
+        for kind in [std::io::ErrorKind::PermissionDenied, std::io::ErrorKind::TimedOut] {
+            let client = Client::new(std::rc::Rc::new(FailingConnector(kind)));
+            assert!(probe_daemon(&client).await.is_err());
+        }
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn explicit_endpoint_never_resolves_or_prepares_a_local_home() {
+        let directory = tempfile::tempdir().expect("home");
+        let unused_home = directory.path().join("unused");
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.expect("TCP");
+        let endpoint = format!("tcp://{}", listener.local_addr().expect("address"))
+            .parse()
+            .expect("endpoint");
+        let connection = ControlConnection::new(Some(&unused_home), Some(endpoint)).expect("connection");
+        assert!(connection.home.is_none());
+        assert!(connection.local_home().is_err());
+        drop(listener);
+        assert!(matches!(connection.ensure_daemon().await, Err(Error::Connect(_))));
+        assert!(!unused_home.exists(), "no local startup or upgrade side effects");
+    }
+
+    #[test]
+    fn endpoint_is_global_and_conflicts_with_local_home() {
+        let arguments = Arguments::try_parse_from(["agentctl", "get", "agents", "--endpoint", "tcp://localhost:9000"])
+            .expect("endpoint after command");
+        assert!(arguments.endpoint.is_some());
+        arguments.validate().expect("endpoint alone");
+        for flags in [
+            [
+                "--home",
+                "/srv/agent",
+                "get",
+                "agents",
+                "--endpoint",
+                "tcp://localhost:9000",
+            ],
+            [
+                "--endpoint",
+                "tcp://localhost:9000",
+                "get",
+                "agents",
+                "--home",
+                "/srv/agent",
+            ],
+        ] {
+            let arguments =
+                Arguments::try_parse_from(std::iter::once("agentctl").chain(flags)).expect("cross-level parse");
+            assert!(
+                arguments
+                    .validate()
+                    .expect_err("conflict")
+                    .to_string()
+                    .contains("--home cannot be combined with --endpoint")
+            );
+        }
+        assert!(
+            Arguments::try_parse_from([
+                "agentctl",
+                "--home",
+                "/local",
+                "--endpoint",
+                "tcp://localhost:9000",
+                "get",
+                "agents"
+            ])
+            .is_err()
+        );
+        assert!(
+            Arguments::try_parse_from(["agentctl", "get", "agents"])
+                .expect("local default")
+                .endpoint
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn remote_support_is_explicit_for_each_command() {
+        for command in [
+            vec!["get", "agents"],
+            vec!["get", "sessions", "-A"],
+            vec!["apply"],
+            vec!["describe", "agent/worker"],
+            vec!["delete", "agent/worker"],
+            vec!["wait", "agent/worker"],
+            vec!["create", "session/s1"],
+            vec!["prompt", "session/s1", "--prompt", "hello"],
+            vec!["turns", "session/s1"],
+            vec!["ssh-info", "worker"],
+        ] {
+            let arguments = Arguments::try_parse_from(std::iter::once("agentctl").chain(command)).expect("command");
+            arguments.command.require_remote_support().expect("remote command");
+        }
+        for command in [
+            vec!["attach", "session/s1"],
+            vec!["exec", "worker", "--", "true"],
+            vec!["port-forward", "worker", "8080"],
+            vec!["tui"],
+            vec!["claude", "login"],
+            vec!["codex", "login", "--from-stdin"],
+            vec!["self", "update"],
+            vec!["ssh", "worker"],
+            vec!["ssh-proxy", "worker"],
+            vec!["ssh-config", "install"],
+        ] {
+            let arguments = Arguments::try_parse_from(std::iter::once("agentctl").chain(command)).expect("command");
+            assert!(
+                arguments
+                    .command
+                    .require_remote_support()
+                    .expect_err("local command")
+                    .to_string()
+                    .contains("omit --endpoint")
+            );
+        }
+    }
+
     #[test]
     fn startup_diagnostics_identify_a_pending_session_relaunch() {
         let directory = tempfile::TempDir::new().expect("temporary home");
@@ -1477,8 +1766,10 @@ mod tests {
             let result = tokio::time::timeout(
                 Duration::from_secs(2),
                 create_session(
-                    &home,
-                    &client,
+                    &ControlConnection {
+                        home: Some(home),
+                        client,
+                    },
                     SessionTarget {
                         resource: "session/s1".into(),
                         name: None,
@@ -1550,8 +1841,10 @@ mod tests {
         let directory = tempfile::TempDir::new().expect("home");
         let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
         prompt_session(
-            &home,
-            &client,
+            &ControlConnection {
+                home: Some(home),
+                client,
+            },
             SessionTarget {
                 resource: "session/s1".into(),
                 name: None,

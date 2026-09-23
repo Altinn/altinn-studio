@@ -12,9 +12,21 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- For trusted development, `agentd --insecure-tcp-port PORT` (`-p PORT`) enables an unauthenticated, unencrypted
+  loopback TCP listener alongside the local socket. `agentctl --endpoint tcp://HOST:PORT` can manage resources
+  and create, prompt, and read Sessions through that daemon. Local usage needs no new configuration; attachment,
+  execution, forwarding, and the TUI still require running the client on the daemon host.
+
 ### Changed
 
 - Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
+
+### Fixed
+
+- Ordinary control commands report a timeout when the daemon stops responding, without shortening provisioning
+  or prompt waits. Temporary connection failures no longer stop the daemon from serving other clients.
 
 ## [0.1.0-preview.5] - 2026-09-22
 

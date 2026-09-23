@@ -10,7 +10,10 @@ use std::{
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi},
+    control_api::{
+        AuthenticationApi, Caller, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi,
+        TcpConnector,
+    },
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
@@ -252,7 +255,7 @@ impl Connector for InProcessConnector {
             let (client, server) = tokio::io::duplex(64 * 1024);
             let api = self.server.clone();
             tokio::task::spawn_local(async move {
-                let _ignored = api.serve_connection(server).await;
+                let _ignored = api.serve_connection(server, Caller::Local).await;
             });
             Ok(Box::new(client) as Box<dyn Connection>)
         })
@@ -318,6 +321,188 @@ fn api() -> ApiFixture {
 
 struct DelayedConnector {
     inner: InProcessConnector,
+}
+
+async fn tcp_client(server: Rc<Server>) -> (Client, tokio::task::JoinHandle<Result<(), Error>>, std::net::SocketAddr) {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.expect("bind TCP");
+    let address = listener.local_addr().expect("address");
+    let connector: TcpConnector = format!("tcp://{address}").parse().expect("endpoint");
+    let task = tokio::task::spawn_local(server.serve_tcp(listener));
+    (Client::new(Rc::new(connector)), task, address)
+}
+
+#[tokio::test(flavor = "local")]
+async fn tcp_and_local_socket_share_resources_and_shutdown() {
+    let directory = tempfile::tempdir().expect("socket directory");
+    let path = directory.path().join("run").join("agentd.sock");
+    let fixture = api();
+    let server = fixture.server.clone();
+    let served_path = path.clone();
+    let socket_task = tokio::task::spawn_local(async move { server.serve_path(&served_path).await });
+    let local = Client::for_path(path);
+    tokio::time::timeout(Duration::from_secs(5), async {
+        while local.health().await.is_err() {
+            assert!(
+                !socket_task.is_finished(),
+                "local listener stopped before becoming ready"
+            );
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("local listener ready");
+    let (remote, tcp_task, address) = tcp_client(fixture.server).await;
+    remote.require_compatible_daemon().await.expect("TCP health");
+
+    let (local_agent, remote_agent) = tokio::join!(local.apply(request("local")), remote.apply(request("remote")));
+    assert_eq!(
+        remote.get("local").await.expect("read local Agent"),
+        local_agent.expect("local apply")
+    );
+    assert_eq!(
+        local.get("remote").await.expect("read remote Agent"),
+        remote_agent.expect("TCP apply")
+    );
+    assert_eq!(remote.list_agents().await.expect("TCP list").len(), 2);
+    remote.delete("local").await.expect("TCP delete");
+    assert!(
+        local
+            .get("local")
+            .await
+            .expect("deleting Agent")
+            .metadata
+            .deletion_timestamp
+            .is_some()
+    );
+
+    // Local credential storage remains available; TCP cannot import credentials or upgrade the daemon.
+    local
+        .auth_login(agent::Harness::ClaudeCode, "test".into(), false)
+        .await
+        .expect("local login");
+    for result in [
+        remote
+            .auth_login(agent::Harness::ClaudeCode, "test".into(), false)
+            .await
+            .map(|_| ()),
+        remote.shutdown_for_upgrade().await.map(|_| ()),
+    ] {
+        assert!(
+            matches!(result, Err(Error::Rpc(error)) if error.code == -32011 && error.message.contains("local control socket"))
+        );
+    }
+    remote.health().await.expect("TCP rejection leaves daemon running");
+
+    // An idle TCP connection must not hold shutdown open.
+    // The two accept loops observe one shared lifecycle.
+    let mut idle = tokio::net::TcpStream::connect(address).await.expect("idle client");
+    idle.write_all(b"{").await.expect("partial request");
+    local.shutdown_for_upgrade().await.expect("local shutdown");
+    for task in [socket_task, tcp_task] {
+        tokio::time::timeout(Duration::from_secs(5), task)
+            .await
+            .expect("listener drained")
+            .expect("listener task")
+            .expect("listener result");
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn tcp_preserves_progress_session_requests_and_errors() {
+    let fixture = api();
+    let (client, task, _) = tcp_client(fixture.server.clone()).await;
+    let mut events = Vec::new();
+    client
+        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |event| events.push(event)))
+        .await
+        .expect("execution target");
+    assert_eq!(events.len(), 1);
+    let session = agent::sessions::SessionName::new("s1").expect("name");
+    let error = client
+        .ensure_session(
+            "worker",
+            session.clone(),
+            agent::sessions::SessionRequest::default(),
+            WaitPolicy::UntilReady,
+            None,
+        )
+        .await
+        .expect_err("fake session ensure");
+    assert!(matches!(error, Error::Rpc(error) if error.is_not_found()));
+    assert_eq!(fixture.ensured.borrow().len(), 1);
+    client
+        .prompt_session("worker", session.clone(), "hello".into(), false, None)
+        .await
+        .expect("TCP prompt");
+    assert_eq!(fixture.sent.borrow().as_slice(), [("hello".into(), false, None)]);
+    assert_eq!(
+        client
+            .session_turns("worker", session, Some(1))
+            .await
+            .expect("TCP turns")
+            .len(),
+        1
+    );
+    assert!(client.list_sessions(None).await.expect("TCP sessions").is_empty());
+    let error = client.get("missing").await.expect_err("not found");
+    assert!(matches!(error, Error::Rpc(error) if error.is_not_found()));
+    fixture.client.shutdown_for_upgrade().await.expect("shutdown");
+    tokio::time::timeout(Duration::from_secs(5), task)
+        .await
+        .expect("drain")
+        .expect("task")
+        .expect("server");
+}
+
+#[tokio::test(flavor = "local")]
+async fn insecure_tcp_rejects_non_loopback_listeners() {
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:0").await.expect("bind");
+    let error = api().server.serve_tcp(listener).await.expect_err("not loopback");
+    assert!(error.to_string().contains("must bind to loopback"));
+}
+
+#[tokio::test(flavor = "local")]
+async fn cli_uses_tcp_without_touching_local_state_or_stdout() {
+    let fixture = api();
+    fixture.client.apply(request("worker")).await.expect("Agent");
+    let (_, task, address) = tcp_client(fixture.server.clone()).await;
+    let directory = tempfile::tempdir().expect("home");
+    let home = directory.path().join("unused");
+    let endpoint = format!("tcp://{address}");
+    for args in [
+        vec!["get", "agents", "-o", "json"],
+        vec!["prompt", "session/s1", "--agent", "worker", "--prompt", "hello"],
+        vec!["turns", "session/s1", "--agent", "worker"],
+    ] {
+        let output = tokio::time::timeout(
+            Duration::from_secs(10),
+            tokio::process::Command::new(env!("CARGO_BIN_EXE_agentctl"))
+                .kill_on_drop(true)
+                .args(["--endpoint", &endpoint])
+                .args(&args)
+                .env("AGENT_HOME", &home)
+                .output(),
+        )
+        .await
+        .expect("CLI deadline")
+        .expect("CLI output");
+        assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+        assert!(String::from_utf8_lossy(&output.stderr).contains("WARNING"));
+        assert!(!String::from_utf8_lossy(&output.stdout).contains("WARNING"));
+        if args[0] == "get" {
+            let agents: Vec<agent::Agent> = serde_json::from_slice(&output.stdout).expect("unpolluted JSON");
+            assert_eq!(agents.len(), 1);
+            assert_eq!(agents[0].metadata.name, "worker");
+        }
+        assert!(!home.exists(), "remote commands must not prepare a local home");
+    }
+    assert_eq!(fixture.sent.borrow().len(), 1);
+    fixture.client.shutdown_for_upgrade().await.expect("shutdown");
+    tokio::time::timeout(Duration::from_secs(5), task)
+        .await
+        .expect("drain")
+        .expect("task")
+        .expect("server");
 }
 
 impl Connector for DelayedConnector {
@@ -485,13 +670,11 @@ async fn shutdown_returns_nonblocking_session_warnings() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn shutdown_waits_for_admitted_mutations_before_checking_sessions() {
+async fn shutdown_waits_for_admitted_tcp_mutations_before_checking_sessions() {
     let fixture = api();
     let gate = Rc::new(Notify::new());
     *fixture.upgrade_gates.prompt.borrow_mut() = Some(gate.clone());
-    let prompt_client = Client::new(Rc::new(InProcessConnector {
-        server: fixture.server.clone(),
-    }));
+    let (prompt_client, tcp_task, _) = tcp_client(fixture.server.clone()).await;
     let shutdown_client = Client::new(Rc::new(InProcessConnector {
         server: fixture.server.clone(),
     }));
@@ -525,6 +708,17 @@ async fn shutdown_waits_for_admitted_mutations_before_checking_sessions() {
         .health()
         .await
         .expect("rejected shutdown restores admission");
+    fixture.upgrade_blockers.borrow_mut().clear();
+    fixture
+        .client
+        .shutdown_for_upgrade()
+        .await
+        .expect("shutdown after work finishes");
+    tokio::time::timeout(Duration::from_secs(5), tcp_task)
+        .await
+        .expect("drain")
+        .expect("task")
+        .expect("server");
 }
 
 #[tokio::test(flavor = "local")]
@@ -787,7 +981,7 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
     let (mut malformed_client, malformed_server) = tokio::io::duplex(1024);
     let malformed_api = server.clone();
     tokio::task::spawn_local(async move {
-        let _ignored = malformed_api.serve_connection(malformed_server).await;
+        let _ignored = malformed_api.serve_connection(malformed_server, Caller::Local).await;
     });
     malformed_client
         .write_all(b"{not-json}\n")
@@ -803,7 +997,7 @@ async fn malformed_and_idle_connections_do_not_block_other_clients() {
     let (_idle_client, idle_server) = tokio::io::duplex(1024);
     let idle_api = server;
     tokio::task::spawn_local(async move {
-        let _ignored = idle_api.serve_connection(idle_server).await;
+        let _ignored = idle_api.serve_connection(idle_server, Caller::Local).await;
     });
     let fetched = tokio::time::timeout(Duration::from_secs(1), client.get("worker"))
         .await
@@ -818,7 +1012,7 @@ async fn session_ensure_rejects_invalid_selections_before_reaching_the_service()
     let (mut raw_client, raw_server) = tokio::io::duplex(4096);
     let api = fixture.server.clone();
     tokio::task::spawn_local(async move {
-        let _ignored = api.serve_connection(raw_server).await;
+        let _ignored = api.serve_connection(raw_server, Caller::Local).await;
     });
     let mut reader = BufReader::new(&mut raw_client);
     for (id, params) in [

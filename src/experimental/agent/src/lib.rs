@@ -78,6 +78,9 @@ pub enum Error {
     /// Local persistence or transport failed.
     #[error("I/O operation failed: {0}")]
     Io(#[from] std::io::Error),
+    /// A connection to the Control API could not be established.
+    #[error("could not connect to the Agent Control API: {0}")]
+    Connect(#[source] std::io::Error),
     /// A required daemon subsystem stopped unexpectedly.
     #[error("Agent daemon subsystem failed: {0}")]
     Daemon(String),
