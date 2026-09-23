@@ -13,6 +13,9 @@ use time::OffsetDateTime;
 
 use crate::{format, forward::ForwardSpec};
 
+/// Output lines of a failed pass the Agent side panel shows.
+const AGENT_PANEL_OUTPUT_LINES: usize = 10;
+
 /// A displayed key hint and, when unambiguous, the key emitted by a click.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct Hint {
@@ -152,6 +155,12 @@ pub(crate) struct App {
     /// Prompts being sent.
     pub(crate) prompting: usize,
     pub(crate) transcript: Option<Transcript>,
+    /// The Session whose turns are being loaded and its turn count when they
+    /// were requested; one load runs at a time.
+    turns_loading: Option<(String, SessionName, u64)>,
+    /// The terminal is wide enough for the panel beside the tree, which shows
+    /// the selected Session's turns or the selected Agent's status.
+    pub(crate) side_panel: bool,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
 }
@@ -266,7 +275,8 @@ impl PromptForm {
 pub(crate) struct Transcript {
     pub(crate) agent: String,
     pub(crate) session: SessionName,
-    /// The Session's turn count when the turns were requested; a change reloads them.
+    /// The Session's turn count when the turns were last requested, if they
+    /// were; a change reloads them.
     requested_at: Option<u64>,
     pub(crate) turns: Vec<Turn>,
     pub(crate) loading: bool,
@@ -890,6 +900,9 @@ pub(crate) struct RowView {
     /// How long the row has been in its state, when known.
     pub(crate) since: String,
     pub(crate) detail: String,
+    /// The detail is a failure message; when it does not fit, its end, where
+    /// the cause is, is kept.
+    pub(crate) detail_keeps_end: bool,
     pub(crate) age: String,
 }
 
@@ -925,6 +938,8 @@ impl App {
             creating: 0,
             prompting: 0,
             transcript: None,
+            turns_loading: None,
+            side_panel: false,
             discovering: false,
             queued_candidates: None,
         }
@@ -1517,8 +1532,13 @@ impl App {
 
     /// The selected Session whose turns need loading: newly selected, or with
     /// more turns than when they were last requested.
+    /// The selected Session whose turns the side panel needs loaded, if any.
+    ///
+    /// Turns are read from the Session's Sandbox, so they load only while the
+    /// panel is shown, one load at a time: moving through Sessions loads the one
+    /// the selection rests on. They reload when the Session finishes a turn.
     pub(crate) fn transcript_request(&mut self) -> Option<(String, SessionName)> {
-        let Some(TreeRowId::Session { agent, session }) = &self.selection else {
+        let Some(TreeRowId::Session { agent, session }) = self.selection.as_ref().filter(|_| self.side_panel) else {
             self.transcript = None;
             return None;
         };
@@ -1526,29 +1546,28 @@ impl App {
             .sessions
             .iter()
             .find(|candidate| candidate.agent == *agent && candidate.name == *session)
-            .map(|session| session.status.reported.activity.turns);
+            .map_or(0, |session| session.status.reported.activity.turns);
         let transcript = match &mut self.transcript {
-            Some(transcript) if transcript.agent == *agent && transcript.session == *session => {
-                if transcript.loading || transcript.requested_at == turns {
-                    return None;
-                }
-                transcript
-            }
+            Some(transcript) if transcript.agent == *agent && transcript.session == *session => transcript,
             _ => self.transcript.insert(Transcript {
                 agent: agent.clone(),
                 session: session.clone(),
                 requested_at: None,
                 turns: Vec::new(),
-                loading: false,
+                loading: true,
                 error: None,
             }),
         };
-        transcript.loading = true;
-        transcript.requested_at = turns;
+        if self.turns_loading.is_some() || transcript.requested_at == Some(turns) {
+            return None;
+        }
+        transcript.requested_at = Some(turns);
+        self.turns_loading = Some((agent.clone(), session.clone(), turns));
         Some((agent.clone(), session.clone()))
     }
 
     pub(crate) fn transcript_loaded(&mut self, agent: &str, session: &SessionName, turns: Result<Vec<Turn>, String>) {
+        let requested_at = self.turns_loading.take().map(|(_, _, turns)| turns);
         let Some(transcript) = self
             .transcript
             .as_mut()
@@ -1556,6 +1575,8 @@ impl App {
         else {
             return;
         };
+        // The selection may have left the Session and come back while it loaded.
+        transcript.requested_at = requested_at;
         transcript.loading = false;
         match turns {
             Ok(turns) => {
@@ -1575,6 +1596,26 @@ impl App {
             form.error = Some(error);
             self.modal = Some(Modal::Prompt(form));
         }
+    }
+
+    /// The selected Agent's status for the side panel: readiness, and the pass
+    /// in progress or the one that failed with its last output.
+    pub(crate) fn agent_panel_lines(&self, name: &str) -> Vec<String> {
+        let Some(agent) = self.agents.iter().find(|agent| agent.metadata.name == name) else {
+            return Vec::new();
+        };
+        let mut lines = format::readiness_lines(&agent.status);
+        if let Some(provisioning) = &agent.status.progress {
+            let progress = &provisioning.progress;
+            lines.extend(format::provisioning_lines(
+                progress,
+                progress
+                    .output()
+                    .tail(AGENT_PANEL_OUTPUT_LINES)
+                    .map(|line| line.text.as_str()),
+            ));
+        }
+        lines
     }
 
     /// The Agent whose provisioning the open detail follows.
@@ -1702,6 +1743,7 @@ impl App {
                         tone,
                         label: state,
                         detail: status,
+                        failure,
                         since,
                     } = agent_state(agent);
                     let count = match sessions.len() {
@@ -1734,6 +1776,7 @@ impl App {
                         tone,
                         since: since.map_or_else(String::new, format::format_age),
                         detail,
+                        detail_keeps_end: failure,
                         age: String::new(),
                     })
                 }
@@ -1758,6 +1801,7 @@ impl App {
                             .model_selection
                             .model_str()
                             .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}")),
+                        detail_keeps_end: false,
                         age: format::format_age(session.created_at),
                     })
                 }
@@ -1803,6 +1847,8 @@ struct AgentState {
     tone: Tone,
     label: &'static str,
     detail: String,
+    /// The detail is a failure, whose cause is at its end.
+    failure: bool,
     since: Option<OffsetDateTime>,
 }
 
@@ -1818,7 +1864,12 @@ fn agent_state(agent: &Agent) -> AgentState {
         tone,
         label,
         detail,
+        failure: false,
         since,
+    };
+    let failed = |tone, label, detail, since| AgentState {
+        failure: true,
+        ..state(tone, label, detail, since)
     };
     if let Some(deleted) = agent.metadata.deletion_timestamp {
         return state(Tone::Red, "Terminating", String::new(), Some(deleted));
@@ -1831,11 +1882,11 @@ fn agent_state(agent: &Agent) -> AgentState {
         .failure
         .filter(|_| agent.status.observed_generation == agent.metadata.generation);
     match (failure, provisioning(agent)) {
-        (Some(FailureKind::Invalid), _) => state(Tone::Red, "Failed", message(), entered),
+        (Some(FailureKind::Invalid), _) => failed(Tone::Red, "Failed", message(), entered),
         (Some(FailureKind::Transient), Some(progress)) => {
             state(Tone::Yellow, "Retrying", progress_summary(progress), entered)
         }
-        (Some(FailureKind::Transient), None) => state(Tone::Yellow, "Retrying", message(), entered),
+        (Some(FailureKind::Transient), None) => failed(Tone::Yellow, "Retrying", message(), entered),
         (None, Some(progress)) => state(
             Tone::Cyan,
             "Provisioning",
@@ -1845,7 +1896,7 @@ fn agent_state(agent: &Agent) -> AgentState {
         (None, None) => match ready.map(|ready| ready.status) {
             None => state(Tone::Gray, "Pending", String::new(), None),
             Some(ConditionStatus::True) => state(Tone::Green, "Ready", String::new(), entered),
-            Some(_) => state(Tone::Cyan, "Starting", message(), entered),
+            Some(_) => failed(Tone::Cyan, "Starting", message(), entered),
         },
     }
 }
@@ -3154,10 +3205,26 @@ mod tests {
     #[test]
     fn turns_load_for_the_selected_session_and_again_when_it_finishes_a_turn() {
         let mut app = populated();
+        app.select_index(1);
+        assert_eq!(
+            app.transcript_request(),
+            None,
+            "no turns load while the panel is hidden"
+        );
+        app.side_panel = true;
+        app.select_index(0);
         assert_eq!(app.transcript_request(), None, "an Agent row has no turns");
         app.select_index(1);
         let target = app.transcript_request().expect("the selected Session's turns");
         assert_eq!(app.transcript_request(), None, "one request at a time");
+        app.select_index(3);
+        assert_eq!(
+            app.transcript_request(),
+            None,
+            "another Session waits for the load in flight"
+        );
+        app.select_index(1);
+        assert_eq!(app.transcript_request(), None, "coming back waits for the same load");
         app.transcript_loaded(&target.0, &target.1, Ok(Vec::new()));
         assert_eq!(app.transcript_request(), None, "nothing changed");
 

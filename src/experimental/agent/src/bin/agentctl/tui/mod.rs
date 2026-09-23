@@ -159,6 +159,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         app.open_queued_create();
         app.set_forwards(forwards.entries());
         follow.sync(app.followed_agent(), home.socket_path(), &inputs);
+        app.side_panel = view::shows_side_panel(tui.width());
         if let Some((agent, session)) = app.transcript_request() {
             spawn_transcript(home.socket_path(), inputs.clone(), agent, session);
         }

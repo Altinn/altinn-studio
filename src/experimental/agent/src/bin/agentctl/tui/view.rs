@@ -17,8 +17,10 @@ use super::app::{
 const SELECTION: Color = Color::Rgb(52, 58, 70);
 /// Narrowest tree that still shows the detail and age columns.
 const WIDE_TREE: u16 = 70;
-/// Narrowest body that shows the selected Session's turns beside the tree.
-const TRANSCRIPT_TREE: u16 = 110;
+/// Narrowest terminal that shows the side panel beside the tree.
+const SIDE_PANEL: u16 = 110;
+/// Narrowest and widest name column of a wide tree.
+const NAME_WIDTH: (usize, usize) = (12, 32);
 /// Width of every form but create-Agent, whose pickers also show manifest paths.
 const FORM_WIDTH: u16 = 64;
 const CREATE_AGENT_FORM_WIDTH: u16 = 96;
@@ -129,6 +131,11 @@ impl HitMap {
     }
 }
 
+/// Whether a terminal this wide shows the panel beside the tree.
+pub(crate) const fn shows_side_panel(width: u16) -> bool {
+    width >= SIDE_PANEL
+}
+
 pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> HitMap {
     let mut hit_map = HitMap::new(frame.area());
     let [header, body, footer] =
@@ -140,12 +147,20 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
         render_error(frame, body, error, &mut hit_map);
     } else if app.view == View::Forwards {
         render_forwards(frame, body, app, state, &mut hit_map);
-    } else if let Some(transcript) = app.transcript.as_ref().filter(|_| body.width >= TRANSCRIPT_TREE) {
-        let [tree, turns] = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+    } else if shows_side_panel(body.width) {
+        // The panel keeps its width whatever is selected, so the tree's
+        // columns stay put while the selection moves.
+        let [tree, panel] = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
             .spacing(1)
             .areas(body);
         render_tree(frame, tree, app, state, &mut hit_map);
-        render_transcript(frame, turns, transcript);
+        match (&app.selection, &app.transcript) {
+            (Some(TreeRowId::Session { .. }), Some(transcript)) => render_transcript(frame, panel, transcript),
+            (Some(TreeRowId::Agent(agent)), _) => {
+                render_agent_panel(frame, panel, agent, &app.agent_panel_lines(agent));
+            }
+            _ => frame.render_widget(Block::bordered().border_style(Style::new().fg(Color::DarkGray)), panel),
+        }
     } else {
         render_tree(frame, body, app, state, &mut hit_map);
     }
@@ -251,16 +266,29 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         Cell::from("STATE"),
         Cell::from(Line::from("FOR").right_aligned()),
     ];
+    // A wide tree sizes names to fit, within bounds, and gives the rest to the detail.
+    let name_width = rows
+        .iter()
+        .map(|row| name_cell(row).width())
+        .max()
+        .unwrap_or_default()
+        .clamp(NAME_WIDTH.0, NAME_WIDTH.1);
     let mut widths = vec![
         Constraint::Length(1),
-        Constraint::Fill(2),
+        if wide {
+            Constraint::Length(u16::try_from(name_width).unwrap_or(u16::MAX))
+        } else {
+            Constraint::Fill(1)
+        },
         Constraint::Length(12),
         Constraint::Length(4),
     ];
     if wide {
         header.extend([Cell::from("DETAIL"), Cell::from(Line::from("AGE").right_aligned())]);
-        widths.extend([Constraint::Fill(3), Constraint::Length(4)]);
+        widths.extend([Constraint::Fill(1), Constraint::Length(4)]);
     }
+    // Every column but the detail, and a space between each pair.
+    let detail_width = usize::from(area.width).saturating_sub(1 + name_width + 12 + 4 + 4 + 5);
     // Rows fit below the column header.
     let height = usize::from(area.height.saturating_sub(1));
     let (offset, pinned) = tree_viewport(app, state.tree_offset, height);
@@ -271,7 +299,7 @@ fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, 
         .chain(offset..rows.len().min(offset.saturating_add(capacity)))
         .collect::<Vec<_>>();
     let table_rows = visible.iter().map(|&index| {
-        let row = tree_row(&rows[index], wide);
+        let row = tree_row(&rows[index], wide.then_some(detail_width));
         if pinned == Some(index) {
             row.style(Style::new().add_modifier(Modifier::DIM))
         } else {
@@ -387,15 +415,26 @@ fn wrap(line: &str, width: usize) -> Vec<String> {
     rows
 }
 
-/// One tree row. Sessions are indented under their Agent, and every state
-/// has a glyph as well as a colour.
-fn tree_row(row: &RowView, wide: bool) -> Row<'static> {
+/// A tree row's name cell: Sessions are indented under their Agent.
+fn name_cell(row: &RowView) -> Line<'static> {
     let tone = Style::new().fg(tone_color(row.tone));
     let (indent, name) = if row.agent {
         ("", tone.add_modifier(Modifier::BOLD))
     } else {
         ("  ", Style::new())
     };
+    Line::from(vec![
+        Span::raw(indent),
+        Span::styled(row.marker, tone),
+        Span::raw(" "),
+        Span::styled(row.name.clone(), name),
+    ])
+}
+
+/// One tree row, with the detail and age columns when the detail has a
+/// width. Every state has a glyph as well as a colour.
+fn tree_row(row: &RowView, detail_width: Option<usize>) -> Row<'static> {
+    let tone = Style::new().fg(tone_color(row.tone));
     let mut state = tone;
     if row.attention && !row.agent {
         state = state.add_modifier(Modifier::BOLD);
@@ -405,23 +444,23 @@ fn tree_row(row: &RowView, wide: bool) -> Row<'static> {
             if row.attention { "▐" } else { "" },
             Style::new().fg(Color::Yellow),
         )),
-        Cell::from(Line::from(vec![
-            Span::raw(indent),
-            Span::styled(row.marker, tone),
-            Span::raw(" "),
-            Span::styled(row.name.clone(), name),
-        ])),
+        Cell::from(name_cell(row)),
         Cell::from(Span::styled(row.state, state)),
         Cell::from(Line::from(Span::styled(row.since.clone(), tone)).right_aligned()),
     ];
-    if wide {
-        let detail = if row.agent {
+    if let Some(width) = detail_width {
+        let style = if row.agent {
             tone
         } else {
             Style::new().fg(Color::DarkGray)
         };
+        let detail = if row.detail_keeps_end {
+            tail_ellipsized(&row.detail, width)
+        } else {
+            row.detail.clone()
+        };
         cells.extend([
-            Cell::from(Span::styled(row.detail.clone(), detail)),
+            Cell::from(Span::styled(detail, style)),
             Cell::from(Line::from(Span::styled(row.age.clone(), Style::new().fg(Color::DarkGray))).right_aligned()),
         ]);
     }
@@ -473,13 +512,38 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
     }
 }
 
+/// A detail view, with long lines wrapped to its width so a failure message
+/// is read in full.
 fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail, hit_map: &mut HitMap) {
     let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
     let inner = block.inner(area);
-    let scroll = u16::try_from(detail.scroll).unwrap_or(u16::MAX);
-    let paragraph = Paragraph::new(detail.lines.join("\n")).block(block).scroll((scroll, 0));
-    frame.render_widget(paragraph, area);
+    let rows = wrapped(&detail.lines, inner.width);
+    let scroll = detail.scroll.min(rows.len().saturating_sub(usize::from(inner.height)));
+    let visible = rows.into_iter().skip(scroll).map(Line::from).collect::<Vec<_>>();
+    frame.render_widget(Paragraph::new(visible).block(block), area);
     hit_map.wheel(inner, WheelTarget::Detail);
+}
+
+/// The selected Agent's status beside the tree, wrapped to the panel.
+fn render_agent_panel(frame: &mut Frame, area: Rect, agent: &str, lines: &[String]) {
+    let block = Block::bordered()
+        .title(format!(" {agent} · status "))
+        .border_style(Style::new().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    let rows = wrapped(lines, inner.width)
+        .into_iter()
+        .map(Line::from)
+        .collect::<Vec<_>>();
+    frame.render_widget(Paragraph::new(rows).block(block), area);
+}
+
+/// Lines split at their line breaks and wrapped to `width` cells.
+fn wrapped(lines: &[String], width: u16) -> Vec<String> {
+    lines
+        .iter()
+        .flat_map(|line| line.split('\n'))
+        .flat_map(|line| wrap(line, usize::from(width)))
+        .collect()
 }
 
 fn render_error(frame: &mut Frame, area: Rect, error: &str, hit_map: &mut HitMap) {
@@ -542,6 +606,10 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         hit_map,
         |_| app.error.is_none(),
     );
+    // A detail view's own hints replace the tree's, whose keys do not apply there.
+    if app.detail.is_some() {
+        return;
+    }
     render_hint_line(
         frame,
         global,
@@ -1210,6 +1278,110 @@ mod tests {
         );
     }
 
+    fn failing_app() -> App {
+        let mut app = triage_app();
+        let mut agents = app.agents.clone();
+        agents[1].status.conditions.push(agent::Condition {
+            kind: agent::Condition::READY.into(),
+            status: agent::ConditionStatus::False,
+            reason: "SandboxReconcileFailed".into(),
+            message: "Sandbox operation failed: resolve Sandbox Image: cache error at /home/user/.agent/cache/tmp/load-4.blob: No space left on device (os error 28)".into(),
+            last_transition_time: None,
+        });
+        agents[1].status.failure = Some(agent::FailureKind::Transient);
+        let sessions = app.sessions.clone();
+        app.apply_snapshot(agents, sessions);
+        app
+    }
+
+    #[test]
+    fn a_failure_keeps_its_cause_in_view_and_the_side_panel_keeps_the_tree_still() {
+        let mut app = failing_app();
+        app.side_panel = true;
+        app.select_index(3);
+        let mut terminal = Terminal::new(TestBackend::new(140, 12)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let lines = text.lines().collect::<Vec<_>>();
+        let failed = lines
+            .iter()
+            .find(|line| line.contains("agent-01") && line.contains("Retrying"))
+            .expect("failed Agent row");
+        assert!(failed.contains("Retrying"), "{failed}");
+        assert!(
+            failed.contains("…") && failed.contains("(os error 28)"),
+            "the cause at the end stays: {failed}"
+        );
+        assert!(
+            text.contains("agent-01 · status"),
+            "the panel shows the selected Agent:\n{text}"
+        );
+        assert!(text.contains("Failure:    Transient"), "{text}");
+        let panel = lines
+            .iter()
+            .map(|line| line.chars().skip(text_column(lines[1], "AGE") + 5).collect::<String>())
+            .collect::<String>();
+        assert!(
+            panel.contains("(os error 28)"),
+            "the panel wraps the whole message:\n{text}"
+        );
+
+        let state = text_column(lines[1], "STATE");
+        app.select_index(2);
+        app.transcript_request().expect("the selected Session's turns");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert_eq!(
+            text_column(text.lines().nth(1).expect("column header"), "STATE"),
+            state,
+            "selecting a Session leaves the columns where they were"
+        );
+        assert!(text.contains("review · recent turns"), "{text}");
+    }
+
+    #[test]
+    fn every_view_draws_at_common_widths() {
+        fn press(app: &mut App, row: usize, key: char) {
+            app.select_index(row);
+            app.on_key(crossterm::event::KeyEvent::new(
+                crossterm::event::KeyCode::Char(key),
+                crossterm::event::KeyModifiers::NONE,
+            ));
+        }
+        type Open = fn(&mut App);
+        let views: [(&str, Open); 7] = [
+            ("tree", |_| {}),
+            ("filter", |app| app.modal = Some(Modal::Filter)),
+            ("new session", |app| press(app, 0, 'n')),
+            ("forward", |app| press(app, 0, 'f')),
+            ("delete", |app| press(app, 0, 'd')),
+            ("describe", |app| press(app, 3, 's')),
+            ("prompt", |app| press(app, 2, 'p')),
+        ];
+        for width in [60, 80, 110, 160] {
+            for (name, open) in views {
+                let mut app = failing_app();
+                app.side_panel = shows_side_panel(width);
+                open(&mut app);
+                let mut terminal = Terminal::new(TestBackend::new(width, 16)).expect("test terminal");
+                draw(&mut terminal, &app);
+                let text = buffer_text(&terminal);
+                let lines = text.lines().collect::<Vec<_>>();
+                assert!(
+                    lines[0].contains("agentctl"),
+                    "{name} at {width} keeps the header:\n{text}"
+                );
+                if name == "describe" {
+                    assert!(!text.contains("q quit"), "a detail offers only its own keys:\n{text}");
+                }
+                assert!(
+                    lines.iter().rev().take(2).any(|line| !line.trim().is_empty()) || text.contains('┌'),
+                    "{name} at {width} shows its hints:\n{text}"
+                );
+            }
+        }
+    }
+
     #[test]
     fn a_narrow_tree_keeps_name_state_and_time_in_state() {
         let app = triage_app();
@@ -1248,6 +1420,7 @@ mod tests {
     #[test]
     fn a_selected_session_shows_its_latest_turns_beside_the_tree() {
         let mut app = triage_app();
+        app.side_panel = true;
         app.select_index(2);
         let (agent, session) = app.transcript_request().expect("turns are requested");
         let turns = serde_json::from_value(serde_json::json!([

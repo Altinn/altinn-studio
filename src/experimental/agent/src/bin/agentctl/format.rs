@@ -114,6 +114,22 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
     lines
 }
 
+/// An Agent's readiness and, after a failed pass, whether it is retried.
+pub(crate) fn readiness_lines(status: &agent::Status) -> Vec<String> {
+    let ready = status.ready_condition().map_or_else(
+        || "Unknown".to_owned(),
+        |ready| match ready.status {
+            ConditionStatus::True => "True".to_owned(),
+            condition => format!("{} ({})", condition_status(condition), ready.detail().trim_end()),
+        },
+    );
+    let mut lines = vec![format!("Ready:      {ready}")];
+    if let Some(failure) = status.failure {
+        lines.push(format!("Failure:    {}", failure_kind(failure)));
+    }
+    lines
+}
+
 /// Renders a pass: its phases with the steps they still retain, the step in
 /// progress, the failure detail when it failed, then `output` under its own
 /// heading.
