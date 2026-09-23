@@ -37,6 +37,10 @@ supported. The planner adapts their lists to the same command-stage model. The d
 `IPipelineProcessTask` also forward to those lists, so a task can migrate one phase at a time. Existing
 implementable interfaces have not changed.
 
+Service task types use the same case-insensitive lookup for lifecycle and service execution. Startup
+rejects multiple implementations of one service task type; registering the same instance under both
+service interfaces is supported.
+
 Definitions must be deterministic, cheap and free of side effects. They depend on task configuration,
 not instance data, the current time or recipients discovered during execution. Each delegate runs on a
 task resolved in its callback scope; enqueue-time task instances and closures are never retained for execution.
@@ -83,11 +87,32 @@ override the command's defaults. Command-backed service stages use the business 
 delegate-backed service stages keep the existing service dispatcher defaults. Engine defaults apply when
 all levels leave a field unset. Planned stage options travel with the planned step until enqueue.
 
+Both contexts implement `IWorkflowStepContext`, exposing instance data, workflow and step IDs, the
+persisted execution reference time, and cancellation. Shared helpers can accept that interface without
+knowing which kind of pipeline is executing. For an external request, derive its idempotency key with:
+
+```csharp
+Guid key = WorkflowStepIdempotencyKey.Create(context, "Customer.Notify", recipientId);
+```
+
+Keep the purpose and recipient or operation discriminator stable across attempts, and send the key to a
+dependency that supports deduplication. The helper preserves the existing signing notification keys.
+Keys belong to one workflow step: a mailbox continuation can use a new workflow and step, so this is not
+a cross-message or whole-business-operation deduplication key.
+
+Service stage, opening-stage and conclusion results accept an optional application error code through
+`FailedRetryable(errorMessage, errorCode)` and `FailedPermanent(errorMessage, errorCode)`. The code reaches
+workflow diagnostics unchanged, including through mailbox handlers. It does not change retry or mailbox
+closure behavior. Existing one-argument calls retain the `ServiceTaskFailedException` code.
+
 ## Persistence, retries and deployment
 
 The existing workflow callback controller owns persistence. Completed work saves once through the
 workflow aggregate; failed attempts save nothing. Service deferrals remain stateless. External effects
 must be idempotent because an attempt can fail after the dependency accepted its request.
+
+These save boundaries do not make the whole transition atomic. Initialization stages still execute
+before the new process state is committed.
 
 The workflow and step IDs remain stable across retry and resume. Display names are not idempotency keys.
 Lifecycle command stages execute their persisted command input even if later configuration would omit
@@ -100,6 +125,8 @@ The definition must still bind an in-flight delegate when it is resolved again.
 
 Existing service pipeline dispatch remains positional. Do not reorder or remove service pipeline items
 while their workflows are in flight; adding display names does not change that compatibility rule.
+Removing the registered service task type produces a permanent `ServiceTaskTypeNotFound` failure. Restore
+the implementation before resuming; a diagnostic failure is not an automatic migration.
 
 ## Signing and payment
 
@@ -131,7 +158,8 @@ delegated, one refused”, rather than interpreting a completed engine step as s
 
 `SharedProcessPipelineTests` covers shared stage planning, immutable definitions, explicit lifecycle task
 identity, ownership, removed handlers, persisted command input, command-to-mailbox continuation, option
-precedence and dashboard metadata. Existing signing, payment, workflow and mailbox tests pin the original
-recovery behavior. The workflow-commands integration app exercises lifecycle delegates and command stages
+precedence, dashboard metadata, stable idempotency keys and application error codes. Registration tests
+verify consistent lookup and rejection of ambiguous service task types. Existing signing, payment,
+workflow and mailbox tests pin the original recovery behavior. The workflow-commands integration app exercises lifecycle delegates and command stages
 inside a service pipeline from a separate app assembly, including scoped services and resume after
 configuration changes.

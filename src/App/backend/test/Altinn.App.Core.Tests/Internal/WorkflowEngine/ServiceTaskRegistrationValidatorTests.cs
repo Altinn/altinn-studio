@@ -1,5 +1,7 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -85,6 +87,55 @@ public class ServiceTaskRegistrationValidatorTests
         var exception = await Validate(_ => { });
 
         Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("archive", "archive")]
+    [InlineData("archive", "ARCHIVE")]
+    public async Task DuplicateServiceTypes_FailStartupAndRuntimeLookup(string first, string second)
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<IServiceTask>(new NamedTask(first)).AddSingleton<IPipelineServiceTask>(new NamedTask(second))
+        );
+        Assert.NotNull(exception);
+        Assert.Contains("multiple registrations", exception.Message);
+        using ServiceProvider provider = new ServiceCollection()
+            .AddSingleton<IServiceTask>(new NamedTask(first))
+            .AddSingleton<IPipelineServiceTask>(new NamedTask(second))
+            .BuildServiceProvider();
+        Assert.Throws<InvalidOperationException>(() => new AppImplementationFactory(provider).FindServiceTask(first));
+        Assert.Throws<InvalidOperationException>(() => new ProcessTaskResolver(provider).GetProcessTaskInstance(first));
+    }
+
+    [Fact]
+    public async Task SameInstanceRegisteredUnderBothInterfaces_IsUnambiguous()
+    {
+        var task = new NamedTask("archive");
+        Assert.Null(await Validate(s => s.AddSingleton<IServiceTask>(task).AddSingleton<IPipelineServiceTask>(task)));
+        using ServiceProvider provider = new ServiceCollection()
+            .AddSingleton<IServiceTask>(task)
+            .AddSingleton<IPipelineServiceTask>(task)
+            .BuildServiceProvider();
+        Assert.Same(task, new AppImplementationFactory(provider).FindServiceTask("ARCHIVE"));
+        Assert.Same(task, new ProcessTaskResolver(provider).GetProcessTaskInstance("ARCHIVE"));
+    }
+
+    [Fact]
+    public void LifecycleAndServiceLookup_ResolveTheSameCaseInsensitiveTask()
+    {
+        var task = new NamedTask("archive");
+        using ServiceProvider provider = new ServiceCollection()
+            .AddSingleton<IServiceTask>(task)
+            .BuildServiceProvider();
+        Assert.Same(task, new AppImplementationFactory(provider).FindServiceTask("ARCHIVE"));
+        Assert.Same(task, new ProcessTaskResolver(provider).GetProcessTaskInstance("ARCHIVE"));
+    }
+
+    private sealed class NamedTask(string type) : IServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
     }
 
     // ── Pipeline definitions ─────────────────────────────────────────────────────────────────

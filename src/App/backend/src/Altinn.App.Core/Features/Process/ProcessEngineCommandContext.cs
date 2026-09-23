@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// The data and durable identity available to an ordinary workflow command.
 /// </summary>
-public struct ProcessEngineCommandContext
+public struct ProcessEngineCommandContext : IWorkflowStepContext
 {
     /// <summary>Access to the instance and its data. Changes are saved after successful execution.</summary>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
@@ -29,6 +29,9 @@ public struct ProcessEngineCommandContext
 
     /// <summary>The explicit BPMN task ID for a lifecycle handler, independent of current process state.</summary>
     public string? TaskId { get; init; }
+
+    /// <summary>The engine's persisted reference time for this step, stable across attempts.</summary>
+    public DateTimeOffset ExecutionReferenceTime => Payload?.ExecutionReferenceTime ?? default;
 
     internal string? TaskType { get; init; }
 

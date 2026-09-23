@@ -40,13 +40,30 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
         var errors = new List<string>();
 
-        foreach (IPipelineServiceTask task in Resolve<IServiceTask>(sp))
+        List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
+        List<IPipelineServiceTask> pipelineTasks = Resolve<IPipelineServiceTask>(sp);
+        foreach (
+            var group in simpleTasks
+                .Cast<IPipelineServiceTask>()
+                .Concat(pipelineTasks)
+                .DistinctBy(task => task, ReferenceEqualityComparer.Instance)
+                .GroupBy(task => task.Type, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+        )
+        {
+            errors.Add(
+                $"  - Service task type '{group.Key}' has multiple registrations (case-insensitive): "
+                    + string.Join(", ", group.Select(task => task.GetType().FullName))
+            );
+        }
+
+        foreach (IPipelineServiceTask task in simpleTasks)
         {
             ValidateSealedDefine(task, errors);
             ValidatePipeline(task, errors, sp);
         }
 
-        foreach (IPipelineServiceTask task in Resolve<IPipelineServiceTask>(sp))
+        foreach (IPipelineServiceTask task in pipelineTasks)
         {
             ValidatePipeline(task, errors, sp);
         }

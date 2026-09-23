@@ -2369,6 +2369,14 @@ namespace Altinn.App.Core.Features.Process
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ProcessEngineCommandResult> Execute(Altinn.App.Core.Features.Process.ProcessEngineCommandContext context);
         string GetKey();
     }
+    public interface IWorkflowStepContext
+    {
+        System.Threading.CancellationToken CancellationToken { get; }
+        System.DateTimeOffset ExecutionReferenceTime { get; }
+        Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; }
+        System.Guid StepId { get; }
+        System.Guid WorkflowId { get; }
+    }
     public enum MailboxClosedReason
     {
         Request = 0,
@@ -2407,10 +2415,11 @@ namespace Altinn.App.Core.Features.Process
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
     }
-    public struct ProcessEngineCommandContext
+    public struct ProcessEngineCommandContext : Altinn.App.Core.Features.Process.IWorkflowStepContext
     {
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public string? CommandPayload { get; init; }
+        public System.DateTimeOffset ExecutionReferenceTime { get; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public System.Guid StepId { get; init; }
         public string? TaskId { get; init; }
@@ -2469,7 +2478,7 @@ namespace Altinn.App.Core.Features.Process
         public int RetryCount { get; init; }
     }
     public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
-    public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
+    public sealed class ServiceTaskContext : Altinn.App.Core.Features.Process.IWorkflowStepContext, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
     {
         public ServiceTaskContext() { }
         public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
@@ -2492,6 +2501,7 @@ namespace Altinn.App.Core.Features.Process
     }
     public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
     {
+        public string? ErrorCode { get; init; }
         public required string ErrorMessage { get; init; }
     }
     public sealed class ServiceTaskMailbox : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskMailbox>
@@ -2506,7 +2516,9 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult Conclude(Altinn.App.Core.Features.Process.ServiceTaskResult result) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedPermanent(string errorMessage, string errorCode) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedRetryable(string errorMessage, string errorCode) { }
     }
     public sealed class ServiceTaskPipeline { }
     public sealed class ServiceTaskPipelineBuilder
@@ -2549,7 +2561,9 @@ namespace Altinn.App.Core.Features.Process
     {
         public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage, string errorCode) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage, string errorCode) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult SuccessWithoutAutoAdvance() { }
     }
@@ -2563,7 +2577,9 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Completed() { }
         public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Defer(System.TimeSpan delay, string? reason = null) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedPermanent(string errorMessage, string errorCode) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedRetryable(string errorMessage, string errorCode) { }
     }
     public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskSuccessResult>
     {
@@ -2589,6 +2605,10 @@ namespace Altinn.App.Core.Features.Process
         public WorkflowCommandRef(string Key, string? Payload = null) { }
         public string Key { get; init; }
         public string? Payload { get; init; }
+    }
+    public static class WorkflowStepIdempotencyKey
+    {
+        public static System.Guid Create(Altinn.App.Core.Features.Process.IWorkflowStepContext step, string purpose, string discriminator) { }
     }
 }
 namespace Altinn.App.Core.Features.Redirect

@@ -176,7 +176,7 @@ internal sealed class MailboxRelay
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode,
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode),
                     new MailboxContinuation.Conclude([.. carry.FindAllMailboxes().Select(m => m.Mailbox.Id)])
                 );
 
@@ -184,7 +184,7 @@ internal sealed class MailboxRelay
                 // The saga has not started; the next attempt re-runs the stage.
                 return FailedProcessEngineCommandResult.Retryable(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode)
                 );
 
             case ServiceTaskDeferredResult deferred:
@@ -268,7 +268,7 @@ internal sealed class MailboxRelay
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode,
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode),
                     new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
@@ -276,7 +276,7 @@ internal sealed class MailboxRelay
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode)
                 );
 
             case ServiceTaskDeferredResult deferred:
@@ -392,7 +392,7 @@ internal sealed class MailboxRelay
                 // replays this handler and may then carry the chain on.
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode,
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode),
                     new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
@@ -400,7 +400,7 @@ internal sealed class MailboxRelay
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode)
                 );
 
             case DeferredServiceTaskStageResult deferred:

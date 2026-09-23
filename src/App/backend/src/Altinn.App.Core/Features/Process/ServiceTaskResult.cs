@@ -50,6 +50,15 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
         return new ServiceTaskFailedResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
     }
 
+    /// <summary>Creates a retryable failure with an application-defined diagnostic code.</summary>
+    /// <param name="errorMessage">Human-readable explanation of the failure.</param>
+    /// <param name="errorCode">Stable code identifying the failure in workflow diagnostics.</param>
+    public static ServiceTaskFailedResult FailedRetryable(string errorMessage, string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        return FailedRetryable(errorMessage) with { ErrorCode = errorCode };
+    }
+
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying
     /// and mark the step as failed immediately.
@@ -64,6 +73,15 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
         return new ServiceTaskFailedResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+    }
+
+    /// <summary>Creates a permanent failure with an application-defined diagnostic code.</summary>
+    /// <param name="errorMessage">Human-readable explanation of the failure.</param>
+    /// <param name="errorCode">Stable code identifying the failure in workflow diagnostics.</param>
+    public static ServiceTaskFailedResult FailedPermanent(string errorMessage, string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        return FailedPermanent(errorMessage) with { ErrorCode = errorCode };
     }
 
     /// <summary>
@@ -129,7 +147,7 @@ public sealed record ServiceTaskSuccessResult : ServiceTaskResult
 
 /// <summary>
 /// Represents a failed result of executing a service task. Construct via
-/// <see cref="ServiceTaskResult.FailedRetryable"/> or <see cref="ServiceTaskResult.FailedPermanent"/>.
+/// <see cref="ServiceTaskResult.FailedRetryable(string)"/> or <see cref="ServiceTaskResult.FailedPermanent(string)"/>.
 /// </summary>
 public sealed record ServiceTaskFailedResult : ServiceTaskResult
 {
@@ -140,8 +158,9 @@ public sealed record ServiceTaskFailedResult : ServiceTaskResult
     /// </summary>
     public required string ErrorMessage { get; init; }
 
-    /// <summary>
-    /// Whether the failure is retryable or permanent.
-    /// </summary>
+    /// <summary>The application's diagnostic code, or null to use the default service-task failure code.</summary>
+    public string? ErrorCode { get; init; }
+
+    /// <summary>Whether the failure is retryable or permanent.</summary>
     internal FailureKind Kind { get; init; }
 }

@@ -418,7 +418,8 @@ public class ExecuteServiceTaskTests
         // Assert
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Contains("No service task found for type nonExistentType", failed.ErrorMessage);
-        Assert.Equal("ProcessException", failed.ExceptionType);
+        Assert.Equal("ServiceTaskTypeNotFound", failed.ExceptionType);
+        Assert.True(failed.NonRetryable);
     }
 
     [Fact]

@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Process;
 /// step (an <see cref="IServiceTask"/>'s <c>Execute</c>), or one execution of a reply terminal's
 /// <c>onMessage</c>/<c>onClosed</c> handler.
 /// </summary>
-public sealed record ServiceTaskContext
+public sealed record ServiceTaskContext : IWorkflowStepContext
 {
     /// <summary>
     /// An instance data mutator that can be used to read and modify the instance data during the service task execution.

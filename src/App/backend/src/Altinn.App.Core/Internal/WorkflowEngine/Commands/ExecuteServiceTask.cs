@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -76,9 +75,14 @@ internal sealed class ExecuteServiceTask(
 
         try
         {
-            IPipelineServiceTask serviceTask =
-                appImplementationFactory.FindServiceTask(serviceTaskType)
-                ?? throw new ProcessException($"No service task found for type {serviceTaskType}");
+            IPipelineServiceTask? serviceTask = appImplementationFactory.FindServiceTask(serviceTaskType);
+            if (serviceTask is null)
+            {
+                return FailedProcessEngineCommandResult.Permanent(
+                    $"No service task found for type {serviceTaskType}",
+                    "ServiceTaskTypeNotFound"
+                );
+            }
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
@@ -533,7 +537,8 @@ internal sealed class ExecuteServiceTask(
             FailedServiceTaskOpeningStageResult failed => MapFailure(
                 task,
                 failed.ErrorMessage,
-                failed.Kind == FailureKind.Permanent
+                failed.Kind == FailureKind.Permanent,
+                failed.ErrorCode
             ),
             ConcludedServiceTaskOpeningStageResult concluded => MailboxRelay.DecideOpeningStageConclusion(
                 concluded.Result,
@@ -563,7 +568,8 @@ internal sealed class ExecuteServiceTask(
             ServiceTaskFailedResult failed => MapFailure(
                 task,
                 failed.ErrorMessage,
-                failed.Kind == FailureKind.Permanent
+                failed.Kind == FailureKind.Permanent,
+                failed.ErrorCode
             ),
             ServiceTaskDeferredResult deferred => new DeferredProcessEngineCommandResult
             {
@@ -611,6 +617,9 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     internal const string FailedReasonCode = "ServiceTaskFailedException";
 
+    /// <summary>Preserves an application code, falling back to the existing framework code.</summary>
+    internal static string FailureCode(string? errorCode) => errorCode ?? FailedReasonCode;
+
     /// <summary>The sentence such a failure is reported as, shared with <see cref="MailboxRelay"/>.</summary>
     internal static string FailedMessage(string serviceTaskType, string errorMessage) =>
         $"Service task '{serviceTaskType}' failed: {errorMessage}";
@@ -618,12 +627,13 @@ internal sealed class ExecuteServiceTask(
     private static FailedProcessEngineCommandResult MapFailure(
         IPipelineServiceTask task,
         string errorMessage,
-        bool permanent
+        bool permanent,
+        string? errorCode
     )
     {
         string message = FailedMessage(task.Type, errorMessage);
         return permanent
-            ? FailedProcessEngineCommandResult.Permanent(message, FailedReasonCode)
-            : FailedProcessEngineCommandResult.Retryable(message, FailedReasonCode);
+            ? FailedProcessEngineCommandResult.Permanent(message, FailureCode(errorCode))
+            : FailedProcessEngineCommandResult.Retryable(message, FailureCode(errorCode));
     }
 }

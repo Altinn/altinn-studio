@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- App developers can share workflow-step helpers between lifecycle and service pipelines, derive retry-stable idempotency keys with `WorkflowStepIdempotencyKey`, and provide application error codes in service-task failures for workflow diagnostics.
+
 - App developers can compose task start, end and abandon work as pipelines using `IPipelineProcessTask`, and reuse registered commands as stages in service-task pipelines. Each stage has its own retries and workflow dashboard entry, with optional descriptive names. Existing task command lists and service-task definitions remain supported.
 
 - The workflow engine dashboard now groups every step of a task's start, end and abandon phases under that task, including the steps the task type declares itself, such as the signing task's resolve, delegate and notify steps. Previously only the built-in lifecycle steps were grouped, and the cleanup step sat outside the group.
@@ -29,6 +31,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A `reject` action no longer replaces a failed workflow. While the current task's workflow has failed, `POST .../process/next` is refused with `409 Conflict` and `processNextState: "resumeRequired"` for every action, `reject` included, until the workflow is resumed with `POST .../process/resume`. Previously a BPMN-allowed `reject` wrote the failed workflow off and moved the process along the reject flow, which could not undo work the failed task had already done.
 
 ### Fixed
+
+- Service task types now resolve consistently during task transitions and execution, including case-insensitive matching. Ambiguous registrations fail app startup with a diagnostic identifying the competing implementations.
 
 - Payment cleanup and PDF generation for payment and signing recover from lost responses without getting stuck on already deleted payment data or creating duplicate documents.
 - Breaking: the signing metric `altinn_app_lib_singing_get_service_owner_party` is now spelled `altinn_app_lib_signing_get_service_owner_party`. It counts the service owner party lookups an app makes when a signing task starts, and its name has carried the typo since the metric was added. Repoint any dashboard or alert matching the old name.

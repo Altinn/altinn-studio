@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -276,6 +277,157 @@ public class SharedProcessPipelineTests
         Assert.Equal("Task_Target", step.Labels!["processTask"]);
         Assert.Equal("start", step.Labels["processTaskPhase"]);
         Assert.False(set.ServiceTaskFollowsCommit);
+    }
+
+    [Fact]
+    public void SharedContext_PreservesSigningKeysAcrossAdaptersAndRetries()
+    {
+        ProcessEngineCommandContext context = Context() with
+        {
+            WorkflowId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            StepId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+        };
+        const string recipient = "33333333-3333-3333-3333-333333333333";
+        Guid original = WorkflowStepIdempotencyKey.Create(context, "call-to-action", recipient);
+        ServiceTaskContext service = PipelineStageExecutor.ServiceContext(context);
+        Assert.Equal(Guid.Parse("92569167-39aa-8625-9e98-3535885f5810"), original);
+        Assert.Equal(context.ExecutionReferenceTime, service.ExecutionReferenceTime);
+        Assert.Equal(original, WorkflowStepIdempotencyKey.Create(service, "call-to-action", recipient));
+        Assert.Equal(
+            original,
+            WorkflowStepIdempotencyKey.Create(
+                context with
+                {
+                    Payload = context.Payload with { RetryCount = 7 },
+                    CancellationToken = new CancellationToken(true),
+                },
+                "call-to-action",
+                recipient
+            )
+        );
+        Assert.NotEqual(original, WorkflowStepIdempotencyKey.Create(context, "other-operation", recipient));
+        Assert.NotEqual(
+            original,
+            WorkflowStepIdempotencyKey.Create(context with { StepId = Guid.NewGuid() }, "call-to-action", recipient)
+        );
+    }
+
+    [Theory]
+    [InlineData("stage", false)]
+    [InlineData("stage", true)]
+    [InlineData("opening", false)]
+    [InlineData("opening", true)]
+    [InlineData("conclusion", false)]
+    [InlineData("conclusion", true)]
+    public async Task ServiceFailures_PreserveApplicationCodesAndRetrySemantics(string location, bool permanent)
+    {
+        var task = new FailureTask(location, permanent);
+        using ServiceProvider provider = new ServiceCollection()
+            .AddSingleton<IPipelineServiceTask>(task)
+            .BuildServiceProvider();
+        var execute = new ExecuteServiceTask(
+            new AppImplementationFactory(provider),
+            TestMailboxDeliveryEnvelope.Create()
+        );
+        ProcessEngineCommandContext context = Context();
+        context.StateCarry.RecordMailbox(0, Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(1));
+        FailedProcessEngineCommandResult result = Assert.IsType<FailedProcessEngineCommandResult>(
+            await execute.Execute(context, new ExecuteServiceTaskPayload(task.Type, ItemIndex: 0))
+        );
+        Assert.Equal("RecipientUnavailable", result.ExceptionType);
+        Assert.Equal(permanent, result.NonRetryable);
+        Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process.Status);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MailboxFailures_PreserveCodesWithoutChangingConclusionSemantics(bool permanent)
+    {
+        ServiceTaskResult failure = permanent
+            ? ServiceTaskResult.FailedPermanent("Unavailable", "RecipientUnavailable")
+            : ServiceTaskResult.FailedRetryable("Unavailable", "RecipientUnavailable");
+        ServiceTaskStageResult stageFailure = permanent
+            ? ServiceTaskStageResult.FailedPermanent("Unavailable", "RecipientUnavailable")
+            : ServiceTaskStageResult.FailedRetryable("Unavailable", "RecipientUnavailable");
+        ProcessEngineCommandContext context = Context();
+        var mailbox = new AppCallbackMailbox { Id = Guid.NewGuid(), Seq = 1 };
+        context.StateCarry.RecordMailbox(0, mailbox.Id, DateTimeOffset.UtcNow.AddDays(1));
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder().Finally(_ =>
+            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+        );
+        ProcessEngineCommandResult[] results =
+        [
+            MailboxRelay.DecideOpeningStageConclusion(failure, "archive", context.StepId, context.StateCarry),
+            MailboxRelay.Decide(failure, "archive", context.StepId, mailbox, context.StateCarry, 1, 0),
+            MailboxRelay.DecideSegment(
+                stageFailure,
+                "archive",
+                context.StepId,
+                mailbox,
+                context.StateCarry,
+                1,
+                0,
+                pipeline
+            ),
+        ];
+        foreach (ProcessEngineCommandResult result in results)
+        {
+            var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+            Assert.Equal("RecipientUnavailable", failed.ExceptionType);
+            Assert.Equal(permanent, failed.NonRetryable);
+            if (permanent)
+                Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
+            else
+                Assert.Null(failed.MailboxContinuation);
+        }
+    }
+
+    private sealed class FailureTask(string location, bool permanent) : IPipelineServiceTask
+    {
+        public string Type => "failing";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
+        {
+            if (location == "stage")
+                pipeline.Stage(_ =>
+                    Task.FromResult(
+                        permanent
+                            ? ServiceTaskStageResult.FailedPermanent("Unavailable", "RecipientUnavailable")
+                            : ServiceTaskStageResult.FailedRetryable("Unavailable", "RecipientUnavailable")
+                    )
+                );
+            if (location == "opening")
+                return pipeline
+                    .Stage(
+                        (_, _) =>
+                            Task.FromResult(
+                                permanent
+                                    ? ServiceTaskOpeningStageResult.FailedPermanent(
+                                        "Unavailable",
+                                        "RecipientUnavailable"
+                                    )
+                                    : ServiceTaskOpeningStageResult.FailedRetryable(
+                                        "Unavailable",
+                                        "RecipientUnavailable"
+                                    )
+                            ),
+                        new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
+                        out MailboxHandle handle
+                    )
+                    .ConcludeOnReplies(
+                        handle,
+                        (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
+                        (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
+                    );
+            return pipeline.Finally(_ =>
+                Task.FromResult<ServiceTaskResult>(
+                    permanent
+                        ? ServiceTaskResult.FailedPermanent("Unavailable", "RecipientUnavailable")
+                        : ServiceTaskResult.FailedRetryable("Unavailable", "RecipientUnavailable")
+                )
+            );
+        }
     }
 
     private static AppCommandData Wire(StepRequest step) =>

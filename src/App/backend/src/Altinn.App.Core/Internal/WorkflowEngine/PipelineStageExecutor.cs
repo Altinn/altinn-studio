@@ -36,7 +36,7 @@ internal static class PipelineStageExecutor
             CancellationToken = context.CancellationToken,
             WorkflowId = context.WorkflowId,
             StepId = context.StepId,
-            ExecutionReferenceTime = context.Payload.ExecutionReferenceTime,
+            ExecutionReferenceTime = context.ExecutionReferenceTime,
             Attempt = new ServiceTaskAttempt
             {
                 RetryCount = context.Payload.RetryCount,
@@ -62,11 +62,11 @@ internal static class PipelineStageExecutor
             FailedServiceTaskStageResult { Kind: FailureKind.Permanent } failed =>
                 ProcessEngineCommandResult.FailedPermanent(
                     ExecuteServiceTask.FailedMessage(taskType, failed.ErrorMessage),
-                    ExecuteServiceTask.FailedReasonCode
+                    ExecuteServiceTask.FailureCode(failed.ErrorCode)
                 ),
             FailedServiceTaskStageResult failed => ProcessEngineCommandResult.FailedRetryable(
                 ExecuteServiceTask.FailedMessage(taskType, failed.ErrorMessage),
-                ExecuteServiceTask.FailedReasonCode
+                ExecuteServiceTask.FailureCode(failed.ErrorCode)
             ),
             _ => ProcessEngineCommandResult.FailedPermanent(
                 $"Service task '{taskType}' returned an unsupported stage result '{result?.GetType().Name ?? "null"}'.",

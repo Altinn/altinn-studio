@@ -122,7 +122,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// </param>
     /// <param name="onClosed">
     /// Answers the mailbox closing with the exchange unfinished — fatal
-    /// (<see cref="ServiceTaskStageResult.FailedPermanent"/>), or simply the end of an exchange the task can
+    /// (<see cref="ServiceTaskStageResult.FailedPermanent(string)"/>), or simply the end of an exchange the task can
     /// live without (<see cref="ServiceTaskStageResult.Completed"/>).
     /// </param>
     /// <param name="options">Optional execution options for the step each execution of these handlers runs as.</param>

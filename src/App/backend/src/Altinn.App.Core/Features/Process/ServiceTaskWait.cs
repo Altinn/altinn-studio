@@ -46,7 +46,7 @@ public sealed record ServiceTaskWait
     /// <summary>
     /// <c>true</c> when the wait allowance is spent: this run is the task's final check, and a further
     /// <see cref="ServiceTaskResult.Defer"/> will fail the step as expired. Use it to end the wait on
-    /// your own terms — <see cref="ServiceTaskResult.FailedPermanent"/> with a message that names what
+    /// your own terms — <see cref="ServiceTaskResult.FailedPermanent(string)"/> with a message that names what
     /// never arrived reads better than a generic expiry.
     /// </summary>
     public bool IsFinalCheck => Deadline is { } deadline && DateTimeOffset.UtcNow >= deadline;
