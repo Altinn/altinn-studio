@@ -152,21 +152,16 @@ test('that naming a new task through the recommended action keeps its id when th
   await Promise.all([taskAddSaved, layoutSetCreated]);
   expect(layoutSetCreationsAndDeletions).toHaveLength(1);
 
-  const processReloaded: Promise<Response> = page.waitForResponse(
-    (response) =>
-      response.request().method() === 'GET' && response.url().endsWith('/process-definition'),
-  );
   await page
     .getByRole('textbox', {
       name: processEditorPage.textMock('process_editor.recommended_action.new_name_label'),
     })
     .fill(namedTaskId);
   await page.getByRole('button', { name: processEditorPage.textMock('general.save') }).click();
-  await processReloaded;
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(namedTaskId);
   expect(layoutSetCreationsAndDeletions).toHaveLength(1);
 
-  // The canvas does not register a click made right after the reload, so the click is retried until it selects.
+  // A click made right after the reload does not select the task (cause not found), so the click is retried.
   const finalTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(finalTaskId, 'g');
   await expect(async () => {
     await processEditorPage.clickOnTaskInBpmnEditor(finalTaskSelector);
