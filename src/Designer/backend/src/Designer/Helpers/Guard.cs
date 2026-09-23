@@ -62,10 +62,8 @@ public static class Guard
     }
 
     /// <summary>
-    /// Determines whether a name is safe to use as a single path segment. A safe segment is non-empty,
-    /// holds no directory separator, and is neither of the two names a path segment reserves for a
-    /// directory itself and its parent, "." and "..". A name that merely contains dots, such as
-    /// "page..draft", names a file or folder like any other and is safe.
+    /// Determines whether a name is safe to use as a single path segment. "." is rejected alongside ".."
+    /// because <c>App/ui/./</c> normalizes to <c>App/ui</c>.
     /// </summary>
     /// <param name="name">The name to check.</param>
     /// <returns>True if the name can be used as a single path segment.</returns>

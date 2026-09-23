@@ -104,11 +104,8 @@ public class UiFoldersService : IUiFoldersService
         };
 
     /// <summary>
-    /// Validates that a layout set name is safe to use. A layout set name becomes a folder name and thus a
-    /// path segment, so anything containing path separators or traversal sequences must be rejected before
-    /// it reaches a file operation or a log entry. Every endpoint that accepts a layout set name from the
-    /// caller must validate it through this method. A layout set that already exists is not held to the
-    /// naming policy for new names, so one authored outside Designer can still be renamed and deleted.
+    /// Validates that a layout set name is safe to use as a path segment. Every endpoint that accepts a
+    /// layout set name from the caller must validate it through this method.
     /// </summary>
     private static void ValidateLayoutSetNameIsSafe(string layoutSetName)
     {
@@ -119,8 +116,7 @@ public class UiFoldersService : IUiFoldersService
     }
 
     /// <summary>
-    /// Validates that a layout set name Designer is about to create follows the naming policy Designer
-    /// enforces for the names it creates.
+    /// Validates that a new layout set name follows the naming policy for new names.
     /// </summary>
     private static void ValidateLayoutSetNameIsAllowedForNewLayoutSet(string layoutSetName)
     {

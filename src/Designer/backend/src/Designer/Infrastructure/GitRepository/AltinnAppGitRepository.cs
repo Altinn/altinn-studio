@@ -80,8 +80,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     private const string InvalidLayoutSetNameMessage = "Invalid layout set name.";
     private const string InvalidLayoutNameMessage = "Invalid layout name.";
 
-    // Naming policy for the names Designer creates. Names that already exist in a repository are not held
-    // to it, so a repository authored outside Designer stays readable and editable.
+    // Naming policy for new names only, so a repository authored outside Designer stays editable.
     private static readonly Regex s_allowedNewLayoutSetNameRegex = new(
         @"^[a-zA-Z0-9_\-]{2,28}$",
         RegexOptions.Compiled
@@ -1067,14 +1066,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Verifies that a layout set name is safe to use as a path segment. An empty name is allowed and
-    /// means the app does not use layout sets. This check applies to every path built from a layout set
-    /// name, on reads as well as on writes, and deliberately restricts nothing beyond what keeps the
-    /// resulting path inside the repository.
+    /// Verifies that a layout set name is safe to use as a path segment. An empty name means the app does
+    /// not use layout sets.
     /// </summary>
-    /// <param name="layoutSetName">The layout set name to check.</param>
-    /// <returns>The layout set name that was checked.</returns>
-    /// <exception cref="BadHttpRequestException">Thrown if the name is not safe to use as a path segment.</exception>
     private static string EnsureSafeLayoutSetName(string layoutSetName)
     {
         if (string.IsNullOrEmpty(layoutSetName))
@@ -1089,13 +1083,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Verifies that a layout name is safe to use as a path segment. This check applies to every path
-    /// built from a layout name, on reads as well as on writes, and deliberately restricts nothing beyond
-    /// what keeps the resulting path inside the repository.
+    /// Verifies that a layout name is safe to use as a path segment.
     /// </summary>
-    /// <param name="layoutName">The layout name to check.</param>
-    /// <returns>The layout name that was checked.</returns>
-    /// <exception cref="BadHttpRequestException">Thrown if the name is not safe to use as a path segment.</exception>
     private static string EnsureSafeLayoutName(string layoutName)
     {
         if (!Guard.IsSafePathSegment(layoutName))
@@ -1106,17 +1095,11 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Verifies that a layout set name Designer is about to create follows the naming policy for new
-    /// names. Layout sets that already exist are not held to the policy. A new layout set has a name, so
-    /// an empty one is rejected like any other name the policy does not allow.
+    /// Verifies that a new layout set name follows the naming policy for new names.
     /// </summary>
-    /// <param name="layoutSetName">The layout set name that is about to be created.</param>
-    /// <exception cref="BadHttpRequestException">Thrown if the name is not allowed for a new layout set.</exception>
     private static void EnsureAllowedNewLayoutSetName(string layoutSetName)
     {
         EnsureSafeLayoutSetName(layoutSetName);
-        // The safety check lets an empty name through, because on a read it means the app does not use
-        // layout sets, so it is this check that has to turn one away.
         if (string.IsNullOrEmpty(layoutSetName) || !s_allowedNewLayoutSetNameRegex.IsMatch(layoutSetName))
         {
             throw new BadHttpRequestException(InvalidLayoutSetNameMessage);
@@ -1124,11 +1107,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Verifies that a layout name Designer is about to create follows the naming policy for new names.
-    /// Layouts that already exist are not held to the policy.
+    /// Verifies that a new layout name follows the naming policy for new names.
     /// </summary>
-    /// <param name="layoutName">The layout name that is about to be created.</param>
-    /// <exception cref="BadHttpRequestException">Thrown if the name is not allowed for a new layout.</exception>
     private static void EnsureAllowedNewLayoutName(string layoutName)
     {
         EnsureSafeLayoutName(layoutName);
@@ -1139,20 +1119,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Applies the naming policy for new names to a layout write, but only to the parts of that write
-    /// that bring something new into existence: a layout set folder that is not there yet, or a layout
-    /// file that is not there yet. Writing to a layout or a layout set that already exists is allowed
-    /// whatever it is called. Whether a layout set or a layout already exists is decided by the exact
-    /// name, so that the rule holds equally on a case sensitive and a case insensitive file system.
-    /// Asking the file system for a path would answer that "MIN SIDE" already exists wherever
-    /// "Min side" does. An app that does not use layout sets has no layout set name to hold to the
-    /// policy, and its layouts are written whether or not the layout folder is there yet.
-    /// It writes nothing, so a caller that changes more than one file per request can call it for every
-    /// name before its first write.
+    /// Applies the naming policy for new names to the layout set and layout a write would create, and
+    /// allows writes to ones that already exist whatever they are called. Writes nothing.
     /// </summary>
-    /// <param name="layoutSetName">The name of the layout set the layout belongs to.</param>
-    /// <param name="layoutName">The name of the layout file.</param>
-    /// <exception cref="BadHttpRequestException">Thrown if the layout cannot be written under that name.</exception>
     public void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName)
     {
         if (!string.IsNullOrEmpty(layoutSetName) && !LayoutSetFolderExistsByExactName(layoutSetName))
@@ -1166,11 +1135,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Determines whether the layout folder holds a layout set folder named exactly this. Only an app
-    /// that uses layout sets has such a folder, so the caller asks this of a name it has.
+    /// Determines whether a layout set folder of exactly this name exists. Matching by exact name makes a
+    /// case-insensitive file system behave like Linux.
     /// </summary>
-    /// <param name="layoutSetName">The layout set name to look for.</param>
-    /// <returns>True if a layout set folder of exactly that name is there.</returns>
     private bool LayoutSetFolderExistsByExactName(string layoutSetName)
     {
         if (!DirectoryExistsByRelativePath(LayoutsFolderName))
@@ -1181,12 +1148,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Determines whether the layouts folder of a layout set holds a layout file named exactly this. A
-    /// layout set whose folder is not there holds no layouts.
+    /// Determines whether a layout file of exactly this name exists in the layout set. Matching by exact
+    /// name makes a case-insensitive file system behave like Linux.
     /// </summary>
-    /// <param name="layoutSetName">The name of the layout set to look in.</param>
-    /// <param name="layoutName">The layout name to look for.</param>
-    /// <returns>True if a layout file of exactly that name is there.</returns>
     private bool LayoutFileExistsByExactName(string layoutSetName, string layoutName)
     {
         string layoutsFolderPath = GetPathToLayoutSet(layoutSetName);
