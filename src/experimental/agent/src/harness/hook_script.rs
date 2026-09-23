@@ -165,7 +165,7 @@ mod tests {
 
     #[tokio::test]
     async fn hook_exits_after_complete_json_even_when_stdin_remains_open() {
-        use tokio::io::AsyncWriteExt as _;
+        use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
 
         let script = HookScript {
             events: &[("SessionStart", ActivityEvent::SessionStart)],
@@ -173,19 +173,36 @@ mod tests {
         }
         .render()
         .expect("script");
+        let script = script.replacen(
+            "const input = await read(process.stdin);",
+            "process.stdout.write('ready\\n');\nconst input = await read(process.stdin);",
+            1,
+        );
         let Ok(mut child) = tokio::process::Command::new("node")
             .arg("--input-type=module")
             .arg("-e")
             .arg(script)
             .stdin(std::process::Stdio::piped())
-            .stdout(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::null())
+            .env_remove("AGENT_SESSION_HOOK_URL")
+            .env_remove("AGENT_SESSION_TOKEN")
+            .env_remove("AGENT_SESSION_ID")
             .kill_on_drop(true)
             .spawn()
         else {
             // Node is optional for Rust-only development environments.
             return;
         };
+        let mut ready = [0; 6];
+        tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            child.stdout.as_mut().expect("stdout").read_exact(&mut ready),
+        )
+        .await
+        .expect("Node started")
+        .expect("Node reported readiness");
+        assert_eq!(&ready, b"ready\n");
         child
             .stdin
             .as_mut()
