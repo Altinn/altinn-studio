@@ -269,7 +269,10 @@ mod tests {
             bytes: b"connection reset\n".to_vec().into(),
         });
         progress.fail("registry unavailable");
-        agent.status.progress = Some(agent::progress::Provisioning { pass: 1, progress });
+        agent.status.progress = Some(agent::progress::Provisioning {
+            pass: agent::resources::Changes::new().revision(),
+            progress,
+        });
 
         let lines = describe_agent_lines(&agent);
         assert!(lines.contains(&"Failure:    Transient (retrying in the background)".to_owned()));

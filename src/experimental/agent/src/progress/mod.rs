@@ -4,7 +4,8 @@
 //! folded [`::sandbox::progress::Progress`]. The reconciler folds every event of
 //! a pass into the Agent's [`Provisioning`] in [`ProvisioningState`]; readers
 //! see its current value, and a daemon-wide revision tells them when it
-//! changed. Durable readiness and failure are the Agent's stored conditions.
+//! changed. A resync of a Ready Agent is published only if it fails. Durable
+//! readiness and failure are the Agent's stored conditions.
 
 mod observer;
 mod state;
@@ -36,7 +37,7 @@ pub struct AgentProgress {
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct OutputPosition {
     /// Pass the position belongs to.
-    pub pass: u64,
+    pub pass: crate::resources::Revision,
     /// First output line the follower has not seen.
     pub sequence: u64,
 }

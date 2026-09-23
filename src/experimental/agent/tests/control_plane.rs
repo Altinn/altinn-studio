@@ -15,7 +15,7 @@ use agent::{
     control_plane::{
         AgentRecord, AgentStore, ControlPlane, Controller, Convergence, Notifier, Reconciler, WaitPolicy, memory,
     },
-    progress::ProvisioningState,
+    progress::{OutputPosition, ProvisioningState, SandboxObserver},
     resources::Changes,
     sandbox::{ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
 };
@@ -1592,23 +1592,24 @@ async fn waiting_follows_background_retries_after_transient_failures() {
 
     assert!(target.sandbox.id().is_some());
     let provisioning = fixture.provisioning.get(fixture.id().await).expect("latest pass");
-    assert!(provisioning.pass >= 3, "each retry is a new pass");
     assert_eq!(
         provisioning.progress.status(),
-        &sandbox::progress::OperationStatus::Succeeded
+        &sandbox::progress::OperationStatus::Succeeded,
+        "the latest pass is the retry that succeeded"
     );
     fixture.task.abort();
 }
 
 #[tokio::test(flavor = "local")]
 async fn provisioning_is_projected_but_not_stored_and_omitted_after_success() {
-    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let changes = Changes::new();
+    let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes.clone()));
     let backend = Rc::new(sandbox_memory::Provider::new());
     let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(
         backend,
         [PlannedFailure::Transient("temporary runtime failure".into())],
     ));
-    let provisioning = ProvisioningState::default();
+    let provisioning = ProvisioningState::new(changes.clone());
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()))
         .with_provisioning(provisioning.clone());
     let reconciler = Reconciler::new(store.clone(), sandbox_service(provider), provisioning.clone());
@@ -1635,7 +1636,7 @@ async fn provisioning_is_projected_but_not_stored_and_omitted_after_success() {
     assert_eq!(ready.status.failure, None);
     assert_eq!(ready.status.progress, None, "a succeeded pass is not listed");
     let finished = provisioning.get(id).expect("finished pass");
-    assert!(finished.pass > summary.pass);
+    assert_ne!(finished.pass, summary.pass, "each retry is a new pass");
     assert_eq!(
         finished.progress.status(),
         &sandbox::progress::OperationStatus::Succeeded
@@ -1648,6 +1649,69 @@ async fn provisioning_is_projected_but_not_stored_and_omitted_after_success() {
             .any(|phase| phase.phase == agent::progress::SETUP && phase.outcome == sandbox::Outcome::Completed),
         "Agent setup is reported as a phase of the pass"
     );
+
+    let revision = changes.revision();
+    reconciler.reconcile(id).await.expect("resync of a Ready Agent");
+    assert_eq!(
+        provisioning.get(id),
+        Some(finished),
+        "a resync that succeeds leaves the pass that provisioned the Agent"
+    );
+    let resynced = control_plane.get("worker").await.expect("resynced Agent");
+    assert_eq!(resynced.status.progress, None);
+    assert!(resynced.status.is_ready());
+    assert_eq!(
+        changes.revision(),
+        revision,
+        "a resync that changes nothing wakes no watcher"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn progress_trims_only_the_output_of_the_pass_the_follower_has_seen() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let provisioning = ProvisioningState::default();
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()))
+        .with_provisioning(provisioning.clone());
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("stored Agent").id;
+    let texts = |provisioning: &agent::progress::Provisioning| {
+        provisioning
+            .progress
+            .output()
+            .lines()
+            .map(|line| line.text.clone())
+            .collect::<Vec<_>>()
+    };
+
+    let first = SandboxObserver::new(id, provisioning.clone());
+    let phase = first.reporter().start_phase(agent::progress::SETUP).await;
+    let step = first.reporter().steps().start_step("Sync home").await;
+    step.output(sandbox::OutputStream::Stdout, "one\ntwo\n").await;
+    let (_, full) = control_plane.progress("worker", None).await.expect("progress");
+    let full = full.expect("first pass");
+    assert_eq!(texts(&full), ["one", "two"]);
+
+    let seen = OutputPosition {
+        pass: full.pass,
+        sequence: 1,
+    };
+    let (_, trimmed) = control_plane.progress("worker", Some(seen)).await.expect("progress");
+    assert_eq!(
+        texts(&trimmed.expect("first pass")),
+        ["two"],
+        "output already seen is left out"
+    );
+    drop((step, phase, first));
+
+    let second = SandboxObserver::new(id, provisioning.clone());
+    let _phase = second.reporter().start_phase(agent::progress::SETUP).await;
+    let step = second.reporter().steps().start_step("Sync home").await;
+    step.output(sandbox::OutputStream::Stdout, "three\n").await;
+    let (_, next) = control_plane.progress("worker", Some(seen)).await.expect("progress");
+    let next = next.expect("second pass");
+    assert_ne!(next.pass, full.pass);
+    assert_eq!(texts(&next), ["three"], "a position in another pass trims nothing");
 }
 
 #[tokio::test(flavor = "local")]

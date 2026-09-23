@@ -1,30 +1,36 @@
-//! Provisioning progress of each Agent's latest reconciliation pass.
+//! Provisioning progress of each Agent's latest provisioning pass.
 //!
 //! The reconciler folds every Sandbox and Agent progress event into the
 //! Agent's [`Provisioning`]. It lives in memory only: after a daemon restart no
 //! pass is running, and the durable outcome of the last pass is the Agent's
 //! conditions and failure class.
+//!
+//! A resync, a pass that only reconfirms a Ready Agent at its current
+//! generation, is folded out of sight and published only if it fails. The
+//! periodic resync would otherwise replace the pass that provisioned the Agent
+//! within seconds, and show a healthy Agent as provisioning while it runs.
 
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use ::sandbox::progress::{OperationStatus, Progress};
 
-use crate::{AgentId, resources::Changes};
+use crate::{
+    AgentId,
+    resources::{Changes, Revision},
+};
 
 /// Output lines kept in the summary projected onto an Agent whose pass failed.
 const FAILURE_OUTPUT_LINES: usize = 40;
 
-/// Progress of one Agent's latest reconciliation pass that did Sandbox work.
+/// Progress of one Agent's latest pass that created, changed or retried its
+/// Sandbox, or of a resync that failed.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Provisioning {
-    /// Number of the pass, unique within the daemon process; a new number
-    /// means a new pass, so observers start their cursor over.
-    pub pass: u64,
+    /// Identity of the pass: the revision at which it was published, unique
+    /// across daemon processes. A new identity means a new pass, so observers
+    /// start their cursor over.
+    pub pass: Revision,
     /// The pass's progress.
     pub progress: Progress,
 }
@@ -33,7 +39,7 @@ pub struct Provisioning {
 #[derive(Clone, Default)]
 pub struct ProvisioningState {
     agents: Rc<RefCell<HashMap<AgentId, Provisioning>>>,
-    passes: Rc<Cell<u64>>,
+    resyncs: Rc<RefCell<HashMap<AgentId, Progress>>>,
     changes: Changes,
 }
 
@@ -73,35 +79,52 @@ impl ProvisioningState {
 
     /// Starts a new pass, replacing what the previous one left behind.
     pub(crate) fn begin(&self, id: AgentId) {
-        let pass = self.passes.get() + 1;
-        self.passes.set(pass);
-        self.agents.borrow_mut().insert(
-            id,
-            Provisioning {
-                pass,
-                progress: Progress::new(),
-            },
-        );
-        self.changes.bump();
+        self.resyncs.borrow_mut().remove(&id);
+        self.publish(id, Progress::new());
+    }
+
+    /// Starts a resync, which leaves the latest pass in place unless it fails.
+    pub(crate) fn begin_resync(&self, id: AgentId) {
+        self.resyncs.borrow_mut().insert(id, Progress::new());
     }
 
     pub(crate) fn apply(&self, id: AgentId, event: &::sandbox::ProgressEvent) {
+        if let Some(progress) = self.resyncs.borrow_mut().get_mut(&id) {
+            progress.apply(event);
+            return;
+        }
         self.update(id, |provisioning| provisioning.progress.apply(event));
     }
 
     pub(crate) fn succeed(&self, id: AgentId) {
+        if self.resyncs.borrow_mut().remove(&id).is_some() {
+            return;
+        }
         self.update(id, |provisioning| provisioning.progress.succeed());
     }
 
     pub(crate) fn fail(&self, id: AgentId, detail: &str) {
+        let resync = self.resyncs.borrow_mut().remove(&id);
+        if let Some(mut progress) = resync {
+            progress.fail(detail);
+            self.publish(id, progress);
+            return;
+        }
         self.update(id, |provisioning| provisioning.progress.fail(detail));
     }
 
     /// Drops a deleted Agent's state.
     pub(crate) fn forget(&self, id: AgentId) {
+        self.resyncs.borrow_mut().remove(&id);
         if self.agents.borrow_mut().remove(&id).is_some() {
             self.changes.bump();
         }
+    }
+
+    fn publish(&self, id: AgentId, progress: Progress) {
+        self.changes.bump();
+        let pass = self.changes.revision();
+        self.agents.borrow_mut().insert(id, Provisioning { pass, progress });
     }
 
     fn update(&self, id: AgentId, change: impl FnOnce(&mut Provisioning)) {
@@ -141,8 +164,59 @@ mod tests {
 
         state.begin(id);
         let second = state.get(id).expect("second pass");
-        assert_eq!(second.pass, first.pass + 1);
+        assert_ne!(second.pass, first.pass);
         assert!(second.progress.current().is_none(), "a new pass starts empty");
+
+        let other = ProvisioningState::new(Changes::new());
+        other.begin(id);
+        assert_ne!(
+            other.get(id).expect("pass of another daemon").pass,
+            first.pass,
+            "passes of another daemon process never compare as the same pass"
+        );
+    }
+
+    #[test]
+    fn a_resync_stays_out_of_sight_unless_it_fails() {
+        let changes = Changes::new();
+        let state = ProvisioningState::new(changes.clone());
+        let id = AgentId::generate();
+        state.begin(id);
+        state.apply(id, &started());
+        state.succeed(id);
+        let provisioned = state.get(id).expect("provisioning pass");
+
+        let before = changes.revision();
+        state.begin_resync(id);
+        state.apply(id, &started());
+        state.succeed(id);
+        assert_eq!(
+            changes.revision(),
+            before,
+            "a resync that succeeds changes nothing observable"
+        );
+        assert_eq!(state.get(id), Some(provisioned.clone()), "the provisioning pass stays");
+        assert!(state.summary(id).is_none());
+
+        state.begin_resync(id);
+        state.apply(id, &started());
+        state.fail(id, "Sandbox stopped");
+        let failed = state.get(id).expect("failed resync");
+        assert_ne!(
+            failed.pass, provisioned.pass,
+            "a failed resync is published as a new pass"
+        );
+        assert!(
+            failed
+                .progress
+                .finished()
+                .iter()
+                .any(|phase| phase.phase.id == SandboxPhase::ImageResolve.phase().id)
+        );
+        assert!(
+            matches!(state.summary(id), Some(summary) if matches!(summary.progress.status(), OperationStatus::Failed { .. }))
+        );
+        assert_ne!(changes.revision(), before);
     }
 
     #[test]
