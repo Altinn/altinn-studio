@@ -19,7 +19,7 @@ export const SchemaInspector = () => {
   const { selectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
 
-  if (!selectedUniquePointer) {
+  if (!selectedUniquePointer || !savableModel.hasUniquePointer(selectedUniquePointer)) {
     return <NoItemSelectedMessage />;
   }
 

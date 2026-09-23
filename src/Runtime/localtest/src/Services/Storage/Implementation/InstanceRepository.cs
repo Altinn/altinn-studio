@@ -405,7 +405,7 @@ namespace LocalTest.Services.Storage.Implementation
             Instance instance,
             CancellationToken cancellationToken)
         {
-            using var _ = await Lock(instance);
+            using var instanceLock = await Lock(instance);
             Guid instanceGuid = GetInstanceGuid(instance);
 
             await InstanceVersionMetadataStore.Mutate(
@@ -417,10 +417,13 @@ namespace LocalTest.Services.Storage.Implementation
                 bumpProcessStateVersion: false,
                 async () =>
                 {
-                    string path = GetInstancePath(instance.Id);
-                    Directory.CreateDirectory(GetInstanceFolder());
-                    PreProcess(instance);
-                    await File.WriteAllTextAsync(path, instance.ToString(), cancellationToken);
+                    // The caller's snapshot predates this lock and may contain an older task.
+                    // Read status must not overwrite workflow progress or other instance changes.
+                    (Instance current, _) = await GetOneWithoutLock(instanceGuid, false, cancellationToken);
+                    current.Status ??= new InstanceStatus();
+                    current.Status.ReadStatus = instance.Status.ReadStatus;
+                    await WriteInstance(current, cancellationToken);
+                    instance = current;
                 },
                 cancellationToken);
 

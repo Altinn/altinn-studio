@@ -222,6 +222,9 @@ internal static class V8Tov9Upgrade
         }
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -821,14 +824,25 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> CheckMaskinportenSettingsSection(CSharpSourceScanner scanner, string projectFolder)
     {
-        UpgradeConsole.BeginStep("Maskinporten settings");
+        UpgradeConsole.BeginStep("Maskinporten settings and scopes");
         try
         {
             var boundSections = new MaskinportenClientOverrideDetector(scanner).NamedSections();
-            var result = new MaskinportenSettingsSectionDetector(projectFolder, boundSections).Detect();
+            var detector = new MaskinportenSettingsSectionDetector(projectFolder, boundSections);
+            var sections = detector.Detect();
+
+            // The inventory reads the scopes out of the very sections the step above tells the developer to
+            // delete, so it runs after the detector and takes what it found.
+            var inventory = new MaskinportenScopeInventory(
+                scanner,
+                projectFolder,
+                detector.ConfiguredScopes()
+            ).Describe();
+
+            var result = new MigrationResult([.. sections.Messages, .. inventory.Messages]);
             return ReportMigrationResult(
                 result,
-                cleanText: "No obsolete MaskinportenSettings configuration found",
+                cleanText: "No obsolete MaskinportenSettings configuration and no Maskinporten scopes found",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }
@@ -920,6 +934,7 @@ internal static class V8Tov9Upgrade
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             ShowBackButtonMigrator.Apply(workspace);
+            InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
             foreach (var issue in workspace.Conflicts)
@@ -1262,6 +1277,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout-sets.json", ex);
+        }
+    }
+
+    static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Invalid input validation lists");
+        try
+        {
+            return await InvalidValidationMaskMigration.MigrateSettings(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Invalid input validation lists", ex);
         }
     }
 

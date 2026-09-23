@@ -9,6 +9,7 @@ export { useDeleteLanguageMutation } from './useDeleteLanguageMutation';
 export { useGenerateModelsMutation } from './useGenerateModelsMutation';
 export { useUpdateAppSettingsMutation } from './useUpdateAppSettingsMutation';
 export { usePrefillMutation } from './usePrefillMutation';
+export { useReplaceDataModelXsdMutation } from './useReplaceDataModelXsdMutation';
 export { useSchemaMutation } from './useSchemaMutation';
 export { useTextIdMutation } from './useTextIdMutation';
 export { useUpsertTextResourcesMutation } from 'app-shared/hooks/mutations/useUpsertTextResourcesMutation';

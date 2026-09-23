@@ -215,6 +215,7 @@ const AllowedValidationMasks = {
     type: 'string',
     allowedValues: [
       'Schema',
+      'Invalid',
       'Component',
       'Expression',
       'CustomBackend',

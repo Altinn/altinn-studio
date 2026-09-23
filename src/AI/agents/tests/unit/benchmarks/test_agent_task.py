@@ -57,7 +57,7 @@ class TestTheOutputCarriesTheScores:
         output = task(item=_item())
 
         assert output["session_id"]
-        assert output["session_branch"] == f"altinity_session_{output['session_id'][:8]}"
+        assert output["session_branch"] == f"assistant_{output['session_id'][:8]}"
 
     def test_a_finished_workflow_scores_completed(self, task):
         output = task(item=_item())

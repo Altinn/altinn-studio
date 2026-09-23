@@ -147,8 +147,8 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
-ARG CODEX_VERSION=0.154.0
-ARG CLAUDE_CODE_VERSION=2.1.268
+ARG CODEX_VERSION=0.156.0
+ARG CLAUDE_CODE_VERSION=2.1.280
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
@@ -283,7 +283,7 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 
 FROM base AS full
 
-ARG PLAYWRIGHT_CLI_VERSION=0.1.19
+ARG PLAYWRIGHT_CLI_VERSION=0.1.20
 ARG RUST_VERSION=1.97.1
 
 # Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and

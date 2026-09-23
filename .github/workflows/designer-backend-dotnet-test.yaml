@@ -12,7 +12,6 @@ on:
       - 'src/gitea/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

@@ -20,16 +20,17 @@ namespace Altinn.App.logic
             _dataClient = dataClient;
         }
 
-        public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string language)
+        public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language)
         {
             return Task.CompletedTask;
         }
 
-        public async Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object previousData, string language)
+        public async Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language)
         {
             if (data is Form form)
             {
-                var currentFields = await GetCurrentFields(instance, dataId.Value, data);
+                Guid dataElementId = dataId ?? throw new InvalidOperationException("ProcessDataWrite was called without a data element id.");
+                var currentFields = await GetCurrentFields(instance, dataElementId, data);
                 int index = (form.GoodsAndServicesProperties?.Inventory?.InventoryProperties?.Count > 0) ? form.GoodsAndServicesProperties.Inventory.InventoryProperties.Count - 1 : 0;
 
                 if (currentFields.ContainsKey("Trademark.TrademarkType") ||
@@ -40,7 +41,7 @@ namespace Altinn.App.logic
                     var trademark = form.Trademark?.TrademarkType;
                     var trademarkText = form.Trademark?.TrademarkText;
                     var classes = new List<string>();
-                    List<InventoryProperties> checkList = form.GoodsAndServicesProperties?.Inventory?.InventoryProperties;
+                    List<InventoryProperties>? checkList = form.GoodsAndServicesProperties?.Inventory?.InventoryProperties;
                     if ((trademark == "word" || trademark == "figure") && checkList != null && trademarkText != null)
                     {
                         foreach (var item in checkList)
@@ -90,7 +91,7 @@ namespace Altinn.App.logic
         }
 
 
-        private async Task<Dictionary<string, object>> GetCurrentFields(Instance instance, Guid dataId, object data)
+        private async Task<Dictionary<string, object?>> GetCurrentFields(Instance instance, Guid dataId, object data)
         {
             var instanceId = Guid.Parse(instance.Id.Split("/")[1]);
             var formData = await _dataClient.GetFormData(instanceId, data.GetType(), instance.Org, instance.AppId, int.Parse(instance.InstanceOwner.PartyId), dataId);

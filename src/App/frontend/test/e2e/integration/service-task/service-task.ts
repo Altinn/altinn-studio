@@ -121,5 +121,15 @@ function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
     .findByRole('radio', { name: shouldFail ? 'Ja' : 'Nei' })
     .click();
   cy.waitUntilSaved();
+
+  // PDF generation can take longer than the UI assertion timeout. Wait for this
+  // transition to finish before checking its failure view or receipt.
+  cy.intercept('PUT', '**/process/next*').as('serviceTaskTransition');
   cy.findByRole('button', { name: 'Neste' }).click();
+  cy.wait('@serviceTaskTransition', { responseTimeout: 120_000 }).then(({ response }) => {
+    expect(response?.statusCode).to.equal(shouldFail ? 500 : 200);
+    if (shouldFail) {
+      expect(response?.body.workflowFailure?.kind).to.equal('stepFailed');
+    }
+  });
 }

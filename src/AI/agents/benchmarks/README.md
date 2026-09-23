@@ -48,7 +48,7 @@ langfuse.run_experiment(dataset items, task=AgentTask, evaluators, run_evaluator
         │
         │  per item, one at a time
         ▼
-POST /api/agent/start on the local stack ──► agent works ──► pushes altinity_session_<id>
+POST /api/agent/start on the local stack ──► agent works ──► pushes assistant_<id>
         │                                                          │
         ▼                                                          ▼
 poll /api/agent/status until terminal                     clone the session branch
@@ -85,7 +85,7 @@ don't carry every file).
 
 ## The rubric
 
-The dataset item's `expectedOutput` is a *structural* rubric, not a
+The dataset item's `expectedOutput` is a _structural_ rubric, not a
 file listing, because page IDs, component IDs and data-model names legitimately
 differ between correct runs:
 
@@ -105,40 +105,40 @@ enumeration), so naming style doesn't matter but missing fields do.
 
 ## Scores
 
-| Score | Type | Meaning |
-| --- | --- | --- |
-| `bench_completed` | boolean | workflow reached `done` with `success` |
-| `bench_pages` | boolean | ordered page count matches the rubric |
-| `bench_order_integrity` | boolean | `pages.order` ⇔ layout files agree |
-| `bench_navigation` | boolean | every ordered page has NavigationButtons/Bar |
-| `bench_field_coverage` | 0–1 | fraction of expected field titles present |
-| `bench_input_count` | 0–1 | input components vs rubric minimum |
-| `bench_texts_bound` | 0–1 | text bindings resolving in resource.nb.json |
-| `bench_renders` | boolean | first ordered page renders in app preview (see below) |
-| `bench_pages_render` | 0–1 | fraction of ordered pages that render without error |
-| `bench_render_fix_rounds` | numeric | fix rounds sent back to the agent (only when a fix ran) |
-| `bench_pages_render_after_fix` | 0–1 | render fraction after the fix loop (only when a fix ran) |
+| Score                          | Type    | Meaning                                                  |
+| ------------------------------ | ------- | -------------------------------------------------------- |
+| `bench_completed`              | boolean | workflow reached `done` with `success`                   |
+| `bench_pages`                  | boolean | ordered page count matches the rubric                    |
+| `bench_order_integrity`        | boolean | `pages.order` ⇔ layout files agree                       |
+| `bench_navigation`             | boolean | every ordered page has NavigationButtons/Bar             |
+| `bench_field_coverage`         | 0–1     | fraction of expected field titles present                |
+| `bench_input_count`            | 0–1     | input components vs rubric minimum                       |
+| `bench_texts_bound`            | 0–1     | text bindings resolving in resource.nb.json              |
+| `bench_renders`                | boolean | first ordered page renders in app preview (see below)    |
+| `bench_pages_render`           | 0–1     | fraction of ordered pages that render without error      |
+| `bench_render_fix_rounds`      | numeric | fix rounds sent back to the agent (only when a fix ran)  |
+| `bench_pages_render_after_fix` | 0–1     | render fraction after the fix loop (only when a fix ran) |
 
 Run-level scores are computed across the items of one run rather than per item:
 
-| Score | Type | Meaning |
-| --- | --- | --- |
-| `run_items_scored` | 0–1 | fraction of items that produced a scored app |
-| `run_mean_<score>` | 0–1 | that structural score, averaged over the items |
+| Score              | Type | Meaning                                        |
+| ------------------ | ---- | ---------------------------------------------- |
+| `run_items_scored` | 0–1  | fraction of items that produced a scored app   |
+| `run_mean_<score>` | 0–1  | that structural score, averaged over the items |
 
 ## Prerequisites
 
 Work through these once; the run fails fast and unhelpfully if any are
 missing.
 
-| # | What | Check |
-| --- | --- | --- |
-| 1 | Local Designer stack up | `curl -s -o /dev/null -w '%{http_code}' http://studio.localhost` → `200` |
-| 2 | Agents service up | `curl -s -o /dev/null -w '%{http_code}' http://localhost:8071/health` |
-| 3 | `.env` in this directory | see below |
-| 4 | Designer API key minted | `python -m benchmarks.bootstrap_api_key --write-env` |
-| 5 | Score configs in Langfuse | `python -m benchmarks.runner ensure-configs` |
-| 6 | Playwright + Chromium (render check only) | `pip install -e '.[preview]' && playwright install chromium` |
+| #   | What                                      | Check                                                                    |
+| --- | ----------------------------------------- | ------------------------------------------------------------------------ |
+| 1   | Local Designer stack up                   | `curl -s -o /dev/null -w '%{http_code}' http://studio.localhost` → `200` |
+| 2   | Agents service up                         | `curl -s -o /dev/null -w '%{http_code}' http://localhost:8071/health`    |
+| 3   | `.env` in this directory                  | see below                                                                |
+| 4   | Designer API key minted                   | `python -m benchmarks.bootstrap_api_key --write-env`                     |
+| 5   | Score configs in Langfuse                 | `python -m benchmarks.runner ensure-configs`                             |
+| 6   | Playwright + Chromium (render check only) | `pip install -e '.[preview]' && playwright install chromium`             |
 
 Re-run **4** after wiping the database volume, and **5** whenever a new
 `bench_*` score is added. A score with no config still posts, but
@@ -156,9 +156,9 @@ BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
 ```
 
 `BENCH_REPO_URL` points at a **disposable app repo you own**. The
-benchmark pushes an `altinity_session_*` branch to it per run, so use a
-blank test app, not anything you care about. The URL is as the *agent
-container* resolves it (`gitea-proxy:81` on the local stack); the org is
+benchmark pushes an `assistant_*` branch to it per run, so use a
+blank test app, not anything you care about. The URL is as the _agent
+container_ resolves it (`gitea-proxy:81` on the local stack); the org is
 derived from the URL path.
 
 `AGENT_DESIGNER_API_KEY` must be a **Designer user API key**. The
@@ -175,7 +175,7 @@ the repo).
 python -m benchmarks.runner ensure-configs
 
 # (re)build the rubric from a known-good session branch
-git -c 'http.extraHeader=X-Api-Key: <key>' clone --branch altinity_session_<id> \
+git -c 'http.extraHeader=X-Api-Key: <key>' clone --branch assistant_<id> \
     http://localhost/repos/<org>/<app>.git /tmp/golden
 python -m benchmarks.runner rubric --from-app /tmp/golden \
     --update-item trace-34fddc78028268ea87078ae2d15e1715
@@ -191,8 +191,8 @@ regression shows up as a column that got worse.
 ### Reading the results
 
 The run prints each score as it is computed, then a summary of the item averages
-and the run-level scores. For comparison across versions go to *Datasets → the
-dataset → Runs* in Langfuse; each run is a column and each score a row.
+and the run-level scores. For comparison across versions go to _Datasets → the
+dataset → Runs_ in Langfuse; each run is a column and each score a row.
 
 Start with the run-level scores, which is what the SDK port added. `run_items_scored`
 is the fraction of items that produced an app at all: a run where that is below 1
@@ -281,7 +281,7 @@ When pages fail the render check, the runner sends the failures back
 into the **same agent session** (same `session_id`, continuing on the
 session branch, with the page names and error snippets in the goal) and
 re-checks after the fix workflow finishes. `bench_renders` and
-`bench_pages_render` always reflect the state *before* any fix, so runs
+`bench_pages_render` always reflect the state _before_ any fix, so runs
 stay comparable across agent versions; the after-fix state is scored
 separately (`bench_pages_render_after_fix`, `bench_render_fix_rounds`).
 
@@ -304,7 +304,7 @@ score configs are created once and adding a score to the code does not
 create one.
 
 **`clone of '…' failed` when running the standalone check.**
-`BENCH_REPO_URL` holds the URL as the *agent container* resolves it
+`BENCH_REPO_URL` holds the URL as the _agent container_ resolves it
 (`gitea-proxy:81`), which the host cannot reach. Cloning uses
 `BENCH_GITEA_CLONE_BASE` instead (default `http://localhost/repos`); set
 it if your stack serves repositories elsewhere.

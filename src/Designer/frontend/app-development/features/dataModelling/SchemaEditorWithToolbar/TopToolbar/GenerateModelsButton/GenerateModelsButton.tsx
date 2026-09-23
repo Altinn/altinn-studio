@@ -1,4 +1,4 @@
-import { CogIcon } from '@studio/icons';
+import { StudioSaveIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useSchemaQuery } from '../../../../../hooks/queries';
 import { useGenerateModelsMutation } from '../../../../../hooks/mutations';
@@ -41,8 +41,8 @@ export const GenerateModelsButton = ({
         <StudioButton
           id='save-model-button'
           onClick={handleGenerateButtonClick}
-          icon={<CogIcon />}
-          variant='tertiary'
+          icon={<StudioSaveIcon />}
+          variant='primary'
         >
           {t('schema_editor.generate_model_files')}
         </StudioButton>

@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,42 +15,42 @@ namespace Altinn.App.Models
     [XmlElement("ContactInformation", Order = 1)]
     [JsonProperty("ContactInformation")]
     [JsonPropertyName("ContactInformation")]
-    public ContactInformation ContactInformation { get; set; }
+    public ContactInformation? ContactInformation { get; set; }
 
     [XmlElement("AgentPerson", Order = 2)]
     [JsonProperty("AgentPerson")]
     [JsonPropertyName("AgentPerson")]
-    public string AgentPerson { get; set; }
+    public string? AgentPerson { get; set; }
 
     [XmlElement("AgentCompany", Order = 3)]
     [JsonProperty("AgentCompany")]
     [JsonPropertyName("AgentCompany")]
-    public CompanyProperties AgentCompany { get; set; }
+    public CompanyProperties? AgentCompany { get; set; }
 
     [XmlElement("Company", Order = 4)]
     [JsonProperty("Company")]
     [JsonPropertyName("Company")]
-    public Company Company { get; set; }
+    public Company? Company { get; set; }
 
     [XmlElement("Trademark", Order = 5)]
     [JsonProperty("Trademark")]
     [JsonPropertyName("Trademark")]
-    public Trademark Trademark { get; set; }
+    public Trademark? Trademark { get; set; }
 
     [XmlElement("GoodsAndServicesProperties", Order = 6)]
     [JsonProperty("GoodsAndServicesProperties")]
     [JsonPropertyName("GoodsAndServicesProperties")]
-    public GoodsAndServicesProperties GoodsAndServicesProperties { get; set; }
+    public GoodsAndServicesProperties? GoodsAndServicesProperties { get; set; }
 
     [XmlElement("PreInvestigation", Order = 7)]
     [JsonProperty("PreInvestigation")]
     [JsonPropertyName("PreInvestigation")]
-    public PreInvestigation PreInvestigation { get; set; }
+    public PreInvestigation? PreInvestigation { get; set; }
 
     [XmlElement("SimilarTrademarks", Order = 8)]
     [JsonProperty("SimilarTrademarks")]
     [JsonPropertyName("SimilarTrademarks")]
-    public SimilarTrademarks SimilarTrademarks { get; set; }
+    public SimilarTrademarks? SimilarTrademarks { get; set; }
 
     [XmlElement("HideFirstPaymentDetails", Order = 9)]
     [JsonProperty("HideFirstPaymentDetails")]
@@ -73,22 +74,22 @@ namespace Altinn.App.Models
     [XmlElement("FullName", Order = 1)]
     [JsonProperty("FullName")]
     [JsonPropertyName("FullName")]
-    public string FullName { get; set; }
+    public string? FullName { get; set; }
 
     [XmlElement("PhoneNumber", Order = 2)]
     [JsonProperty("PhoneNumber")]
     [JsonPropertyName("PhoneNumber")]
-    public string PhoneNumber { get; set; }
+    public string? PhoneNumber { get; set; }
 
     [XmlElement("Email", Order = 3)]
     [JsonProperty("Email")]
     [JsonPropertyName("Email")]
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     [XmlElement("Reference", Order = 4)]
     [JsonProperty("Reference")]
     [JsonPropertyName("Reference")]
-    public string Reference { get; set; }
+    public string? Reference { get; set; }
 
   }
 
@@ -108,47 +109,47 @@ namespace Altinn.App.Models
     [XmlElement("CompanyNumber", Order = 1)]
     [JsonProperty("CompanyNumber")]
     [JsonPropertyName("CompanyNumber")]
-    public string CompanyNumber { get; set; }
+    public string? CompanyNumber { get; set; }
 
     [XmlElement("CompanyName", Order = 2)]
     [JsonProperty("CompanyName")]
     [JsonPropertyName("CompanyName")]
-    public string CompanyName { get; set; }
+    public string? CompanyName { get; set; }
 
     [XmlElement("FirstName", Order = 3)]
     [JsonProperty("FirstName")]
     [JsonPropertyName("FirstName")]
-    public string FirstName { get; set; }
+    public string? FirstName { get; set; }
 
     [XmlElement("LastName", Order = 4)]
     [JsonProperty("LastName")]
     [JsonPropertyName("LastName")]
-    public string LastName { get; set; }
+    public string? LastName { get; set; }
 
     [XmlElement("StreetAddress", Order = 5)]
     [JsonProperty("StreetAddress")]
     [JsonPropertyName("StreetAddress")]
-    public string StreetAddress { get; set; }
+    public string? StreetAddress { get; set; }
 
     [XmlElement("ZipCode", Order = 6)]
     [JsonProperty("ZipCode")]
     [JsonPropertyName("ZipCode")]
-    public string ZipCode { get; set; }
+    public string? ZipCode { get; set; }
 
     [XmlElement("City", Order = 7)]
     [JsonProperty("City")]
     [JsonPropertyName("City")]
-    public string City { get; set; }
+    public string? City { get; set; }
 
     [XmlElement("Country", Order = 8)]
     [JsonProperty("Country")]
     [JsonPropertyName("Country")]
-    public string Country { get; set; }
+    public string? Country { get; set; }
 
     [XmlElement("ClientNumber", Order = 9)]
     [JsonProperty("ClientNumber")]
     [JsonPropertyName("ClientNumber")]
-    public string ClientNumber { get; set; }
+    public string? ClientNumber { get; set; }
 
   }
 
@@ -157,7 +158,7 @@ namespace Altinn.App.Models
     [XmlElement("CompanyProperties", Order = 1)]
     [JsonProperty("CompanyProperties")]
     [JsonPropertyName("CompanyProperties")]
-    public List<CompanyProperties> CompanyProperties { get; set; }
+    public List<CompanyProperties>? CompanyProperties { get; set; }
 
   }
 
@@ -166,17 +167,17 @@ namespace Altinn.App.Models
     [XmlElement("TrademarkType", Order = 1)]
     [JsonProperty("TrademarkType")]
     [JsonPropertyName("TrademarkType")]
-    public string TrademarkType { get; set; }
+    public string? TrademarkType { get; set; }
 
     [XmlElement("TrademarkText", Order = 2)]
     [JsonProperty("TrademarkText")]
     [JsonPropertyName("TrademarkText")]
-    public string TrademarkText { get; set; }
+    public string? TrademarkText { get; set; }
 
     [XmlElement("TrademarkDetails", Order = 3)]
     [JsonProperty("TrademarkDetails")]
     [JsonPropertyName("TrademarkDetails")]
-    public string TrademarkDetails { get; set; }
+    public string? TrademarkDetails { get; set; }
 
   }
 
@@ -185,12 +186,12 @@ namespace Altinn.App.Models
     [XmlElement("Inventory", Order = 1)]
     [JsonProperty("Inventory")]
     [JsonPropertyName("Inventory")]
-    public Inventory Inventory { get; set; }
+    public Inventory? Inventory { get; set; }
 
     [XmlElement("Details", Order = 2)]
     [JsonProperty("Details")]
     [JsonPropertyName("Details")]
-    public string Details { get; set; }
+    public string? Details { get; set; }
 
   }
 
@@ -199,7 +200,7 @@ namespace Altinn.App.Models
     [XmlElement("InventoryProperties", Order = 1)]
     [JsonProperty("InventoryProperties")]
     [JsonPropertyName("InventoryProperties")]
-    public List<InventoryProperties> InventoryProperties { get; set; }
+    public List<InventoryProperties>? InventoryProperties { get; set; }
 
   }
 
@@ -219,12 +220,12 @@ namespace Altinn.App.Models
     [XmlElement("NiceClassification", Order = 1)]
     [JsonProperty("NiceClassification")]
     [JsonPropertyName("NiceClassification")]
-    public string NiceClassification { get; set; }
+    public string? NiceClassification { get; set; }
 
     [XmlElement("GoodsAndServices", Order = 2)]
     [JsonProperty("GoodsAndServices")]
     [JsonPropertyName("GoodsAndServices")]
-    public string GoodsAndServices { get; set; }
+    public string? GoodsAndServices { get; set; }
 
   }
 
@@ -253,17 +254,17 @@ namespace Altinn.App.Models
     [XmlElement("Year", Order = 3)]
     [JsonProperty("Year")]
     [JsonPropertyName("Year")]
-    public string Year { get; set; }
+    public string? Year { get; set; }
 
     [XmlElement("Number", Order = 4)]
     [JsonProperty("Number")]
     [JsonPropertyName("Number")]
-    public string Number { get; set; }
+    public string? Number { get; set; }
 
     [XmlElement("Priority", Order = 5)]
     [JsonProperty("Priority")]
     [JsonPropertyName("Priority")]
-    public Priority Priority { get; set; }
+    public Priority? Priority { get; set; }
 
   }
 
@@ -272,12 +273,12 @@ namespace Altinn.App.Models
     [XmlElement("PriorityReason", Order = 1)]
     [JsonProperty("PriorityReason")]
     [JsonPropertyName("PriorityReason")]
-    public string PriorityReason { get; set; }
+    public string? PriorityReason { get; set; }
 
     [XmlElement("PriorityProperties", Order = 2)]
     [JsonProperty("PriorityProperties")]
     [JsonPropertyName("PriorityProperties")]
-    public List<PriorityProperties> PriorityProperties { get; set; }
+    public List<PriorityProperties>? PriorityProperties { get; set; }
 
   }
 
@@ -297,47 +298,47 @@ namespace Altinn.App.Models
     [XmlElement("PriorityDate", Order = 1)]
     [JsonProperty("PriorityDate")]
     [JsonPropertyName("PriorityDate")]
-    public string PriorityDate { get; set; }
+    public string? PriorityDate { get; set; }
 
     [XmlElement("CaseDate", Order = 2)]
     [JsonProperty("CaseDate")]
     [JsonPropertyName("CaseDate")]
-    public string CaseDate { get; set; }
+    public string? CaseDate { get; set; }
 
     [XmlElement("CaseName", Order = 3)]
     [JsonProperty("CaseName")]
     [JsonPropertyName("CaseName")]
-    public string CaseName { get; set; }
+    public string? CaseName { get; set; }
 
     [XmlElement("InternationalDischargeDate", Order = 4)]
     [JsonProperty("InternationalDischargeDate")]
     [JsonPropertyName("InternationalDischargeDate")]
-    public string InternationalDischargeDate { get; set; }
+    public string? InternationalDischargeDate { get; set; }
 
     [XmlElement("InternationalRegistrationNumber", Order = 5)]
     [JsonProperty("InternationalRegistrationNumber")]
     [JsonPropertyName("InternationalRegistrationNumber")]
-    public string InternationalRegistrationNumber { get; set; }
+    public string? InternationalRegistrationNumber { get; set; }
 
     [XmlElement("CountryCode", Order = 6)]
     [JsonProperty("CountryCode")]
     [JsonPropertyName("CountryCode")]
-    public string CountryCode { get; set; }
+    public string? CountryCode { get; set; }
 
     [XmlElement("RegistrationNumber", Order = 7)]
     [JsonProperty("RegistrationNumber")]
     [JsonPropertyName("RegistrationNumber")]
-    public string RegistrationNumber { get; set; }
+    public string? RegistrationNumber { get; set; }
 
     [XmlElement("NiceClassification", Order = 8)]
     [JsonProperty("NiceClassification")]
     [JsonPropertyName("NiceClassification")]
-    public string NiceClassification { get; set; }
+    public string? NiceClassification { get; set; }
 
     [XmlElement("Reference", Order = 9)]
     [JsonProperty("Reference")]
     [JsonPropertyName("Reference")]
-    public string Reference { get; set; }
+    public string? Reference { get; set; }
 
   }
 
@@ -346,12 +347,12 @@ namespace Altinn.App.Models
     [XmlElement("SearchResult", Order = 1)]
     [JsonProperty("SearchResult")]
     [JsonPropertyName("SearchResult")]
-    public List<SearchResult> SearchResult { get; set; }
+    public List<SearchResult>? SearchResult { get; set; }
 
     [XmlElement("SearchServiceLink", Order = 2)]
     [JsonProperty("SearchServiceLink")]
     [JsonPropertyName("SearchServiceLink")]
-    public string SearchServiceLink { get; set; }
+    public string? SearchServiceLink { get; set; }
 
   }
 
@@ -371,22 +372,22 @@ namespace Altinn.App.Models
     [XmlElement("TrademarkText", Order = 1)]
     [JsonProperty("TrademarkText")]
     [JsonPropertyName("TrademarkText")]
-    public string TrademarkText { get; set; }
+    public string? TrademarkText { get; set; }
 
     [XmlElement("ApplicationNumber", Order = 2)]
     [JsonProperty("ApplicationNumber")]
     [JsonPropertyName("ApplicationNumber")]
-    public string ApplicationNumber { get; set; }
+    public string? ApplicationNumber { get; set; }
 
     [XmlElement("GoodsAndServicesClassNumber", Order = 3)]
     [JsonProperty("GoodsAndServicesClassNumber")]
     [JsonPropertyName("GoodsAndServicesClassNumber")]
-    public string GoodsAndServicesClassNumber { get; set; }
+    public string? GoodsAndServicesClassNumber { get; set; }
 
     [XmlElement("Status", Order = 4)]
     [JsonProperty("Status")]
     [JsonPropertyName("Status")]
-    public string Status { get; set; }
+    public string? Status { get; set; }
 
   }
 }

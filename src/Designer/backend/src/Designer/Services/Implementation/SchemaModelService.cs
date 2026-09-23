@@ -8,6 +8,8 @@ using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
@@ -23,7 +25,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
 
@@ -37,6 +38,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </summary>
 public class SchemaModelService : ISchemaModelService
 {
+    private static readonly XNamespace s_xmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
+
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
@@ -169,12 +172,7 @@ public class SchemaModelService : ISchemaModelService
         ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
         await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaFileName);
-        await UpdateApplicationMetadata(
-            altinnRepoEditingContext,
-            altinnAppGitRepository,
-            schemaFileName,
-            csharpModelName
-        );
+        await UpdateApplicationMetadata(altinnAppGitRepository, schemaFileName, csharpModelName);
         await UpdateXsdFromJsonSchema(altinnAppGitRepository, jsonSchema, schemaFileName);
     }
 
@@ -253,20 +251,133 @@ public class SchemaModelService : ISchemaModelService
         }
 
         /* From here repository is assumed to be for an app. Validate with a Directory.Exist check? */
-        var schemaFileName = altinnAppGitRepository.GetSchemaName(fileNameWithExtension);
-        await altinnAppGitRepository.SaveXsd(xsdMemoryStream, fileNameWithExtension);
-        await altinnAppGitRepository.SaveJsonSchema(serializedJsonContent, schemaFileName);
-        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
-        string csharpModelName = modelMetadata.GetRootElement().TypeName;
-        await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaFileName);
-        await UpdateApplicationMetadata(
-            altinnRepoEditingContext,
+        await SaveModelFilesFromXsd(
             altinnAppGitRepository,
-            schemaFileName,
-            csharpModelName
+            fileNameWithExtension,
+            xsdMemoryStream,
+            jsonSchema,
+            serializedJsonContent
         );
 
         return serializedJsonContent;
+    }
+
+    /// <inheritdoc/>
+    public async Task<string> ReplaceSchemaFromXsd(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string relativeFilePath,
+        Stream xsdStream,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        if (!altinnAppGitRepository.FileExistsByRelativePath(relativeFilePath))
+        {
+            throw new FileNotFoundException(
+                $"The data model {relativeFilePath} does not exist and cannot be replaced.",
+                relativeFilePath
+            );
+        }
+
+        string schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
+        MemoryStream xsdMemoryStream = RenameXsdRootElement(GetXsdMemoryStream(xsdStream), schemaFileName);
+        JsonSchema jsonSchema = GenerateJsonSchemaFromXsd(xsdMemoryStream);
+        string serializedJsonContent = SerializeJson(jsonSchema);
+
+        AltinnRepositoryType altinnRepositoryType = await altinnAppGitRepository.GetRepositoryType();
+        if (altinnRepositoryType == AltinnRepositoryType.Datamodels)
+        {
+            await altinnAppGitRepository.WriteTextByRelativePathAsync(
+                relativeFilePath,
+                serializedJsonContent,
+                true,
+                cancellationToken
+            );
+            await UpdateXsdFromJsonSchema(altinnAppGitRepository, jsonSchema, schemaFileName);
+            return serializedJsonContent;
+        }
+
+        await SaveModelFilesFromXsd(
+            altinnAppGitRepository,
+            $"{schemaFileName}.xsd",
+            xsdMemoryStream,
+            jsonSchema,
+            serializedJsonContent
+        );
+        altinnAppGitRepository.DeleteModelMetadata(
+            Path.Combine(altinnAppGitRepository.GetRelativeModelFolder(), $"{schemaFileName}.metadata.json")
+        );
+
+        return serializedJsonContent;
+    }
+
+    /// <summary>
+    /// Renames the root element of the XSD to the name of the model, so that a replaced model keeps
+    /// the element name it is known by in the app. The root element is the first global element in
+    /// the schema, which is the one the XSD to JSON schema conversion treats as the root as well.
+    /// </summary>
+    private static MemoryStream RenameXsdRootElement(MemoryStream xsdMemoryStream, string rootElementName)
+    {
+        if (string.IsNullOrEmpty(rootElementName))
+        {
+            return xsdMemoryStream;
+        }
+
+        XDocument xsdDocument;
+        try
+        {
+            xsdDocument = XDocument.Load(xsdMemoryStream, LoadOptions.PreserveWhitespace);
+        }
+        catch (XmlException)
+        {
+            // Leave invalid XML to the conversion, which reports it to the user
+            xsdMemoryStream.Position = 0;
+            return xsdMemoryStream;
+        }
+
+        XElement rootElement = xsdDocument
+            .Root?.Elements(s_xmlSchemaNamespace + "element")
+            .FirstOrDefault(element => element.Attribute("name") is not null);
+        if (rootElement is null)
+        {
+            xsdMemoryStream.Position = 0;
+            return xsdMemoryStream;
+        }
+
+        rootElement.SetAttributeValue("name", rootElementName);
+
+        MemoryStream renamedXsdMemoryStream = new();
+        xsdDocument.Save(renamedXsdMemoryStream, SaveOptions.DisableFormatting);
+        renamedXsdMemoryStream.Position = 0;
+
+        return renamedXsdMemoryStream;
+    }
+
+    private async Task SaveModelFilesFromXsd(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string xsdFileNameWithExtension,
+        MemoryStream xsdMemoryStream,
+        JsonSchema jsonSchema,
+        string serializedJsonContent
+    )
+    {
+        // Everything that can fail is done before the first file is written, so that a schema which
+        // cannot be converted all the way leaves the existing model files untouched.
+        string schemaFileName = altinnAppGitRepository.GetSchemaName(xsdFileNameWithExtension);
+        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
+        string csharpModelName = modelMetadata.GetRootElement().TypeName;
+        string csharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+
+        await altinnAppGitRepository.SaveXsd(xsdMemoryStream, xsdFileNameWithExtension);
+        await altinnAppGitRepository.SaveJsonSchema(serializedJsonContent, schemaFileName);
+        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
+        await UpdateApplicationMetadata(altinnAppGitRepository, schemaFileName, csharpModelName);
     }
 
     private MemoryStream GetXsdMemoryStream(Stream xsdStream)
@@ -347,12 +458,7 @@ public class SchemaModelService : ISchemaModelService
 
             var relativePath = await altinnAppGitRepository.SaveJsonSchema(jsonSchema, schemaAndModelName);
 
-            await UpdateApplicationMetadata(
-                altinnRepoEditingContext,
-                altinnAppGitRepository,
-                schemaAndModelName,
-                schemaAndModelName
-            );
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaAndModelName, schemaAndModelName);
 
             return (relativePath, jsonSchema);
         }
@@ -448,20 +554,28 @@ public class SchemaModelService : ISchemaModelService
         string schemaFileName
     )
     {
+        string csharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
+    }
+
+    private async Task<string> GenerateCSharpClasses(
+        AltinnAppGitRepository altinnAppGitRepository,
+        ModelMetadata modelMetadata
+    )
+    {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         AltinnStudioSettings altinnStudioSettings = await altinnAppGitRepository.GetAltinnStudioSettings();
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
         bool separateNamespace = NamespaceNeedsToBeSeparated(applicationMetadata, csharpModelName);
-        string csharpClasses = _modelMetadataToCsharpConverter.CreateModelFromMetadata(
+
+        return _modelMetadataToCsharpConverter.CreateModelFromMetadata(
             modelMetadata,
             separateNamespace,
             altinnStudioSettings.UseNullableReferenceTypes
         );
-        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
     }
 
     private async Task UpdateApplicationMetadata(
-        AltinnRepoEditingContext altinnRepoEditingContext,
         AltinnAppGitRepository altinnAppGitRepository,
         string schemaFileName,
         string csharpModelName
@@ -469,15 +583,8 @@ public class SchemaModelService : ISchemaModelService
     {
         ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
 
-        bool isNewDataType = application.DataTypes?.Any(d => d.Id == schemaFileName) != true;
-        string restoredTaskId = null;
-        if (isNewDataType && _appVersionService.IsV9App(altinnRepoEditingContext))
-        {
-            restoredTaskId = await FindTaskIdWithDefaultDataType(altinnAppGitRepository, schemaFileName);
-        }
-
         string fullTypeName = GetFullTypeName(application, csharpModelName);
-        UpdateApplicationWithAppLogicModel(application, schemaFileName, fullTypeName, restoredTaskId);
+        UpdateApplicationWithAppLogicModel(application, schemaFileName, fullTypeName);
 
         await altinnAppGitRepository.SaveApplicationMetadata(application);
     }
@@ -489,12 +596,10 @@ public class SchemaModelService : ISchemaModelService
     /// <param name="application">The <see cref="Application"/> object to be updated.</param>
     /// <param name="dataTypeId">The id of the datatype to bed added.</param>
     /// <param name="classRef">The C# class reference of the data type.</param>
-    /// <param name="taskId">The task id to bind a newly created data type to, if a previous binding for this id was found.</param>
     private static void UpdateApplicationWithAppLogicModel(
         ApplicationMetadata application,
         string dataTypeId,
-        string classRef,
-        string taskId = null
+        string classRef
     )
     {
         if (application.DataTypes == null)
@@ -509,7 +614,7 @@ public class SchemaModelService : ISchemaModelService
             logicElement = new DataType
             {
                 Id = dataTypeId,
-                TaskId = taskId,
+                TaskId = null,
                 AllowedContentTypes = new List<string>() { "application/xml" },
                 MaxCount = 1,
                 MinCount = 1,
@@ -574,9 +679,11 @@ public class SchemaModelService : ISchemaModelService
         if (applicationMetadata.DataTypes != null)
         {
             DataType dataTypeToDelete = applicationMetadata.DataTypes.Find(m => m.Id == id);
-
-            // v9: keep defaultDataType so recreate can restore TaskId.
-            if (!isV9OrNewer && altinnAppGitRepository.AppUsesLayoutSets())
+            if (isV9OrNewer)
+            {
+                await ClearDefaultDataTypeFromLayoutSettings(altinnAppGitRepository, id);
+            }
+            else if (altinnAppGitRepository.AppUsesLayoutSets())
             {
                 await ClearDataTypeFromLayoutSets(altinnAppGitRepository, id);
             }
@@ -592,41 +699,32 @@ public class SchemaModelService : ISchemaModelService
         await altinnAppGitRepository.SaveLayoutSets(layoutSets);
     }
 
-    private static async Task<string> FindTaskIdWithDefaultDataType(
+    private static async Task ClearDefaultDataTypeFromLayoutSettings(
         AltinnAppGitRepository altinnAppGitRepository,
         string id
     )
     {
-        IEnumerable<string> processTaskIds;
-        try
-        {
-            processTaskIds =
-                altinnAppGitRepository.GetProcessDefinitions()?.Process?.Tasks?.Select(task => task.Id) ?? [];
-        }
-        catch (NotFoundHttpRequestException)
-        {
-            return null;
-        }
-
-        foreach (string taskId in processTaskIds)
+        IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders();
+        foreach (string layoutSetName in uiFolders)
         {
             LayoutSettings layoutSettings;
             try
             {
-                layoutSettings = await altinnAppGitRepository.GetLayoutSettings(taskId);
+                layoutSettings = await altinnAppGitRepository.GetLayoutSettings(layoutSetName);
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
                 continue;
             }
 
-            if (layoutSettings.DefaultDataType == id)
+            if (layoutSettings.DefaultDataType != id)
             {
-                return taskId;
+                continue;
             }
-        }
 
-        return null;
+            layoutSettings.DefaultDataType = null;
+            await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
+        }
     }
 
     private string GetFullTypeName(ApplicationMetadata application, string csharpModelName)
