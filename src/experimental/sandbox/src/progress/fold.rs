@@ -13,6 +13,9 @@ use super::{Outcome, OutputStream, Phase, ProgressEvent, ProgressUnit, StepId};
 
 /// Output lines retained per operation.
 const OUTPUT_LINES: usize = 1_000;
+/// Output text retained per operation, so that a serialized [`Progress`]
+/// stays small enough to send in one message even when escaping multiplies it.
+const OUTPUT_BYTES: usize = 512 * 1_024;
 /// Finished steps retained per phase.
 const FINISHED_STEPS: usize = 64;
 /// Longest retained output line; longer output is split.
@@ -99,9 +102,12 @@ pub struct ActiveStep {
     /// When the step started.
     #[serde(with = "time::serde::rfc3339")]
     pub started_at: OffsetDateTime,
-    /// The step's quantity, for a measured step.
+    /// The step's quantity, for a measured step once it has reported one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub measurement: Option<Measurement>,
+    /// Unit of a measured step, fixed when it started.
+    #[serde(skip)]
+    unit: Option<ProgressUnit>,
 }
 
 /// A step that ended.
@@ -114,7 +120,7 @@ pub struct FinishedStep {
     pub outcome: Outcome,
     /// Time spent in the step, in milliseconds.
     pub elapsed_ms: u64,
-    /// The step's final quantity, for a measured step.
+    /// The step's final quantity, for a measured step that reported one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub measurement: Option<Measurement>,
     /// Output lines produced before the step ended, which orders it among them.
@@ -140,6 +146,8 @@ pub struct Measurement {
 pub struct OutputLog {
     lines: VecDeque<OutputLine>,
     next_sequence: u64,
+    #[serde(skip)]
+    bytes: usize,
     #[serde(skip)]
     partial: HashMap<(StepId, OutputStream), Partial>,
 }
@@ -248,11 +256,7 @@ impl Progress {
         Self {
             finished,
             current,
-            output: OutputLog {
-                lines: self.output.tail(output_lines).cloned().collect(),
-                next_sequence: self.output.next_sequence,
-                partial: HashMap::new(),
-            },
+            output: OutputLog::retained(self.output.tail(output_lines).cloned(), self.output.next_sequence),
             status: self.status.clone(),
         }
     }
@@ -262,17 +266,14 @@ impl Progress {
     #[must_use]
     pub fn output_from(&self, sequence: u64) -> Self {
         Self {
-            output: OutputLog {
-                lines: self
-                    .output
+            output: OutputLog::retained(
+                self.output
                     .lines
                     .iter()
                     .filter(|line| line.sequence >= sequence)
-                    .cloned()
-                    .collect(),
-                next_sequence: self.output.next_sequence,
-                partial: HashMap::new(),
-            },
+                    .cloned(),
+                self.output.next_sequence,
+            ),
             ..self.clone()
         }
     }
@@ -297,18 +298,27 @@ impl Progress {
                         id: id.clone(),
                         name: name.clone(),
                         started_at: OffsetDateTime::now_utc(),
-                        measurement: unit.map(|unit| Measurement {
+                        // A figure is shown once there is one: a step that never
+                        // reports its quantity shows none rather than zero.
+                        measurement: unit.zip(*total).map(|(unit, total)| Measurement {
                             unit,
                             completed: 0,
-                            total: *total,
+                            total: Some(total),
                         }),
+                        unit: *unit,
                     });
                 }
             }
             ProgressEvent::StepProgress { id, completed, total } => {
-                if let Some(measurement) = self.active_step_mut(id).and_then(|step| step.measurement.as_mut()) {
-                    measurement.completed = *completed;
-                    measurement.total = total.or(measurement.total);
+                if let Some(step) = self.active_step_mut(id)
+                    && let Some(unit) = step.unit
+                {
+                    let previous = step.measurement.and_then(|measurement| measurement.total);
+                    step.measurement = Some(Measurement {
+                        unit,
+                        completed: *completed,
+                        total: total.or(previous),
+                    });
                 }
             }
             ProgressEvent::StepOutput { id, stream, bytes } => {
@@ -432,6 +442,16 @@ impl OutputLog {
         self.next_sequence == 0
     }
 
+    fn retained(lines: impl Iterator<Item = OutputLine>, next_sequence: u64) -> Self {
+        let lines = lines.collect::<VecDeque<_>>();
+        Self {
+            bytes: lines.iter().map(|line| line.text.len()).sum(),
+            lines,
+            next_sequence,
+            partial: HashMap::new(),
+        }
+    }
+
     fn first_sequence(&self) -> u64 {
         self.lines.front().map_or(self.next_sequence, |line| line.sequence)
     }
@@ -479,9 +499,12 @@ impl OutputLog {
         if text.trim_start().is_empty() {
             return;
         }
-        if self.lines.len() == OUTPUT_LINES {
-            self.lines.pop_front();
+        while self.lines.len() >= OUTPUT_LINES || (!self.lines.is_empty() && self.bytes + text.len() > OUTPUT_BYTES) {
+            if let Some(line) = self.lines.pop_front() {
+                self.bytes -= line.text.len();
+            }
         }
+        self.bytes += text.len();
         self.lines.push_back(OutputLine {
             sequence: self.next_sequence,
             step: step.to_owned(),
@@ -611,6 +634,71 @@ mod tests {
             outcome: Outcome::Completed,
             elapsed: Duration::from_millis(5),
         }
+    }
+
+    #[test]
+    fn a_measured_step_shows_no_figure_until_it_reports_one() {
+        let mut progress = Progress::new();
+        let build = StepId::generate();
+        progress.apply(&phase_started());
+        progress.apply(&step_started(&build, "Build", Some(ProgressUnit::Bytes)));
+        assert_eq!(progress.current_step().expect("step").measurement, None);
+
+        let export = StepId::generate();
+        progress.apply(&step_started(&export, "Export", Some(ProgressUnit::Bytes)));
+        progress.apply(&ProgressEvent::StepProgress {
+            id: export.clone(),
+            completed: 7,
+            total: None,
+        });
+        progress.apply(&ended(&build));
+        progress.apply(&ended(&export));
+        progress.succeed();
+
+        let steps = &progress.finished()[0].steps;
+        assert_eq!(steps[0].measurement, None, "a step that never reported has no figure");
+        assert_eq!(
+            steps[1].measurement,
+            Some(Measurement {
+                unit: ProgressUnit::Bytes,
+                completed: 7,
+                total: None,
+            })
+        );
+    }
+
+    #[test]
+    fn retained_output_is_bounded_by_bytes_as_well_as_lines() {
+        let mut progress = Progress::new();
+        let step = StepId::generate();
+        progress.apply(&phase_started());
+        progress.apply(&step_started(&step, "Build", None));
+        let long = "x".repeat(LINE_BYTES - 1);
+        for _ in 0..OUTPUT_LINES {
+            progress.apply(&output(&step, &format!("{long}\n")));
+        }
+
+        let retained = progress
+            .output()
+            .tail(usize::MAX)
+            .map(|line| line.text.len())
+            .sum::<usize>();
+        assert!(retained <= OUTPUT_BYTES, "{retained} bytes retained");
+        assert_eq!(
+            progress.output().tail(usize::MAX).count(),
+            OUTPUT_BYTES / (LINE_BYTES - 1),
+            "the oldest lines make room"
+        );
+        assert_eq!(
+            progress.output().next_sequence,
+            OUTPUT_LINES as u64,
+            "every line is still numbered"
+        );
+        let from = progress.output_from(0);
+        assert_eq!(
+            from.output().tail(usize::MAX).count(),
+            progress.output().tail(usize::MAX).count()
+        );
     }
 
     #[test]
@@ -800,6 +888,11 @@ mod tests {
         let step = StepId::generate();
         progress.apply(&phase_started());
         progress.apply(&step_started(&step, "Build", Some(ProgressUnit::Items)));
+        progress.apply(&ProgressEvent::StepProgress {
+            id: step.clone(),
+            completed: 1,
+            total: Some(2),
+        });
         progress.apply(&output(&step, "done\nhalf"));
         let json = serde_json::to_value(&progress).expect("progress JSON");
         assert_eq!(json["current"]["phase"]["id"], "imageResolve");
