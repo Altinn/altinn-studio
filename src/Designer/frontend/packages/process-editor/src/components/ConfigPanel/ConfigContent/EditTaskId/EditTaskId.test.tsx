@@ -5,15 +5,23 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const task1IdMock = 'task_1';
 const setBpmnDetailsMock = jest.fn();
+let mockBackendVersion = '8.9.0';
+let mockLayoutSets: LayoutSets = [];
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: mockModelerRef,
     setBpmnDetails: setBpmnDetailsMock,
     bpmnDetails: mockBpmnDetails,
+    appVersion: { backendVersion: mockBackendVersion, frontendVersion: '' },
   }),
+}));
+
+jest.mock('../../../../contexts/BpmnApiContext', () => ({
+  useBpmnApiContext: () => ({ layoutSets: mockLayoutSets }),
 }));
 
 jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
@@ -39,6 +47,8 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 describe('EditTaskId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBackendVersion = '8.9.0';
+    mockLayoutSets = [];
   });
   it('should render task id as view mode by default', () => {
     render(<EditTaskId />);
@@ -163,6 +173,67 @@ describe('EditTaskId', () => {
     });
   });
 
+  describe('when the task has a layout set named after it (v9)', () => {
+    const subformLayoutSetId = 'subformLayoutSet';
+    const idLongerThanLayoutSetNameLimit = 'a'.repeat(29);
+
+    beforeEach(() => {
+      mockBackendVersion = '9.0.0';
+      mockLayoutSets = [{ id: mockBpmnDetails.id }, { id: subformLayoutSetId, type: 'subform' }];
+    });
+
+    const layoutSetNameTests = [
+      {
+        description: 'is longer than a layout set name can be',
+        inputValue: idLongerThanLayoutSetNameLimit,
+        expectedError: 'validation_errors.name_invalid',
+      },
+      {
+        description: 'is shorter than a layout set name can be',
+        inputValue: 'a',
+        expectedError:
+          'process_editor.configuration_panel_custom_receipt_layout_set_name_validation',
+      },
+      {
+        description: 'is the name of another layout set',
+        inputValue: subformLayoutSetId,
+        expectedError: 'process_editor.configuration_panel_layout_set_id_not_unique',
+      },
+    ];
+
+    layoutSetNameTests.forEach(({ description, inputValue, expectedError }) => {
+      it(`should display validation error and keep the task id when the new id ${description}`, async () => {
+        const user = userEvent.setup();
+        render(<EditTaskId />);
+
+        await changeTaskId(user, inputValue);
+
+        expect(await screen.findByText(textMock(expectedError))).toBeInTheDocument();
+        expect(setBpmnDetailsMock).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should accept an id longer than a layout set name can be when the task has no layout set', async () => {
+      mockLayoutSets = [{ id: subformLayoutSetId, type: 'subform' }];
+      const user = userEvent.setup();
+      render(<EditTaskId />);
+
+      await changeTaskId(user, idLongerThanLayoutSetNameLimit);
+
+      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should accept an id longer than a layout set name can be in an app before v9', async () => {
+      mockBackendVersion = '8.9.0';
+      const user = userEvent.setup();
+      render(<EditTaskId />);
+
+      await changeTaskId(user, idLongerThanLayoutSetNameLimit);
+
+      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
     const metadataFormRefMock = { current: undefined };
@@ -189,3 +260,17 @@ describe('EditTaskId', () => {
     expect(setBpmnDetailsMock).not.toHaveBeenCalled();
   });
 });
+
+const changeTaskId = async (user: ReturnType<typeof userEvent.setup>, newId: string) => {
+  await user.click(
+    screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    }),
+  );
+  const input = screen.getByLabelText(
+    textMock('process_editor.configuration_panel_change_task_id'),
+  );
+  await user.clear(input);
+  await user.type(input, newId);
+  await user.tab();
+};
