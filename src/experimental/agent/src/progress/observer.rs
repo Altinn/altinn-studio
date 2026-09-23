@@ -21,6 +21,14 @@ impl SandboxObserver {
         Self { state, id }
     }
 
+    /// Starts recording a resync of a Ready Agent, which replaces the Agent's
+    /// latest pass only if it fails.
+    #[must_use]
+    pub fn resync(id: AgentId, state: ProvisioningState) -> Self {
+        state.begin_resync(id);
+        Self { state, id }
+    }
+
     /// Returns the reporter for the pass's progress.
     #[must_use]
     pub fn reporter(&self) -> ProgressReporter {

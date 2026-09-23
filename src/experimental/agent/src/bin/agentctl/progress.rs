@@ -115,10 +115,10 @@ pub(crate) struct Renderer<W: Write = io::Stderr> {
     failures: u32,
     revision: Option<Revision>,
     /// Pass being rendered and the position in its progress.
-    pass: Option<u64>,
+    pass: Option<Revision>,
     cursor: ProgressCursor,
     /// Pass whose failure was already reported.
-    reported_failure: Option<u64>,
+    reported_failure: Option<Revision>,
     /// A step of the current phase left a permanent line on the terminal.
     printed_step: bool,
     /// Output of the step in progress, shown when it fails.
@@ -463,7 +463,7 @@ mod tests {
     /// Builds successive snapshots of one Agent's progress, as the daemon reports them.
     struct Daemon {
         changes: Changes,
-        pass: u64,
+        pass: Revision,
         progress: Progress,
         status: Status,
         steps: HashMap<&'static str, StepId>,
@@ -471,9 +471,10 @@ mod tests {
 
     impl Daemon {
         fn new() -> Self {
+            let changes = Changes::new();
             Self {
-                changes: Changes::new(),
-                pass: 1,
+                pass: changes.revision(),
+                changes,
                 progress: Progress::new(),
                 status: Status::default(),
                 steps: HashMap::new(),
@@ -540,7 +541,8 @@ mod tests {
         }
 
         fn retry(&mut self) -> &mut Self {
-            self.pass += 1;
+            self.changes.bump();
+            self.pass = self.changes.revision();
             self.progress = Progress::new();
             self
         }
@@ -744,7 +746,13 @@ mod tests {
         renderer.render(&snapshot);
         assert_eq!(
             renderer.position(),
-            (Some(snapshot.revision), Some(OutputPosition { pass: 1, sequence: 2 }))
+            (
+                Some(snapshot.revision),
+                Some(OutputPosition {
+                    pass: daemon.pass,
+                    sequence: 2
+                })
+            )
         );
     }
 }

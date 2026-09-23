@@ -88,7 +88,12 @@ impl Reconciler {
             record.agent.status = self.update_status(&record, status, None).await?;
         }
 
-        let observer = SandboxObserver::new(record.id, self.provisioning.clone());
+        let status = &record.agent.status;
+        let observer = if status.is_ready() && status.observed_generation == record.agent.metadata.generation {
+            SandboxObserver::resync(record.id, self.provisioning.clone())
+        } else {
+            SandboxObserver::new(record.id, self.provisioning.clone())
+        };
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {
@@ -142,10 +147,11 @@ impl Reconciler {
         )];
         self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
-        observer.succeeded();
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
+        // As on failure, readiness is stored before followers see the pass end.
         self.update_status(&record, status, None).await?;
+        observer.succeeded();
         if ensured.runtime_restarted {
             self.notify_sessions(record.id);
         }
@@ -256,6 +262,18 @@ impl Reconciler {
         failure: Option<FailureKind>,
     ) -> Result<Status, Error> {
         status.failure = failure;
+        // A resync that observes what is already stored writes nothing, so it
+        // advances no revision and wakes no watcher.
+        let stored = Status {
+            progress: None,
+            provenance: None,
+            ..record.agent.status.clone()
+        };
+        let mut unchanged = status.clone();
+        unchanged.stamp_transitions(&stored, time::OffsetDateTime::UNIX_EPOCH);
+        if unchanged == stored {
+            return Ok(stored);
+        }
         let notify = session_relevant_transition(&record.agent.status, &status);
         let stored = self
             .store

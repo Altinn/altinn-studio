@@ -297,7 +297,7 @@ fn status_updates_stamp_condition_transitions_and_keep_the_failure_class() {
         let mut retry = Status::observed(1, None, vec![ready_false("ProviderSelected", "another detail", None)]);
         retry.failure = Some(agent::FailureKind::Transient);
         retry.progress = Some(agent::progress::Provisioning {
-            pass: 1,
+            pass: changes.revision(),
             progress: sandbox::progress::Progress::new(),
         });
         let stored = store.update_status(record.id, 1, retry).await.expect("status updated");
