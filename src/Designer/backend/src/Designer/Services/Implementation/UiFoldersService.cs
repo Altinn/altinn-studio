@@ -142,6 +142,27 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
+    public async Task ValidateTaskIdChange(
+        AltinnRepoEditingContext editingContext,
+        string oldTaskId,
+        string newTaskId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (oldTaskId == newTaskId)
+        {
+            return;
+        }
+
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        // Only a task whose layout set folder carries its id is renamed on disk, see ProcessTaskIdChangedUiFoldersHandler.
+        if (altinnAppGitRepository.LayoutSetFolderExistsByExactName(oldTaskId))
+        {
+            await ValidateNewLayoutSetName(altinnAppGitRepository, newTaskId, cancellationToken);
+        }
+    }
+
     public async Task<IEnumerable<UiFolderLayoutSetDto>> AddLayoutSet(
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
