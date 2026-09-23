@@ -252,7 +252,11 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
 fn render_tree(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewState, hit_map: &mut HitMap) {
     let rows = app.render_rows();
     if rows.is_empty() {
-        let placeholder = if app.loaded { "(no agents)" } else { "loading…" };
+        let placeholder = match (app.loaded, app.filter.is_empty()) {
+            (false, _) => "loading…",
+            (true, true) => "(no agents)",
+            (true, false) => "(nothing matches the filter)",
+        };
         frame.render_widget(
             Paragraph::new(placeholder).style(Style::new().fg(Color::DarkGray)),
             area,
@@ -1565,6 +1569,11 @@ mod tests {
         assert!(text.contains("filter: rev"));
         assert!(text.contains("review") && !text.contains("main"));
         assert!(text.lines().last().is_some_and(|line| line.starts_with("/rev▏")));
+
+        app.filter = "nothing".into();
+        app.rebuild();
+        draw(&mut terminal, &app);
+        assert!(buffer_text(&terminal).contains("(nothing matches the filter)"));
     }
 
     #[test]
