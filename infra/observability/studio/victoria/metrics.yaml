@@ -18,8 +18,8 @@ spec:
   # filesystem, no privilege escalation and all capabilities dropped - the same
   # shape the hand-written vtagent StatefulSet in traces.yaml sets by hand. The
   # read-only root filesystem is safe because every path written at runtime is
-  # volume backed: -storageDataPath on the storage volume, and the agent's
-  # -remoteWrite.tmpDataPath on the stateful volume.
+  # volume backed: -storageDataPath on the storage volume, and each agent's
+  # queue directory on its stateful volume.
   useStrictSecurity: true
   # Storage never calls the Kubernetes API, so the pod gets no token.
   disableAutomountServiceAccountToken: true
