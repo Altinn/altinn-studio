@@ -12,6 +12,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.6] - 2026-09-23
+
 ### Changed
 
 - Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
