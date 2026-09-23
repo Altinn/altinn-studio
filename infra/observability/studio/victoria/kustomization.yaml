@@ -12,3 +12,4 @@ resources:
   - metrics.yaml
   - traces.yaml
   - logs.yaml
+  - network-policy.yaml
