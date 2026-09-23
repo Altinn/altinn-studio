@@ -105,9 +105,34 @@ spec:
           topologyKey: kubernetes.io/hostname
 ---
 # The trace agent has no CRD in operator v0.74.1 - VTAgent arrives in v0.75.0,
-# which is still a release candidate. This runs the same vtagent binary the CRD
-# will run, under the names the operator would generate, so replacing this with
-# a VTAgent object later leaves the service DNS unchanged.
+# which is still a release candidate. Until then vtagent runs as the Service,
+# StatefulSet and PodDisruptionBudget the v0.75.0-rc1 operator generates for
+#
+#   apiVersion: operator.victoriametrics.com/v1
+#   kind: VTAgent
+#   metadata:
+#     name: traces
+#   spec:
+#     replicaCount: 2
+#     useStrictSecurity: true
+#     disableAutomountServiceAccountToken: true
+#     podDisruptionBudget:
+#       maxUnavailable: 1
+#     remoteWrite: the two URLs below
+#     remoteWriteSettings:
+#       maxDiskUsagePerURL: 20GiB
+#     storage: the volumeClaimTemplate below
+#     plus the image, resources and placement below
+#
+# with the same names, labels, selector, service name, claim name, flags,
+# ports, probes and security context, so that switching to that object adopts
+# these rather than replacing them. The selector, the service name and the claim
+# template are what the operator cannot change in place. Two differences are
+# left, both updated in place at the switch: the operator runs its pods as a
+# vtagent-traces service account it creates, where these run as the namespace
+# default with no token, so adoption rolls the pods once; and it sets the
+# OnDelete update strategy because it rolls pods itself, which nothing does
+# here, so this keeps the default RollingUpdate.
 apiVersion: v1
 kind: Service
 metadata:
@@ -115,35 +140,27 @@ metadata:
   labels:
     app.kubernetes.io/name: vtagent
     app.kubernetes.io/instance: traces
+    app.kubernetes.io/component: monitoring
+    managed-by: vm-operator
+  annotations:
+    # So that removing these objects from Git at the switch hands them to the
+    # operator instead of Flux deleting them first.
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
-  type: ClusterIP
-  selector:
-    app.kubernetes.io/name: vtagent
-    app.kubernetes.io/instance: traces
-  ports:
-    - name: http
-      port: 10429
-      targetPort: http
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vtagent-traces-headless
-  labels:
-    app.kubernetes.io/name: vtagent
-    app.kubernetes.io/instance: traces
-spec:
+  # Headless, as the operator makes it, and the StatefulSet's governing Service.
+  # Cluster DNS returns the ready replicas' addresses.
   type: ClusterIP
   clusterIP: None
   selector:
     app.kubernetes.io/name: vtagent
     app.kubernetes.io/instance: traces
+    app.kubernetes.io/component: monitoring
+    managed-by: vm-operator
   ports:
     - name: http
-      port: 10429
-      targetPort: http
       protocol: TCP
+      port: 10429
+      targetPort: 10429
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -152,73 +169,102 @@ metadata:
   labels:
     app.kubernetes.io/name: vtagent
     app.kubernetes.io/instance: traces
+    app.kubernetes.io/component: monitoring
+    managed-by: vm-operator
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   replicas: 2
-  serviceName: vtagent-traces-headless
+  serviceName: vtagent-traces
   podManagementPolicy: Parallel
   selector:
     matchLabels:
       app.kubernetes.io/name: vtagent
       app.kubernetes.io/instance: traces
+      app.kubernetes.io/component: monitoring
+      managed-by: vm-operator
   template:
     metadata:
       labels:
         app.kubernetes.io/name: vtagent
         app.kubernetes.io/instance: traces
+        app.kubernetes.io/component: monitoring
+        managed-by: vm-operator
     spec:
+      # vtagent never calls the Kubernetes API.
+      automountServiceAccountToken: false
+      # The operator's strict security context, as on the other components.
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 65534
         runAsNonRoot: true
+        runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
       containers:
         - name: vtagent
           image: victoriametrics/vtagent:v0.11.1
           imagePullPolicy: IfNotPresent
+          # In the operator's order and form: sorted, with the remote write
+          # URLs as one comma-separated flag. -tmpDataPath rather than
+          # -remoteWrite.tmpDataPath, because vtagent keeps its queues in a
+          # subdirectory of -tmpDataPath, and the operator sets that flag; the
+          # other would put them somewhere the operator's pods do not look.
           args:
             - -httpListenAddr=:10429
-            - -remoteWrite.url=http://vtsingle-traces-a.observability.svc.cluster.local:10428/insert/native
-            - -remoteWrite.url=http://vtsingle-traces-b.observability.svc.cluster.local:10428/insert/native
-            - -remoteWrite.tmpDataPath=/vtagent-data
             - -remoteWrite.maxDiskUsagePerURL=20GiB
+            - -remoteWrite.url=http://vtsingle-traces-a.observability.svc.cluster.local:10428/insert/native,http://vtsingle-traces-b.observability.svc.cluster.local:10428/insert/native
+            - -tmpDataPath=/vtagent-data
           ports:
-            - containerPort: 10429
-              name: http
+            - name: http
+              containerPort: 10429
               protocol: TCP
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            privileged: false
-            capabilities:
-              drop:
-                - ALL
           volumeMounts:
-            - name: data
+            - name: tmp-data
               mountPath: /vtagent-data
           livenessProbe:
             httpGet:
               path: /health
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
+              port: 10429
+              scheme: HTTP
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 10
           readinessProbe:
             httpGet:
               path: /health
-              port: http
-            initialDelaySeconds: 5
+              port: 10429
+              scheme: HTTP
             periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 10
+          # The operator's default preStop hook, so a replica leaves the
+          # Service's DNS answers before it stops accepting writes.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 15
           resources:
             requests:
               cpu: 250m
               memory: 1Gi
             limits:
               memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 65534
+            runAsNonRoot: true
+            runAsUser: 65534
+          terminationMessagePolicy: FallbackToLogsOnError
       nodeSelector:
         purpose: observability
       tolerations:
@@ -235,7 +281,7 @@ spec:
               topologyKey: kubernetes.io/hostname
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: tmp-data
       spec:
         accessModes:
           - ReadWriteOnce
@@ -244,9 +290,7 @@ spec:
           requests:
             storage: 50Gi
 ---
-# The operator writes this for the VMAgent and VLAgent; vtagent has no CRD in
-# v0.74.1, so its PodDisruptionBudget is written by hand. One replica per node,
-# so a voluntary disruption may only take one at a time.
+# One replica per node, so a voluntary disruption may only take one at a time.
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -254,9 +298,15 @@ metadata:
   labels:
     app.kubernetes.io/name: vtagent
     app.kubernetes.io/instance: traces
+    app.kubernetes.io/component: monitoring
+    managed-by: vm-operator
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   maxUnavailable: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: vtagent
       app.kubernetes.io/instance: traces
+      app.kubernetes.io/component: monitoring
+      managed-by: vm-operator
