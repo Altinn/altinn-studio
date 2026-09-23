@@ -33,14 +33,15 @@ beforeEach(() => {
 Cypress.on('fail', (error) => {
   const loader = Cypress.$('[data-testid="loader"][data-loading="true"]').get(0);
   const loadingReason = loader?.getAttribute('data-reason');
+  const currentUrl = loader?.ownerDocument.defaultView?.location.href;
 
   if (loadingReason) {
     Cypress.log({
       name: 'loading reason',
-      message: loadingReason,
-      consoleProps: () => ({ loadingReason, loader }),
+      message: `${loadingReason} (${currentUrl ?? 'unknown URL'})`,
+      consoleProps: () => ({ loadingReason, currentUrl, loader }),
     });
-    error.message += `\nLoading reason: ${loadingReason}`;
+    error.message += `\nLoading reason: ${loadingReason}\nURL: ${currentUrl ?? 'unknown'}`;
   }
 
   throw error;
