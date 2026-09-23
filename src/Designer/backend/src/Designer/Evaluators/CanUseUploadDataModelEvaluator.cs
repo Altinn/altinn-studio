@@ -16,7 +16,7 @@ public class CanUseUploadDataModelEvaluator : ICanUseUploadDataModelEvaluator
         _userOrganizationService = userOrganizationService;
     }
 
-    public async Task<bool> CanUseFeatureAsync()
+    public async Task<bool> CanUseFeatureAsync(string org, string app)
     {
         return await _userOrganizationService.UserIsMemberOfAnyOrganization();
     }

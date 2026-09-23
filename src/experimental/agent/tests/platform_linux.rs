@@ -311,10 +311,10 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
         .sandbox
         .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
     let sandbox = service
-        .ensure(&EnsureSandboxRequest::new(
-            record.sandbox_name().expect("Sandbox name"),
-            spec,
-        ))
+        .ensure(
+            &EnsureSandboxRequest::new(record.sandbox_name().expect("Sandbox name"), spec)
+                .with_environment([("AGENT_CODEX_ACCOUNT_ID".into(), "account-test".into())]),
+        )
         .await
         .expect("Sandbox");
     let platform = Linux;
@@ -367,10 +367,7 @@ async fn linux_setup_rewrites_configuration_without_owning_workspace_initializat
     let codex_auth: serde_json::Value =
         serde_json::from_slice(&read_file(&sandbox, "/home/agent/.codex/auth.json").await).expect("Codex auth JSON");
     assert_eq!(codex_auth["auth_mode"], "chatgpt");
-    assert_eq!(
-        codex_auth["tokens"]["account_id"],
-        "agent-mediated-codex-account-placeholder"
-    );
+    assert_eq!(codex_auth["tokens"]["account_id"], "account-test");
     assert_eq!(codex_auth["tokens"]["access_token"], codex_auth["tokens"]["id_token"]);
     assert!(codex_auth["last_refresh"].is_string());
     let codex_hooks: serde_json::Value =

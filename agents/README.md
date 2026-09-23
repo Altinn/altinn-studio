@@ -2,16 +2,16 @@
 
 Choose an Agent and, optionally, a variant:
 
-| Agent / variant | Image and checkout |
-| --- | --- |
-| `minimal` default | Minimal published image and a fresh checkout |
-| `minimal` `nested` | Minimal published image, reduced to fit inside another Agent |
-| `minimal` `nested-build` | Reduced resources and a minimal image built from this checkout |
-| `minimal` `worktree` | Minimal published image with the current checkout mounted read-write |
-| `full` default | Full published image and a fresh checkout |
-| `full` `nested` | Full published image, reduced to fit inside another Agent |
-| `full` `nested-build` | Reduced resources and a full image built from this checkout |
-| `full` `worktree` | Full published image with the current checkout mounted read-write |
+| Agent / variant          | Image and checkout                                                   |
+| ------------------------ | -------------------------------------------------------------------- |
+| `minimal` default        | Minimal published image and a fresh checkout                         |
+| `minimal` `nested`       | Minimal published image, reduced to fit inside another Agent         |
+| `minimal` `nested-build` | Reduced resources and a minimal image built from this checkout       |
+| `minimal` `worktree`     | Minimal published image with the current checkout mounted read-write |
+| `full` default           | Full published image and a fresh checkout                            |
+| `full` `nested`          | Full published image, reduced to fit inside another Agent            |
+| `full` `nested-build`    | Reduced resources and a full image built from this checkout          |
+| `full` `worktree`        | Full published image with the current checkout mounted read-write    |
 
 Install the released Agent CLI on Linux or macOS:
 

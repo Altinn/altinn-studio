@@ -159,7 +159,7 @@ namespace Altinn.App.Models.Skjemadata
         [JsonPropertyName("Etternavn")]
         public string? Etternavn { get; set; }
 
-        [XmlElement("Foedselsnummer", Order = 8)]
+        [XmlElement("Foedselsnummer", Order = 2)]
         [JsonProperty("Foedselsnummer")]
         [JsonPropertyName("Foedselsnummer")]
         public string? Foedselsnummer { get; set; }

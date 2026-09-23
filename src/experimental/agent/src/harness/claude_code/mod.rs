@@ -55,13 +55,13 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
     Ok(vec![
         MediatedSecret {
             environment: ACCESS_ENVIRONMENT,
-            placeholder: ACCESS_PLACEHOLDER,
+            placeholder: ACCESS_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![authentication::mediated_host().into()],
         },
         MediatedSecret {
             environment: NESTED_ENVIRONMENT,
-            placeholder: NESTED_PLACEHOLDER,
+            placeholder: NESTED_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![authentication::mediated_host().into()],
         },

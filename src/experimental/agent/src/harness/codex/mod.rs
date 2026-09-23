@@ -47,13 +47,15 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
     Ok(vec![
         MediatedSecret {
             environment: ACCESS_ENVIRONMENT,
-            placeholder: ACCESS_PLACEHOLDER,
+            placeholder: ACCESS_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![CHATGPT_HOST.into()],
         },
         MediatedSecret {
             environment: ACCOUNT_ENVIRONMENT,
-            placeholder: ACCOUNT_PLACEHOLDER,
+            // The account ID is visible in authenticated workspace discovery. Codex 0.156
+            // needs the selected ID locally to match that response before it can start.
+            placeholder: authentication::selected_account_id(database).await?,
             reference: SecretReference::from_opaque(ACCOUNT_SECRET),
             allowed_hosts: vec![CHATGPT_HOST.into()],
         },
