@@ -117,14 +117,16 @@ func monitoringGrafanaContainer(ctx *Options) *ContainerSpec {
 		ContainerGrafana,
 		nil,
 		map[string]string{
-			"GF_AUTH_ANONYMOUS_ENABLED":     "true",
-			"GF_INSTALL_PLUGINS":            "victoriametrics-logs-datasource",
-			"GF_AUTH_ANONYMOUS_ORG_ROLE":    "Admin",
-			"GF_AUTH_DISABLE_LOGIN_FORM":    "true",
-			"GF_LOG_LEVEL":                  "error",
-			"GF_SERVER_DOMAIN":              app.Host(), // TODO: should be localtest/proxy, not app.
-			"GF_SERVER_SERVE_FROM_SUB_PATH": "true",
-			"GF_SERVER_ROOT_URL":            "%(protocol)s://%(domain)s:%(http_port)s/grafana/", // TODO: mirror real envs, /monitor.
+			"GF_AUTH_ANONYMOUS_ENABLED": "true",
+			"GF_INSTALL_PLUGINS":        "victoriametrics-logs-datasource",
+			// Keep the datasources bundled with the pinned image instead of fetching newer ones from grafana.com.
+			"GF_PLUGINS_PREINSTALL_AUTO_UPDATE": "false",
+			"GF_AUTH_ANONYMOUS_ORG_ROLE":        "Admin",
+			"GF_AUTH_DISABLE_LOGIN_FORM":        "true",
+			"GF_LOG_LEVEL":                      "error",
+			"GF_SERVER_DOMAIN":                  app.Host(), // TODO: should be localtest/proxy, not app.
+			"GF_SERVER_SERVE_FROM_SUB_PATH":     "true",
+			"GF_SERVER_ROOT_URL":                "%(protocol)s://%(domain)s:%(http_port)s/grafana/", // TODO: mirror real envs, /monitor.
 		},
 		[]types.VolumeMount{
 			newVolume(
