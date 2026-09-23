@@ -313,7 +313,13 @@ func TestMonitoringContainers_UseVictoriaStack(t *testing.T) {
 		t.Fatalf("grafana.Dependencies = %v, want %v", grafana.Dependencies, wantGrafanaDeps)
 	}
 
-	for _, name := range []string{"monitoring_tempo", "monitoring_mimir", "monitoring_loki"} {
+	for _, name := range []string{
+		"monitoring_tempo",
+		"monitoring_mimir",
+		"monitoring_loki",
+		"monitoring_otel_collector",
+		"monitoring_grafana",
+	} {
 		if findResource(resources, resource.ContainerID(name)) != nil {
 			t.Fatalf("manifest unexpectedly contains retired monitoring container %q", name)
 		}

@@ -8,7 +8,7 @@ datasources:
     uid: prometheus
     access: proxy
     orgId: 1
-    url: http://localtest_victoria_metrics:8428
+    url: http://localtest-victoria-metrics:8428
     basicAuth: false
     isDefault: true
     version: 1
@@ -26,7 +26,7 @@ datasources:
     uid: traces
     access: proxy
     orgId: 1
-    url: http://localtest_victoria_traces:10428/select/tempo
+    url: http://localtest-victoria-traces:10428/select/tempo
     basicAuth: false
     isDefault: false
     version: 1
@@ -43,7 +43,7 @@ datasources:
     uid: logs
     access: proxy
     orgId: 1
-    url: http://localtest_victoria_logs:9428
+    url: http://localtest-victoria-logs:9428
     basicAuth: false
     isDefault: false
     version: 1
