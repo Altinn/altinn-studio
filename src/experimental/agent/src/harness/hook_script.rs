@@ -30,23 +30,40 @@ const sessionId = process.env.AGENT_SESSION_ID;
 const EVENTS = __EVENTS__;
 const WAITING_NOTIFICATIONS = __WAITING_NOTIFICATIONS__;
 
-async function read(stream) {
-  let data = "";
-  stream.setEncoding("utf8");
-  for await (const chunk of stream) {
-    data += chunk;
-    if (data.length > 1048576) return null;
-    // Codex 0.156 keeps stdin open while waiting for the hook to exit.
-    // A complete top-level JSON object is enough; waiting for EOF deadlocks.
-    try {
-      return JSON.parse(data);
-    } catch {}
-  }
-  try {
-    return JSON.parse(data);
-  } catch {
-    return null;
-  }
+function read(stream) {
+  // Codex 0.156 keeps stdin open while waiting for the hook to exit.
+  // Resolve on a complete object without waiting for EOF or stream cleanup.
+  return new Promise((resolve) => {
+    let data = "";
+    const finish = (value) => {
+      stream.off("data", onData);
+      stream.off("end", onEnd);
+      stream.off("error", onEnd);
+      resolve(value);
+    };
+    const parse = () => {
+      try {
+        const value = JSON.parse(data);
+        return value !== null && typeof value === "object" && !Array.isArray(value) ? value : null;
+      } catch {
+        return null;
+      }
+    };
+    const onData = (chunk) => {
+      data += chunk;
+      if (data.length > 1048576) {
+        finish(null);
+      } else {
+        const value = parse();
+        if (value !== null) finish(value);
+      }
+    };
+    const onEnd = () => finish(parse());
+    stream.setEncoding("utf8");
+    stream.on("data", onData);
+    stream.on("end", onEnd);
+    stream.on("error", onEnd);
+  });
 }
 
 const input = await read(process.stdin);
