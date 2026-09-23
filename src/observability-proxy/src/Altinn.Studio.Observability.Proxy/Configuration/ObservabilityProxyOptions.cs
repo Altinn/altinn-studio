@@ -98,6 +98,11 @@ internal sealed class BearerTokenOptions
     public Collection<string> AllowedRouteGroups { get; } = [];
 }
 
+/// <summary>
+/// A fixed window per source identity. Every limit here is per replica: each replica counts only
+/// the requests it serves, so the effective limit for an identity is the replica count times the
+/// configured limit.
+/// </summary>
 internal sealed class RateLimitingOptions
 {
     /// <summary>
