@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useFocusComponentRequest } from 'src/layout/focusComponent';
