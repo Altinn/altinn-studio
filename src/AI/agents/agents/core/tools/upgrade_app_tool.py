@@ -12,6 +12,8 @@ import json
 import logging
 import os
 import subprocess
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, ConfigDict
 
@@ -25,6 +27,31 @@ log = logging.getLogger(__name__)
 _EXIT_SUCCESS = 0
 _EXIT_UNSUPPORTED_VERSION = 2
 _EXIT_MANUAL_ACTION_REQUIRED = 3
+
+
+class _UpgradeQueue:
+    """Runs one upgrade at a time and tells waiting users their place in the queue."""
+
+    def __init__(self) -> None:
+        self._lock = asyncio.Lock()
+        self._upgrades_in_progress = 0
+
+    @asynccontextmanager
+    async def turn(self, report_status: Callable[[str], None]) -> AsyncIterator[None]:
+        upgrades_ahead = self._upgrades_in_progress
+        self._upgrades_in_progress += 1
+        try:
+            if upgrades_ahead:
+                report_status(f"Venter i kø ({upgrades_ahead} foran)")
+            async with self._lock:
+                if upgrades_ahead:
+                    report_status("Oppgraderer appen til v9")
+                yield
+        finally:
+            self._upgrades_in_progress -= 1
+
+
+_upgrade_queue = _UpgradeQueue()
 
 
 class UpgradeAppToV9Args(BaseModel):
@@ -64,7 +91,8 @@ class UpgradeAppToV9Tool(WriteToolMixin):
     is_read_only = False
 
     async def run(self, args: UpgradeAppToV9Args, ctx: LoopContext) -> ToolResult:
-        completed = await _run_studioctl_upgrade(ctx.repo_path)
+        async with _upgrade_queue.turn(ctx.report_status):
+            completed = await _run_studioctl_upgrade(ctx.repo_path)
 
         result = _parse_upgrade_result(completed.stdout)
         if result is None:
