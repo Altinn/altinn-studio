@@ -216,6 +216,48 @@ public class SchemaModelService : ISchemaModelService
         return GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
     }
 
+    /// <inheritdoc/>
+    public async Task<bool> AreModelFilesOutOfDate(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string relativeFilePath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        string schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
+        string csharpModelPath = Path.Combine(altinnAppGitRepository.GetRelativeModelFolder(), $"{schemaFileName}.cs");
+        if (!altinnAppGitRepository.FileExistsByRelativePath(csharpModelPath))
+        {
+            return true;
+        }
+
+        string jsonContent = await altinnAppGitRepository.ReadTextByRelativePathAsync(
+            relativeFilePath,
+            cancellationToken
+        );
+        var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
+        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
+        string expectedCsharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+        string storedCsharpClasses = await altinnAppGitRepository.ReadTextByRelativePathAsync(
+            csharpModelPath,
+            cancellationToken
+        );
+
+        return !NormalizeLineEndings(expectedCsharpClasses)
+            .Equals(NormalizeLineEndings(storedCsharpClasses), StringComparison.Ordinal);
+    }
+
+    private static string NormalizeLineEndings(string text)
+    {
+        return text.ReplaceLineEndings("\n");
+    }
+
     /// <summary>
     /// Builds a JSON schema based on the uploaded XSD.
     /// </summary>

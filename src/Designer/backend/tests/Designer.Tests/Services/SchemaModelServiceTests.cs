@@ -170,6 +170,119 @@ public class SchemaModelServiceTests
     }
 
     [Fact]
+    public async Task AreModelFilesOutOfDate_AfterGeneratingModelFiles_ShouldBeFalse()
+    {
+        // Arrange
+        JsonSchemaKeywords.RegisterXsdKeywords();
+
+        var org = "ttd";
+        var sourceRepository = "hvem-er-hvem";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        try
+        {
+            await _schemaModelService.UpdateSchema(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json",
+                @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}"
+            );
+
+            // Act
+            bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json"
+            );
+
+            // Assert
+            Assert.False(isOutOfDate);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
+    [Fact]
+    public async Task AreModelFilesOutOfDate_AfterSavingSchemaOnly_ShouldBeTrue()
+    {
+        // Arrange
+        JsonSchemaKeywords.RegisterXsdKeywords();
+
+        var org = "ttd";
+        var sourceRepository = "hvem-er-hvem";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        try
+        {
+            await _schemaModelService.UpdateSchema(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json",
+                @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}"
+            );
+
+            // Act
+            await _schemaModelService.UpdateSchema(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json",
+                @"{""properties"":{""rootType1"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""renamedKeyword"":{""type"":""string""}}}}}",
+                saveOnly: true
+            );
+            bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json"
+            );
+
+            // Assert
+            Assert.True(isOutOfDate);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
+    [Fact]
+    public async Task AreModelFilesOutOfDate_WhenCsharpModelIsMissing_ShouldBeTrue()
+    {
+        // Arrange
+        var org = "ttd";
+        var sourceRepository = "hvem-er-hvem";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        try
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                targetRepository,
+                developer
+            );
+            altinnAppGitRepository.DeleteFileByRelativePath("App/models/HvemErHvem_SERES.cs");
+
+            // Act
+            bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json"
+            );
+
+            // Assert
+            Assert.True(isOutOfDate);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
+    [Fact]
     public async Task UpdateSchema_AppRepo_ShouldUpdate()
     {
         // Arrange
