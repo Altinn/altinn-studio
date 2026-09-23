@@ -4,9 +4,10 @@ internal sealed class ObservabilitySource
 {
     private readonly HashSet<string> _allowedRouteGroups;
 
-    public ObservabilitySource(string sourceIdentity, IEnumerable<string> allowedRouteGroups)
+    public ObservabilitySource(string sourceIdentity, string tokenTag, IEnumerable<string> allowedRouteGroups)
     {
         SourceIdentity = sourceIdentity;
+        TokenTag = tokenTag;
         _allowedRouteGroups = allowedRouteGroups
             .Where(group => !string.IsNullOrWhiteSpace(group))
             .Select(group => group.Trim())
@@ -14,6 +15,9 @@ internal sealed class ObservabilitySource
     }
 
     public string SourceIdentity { get; }
+
+    /// <summary>Which of the identity's accepted tokens was presented; see <see cref="Auth.TokenTag"/>.</summary>
+    public string TokenTag { get; }
 
     /// <summary>
     /// A token reaches only the route groups it was granted. A token that resolves to none is

@@ -48,8 +48,9 @@ internal sealed class StaticBearerTokenMiddleware
         if (routeGroup is not null && !source.AllowsRouteGroup(routeGroup))
         {
             _logger.LogWarning(
-                "Rejected observability request from {SourceIdentity}. RouteGroup={RouteGroup} Method={Method} Path={Path}",
+                "Rejected observability request from {SourceIdentity}. TokenTag={TokenTag} RouteGroup={RouteGroup} Method={Method} Path={Path}",
                 source.SourceIdentity,
+                source.TokenTag,
                 routeGroup,
                 context.Request.Method,
                 context.Request.Path
@@ -60,8 +61,9 @@ internal sealed class StaticBearerTokenMiddleware
 
         context.Features.Set(new ObservabilitySourceFeature(source));
         _logger.LogInformation(
-            "Accepted observability request from {SourceIdentity}. RouteGroup={RouteGroup} Method={Method} Path={Path}",
+            "Accepted observability request from {SourceIdentity}. TokenTag={TokenTag} RouteGroup={RouteGroup} Method={Method} Path={Path}",
             source.SourceIdentity,
+            source.TokenTag,
             routeGroup ?? "unknown",
             context.Request.Method,
             context.Request.Path

@@ -45,7 +45,11 @@ internal sealed class StaticBearerTokenAuthenticator
 
             if (TokenEquals(parsedHeader.Parameter, configuredToken.Token))
             {
-                source = new ObservabilitySource(configuredToken.SourceIdentity, configuredToken.AllowedRouteGroups);
+                source = new ObservabilitySource(
+                    configuredToken.SourceIdentity,
+                    TokenTag.Of(configuredToken.Token),
+                    configuredToken.AllowedRouteGroups
+                );
             }
         }
 
