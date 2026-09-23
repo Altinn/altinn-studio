@@ -9,10 +9,12 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '@altinn/process-editor/contexts/BpmnApiContext';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
+import { useUpdateLayoutSetId } from '../../../../hooks/useUpdateLayoutSetId';
 
 export const RecommendedActionChangeName = (): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
-  const { layoutSets, mutateLayoutSetId } = useBpmnApiContext();
+  const { layoutSets } = useBpmnApiContext();
+  const updateLayoutSetId = useUpdateLayoutSetId();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const { t } = useTranslation();
   const { removeAction } = useStudioRecommendedNextActionContext();
@@ -25,7 +27,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
     if (newNameError || newName === '') {
       return false;
     }
-    mutateLayoutSetId({ layoutSetIdToUpdate: bpmnDetails.element.id, newLayoutSetId: newName });
+    updateLayoutSetId(bpmnDetails.element.id, newName);
     removeAction(bpmnDetails.element.id);
   };
 

@@ -20,6 +20,7 @@ export const mockBpmnContextValue: BpmnContextProps = {
   bpmnDetails: mockBpmnDetails,
   setBpmnDetails: jest.fn(),
   modelerRef: mockModelerRef as any,
+  isReloadingRef: { current: false },
   isInitialized: true,
   setIsInitialized: jest.fn(),
 };
