@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace Altinn.Studio.Observability.Proxy.Configuration;
 
 internal static class ObservabilityPaths
@@ -13,6 +11,15 @@ internal static class ObservabilityPaths
     public const string MetricsRouteGroup = "metrics";
 
     public const string LogsRouteGroup = "logs";
+
+    /// <summary>
+    /// The route metadata entry naming the route group a request needs. Authorization reads it
+    /// from the route the request matched, so a path that matches no route reaches nothing.
+    /// </summary>
+    public const string RouteGroupMetadataKey = "ObservabilityRouteGroup";
+
+    /// <summary>The route value holding a read request's path below its signal's public prefix.</summary>
+    public const string ReadPathRouteValue = "readPath";
 
     public static readonly IReadOnlyList<string> ReadRouteGroups =
     [
@@ -30,29 +37,5 @@ internal static class ObservabilityPaths
 
         var prefixed = pathPrefix[0] == '/' ? pathPrefix : $"/{pathPrefix}";
         return prefixed.TrimEnd('/');
-    }
-
-    public static string? ResolveRouteGroup(PathString requestPath, string? configuredPrefix)
-    {
-        var pathPrefix = NormalizePrefix(configuredPrefix);
-        if (!requestPath.StartsWithSegments(pathPrefix, out var remainingPath))
-        {
-            return null;
-        }
-
-        if (remainingPath.StartsWithSegments($"/{OtlpRouteGroup}"))
-        {
-            return OtlpRouteGroup;
-        }
-
-        foreach (var readRouteGroup in ReadRouteGroups)
-        {
-            if (remainingPath.StartsWithSegments($"/{readRouteGroup}"))
-            {
-                return readRouteGroup;
-            }
-        }
-
-        return null;
     }
 }

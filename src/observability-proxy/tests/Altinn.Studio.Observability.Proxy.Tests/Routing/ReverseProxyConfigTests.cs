@@ -31,6 +31,7 @@ public sealed class ReverseProxyConfigTests
         Assert.Equal(agentPath, Assert.Single(route.Transforms)["PathSet"]);
         Assert.NotNull(route.Metadata);
         Assert.Equal("otlp", route.Metadata["ObservabilityRouteGroup"]);
+        Assert.Equal(["POST"], route.Match.Methods);
     }
 
     [Fact]
@@ -39,7 +40,7 @@ public sealed class ReverseProxyConfigTests
         var routes = ObservabilityReverseProxyConfig.CreateRoutes(new ObservabilityProxyOptions());
 
         var route = Assert.Single(routes, candidate => candidate.RouteId == "traces");
-        Assert.Equal("/internal/observability/traces/{**catch-all}", route.Match.Path);
+        Assert.Equal("/internal/observability/traces/{**readPath}", route.Match.Path);
         Assert.NotNull(route.Transforms);
         Assert.Equal("/internal/observability/traces", route.Transforms[0]["PathRemovePrefix"]);
         Assert.Equal("/select/tempo", route.Transforms[1]["PathPrefix"]);
