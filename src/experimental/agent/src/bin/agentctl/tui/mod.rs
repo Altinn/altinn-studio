@@ -36,6 +36,8 @@ use view::{HitMap, HitTarget, WheelTarget};
 const TRANSCRIPT_TURNS: usize = 3;
 /// Pause before watching again after the daemon could not be reached.
 const RECONNECT_INTERVAL: Duration = Duration::from_secs(1);
+/// How often the screen is redrawn without input, so times keep moving.
+const REDRAW_INTERVAL: Duration = Duration::from_secs(1);
 const DOUBLE_CLICK_INTERVAL: Duration = Duration::from_millis(500);
 /// Deepest directory level below the working directory searched for manifests.
 const DISCOVERY_DEPTH: usize = 8;
@@ -150,6 +152,8 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
     let mut follow = Follow::default();
+    let mut redraw = tokio::time::interval(REDRAW_INTERVAL);
+    redraw.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     spawn_watch(home.socket_path(), inputs.clone());
     loop {
         app.open_queued_create();
@@ -163,6 +167,8 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         let input = tokio::select! {
             event = events.next() => Input::Event(event),
             Some(input) = background.recv() => input,
+            // Times in state and elapsed step times move without new input.
+            _ = redraw.tick() => continue,
         };
         let action = match input {
             Input::Resources(Ok(resources)) => {
