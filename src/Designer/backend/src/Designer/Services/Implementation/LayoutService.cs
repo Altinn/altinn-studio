@@ -43,7 +43,7 @@ public class LayoutService(
         );
         // Creating a page rewrites the page that is already there before it writes the new one, so a
         // name Designer may not create has to be rejected before the first write rather than at it.
-        appRepository.EnsureLayoutCanBeCreatedInSet(layoutSetId, pageId);
+        appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         if (layoutSettings.Pages is not PagesWithOrder pages)
@@ -237,7 +237,7 @@ public class LayoutService(
         // settings that still reference them are never saved.
         foreach (string pageId in createdPages)
         {
-            appRepository.EnsureLayoutCanBeCreatedInSet(layoutSetId, pageId);
+            appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
         }
         foreach (string pageId in deletedPages)
         {

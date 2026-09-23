@@ -192,25 +192,25 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     }
 
     [Fact]
-    public async Task EnsureLayoutCanBeCreatedInSet_NewPageOutsideNamingPolicy_Throws()
+    public async Task EnsureLayoutWriteIsAllowed_NewPageOutsideNamingPolicy_Throws()
     {
         // Arrange
         AltinnAppGitRepository repository = await PrepareRepository();
 
         // Act and assert
         Assert.Throws<BadHttpRequestException>(() =>
-            repository.EnsureLayoutCanBeCreatedInSet(LayoutSetWithLegacyPageNames, PageNameOutsideNamingPolicy)
+            repository.EnsureLayoutWriteIsAllowed(LayoutSetWithLegacyPageNames, PageNameOutsideNamingPolicy)
         );
     }
 
     [Fact]
-    public async Task EnsureLayoutCanBeCreatedInSet_PageThatAlreadyExists_DoesNotThrow()
+    public async Task EnsureLayoutWriteIsAllowed_PageThatAlreadyExists_DoesNotThrow()
     {
         // Arrange
         AltinnAppGitRepository repository = await PrepareRepository();
 
         // Act
-        repository.EnsureLayoutCanBeCreatedInSet(LayoutSetWithLegacyPageNames, PageNameWithSpace);
+        repository.EnsureLayoutWriteIsAllowed(LayoutSetWithLegacyPageNames, PageNameWithSpace);
 
         // Assert
         Assert.NotNull(await repository.GetLayout(LayoutSetWithLegacyPageNames, PageNameWithSpace));
@@ -246,14 +246,14 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     }
 
     [Fact]
-    public async Task EnsureLayoutCanBeCreatedInSet_AppWithoutLayoutSetsAndPageOutsideNamingPolicy_Throws()
+    public async Task EnsureLayoutWriteIsAllowed_AppWithoutLayoutSetsAndPageOutsideNamingPolicy_Throws()
     {
         // Arrange
         AltinnAppGitRepository repository = await PrepareRepository(SourceRepositoryWithoutLayoutSets);
 
         // Act and assert
         Assert.Throws<BadHttpRequestException>(() =>
-            repository.EnsureLayoutCanBeCreatedInSet(string.Empty, PageNameOutsideNamingPolicy)
+            repository.EnsureLayoutWriteIsAllowed(string.Empty, PageNameOutsideNamingPolicy)
         );
     }
 
