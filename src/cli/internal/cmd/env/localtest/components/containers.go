@@ -16,15 +16,15 @@ const (
 	ContainerPgAdmin = "localtest-pgadmin"
 
 	// ContainerVictoriaMetrics is the localtest VictoriaMetrics container.
-	ContainerVictoriaMetrics = "localtest_victoria_metrics"
+	ContainerVictoriaMetrics = "localtest-victoria-metrics"
 	// ContainerVictoriaTraces is the localtest VictoriaTraces container.
-	ContainerVictoriaTraces = "localtest_victoria_traces"
+	ContainerVictoriaTraces = "localtest-victoria-traces"
 	// ContainerVictoriaLogs is the localtest VictoriaLogs container.
-	ContainerVictoriaLogs = "localtest_victoria_logs"
+	ContainerVictoriaLogs = "localtest-victoria-logs"
 	// ContainerOtelCollector is the localtest OpenTelemetry collector container.
-	ContainerOtelCollector = "localtest_otel_collector"
+	ContainerOtelCollector = "localtest-otel-collector"
 	// ContainerGrafana is the localtest Grafana dashboard container.
-	ContainerGrafana = "localtest_grafana"
+	ContainerGrafana = "localtest-grafana"
 )
 
 // EnabledContainerNames returns enabled container names in manifest order.
