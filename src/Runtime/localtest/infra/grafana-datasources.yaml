@@ -3,9 +3,9 @@ apiVersion: 1
 prune: true
 
 datasources:
-  - name: Prometheus
+  - name: Metrics
     type: prometheus
-    uid: prometheus
+    uid: metrics
     access: proxy
     orgId: 1
     url: http://localtest-victoria-metrics:8428
@@ -35,8 +35,15 @@ datasources:
     jsonData:
       nodeGraph:
         enabled: true
+      tracesToLogsV2:
+        datasourceUid: logs
+        filterByTraceID: true
+        filterBySpanID: true
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        tags: [{ key: "service.name" }]
       tracesToMetrics:
-        datasourceUid: prometheus
+        datasourceUid: metrics
 
   - name: Logs
     type: victoriametrics-logs-datasource
@@ -48,3 +55,11 @@ datasources:
     isDefault: false
     version: 1
     editable: true
+    jsonData:
+      derivedFields:
+        - name: trace_id
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: traces
+          url: "$${__value.raw}"
+          urlDisplayLabel: View trace
