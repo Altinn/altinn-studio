@@ -11,6 +11,9 @@ import { AppTemplate } from '../../enum/AppTemplate';
 const initialTaskId: string = 'Task_1';
 const renamedTaskId: string = 'RenamedTask';
 const idLongerThanLayoutSetNameLimit: string = 'a'.repeat(29);
+const rejectedTaskId: string = 'RejectedTask';
+const finalTaskId: string = 'FinalTask';
+const processDefinitionRoute: string = '**/process-modelling/process-definition';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -63,6 +66,58 @@ test('that renaming a task renames its layout set, and a second rename follows t
   const processDefinition: string = await getProcessDefinition(request, org, testAppName);
   expect(processDefinition).toContain(`id="${renamedTaskId}"`);
   expect(processDefinition).not.toContain(idLongerThanLayoutSetNameLimit);
+});
+
+test('that a rejected save restores the saved process, so the next rename keeps the layout set in step', async ({
+  page,
+  request,
+  testAppName,
+}) => {
+  const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
+  await processEditorPage.loadProcessEditorPage();
+  await processEditorPage.verifyProcessEditorPage();
+  const bpmnJSQuery = new BpmnJSQuery(page);
+  const org: string = processEditorPage.org;
+  const changeRequests: string[] = [];
+  page.on('request', (sentRequest) => {
+    if (sentRequest.method() !== 'GET' && sentRequest.url().includes('/designer/api/')) {
+      changeRequests.push(`${sentRequest.method()} ${new URL(sentRequest.url()).pathname}`);
+    }
+  });
+
+  await page.route(processDefinitionRoute, (route) =>
+    route.request().method() === 'PUT'
+      ? route.fulfill({ status: 400, body: 'Rejected by test' })
+      : route.continue(),
+  );
+  await processEditorPage.clickOnTaskInBpmnEditor(
+    await bpmnJSQuery.getTaskByIdAndType(renamedTaskId, 'g'),
+  );
+  await changeTaskId(processEditorPage, rejectedTaskId);
+
+  await expect(
+    page.getByText(processEditorPage.textMock('process_editor.save_bpmn_xml_error')),
+  ).toBeVisible();
+  await expect(page.locator(`g[data-element-id="${renamedTaskId}"]`)).toBeVisible();
+  await expect(page.locator(`g[data-element-id="${rejectedTaskId}"]`)).toHaveCount(0);
+  await page.waitForTimeout(1000); // Give any request triggered by restoring the process time to be sent
+  expect(changeRequests).toEqual([
+    `PUT /designer/api/${org}/${testAppName}/process-modelling/process-definition`,
+  ]);
+  expect(await getLayoutSetIds(request, org, testAppName)).toContain(renamedTaskId);
+  await page.unroute(processDefinitionRoute);
+
+  await processEditorPage.clickOnTaskInBpmnEditor(
+    await bpmnJSQuery.getTaskByIdAndType(renamedTaskId, 'g'),
+  );
+  await changeTaskId(processEditorPage, finalTaskId);
+  await processEditorPage.waitForNewTaskIdButtonToBeVisible(finalTaskId);
+
+  await expect
+    .poll(() => getLayoutSetIds(request, org, testAppName))
+    .toEqual(expect.arrayContaining([finalTaskId]));
+  expect(await getLayoutSetIds(request, org, testAppName)).not.toContain(renamedTaskId);
+  expect(await getProcessDefinition(request, org, testAppName)).toContain(`id="${finalTaskId}"`);
 });
 
 const changeTaskId = async (processEditorPage: ProcessEditorPage, newId: string): Promise<void> => {
