@@ -986,7 +986,7 @@ impl App {
                 let Some(agent) = self.agents.get(group.agent) else {
                     return Vec::new();
                 };
-                let agent_matches = self.matches(&agent.metadata.name);
+                let agent_matches = self.matches(&agent.metadata.name) || self.matches(agent_state(agent).label);
                 let sessions = (0..group.sessions.len())
                     .filter(|position| {
                         agent_matches
@@ -2123,6 +2123,24 @@ mod tests {
         for character in text.chars() {
             app.on_key(key(KeyCode::Char(character)));
         }
+    }
+
+    #[test]
+    fn the_filter_matches_an_agents_state() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![ready_agent("alive"), failed_agent("broken", FailureKind::Transient)],
+            Vec::new(),
+        );
+        app.on_key(key(KeyCode::Char('/')));
+        type_text(&mut app, "retry");
+        assert_eq!(
+            app.render_rows()
+                .iter()
+                .map(|row| row.name.as_str())
+                .collect::<Vec<_>>(),
+            ["broken"]
+        );
     }
 
     #[test]
