@@ -3,7 +3,6 @@
 use std::collections::VecDeque;
 
 use agent::{
-    ConditionStatus,
     progress::{AgentProgress, OutputPosition},
     resources::Revision,
 };
@@ -61,17 +60,7 @@ impl Followed {
         let Some(latest) = &self.latest else {
             return vec!["Waiting for agentd…".to_owned()];
         };
-        let ready = latest.status.ready_condition().map_or_else(
-            || "Unknown".to_owned(),
-            |ready| match ready.status {
-                ConditionStatus::True => "True".to_owned(),
-                status => format!("{} ({})", format::condition_status(status), ready.detail()),
-            },
-        );
-        let mut lines = vec![format!("Ready:      {ready}")];
-        if let Some(failure) = latest.status.failure {
-            lines.push(format!("Failure:    {}", format::failure_kind(failure)));
-        }
+        let mut lines = format::readiness_lines(&latest.status);
         match &latest.provisioning {
             Some(provisioning) => lines.extend(format::provisioning_lines(
                 &provisioning.progress,

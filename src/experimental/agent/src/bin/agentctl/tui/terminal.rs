@@ -78,6 +78,11 @@ impl Tui {
         })
     }
 
+    /// Width of the terminal in cells.
+    pub(crate) fn width(&self) -> u16 {
+        self.terminal.size().map_or(0, |size| size.width)
+    }
+
     pub(crate) fn draw(&mut self, app: &App) -> Result<view::HitMap, Error> {
         let mut hit_map = None;
         let view_state = &mut self.view_state;
