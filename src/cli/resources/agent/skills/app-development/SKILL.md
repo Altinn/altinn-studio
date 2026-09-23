@@ -95,7 +95,7 @@ When the upgrade reports Maskinporten configuration:
    record is gone.
 2. **For the deployed app**, select those scopes in Studio under App settings, "Velg scopes fra Maskinporten". This
    requires an Ansattporten sign-in on behalf of the organization that owns the app, and takes effect the next time
-   the app is built and deployed - so do it *before* deploying, or the deployed app fails on its first token request.
+   the app is built and deployed - so do it _before_ deploying, or the deployed app fails on its first token request.
 3. **For local runs**, supply a client with `studioctl app maskinporten set` and make sure that client already has
    the same scopes in Maskinporten. `studioctl doctor` reports whether one is stored for the detected app.
 4. **Do not reintroduce credentials into `appsettings.json`.** v9 does not read them from there in any environment.
