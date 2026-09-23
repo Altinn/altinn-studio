@@ -94,7 +94,8 @@ impl Preparation {
                             secret.environment
                         )));
                     }
-                    if let Some(existing) = managed_placeholders.insert(secret.placeholder, installation.kind.as_str())
+                    if let Some(existing) =
+                        managed_placeholders.insert(secret.placeholder.clone(), installation.kind.as_str())
                     {
                         return Err(Error::Invalid(format!(
                             "harnesses {:?} and {:?} use the same managed placeholder {:?}",
@@ -116,7 +117,7 @@ impl Preparation {
             for secret in managed_secrets {
                 bindings.push(SecretBinding::with_placeholder(
                     secret.environment,
-                    secret.placeholder,
+                    &secret.placeholder,
                     secret.reference,
                 )?);
             }

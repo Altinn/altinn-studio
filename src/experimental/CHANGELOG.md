@@ -15,6 +15,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Changed
 
 - Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
+- Altinn, self-development and worktree Agents install Codex CLI 0.156.0, with workspace routing and activity hooks updated for its startup flow.
 
 ## [0.1.0-preview.5] - 2026-09-22
 

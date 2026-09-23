@@ -111,7 +111,7 @@ RUN case "${TARGETARCH}" in \
 # host-mediated token.
 RUN git config --system credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 
-ARG CODEX_VERSION=0.155.1
+ARG CODEX_VERSION=0.156.0
 ARG CLAUDE_CODE_VERSION=2.1.280
 
 # Node ignores the system trust store, and Buildah drops default environment from build stages,
