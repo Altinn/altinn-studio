@@ -50,6 +50,7 @@ export function SequenceFlowExpression(): ReactElement {
     <StudioButton
       variant='secondary'
       icon={<PlusIcon />}
+      fullWidth
       onClick={() =>
         update([GeneralRelationOperator.Equals, [KeyLookupFuncName.GatewayAction], 'reject'])
       }
