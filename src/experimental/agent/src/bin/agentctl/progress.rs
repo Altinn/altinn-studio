@@ -184,6 +184,7 @@ impl<W: Write> Renderer<W> {
     }
 
     fn render_inner(&mut self, progress: &AgentProgress) -> io::Result<()> {
+        let following_began = !self.started;
         self.revision = Some(progress.revision);
         self.condition(progress)?;
         let Some(provisioning) = &progress.provisioning else {
@@ -194,6 +195,12 @@ impl<W: Write> Renderer<W> {
             self.cursor = ProgressCursor::new();
             self.printed_step = false;
             self.recent_output.clear();
+            // The latest pass may have succeeded long before following began.
+            // It is history, not progress: take its position without printing it.
+            if following_began && *provisioning.progress.status() == OperationStatus::Succeeded {
+                let _ = self.cursor.updates(&provisioning.progress);
+                return Ok(());
+            }
         }
         let pass = &provisioning.progress;
         let mut latest_output = None;
@@ -540,6 +547,19 @@ mod tests {
             self
         }
 
+        fn succeed(&mut self) -> &mut Self {
+            self.progress.succeed();
+            self.status.failure = None;
+            self.status.conditions = vec![Condition {
+                kind: Condition::READY.into(),
+                status: ConditionStatus::True,
+                reason: "SandboxReady".into(),
+                message: String::new(),
+                last_transition_time: None,
+            }];
+            self
+        }
+
         fn retry(&mut self) -> &mut Self {
             self.changes.bump();
             self.pass = self.changes.revision();
@@ -669,6 +689,34 @@ mod tests {
                 "  ✓ Create Microsandbox VM (366ms)",
                 "✓ Start Sandbox (367ms)",
             ]
+        );
+    }
+
+    #[test]
+    fn a_pass_that_succeeded_before_following_began_is_not_replayed() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        daemon
+            .phase(SandboxPhase::SandboxStart)
+            .step("Create Microsandbox VM")
+            .output("Create Microsandbox VM", "created\n")
+            .end_step("Create Microsandbox VM", 366)
+            .end_phase(SandboxPhase::SandboxStart, Outcome::Completed, 367)
+            .succeed();
+        renderer.render(&daemon.snapshot());
+        renderer.render(&daemon.snapshot());
+        daemon
+            .retry()
+            .phase(SandboxPhase::SandboxStart)
+            .step("Create Microsandbox VM")
+            .end_step("Create Microsandbox VM", 12)
+            .end_phase(SandboxPhase::SandboxStart, Outcome::Completed, 13);
+        renderer.render(&daemon.snapshot());
+        renderer.finish();
+        assert_eq!(
+            lines(renderer),
+            vec!["  ✓ Create Microsandbox VM (12ms)", "✓ Start Sandbox (13ms)"],
+            "only the pass that ran while following is printed"
         );
     }
 
