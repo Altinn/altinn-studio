@@ -13,10 +13,14 @@ namespace Altinn.Studio.Observability.Proxy.Auth;
 ///
 /// <code>
 /// {
-///   "ingest": { "studio-prod": "...", "runtime-prod": "..." },
-///   "query":  { "grafana": "..." }
+///   "ingest": { "studio-prod": ["current", "previous"], "runtime-prod": ["current", "previous"] },
+///   "query":  { "grafana": ["current", "previous"] }
 /// }
 /// </code>
+///
+/// Each identity accepts a list of tokens so that a rotation can overlap: the replaced token stays
+/// accepted next to the new one, and is dropped only after every source has moved. Outside a
+/// rotation both entries hold the same value, which is not reported.
 ///
 /// A top-level key the proxy does not know grants nothing, so a typo denies access rather than
 /// widening it.
@@ -110,7 +114,7 @@ internal sealed class AuthTokenFile
     private List<BearerTokenOptions> Parse(string content, string path)
     {
         var parsed =
-            JsonSerializer.Deserialize(content, AuthTokenFileJson.Default.DictionaryStringDictionaryStringString)
+            JsonSerializer.Deserialize(content, AuthTokenFileJson.Default.DictionaryStringDictionaryStringListString)
             ?? throw new JsonException($"Token file {path} is empty.");
 
         var tokens = new List<BearerTokenOptions>();
@@ -132,32 +136,39 @@ internal sealed class AuthTokenFile
                 continue;
             }
 
-            foreach (var (sourceIdentity, token) in identities)
+            foreach (var (sourceIdentity, identityTokens) in identities)
             {
-                if (string.IsNullOrWhiteSpace(token))
+                foreach (var token in identityTokens.Distinct(StringComparer.Ordinal))
                 {
-                    _logger.LogWarning("Token file {Path} has an empty token for {Identity}.", path, sourceIdentity);
-                    continue;
-                }
+                    if (string.IsNullOrWhiteSpace(token))
+                    {
+                        _logger.LogWarning(
+                            "Token file {Path} has an empty token for {Identity}.",
+                            path,
+                            sourceIdentity
+                        );
+                        continue;
+                    }
 
-                if (!identityByToken.TryAdd(token, sourceIdentity))
-                {
-                    _logger.LogWarning(
-                        "Token file {Path} uses the same token value for {FirstIdentity} and {SecondIdentity}; "
-                            + "requests presenting it are attributed to whichever is read last.",
-                        path,
-                        identityByToken[token],
-                        sourceIdentity
-                    );
-                }
+                    if (!identityByToken.TryAdd(token, sourceIdentity))
+                    {
+                        _logger.LogWarning(
+                            "Token file {Path} uses the same token value for {FirstIdentity} and {SecondIdentity}; "
+                                + "requests presenting it are attributed to whichever is read last.",
+                            path,
+                            identityByToken[token],
+                            sourceIdentity
+                        );
+                    }
 
-                var entry = new BearerTokenOptions { Token = token, SourceIdentity = sourceIdentity };
-                foreach (var routeGroup in routeGroups)
-                {
-                    entry.AllowedRouteGroups.Add(routeGroup);
-                }
+                    var entry = new BearerTokenOptions { Token = token, SourceIdentity = sourceIdentity };
+                    foreach (var routeGroup in routeGroups)
+                    {
+                        entry.AllowedRouteGroups.Add(routeGroup);
+                    }
 
-                tokens.Add(entry);
+                    tokens.Add(entry);
+                }
             }
         }
 
@@ -178,5 +189,5 @@ internal sealed class AuthTokenFile
 }
 
 /// <summary>Source-generated so the file can be read without reflection-based serialization.</summary>
-[JsonSerializable(typeof(Dictionary<string, Dictionary<string, string>>))]
+[JsonSerializable(typeof(Dictionary<string, Dictionary<string, List<string>>>))]
 internal sealed partial class AuthTokenFileJson : JsonSerializerContext;
