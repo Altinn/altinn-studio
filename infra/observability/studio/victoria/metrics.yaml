@@ -29,8 +29,30 @@ spec:
   # retention period has to be chosen to stay inside the volume and the free
   # space floor is only a backstop.
   retentionPeriod: 90d
+  # Mounted at /etc/vm/secrets/observability-backend-auth-keys/, one file per key.
+  secrets:
+    - observability-backend-auth-keys
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
+    # Every admin endpoint is open unless its auth key is set, and the proxy
+    # forwards any path under /metrics/* here, so without these a query token
+    # could delete series or take snapshots. The keys are read from the mounted
+    # Secret with file:// rather than put on the command line, where they would
+    # show in the pod spec; the binary re-reads the file every few seconds, so a
+    # rotated key takes effect without a restart, and a missing file leaves the
+    # endpoint locked with a random key rather than open. The read-only
+    # -metricsAuthKey, -flagsAuthKey and -configAuthKey stay unset: -flags masks
+    # secret values, -config has no scrape config to show here, and a key on
+    # /metrics would have to be given to any future scraper.
+    deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/delete
+    snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/snapshot
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
+    reloadAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/reload
+    search.resetCacheAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/reset-cache
+    logNewSeriesAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-series
+    metricNamesStatsResetAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/metric-names-stats-reset
   storage:
     accessModes:
       - ReadWriteOnce
@@ -71,8 +93,19 @@ spec:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
   retentionPeriod: 90d
+  secrets:
+    - observability-backend-auth-keys
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
+    deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/delete
+    snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/snapshot
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
+    reloadAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/reload
+    search.resetCacheAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/reset-cache
+    logNewSeriesAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-series
+    metricNamesStatsResetAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/metric-names-stats-reset
   storage:
     accessModes:
       - ReadWriteOnce

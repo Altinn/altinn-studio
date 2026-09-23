@@ -16,8 +16,20 @@ spec:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
   retentionPeriod: 100y
+  secrets:
+    - observability-backend-auth-keys
   extraArgs:
     retention.maxDiskUsagePercent: "80"
+    # Auth keys for every admin endpoint, read from the mounted Secret for the
+    # reasons given on the VMSingle in metrics.yaml. -partitionManageAuthKey
+    # also covers the partition snapshot endpoints. -metricsAuthKey and
+    # -flagsAuthKey stay unset, as there. The /delete/* API needs no key: it is
+    # off unless -delete.enable is set.
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/partition-manage
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-streams
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
   storage:
     accessModes:
       - ReadWriteOnce
@@ -58,8 +70,15 @@ spec:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
   retentionPeriod: 100y
+  secrets:
+    - observability-backend-auth-keys
   extraArgs:
     retention.maxDiskUsagePercent: "80"
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/partition-manage
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-streams
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
   storage:
     accessModes:
       - ReadWriteOnce
