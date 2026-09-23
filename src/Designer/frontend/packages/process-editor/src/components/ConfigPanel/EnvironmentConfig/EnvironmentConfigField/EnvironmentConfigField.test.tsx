@@ -39,7 +39,9 @@ describe('EnvironmentConfigField', () => {
     await user.click(getDeleteButton(stagingLabel));
     expect(screen.getByRole('textbox', { name: globalLabel })).toHaveFocus();
 
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(
+      screen.getByRole('button', { name: textMock('general.close_item', { item: fieldLabel }) }),
+    );
     expect(getCollapsedButton()).toHaveFocus();
   });
 
@@ -167,7 +169,9 @@ describe('EnvironmentConfigField', () => {
     await user.click(screen.getByRole('button', { name: addOverrideLabel }));
     await user.click(getMenuItem(stagingLabel));
 
-    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    await user.click(
+      screen.getByRole('button', { name: textMock('general.close_item', { item: fieldLabel }) }),
+    );
     await user.click(getCollapsedButton());
 
     expect(screen.queryByLabelText(stagingLabel)).not.toBeInTheDocument();

@@ -17,7 +17,13 @@
   min-width: 0;
 }
 
-.footer {
+.content {
   display: flex;
-  gap: var(--ds-size-2);
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  padding: 0 var(--studio-property-fieldset-spacing) var(--studio-property-fieldset-spacing);
+}
+
+.description {
+  color: var(--ds-color-neutral-text-subtle);
 }
