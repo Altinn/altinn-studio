@@ -18,8 +18,22 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { addAction } = useStudioRecommendedNextActionContext();
   const lastSavedXmlRef = useRef<string>(initialBpmnXml);
+  const isRestoringRef = useRef<boolean>(false);
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
+
+  // Shows the process as it is saved, so a rejected change is not sent again with the next edit.
+  // Importing removes and re-adds every shape; those are not task removals or additions, so the shape
+  // handlers ignore them. It clears the command stack without firing "commandStack.changed", so it does not save.
+  const restoreLastSavedProcess = useCallback(async (): Promise<void> => {
+    setBpmnDetails(null);
+    isRestoringRef.current = true;
+    try {
+      await modelerRef.current?.importXML(lastSavedXmlRef.current);
+    } finally {
+      isRestoringRef.current = false;
+    }
+  }, [setBpmnDetails, modelerRef]);
 
   const handleCommandStackChanged = useCallback(async () => {
     const xml = await getUpdatedXml();
@@ -29,15 +43,13 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
       await saveBpmn(xml, metadata);
       lastSavedXmlRef.current = xml;
     } catch {
-      // Show the process as it is saved, so the rejected change is not sent again with the next edit.
-      // Importing clears the command stack without firing "commandStack.changed", so this does not save.
-      setBpmnDetails(null);
-      await modelerRef.current?.importXML(lastSavedXmlRef.current);
+      await restoreLastSavedProcess();
     }
-  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, setBpmnDetails, modelerRef]);
+  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, restoreLastSavedProcess]);
 
   const handleShapeAdd = useCallback(
     async (taskEvent: TaskEvent): Promise<void> => {
+      if (isRestoringRef.current) return;
       const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(
         taskEvent?.element?.businessObject,
       );
@@ -57,6 +69,7 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
 
   const handleShapeRemove = useCallback(
     (taskEvent: TaskEvent): void => {
+      if (isRestoringRef.current) return;
       const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(
         taskEvent?.element?.businessObject,
       );

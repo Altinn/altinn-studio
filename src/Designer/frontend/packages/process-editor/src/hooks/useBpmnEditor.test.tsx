@@ -261,6 +261,24 @@ describe('useBpmnEditor', () => {
     expect(importXML).toHaveBeenLastCalledWith(savedXml);
   });
 
+  it('Does not treat the shapes removed and re-added by the reload as task removals or additions', async () => {
+    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
+    const onProcessTaskAdd = jest.fn();
+    const onProcessTaskRemove = jest.fn();
+    await setup({ bpmnApiContextProps: { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } });
+    importXML.mockImplementationOnce(async () => {
+      eventListeners.triggerEvent('shape.remove', { element } as TaskEvent);
+      eventListeners.triggerEvent('shape.added', { element } as TaskEvent);
+      return { warnings: [] };
+    });
+
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+
+    await waitFor(() => expect(importXML).toHaveBeenCalledTimes(2));
+    expect(onProcessTaskRemove).not.toHaveBeenCalled();
+    expect(onProcessTaskAdd).not.toHaveBeenCalled();
+  });
+
   it('Clears the metadata form before the save completes, so the next edit does not resend it', async () => {
     const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
     const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
