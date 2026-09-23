@@ -88,49 +88,67 @@ runtime must establish the common interface before one is introduced.
 
 ## Optional TCP control connection
 
-The default remains the private local socket, with automatic daemon startup and no client configuration.
-For trusted development, start the daemon with an additional loopback TCP listener:
+Normally, `agentctl` starts `agentd` when needed and connects through a private local socket. No configuration
+is needed. TCP is an optional way to connect to a daemon you start yourself, such as one running outside your
+development container.
+
+**Use TCP only for trusted development.** This first version has no authentication or encryption; authentication
+will come later. Anyone who can reach the port can manage Agents, run code through Session prompts, and read
+sensitive data. Do not expose or forward it to untrusted users or networks.
+
+### Start and connect
+
+If a daemon is already running for the same Agent home, stop it first. Then start it with TCP enabled:
 
 ```sh
-agentd --insecure-tcp-port 9000 # shorthand: agentd -p 9000
+agentd --insecure-tcp-port 9000 # or: agentd -p 9000
+```
+
+In another terminal on the same machine, connect to it:
+
+```sh
 agentctl --endpoint tcp://127.0.0.1:9000 get agents
 ```
 
-Both listeners serve the same daemon and resources, so local socket and TCP clients can run simultaneously.
-`--endpoint` accepts a DNS name, IPv4 address, or bracketed IPv6 address with an explicit nonzero port.
-It connects to an already-running daemon: it never starts or updates a local daemon, falls back to the local
-socket, or uses `AGENT_HOME`. It cannot be combined with `--home`. Client and daemon builds must match.
-TCP is enabled only by the daemon's startup flag; automatic startup and self-update do not retain that flag.
-Stop an existing daemon for the selected home before starting it with TCP enabled.
+The local socket stays available. Clients using either connection see the same Agents and Sessions.
+Use matching builds of `agentctl` and `agentd`.
 
-TCP connection attempts time out after 10 seconds. On either transport, ordinary API replies have a separate
-30-second deadline; provisioning and prompts keep their existing wait policies, and upgrade shutdown has a
-90-second reply deadline. A timed-out operation may still finish on the daemon and is never automatically
-replayed. Local startup retries disconnected health probes, but protocol errors and incompatible builds fail
-without starting another daemon.
+### What works over TCP?
 
-This first design is intentionally **unauthenticated and unencrypted**. Authentication is deferred to later work.
-The listener binds only to `127.0.0.1`, but unlike the private socket it has no per-user access protection.
-Anyone who can reach it can manage Agents, create Sessions, submit prompts that execute code, and read sensitive
-responses. Request and response data may contain secrets. Do not expose or forward it to untrusted networks or
-clients. Both binaries warn on standard error so command output remains scriptable.
-Harness credential import and daemon upgrade shutdown are rejected by the server for TCP callers; these
-restrictions do not make the remaining API safe for untrusted callers.
+- Supported: `apply` (including `--wait`), `get`, `describe`, `delete`, `wait`, `create`, `prompt`, `turns`,
+  and `ssh-info`. Paths returned by `ssh-info` refer to the daemon's machine.
+- Still local-only: `attach`, `exec`, `port-forward`, `ssh`, `ssh-proxy`, `ssh-config`, harness login,
+  `self`, and the terminal UI. These commands reject `--endpoint`.
 
-Supported over TCP: `apply` (including `--wait`), `get`, `describe`, `delete`, `wait`, `create`, `prompt`, `turns`,
-and `ssh-info`. Paths printed by `ssh-info` belong to the daemon host. `attach`, `exec`, `port-forward`, `ssh`,
-`ssh-proxy`, `ssh-config`, harness login, `self`, and the TUI require the default local endpoint and fail clearly
-when `--endpoint` is supplied. Remote runtime streaming and named contexts are deferred to follow-up PRs.
+Remote terminal access and named contexts are planned for later work. The daemon also rejects credential import
+and upgrade shutdown over TCP; this does not make the other commands safe for untrusted callers.
 
-`apply` reads the manifest on the client but sends absolute source, manifest, and environment-file paths for
-the daemon to use; files are not uploaded. These paths and referenced files must be available on the daemon
-host with identical absolute mappings. Current-directory inference likewise sends the client's working
-directory; use explicit Agent names when the two hosts do not share paths.
+### Connecting from a container
 
-One use case is a containerized CLI talking to a native macOS daemon. The container must be able to reach the
-host's loopback listener through its networking setup (for example a supported `host.docker.internal` route).
-`127.0.0.1` inside a container refers to that container, not the Mac; endpoint selection alone does not establish
-this route. End-to-end reachability must be checked for the particular container backend.
+The daemon listens only on `127.0.0.1` on its host. Inside a container, that address points to the container,
+not the host. Your container networking must provide a way to reach the host's port; whether
+`host.docker.internal` works depends on your setup. The endpoint flag does not configure this networking.
+
+Files are not uploaded. For `apply`, the manifest, source directories, and environment files must be available
+at the same absolute paths on both machines. Looking up an Agent from the current directory also relies on
+matching paths; use an explicit Agent name when they differ.
+
+<details>
+<summary>Connection details and troubleshooting</summary>
+
+- `--endpoint` accepts `tcp://HOST:PORT`, with a DNS name, IPv4 address, or bracketed IPv6 address and a nonzero port.
+  It cannot be combined with `--home`, and it ignores `AGENT_HOME`.
+- With `--endpoint`, the client never starts or updates a local daemon, or switches to the local socket if the
+  connection fails. Automatic daemon startup and self-update do not preserve the TCP startup flag.
+- TCP connections time out after 10 seconds. Ordinary API replies have a separate 30-second timeout on either
+  connection type. Provisioning and prompts keep their own wait policies; upgrade shutdown allows 90 seconds.
+- A timed-out operation may still finish on the daemon. The client does not automatically send it again.
+- During local startup, disconnected health checks are retried. Invalid responses and incompatible builds fail
+  without starting another daemon.
+- TCP does not have the local socket's per-user access protection. Requests and responses may contain secrets.
+  Both programs print security warnings to standard error, leaving command output usable by scripts.
+
+</details>
 
 ## Images, home and harnesses
 
