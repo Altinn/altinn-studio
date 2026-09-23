@@ -956,8 +956,9 @@ impl App {
         self.rebuild_from(fallback);
     }
 
-    /// Rebuilds the tree. A selection whose row disappeared falls back to the
-    /// row now at its former position.
+    /// Rebuilds the tree. A selected Session hidden by folding its Agent leaves
+    /// the selection on that Agent; any other selection whose row disappeared
+    /// falls back to the row now at its former position.
     pub(crate) fn rebuild(&mut self) {
         self.rebuild_from(self.selected_index().unwrap_or_default());
     }
@@ -1012,7 +1013,13 @@ impl App {
             })
             .collect();
         if self.selected_index().is_none() {
-            self.selection = self.tree_id_at(fallback.min(self.rows.len().saturating_sub(1)));
+            let agent = match &self.selection {
+                Some(TreeRowId::Session { agent, .. }) => {
+                    Some(TreeRowId::Agent(agent.clone())).filter(|agent| self.tree_index(agent).is_some())
+                }
+                _ => None,
+            };
+            self.selection = agent.or_else(|| self.tree_id_at(fallback.min(self.rows.len().saturating_sub(1))));
         }
     }
 
@@ -2259,6 +2266,31 @@ mod tests {
         assert_eq!(app.rows.len(), 2);
         app.on_key(key(KeyCode::Char('z')));
         assert_eq!(app.rows.len(), 5);
+    }
+
+    #[test]
+    fn folding_moves_the_selection_from_a_hidden_session_to_its_agent() {
+        let mut app = populated();
+        app.select_index(1);
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "builder".into(),
+                session: SessionName::new("b1").expect("name"),
+            })
+        );
+        app.on_key(key(KeyCode::Char('z')));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("builder".into())),
+            "not worker, which folding moved to the Session's former position"
+        );
+        app.on_key(key(KeyCode::Char('z')));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("builder".into())),
+            "unfolding keeps it on the Agent"
+        );
     }
 
     #[test]

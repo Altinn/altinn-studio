@@ -47,6 +47,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - Rows that move in the terminal UI no longer take the selection or a mouse click to another Agent or Session.
 - The terminal UI's new-Session form rejects a name the Agent already uses, instead of attaching to that Session.
+- Folding an Agent in the terminal UI while one of its Sessions is selected selects the Agent, instead of whichever
+  row takes the Session's place.
 
 ## [0.1.0-preview.6] - 2026-09-23
 
