@@ -24,9 +24,13 @@ spec:
     namespace: default
   path: ./
   prune: true
-  # The observability Kustomization dependsOn this one, and a dependency is only
-  # satisfied once it reports Ready, which requires wait. The timeout has to cover
-  # the HelmRelease install, which has its own 5m timeout.
+  # The prod-only observability-victoria Kustomization, which applies the Victoria
+  # custom resources, dependsOn this one so they are not applied before their CRDs
+  # exist. A dependency is only satisfied once it reports Ready, and without wait
+  # this Kustomization is Ready as soon as the HelmRelease object is applied, not
+  # when the chart is installed. The timeout has to cover the HelmRelease install,
+  # which has its own 5m timeout. The observability Kustomization does not depend
+  # on this one.
   wait: true
   timeout: 10m
   postBuild:
