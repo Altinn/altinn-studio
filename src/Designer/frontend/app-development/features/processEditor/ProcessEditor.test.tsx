@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import ProcessEditor from './ProcessEditor';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../test/testUtils';
@@ -9,6 +9,9 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
 import { app, org } from '@studio/testing/testids';
 import { pagesModelMock } from '@altinn/ux-editor-v4/testing/layoutMock';
+import type { ProcessEditorProps } from '@altinn/process-editor/ProcessEditor';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 // test data
 const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
@@ -21,6 +24,19 @@ jest.mock('@altinn/process-editor/contexts/BpmnContext', () => ({
 jest.mock('@altinn/process-editor/components/Canvas', () => ({
   Canvas: () => <div></div>,
 }));
+
+const mockProcessEditorProps = jest.fn();
+jest.mock('@altinn/process-editor', () => {
+  const actual = jest.requireActual('@altinn/process-editor');
+  const { createElement } = jest.requireActual('react');
+  return {
+    ...actual,
+    ProcessEditor: (props: ProcessEditorProps) => {
+      mockProcessEditorProps(props);
+      return createElement(actual.ProcessEditor, props);
+    },
+  };
+});
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({
   shouldDisplayFeature: jest.fn().mockReturnValue(true),
@@ -81,12 +97,43 @@ describe('ProcessEditor', () => {
   it('should render the ProcessEditor component', () => {
     renderProcessEditor();
   });
+
+  describe('saveBpmn', () => {
+    const renderLoadedProcessEditor = (updateBpmnXml: jest.Mock) => {
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
+      queryClient.setQueryData([QueryKey.AppMetadata, org, app], []);
+      renderProcessEditor({ queryClient, queries: { updateBpmnXml } });
+      const { saveBpmn } = mockProcessEditorProps.mock.lastCall[0] as ProcessEditorProps;
+      return saveBpmn;
+    };
+
+    it('resolves when the process definition is saved', async () => {
+      const saveBpmn = renderLoadedProcessEditor(jest.fn().mockResolvedValue(undefined));
+      await act(() => expect(saveBpmn('<xml></xml>')).resolves.toBeUndefined());
+    });
+
+    it('rejects and shows an error when saving the process definition fails', async () => {
+      const saveBpmn = renderLoadedProcessEditor(
+        jest.fn().mockRejectedValue(createApiErrorMock(ServerCodes.BadRequest)),
+      );
+      await act(() => expect(saveBpmn('<xml></xml>')).rejects.toEqual(expect.anything()));
+      expect(
+        await screen.findByText(textMock('process_editor.save_bpmn_xml_error')),
+      ).toBeInTheDocument();
+    });
+  });
 });
 
-const renderProcessEditor = ({ bpmnFile = null, queryClient = createQueryClientMock() } = {}) => {
+const renderProcessEditor = ({
+  bpmnFile = null,
+  queryClient = createQueryClientMock(),
+  queries = {},
+} = {}) => {
   queryClient.setQueryData([QueryKey.FetchBpmn, org, app], bpmnFile);
   queryClient.setQueryData([QueryKey.Pages, org, app], pagesModelMock);
   return renderWithProviders(<ProcessEditor />, {
+    queries,
     queryClient,
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
