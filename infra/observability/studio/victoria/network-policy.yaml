@@ -1,0 +1,214 @@
+# Traffic is limited to the paths in the architecture: observability-proxy
+# writes OTLP to the agents, each agent writes to its own storage pair, and
+# observability-proxy reads from the storage pairs. Nothing else in the cluster
+# can reach these pods, and the agents can reach nothing but their storage and
+# cluster DNS.
+#
+# Kubelet probes need no rule: traffic from the node to its own pods is always
+# allowed by NetworkPolicy, and Azure Network Policy Manager filters only
+# forwarded traffic (its AZURE-NPM chain is jumped to from FORWARD), which
+# excludes connections the kubelet makes from the host.
+#
+# Self-monitoring is not decided. A scraper would need a rule admitting it to
+# each pod's HTTP port below, which is also where /metrics is served; the
+# storage egress would need nothing, as a scraper connects inward.
+#
+# The selectors use the labels the operator puts on the pods it creates
+# (app.kubernetes.io/name is the kind in lower case, app.kubernetes.io/instance
+# the object name), which the hand-written vtagent in traces.yaml copies.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vmagent-metrics
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vmagent
+      app.kubernetes.io/instance: metrics
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # OTLP is served on the HTTP port, at /opentelemetry/v1/metrics.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 8429
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+      ports:
+        - protocol: TCP
+          port: 8428
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vtagent-traces
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vtagent
+      app.kubernetes.io/instance: traces
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # OTLP is served on the HTTP port, at /insert/opentelemetry/v1/traces.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 10429
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+      ports:
+        - protocol: TCP
+          port: 10428
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vlagent-logs
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vlagent
+      app.kubernetes.io/instance: logs
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # OTLP is served on the HTTP port, at /insert/opentelemetry/v1/logs.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 9429
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+      ports:
+        - protocol: TCP
+          port: 9428
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Both instances of each pair: writes from the pair's agent, reads from the
+# proxy, on the one HTTP port that serves both.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vmsingle-metrics
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vmsingle
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: metrics
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 8428
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vtsingle-traces
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vtsingle
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtagent
+              app.kubernetes.io/instance: traces
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 10428
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vlsingle-logs
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vlsingle
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlagent
+              app.kubernetes.io/instance: logs
+        - podSelector:
+            matchLabels:
+              app: observability-proxy
+      ports:
+        - protocol: TCP
+          port: 9428
