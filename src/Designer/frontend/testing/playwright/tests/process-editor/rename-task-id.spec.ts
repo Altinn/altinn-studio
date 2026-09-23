@@ -1,6 +1,6 @@
 import { test } from '../../extenders/testExtend';
 import { expect } from '@playwright/test';
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext, Page, Response } from '@playwright/test';
 import { Gitea } from '../../helpers/Gitea';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
@@ -14,6 +14,8 @@ const idLongerThanLayoutSetNameLimit: string = 'a'.repeat(29);
 const rejectedTaskId: string = 'RejectedTask';
 const finalTaskId: string = 'FinalTask';
 const processDefinitionRoute: string = '**/process-modelling/process-definition';
+const namedTaskId: string = 'NamedTask';
+const lastTaskId: string = 'LastTask';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -50,13 +52,12 @@ test('that renaming a task renames its layout set, and a second rename follows t
   await processEditorPage.clickOnTaskInBpmnEditor(
     await bpmnJSQuery.getTaskByIdAndType(initialTaskId, 'g'),
   );
-  await changeTaskId(processEditorPage, renamedTaskId);
+  await saveTaskIdChange(processEditorPage, renamedTaskId);
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(renamedTaskId);
 
-  await expect
-    .poll(() => getLayoutSetIds(request, org, testAppName))
-    .toEqual(expect.arrayContaining([renamedTaskId]));
-  expect(await getLayoutSetIds(request, org, testAppName)).not.toContain(initialTaskId);
+  const layoutSetIds: string[] = await getLayoutSetIds(request, org, testAppName);
+  expect(layoutSetIds).toContain(renamedTaskId);
+  expect(layoutSetIds).not.toContain(initialTaskId);
 
   await changeTaskId(processEditorPage, idLongerThanLayoutSetNameLimit);
   await expect(
@@ -110,14 +111,80 @@ test('that a rejected save restores the saved process, so the next rename keeps 
   await processEditorPage.clickOnTaskInBpmnEditor(
     await bpmnJSQuery.getTaskByIdAndType(renamedTaskId, 'g'),
   );
-  await changeTaskId(processEditorPage, finalTaskId);
+  await saveTaskIdChange(processEditorPage, finalTaskId);
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(finalTaskId);
 
-  await expect
-    .poll(() => getLayoutSetIds(request, org, testAppName))
-    .toEqual(expect.arrayContaining([finalTaskId]));
-  expect(await getLayoutSetIds(request, org, testAppName)).not.toContain(renamedTaskId);
+  const layoutSetIds: string[] = await getLayoutSetIds(request, org, testAppName);
+  expect(layoutSetIds).toContain(finalTaskId);
+  expect(layoutSetIds).not.toContain(renamedTaskId);
   expect(await getProcessDefinition(request, org, testAppName)).toContain(`id="${finalTaskId}"`);
+});
+
+test('that naming a new task through the recommended action keeps its id when the process is edited again', async ({
+  page,
+  request,
+  testAppName,
+}) => {
+  const processEditorPage = new ProcessEditorPage(page, { app: testAppName });
+  await processEditorPage.loadProcessEditorPage();
+  await processEditorPage.verifyProcessEditorPage();
+  const bpmnJSQuery = new BpmnJSQuery(page);
+  const org: string = processEditorPage.org;
+  const layoutSetCreationsAndDeletions: string[] = [];
+  page.on('request', (sentRequest) => {
+    if (
+      ['POST', 'DELETE'].includes(sentRequest.method()) &&
+      sentRequest.url().includes('/layout-set')
+    ) {
+      layoutSetCreationsAndDeletions.push(`${sentRequest.method()} ${sentRequest.url()}`);
+    }
+  });
+
+  const taskAddSaved: Promise<Response> = waitForProcessDefinitionSave(page);
+  const layoutSetCreated: Promise<Response> = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' && response.url().endsWith('/ui-folders/layout-sets'),
+  );
+  await processEditorPage.dragTaskInToBpmnEditor(
+    'data',
+    await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg'),
+  );
+  await Promise.all([taskAddSaved, layoutSetCreated]);
+  expect(layoutSetCreationsAndDeletions).toHaveLength(1);
+
+  const processReloaded: Promise<Response> = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'GET' && response.url().endsWith('/process-definition'),
+  );
+  await page
+    .getByRole('textbox', {
+      name: processEditorPage.textMock('process_editor.recommended_action.new_name_label'),
+    })
+    .fill(namedTaskId);
+  await page.getByRole('button', { name: processEditorPage.textMock('general.save') }).click();
+  await processReloaded;
+  await processEditorPage.waitForNewTaskIdButtonToBeVisible(namedTaskId);
+  expect(layoutSetCreationsAndDeletions).toHaveLength(1);
+
+  // The canvas does not register a click made right after the reload, so the click is retried until it selects.
+  const finalTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(finalTaskId, 'g');
+  await expect(async () => {
+    await processEditorPage.clickOnTaskInBpmnEditor(finalTaskSelector);
+    await expect(
+      page.getByText(
+        `${processEditorPage.textMock('process_editor.configuration_panel_change_task_id')}${finalTaskId}`,
+      ),
+    ).toBeVisible({ timeout: 1000 });
+  }).toPass();
+  await saveTaskIdChange(processEditorPage, lastTaskId);
+  await processEditorPage.waitForNewTaskIdButtonToBeVisible(lastTaskId);
+
+  expect(await getLayoutSetIds(request, org, testAppName)).toEqual(
+    expect.arrayContaining([namedTaskId, lastTaskId]),
+  );
+  const processDefinition: string = await getProcessDefinition(request, org, testAppName);
+  expect(processDefinition).toContain(`id="${namedTaskId}"`);
+  expect(processDefinition).toContain(`id="${lastTaskId}"`);
 });
 
 const changeTaskId = async (processEditorPage: ProcessEditorPage, newId: string): Promise<void> => {
@@ -128,6 +195,22 @@ const changeTaskId = async (processEditorPage: ProcessEditorPage, newId: string)
   await processEditorPage.waitForTextBoxToHaveValue(newId);
   await processEditorPage.saveNewId();
 };
+
+// Designer cannot read the process definition while a save is writing it, so reads wait for the save to finish.
+const saveTaskIdChange = async (
+  processEditorPage: ProcessEditorPage,
+  newId: string,
+): Promise<void> => {
+  const saved: Promise<Response> = waitForProcessDefinitionSave(processEditorPage.page);
+  await changeTaskId(processEditorPage, newId);
+  await saved;
+};
+
+const waitForProcessDefinitionSave = (page: Page): Promise<Response> =>
+  page.waitForResponse(
+    (response) =>
+      response.request().method() === 'PUT' && response.url().endsWith('/process-definition'),
+  );
 
 const getLayoutSetIds = async (
   request: APIRequestContext,
