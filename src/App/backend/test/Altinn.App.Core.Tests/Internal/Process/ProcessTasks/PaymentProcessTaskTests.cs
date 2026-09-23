@@ -3,6 +3,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Payment;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -67,7 +68,7 @@ public class PaymentProcessTaskTests
     }
 
     [Fact]
-    public void GetStartCommands_DeclaresCleanup()
+    public void DefineStartPipeline_DeclaresCleanup()
     {
         Assert.Equal(
             [
@@ -76,12 +77,15 @@ public class PaymentProcessTaskTests
                     CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
                 ),
             ],
-            _paymentProcessTask.GetStartCommands(TaskId)
+            _paymentProcessTask
+                .ResolveLifecyclePipeline(TaskId, "start")
+                .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+                .ToArray()
         );
     }
 
     [Fact]
-    public void GetEndCommands_DeclaresCompletePayment()
+    public void DefineEndPipeline_DeclaresCompletePayment()
     {
         Assert.Equal(
             [
@@ -90,12 +94,15 @@ public class PaymentProcessTaskTests
                     CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
                 ),
             ],
-            _paymentProcessTask.GetEndCommands(TaskId)
+            _paymentProcessTask
+                .ResolveLifecyclePipeline(TaskId, "end")
+                .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+                .ToArray()
         );
     }
 
     [Fact]
-    public void GetAbandonCommands_DeclaresCleanup()
+    public void DefineAbandonPipeline_DeclaresCleanup()
     {
         Assert.Equal(
             [
@@ -104,7 +111,10 @@ public class PaymentProcessTaskTests
                     CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
                 ),
             ],
-            _paymentProcessTask.GetAbandonCommands(TaskId)
+            _paymentProcessTask
+                .ResolveLifecyclePipeline(TaskId, "abandon")
+                .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+                .ToArray()
         );
     }
 

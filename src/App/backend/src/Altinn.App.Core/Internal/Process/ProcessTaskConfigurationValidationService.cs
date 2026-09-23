@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Models;
@@ -111,7 +112,12 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
             CollectDeclaredKeyFindings(
                 bpmnTask.Id,
                 "start",
-                () => processTask.GetStartCommands(bpmnTask.Id),
+                () =>
+                    processTask
+                        .ResolveLifecyclePipeline(bpmnTask.Id, "start")
+                        .Stages.OfType<ProcessPipelineStage.Command>()
+                        .Select(stage => stage.Reference)
+                        .ToArray(),
                 registeredKeys,
                 findings,
                 cancellationToken
@@ -119,7 +125,12 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
             CollectDeclaredKeyFindings(
                 bpmnTask.Id,
                 "end",
-                () => processTask.GetEndCommands(bpmnTask.Id),
+                () =>
+                    processTask
+                        .ResolveLifecyclePipeline(bpmnTask.Id, "end")
+                        .Stages.OfType<ProcessPipelineStage.Command>()
+                        .Select(stage => stage.Reference)
+                        .ToArray(),
                 registeredKeys,
                 findings,
                 cancellationToken
@@ -127,7 +138,12 @@ internal sealed class ProcessTaskConfigurationValidationService : IHostedService
             CollectDeclaredKeyFindings(
                 bpmnTask.Id,
                 "abandon",
-                () => processTask.GetAbandonCommands(bpmnTask.Id),
+                () =>
+                    processTask
+                        .ResolveLifecyclePipeline(bpmnTask.Id, "abandon")
+                        .Stages.OfType<ProcessPipelineStage.Command>()
+                        .Select(stage => stage.Reference)
+                        .ToArray(),
                 registeredKeys,
                 findings,
                 cancellationToken

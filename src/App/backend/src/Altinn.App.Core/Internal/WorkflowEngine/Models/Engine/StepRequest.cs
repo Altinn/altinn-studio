@@ -49,4 +49,8 @@ internal sealed record StepRequest
     /// options of the stage it precedes.
     /// </summary>
     internal int? ServiceTaskItemIndex { get; init; }
+
+    internal Features.Process.ProcessStepOptions? StageOptions { get; init; }
+
+    internal string? StageCommandKey { get; init; }
 }

@@ -42,18 +42,22 @@ internal sealed class ProcessStepOptionsResolver
     /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
     /// step, including the mailbox mint, which must not inherit the declaring stage's options.
     /// </param>
+    /// <param name="stageOptions">Options captured from the planned ordinary stage.</param>
+    /// <param name="stageCommandKey">The business command whose defaults a command-backed stage uses.</param>
     public ProcessStepOptions? Resolve(
         string commandKey,
         string? taskId,
         string? serviceTaskType,
-        int? serviceTaskItemIndex = null
+        int? serviceTaskItemIndex = null,
+        ProcessStepOptions? stageOptions = null,
+        string? stageCommandKey = null
     )
     {
         _commandDefaults ??= _appImplementationFactory
             .GetAll<IWorkflowEngineCommand>()
             .GroupBy(c => c.GetKey(), StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.First().DefaultStepOptions, StringComparer.Ordinal);
-        ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
+        ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(stageCommandKey ?? commandKey);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
             commandKey,
             taskId,
@@ -61,10 +65,14 @@ internal sealed class ProcessStepOptionsResolver
             serviceTaskItemIndex
         );
 
-        TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
+        TimeSpan? maxExecutionTime =
+            stageOptions?.MaxExecutionTime
+            ?? implementationOverride?.MaxExecutionTime
+            ?? commandDefault?.MaxExecutionTime;
         ProcessStepRetryStrategy? retryStrategy =
-            implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
-        TimeSpan? waitBudget = implementationOverride?.WaitBudget ?? commandDefault?.WaitBudget;
+            stageOptions?.RetryStrategy ?? implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
+        TimeSpan? waitBudget =
+            stageOptions?.WaitBudget ?? implementationOverride?.WaitBudget ?? commandDefault?.WaitBudget;
 
         if (maxExecutionTime is null && retryStrategy is null && waitBudget is null)
         {

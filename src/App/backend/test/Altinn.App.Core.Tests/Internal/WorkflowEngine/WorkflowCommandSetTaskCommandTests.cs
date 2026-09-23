@@ -12,6 +12,9 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 /// <summary>Task declarations keep lifecycle ordering while running as ordinary named commands.</summary>
 public class WorkflowCommandSetTaskCommandTests
 {
+    private static IReadOnlyList<StepRequest> Plan(string phase, params WorkflowCommandRef[] commands) =>
+        PipelineStagePlanner.PlanLifecycle(ProcessPipeline.FromCommands(commands), "custom", "Task_1", phase);
+
     private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
         steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();
 
@@ -23,11 +26,11 @@ public class WorkflowCommandSetTaskCommandTests
             {
                 TaskId = "Task_1",
                 ServiceTask = null,
-                StartCommands =
-                [
+                StartSteps = Plan(
+                    "start",
                     new WorkflowCommandRef("ResolveSignees"),
-                    new WorkflowCommandRef("NotifySignees", "{\"batch\":2}"),
-                ],
+                    new WorkflowCommandRef("NotifySignees", "{\"batch\":2}")
+                ),
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
             }
@@ -84,7 +87,7 @@ public class WorkflowCommandSetTaskCommandTests
     {
         WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskEndSteps(
             "Task_1",
-            [new WorkflowCommandRef("GenerateSigningPdf"), new WorkflowCommandRef("RevokeSigneeRights")]
+            Plan("end", new WorkflowCommandRef("GenerateSigningPdf"), new WorkflowCommandRef("RevokeSigneeRights"))
         );
 
         Assert.Equal(
@@ -106,7 +109,7 @@ public class WorkflowCommandSetTaskCommandTests
     {
         WorkflowCommandSet commandSet = WorkflowCommandSet.GetTaskAbandonSteps(
             "Task_1",
-            [new WorkflowCommandRef("AbortRuntimeDelegatedSigning")]
+            Plan("abandon", new WorkflowCommandRef("AbortRuntimeDelegatedSigning"))
         );
 
         Assert.Equal(["AbortRuntimeDelegatedSigning", OnTaskAbandonHook.Key], Keys(commandSet.Commands));

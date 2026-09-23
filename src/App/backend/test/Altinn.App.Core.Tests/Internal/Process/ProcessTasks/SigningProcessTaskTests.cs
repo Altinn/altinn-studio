@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.Signing;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -140,12 +141,14 @@ public class SigningProcessTaskTests
     }
 
     [Fact]
-    public void GetStartCommands_RuntimeDelegated_DeclaresResolveDelegateThenNotify()
+    public void DefineStartPipeline_RuntimeDelegated_DeclaresResolveDelegateThenNotify()
     {
         SetupConfiguration(CreateRuntimeDelegatedConfiguration(withGlobalCorrespondenceResource: true));
         SigningProcessTask task = CreateTask();
 
-        IReadOnlyList<WorkflowCommandRef> commands = task.GetStartCommands(TaskId);
+        IReadOnlyList<WorkflowCommandRef> commands = task.ResolveLifecyclePipeline(TaskId, "start")
+            .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+            .ToArray();
 
         Assert.Equal(
             [
@@ -167,16 +170,20 @@ public class SigningProcessTaskTests
     }
 
     [Fact]
-    public void GetStartCommands_NotRuntimeDelegated_DeclaresNothing()
+    public void DefineStartPipeline_NotRuntimeDelegated_DeclaresNothing()
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" });
         SigningProcessTask task = CreateTask();
 
-        Assert.Empty(task.GetStartCommands(TaskId));
+        Assert.Empty(
+            task.ResolveLifecyclePipeline(TaskId, "start")
+                .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+                .ToArray()
+        );
     }
 
     [Fact]
-    public void GetEndCommands_PdfAndRuntimeDelegated_DeclaresPdfThenRevoke()
+    public void DefineEndPipeline_PdfAndRuntimeDelegated_DeclaresPdfThenRevoke()
     {
         AltinnSignatureConfiguration configuration = CreateRuntimeDelegatedConfiguration(
             withGlobalCorrespondenceResource: true
@@ -185,7 +192,9 @@ public class SigningProcessTaskTests
         SetupConfiguration(configuration);
         SigningProcessTask task = CreateTask();
 
-        IReadOnlyList<WorkflowCommandRef> commands = task.GetEndCommands(TaskId);
+        IReadOnlyList<WorkflowCommandRef> commands = task.ResolveLifecyclePipeline(TaskId, "end")
+            .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+            .ToArray();
 
         Assert.Equal(
             [
@@ -203,16 +212,20 @@ public class SigningProcessTaskTests
     }
 
     [Fact]
-    public void GetEndCommands_NoPdfNotDelegated_DeclaresNothing()
+    public void DefineEndPipeline_NoPdfNotDelegated_DeclaresNothing()
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" });
         SigningProcessTask task = CreateTask();
 
-        Assert.Empty(task.GetEndCommands(TaskId));
+        Assert.Empty(
+            task.ResolveLifecyclePipeline(TaskId, "end")
+                .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+                .ToArray()
+        );
     }
 
     [Fact]
-    public void GetAbandonCommands_DeclaresAbort()
+    public void DefineAbandonPipeline_DeclaresAbort()
     {
         SetupConfiguration(new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" });
         SigningProcessTask task = CreateTask();
@@ -224,7 +237,9 @@ public class SigningProcessTaskTests
                     CommandPayloadSerializer.Serialize(new ProcessTaskPayload(TaskId))
                 ),
             ],
-            task.GetAbandonCommands(TaskId)
+            task.ResolveLifecyclePipeline(TaskId, "abandon")
+                .Stages.Select(stage => Assert.IsType<ProcessPipelineStage.Command>(stage).Reference)
+                .ToArray()
         );
     }
 

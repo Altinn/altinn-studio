@@ -42,7 +42,14 @@ internal static class StepRequestStepOptionsExtensions
         string? serviceTaskType
     ) =>
         step.WithStepOptions(
-            resolver.Resolve(step.CommandKey ?? step.OperationId, taskId, serviceTaskType, step.ServiceTaskItemIndex)
+            resolver.Resolve(
+                step.CommandKey ?? step.OperationId,
+                taskId,
+                serviceTaskType,
+                step.ServiceTaskItemIndex,
+                step.StageOptions,
+                step.StageCommandKey
+            )
         );
 
     /// <summary>

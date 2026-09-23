@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
@@ -22,7 +23,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// exception or bind <c>0</c> and silently dispatch the pipeline's first item. Guarded in
 /// <see cref="ExecuteServiceTask.Execute"/> so the refusal is a legible permanent failure.
 /// </remarks>
-internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? ItemIndex = null) : CommandRequestPayload;
+internal sealed record ExecuteServiceTaskPayload(
+    string ServiceTaskType,
+    int? ItemIndex = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] WorkflowCommandRef? StageCommand = null
+) : CommandRequestPayload;
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
@@ -49,7 +54,6 @@ internal sealed class ExecuteServiceTask(
         ExecuteServiceTaskPayload payload
     )
     {
-        IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = context.InstanceDataMutator.Instance;
         ProcessState? processState = instance.Process;
         if (processState is null)
@@ -78,31 +82,41 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            ServiceTaskContext serviceTaskContext = new()
+            context = context with
             {
-                InstanceDataMutator = instanceDataMutator,
-                CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
                 StepId = context.Payload.StepId,
-                ExecutionReferenceTime = context.Payload.ExecutionReferenceTime,
-                Attempt = new ServiceTaskAttempt
-                {
-                    RetryCount = context.Payload.RetryCount,
-                    Deadline = context.Payload.ExecutionDeadline,
-                },
-                Wait = new ServiceTaskWait
-                {
-                    DeferCount = context.Payload.DeferCount,
-                    StartedAt = context.Payload.FirstDeferredAt,
-                    Deadline = context.Payload.WaitDeadline,
-                },
+                TaskType = serviceTaskType,
             };
 
             AppCallbackMailbox? rendezvous = context.Payload.Mailbox;
             PipelineItem? pipelineItem = pipeline.Items.ElementAtOrDefault(itemIndex);
+            if (
+                pipelineItem is not null
+                && payload.StageCommand is not null
+                && pipelineItem is not ProcessPipelineStage.Command
+            )
+            {
+                return ProcessEngineCommandResult.FailedPermanent(
+                    "A command stage was replaced by another pipeline item while its workflow was in flight.",
+                    "PipelineStageChanged"
+                );
+            }
+
             ProcessEngineCommandResult result = pipelineItem switch
             {
                 null => PipelineItemNotFound(serviceTaskType, itemIndex),
+
+                ProcessPipelineStage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
+
+                ProcessPipelineStage stage => await ExecuteOrdinaryStage(
+                    context,
+                    stage,
+                    payload.StageCommand,
+                    itemIndex,
+                    serviceTaskType,
+                    pipeline
+                ),
 
                 ServiceTaskStage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
 
@@ -111,7 +125,7 @@ internal sealed class ExecuteServiceTask(
                     stage,
                     itemIndex,
                     serviceTask,
-                    serviceTaskContext,
+                    PipelineStageExecutor.ServiceContext(context),
                     pipeline
                 ),
 
@@ -121,7 +135,7 @@ internal sealed class ExecuteServiceTask(
                     segmentReceipt,
                     itemIndex,
                     serviceTaskType,
-                    serviceTaskContext,
+                    PipelineStageExecutor.ServiceContext(context),
                     pipeline
                 ),
 
@@ -132,7 +146,7 @@ internal sealed class ExecuteServiceTask(
                         terminalReceipt,
                         itemIndex,
                         serviceTaskType,
-                        serviceTaskContext
+                        PipelineStageExecutor.ServiceContext(context)
                     ),
 
                 // Stated rather than left to arm order, exactly as the sibling mismatch arms state theirs: a
@@ -145,7 +159,11 @@ internal sealed class ExecuteServiceTask(
                     itemIndex
                 ),
 
-                PipelineConclusion.FinalStep final => await ExecuteConclusion(final, serviceTask, serviceTaskContext),
+                PipelineConclusion.FinalStep final => await ExecuteConclusion(
+                    final,
+                    serviceTask,
+                    PipelineStageExecutor.ServiceContext(context)
+                ),
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
@@ -178,6 +196,10 @@ internal sealed class ExecuteServiceTask(
 
             return result;
         }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             activity?.Errored(ex);
@@ -200,13 +222,6 @@ internal sealed class ExecuteServiceTask(
     ) =>
         stage switch
         {
-            ServiceTaskStage.Plain plain => MapStageResult(
-                await plain.Work(serviceTaskContext),
-                serviceTask,
-                context,
-                stageIndex,
-                pipeline
-            ),
             ServiceTaskStage.MailboxOpening opening => await ExecuteMailboxOpeningStage(
                 context,
                 opening,
@@ -452,53 +467,42 @@ internal sealed class ExecuteServiceTask(
             "MailboxDeliveryEnvelopeInvalid"
         );
 
-    private static ProcessEngineCommandResult MapStageResult(
-        ServiceTaskStageResult result,
-        IPipelineServiceTask task,
+    private async Task<ProcessEngineCommandResult> ExecuteOrdinaryStage(
         ProcessEngineCommandContext context,
+        ProcessPipelineStage stage,
+        WorkflowCommandRef? persistedCommand,
         int stageIndex,
+        string taskType,
         ServiceTaskPipeline pipeline
-    ) =>
-        result switch
+    )
+    {
+        if (stage is ProcessPipelineStage.Command)
         {
-            // A completed stage never advances the process — the pipeline just moves on to its next step. Which
-            // is a later step of this same workflow, and nothing to do, unless a reply handler is composed
-            // next: a handler is alone in its workflow, so this stage is its own workflow's last step and
-            // completing it is what starts that handler's receive workflow.
-            CompletedServiceTaskStageResult
-                when WorkflowCommandSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
-                MailboxRelay.DecideStageEnd(
-                    task.Type,
-                    context.Payload.StepId,
-                    context.StateCarry,
-                    stageIndex,
-                    pipeline
-                ),
-            CompletedServiceTaskStageResult => new SuccessfulProcessEngineCommandResult(),
-            DeferredServiceTaskStageResult deferred => new DeferredProcessEngineCommandResult
+            if (persistedCommand is null)
             {
-                Delay = deferred.Delay,
-                Reason = deferred.Reason,
-            },
-            FailedServiceTaskStageResult failed => MapFailure(
-                task,
-                failed.ErrorMessage,
-                failed.Kind == FailureKind.Permanent
-            ),
-            // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
-            _ => UnknownResultType(
-                task,
-                result,
-                nameof(ServiceTaskStageResult),
-                $"{nameof(ServiceTaskStageResult.Completed)}, {nameof(ServiceTaskStageResult.Defer)}, "
-                    + $"{nameof(ServiceTaskStageResult.FailedRetryable)} or "
-                    + $"{nameof(ServiceTaskStageResult.FailedPermanent)}"
-            ),
-        };
+                return ProcessEngineCommandResult.FailedPermanent(
+                    "A service command stage requires its persisted command reference.",
+                    "PipelineCommandMissing"
+                );
+            }
+            stage = new ProcessPipelineStage.Command(persistedCommand, stage.StepOptions, stage.Name);
+        }
+
+        ProcessEngineCommandResult result = await PipelineStageExecutor.Execute(
+            stage,
+            appImplementationFactory,
+            context
+        );
+        return
+            result is SuccessfulProcessEngineCommandResult
+            && WorkflowCommandSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1)
+            ? MailboxRelay.DecideStageEnd(taskType, context.StepId, context.StateCarry, stageIndex, pipeline)
+            : result;
+    }
 
     /// <summary>
     /// The mailbox-opening stage's widened vocabulary: the stage members map exactly as
-    /// <see cref="MapStageResult"/> maps them, except that such a stage is <em>always</em> its workflow's last
+    /// <see cref="PipelineStageExecutor"/> maps them, except that such a stage is <em>always</em> its workflow's last
     /// step, so completing it always starts what the pipeline composes after it — which, when that is a reply
     /// handler, is a receive workflow parked on the exchange <em>that handler</em> answers, not necessarily the
     /// one this stage opened; and a conclusion is handed to the relay to close every carried mailbox before

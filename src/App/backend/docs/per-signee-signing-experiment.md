@@ -4,9 +4,11 @@ Runtime-delegated signing initializes its signees as three ordinary process-task
 enters the signing task. It builds on the ordinary process-task command API and uses current main's versioned
 aggregate writes and process-status ownership.
 
+See [Shared process pipeline stages](process-pipelines.md) for the shared composition and execution model.
+
 ## Scope and topology
 
-`SigningProcessTask` declares `ResolveSignees`, `DelegateSigneeRights` and `NotifySignees` as its start commands
+`SigningProcessTask` declares `ResolveSignees`, `DelegateSigneeRights` and `NotifySignees` as command stages in its start pipeline
 when runtime delegation is configured. All three carry the same per-task payload, so the task ID comes from the
 payload rather than from ambient current-task state. They are three steps of the transition's own workflow,
 followed by the rest of the transition and its `CommitProcessState` step. There is no scheduler, no second

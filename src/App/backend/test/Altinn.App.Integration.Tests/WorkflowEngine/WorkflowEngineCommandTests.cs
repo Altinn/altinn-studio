@@ -53,6 +53,7 @@ public class WorkflowEngineCommandTests(ITestOutputHelper output, AppFixtureClas
                 "end",
                 "start",
                 "pipeline-stage",
+                "pipeline-command",
                 "pipeline-finish",
                 "end",
             ],
@@ -61,7 +62,10 @@ public class WorkflowEngineCommandTests(ITestOutputHelper output, AppFixtureClas
         Assert.Contains(completed.Observations, x => x.TaskId == "Task_Simple" && x.Phase == "simple-body");
         Assert.Contains(completed.Observations, x => x.TaskId == "Task_Pipeline" && x.Phase == "pipeline-finish");
         var stored = await ReadStoredCommands(fixture, instance);
-        Assert.Equal(["first", "second", "end", "start", "end", "start", "end"], stored.Select(x => x.Phase));
+        Assert.Equal(
+            ["first", "second", "end", "start", "end", "start", "pipeline-command", "end"],
+            stored.Select(x => x.Phase)
+        );
         Assert.Equal(stored.Length, stored.Select(x => x.StepId).Distinct().Count());
     }
 

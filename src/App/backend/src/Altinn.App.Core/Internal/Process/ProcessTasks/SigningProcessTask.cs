@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// ended, and aborts with cleanup when it is abandoned; a task with a signing PDF data type generates that PDF
 /// when it is ended. Configuration is validated once, at app startup.
 /// </remarks>
-internal sealed class SigningProcessTask : IProcessTask
+internal sealed class SigningProcessTask : IPipelineProcessTask
 {
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
@@ -132,54 +132,48 @@ internal sealed class SigningProcessTask : IProcessTask
     /// Three steps rather than one so that each commits its progress: a retry after the delegation step
     /// completed re-runs only the notification, and a resume after a terminal failure picks up at the failed step.
     /// </remarks>
-    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId)
+    public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline)
     {
         if (!SigningTaskConfiguration.IsRuntimeDelegated(GetConfiguration(taskId)))
         {
-            return [];
+            return pipeline.Build();
         }
 
         string? payload = CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId));
-        return
-        [
-            new(ResolveSigneesCommand.Key, payload),
-            new(DelegateSigneeRightsCommand.Key, payload),
-            new(NotifySigneesCommand.Key, payload),
-        ];
+        return pipeline
+            .Stage(new WorkflowCommandRef(ResolveSigneesCommand.Key, payload))
+            .Stage(new WorkflowCommandRef(DelegateSigneeRightsCommand.Key, payload))
+            .Stage(new WorkflowCommandRef(NotifySigneesCommand.Key, payload))
+            .Build();
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId)
+    public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline)
     {
         AltinnSignatureConfiguration configuration = GetConfiguration(taskId);
-        List<WorkflowCommandRef> commands = [];
         string? payload = CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId));
-
         if (configuration.SigningPdfDataType is not null)
         {
-            commands.Add(new(GenerateSigningPdfCommand.Key, payload));
+            pipeline.Stage(new WorkflowCommandRef(GenerateSigningPdfCommand.Key, payload));
         }
-
         if (SigningTaskConfiguration.IsRuntimeDelegated(configuration))
         {
-            commands.Add(new(RevokeSigneeRightsCommand.Key, payload));
+            pipeline.Stage(new WorkflowCommandRef(RevokeSigneeRightsCommand.Key, payload));
         }
-
-        return commands;
+        return pipeline.Build();
     }
 
     /// <inheritdoc/>
-    /// <remarks>
-    /// Declared for every signing task, delegated or not: the abort also removes the task's signatures, which any
-    /// signing task may have collected.
-    /// </remarks>
-    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
-        [
-            new WorkflowCommandRef(
-                AbortRuntimeDelegatedSigningCommand.Key,
-                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
-            ),
-        ];
+    /// <remarks>Every signing task can have signatures to remove, including tasks without delegation.</remarks>
+    public ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline
+            .Stage(
+                new WorkflowCommandRef(
+                    AbortRuntimeDelegatedSigningCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+                )
+            )
+            .Build();
 
     private AltinnSignatureConfiguration GetConfiguration(string taskId) =>
         SigningTaskConfiguration.Get(_processReader, taskId);

@@ -93,7 +93,7 @@ internal sealed class WorkflowCommandSet
             .AddCommand(CleanupGeneratedFromTask.Key)
             .AddCommand(OnTaskStartingHook.Key)
             .AddCommand(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
-            .AddTaskCommands(context.StartCommands);
+            .AddTaskSteps(context.StartSteps);
 
         if (context.RegisterEvents)
         {
@@ -133,10 +133,10 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     /// <param name="taskId">The leaving BPMN task whose data is locked after its end commands.</param>
     /// <param name="endCommands">The commands the leaving task's type declares for its end phase, in order.</param>
-    public static WorkflowCommandSet GetTaskEndSteps(string taskId, IReadOnlyList<WorkflowCommandRef> endCommands)
+    public static WorkflowCommandSet GetTaskEndSteps(string taskId, IReadOnlyList<StepRequest> endCommands)
     {
         return new WorkflowCommandSet(taskId, "end")
-            .AddTaskCommands(endCommands)
+            .AddTaskSteps(endCommands)
             .AddCommand(CommonTaskFinalization.Key)
             .AddCommand(OnTaskEndingHook.Key)
             .AddCommand(LockTaskData.Key, new TaskDataLockPayload(taskId));
@@ -146,14 +146,12 @@ internal sealed class WorkflowCommandSet
     /// Creates command group for task abandon events. The task type's own abandon commands run first, one step
     /// each, before the app's abandon handler.
     /// </summary>
+    /// <param name="taskId">The BPMN task being abandoned.</param>
     /// <param name="abandonCommands">The commands the leaving task's type declares for its abandon phase, in order.</param>
-    public static WorkflowCommandSet GetTaskAbandonSteps(
-        string taskId,
-        IReadOnlyList<WorkflowCommandRef> abandonCommands
-    )
+    public static WorkflowCommandSet GetTaskAbandonSteps(string taskId, IReadOnlyList<StepRequest> abandonCommands)
     {
         return new WorkflowCommandSet(taskId, "abandon")
-            .AddTaskCommands(abandonCommands)
+            .AddTaskSteps(abandonCommands)
             .AddCommand(OnTaskAbandonHook.Key);
     }
 
@@ -181,17 +179,9 @@ internal sealed class WorkflowCommandSet
         return this;
     }
 
-    /// <summary>
-    /// Adds the commands a process task declared for one lifecycle phase as ordinary workflow steps, in order.
-    /// The payload is already serialized by the declaration and travels unchanged to the command.
-    /// </summary>
-    private WorkflowCommandSet AddTaskCommands(IReadOnlyList<WorkflowCommandRef> commands)
+    private WorkflowCommandSet AddTaskSteps(IReadOnlyList<StepRequest> steps)
     {
-        foreach (WorkflowCommandRef command in commands)
-        {
-            _commands.Add(WithStepLabels(CreateSerializedCommand(command.Key, command.Payload)));
-        }
-
+        _commands.AddRange(steps.Select(WithStepLabels));
         return this;
     }
 
@@ -287,8 +277,23 @@ internal sealed class WorkflowCommandSet
                     steps.Add(CreateItemStep(serviceTaskType, index));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
-                case ServiceTaskStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                case ProcessPipelineStage stage:
+                    steps.Add(
+                        PipelineStagePlanner.Plan(
+                            stage,
+                            CreateCommand(
+                                ExecuteServiceTask.Key,
+                                new ExecuteServiceTaskPayload(
+                                    serviceTaskType,
+                                    index,
+                                    (stage as ProcessPipelineStage.Command)?.Reference
+                                ),
+                                operationId: $"{ExecuteServiceTask.Key}: {index.ToString(CultureInfo.InvariantCulture)}",
+                                serviceTaskItemIndex: index
+                            ),
+                            directCommand: false
+                        )
+                    );
                     break;
 
                 default:
@@ -345,7 +350,7 @@ internal sealed class WorkflowCommandSet
             serviceTaskItemIndex
         );
 
-    private static StepRequest CreateSerializedCommand(
+    internal static StepRequest CreateSerializedCommand(
         string commandKey,
         string? serializedPayload,
         string? operationId = null,

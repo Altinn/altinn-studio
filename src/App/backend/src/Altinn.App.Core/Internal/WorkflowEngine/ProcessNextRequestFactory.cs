@@ -438,11 +438,7 @@ internal sealed class ProcessNextRequestFactory
                     {
                         TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
-                        StartCommands = ResolveTaskCommands(
-                            altinnTaskType,
-                            eventTaskId,
-                            (task, taskId) => task.GetStartCommands(taskId)
-                        ),
+                        StartSteps = ResolveTaskPipeline(altinnTaskType, eventTaskId, "start"),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -454,12 +450,12 @@ internal sealed class ProcessNextRequestFactory
             case InstanceEventType.process_EndTask:
                 return WorkflowCommandSet.GetTaskEndSteps(
                     GetRequiredEventTaskId(instanceEvent, eventType),
-                    ResolveTaskCommands(altinnTaskType, eventTaskId, (task, taskId) => task.GetEndCommands(taskId))
+                    ResolveTaskPipeline(altinnTaskType, eventTaskId, "end")
                 );
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps(
-                    eventTaskId,
-                    ResolveTaskCommands(altinnTaskType, eventTaskId, (task, taskId) => task.GetAbandonCommands(taskId))
+                    GetRequiredEventTaskId(instanceEvent, eventType),
+                    ResolveTaskPipeline(altinnTaskType, eventTaskId, "abandon")
                 );
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
@@ -484,17 +480,17 @@ internal sealed class ProcessNextRequestFactory
     /// selects the implementation during startup validation.
     /// A task type with no registered implementation fails here, at enqueue, rather than at its first step.
     /// </summary>
-    private IReadOnlyList<WorkflowCommandRef> ResolveTaskCommands(
-        string? altinnTaskType,
-        string? taskId,
-        Func<IProcessTask, string, IReadOnlyList<WorkflowCommandRef>> declare
-    )
+    private IReadOnlyList<StepRequest> ResolveTaskPipeline(string? taskType, string? taskId, string phase)
     {
         if (taskId is null)
             return [];
-
-        IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-        return declare(processTask, taskId);
+        IProcessTask task = _processTaskResolver.GetProcessTaskInstance(taskType);
+        return PipelineStagePlanner.PlanLifecycle(
+            task.ResolveLifecyclePipeline(taskId, phase),
+            task.Type,
+            taskId,
+            phase
+        );
     }
 
     /// <summary>

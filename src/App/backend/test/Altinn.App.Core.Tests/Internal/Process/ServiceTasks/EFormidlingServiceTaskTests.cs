@@ -66,7 +66,7 @@ public class EFormidlingServiceTaskTests
     private static Task<ServiceTaskStageResult> SendShipment(EFormidlingServiceTask task, ServiceTaskContext context)
     {
         var stage =
-            task.ResolvePipeline().Items[0] as ServiceTaskStage.Plain
+            task.ResolvePipeline().Items[0] as ProcessPipelineStage.ServiceHandler
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
         return stage.Work(context);
     }
@@ -111,7 +111,7 @@ public class EFormidlingServiceTaskTests
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
         Assert.Equal(2, pipeline.Items.Count);
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[0]);
+        Assert.IsType<ProcessPipelineStage.ServiceHandler>(pipeline.Items[0]);
         PipelineConclusion conclusion = Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
         // The wait budget belongs to the conclusion, not the task — the send stage must not be
         // handed a budget it can never use. Deliberately longer than the two-hour lifetime the

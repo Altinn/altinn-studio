@@ -74,27 +74,13 @@ internal interface IReplyHandlerItem
 }
 
 /// <summary>
-/// One composed stage — a closed set of exactly two shapes, so each shape's work delegate takes the arguments
-/// it actually needs and no execution reads a nullable declaration to rediscover which kind of stage it is
-/// running.
+/// Service-specific stages that participate in mailbox exchanges. Ordinary stages use
+/// <see cref="ProcessPipelineStage"/> in both lifecycle and service pipelines.
 /// </summary>
 internal abstract class ServiceTaskStage : PipelineItem
 {
     private ServiceTaskStage(ProcessStepOptions? stepOptions)
         : base(stepOptions) { }
-
-    /// <summary>A stage with no part in any exchange: work in, stage result out.</summary>
-    internal sealed class Plain : ServiceTaskStage
-    {
-        public Plain(Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work, ProcessStepOptions? stepOptions)
-            : base(stepOptions)
-        {
-            Work = work;
-        }
-
-        /// <summary>The stage's work, exactly as the app supplied it.</summary>
-        public Func<ServiceTaskContext, Task<ServiceTaskStageResult>> Work { get; }
-    }
 
     /// <summary>
     /// The stage that opens the exchange's mailbox and sends its address. Its work is handed the mailbox as a

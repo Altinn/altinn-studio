@@ -111,7 +111,12 @@ public class WorkflowCommandSetTests
     {
         // The dashboard brackets a transition's steps by these labels, so every step of the task phase must
         // carry them: the lifecycle steps and the task type's own declared commands alike.
-        WorkflowCommandRef[] declarations = [new("FirstCommand"), new("SecondCommand")];
+        var declarations = PipelineStagePlanner.PlanLifecycle(
+            ProcessPipeline.FromCommands([new("FirstCommand"), new("SecondCommand")]),
+            "custom",
+            "Task_1",
+            phase
+        );
         WorkflowCommandSet commandSet = phase switch
         {
             "start" => WorkflowCommandSet.GetTaskStartSteps(
@@ -120,7 +125,7 @@ public class WorkflowCommandSetTests
                     TaskId = "Task_1",
                     ServiceTask = null,
                     IsInitialTaskStart = false,
-                    StartCommands = declarations,
+                    StartSteps = declarations,
                     RegisterEvents = true,
                 }
             ),
@@ -149,7 +154,12 @@ public class WorkflowCommandSetTests
     public void LifecycleCommands_UseTheirOwnWireKeysAndPreserveSerializedPayloads(string phase)
     {
         const string payload = "{ \"taskId\": \"Task_1\", \"extra\": { \"version\": 2 } }";
-        WorkflowCommandRef[] declarations = [new("FirstCommand", payload), new("SecondCommand")];
+        var declarations = PipelineStagePlanner.PlanLifecycle(
+            ProcessPipeline.FromCommands([new("FirstCommand", payload), new("SecondCommand")]),
+            "custom",
+            "Task_1",
+            phase
+        );
         WorkflowCommandSet commandSet = phase switch
         {
             "start" => WorkflowCommandSet.GetTaskStartSteps(
@@ -158,7 +168,7 @@ public class WorkflowCommandSetTests
                     TaskId = "Task_1",
                     ServiceTask = null,
                     IsInitialTaskStart = false,
-                    StartCommands = declarations,
+                    StartSteps = declarations,
                 }
             ),
             "end" => WorkflowCommandSet.GetTaskEndSteps("Task_1", declarations),

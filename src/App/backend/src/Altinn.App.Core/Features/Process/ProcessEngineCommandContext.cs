@@ -27,6 +27,11 @@ public struct ProcessEngineCommandContext
     /// <summary>Cancellation requested for this attempt.</summary>
     public CancellationToken CancellationToken { get; init; }
 
+    /// <summary>The explicit BPMN task ID for a lifecycle handler, independent of current process state.</summary>
+    public string? TaskId { get; init; }
+
+    internal string? TaskType { get; init; }
+
     internal AppIdentifier AppId { get; init; }
     internal InstanceIdentifier InstanceId { get; init; }
     internal AppCallbackPayload Payload { get; init; }

@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// Declares its work as commands: any earlier payment is cleaned up when the task is entered and when it is
 /// abandoned, and the payment is verified and its receipt generated when the task is ended.
 /// </remarks>
-internal sealed class PaymentProcessTask : IProcessTask
+internal sealed class PaymentProcessTask : IPipelineProcessTask
 {
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;
@@ -78,29 +78,35 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
-        [
-            new WorkflowCommandRef(
-                CleanupPaymentCommand.Key,
-                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
-            ),
-        ];
+    public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline
+            .Stage(
+                new WorkflowCommandRef(
+                    CleanupPaymentCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+                )
+            )
+            .Build();
 
     /// <inheritdoc/>
-    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
-        [
-            new WorkflowCommandRef(
-                CompletePaymentCommand.Key,
-                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
-            ),
-        ];
+    public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline
+            .Stage(
+                new WorkflowCommandRef(
+                    CompletePaymentCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+                )
+            )
+            .Build();
 
     /// <inheritdoc/>
-    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
-        [
-            new WorkflowCommandRef(
-                CleanupPaymentCommand.Key,
-                CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
-            ),
-        ];
+    public ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline
+            .Stage(
+                new WorkflowCommandRef(
+                    CleanupPaymentCommand.Key,
+                    CommandPayloadSerializer.Serialize(new ProcessTaskPayload(taskId))
+                )
+            )
+            .Build();
 }

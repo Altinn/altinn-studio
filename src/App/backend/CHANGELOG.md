@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- App developers can compose task start, end and abandon work as pipelines using `IPipelineProcessTask`, and reuse registered commands as stages in service-task pipelines. Each stage has its own retries and workflow dashboard entry, with optional descriptive names. Existing task command lists and service-task definitions remain supported.
+
 - The workflow engine dashboard now groups every step of a task's start, end and abandon phases under that task, including the steps the task type declares itself, such as the signing task's resolve, delegate and notify steps. Previously only the built-in lifecycle steps were grouped, and the cleanup step sat outside the group.
 - Process task configuration is checked when the app starts instead of when a task is entered: every BPMN task must have an implementation for its type, every command a task declares must be registered, and each task type's own checks (`IProcessTask.ValidateConfiguration`) must pass. For signing tasks that means a missing `signatureDataType`, only one of `signeeProviderId` and `signeeStatesDataTypeId`, no signee provider matching `signeeProviderId`, or — in test and production environments — no correspondence resource for the environment now stops the app from starting, with every problem listed; locally a missing correspondence resource is logged as a warning.
 - `HostingEnvironment` (development, staging, production, unknown) is now public, carried by `ProcessTaskValidationContext`.

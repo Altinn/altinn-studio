@@ -230,26 +230,42 @@ public static class CommandData
         new(RecordCommand.Key, JsonSerializer.Serialize(new CommandInput(taskId, phase, value)));
 }
 
-public sealed class CustomerTask(CommandTestState state) : IProcessTask
+public sealed class CustomerTask(CommandTestState state) : IPipelineProcessTask
 {
     public string Type => "customer";
 
-    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId)
+    public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline)
     {
-        if (!state.Control.SelectCommands)
-            return [];
-        if (state.Control.MalformedPayload)
-            return [new(RecordCommand.Key, "{")];
-        return
-        [
-            CommandData.Ref(taskId, "first", "one"),
-            CommandData.Ref(taskId, "second", "two"),
-            new(OptionalCommand.Key),
-        ];
+        if (state.Control.SelectCommands)
+        {
+            if (state.Control.MalformedPayload)
+                pipeline.Stage(new WorkflowCommandRef(RecordCommand.Key, "{"));
+            else
+                pipeline
+                    .Stage(CommandData.Ref(taskId, "first", "one"))
+                    .Stage(CommandData.Ref(taskId, "second", "two"))
+                    .Stage(new WorkflowCommandRef(OptionalCommand.Key));
+        }
+        // Always bind this handler: the resume test omits command selections after enqueue, while the
+        // already queued handler must still be resolvable. It reads data saved by the preceding steps.
+        return pipeline
+            .Stage(
+                "Check initialization",
+                async context =>
+                {
+                    if (context.TaskId != taskId)
+                        return ProcessEngineCommandResult.FailedPermanent("The lifecycle task ID was not forwarded.");
+                    var entries = await CommandData.Read(context.InstanceDataMutator);
+                    return entries.Any(entry => entry.TaskId == taskId && entry.Phase == "second")
+                        ? ProcessEngineCommandResult.Completed()
+                        : ProcessEngineCommandResult.FailedPermanent("Earlier command data was not saved.");
+                }
+            )
+            .Build();
     }
 
-    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
-        [CommandData.Ref(taskId, "end", "custom")];
+    public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(CommandData.Ref(taskId, "end", "custom")).Build();
 }
 
 public sealed class CustomerSimpleTask(CommandTestState state, IInstanceClient instances) : IServiceTask
@@ -279,7 +295,11 @@ public sealed class CustomerPipelineTask(CommandTestState state, IInstanceClient
     public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
         [CommandData.Ref(taskId, "end", "pipeline")];
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Stage(Stage).Finally(Finish);
+    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        pipeline
+            .Stage("Prepare pipeline", Stage)
+            .Stage(CommandData.Ref("Task_Pipeline", "pipeline-command", "shared"), name: "Record pipeline outcome")
+            .Finally(Finish);
 
     private async Task<ServiceTaskStageResult> Stage(ServiceTaskContext context)
     {
