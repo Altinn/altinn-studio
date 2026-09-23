@@ -14,26 +14,27 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
 export const useBpmnEditor = (): UseBpmnEditorResult => {
-  const { getUpdatedXml, setBpmnDetails, modelerRef, initialBpmnXml } = useBpmnContext();
+  const { getUpdatedXml, setBpmnDetails, modelerRef } = useBpmnContext();
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { addAction } = useStudioRecommendedNextActionContext();
-  const lastSavedXmlRef = useRef<string>(initialBpmnXml);
   const isRestoringRef = useRef<boolean>(false);
 
-  const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
+  const { saveBpmn, getSavedBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
-  // Shows the process as it is saved, so a rejected change is not sent again with the next edit.
   // Importing removes and re-adds every shape; those are not task removals or additions, so the shape
   // handlers ignore them. It clears the command stack without firing "commandStack.changed", so it does not save.
-  const restoreLastSavedProcess = useCallback(async (): Promise<void> => {
-    setBpmnDetails(null);
-    isRestoringRef.current = true;
+  const restoreSavedProcess = useCallback(async (): Promise<void> => {
     try {
-      await modelerRef.current?.importXML(lastSavedXmlRef.current);
+      const savedXml = await getSavedBpmn();
+      setBpmnDetails(null);
+      isRestoringRef.current = true;
+      await modelerRef.current?.importXML(savedXml);
+    } catch {
+      // The editor keeps its current state; the failed save has already been reported.
     } finally {
       isRestoringRef.current = false;
     }
-  }, [setBpmnDetails, modelerRef]);
+  }, [getSavedBpmn, setBpmnDetails, modelerRef]);
 
   const handleCommandStackChanged = useCallback(async () => {
     const xml = await getUpdatedXml();
@@ -41,11 +42,12 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
     resetForm();
     try {
       await saveBpmn(xml, metadata);
-      lastSavedXmlRef.current = xml;
     } catch {
-      await restoreLastSavedProcess();
+      // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
+      // renames the task's layout set. Other failed changes are sent again with the next edit, as before.
+      if (metadata?.taskIdChange) await restoreSavedProcess();
     }
-  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, restoreLastSavedProcess]);
+  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, restoreSavedProcess]);
 
   const handleShapeAdd = useCallback(
     async (taskEvent: TaskEvent): Promise<void> => {

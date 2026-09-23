@@ -30,6 +30,7 @@ export type ProcessEditorProps = {
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataTypes: BpmnApiContextProps['mutateDataTypes'];
   saveBpmn: BpmnApiContextProps['saveBpmn'];
+  getSavedBpmn: BpmnApiContextProps['getSavedBpmn'];
   onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
   onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
@@ -48,6 +49,7 @@ export const ProcessEditor = ({
   mutateLayoutSetId,
   mutateDataTypes,
   saveBpmn,
+  getSavedBpmn,
   onProcessTaskAdd,
   onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
@@ -75,6 +77,7 @@ export const ProcessEditor = ({
         mutateLayoutSetId={mutateLayoutSetId}
         mutateDataTypes={mutateDataTypes}
         saveBpmn={saveBpmn}
+        getSavedBpmn={getSavedBpmn}
         onProcessTaskAdd={onProcessTaskAdd}
         onProcessTaskRemove={onProcessTaskRemove}
       >

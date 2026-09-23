@@ -28,7 +28,11 @@ export default function ProcessEditor(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
   const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
-  const { data: bpmnXml, isError: hasBpmnQueryError } = useBpmnQuery(org, app);
+  const {
+    data: bpmnXml,
+    isError: hasBpmnQueryError,
+    refetch: refetchBpmn,
+  } = useBpmnQuery(org, app);
   const { data: appLibData, isLoading: appLibDataLoading } = useAppVersionQuery(org, app);
   const { mutateAsync: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
@@ -85,6 +89,11 @@ export default function ProcessEditor(): React.ReactElement {
     );
   };
 
+  const getSavedBpmn = async (): Promise<string> => {
+    const { data } = await refetchBpmn({ throwOnError: true });
+    return data;
+  };
+
   const onProcessTaskAdd = (taskMetadata: OnProcessTaskEvent): void => {
     const onProcessTaskAddHandler = new OnProcessTaskAddHandler(
       org,
@@ -129,6 +138,7 @@ export default function ProcessEditor(): React.ReactElement {
       bpmnXml={hasBpmnQueryError ? null : bpmnXml}
       mutateDataTypes={mutateDataTypes}
       saveBpmn={saveBpmnXml}
+      getSavedBpmn={getSavedBpmn}
       onProcessTaskAdd={onProcessTaskAdd}
       onProcessTaskRemove={onProcessTaskRemove}
     />

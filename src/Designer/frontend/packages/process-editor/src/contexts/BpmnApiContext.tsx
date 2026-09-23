@@ -28,6 +28,8 @@ export type BpmnApiContextProps = {
   mutateDataTypes: (dataTypesChange: DataTypesChange, options?: QueryOptions) => void;
   /** Saves the process definition, and rejects when the save fails. */
   saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => Promise<void>;
+  /** Fetches the process definition as it is saved. */
+  getSavedBpmn: () => Promise<string>;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
   onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
 };

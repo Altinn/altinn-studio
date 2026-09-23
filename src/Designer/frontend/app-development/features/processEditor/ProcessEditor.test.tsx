@@ -99,14 +99,8 @@ describe('ProcessEditor', () => {
   });
 
   describe('saveBpmn', () => {
-    const renderLoadedProcessEditor = (updateBpmnXml: jest.Mock) => {
-      const queryClient = createQueryClientMock();
-      queryClient.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
-      queryClient.setQueryData([QueryKey.AppMetadata, org, app], []);
-      renderProcessEditor({ queryClient, queries: { updateBpmnXml } });
-      const { saveBpmn } = mockProcessEditorProps.mock.lastCall[0] as ProcessEditorProps;
-      return saveBpmn;
-    };
+    const renderLoadedProcessEditor = (updateBpmnXml: jest.Mock) =>
+      renderProcessEditorAndGetProps({ updateBpmnXml }).saveBpmn;
 
     it('resolves when the process definition is saved', async () => {
       const saveBpmn = renderLoadedProcessEditor(jest.fn().mockResolvedValue(undefined));
@@ -123,7 +117,32 @@ describe('ProcessEditor', () => {
       ).toBeInTheDocument();
     });
   });
+
+  describe('getSavedBpmn', () => {
+    it('fetches the process definition from the server', async () => {
+      const savedXml = '<saved></saved>';
+      const getBpmnFile = jest.fn().mockResolvedValue(savedXml);
+      const { getSavedBpmn } = renderProcessEditorAndGetProps({ getBpmnFile });
+      getBpmnFile.mockClear();
+
+      let result: string;
+      await act(async () => {
+        result = await getSavedBpmn();
+      });
+
+      expect(getBpmnFile).toHaveBeenCalledTimes(1);
+      expect(result).toBe(savedXml);
+    });
+  });
 });
+
+const renderProcessEditorAndGetProps = (queries: Record<string, jest.Mock>): ProcessEditorProps => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
+  queryClient.setQueryData([QueryKey.AppMetadata, org, app], []);
+  renderProcessEditor({ queryClient, queries });
+  return mockProcessEditorProps.mock.lastCall[0] as ProcessEditorProps;
+};
 
 const renderProcessEditor = ({
   bpmnFile = null,
