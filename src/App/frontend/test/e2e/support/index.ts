@@ -30,6 +30,22 @@ beforeEach(() => {
   cy.setCacheDisabled(false);
 });
 
+Cypress.on('fail', (error) => {
+  const loader = Cypress.$('[data-testid="loader"][data-loading="true"]').get(0);
+  const loadingReason = loader?.getAttribute('data-reason');
+
+  if (loadingReason) {
+    Cypress.log({
+      name: 'loading reason',
+      message: loadingReason,
+      consoleProps: () => ({ loadingReason, loader }),
+    });
+    error.message += `\nLoading reason: ${loadingReason}`;
+  }
+
+  throw error;
+});
+
 afterEach(function () {
   if (this.currentTest?.state !== 'failed') {
     cy.waitUntilSaved();
