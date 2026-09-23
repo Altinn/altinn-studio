@@ -71,7 +71,11 @@ internal sealed class CleanupPaymentCommand : WorkflowEngineCommandBase<ProcessT
                     .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
                 ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
 
-            bool success = await paymentProcessor.TerminatePayment(dataMutator.Instance, paymentInformation);
+            bool success = await paymentProcessor.TerminatePayment(
+                dataMutator.Instance,
+                paymentInformation,
+                context.CancellationToken
+            );
             string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
             if (!success)
             {

@@ -388,7 +388,7 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Throws<ArgumentNullException>(() =>
             builder.Stage((Func<ServiceTaskContext, Task<ServiceTaskStageResult>>)null!)
         );
-        Assert.Throws<ArgumentNullException>(() => builder.Stage(null!, new ProcessStepOptions()));
+        Assert.Throws<ArgumentNullException>(() => builder.Stage((WorkflowCommandRef)null!, new ProcessStepOptions()));
     }
 
     [Fact]

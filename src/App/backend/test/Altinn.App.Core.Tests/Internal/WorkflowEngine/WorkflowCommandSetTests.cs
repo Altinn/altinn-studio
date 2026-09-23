@@ -112,10 +112,11 @@ public class WorkflowCommandSetTests
         // The dashboard brackets a transition's steps by these labels, so every step of the task phase must
         // carry them: the lifecycle steps and the task type's own declared commands alike.
         var declarations = PipelineStagePlanner.PlanLifecycle(
-            ProcessPipeline.FromCommands([new("FirstCommand"), new("SecondCommand")]),
-            "custom",
-            "Task_1",
-            phase
+            new ProcessPipeline(
+                ((WorkflowCommandRef[])[new("FirstCommand"), new("SecondCommand")]).Select(
+                    command => new ProcessPipelineStage.Command(command, null)
+                )
+            )
         );
         WorkflowCommandSet commandSet = phase switch
         {
@@ -155,10 +156,11 @@ public class WorkflowCommandSetTests
     {
         const string payload = "{ \"taskId\": \"Task_1\", \"extra\": { \"version\": 2 } }";
         var declarations = PipelineStagePlanner.PlanLifecycle(
-            ProcessPipeline.FromCommands([new("FirstCommand", payload), new("SecondCommand")]),
-            "custom",
-            "Task_1",
-            phase
+            new ProcessPipeline(
+                ((WorkflowCommandRef[])[new("FirstCommand", payload), new("SecondCommand")]).Select(
+                    command => new ProcessPipelineStage.Command(command, null)
+                )
+            )
         );
         WorkflowCommandSet commandSet = phase switch
         {

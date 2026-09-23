@@ -15,6 +15,78 @@ import (
 
 var errDaemonUnreachable = errors.New("daemon unreachable")
 
+func TestPulledImage_PullAlwaysAllowStale(t *testing.T) {
+	t.Run("pull always allow stale keeps the local image when the pull fails", func(t *testing.T) {
+		client := containermock.New()
+		client.ImagePullWithProgressFunc = func(context.Context, string, types.ProgressHandler) error {
+			return errDaemonUnreachable
+		}
+		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+			return types.ImageInfo{ID: "sha256:image"}, nil
+		}
+
+		backend := New(client)
+		out, err := backend.applyPulledImage(
+			t.Context(),
+			executor.BackendContext{},
+			&resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale},
+		)
+		if err != nil {
+			t.Fatalf("applyPulledImage() error = %v", err)
+		}
+		imageOutput, ok := out.(executor.ImageOutput)
+		if !ok {
+			t.Fatalf("applyPulledImage() output = %T, want executor.ImageOutput", out)
+		}
+		if imageOutput.ImageID != "sha256:image" {
+			t.Fatalf("ImageID = %q, want %q", imageOutput.ImageID, "sha256:image")
+		}
+	})
+
+	t.Run("pull always allow stale fails when no local image exists", func(t *testing.T) {
+		client := containermock.New()
+		client.ImagePullWithProgressFunc = func(context.Context, string, types.ProgressHandler) error {
+			return errDaemonUnreachable
+		}
+		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+			return types.ImageInfo{}, types.ErrImageNotFound
+		}
+
+		backend := New(client)
+		_, err := backend.applyPulledImage(
+			t.Context(),
+			executor.BackendContext{},
+			&resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale},
+		)
+		if !errors.Is(err, errDaemonUnreachable) {
+			t.Fatalf("applyPulledImage() error = %v, want %v", err, errDaemonUnreachable)
+		}
+	})
+
+	t.Run("pull always allow stale pulls on each apply", func(t *testing.T) {
+		client := containermock.New()
+		pulls := 0
+		client.ImagePullWithProgressFunc = func(context.Context, string, types.ProgressHandler) error {
+			pulls++
+			return nil
+		}
+		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+			return types.ImageInfo{ID: "sha256:image"}, nil
+		}
+
+		backend := New(client)
+		image := &resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale}
+		for apply := 1; apply <= 2; apply++ {
+			if _, err := backend.applyPulledImage(t.Context(), executor.BackendContext{}, image); err != nil {
+				t.Fatalf("applyPulledImage() error = %v", err)
+			}
+			if pulls != apply {
+				t.Fatalf("ImagePullWithProgress calls after apply %d = %d, want %d", apply, pulls, apply)
+			}
+		}
+	})
+}
+
 func TestPulledImage_PullPolicies(t *testing.T) {
 	t.Run("pull always", func(t *testing.T) {
 		client := containermock.New()
@@ -68,6 +140,28 @@ func TestPulledImage_PullPolicies(t *testing.T) {
 		}
 		if pulls != 1 {
 			t.Fatalf("ImagePullWithProgress calls = %d, want 1", pulls)
+		}
+	})
+
+	t.Run("cancellation is not treated as an unreachable registry", func(t *testing.T) {
+		client := containermock.New()
+		client.ImagePullWithProgressFunc = func(context.Context, string, types.ProgressHandler) error {
+			return context.Canceled
+		}
+		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+			return types.ImageInfo{ID: "sha256:image"}, nil
+		}
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		backend := New(client)
+		_, err := backend.applyPulledImage(
+			ctx,
+			executor.BackendContext{},
+			&resource.PulledImage{Ref: "nginx:latest", PullPolicy: resource.PullAlwaysAllowStale},
+		)
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("applyPulledImage() error = %v, want context.Canceled", err)
 		}
 	})
 

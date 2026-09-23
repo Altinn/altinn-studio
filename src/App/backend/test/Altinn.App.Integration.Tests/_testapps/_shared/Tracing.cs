@@ -278,28 +278,28 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
-        [new WorkflowCommandRef(TracingStartCommand.Key)];
+    public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(TracingStartCommand.Key)).Build();
 
-    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
-        [new WorkflowCommandRef(TracingEndCommand.Key)];
+    public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(TracingEndCommand.Key)).Build();
 
-    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
-        [new WorkflowCommandRef(TracingAbandonCommand.Key)];
+    public ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(TracingAbandonCommand.Key)).Build();
 }
 
 internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
-        [new WorkflowCommandRef(TracingStartCommand.Key)];
+    public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(TracingStartCommand.Key)).Build();
 
-    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
-        [new WorkflowCommandRef(TracingEndCommand.Key)];
+    public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(TracingEndCommand.Key)).Build();
 
-    public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) =>
-        [new WorkflowCommandRef(TracingAbandonCommand.Key)];
+    public ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(TracingAbandonCommand.Key)).Build();
 }
 
 internal sealed class TracingStartCommand : IWorkflowEngineCommand

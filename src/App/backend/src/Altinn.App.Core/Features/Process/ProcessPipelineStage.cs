@@ -6,14 +6,11 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>An ordinary durable stage shared by lifecycle and service pipelines.</summary>
 internal abstract class ProcessPipelineStage : PipelineItem
 {
-    private protected ProcessPipelineStage(ProcessStepOptions? options, string? name)
+    private protected ProcessPipelineStage(ProcessStepOptions? options)
         : base(options)
     {
         options?.Validate();
-        Name = name;
     }
-
-    internal string? Name { get; }
 
     internal abstract Task<ProcessEngineCommandResult> Execute(
         AppImplementationFactory factory,
@@ -22,14 +19,10 @@ internal abstract class ProcessPipelineStage : PipelineItem
 
     internal sealed class Command : ProcessPipelineStage
     {
-        internal Command(WorkflowCommandRef reference, ProcessStepOptions? options, string? name)
-            : base(options, name ?? reference?.Key)
+        internal Command(WorkflowCommandRef reference, ProcessStepOptions? options)
+            : base(options)
         {
             ArgumentNullException.ThrowIfNull(reference);
-            if (name is not null)
-            {
-                ArgumentException.ThrowIfNullOrWhiteSpace(name);
-            }
             Reference = reference;
         }
 
@@ -68,10 +61,9 @@ internal abstract class ProcessPipelineStage : PipelineItem
     {
         public ServiceHandler(
             Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work,
-            ProcessStepOptions? stepOptions,
-            string? name = null
+            ProcessStepOptions? stepOptions
         )
-            : base(stepOptions, name)
+            : base(stepOptions)
         {
             Work = work;
         }
@@ -87,17 +79,5 @@ internal abstract class ProcessPipelineStage : PipelineItem
                 await Work(PipelineStageExecutor.ServiceContext(context)),
                 context.TaskType ?? throw new InvalidOperationException("The service task type is missing.")
             );
-    }
-
-    internal sealed class Handler(
-        string name,
-        Func<ProcessEngineCommandContext, Task<ProcessEngineCommandResult>> work,
-        ProcessStepOptions? options
-    ) : ProcessPipelineStage(options, name)
-    {
-        internal override Task<ProcessEngineCommandResult> Execute(
-            AppImplementationFactory factory,
-            ProcessEngineCommandContext context
-        ) => work(context);
     }
 }

@@ -24,7 +24,7 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// before its declaring stage, the transition-into-the-task workflow really ends on that stage instead of
 /// on a concluding step, the continuation it hands over to really enqueues the first receiver, and a
 /// multi-message exchange really walks <c>AwaitNextReply</c> → successor receiver → conclusion →
-/// auto-advance.
+/// process continuation.
 /// </para>
 /// <para>
 /// Deliberately assertion-based rather than snapshot-based: this suite auto-accepts new and changed
@@ -150,7 +150,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal("archive-ack-1", ack.IdempotencyKey);
         Assert.Equal(0, ack.Position);
 
-        // ---- Message 2: concludes the task, which auto-advances the process ----
+        // ---- Message 2: concludes the task and advances the process ----
         await ForwardReply(fixture, mailboxId, idempotencyKey: "archive-receipt-1", payload: ReceiptPayload);
         await WaitForProcessEnd(fixture, token, instance);
 
@@ -173,7 +173,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
 
         // ---- Invariant 2, from the engine's own books: the conclusion closed the mailbox ----
         // Neither ClosedReason nor the end event can see this: Conclude closes the mailbox and *then*
-        // enqueues the after-workflow, so a conclusion that skipped the close would still auto-advance and
+        // enqueues the after-workflow, so a conclusion that skipped the close would still advance the process and
         // still leave this app's onClosed unrun. Read after WaitForProcessEnd, so ordered after the close
         // rather than racing it; the engine's retention period is 60 days, so the row is still there.
         EngineMailbox mailbox = await GetMailbox(engineClient, ns, mailboxId);

@@ -324,7 +324,8 @@ internal sealed class SigneeInitializationService(
             party = await altinnPartyClient.LookupParty(
                 !string.IsNullOrEmpty(organisationNumber)
                     ? new PartyLookup { OrgNo = organisationNumber }
-                    : new PartyLookup { Ssn = instanceOwner.PersonNumber }
+                    : new PartyLookup { Ssn = instanceOwner.PersonNumber },
+                cancellationToken: ct
             );
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -369,7 +370,10 @@ internal sealed class SigneeInitializationService(
                 return null;
             }
 
-            Party party = await altinnPartyClient.LookupParty(new PartyLookup { OrgNo = serviceOwnerDetails.Orgnr });
+            Party party = await altinnPartyClient.LookupParty(
+                new PartyLookup { OrgNo = serviceOwnerDetails.Orgnr },
+                cancellationToken: ct
+            );
             telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Success);
             return party;
         }

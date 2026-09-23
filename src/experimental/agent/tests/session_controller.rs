@@ -12,9 +12,10 @@ use std::{
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
     control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
+    local::home::ControlPlaneHome,
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
-    sessions::{Reconcile, SessionId, SessionName, SessionReports as _, SessionStore as _},
+    sessions::{NewSession, Reconcile, SessionId, SessionName, SessionReports as _, SessionRequest, SessionStore as _},
 };
 use sandbox::{
     EnsureSandboxRequest, LocalFuture, Platform, SandboxHandle, SandboxService,
@@ -65,6 +66,7 @@ impl Reconcile<AgentId> for BlockingAgentReady {
                             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af"
                                 .parse()
                                 .map_err(|error| Error::Database(format!("test Sandbox ID: {error}")))?,
+                            harnesses: record.agent.spec.harnesses.iter().map(|i| i.kind).collect(),
                         }),
                         vec![Condition {
                             kind: "Ready".into(),
@@ -110,6 +112,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -133,6 +136,7 @@ impl Provider for CountingProvider {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        environment: std::collections::BTreeMap<String, String>,
         _progress: agent::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
@@ -144,12 +148,19 @@ impl Provider for CountingProvider {
                 .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
             let sandbox = self
                 .service
-                .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec))
+                .ensure(&EnsureSandboxRequest::new(record.sandbox_name()?, spec).with_environment(environment))
                 .await
                 .map_err(Error::from)?;
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: false,
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
@@ -206,6 +217,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
         Some(SandboxAssignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
+            harnesses: resource.spec.harnesses.iter().map(|i| i.kind).collect(),
         }),
         vec![Condition {
             kind: "Ready".into(),
@@ -247,6 +259,9 @@ fn tmux_runtime() -> Rc<dyn agent::sessions::SessionRuntime> {
 struct FakeRuntime {
     /// Whether the harness process is present; a launch is expected when it is not.
     present: Cell<bool>,
+    fail_observe_once: Cell<bool>,
+    attached: Cell<bool>,
+    stop_calls: Cell<usize>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
     fail_transcript: Cell<bool>,
@@ -254,15 +269,21 @@ struct FakeRuntime {
     hold_completion: Cell<bool>,
     release_completion: Notify,
     ready_without_report: Cell<bool>,
+    fail_input_ready_once: Cell<bool>,
+    launch_started: Notify,
     conversation: RefCell<Vec<agent::sessions::Turn>>,
     sent: RefCell<Vec<String>>,
     launches: RefCell<Vec<(Option<String>, Option<String>)>>,
+    launch_tokens: RefCell<Vec<agent::sessions::LaunchToken>>,
 }
 
 impl Default for FakeRuntime {
     fn default() -> Self {
         Self {
             present: Cell::new(true),
+            fail_observe_once: Cell::new(false),
+            attached: Cell::new(false),
+            stop_calls: Cell::new(0),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
             fail_transcript: Cell::new(false),
@@ -270,9 +291,12 @@ impl Default for FakeRuntime {
             hold_completion: Cell::new(false),
             release_completion: Notify::new(),
             ready_without_report: Cell::new(false),
+            fail_input_ready_once: Cell::new(false),
+            launch_started: Notify::new(),
             conversation: RefCell::default(),
             sent: RefCell::default(),
             launches: RefCell::default(),
+            launch_tokens: RefCell::default(),
         }
     }
 }
@@ -299,9 +323,12 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<agent::sessions::Observation, Error>> {
+        if self.fail_observe_once.replace(false) {
+            return Box::pin(async { Err(Error::Session("injected observation failure".into())) });
+        }
         let observation = if self.present.get() {
             agent::sessions::Observation::Alive {
-                attached: false,
+                attached: self.attached.get(),
                 idle_seconds: 0,
             }
         } else {
@@ -315,13 +342,15 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
         _session_hook_url: &'a str,
-        _token: &'a agent::sessions::LaunchToken,
+        token: &'a agent::sessions::LaunchToken,
         resume: Option<&'a str>,
         initial_prompt: Option<&'a str>,
     ) -> LocalFuture<'a, Result<(), Error>> {
         self.launches
             .borrow_mut()
             .push((resume.map(str::to_owned), initial_prompt.map(str::to_owned)));
+        self.launch_tokens.borrow_mut().push(token.clone());
+        self.launch_started.notify_one();
         let fail = self.fail_start.get();
         self.present.set(!fail);
         Box::pin(async move {
@@ -338,6 +367,8 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<(), Error>> {
+        self.stop_calls.set(self.stop_calls.get() + 1);
+        self.present.set(false);
         Box::pin(async { Ok(()) })
     }
 
@@ -346,6 +377,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _session: &'a agent::sessions::Session,
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<bool, Error>> {
+        if self.fail_input_ready_once.replace(false) {
+            return Box::pin(async { Err(Error::Session("injected readiness failure".into())) });
+        }
         Box::pin(async { Ok(self.ready_without_report.get()) })
     }
 
@@ -399,6 +433,32 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
 /// A database, a materialized memory Sandbox for Agent `worker`, and one
 /// Running Session `s1` launched with `token`; with `started`, its harness has
 /// already reported its start (native ID and conversation location).
+/// The Agent's materialized assignment, observing exactly these harnesses.
+fn observing(record: &AgentRecord, harnesses: &[agent::Harness]) -> SandboxAssignment {
+    let Some(SandboxAssignment::Materialized { provider, id, .. }) = &record.agent.status.sandbox else {
+        panic!("the fixture Agent has a materialized Sandbox");
+    };
+    SandboxAssignment::Materialized {
+        provider: provider.clone(),
+        id: id.clone(),
+        harnesses: harnesses.to_vec(),
+    }
+}
+
+/// Observes every declared harness, as a convergence with all host logins present would.
+fn observe_all_harnesses(record: &mut AgentRecord) {
+    let declared = record
+        .agent
+        .spec
+        .harnesses
+        .iter()
+        .map(|installation| installation.kind)
+        .collect();
+    if let Some(SandboxAssignment::Materialized { harnesses, .. }) = &mut record.agent.status.sandbox {
+        *harnesses = declared;
+    }
+}
+
 async fn running_session(
     directory: &TempDir,
     token: &str,
@@ -432,7 +492,9 @@ async fn running_session(
     record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
         provider: ProviderId::new("memory").expect("Provider ID"),
         id: sandbox.id().clone(),
+        harnesses: Vec::new(),
     });
+    observe_all_harnesses(&mut record);
     database.put(record, 0).await.expect("Agent");
     let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
         id: ProviderId::new("memory").expect("Provider ID"),
@@ -447,8 +509,7 @@ async fn running_session(
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");
@@ -485,6 +546,62 @@ async fn running_session(
     }
     let session = database.get_session(session.id).await.expect("Session");
     (database, sandboxes, session)
+}
+
+async fn resume_fixture(
+    directory: &TempDir,
+    token: &str,
+) -> (
+    persistence::Database,
+    Rc<FakeRuntime>,
+    Rc<agent::sessions::Reconciler>,
+    agent::sessions::Session,
+) {
+    let (database, sandboxes, session) = running_session(directory, token, true).await;
+    database
+        .reset_session_launch_attempts(session.id)
+        .await
+        .expect("reset backoff");
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    let reconciler = Rc::new(agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    ));
+    (database, runtime, reconciler, session)
+}
+
+async fn interrupt_resume_after_start(
+    database: &persistence::Database,
+    runtime: &FakeRuntime,
+    reconciler: &Rc<agent::sessions::Reconciler>,
+    session: &agent::sessions::Session,
+) {
+    let reconciling = {
+        let reconciler = reconciler.clone();
+        let id = session.id;
+        tokio::task::spawn_local(async move { reconciler.reconcile(id).await })
+    };
+    runtime.launch_started.notified().await;
+    let token = runtime.launch_tokens.borrow().last().expect("launch token").clone();
+    database
+        .record_session_start_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            "native-0",
+            Some("/home/agent/conversation.jsonl"),
+            time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+        )
+        .await
+        .expect("resumed start report");
+    reconciling.abort();
+    reconciling.await.expect_err("reconciliation interrupted");
 }
 
 #[tokio::test(flavor = "local")]
@@ -526,6 +643,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
 
     let sending_service = service.clone();
     let sending_name = name.clone();
+    let delivered = runtime.delivered.notified();
     let send = tokio::task::spawn_local(async move {
         sending_service
             .prompt(
@@ -537,7 +655,9 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
             )
             .await
     });
-    tokio::time::sleep(Duration::from_millis(50)).await;
+    tokio::time::timeout(Duration::from_secs(2), delivered)
+        .await
+        .expect("prompt delivery");
     assert_eq!(runtime.sent.borrow().as_slice(), ["do the thing"]);
     assert!(
         !send.is_finished(),
@@ -783,7 +903,11 @@ struct ServiceHarness {
 
 impl ServiceHarness {
     async fn start(directory: &TempDir, token: &str) -> Self {
-        let (database, sandboxes, session) = running_session(directory, token, true).await;
+        Self::start_with_report(directory, token, true).await
+    }
+
+    async fn start_with_report(directory: &TempDir, token: &str, started: bool) -> Self {
+        let (database, sandboxes, session) = running_session(directory, token, started).await;
         let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
         let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
         let runtime = Rc::new(FakeRuntime::default());
@@ -877,6 +1001,180 @@ impl ServiceHarness {
         }
         drop(self.database);
     }
+}
+
+#[tokio::test(flavor = "local")]
+async fn upgrade_preflight_reports_work_and_terminal_attachments() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "10101010-1010-4010-8010-101010101010").await;
+    assert_eq!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("working blockers")
+            .blockers,
+        ["session/worker/s1 (working)"]
+    );
+
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    assert!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("quiescent")
+            .blockers
+            .is_empty()
+    );
+    harness.runtime.attached.set(true);
+    assert_eq!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("attachment blockers")
+            .blockers,
+        ["session/worker/s1 (terminal attached)"]
+    );
+    harness.finish();
+
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start_with_report(&directory, "11111111-1111-4111-8111-111111111111", false).await;
+    assert_eq!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("missing native ID")
+            .warnings,
+        ["session/worker/s1 will start a new conversation"]
+    );
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn daemon_owned_relaunch_marker_is_retryable_and_removed_after_success() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "20202020-2020-4020-8020-202020202020").await;
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
+    let matched_generation = harness
+        .database
+        .activate_session(harness.session.id)
+        .await
+        .expect("matched activation");
+    harness
+        .database
+        .update_session_lifecycle(
+            harness.session.id,
+            agent::sessions::Lifecycle::idle(),
+            matched_generation,
+        )
+        .await
+        .expect("Idle Session");
+    let marker = home.pending_session_relaunch_path();
+    std::fs::write(&marker, br#"{"buildVersion":"another-build"}"#).expect("write mismatched marker");
+    let mismatch = agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
+        .await
+        .expect_err("wrong daemon build");
+    assert!(mismatch.to_string().contains("another-build"));
+    assert!(marker.exists(), "a mismatched daemon retains the marker");
+    std::fs::write(
+        &marker,
+        serde_json::to_vec(&serde_json::json!({"buildVersion": agent::build_version()})).expect("marker"),
+    )
+    .expect("write marker");
+
+    harness.runtime.attached.set(true);
+    agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
+        .await
+        .expect_err("attachment prevents relaunch");
+    assert!(marker.exists(), "failed pass retains its marker");
+
+    harness.runtime.attached.set(false);
+    agent::upgrade::consume_pending_session_relaunch(&home, &harness.service)
+        .await
+        .expect("relaunch");
+    assert!(!marker.exists(), "successful pass removes its marker");
+    assert!(!harness.runtime.present.get());
+    assert_eq!(harness.runtime.stop_calls.get(), 1);
+    let reactivated = harness
+        .database
+        .get_session(harness.session.id)
+        .await
+        .expect("reactivated Session");
+    assert_eq!(
+        reactivated.status.lifecycle.state,
+        agent::sessions::LifecycleState::Idle
+    );
+    assert_eq!(
+        harness
+            .database
+            .activate_session(harness.session.id)
+            .await
+            .expect("activation after marker"),
+        matched_generation + 2,
+        "the marker pass must request one new activation"
+    );
+    assert_eq!(
+        harness
+            .database
+            .session_launch_state(harness.session.id)
+            .await
+            .expect("launch state")
+            .expect("launch")
+            .attempts,
+        0
+    );
+
+    harness
+        .service
+        .relaunch_after_upgrade()
+        .await
+        .expect("idempotent retry");
+    assert_eq!(harness.runtime.stop_calls.get(), 1);
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn upgrade_reactivates_an_idle_session_whose_runtime_is_already_missing() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "30303030-3030-4030-8030-303030303030").await;
+    harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
+    let matched_generation = harness
+        .database
+        .activate_session(harness.session.id)
+        .await
+        .expect("matched activation");
+    harness
+        .database
+        .update_session_lifecycle(
+            harness.session.id,
+            agent::sessions::Lifecycle::idle(),
+            matched_generation,
+        )
+        .await
+        .expect("Idle Session");
+    harness.runtime.present.set(false);
+
+    harness
+        .service
+        .relaunch_after_upgrade()
+        .await
+        .expect("request relaunch");
+
+    assert_eq!(
+        harness
+            .database
+            .activate_session(harness.session.id)
+            .await
+            .expect("activation after upgrade"),
+        matched_generation + 2,
+        "the upgrade must request an activation before reconciliation"
+    );
+    assert_eq!(harness.runtime.stop_calls.get(), 0);
+    harness.finish();
 }
 
 #[tokio::test(flavor = "local")]
@@ -1097,8 +1395,10 @@ async fn a_failed_initial_launch_recovers_without_replaying_the_prompt() {
         .ensure_session(
             "worker",
             &SessionName::new("uncertain").expect("name"),
-            agent::Harness::ClaudeCode,
-            Some("perform once"),
+            NewSession {
+                initial_prompt: Some("perform once".into()),
+                ..NewSession::for_harness(agent::Harness::ClaudeCode)
+            },
         )
         .await
         .expect("Session");
@@ -1157,8 +1457,10 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         .ensure_session(
             "worker",
             &SessionName::new("prompted").expect("name"),
-            agent::Harness::ClaudeCode,
-            Some("start here"),
+            NewSession {
+                initial_prompt: Some("start here".into()),
+                ..NewSession::for_harness(agent::Harness::ClaudeCode)
+            },
         )
         .await
         .expect("Session");
@@ -1222,6 +1524,7 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
         .await
         .expect("start report");
     runtime.present.set(false);
+    runtime.ready_without_report.set(true);
     reconciler.reconcile(prompted.id).await.expect("relaunch");
     assert_eq!(
         runtime.launches.borrow().last().expect("third launch"),
@@ -1235,25 +1538,194 @@ async fn a_fresh_launch_carries_the_first_prompt_and_a_resume_does_not() {
     );
     assert_eq!(
         relaunched.status.state,
-        agent::sessions::State::Starting,
-        "a relaunch is Starting until the new process reports, whatever the old launch reported"
+        agent::sessions::State::WaitingForInput,
+        "a resumed harness settles once its input is visible"
     );
 }
 
 #[tokio::test(flavor = "local")]
-async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
+async fn a_resumed_start_report_settles_at_waiting_for_input() {
+    const TOKEN: &str = "45454545-4545-4545-8545-454545454545";
     let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+
+    let reconciling = {
+        let reconciler = reconciler.clone();
+        tokio::task::spawn_local(async move { reconciler.reconcile(session.id).await })
+    };
+    runtime.launch_started.notified().await;
+    let token = runtime.launch_tokens.borrow().last().expect("launch token").clone();
+    database
+        .record_session_start_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            "native-0",
+            Some("/home/agent/conversation.jsonl"),
+            time::OffsetDateTime::now_utc() - time::Duration::seconds(5),
+        )
+        .await
+        .expect("resumed start report");
+    runtime.ready_without_report.set(true);
+    reconciling.await.expect("task").expect("reconciliation");
+
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn an_unready_resumed_harness_is_stopped_and_fails() {
+    const TOKEN: &str = "56565656-5656-4565-8565-565656565656";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+
+    let reconciling = {
+        let reconciler = reconciler.clone();
+        tokio::task::spawn_local(async move { reconciler.reconcile(session.id).await })
+    };
+    runtime.launch_started.notified().await;
+    tokio::time::advance(Duration::from_secs(16)).await;
+    let error = reconciling
+        .await
+        .expect("task")
+        .expect_err("an unready resume must fail");
+
+    assert!(error.to_string().contains("did not become ready"), "{error}");
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::Failed
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn interrupted_resume_readiness_is_finished_by_the_next_reconciliation() {
+    const TOKEN: &str = "67676767-6767-4767-8767-676767676767";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+
+    interrupt_resume_after_start(&database, runtime.as_ref(), &reconciler, &session).await;
+    runtime.ready_without_report.set(true);
+
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn observation_failure_preserves_pending_resume_readiness() {
+    const TOKEN: &str = "89898989-8989-4898-8989-898989898989";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    interrupt_resume_after_start(&database, runtime.as_ref(), &reconciler, &session).await;
+
+    runtime.fail_observe_once.set(true);
+    reconciler.reconcile(session.id).await.expect_err("observation failure");
+    let interrupted = database.get_session(session.id).await.expect("Session");
+    assert_eq!(
+        interrupted.status.lifecycle.state,
+        agent::sessions::LifecycleState::Resuming
+    );
+    assert!(
+        interrupted
+            .status
+            .lifecycle
+            .failure
+            .is_some_and(|failure| failure.contains("observation failure"))
+    );
+    runtime.ready_without_report.set(true);
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn temporarily_unready_agent_preserves_pending_resume_readiness() {
+    const TOKEN: &str = "90909090-9090-4909-8909-909090909090";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    interrupt_resume_after_start(&database, runtime.as_ref(), &reconciler, &session).await;
+
+    let owner = database.get(session.agent_id).await.expect("Agent");
+    database
+        .update_status(session.agent_id, owner.agent.metadata.generation, Status::default())
+        .await
+        .expect("temporarily unready Agent");
+    reconciler.reconcile(session.id).await.expect("observe unready Agent");
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .lifecycle
+            .state,
+        agent::sessions::LifecycleState::Resuming
+    );
+    database
+        .update_status(session.agent_id, owner.agent.metadata.generation, owner.agent.status)
+        .await
+        .expect("restore ready Agent");
+    runtime.ready_without_report.set(true);
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn transient_resume_readiness_failure_is_retried() {
+    const TOKEN: &str = "78787878-7878-4787-8787-787878787878";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    runtime.ready_without_report.set(true);
+    runtime.fail_input_ready_once.set(true);
+
+    reconciler.reconcile(session.id).await.expect("retry readiness");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput
+    );
+}
+
+/// A Session service over a two-harness Agent whose installations declare
+/// manifest defaults: Claude Code (default) selects `fable`, Codex `high` effort.
+struct SelectionFixture {
+    database: persistence::Database,
+    record: agent::control_plane::AgentRecord,
+    service: agent::sessions::Service,
+    agent_task: tokio::task::JoinHandle<()>,
+    session_task: tokio::task::JoinHandle<()>,
+}
+
+async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
     let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
     let agent_id = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
     let mut record = ready_record("worker", agent_id);
     record.agent.spec.harnesses[0].default = true;
+    record.agent.spec.harnesses[0].defaults.model = Some(agent::Model::new("fable").expect("model"));
     record.agent.spec.harnesses.push(agent::HarnessSpec {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: true,
         default: false,
+        defaults: agent::ModelSelection {
+            model: None,
+            effort: Some(agent::Effort::new("high").expect("effort")),
+        },
     });
-    database.put(record, 0).await.expect("Agent");
+    observe_all_harnesses(&mut record);
+    database.put(record.clone(), 0).await.expect("Agent");
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
@@ -1278,14 +1750,255 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         session_wakeup,
     );
 
+    SelectionFixture {
+        database,
+        record,
+        service,
+        agent_task,
+        session_task,
+    }
+}
+
+/// The original race: a Session admitted before its Agent had ever converged.
+///
+/// Admission cannot know whether an optional harness will be installed, because nothing has been
+/// observed yet, so the Session is persisted and activated. Convergence then omits Codex. The
+/// reconciler must park the Session rather than launch a harness the image ships but nothing
+/// authenticated — and must start it once a later convergence installs Codex.
+#[tokio::test(flavor = "local")]
+async fn a_session_admitted_before_convergence_is_parked_until_its_optional_harness_is_installed() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider_service =
+        SandboxService::new(backend).with_network_backend(Rc::new(sandbox_memory::NetworkBackend::for_endpoint(
+            "memory",
+            NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+        )));
+    let mut record = ready_record("worker", agent_id);
+    record.agent.spec.harnesses.push(agent::HarnessSpec {
+        kind: agent::Harness::Codex,
+        version: None,
+        auth: agent::HarnessAuthMode::Mediated,
+        optional: true,
+        default: false,
+        defaults: agent::ModelSelection::default(),
+    });
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = provider_service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("materialized Sandbox");
+    // Convergence found no Codex host login, so it installed and observed only Claude Code.
+    record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
+        provider: ProviderId::new("memory").expect("Provider ID"),
+        id: sandbox.id().clone(),
+        harnesses: vec![agent::Harness::ClaudeCode],
+    });
+    database.put(record.clone(), 0).await.expect("Agent");
+    let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
+        id: ProviderId::new("memory").expect("Provider ID"),
+        service: provider_service,
+        ensure_calls: Rc::new(Cell::new(0)),
+    });
+    let sandboxes = Rc::new(
+        agent::sandbox::Service::new([provider], [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>])
+            .expect("Agent Sandbox service"),
+    );
+
+    // The Session was admitted on Codex before the Agent had observed anything.
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::Codex),
+        )
+        .await
+        .expect("Session");
+    database.activate_session(session.id).await.expect("activate");
+
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    let reconciler = Rc::new(agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    ));
+
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect("parked rather than failed");
+    let parked = database.get_session(session.id).await.expect("Session");
+    assert_eq!(parked.status.lifecycle.state, agent::sessions::LifecycleState::Starting);
+    assert!(
+        parked
+            .status
+            .lifecycle
+            .failure
+            .as_deref()
+            .is_some_and(|reason| reason.contains("does not carry harness")),
+        "the parked reason names the missing harness: {:?}",
+        parked.status.lifecycle.failure
+    );
+    assert!(
+        runtime.launch_tokens.borrow().is_empty(),
+        "an uninstalled harness must not be launched"
+    );
+
+    // `agentctl codex login`, and the next Agent convergence installs and observes it.
+    observe_all_harnesses(&mut record);
+    database
+        .update_status(agent_id, record.agent.metadata.generation, record.agent.status.clone())
+        .await
+        .expect("observed status");
+
+    reconciler.reconcile(session.id).await.expect("starts once installed");
+    assert!(
+        !runtime.launch_tokens.borrow().is_empty(),
+        "the Session starts once its harness is installed"
+    );
+}
+
+/// A failed convergence pass keeps a valid observation, so the refusal must still apply.
+///
+/// The Agent materialized its Sandbox and observed only Claude Code, then a later pass failed and
+/// cleared readiness while preserving that observation. Gating on readiness would defer here, bind
+/// the name to Codex, and then skip the post-convergence check when `converge` returns the failure.
+#[tokio::test(flavor = "local")]
+async fn an_unready_agent_with_a_materialized_observation_still_refuses_an_absent_harness() {
+    let directory = TempDir::new().expect("temporary directory");
+    let SelectionFixture {
+        database,
+        record,
+        service,
+        agent_task,
+        session_task,
+    } = selection_fixture(&directory).await;
+
+    database
+        .update_status(
+            record.id,
+            record.agent.metadata.generation,
+            Status::observed(
+                record.agent.metadata.generation,
+                Some(observing(&record, &[agent::Harness::ClaudeCode])),
+                vec![Condition {
+                    kind: "Ready".into(),
+                    status: ConditionStatus::False,
+                    reason: "SshAccessFailed".into(),
+                    message: "ssh access failed".into(),
+                }],
+            ),
+        )
+        .await
+        .expect("observed status");
+
+    let name = SessionName::new("codex-session").expect("name");
+    let error = service
+        .ensure(
+            "worker",
+            &name,
+            SessionRequest {
+                harness: Some(agent::Harness::Codex),
+                ..SessionRequest::default()
+            },
+            WaitPolicy::FirstPass,
+            None,
+        )
+        .await
+        .expect_err("an absent harness is refused even while the Agent is not ready");
+    assert!(error.to_string().contains("is not installed"), "{error}");
+    assert!(matches!(
+        database.get_agent_session("worker", &name).await,
+        Err(Error::NotFound)
+    ));
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_on_an_optional_harness_the_agent_does_not_carry_is_refused_without_persisting() {
+    let directory = TempDir::new().expect("temporary directory");
+    let SelectionFixture {
+        database,
+        record,
+        service,
+        agent_task,
+        session_task,
+    } = selection_fixture(&directory).await;
+
+    database
+        .update_status(
+            record.id,
+            record.agent.metadata.generation,
+            Status::observed(
+                record.agent.metadata.generation,
+                Some(observing(&record, &[agent::Harness::ClaudeCode])),
+                record.agent.status.conditions.clone(),
+            ),
+        )
+        .await
+        .expect("observed status");
+
+    let name = SessionName::new("codex-session").expect("name");
+    let error = service
+        .ensure(
+            "worker",
+            &name,
+            SessionRequest {
+                harness: Some(agent::Harness::Codex),
+                ..SessionRequest::default()
+            },
+            WaitPolicy::FirstPass,
+            None,
+        )
+        .await
+        .expect_err("an uninstalled optional harness is refused");
+    assert!(error.to_string().contains("is not installed"), "{error}");
+    assert!(matches!(
+        database.get_agent_session("worker", &name).await,
+        Err(Error::NotFound)
+    ));
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
+    let directory = TempDir::new().expect("temporary directory");
+    let SelectionFixture {
+        database,
+        service,
+        agent_task,
+        session_task,
+        ..
+    } = selection_fixture(&directory).await;
+
     let invalid_name = SessionName::new("invalid-prompt").expect("name");
     let oversized_prompt = "'".repeat(17_000);
     let error = service
         .ensure(
             "worker",
             &invalid_name,
-            None,
-            Some(&oversized_prompt),
+            SessionRequest {
+                initial_prompt: Some(oversized_prompt.clone()),
+                ..SessionRequest::default()
+            },
             WaitPolicy::FirstPass,
             None,
         )
@@ -1301,8 +2014,10 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
-            Some(agent::Harness::Codex),
-            None,
+            SessionRequest {
+                harness: Some(agent::Harness::Codex),
+                ..SessionRequest::default()
+            },
             WaitPolicy::FirstPass,
             None,
         )
@@ -1312,8 +2027,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
         .ensure(
             "worker",
             &SessionName::new("implicit").expect("name"),
-            None,
-            None,
+            SessionRequest::default(),
             WaitPolicy::FirstPass,
             None,
         )
@@ -1322,21 +2036,122 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
 
     assert_eq!(explicit.session.harness, agent::Harness::Codex);
     assert_eq!(implicit.session.harness, agent::Harness::ClaudeCode);
+    // Manifest defaults fill omitted selections per installation, and nothing else.
+    assert_eq!(explicit.session.model_selection.model_str(), None);
+    assert_eq!(explicit.session.model_selection.effort_str(), Some("high"));
+    assert_eq!(implicit.session.model_selection.model_str(), Some("fable"));
+    assert_eq!(implicit.session.model_selection.effort_str(), None);
 
     let conflict = service
         .ensure(
             "worker",
             &SessionName::new("explicit").expect("name"),
-            Some(agent::Harness::ClaudeCode),
-            None,
+            SessionRequest {
+                harness: Some(agent::Harness::ClaudeCode),
+                ..SessionRequest::default()
+            },
             WaitPolicy::FirstPass,
             None,
         )
         .await
         .expect_err("an existing Session keeps its harness");
     assert!(conflict.to_string().contains("already uses harness \"codex\""));
+
     agent_task.abort();
     session_task.abort();
+}
+
+impl SelectionFixture {
+    async fn ensure(&self, name: &str, request: SessionRequest) -> Result<agent::sessions::Session, Error> {
+        let name = SessionName::new(name).expect("name");
+        let target = self
+            .service
+            .ensure("worker", &name, request, WaitPolicy::FirstPass, None)
+            .await?;
+        Ok(target.session)
+    }
+}
+
+fn selection(model: Option<&str>, effort: Option<&str>) -> SessionRequest {
+    SessionRequest {
+        model_selection: agent::ModelSelection {
+            model: model.map(|model| agent::Model::new(model).expect("model")),
+            effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        },
+        ..SessionRequest::default()
+    }
+}
+
+fn recorded(session: &agent::sessions::Session) -> (Option<&str>, Option<&str>) {
+    (
+        session.model_selection.model_str(),
+        session.model_selection.effort_str(),
+    )
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_ensure_resolves_model_and_effort_with_manifest_defaults() {
+    let directory = TempDir::new().expect("temporary directory");
+    let fixture = selection_fixture(&directory).await;
+    let implicit = fixture
+        .ensure("implicit", SessionRequest::default())
+        .await
+        .expect("implicit default Session");
+    assert_eq!(recorded(&implicit), (Some("fable"), None));
+
+    let chosen = fixture
+        .ensure("chosen", selection(Some("claude-opus-5"), Some("low")))
+        .await
+        .expect("explicit selections Session");
+    assert_eq!(chosen.harness, agent::Harness::ClaudeCode);
+    assert_eq!(recorded(&chosen), (Some("claude-opus-5"), Some("low")));
+
+    let same = fixture
+        .ensure("chosen", selection(Some("claude-opus-5"), None))
+        .await
+        .expect("repeating the recorded selection is not a conflict");
+    assert_eq!((same.id, recorded(&same)), (chosen.id, recorded(&chosen)));
+    let model_conflict = fixture
+        .ensure("chosen", selection(Some("fable"), None))
+        .await
+        .expect_err("an existing Session keeps its model");
+    assert!(
+        model_conflict
+            .to_string()
+            .contains("already uses model \"claude-opus-5\", not \"fable\""),
+        "{model_conflict}"
+    );
+    let effort_conflict = fixture
+        .ensure("implicit", selection(None, Some("max")))
+        .await
+        .expect_err("an existing Session keeps the harness default effort");
+    assert!(
+        effort_conflict
+            .to_string()
+            .contains("leaves the effort to the harness default, not \"max\""),
+        "{effort_conflict}"
+    );
+
+    // A changed manifest default never reaches an existing Session.
+    let mut changed = fixture.record.clone();
+    changed.agent.spec.harnesses[0].defaults.model = Some(agent::Model::new("claude-sonnet-5").expect("model"));
+    fixture
+        .database
+        .put(changed, 1)
+        .await
+        .expect("changed manifest defaults");
+    let relaunched = fixture
+        .ensure("implicit", SessionRequest::default())
+        .await
+        .expect("existing Session under changed defaults");
+    assert_eq!(recorded(&relaunched), (Some("fable"), None));
+    let fresh = fixture
+        .ensure("fresh", SessionRequest::default())
+        .await
+        .expect("new Session under changed defaults");
+    assert_eq!(recorded(&fresh), (Some("claude-sonnet-5"), None));
+    fixture.agent_task.abort();
+    fixture.session_task.abort();
 }
 
 #[tokio::test(flavor = "local")]
@@ -1366,14 +2181,15 @@ async fn session_reconciliation_never_ensures_the_agent_sandbox() {
     record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
         provider: ProviderId::new("memory").expect("Provider ID"),
         id: sandbox.id().clone(),
+        harnesses: Vec::new(),
     });
+    observe_all_harnesses(&mut record);
     database.put(record, 0).await.expect("Agent");
     let session = database
         .ensure_session(
             "worker",
             &SessionName::new("s1").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");
@@ -1435,14 +2251,15 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
     record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
         provider: ProviderId::new("memory").expect("Provider ID"),
         id: sandbox.id().clone(),
+        harnesses: Vec::new(),
     });
+    observe_all_harnesses(&mut record);
     database.put(record, 0).await.expect("Agent");
     let session = database
         .ensure_session(
             "worker",
             &SessionName::new("idle").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("Session");
@@ -1561,7 +2378,7 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
             spec.program(),
             Program::Command { executable, args }
                 if executable.as_str() == "/usr/bin/tmux"
-                    && args.first().is_some_and(|argument| argument == "new-session")
+                    && args.windows(2).any(|arguments| arguments == [";", "new-session"])
         ) && spec
             .working_directory()
             .is_some_and(|path| path.as_str() == "/home/agent/code")
@@ -1630,8 +2447,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             .ensure(
                 "worker",
                 &SessionName::new("s1").expect("name"),
-                None,
-                None,
+                SessionRequest::default(),
                 WaitPolicy::FirstPass,
                 None,
             )
@@ -1670,8 +2486,7 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
         .ensure_session(
             "worker",
             &SessionName::new("slow").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("slow Session");
@@ -1704,8 +2519,7 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
         .ensure_session(
             "worker",
             &SessionName::new("fast").expect("name"),
-            agent::Harness::ClaudeCode,
-            None,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
         )
         .await
         .expect("fast Session");
@@ -1749,7 +2563,11 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
         .expect("replacement");
     let replacement = harness
         .database
-        .ensure_session("worker", &harness.session.name, agent::Harness::ClaudeCode, None)
+        .ensure_session(
+            "worker",
+            &harness.session.name,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
         .await
         .expect("Session");
     harness

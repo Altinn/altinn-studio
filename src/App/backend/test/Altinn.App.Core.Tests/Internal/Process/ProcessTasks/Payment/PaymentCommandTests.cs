@@ -38,6 +38,7 @@ public class PaymentCommandTests
     [Fact]
     public async Task Cleanup_UnpaidPayment_TerminatesProcessorAndRemovesPaymentData()
     {
+        using var cancellation = new CancellationTokenSource();
         PaymentInformation paymentInformation = CreatePaymentInformation(PaymentStatus.Created);
         string paymentId = paymentInformation.PaymentDetails!.PaymentId;
         DataElement paymentDataElement = CreatePaymentDataElement();
@@ -53,12 +54,14 @@ public class PaymentCommandTests
                     instance,
                     It.Is<PaymentInformation>(payment =>
                         payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                    )
+                    ),
+                    cancellation.Token
                 )
             )
             .ReturnsAsync(true);
 
-        ProcessEngineCommandResult result = await CreateCleanupCommand().Execute(CreateContext(dataMutator.Object));
+        ProcessEngineCommandResult result = await CreateCleanupCommand()
+            .Execute(CreateContext(dataMutator.Object, ct: cancellation.Token));
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         _paymentProcessorMock.Verify(x =>
@@ -66,7 +69,8 @@ public class PaymentCommandTests
                 instance,
                 It.Is<PaymentInformation>(payment =>
                     payment.PaymentDetails != null && payment.PaymentDetails.PaymentId == paymentId
-                )
+                ),
+                cancellation.Token
             )
         );
         dataMutator.Verify(x => x.RemoveDataElement(paymentDataElement));

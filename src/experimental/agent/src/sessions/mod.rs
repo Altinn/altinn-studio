@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{AgentId, Error, Harness, sandbox};
+use crate::{AgentId, Error, Harness, ModelSelection, sandbox};
 
 pub use crate::controller::Reconcile;
 pub use activity::{Activity, ActivityEvent, Phase};
@@ -20,7 +20,7 @@ pub use controller::{AgentNotifier, Controller, ErrorHandler, Wakeup};
 pub use reconciler::Reconciler;
 pub use runtime::{Observation, SessionRuntime, Tmux};
 pub use sandboxes::AgentSandboxes;
-pub use service::Service;
+pub use service::{Service, UpgradeReadiness};
 pub use transcript::{Message, Part, Role, Turn};
 
 /// Immutable identity of one Session incarnation.
@@ -109,6 +109,8 @@ pub enum LifecycleState {
     /// The Session has not yet reached a running harness.
     #[default]
     Starting,
+    /// A resumed harness is running but has not reached its input prompt.
+    Resuming,
     /// The harness process is running in its Sandbox.
     Running,
     /// The harness was deliberately stopped after inactivity.
@@ -164,7 +166,7 @@ impl Status {
         let state = match lifecycle.state {
             LifecycleState::Failed => State::Failed,
             LifecycleState::Idle => State::Idle,
-            LifecycleState::Starting => State::Starting,
+            LifecycleState::Starting | LifecycleState::Resuming => State::Starting,
             // A start report always folds to `Working`, so an `Unknown` phase means
             // the current launch has not reported yet, even when an earlier launch
             // left a native ID behind for resumption.
@@ -214,6 +216,23 @@ impl Lifecycle {
         }
     }
 
+    /// A resumed harness waiting to reach its input prompt.
+    #[must_use]
+    pub const fn resuming() -> Self {
+        Self {
+            state: LifecycleState::Resuming,
+            failure: None,
+        }
+    }
+
+    /// A resumed harness whose latest readiness attempt was interrupted.
+    pub fn resuming_with(failure: impl Into<String>) -> Self {
+        Self {
+            state: LifecycleState::Resuming,
+            failure: Some(failure.into()),
+        }
+    }
+
     /// Not yet running, with the reason.
     pub fn starting(failure: impl Into<String>) -> Self {
         Self {
@@ -253,6 +272,8 @@ pub struct Reported {
 /// Durable bookkeeping for the most recent harness launch of one Session.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LaunchState {
+    /// Bearer token authenticating reports from this launch.
+    pub(crate) token: LaunchToken,
     /// Sandbox ID the harness was launched in.
     pub sandbox: String,
     /// Launch time as Unix seconds.
@@ -316,6 +337,11 @@ pub struct Session {
     pub name: SessionName,
     /// Immutable harness installation selected for this Session.
     pub harness: Harness,
+    /// Immutable model and effort level resolved when the Session was created:
+    /// the caller's request, then the installation's manifest defaults. Every
+    /// launch of the harness applies it; an unselected field leaves the harness default.
+    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
+    pub model_selection: ModelSelection,
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
@@ -340,11 +366,73 @@ impl Session {
             .as_deref()
             .unwrap_or(match self.status.lifecycle.state {
                 LifecycleState::Starting => "its lifecycle is starting",
+                LifecycleState::Resuming => "its harness is resuming",
                 LifecycleState::Idle => "its lifecycle is idle",
                 LifecycleState::Failed => "its lifecycle failed without a recorded reason",
                 LifecycleState::Running => "its harness has not reported readiness",
             });
         Error::Invalid(format!("Session \"{}\" is not running: {detail}", self.name))
+    }
+}
+
+/// What a caller may choose when ensuring a Session. Every field is optional.
+///
+/// The selections apply only when the call creates the Session: an omitted
+/// harness, model or effort falls back to the Agent's default installation and
+/// that installation's manifest defaults, and the resolved values become the
+/// Session's immutable properties. For an existing Session, an explicit value
+/// that differs from the recorded one is rejected; omitted ones are ignored.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct SessionRequest {
+    /// Harness installation to bind.
+    pub harness: Option<Harness>,
+    /// Model and effort level the harness launches with.
+    pub model_selection: ModelSelection,
+    /// First prompt, handed to the harness at its first launch without replay.
+    pub initial_prompt: Option<String>,
+}
+
+/// Resolved, immutable selections recorded when a Session is created.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NewSession {
+    /// Harness installation the Session binds to.
+    pub harness: Harness,
+    /// Model and effort level the harness launches with, as requested or defaulted.
+    pub model_selection: ModelSelection,
+    /// The part of [`Self::model_selection`] the caller chose explicitly. When the
+    /// Session already exists, only these fields may conflict with what it recorded.
+    pub requested: ModelSelection,
+    /// First prompt, handed to the harness at its first launch without replay.
+    pub initial_prompt: Option<String>,
+}
+
+impl NewSession {
+    /// A Session bound to `harness` with every other selection left to the harness.
+    #[must_use]
+    pub const fn for_harness(harness: Harness) -> Self {
+        Self {
+            harness,
+            model_selection: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            requested: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            initial_prompt: None,
+        }
+    }
+
+    /// Resolves `requested` against an installation's manifest `defaults`.
+    #[must_use]
+    pub fn resolved(harness: Harness, requested: ModelSelection, defaults: &ModelSelection) -> Self {
+        Self {
+            harness,
+            model_selection: requested.clone().or(defaults),
+            requested,
+            initial_prompt: None,
+        }
     }
 }
 
@@ -360,17 +448,20 @@ pub struct AttachTarget {
 }
 
 /// Persistent Session operations required by reconciliation.
-pub trait SessionStore {
+pub trait SessionStore: SessionReports {
     /// Creates or gets one named Session for the active Agent incarnation.
     ///
-    /// `initial_prompt`, recorded only when the Session is created, is handed to
-    /// the harness at its first launch attempt, without automatic replay.
+    /// `new` is recorded only when the Session is created: its harness, model and
+    /// effort become the Session's immutable properties, and its initial prompt is
+    /// handed to the harness at the first launch attempt, without automatic replay.
+    /// An existing Session is returned as recorded, unless `new` names another
+    /// harness or its explicitly requested model or effort differs, so concurrent
+    /// creations cannot silently drop one caller's choice.
     fn ensure_session<'a>(
         &'a self,
         agent: &'a str,
         name: &'a SessionName,
-        harness: Harness,
-        initial_prompt: Option<&'a str>,
+        new: NewSession,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
     /// Gets one Session by immutable identity.
@@ -490,6 +581,7 @@ mod tests {
         };
         let cases = [
             (Lifecycle::default(), Reported::default(), State::Starting),
+            (Lifecycle::resuming(), Reported::default(), State::Starting),
             (Lifecycle::running(), Reported::default(), State::Starting),
             (Lifecycle::running(), reported(Phase::Working), State::Working),
             (Lifecycle::running(), reported(Phase::Unknown), State::Starting),

@@ -3,18 +3,27 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Action;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
@@ -35,6 +44,333 @@ public class WorkflowEngineCallbackControllerTests
     private const int InstanceOwnerPartyId = 123456;
     private const string DataTypeId = "task-data";
     private const string ContentType = "application/json";
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("reject")]
+    public async Task ExecuteCommand_AcquireWithAction_SavesThenEnqueuesContinuationDependingOnTheWorkflow(
+        string? action
+    )
+    {
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        ControllerSetup? setup = null;
+        processEngine
+            .Setup(engine =>
+                engine.EnqueueProcessNext(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<Guid>(),
+                    "acquire-chain",
+                    It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
+                    action,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<
+                IInstanceDataAccessor,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (dataAccessor, actor, dependency, _, state, referenceTime, _, _, _) =>
+                {
+                    Assert.Equal(new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero), referenceTime);
+                    Assert.Equal(setup!.WorkflowId, dependency);
+                    Assert.Equal(42, actor.UserId);
+                    var mutation = DeserializeMutationRequest(
+                        Assert.Single(GetMutationRequests(setup!.Services)).RequestBody!
+                    );
+                    Assert.Equal(ProcessStatus.Idle, mutation.ExpectedProcessStatus);
+                    Assert.Equal(ProcessStatus.Processing, mutation.ProcessState!.State!.Status);
+                    var saved = setup.DeserializeState(state);
+                    Assert.Equal(2, saved.InstanceVersion);
+                    Assert.Equal(2, saved.ProcessStateVersion);
+                    Assert.Equal("Task_1", saved.Instance.Process!.CurrentTask.ElementId);
+                    Assert.Equal(ProcessStatus.Processing, saved.Instance.Process.Status);
+                    Assert.IsType<InstanceDataUnitOfWork>(dataAccessor);
+                    var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
+                        InstanceOwnerPartyId,
+                        setup.InstanceGuid
+                    );
+                    Assert.Equal(ProcessStatus.Processing, storedInstance.Process!.Status);
+                }
+            )
+            .Returns(Task.CompletedTask);
+        setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
+            services.Services.AddSingleton(processEngine.Object);
+        });
+        await using (setup)
+        {
+            var response = await setup.Execute(
+                AcquireProcessingStatus.Key,
+                Guid.NewGuid(),
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action)),
+                collectionKey: "acquire-chain"
+            );
+            Assert.IsType<OkObjectResult>(response);
+            processEngine.VerifyAll();
+        }
+    }
+
+    [Theory]
+    [InlineData("Task_2", null, false, false)]
+    [InlineData("EndEvent_1", "reject", true, false)]
+    [InlineData("Task_2", null, false, true)]
+    public async Task ExecuteCommand_AcquireContinuation_LostAcknowledgment_RecoversAcceptedWorkflow(
+        string target,
+        string? action,
+        bool rotateSigningSecret,
+        bool updateMetadata
+    )
+    {
+        var clock = new CallbackClock(DateTimeOffset.UtcNow);
+        var referenceTime = clock.GetUtcNow().AddMinutes(-1);
+        var requests = new List<WorkflowEnqueueRequest>();
+        string? acceptedKey = null;
+        Guid continuationId = Guid.NewGuid();
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, key, _, request, _) =>
+                {
+                    requests.Add(request);
+                    if (requests.Count == 1)
+                    {
+                        acceptedKey = key;
+                        // The engine persisted W2, but its response did not reach the callback.
+                        return Task.FromException<WorkflowEnqueueResponse.Accepted>(
+                            new HttpRequestException("Response lost")
+                        );
+                    }
+                    Assert.Equal(acceptedKey, key);
+                    // Match the real engine's idempotency contract: only the OUTER context is excluded.
+                    // Comparing the exact hashed bytes catches timestamps, nested JWTs and state signatures.
+                    byte[] original = JsonSerializer.SerializeToUtf8Bytes(requests[0] with { Context = null });
+                    byte[] replay = JsonSerializer.SerializeToUtf8Bytes(request with { Context = null });
+                    if (rotateSigningSecret || updateMetadata)
+                    {
+                        Assert.NotEqual(original, replay);
+                        return Task.FromException<WorkflowEnqueueResponse.Accepted>(
+                            new HttpRequestException("Idempotency conflict", null, HttpStatusCode.Conflict)
+                        );
+                    }
+                    Assert.Equal(original, replay);
+                    return Task.FromResult(
+                        new WorkflowEnqueueResponse.Accepted
+                        {
+                            Workflows =
+                            [
+                                new WorkflowResult { DatabaseId = continuationId, Namespace = "ttd/mocked-app" },
+                            ],
+                        }
+                    );
+                }
+            );
+        await using var setup = CreateSetup(
+            services =>
+            {
+                services.AppSettings.RegisterEventsWithEventsComponent = true;
+                services.Mock<IValidationService>();
+                services.Services.AddSingleton<TimeProvider>(clock);
+                services.Services.AddSingleton(client.Object);
+                services.Services.AddSingleton<IWorkflowCallbackTokenGenerator, WorkflowCallbackTokenGenerator>();
+                services.Services.AddSingleton<ProcessStepOptionsResolver>();
+                services.Services.AddSingleton<ProcessTaskResolver>();
+                services.Services.AddSingleton<IProcessTask, DataProcessTask>();
+                services.Services.AddSingleton<IProcessTask, NullTypeProcessTask>();
+                services.Services.AddSingleton<ProcessNextRequestFactory>();
+                services.Services.AddSingleton<IWorkflowEngineService, WorkflowEngineService>();
+                services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
+                services.Services.AddTransient<UserActionService>();
+                services.Services.AddTransient<IProcessEngine, ProcessEngine>();
+                services.Mock<IAuthenticationContext>();
+                services.Mock<IProcessEngineAuthorizer>();
+                services
+                    .Mock<IProcessReader>()
+                    .Setup(r => r.IsProcessTask(It.IsAny<string>()))
+                    .Returns((string id) => id.StartsWith("Task_", StringComparison.Ordinal));
+                services
+                    .Mock<IProcessReader>()
+                    .Setup(r => r.IsEndEvent(It.IsAny<string>()))
+                    .Returns((string id) => id == "EndEvent_1");
+                ProcessElement next =
+                    target == "Task_2"
+                        ? new ProcessTask
+                        {
+                            Id = target,
+                            ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
+                        }
+                        : new EndEvent { Id = target };
+                services
+                    .Mock<IProcessNavigator>()
+                    .Setup(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", action))
+                    .ReturnsAsync(next);
+            },
+            (_, instance) => instance.Process!.Status = ProcessStatus.Idle
+        );
+        Guid stepId = Guid.NewGuid();
+        string payload = CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(action))!;
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            setup.Execute(AcquireProcessingStatus.Key, stepId, payload, referenceTime, "acquire-chain")
+        );
+        var accepted = new WorkflowStatusResponse
+        {
+            DatabaseId = continuationId,
+            Namespace = "ttd/mocked-app",
+            CollectionKey = "acquire-chain",
+            IdempotencyKey = acceptedKey!,
+            OperationId = requests[0].Workflows[0].OperationId,
+            CreatedAt = referenceTime,
+            OverallStatus = PersistentItemStatus.Enqueued,
+            Dependencies = new Dictionary<Guid, PersistentItemStatus>
+            {
+                [setup.WorkflowId] = PersistentItemStatus.Processing,
+            },
+            Labels = requests[0].Labels,
+            InitialState = requests[0].Workflows[0].State,
+            Steps = [],
+        };
+        client
+            .Setup(c => c.ListWorkflows("ttd/mocked-app", "acquire-chain", null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([accepted with { Dependencies = null }]);
+        client
+            .Setup(c => c.GetWorkflow("ttd/mocked-app", continuationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(accepted);
+        clock.Advance(TimeSpan.FromSeconds(10));
+        if (updateMetadata)
+        {
+            // Standalone metadata writes can occur without changing the process/version fence.
+            var (stored, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
+            stored.DataValues = new Dictionary<string, string> { ["background-update"] = "after-W2-acceptance" };
+        }
+        if (rotateSigningSecret)
+        {
+            var secrets = Mock.Get(setup.ServiceProvider.GetRequiredService<IWorkflowCallbackSecretProvider>());
+            var original = secrets.Object.GetSigningSecret();
+            var rotated = new AppCode
+            {
+                Id = "rotated-secret",
+                Code = "another-signing-secret-long-enough",
+                IssuedAt = clock.GetUtcNow(),
+                ExpiresAt = original.ExpiresAt.AddDays(1),
+            };
+            secrets.Setup(s => s.GetSigningSecret()).Returns(rotated);
+            secrets.Setup(s => s.GetValidationSecrets()).Returns([original, rotated]);
+        }
+        Assert.IsType<OkObjectResult>(
+            await setup.Execute(AcquireProcessingStatus.Key, stepId, payload, referenceTime, "acquire-chain")
+        );
+        client.Verify(
+            c => c.ListWorkflows("ttd/mocked-app", "acquire-chain", null, null, It.IsAny<CancellationToken>()),
+            rotateSigningSecret || updateMetadata ? Times.Once() : Times.Never()
+        );
+        client.Verify(
+            c => c.GetWorkflow("ttd/mocked-app", continuationId, It.IsAny<CancellationToken>()),
+            rotateSigningSecret || updateMetadata ? Times.Once() : Times.Never()
+        );
+        Assert.Equal(2, requests.Count);
+        Assert.Equal($"process-next-dependent-{setup.WorkflowId:N}", acceptedKey);
+        Assert.NotEqual(
+            requests[0].Context!.Value.GetProperty("callbackToken").GetString(),
+            requests[1].Context!.Value.GetProperty("callbackToken").GetString()
+        );
+        var workflow = Assert.Single(requests[1].Workflows);
+        Assert.Equal(setup.WorkflowId, Assert.Single(workflow.DependsOn!).Id);
+        Assert.DoesNotContain(workflow.Steps, step => step.OperationId == AcquireProcessingStatus.Key);
+        var commit = Assert.Single(workflow.Steps, step => step.OperationId == CommitProcessState.Key);
+        var data = JsonSerializer.Deserialize<AppCommandData>(commit.Command.Data!.Value)!;
+        var change = CommandPayloadSerializer.Deserialize<ProcessStateChangePayload>(data.Payload)!.ProcessStateChange;
+        Assert.True(
+            change.NewProcessState?.CurrentTask is not null || change.NewProcessState?.Ended is not null,
+            data.Payload
+        );
+        Assert.All(change.Events!, e => Assert.Equal(referenceTime.UtcDateTime, e.Created));
+        Assert.Equal(
+            referenceTime.UtcDateTime,
+            target == "Task_2" ? change.NewProcessState!.CurrentTask.Started : change.NewProcessState!.Ended
+        );
+        var sideEffects = Assert.Single(workflow.Steps, step => step.OperationId == EnqueueSideEffectsWorkflow.Key);
+        var sideEffectsData = JsonSerializer.Deserialize<AppCommandData>(sideEffects.Command.Data!.Value)!;
+        Assert.Null(
+            CommandPayloadSerializer
+                .Deserialize<EnqueueSideEffectsWorkflowPayload>(sideEffectsData.Payload)!
+                .EnqueueRequest.Context
+        );
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireWithPayload_RequiresCollectionKey()
+    {
+        await using var setup = CreateSetup(new AcquireProcessingStatus());
+        var response = Assert.IsType<ObjectResult>(
+            await setup.Execute(
+                AcquireProcessingStatus.Key,
+                Guid.NewGuid(),
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(null))
+            )
+        );
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, response.StatusCode);
+        Assert.Equal("Missing Collection-Key", Assert.IsType<ProblemDetails>(response.Value).Title);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireWithPayload_OnConflict_DoesNotEnqueue()
+    {
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        await using var setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
+            services.Services.AddSingleton(processEngine.Object);
+        });
+        setup.Services.Storage.SetStorageVersions(
+            InstanceOwnerPartyId,
+            setup.InstanceGuid,
+            instanceVersion: 2,
+            processStateVersion: 2
+        );
+        var result = Assert.IsType<ObjectResult>(
+            await setup.Execute(
+                AcquireProcessingStatus.Key,
+                Guid.NewGuid(),
+                CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload("reject")),
+                collectionKey: "acquire-chain"
+            )
+        );
+        Assert.Equal(StatusCodes.Status409Conflict, result.StatusCode);
+        processEngine.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireWithoutPayload_DoesNotEnqueue()
+    {
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        await using var setup = CreateSetup(services =>
+        {
+            services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
+            services.Services.AddSingleton(processEngine.Object);
+        });
+        Assert.IsType<OkObjectResult>(await setup.Execute(AcquireProcessingStatus.Key, Guid.NewGuid()));
+        Assert.Single(GetMutationRequests(setup.Services));
+        processEngine.VerifyNoOtherCalls();
+    }
 
     [Fact]
     public async Task ExecuteCommand_WhenUnitOfWorkHasNothingToSave_SkipsStorageMutation()
@@ -91,10 +427,27 @@ public class WorkflowEngineCallbackControllerTests
         Guid stepId = Guid.Parse("11111111-2222-3333-4444-555555555555");
         var executionReferenceTime = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
         var serviceTask = new CapturingServiceTask(stageMutation: true);
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(engine =>
+                engine.EnqueueProcessNext(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<Guid>(),
+                    "metadata-chain",
+                    It.IsAny<string>(),
+                    executionReferenceTime,
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
         await using ControllerSetup setup = CreateSetup(
             services =>
             {
                 services.Services.AddSingleton<IServiceTask>(serviceTask);
+                services.Services.AddSingleton(processEngine.Object);
                 services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
                     serviceProvider.GetRequiredService<AppImplementationFactory>(),
                     new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
@@ -118,7 +471,8 @@ public class WorkflowEngineCallbackControllerTests
             ExecuteServiceTask.Key,
             stepId,
             commandPayload,
-            executionReferenceTime
+            executionReferenceTime,
+            collectionKey: "metadata-chain"
         );
 
         var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
@@ -128,42 +482,54 @@ public class WorkflowEngineCallbackControllerTests
         var mutationRequest = Assert.Single(GetMutationRequests(setup.Services));
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
+        Assert.Null(mutation.ProcessState);
         Assert.Single(mutation.CreateDataElements);
         Assert.Equal(
             stepId.ToString(),
             mutationRequest.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single()
         );
-        Assert.Equal(ProcessStatus.Idle, setup.DeserializeState(response.State!).Instance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(response.State!).Instance.Process?.Status);
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
-        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
         Assert.Equal("ServiceTask_1", storedInstance.Process?.CurrentTask?.ElementId);
+        processEngine.VerifyAll();
     }
 
     [Fact]
-    public async Task ExecuteCommand_AutoAdvanceServiceTask_SavesStagedDataBeforeEnqueueAndKeepsProcessing()
+    public async Task ExecuteCommand_SuccessfulServiceTask_SavesStagedDataBeforeEnqueueAndKeepsProcessing()
     {
         const string action = "approve";
         const string collectionKey = "service-task-chain";
-        var serviceTask = new AutoAdvanceServiceTask(action);
+        var serviceTask = new SuccessfulServiceTask(action);
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         ControllerSetup? setup = null;
         bool enqueueObservedSavedMutation = false;
         processEngine
             .Setup(engine =>
                 engine.EnqueueProcessNext(
-                    It.IsAny<Instance>(),
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.IsAny<Actor>(),
                     It.IsAny<Guid>(),
                     collectionKey,
                     It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
                     action,
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                (instance, _, _, _, state, _, _, _) =>
+            .Callback<
+                IInstanceDataAccessor,
+                Actor,
+                Guid,
+                string,
+                string,
+                DateTimeOffset,
+                string?,
+                string?,
+                CancellationToken
+            >(
+                (dataAccessor, _, _, _, state, _, _, _, _) =>
                 {
                     StorageClientInterceptor.RequestResponse request = Assert.Single(
                         GetMutationRequests(setup!.Services)
@@ -172,7 +538,7 @@ public class WorkflowEngineCallbackControllerTests
                     Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
                     Assert.Null(mutation.ProcessState);
                     Assert.Single(mutation.CreateDataElements);
-                    Assert.Equal(ProcessStatus.Processing, instance.Process?.Status);
+                    Assert.Equal(ProcessStatus.Processing, dataAccessor.Instance.Process?.Status);
                     Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(state).Instance.Process?.Status);
                     enqueueObservedSavedMutation = true;
                 }
@@ -195,14 +561,14 @@ public class WorkflowEngineCallbackControllerTests
                 instance.Process.CurrentTask = new ProcessElementInfo
                 {
                     ElementId = "ServiceTask_1",
-                    AltinnTaskType = AutoAdvanceServiceTask.ServiceTaskType,
+                    AltinnTaskType = SuccessfulServiceTask.ServiceTaskType,
                 };
             }
         );
         await using (setup)
         {
             string payload = CommandPayloadSerializer.Serialize(
-                new ExecuteServiceTaskPayload(AutoAdvanceServiceTask.ServiceTaskType, ItemIndex: 0)
+                new ExecuteServiceTaskPayload(SuccessfulServiceTask.ServiceTaskType, ItemIndex: 0)
             )!;
 
             IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload, collectionKey);
@@ -685,11 +1051,7 @@ public class WorkflowEngineCallbackControllerTests
     )
     {
         var services = new MockedServiceCollection();
-        services.Services.AddSingleton(
-            Mock.Of<IProcessReader>(reader =>
-                reader.GetProcessTasks() == new List<Altinn.App.Core.Internal.Process.Elements.ProcessTask>()
-            )
-        );
+        services.Mock<IProcessReader>().Setup(reader => reader.GetProcessTasks()).Returns([]);
         services.AddDataType(
             new DataType
             {
@@ -827,7 +1189,7 @@ public class WorkflowEngineCallbackControllerTests
         public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
         {
             await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
-            return ServiceTaskResult.SuccessWithoutAutoAdvance();
+            return ServiceTaskResult.Success();
         }
     }
 
@@ -852,13 +1214,13 @@ public class WorkflowEngineCallbackControllerTests
                 );
             }
 
-            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.SuccessWithoutAutoAdvance());
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
         }
     }
 
-    private sealed class AutoAdvanceServiceTask(string action) : IServiceTask
+    private sealed class SuccessfulServiceTask(string action) : IServiceTask
     {
-        public const string ServiceTaskType = "AutoAdvanceForCallbackTest";
+        public const string ServiceTaskType = "SuccessfulTaskForCallbackTest";
 
         public string Type => ServiceTaskType;
 
@@ -867,7 +1229,7 @@ public class WorkflowEngineCallbackControllerTests
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
                 ContentType,
-                "auto-advance.json",
+                "service-task-output.json",
                 "{}"u8.ToArray()
             );
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
@@ -906,6 +1268,13 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
+    private sealed class CallbackClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+
+        public void Advance(TimeSpan elapsed) => now += elapsed;
+    }
+
     private sealed record ControllerSetup(
         MockedServiceCollection Services,
         WrappedServiceProvider ServiceProvider,
@@ -914,6 +1283,8 @@ public class WorkflowEngineCallbackControllerTests
         string State
     ) : IAsyncDisposable
     {
+        public Guid WorkflowId { get; } = Guid.NewGuid();
+
         private static readonly DateTimeOffset FixtureExecutionReferenceTime = new(
             2025,
             3,
@@ -950,7 +1321,7 @@ public class WorkflowEngineCallbackControllerTests
                 CommandKey = commandKey,
                 Payload = commandPayload,
                 Actor = new Actor { UserId = 42, Language = "nb" },
-                WorkflowId = Guid.NewGuid(),
+                WorkflowId = WorkflowId,
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,

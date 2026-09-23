@@ -19,7 +19,7 @@ internal static class PipelineStageExecutor
         ProcessEngineCommandResult result = await stage.Execute(factory, context);
         return result switch
         {
-            SuccessfulProcessEngineCommandResult { AutoAdvanceProcess: false, MailboxContinuation: null } => result,
+            SuccessfulProcessEngineCommandResult { ProcessNextContinuation: null, MailboxContinuation: null } => result,
             FailedProcessEngineCommandResult { MailboxContinuation: null } => result,
             DeferredProcessEngineCommandResult => result,
             _ => ProcessEngineCommandResult.FailedPermanent(

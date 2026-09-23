@@ -55,9 +55,15 @@ public sealed class SigningServiceTests : IDisposable
         );
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
-                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _, CancellationToken _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn }
@@ -211,9 +217,15 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(synchronizedSigneeContexts);
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
-                (PartyLookup lookup, StorageAuthenticationMethod? _) =>
+                (PartyLookup lookup, StorageAuthenticationMethod? _, CancellationToken _) =>
                 {
                     return lookup.Ssn is not null
                         ? new Party { SSN = lookup.Ssn, Name = "A person" }
@@ -400,7 +412,13 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync((signeeContexts, true));
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
 
         // Act
@@ -556,7 +574,13 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync(signeeContextsWithDocuments);
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new Party { PartyUuid = Guid.NewGuid() });
 
         // Asserts call order across mocks: revocation must read signee state (position 0)
@@ -719,7 +743,13 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync((signeeContextsWithDocuments, true));
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid });
 
         // Act
@@ -871,7 +901,13 @@ public sealed class SigningServiceTests : IDisposable
             .ReturnsAsync((signeeContextsWithDocuments, true));
 
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new Party { PartyUuid = instanceOwnerPartyUuid });
 
         // Act
@@ -1055,7 +1091,7 @@ public sealed class SigningServiceTests : IDisposable
         List<string> orgNrs = ["123456789", "555555555"];
 
         _authorizationClient
-            .Setup(x => x.GetKeyRoleOrganizationParties(123, It.IsAny<List<string>>()))
+            .Setup(x => x.GetKeyRoleOrganizationParties(123, It.IsAny<List<string>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(orgNrs);
 
         // Act
@@ -1190,7 +1226,13 @@ public sealed class SigningServiceTests : IDisposable
         // Setup to throw exception during party lookup
         _altinnPartyClient.Reset();
         _altinnPartyClient
-            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(x =>
+                x.LookupParty(
+                    It.IsAny<PartyLookup>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ThrowsAsync(new Exception("Party lookup failed"));
 
         // Act
@@ -1217,5 +1259,75 @@ public sealed class SigningServiceTests : IDisposable
         // Cleanup must still happen even though revocation failed.
         cachedInstanceMutator.Verify(x => x.RemoveDataElement(signeeStateDataElement), Times.Once);
         cachedInstanceMutator.Verify(x => x.RemoveDataElement(signatureDataElement), Times.Once);
+    }
+
+    [Fact]
+    public async Task AbortRuntimeDelegatedSigning_WhenPartyLookupIsCancelled_PropagatesCancellation()
+    {
+        // An ordinary lookup failure is logged and skipped (see the test above); cancellation must stop the abort.
+        var signatureConfiguration = new AltinnSignatureConfiguration
+        {
+            SigneeStatesDataTypeId = "signeeStates",
+            SignatureDataType = "signature",
+        };
+        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
+        var instance = new Instance
+        {
+            Id = "123/abc",
+            AppId = "ttd/app1",
+            InstanceOwner = new InstanceOwner { PartyId = "123", OrganisationNumber = "org123" },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [],
+        };
+        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        using var cts = new CancellationTokenSource();
+
+        _signeeContextsManager
+            .Setup(x => x.GetSigneeContexts(cachedInstanceMutator.Object, signatureConfiguration, cts.Token))
+            .ReturnsAsync([]);
+        _signDocumentManager
+            .Setup(x => x.GetSignDocuments(cachedInstanceMutator.Object, signatureConfiguration, cts.Token))
+            .ReturnsAsync([]);
+        _signDocumentManager
+            .Setup(x =>
+                x.SynchronizeSigneeContextsWithSignDocuments(
+                    "Task_1",
+                    It.IsAny<List<SigneeContext>>(),
+                    It.IsAny<List<SignDocument>>(),
+                    cts.Token
+                )
+            )
+            .ReturnsAsync([
+                new SigneeContext
+                {
+                    TaskId = "Task_1",
+                    SigneeState = new SigneeState { IsAccessDelegated = true },
+                    Signee = new PersonSignee
+                    {
+                        FullName = "Test Person",
+                        Party = new Party(),
+                        SocialSecurityNumber = "12345678910",
+                    },
+                },
+            ]);
+        _altinnPartyClient.Reset();
+        _altinnPartyClient
+            .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>(), cts.Token))
+            .Returns(
+                async (PartyLookup _, StorageAuthenticationMethod? _, CancellationToken cancellationToken) =>
+                {
+                    await cts.CancelAsync();
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return new Party();
+                }
+            );
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _signingService.AbortRuntimeDelegatedSigning(
+                cachedInstanceMutator.Object,
+                signatureConfiguration,
+                cts.Token
+            )
+        );
     }
 }

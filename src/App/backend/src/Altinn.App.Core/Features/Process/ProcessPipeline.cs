@@ -6,10 +6,7 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 public sealed class ProcessPipeline
 {
-    internal ProcessPipeline(IEnumerable<ProcessPipelineStage> stages) => Stages = stages.ToArray();
+    internal ProcessPipeline(IEnumerable<ProcessPipelineStage.Command> stages) => Stages = stages.ToArray();
 
-    internal IReadOnlyList<ProcessPipelineStage> Stages { get; }
-
-    internal static ProcessPipeline FromCommands(IReadOnlyList<WorkflowCommandRef> commands) =>
-        new(commands.Select(command => new ProcessPipelineStage.Command(command, null, null)));
+    internal IReadOnlyList<ProcessPipelineStage.Command> Stages { get; }
 }

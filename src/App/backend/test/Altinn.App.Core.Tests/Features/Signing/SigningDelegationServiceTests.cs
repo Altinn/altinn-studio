@@ -57,7 +57,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act
         (signeeContexts, var success) = await service.RevokeSigneeRights(
@@ -66,7 +66,7 @@ public class SigningDelegationServiceTests
             InstanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -98,7 +98,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act
         (signeeContexts, var success) = await service.RevokeSigneeRights(
@@ -107,7 +107,7 @@ public class SigningDelegationServiceTests
             InstanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -149,7 +149,7 @@ public class SigningDelegationServiceTests
                 Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -159,7 +159,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -197,7 +197,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -207,7 +207,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -249,7 +249,7 @@ public class SigningDelegationServiceTests
                 Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -259,7 +259,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -308,7 +308,7 @@ public class SigningDelegationServiceTests
                 Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -318,7 +318,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -415,7 +415,7 @@ public class SigningDelegationServiceTests
                 Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act & Assert
         HttpRequestException thrown = await Assert.ThrowsAsync<HttpRequestException>(() =>
@@ -426,7 +426,7 @@ public class SigningDelegationServiceTests
                 appIdentifier,
                 signeeContexts,
                 workflowId,
-                ct
+                cancellationToken
             )
         );
         Assert.Same(transientException, thrown);
@@ -454,7 +454,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -465,7 +465,7 @@ public class SigningDelegationServiceTests
                 appIdentifier,
                 signeeContexts,
                 workflowId,
-                ct
+                cancellationToken
             )
         );
     }
@@ -494,7 +494,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act
         (signeeContexts, var success) = await service.RevokeSigneeRights(
@@ -503,7 +503,7 @@ public class SigningDelegationServiceTests
             instanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -531,7 +531,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -541,7 +541,7 @@ public class SigningDelegationServiceTests
                 instanceOwnerPartyUuid,
                 appIdentifier,
                 signeeContexts,
-                ct
+                cancellationToken
             )
         );
     }
@@ -571,7 +571,7 @@ public class SigningDelegationServiceTests
                 Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -581,7 +581,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -614,7 +614,7 @@ public class SigningDelegationServiceTests
                 Signee = CreateSigneeWithPartyUuid(Guid.NewGuid()),
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         Exception thrown = await Assert.ThrowsAsync<Exception>(() =>
@@ -625,7 +625,7 @@ public class SigningDelegationServiceTests
                 appIdentifier,
                 signeeContexts,
                 workflowId,
-                ct
+                cancellationToken
             )
         );
 
@@ -656,7 +656,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act
         (signeeContexts, bool success) = await service.RevokeSigneeRights(
@@ -665,7 +665,7 @@ public class SigningDelegationServiceTests
             instanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -697,7 +697,7 @@ public class SigningDelegationServiceTests
                 Signee = _signee,
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act
         (signeeContexts, bool success) = await service.RevokeSigneeRights(
@@ -706,7 +706,7 @@ public class SigningDelegationServiceTests
             instanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -741,7 +741,7 @@ public class SigningDelegationServiceTests
                 AdditionalActionsToDelegate = ["reject"],
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -751,7 +751,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -791,7 +791,7 @@ public class SigningDelegationServiceTests
                 AdditionalActionsToDelegate = null,
             },
         };
-        var ct = CancellationToken.None;
+        var cancellationToken = CancellationToken.None;
 
         // Act
         await service.DelegateRights(
@@ -801,7 +801,7 @@ public class SigningDelegationServiceTests
             appIdentifier,
             signeeContexts,
             workflowId,
-            ct
+            cancellationToken
         );
 
         // Assert
@@ -839,7 +839,7 @@ public class SigningDelegationServiceTests
                 AdditionalActionsToDelegate = ["reject"],
             },
         };
-        var ct = new CancellationToken();
+        var cancellationToken = new CancellationToken();
 
         // Act
         (signeeContexts, var success) = await service.RevokeSigneeRights(
@@ -848,7 +848,7 @@ public class SigningDelegationServiceTests
             instanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         // Assert

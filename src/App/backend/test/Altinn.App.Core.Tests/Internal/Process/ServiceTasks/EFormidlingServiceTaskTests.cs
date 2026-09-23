@@ -717,10 +717,9 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        // Auto-advance: the process leaves the task once delivery is confirmed, not when the
+        // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
-        Assert.True(success.AutoAdvanceProcess);
+        Assert.IsType<ServiceTaskSuccessResult>(result);
         Assert.Equal(
             reportedStatus,
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]

@@ -45,7 +45,7 @@ internal sealed class GenerateSigningPdfCommand : WorkflowEngineCommandBase<Proc
             return ProcessEngineCommandResult.Completed();
         }
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
+        await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, cancellationToken: ct);
         using var memoryStream = new MemoryStream();
         await pdfStream.CopyToAsync(memoryStream, ct);
 

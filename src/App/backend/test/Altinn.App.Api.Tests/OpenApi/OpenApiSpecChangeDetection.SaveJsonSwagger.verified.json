@@ -8720,6 +8720,11 @@
             "format": "date-time",
             "nullable": true
           },
+          "currentTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "failure": {
             "$ref": "#/components/schemas/AppProcessWorkflowFailure"
           }

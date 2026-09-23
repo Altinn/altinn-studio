@@ -22,7 +22,8 @@ public sealed class ControlledProcessTaskEnd : IProcessTask, IWorkflowEngineComm
 
     public string GetKey() => "ControlledProcessTaskEnd";
 
-    public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [new(GetKey())];
+    public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+        pipeline.Stage(new WorkflowCommandRef(GetKey())).Build();
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
     {

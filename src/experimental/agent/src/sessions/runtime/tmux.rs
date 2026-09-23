@@ -1,14 +1,14 @@
 //! Linux tmux Session runtime and terminal capability.
 //!
 //! Tmux is the M0 Unix Sandbox implementation detail behind Sessions: it owns
-//! the harness PTY, retained terminal state, scrollback and client
+//! the harness PTY, retained terminal state, normal-screen scrollback and client
 //! attachment. Nothing tmux-native is persisted; the tmux session name is
 //! derived from the platform `SessionId`. The conversation record is the
 //! harness's own transcript file, located by the path the harness reported.
 
 use ::sandbox::{
     SandboxHandle, SandboxPath,
-    execution::{ExecutionSpec, ExitStatus},
+    execution::{ExecutionOutput, ExecutionSpec, ExitStatus, StartExecutionRequest},
     terminal::{AttachTerminalRequest, TerminalAttachOutcome},
 };
 
@@ -25,6 +25,45 @@ use crate::sessions::{Activity, AttachTarget, LaunchToken, LifecycleState, Phase
 /// harness TUI's input loop is up, and a paste that lands in that gap is lost;
 /// tmux has no readiness signal of its own, so recent hook activity stands in.
 const INPUT_READY_GRACE: std::time::Duration = std::time::Duration::from_secs(2);
+const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
+const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
+const DETACH_KEYS: &str = "ctrl-b,d";
+
+// Set history-limit before pane creation; reapply on attach for existing servers.
+// Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
+// Reserve index 99: appending would grow terminal-features on every attach.
+fn terminal_options() -> Vec<String> {
+    [
+        "set-option",
+        "-g",
+        "history-limit",
+        "50000",
+        ";",
+        "set-option",
+        "-g",
+        "mouse",
+        "on",
+        ";",
+        "set-option",
+        "-s",
+        "focus-events",
+        "on",
+        ";",
+        "set-option",
+        "-s",
+        "extended-keys",
+        "on",
+        ";",
+        "set-option",
+        "-s",
+        "terminal-features[99]",
+        "xterm*:extkeys",
+        ";",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect()
+}
 
 fn session_name(session: &Session) -> String {
     format!("agent-session-{}", session.id)
@@ -46,8 +85,9 @@ const OBSERVE_SCRIPT: &str = include_str!("observe.sh");
 
 /// Observes attachment and the freshest terminal or transcript activity.
 async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observation, Error> {
-    let inspected = sandbox
-        .run_execution(ExecutionSpec::command(
+    let inspected = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
             [
                 "-c".into(),
@@ -61,8 +101,10 @@ async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observati
                     .clone()
                     .unwrap_or_default(),
             ],
-        ))
-        .await?;
+        ),
+        "tmux observation",
+    )
+    .await?;
     classify_observation(inspected.status, &inspected.stdout)
 }
 
@@ -102,12 +144,15 @@ fn parse_observation(output: &str) -> Result<Observation, Error> {
 
 /// Stops a deliberately idle tmux Session.
 async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
-    let stopped = sandbox
-        .run_execution(ExecutionSpec::command(
+    let stopped = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/usr/bin/tmux"),
             ["kill-session".into(), "-t".into(), exact_target(session)],
-        ))
-        .await?;
+        ),
+        "tmux stop",
+    )
+    .await?;
     if stopped.status.success() {
         Ok(())
     } else {
@@ -118,22 +163,56 @@ async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
     }
 }
 
-/// Creates the named detached tmux session running the harness.
+async fn run_lifecycle_execution(
+    sandbox: &SandboxHandle,
+    spec: ExecutionSpec,
+    operation: &str,
+) -> Result<ExecutionOutput, Error> {
+    let deadline = tokio::time::Instant::now() + LIFECYCLE_EXECUTION_TIMEOUT;
+    let started = tokio::time::timeout_at(deadline, sandbox.start_execution(StartExecutionRequest::new(spec)))
+        .await
+        .map_err(|_| Error::Session(format!("{operation} timed out while starting")))??;
+    let execution_id = started.id.clone();
+    let mut collecting = std::pin::pin!(started.collect());
+    if let Ok(output) = tokio::time::timeout_at(deadline, &mut collecting).await {
+        output.map_err(Error::from)
+    } else {
+        match tokio::time::timeout(LIFECYCLE_EXECUTION_KILL_TIMEOUT, sandbox.kill_execution(&execution_id)).await {
+            Ok(Ok(())) => {}
+            Ok(Err(error)) => {
+                tracing::warn!(%error, %execution_id, "failed to kill timed-out Session runtime execution");
+            }
+            Err(_) => tracing::warn!(%execution_id, "timed out killing Session runtime execution"),
+        }
+        Err(Error::Session(format!("{operation} timed out")))
+    }
+}
+
+/// Builds the tmux `new-session` arguments for one launch of `session`'s harness.
 ///
 /// Per-launch values travel as tmux session environment (`-e`) rather than
 /// becoming defaults for subsequently created sessions. Sessions share one
 /// Unix identity and tmux server, so this is not a security boundary between
-/// sibling Sessions; the token only rejects stale or accidental reports.
-async fn launch(
+/// sibling Sessions; the token only rejects stale or accidental reports. The
+/// Session's recorded model selection is part of every launch, resumed or not.
+fn launch_arguments(
     session: &Session,
-    sandbox: &SandboxHandle,
     session_hook_url: &str,
     token: &LaunchToken,
     resume: Option<&str>,
     initial_message: Option<&str>,
-) -> Result<(), Error> {
-    let launch = harness::launch_linux(session.harness, crate::sandbox::platform::HOME, resume, initial_message);
-    let mut arguments = vec!["new-session".into(), "-d".into(), "-s".into(), session_name(session)];
+) -> Vec<String> {
+    let launch = harness::launch_linux(
+        session.harness,
+        &harness::LaunchRequest {
+            home: crate::sandbox::platform::HOME,
+            resume,
+            initial_prompt: initial_message,
+            model_selection: &session.model_selection,
+        },
+    );
+    let mut arguments = terminal_options();
+    arguments.extend(["new-session".into(), "-d".into(), "-s".into(), session_name(session)]);
     let session_environment = launch.environment.iter().cloned().chain([
         ("CONTAINER_HOST".into(), crate::sandbox::platform::CONTAINER_HOST.into()),
         ("AGENT_SESSION_ID".into(), session.id.to_string()),
@@ -145,6 +224,19 @@ async fn launch(
         arguments.push(format!("{name}={value}"));
     }
     arguments.push(launch.command);
+    arguments
+}
+
+/// Creates the named detached tmux session running the harness.
+async fn launch(
+    session: &Session,
+    sandbox: &SandboxHandle,
+    session_hook_url: &str,
+    token: &LaunchToken,
+    resume: Option<&str>,
+    initial_message: Option<&str>,
+) -> Result<(), Error> {
+    let arguments = launch_arguments(session, session_hook_url, token, resume, initial_message);
     let created = sandbox
         .run_execution(
             ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), arguments)
@@ -182,8 +274,8 @@ async fn attach_terminal(home: &std::path::Path, target: &AttachTarget) -> Resul
     if target.session.status.lifecycle.state != LifecycleState::Running {
         return Err(target.session.not_running_error());
     }
-    let spec = attach_spec(&target.session);
-    match crate::sandbox::attach_terminal(home, &target.sandbox, AttachTerminalRequest::new(spec)).await? {
+    let request = attach_request(&target.session);
+    match crate::sandbox::attach_terminal(home, &target.sandbox, request).await? {
         TerminalAttachOutcome::Exited(status) if status.success() => Ok(()),
         TerminalAttachOutcome::Detached => Ok(()),
         TerminalAttachOutcome::Exited(status) => Err(Error::Session(format!(
@@ -196,17 +288,35 @@ async fn attach_terminal(home: &std::path::Path, target: &AttachTarget) -> Resul
     }
 }
 
+fn attach_arguments(session: &Session) -> Vec<String> {
+    let mut arguments = terminal_options();
+    // A session-local override can shadow the global default on older sessions.
+    arguments.extend([
+        "set-option".into(),
+        "-t".into(),
+        pane_target(session),
+        "mouse".into(),
+        "on".into(),
+        ";".into(),
+        "attach-session".into(),
+        "-t".into(),
+        exact_target(session),
+    ]);
+    arguments
+}
+
 fn attach_spec(session: &Session) -> ExecutionSpec {
-    ExecutionSpec::command(
-        SandboxPath::new("/usr/bin/tmux"),
-        ["attach-session".into(), "-t".into(), exact_target(session)],
-    )
-    // Host-specific TERM names are not necessarily installed in the guest.
-    // Use the broadly available baseline while tmux mediates the terminal.
-    .with_environment([
-        ("LANG".into(), UTF8_LOCALE.into()),
-        ("TERM".into(), PORTABLE_TERMINAL.into()),
-    ])
+    ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), attach_arguments(session))
+        // Host-specific TERM names are not necessarily installed in the guest.
+        // Use the broadly available baseline while tmux mediates the terminal.
+        .with_environment([
+            ("LANG".into(), UTF8_LOCALE.into()),
+            ("TERM".into(), PORTABLE_TERMINAL.into()),
+        ])
+}
+
+fn attach_request(session: &Session) -> AttachTerminalRequest {
+    AttachTerminalRequest::new(attach_spec(session)).with_detach_keys(DETACH_KEYS)
 }
 
 /// The M0 Unix Session runtime backed by tmux.
@@ -255,6 +365,15 @@ impl super::SessionRuntime for Tmux {
         sandbox: &'a SandboxHandle,
     ) -> ::sandbox::LocalFuture<'a, Result<bool, Error>> {
         Box::pin(async move {
+            match session.status.reported.activity.phase {
+                Phase::WaitingForInput => return Ok(true),
+                Phase::Working => {
+                    return Ok(
+                        input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()).is_none(),
+                    );
+                }
+                Phase::Unknown => {}
+            }
             let output = sandbox.run_execution(ExecutionSpec::command(
                 SandboxPath::new("/bin/sh"),
                 ["-c".into(),
@@ -599,26 +718,93 @@ mod tests {
         assert!(error.to_string().contains("exit code 2"));
     }
 
-    #[test]
-    fn attachment_uses_portable_utf8_terminal_environment() {
-        let session = Session {
+    fn test_session(model_selection: crate::ModelSelection) -> Session {
+        Session {
             id: "dd4cdbaf-9ea0-477e-96dd-bbd6b1e4f7dc".parse().expect("Session ID"),
             agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
             agent: "worker".into(),
             name: "s1".to_string().try_into().expect("Session name"),
             harness: crate::harness::test_harness(),
+            model_selection,
             created_at: OffsetDateTime::UNIX_EPOCH,
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
-        };
+        }
+    }
 
-        let spec = super::attach_spec(&session);
+    #[test]
+    fn every_launch_carries_the_recorded_model_selection() {
+        let selection = crate::ModelSelection {
+            model: Some(crate::Model::new("haiku").expect("model")),
+            effort: Some(crate::Effort::new("low").expect("effort")),
+        };
+        let session = test_session(selection);
+        let token = super::LaunchToken::generate();
+        for resume in [None, Some("160cdb4b-5997-464c-9d22-602786eb45d4")] {
+            let arguments = super::launch_arguments(&session, "http://hook", &token, resume, None);
+            let command = arguments.last().expect("tmux command");
+            assert!(command.contains("'haiku'") && command.contains("'low'"), "{command}");
+            assert_eq!(command.contains("--resume"), resume.is_some(), "{command}");
+        }
+        let plain = super::launch_arguments(
+            &test_session(crate::ModelSelection::default()),
+            "http://hook",
+            &token,
+            None,
+            None,
+        );
+        assert!(!plain.last().expect("tmux command").contains("haiku"));
+    }
+
+    #[test]
+    fn terminal_options_precede_creation_and_attachment() {
+        let session = test_session(crate::ModelSelection::default());
+        let options = super::terminal_options();
+        let launch = super::launch_arguments(&session, "http://hook", &super::LaunchToken::generate(), None, None);
+        assert!(launch.starts_with(&options));
+        assert_eq!(launch[options.len()], "new-session");
+        let attach = super::attach_arguments(&session);
+        assert!(attach.starts_with(&options));
+        assert_eq!(
+            &attach[options.len()..options.len() + 6],
+            ["set-option", "-t", &super::pane_target(&session), "mouse", "on", ";"]
+        );
+        assert_eq!(attach[options.len() + 6], "attach-session");
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    #[ignore = "requires Node.js, tmux and script; exercises scrollback in an isolated terminal server"]
+    fn scrollback_in_a_real_terminal() {
+        let session = test_session(crate::ModelSelection::default());
+        let output = std::process::Command::new("node")
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_scrollback.mjs"))
+            .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
+            .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
+            .arg(super::session_name(&session))
+            .output()
+            .expect("Node.js");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    fn attachment_uses_portable_utf8_terminal_environment() {
+        let session = test_session(crate::ModelSelection::default());
+
+        let request = super::attach_request(&session);
+        let spec = request.spec();
 
         assert_eq!(spec.environment().get("LANG").map(String::as_str), Some("C.UTF-8"));
         assert_eq!(
             spec.environment().get("TERM").map(String::as_str),
             Some("xterm-256color")
         );
+        assert_eq!(request.detach_keys(), Some("ctrl-b,d"));
     }
 }

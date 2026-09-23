@@ -407,6 +407,47 @@ public class ProcessNextRequestFactoryTests
             .ToList();
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("reject")]
+    public async Task CreateAcquire_ProducesOneStepWithActionPayloadAndLabels(string? action)
+    {
+        var factory = CreateFactory();
+        var transition = CreateTaskToTaskTransition();
+        var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
+        var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key");
+        var workflow = Assert.Single(acquire.Request.Workflows);
+        var step = Assert.Single(workflow.Steps);
+        var command = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
+        Assert.Equal(AcquireProcessingStatus.Key, command.CommandKey);
+        var payload = Assert.IsType<AcquireProcessingStatusPayload>(
+            CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
+        );
+        Assert.Equal(action, payload.Action);
+        Assert.Equal(SignedTestState, workflow.State);
+        Assert.Null(workflow.IsHead);
+        Assert.Null(workflow.DependsOn);
+        Assert.Equal("acquire-key", acquire.IdempotencyKey);
+        Assert.Equal("ttd/test-app", acquire.Namespace);
+        Assert.Equal(new InstanceIdentifier(TestInstance).InstanceGuid.ToString(), acquire.CollectionKey);
+        var context = JsonSerializer.Deserialize<AppWorkflowContext>(acquire.Request.Context!.Value)!;
+        Assert.Equal(TestAuthentication.DefaultUserId, context.Actor.UserId);
+        Assert.Equal("test-callback-token", context.CallbackToken);
+
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            transition,
+            "saved-state",
+            context.Actor,
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "dependent-key"
+        );
+        Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
+        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        Assert.DoesNotContain(AcquireProcessingStatus.Key, ExtractCommandKeys(dependent));
+    }
+
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
     {
@@ -415,18 +456,19 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
-        var bundle = await factory.CreateChainInitiating(
+        var bundle = await factory.CreateDependent(
             TestInstance,
             stateChange,
-            "test-process-next-idempotency-key",
-            SignedTestState
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
         );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
             // Task end commands
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
@@ -532,18 +574,19 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateSameTaskLoopRevisit();
 
         // Act
-        var bundle = await factory.CreateChainInitiating(
+        var bundle = await factory.CreateDependent(
             TestInstance,
             stateChange,
-            "test-process-next-idempotency-key",
-            "{}"
+            "{}",
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
         );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
@@ -576,18 +619,19 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskToEndTransition();
 
         // Act
-        var bundle = await factory.CreateChainInitiating(
+        var bundle = await factory.CreateDependent(
             TestInstance,
             stateChange,
-            "test-process-next-idempotency-key",
-            SignedTestState
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
         );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
             // Task end commands
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
@@ -680,18 +724,19 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateTaskAbandonToNextTask();
 
         // Act
-        var bundle = await factory.CreateChainInitiating(
+        var bundle = await factory.CreateDependent(
             TestInstance,
             stateChange,
-            "test-process-next-idempotency-key",
-            SignedTestState
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
         );
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
             // Abandon commands
             OnTaskAbandonHook.Key,
             // MutateProcessState
@@ -721,11 +766,13 @@ public class ProcessNextRequestFactoryTests
         var stateChange = CreateInitialTaskStart(altinnTaskType: "signing");
 
         // Act
-        var bundle = await factory.CreateChainInitiating(
+        var bundle = await factory.CreateDependent(
             TestInstance,
             stateChange,
-            "test-process-next-idempotency-key",
-            SignedTestState
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
         );
 
         // Assert - ExecuteServiceTask is critical: it stays in Main, after the commit boundary.
@@ -784,11 +831,26 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => type;
 
-        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => startCommands ?? [];
+        public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (WorkflowCommandRef command in startCommands ?? [])
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
 
-        public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => endCommands ?? [];
+        public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (WorkflowCommandRef command in endCommands ?? [])
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
 
-        public IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) => abandonCommands ?? [];
+        public ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (WorkflowCommandRef command in abandonCommands ?? [])
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
     }
 
     /// <summary>A normal workflow command declaring its own execution defaults.</summary>
@@ -1434,7 +1496,7 @@ public class ProcessNextRequestFactoryTests
         Assert.NotNull(bundle.Request.Context);
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(bundle.Request.Context.Value);
         Assert.NotNull(context);
-        Assert.Equal(TestAuthentication.DefaultOrgNumber, context.Actor.OrgId);
+        Assert.Equal(TestAuthentication.DefaultOrg, context.Actor.OrgId);
         Assert.Equal(3, context.Actor.AuthenticationLevel);
         Assert.Equal("nb", context.Actor.Language);
     }
@@ -1664,7 +1726,7 @@ public class ProcessNextRequestFactoryTests
         // The embedded batch reuses the Main batch's labels and context (incl. callback token),
         // so ops label queries find the side-effects workflow and its callbacks authenticate.
         Assert.Equal(bundle.Request.Labels, sideEffectsRequest.Labels);
-        Assert.NotNull(sideEffectsRequest.Context);
+        Assert.Null(sideEffectsRequest.Context);
 
         var sideEffects = Assert.Single(sideEffectsRequest.Workflows);
         Assert.Equal(

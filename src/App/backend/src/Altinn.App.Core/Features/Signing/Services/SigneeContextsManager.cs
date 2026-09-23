@@ -34,7 +34,7 @@ internal sealed class SigneeContextsManager(
     public async Task<List<SigneeContext>> GenerateSigneeContexts(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using Activity? activity = telemetry?.StartGenerateSigneeContextsActivity();
@@ -44,7 +44,7 @@ internal sealed class SigneeContextsManager(
         SigneeProviderResult? signeesResult = await GetSigneesFromProvider(
             instanceDataMutator,
             signatureConfiguration,
-            ct
+            cancellationToken
         );
 
         if (signeesResult is null)
@@ -55,7 +55,7 @@ internal sealed class SigneeContextsManager(
         List<SigneeContext> signeeContexts = [];
         foreach (ProvidedSignee signeeParty in signeesResult.Signees)
         {
-            SigneeContext signeeContext = await GenerateSigneeContext(taskId, signeeParty, ct);
+            SigneeContext signeeContext = await GenerateSigneeContext(taskId, signeeParty, cancellationToken);
             signeeContexts.Add(signeeContext);
         }
 
@@ -76,7 +76,7 @@ internal sealed class SigneeContextsManager(
     public async Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using Activity? activity = telemetry?.StartReadSigneesContextsActivity();
@@ -175,7 +175,7 @@ internal sealed class SigneeContextsManager(
     private async Task<SigneeProviderResult?> GetSigneesFromProvider(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         string? signeeProviderId = signatureConfiguration.SigneeProviderId;
@@ -212,21 +212,27 @@ internal sealed class SigneeContextsManager(
     private async Task<SigneeContext> GenerateSigneeContext(
         string taskId,
         ProvidedSignee providedSignee,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         Signee signee;
         try
         {
-            signee = await From(providedSignee, (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup));
+            signee = await From(
+                providedSignee,
+                (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup, cancellationToken: cancellationToken)
+            );
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
         catch (Exception exception)
         {
-            SigningFailureClassification classification = SigningFailureClassifier.ClassifyPartyLookup(exception, ct);
+            SigningFailureClassification classification = SigningFailureClassifier.ClassifyPartyLookup(
+                exception,
+                cancellationToken
+            );
             if (classification.IsTransient)
             {
                 throw;

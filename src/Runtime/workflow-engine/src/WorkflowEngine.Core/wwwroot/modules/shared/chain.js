@@ -27,12 +27,12 @@ const freshest = (/** @type {Workflow} */ wf) => state.previousWorkflows[wf.data
 
 /**
  * Duration label for a chain row. Terminal workflows show their real duration; active
- * workflows tick via the shared timer loop when the live section registered a timer.
+ * workflows tick via the shared timer loop when the live section holds the workflow.
  * @param {Workflow} wf @returns {string}
  */
 const durationHTML = (wf) => {
     if (!TERMINAL_STATUSES.has(wf.status)) {
-        return state.workflowTimers[wf.databaseId]
+        return state.previousWorkflows[wf.databaseId]
             ? `<span class="chain-time" data-timer="${escAttr(wf.databaseId)}"></span>`
             : '';
     }
@@ -114,7 +114,9 @@ const GAP_THRESHOLD_MS = 1000;
 /** Wall-clock end of a terminal workflow, NaN while it is still running. @param {Workflow} wf */
 const wallClockEnd = (wf) =>
     TERMINAL_STATUSES.has(wf.status)
-        ? new Date(wf.removedAt || wf.steps.at(-1)?.updatedAt || wf.updatedAt || wf.createdAt).getTime()
+        ? new Date(
+              wf.removedAt || wf.steps.at(-1)?.updatedAt || wf.updatedAt || wf.createdAt,
+          ).getTime()
         : NaN;
 
 /**

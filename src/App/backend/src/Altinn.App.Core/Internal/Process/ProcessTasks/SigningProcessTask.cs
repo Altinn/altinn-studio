@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// ended, and aborts with cleanup when it is abandoned; a task with a signing PDF data type generates that PDF
 /// when it is ended. Configuration is validated once, at app startup.
 /// </remarks>
-internal sealed class SigningProcessTask : IPipelineProcessTask
+internal sealed class SigningProcessTask : IProcessTask
 {
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;

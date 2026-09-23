@@ -22,7 +22,7 @@ internal interface ISigningDelegationService
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
         Guid workflowId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 
     /// <summary>
@@ -34,6 +34,6 @@ internal interface ISigningDelegationService
         Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
-        CancellationToken ct
+        CancellationToken cancellationToken
     );
 }

@@ -20,7 +20,7 @@ internal interface ISigningCallToActionService
         Party signingParty,
         Party serviceOwnerParty,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         Guid? idempotentKey = null
     );
 }

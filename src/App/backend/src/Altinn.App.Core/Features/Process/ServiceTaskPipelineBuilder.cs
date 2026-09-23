@@ -48,30 +48,13 @@ public sealed class ServiceTaskPipelineBuilder
         return this;
     }
 
-    /// <summary>Adds a named ordinary stage. The name is displayed in workflow dashboards.</summary>
-    public ServiceTaskPipelineBuilder Stage(
-        string name,
-        Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work,
-        ProcessStepOptions? options = null
-    )
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentNullException.ThrowIfNull(work);
-        _items.Add(new ProcessPipelineStage.ServiceHandler(work, options, name));
-        return this;
-    }
-
     /// <summary>
     /// Adds a registered command as one durable stage. Its payload is fixed at enqueue, and command defaults
     /// are overridden by task and stage options. It cannot advance or conclude the service task.
     /// </summary>
-    public ServiceTaskPipelineBuilder Stage(
-        WorkflowCommandRef command,
-        ProcessStepOptions? options = null,
-        string? name = null
-    )
+    public ServiceTaskPipelineBuilder Stage(WorkflowCommandRef command, ProcessStepOptions? options = null)
     {
-        _items.Add(new ProcessPipelineStage.Command(command, options, name));
+        _items.Add(new ProcessPipelineStage.Command(command, options));
         return this;
     }
 

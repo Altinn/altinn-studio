@@ -10,7 +10,7 @@ namespace Altinn.App.Options
         public string Id { get; set; } = "industry";
 
         public Task<AppOptions> GetAppOptionsAsync(
-            string language,
+            string? language,
             Dictionary<string, string> keyValuePairs
         )
         {

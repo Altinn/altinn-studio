@@ -56,6 +56,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
 using Altinn.App.Core.Internal.Sign;
@@ -102,7 +103,9 @@ public static class ServiceCollectionExtensions
         services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
         services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
         services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
-        services.Configure<AppCodesSettings>(configuration.GetSection("AppCodes"));
+        // The app's callback verification codes are provisioned by the platform, so they are read through the
+        // private channel and never from the app's own configuration. See ProvisionedSecrets.
+        services.BindProvisionedSecret<AppCodesSettings>(ProvisionedSecretFiles.AppCodes);
 
         AddApplicationIdentifier(services);
 

@@ -27,7 +27,7 @@ public struct ProcessEngineCommandContext : IWorkflowStepContext
     /// <summary>Cancellation requested for this attempt.</summary>
     public CancellationToken CancellationToken { get; init; }
 
-    /// <summary>The explicit BPMN task ID for a lifecycle handler, independent of current process state.</summary>
+    /// <summary>The current BPMN task ID when executing a service stage. Lifecycle commands carry their task ID in their payload.</summary>
     public string? TaskId { get; init; }
 
     /// <summary>The engine's persisted reference time for this step, stable across attempts.</summary>

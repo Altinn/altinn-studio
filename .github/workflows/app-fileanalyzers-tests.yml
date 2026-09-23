@@ -9,7 +9,6 @@ on:
       - 'src/App/AppCoreDependency.props'
       - '.github/workflows/app-fileanalyzers-tests.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

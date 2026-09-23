@@ -27,7 +27,6 @@ on:
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

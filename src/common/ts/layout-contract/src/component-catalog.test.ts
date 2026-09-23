@@ -67,6 +67,11 @@ describe('componentCatalog', () => {
         }),
       ]),
     });
+    expect(
+      componentCatalog.Input.properties.dataModelBindings.properties.simpleBinding,
+    ).toMatchObject({
+      semanticType: 'dataModelBinding',
+    });
   });
 
   it('describes nested objects, arrays and expressions', () => {

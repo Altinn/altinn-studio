@@ -435,7 +435,8 @@ public class ProcessTaskConfigurationValidationServiceTests
             return [];
         }
 
-        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [new("DoThing")];
+        public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+            pipeline.Stage(new WorkflowCommandRef("DoThing")).Build();
     }
 
     private sealed class ScopedSigneeProvider : ISigneeProvider, IAsyncDisposable
@@ -464,18 +465,31 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => findings ?? [];
 
-        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) =>
-            (startCommands ?? []).Select(key => new WorkflowCommandRef(key)).ToList();
+        public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (
+                WorkflowCommandRef command in (startCommands ?? []).Select(key => new WorkflowCommandRef(key)).ToList()
+            )
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
 
-        public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) =>
-            (endCommands ?? []).Select(key => new WorkflowCommandRef(key)).ToList();
+        public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (
+                WorkflowCommandRef command in (endCommands ?? []).Select(key => new WorkflowCommandRef(key)).ToList()
+            )
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
     }
 
     private sealed class SimpleServiceTask : IServiceTask
     {
         public string Type => "custom";
 
-        public IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [new("DoThing")];
+        public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+            pipeline.Stage(new WorkflowCommandRef("DoThing")).Build();
 
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
             throw new NotSupportedException("Startup must not execute service tasks.");
@@ -485,7 +499,8 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => "custom";
 
-        public IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [new("DoThing")];
+        public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) =>
+            pipeline.Stage(new WorkflowCommandRef("DoThing")).Build();
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));

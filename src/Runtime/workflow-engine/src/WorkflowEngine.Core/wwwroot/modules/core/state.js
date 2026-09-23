@@ -119,12 +119,14 @@
  */
 
 /**
- * @typedef {{ startedAt: string, frozenAt?: number }} WorkflowTimer
+ * `previousWorkflows` is the live section's own set: the freshest SSE copy of every workflow it
+ * holds a live card for, dropped the moment one leaves (an exiting card outlives its entry by the
+ * length of its animation). Other sections read it for fresher data than their own snapshot, and
+ * to tell a live workflow from a settled one.
  *
  * @typedef {{
  *   previousWorkflows:    Record<string, Workflow>,
  *   workflowFingerprints: Record<string, string>,
- *   workflowTimers:       Record<string, WorkflowTimer>,
  *   lastRecentKeys:       string,
  *   queryLoaded:        boolean,
  *   liveFilter:           string,
@@ -182,7 +184,6 @@ export const dom = {
 export const state = {
     previousWorkflows: {},
     workflowFingerprints: {},
-    workflowTimers: {},
     lastRecentKeys: '',
     queryLoaded: false,
     liveFilter: '',
@@ -256,22 +257,19 @@ export const parseTransition = (wf) => {
 const TASK_END_COMMANDS = new Set([
     'EndTask',
     'CommonTaskFinalization',
-    'EndTaskLegacyHook',
     'OnTaskEndingHook',
     'LockTaskData',
     'AbandonTask',
     'OnTaskAbandonHook',
-    'AbandonTaskLegacyHook',
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
     'CleanupGeneratedFromTask',
     'StartTask',
-    'StartTaskLegacyHook',
     'OnTaskStartingHook',
     'CommonTaskInitialization',
 ]);
-const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook']);
+const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook', 'EndProcessLegacyHook']);
 
 /**
  * Step labels an app sets on every step of a task phase — the lifecycle steps and the task type's own

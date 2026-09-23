@@ -116,6 +116,7 @@ impl Provider for Adapter {
     fn ensure<'a>(
         &'a self,
         record: &'a AgentRecord,
+        mut environment: std::collections::BTreeMap<String, String>,
         progress: crate::progress::SandboxReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
@@ -127,16 +128,24 @@ impl Provider for Adapter {
                 .and_then(super::Assignment::id)
                 .is_some_and(|id| self.preparation.network_is_running(id));
             let prepared = self.preparation.prepare(record).await?;
+            let harnesses = prepared.harnesses;
+            for (name, value) in prepared.environment {
+                if environment.insert(name.clone(), value).is_some() {
+                    return Err(Error::Invalid(format!(
+                        "Sandbox environment variable {name:?} collides with a mediated secret"
+                    )));
+                }
+            }
             let sandbox_name = record.sandbox_name()?;
             let runtime_restarted = match self.service.inspect(&sandbox_name).await {
-                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != prepared.environment,
+                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != environment,
                 Err(error) if error.is_not_found() => false,
                 Err(error) => return Err(error.into()),
             };
             let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
                 .with_hostname(record.sandbox_hostname()?)
                 .with_mounts(Self::sandbox_mounts(record))
-                .with_environment(prepared.environment);
+                .with_environment(environment);
             let mut sandbox = ensure_with_progress(&self.service, &request, &progress).await?;
             if prepared.bindings_changed && running_before {
                 self.preparation.restart_network(&sandbox).await?;
@@ -146,6 +155,7 @@ impl Provider for Adapter {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted,
+                harnesses,
             })
         })
     }

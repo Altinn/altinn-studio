@@ -47,7 +47,11 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
 
         try
         {
-            Party? party = await altinnPartyClient.GetParty(partyId, StorageAuthenticationMethod.ServiceOwner());
+            Party? party = await altinnPartyClient.GetParty(
+                partyId,
+                StorageAuthenticationMethod.ServiceOwner(),
+                context.CancellationToken
+            );
             if (party is null)
             {
                 return FailedProcessEngineCommandResult.Permanent(

@@ -24,7 +24,7 @@ internal sealed class SigningDelegationService(
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
         Guid workflowId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartDelegateSigneeRightsActivity(taskId);
@@ -79,15 +79,18 @@ internal sealed class SigningDelegationService(
 
             try
             {
-                await accessManagementClient.DelegateRights(delegationRequest, ct);
+                await accessManagementClient.DelegateRights(delegationRequest, cancellationToken);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
             catch (Exception ex)
             {
-                SigningFailureClassification classification = SigningFailureClassifier.ClassifyDelegation(ex, ct);
+                SigningFailureClassification classification = SigningFailureClassifier.ClassifyDelegation(
+                    ex,
+                    cancellationToken
+                );
                 if (classification.IsTransient)
                 {
                     telemetry?.RecordDelegation(DelegationResult.Error);
@@ -130,7 +133,7 @@ internal sealed class SigningDelegationService(
         Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartRevokeSigneeRightsActivity(taskId);
@@ -166,7 +169,7 @@ internal sealed class SigningDelegationService(
                         },
                         Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
                     };
-                    await accessManagementClient.RevokeRights(delegationRequest, ct);
+                    await accessManagementClient.RevokeRights(delegationRequest, cancellationToken);
                     signeeContext.SigneeState.IsAccessDelegated = false;
                     telemetry?.RecordDelegationRevoke(DelegationResult.Success);
                 }

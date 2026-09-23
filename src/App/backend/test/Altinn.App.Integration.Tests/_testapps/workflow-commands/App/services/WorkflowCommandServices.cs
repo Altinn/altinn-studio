@@ -205,17 +205,18 @@ internal sealed class ControlledPaymentProcessor(PaymentTestState state) : IPaym
 {
     public string PaymentProcessorId => "integration-payment";
 
-    public Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation) =>
+    public Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation, CancellationToken cancellationToken = default) =>
         Task.FromResult(state.Terminate(paymentInformation.PaymentDetails!.PaymentId));
 
-    public Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language) =>
+    public Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language, CancellationToken cancellationToken = default) =>
         throw new InvalidOperationException("Payment lifecycle tests must not start a vendor payment.");
 
     public Task<(PaymentStatus status, PaymentDetails paymentDetails)> GetPaymentStatus(
         Instance instance,
         string paymentId,
         decimal expectedTotalIncVat,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     ) => throw new InvalidOperationException("Payment lifecycle tests must not query a vendor payment.");
 }
 

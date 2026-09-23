@@ -13,7 +13,9 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class WorkflowCommandSetTaskCommandTests
 {
     private static IReadOnlyList<StepRequest> Plan(string phase, params WorkflowCommandRef[] commands) =>
-        PipelineStagePlanner.PlanLifecycle(ProcessPipeline.FromCommands(commands), "custom", "Task_1", phase);
+        PipelineStagePlanner.PlanLifecycle(
+            new ProcessPipeline(commands.Select(command => new ProcessPipelineStage.Command(command, null)))
+        );
 
     private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
         steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();

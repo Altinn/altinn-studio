@@ -14,20 +14,34 @@ internal interface IWorkflowEngineClient
     /// <param name="idempotencyKey">Idempotency key sent via HTTP header</param>
     /// <param name="collectionKey">Optional collection key sent via HTTP header</param>
     /// <param name="request">The WorkflowEnqueueRequest body to send</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     Task<WorkflowEnqueueResponse.Accepted> EnqueueWorkflows(
         string ns,
         string idempotencyKey,
         string? collectionKey,
         WorkflowEnqueueRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Gets a workflow collection by key.
     /// Returns <see langword="null"/> when the collection does not exist.
     /// </summary>
-    Task<WorkflowCollectionDetailResponse?> GetCollection(string ns, string key, CancellationToken ct = default);
+    Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string ns,
+        string key,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a workflow with its dependencies by database ID.
+    /// Returns <see langword="null"/> when the workflow does not exist in the namespace.
+    /// </summary>
+    Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Lists workflows, optionally filtered by collection key, labels, and statuses.
@@ -37,13 +51,13 @@ internal interface IWorkflowEngineClient
     /// <param name="collectionKey">Optional collection key to filter by</param>
     /// <param name="labels">Optional label filters (key-value pairs)</param>
     /// <param name="statuses">Optional workflow statuses to filter by</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -51,8 +65,12 @@ internal interface IWorkflowEngineClient
     /// </summary>
     /// <param name="ns">Namespace (URL path segment)</param>
     /// <param name="workflowId">The workflow database ID</param>
-    /// <param name="ct">Cancellation token</param>
-    Task<CancelWorkflowResponse> CancelWorkflow(string ns, Guid workflowId, CancellationToken ct = default);
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<CancelWorkflowResponse> CancelWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Resumes a terminal workflow (failed, canceled, dependency-failed) for re-processing.
@@ -60,12 +78,12 @@ internal interface IWorkflowEngineClient
     /// <param name="ns">Namespace (URL path segment)</param>
     /// <param name="workflowId">The workflow database ID</param>
     /// <param name="cascade">Whether to also resume dependent workflows</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     Task<ResumeWorkflowResponse> ResumeWorkflow(
         string ns,
         Guid workflowId,
         bool cascade = false,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -75,13 +93,13 @@ internal interface IWorkflowEngineClient
     /// </summary>
     /// <param name="ns">Namespace (URL path segment)</param>
     /// <param name="workflowId">The workflow database ID</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
     /// <see langword="true"/> when the workflow is abandoned; <see langword="false"/> when the engine
     /// rejected the compare-and-set because the workflow is in a non-abandonable state - e.g. a
     /// concurrent resume revived it.
     /// </returns>
-    Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default);
+    Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Mints a mailbox, idempotent on <see cref="MailboxCreateRequest.IdempotencyKey"/> within the namespace —
@@ -91,13 +109,17 @@ internal interface IWorkflowEngineClient
     /// <see cref="MailboxMintResult.Minted"/>, or <see cref="MailboxMintResult.Rejected"/> when the engine
     /// refused the request as invalid. Every other unsuccessful status throws.
     /// </returns>
-    Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default);
+    Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>Closes a mailbox. Terminal and idempotent: a repeat close reports the original closure.</summary>
     /// <returns>
     /// The closed mailbox, or <see langword="null"/> on <c>404</c>. Every other unsuccessful status throws.
     /// </returns>
-    Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default);
+    Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Delivers one message, idempotent on <see cref="MailboxDeliveryRequest.IdempotencyKey"/> within the
@@ -111,6 +133,6 @@ internal interface IWorkflowEngineClient
         string ns,
         Guid mailboxId,
         MailboxDeliveryRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 }

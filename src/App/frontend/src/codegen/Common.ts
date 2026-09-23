@@ -407,14 +407,6 @@ const common = {
       .setTitle('Option', 'Alternativ')
       .setDescription('Defines one selectable option.', 'Definerer ett valgbart alternativ.')
       .addExample({ label: '', value: '' }),
-  IMapping: () =>
-    new CG.obj()
-      .additionalProperties(new CG.str())
-      .setTitle('Mapping', 'Kobling')
-      .setDescription(
-        'A mapping of key-value pairs (usually used for mapping a path in the data model to a query string parameter).',
-        'En samling nøkkel/verdi-par, vanligvis brukt til å koble en sti i datamodellen til en parameter i spørringsstrengen.',
-      ),
   IQueryParameters: () =>
     new CG.obj()
       .additionalProperties(new CG.expr(ExprVal.String))
@@ -877,7 +869,16 @@ const common = {
 
   AllowedValidationMasks: () =>
     new CG.arr(
-      new CG.enum('Schema', 'Component', 'Expression', 'CustomBackend', 'Required', 'AllExceptRequired', 'All'),
+      new CG.enum(
+        'Schema',
+        'Invalid',
+        'Component',
+        'Expression',
+        'CustomBackend',
+        'Required',
+        'AllExceptRequired',
+        'All',
+      ),
     )
       .setTitle('Validation types', 'Valideringstyper')
       .setDescription('List of validation types to show', 'Liste over valideringstypene som skal vises.'),

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -37,11 +38,40 @@ internal sealed class AcquireProcessingStatus : IWorkflowEngineCommand
             );
         }
 
+        AcquireProcessingStatusPayload? payload = null;
+        if (context.Payload.Payload is not null)
+        {
+            try
+            {
+                payload =
+                    CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.Payload.Payload)
+                    as AcquireProcessingStatusPayload;
+            }
+            catch (Exception exception) when (exception is JsonException or NotSupportedException)
+            {
+                // A supplied payload must be valid; an absent payload is used by initial process starts.
+            }
+            if (payload is null)
+            {
+                return Task.FromResult<ProcessEngineCommandResult>(
+                    FailedProcessEngineCommandResult.Permanent(
+                        "AcquireProcessingStatus payload is invalid",
+                        "InvalidPayloadException"
+                    )
+                );
+            }
+        }
+
         try
         {
             unitOfWork.TransitionProcessStatus(ProcessStatus.Idle, ProcessStatus.Processing);
             process.Status = ProcessStatus.Processing;
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<ProcessEngineCommandResult>(
+                new SuccessfulProcessEngineCommandResult
+                {
+                    ProcessNextContinuation = payload is null ? null : new(payload.Action),
+                }
+            );
         }
         catch (Exception exception)
         {
@@ -49,3 +79,5 @@ internal sealed class AcquireProcessingStatus : IWorkflowEngineCommand
         }
     }
 }
+
+internal sealed record AcquireProcessingStatusPayload(string? Action) : CommandRequestPayload;

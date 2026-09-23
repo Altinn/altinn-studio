@@ -22,7 +22,7 @@ from agents.services.git import git_ops
 from ._write_base import WriteToolMixin
 
 
-def _unverified_changed_files(ctx: LoopContext) -> set[str]:
+def unverified_changed_files(ctx: LoopContext) -> set[str]:
     """Return changed files that haven't been verified since their last edit.
 
     `verify_changes` populates `ctx.extras["verified_files"]` on success;
@@ -46,7 +46,7 @@ def _session_branch_name(ctx: LoopContext) -> str:
     if name:
         return name
     short_id = (ctx.session_id or "anon")[:8] or "anon"
-    name = f"altinity_session_{short_id}"
+    name = f"assistant_{short_id}"
     ctx.extras["session_branch"] = name
     return name
 
@@ -82,7 +82,7 @@ class CommitSessionBranchTool(WriteToolMixin):
     is_concurrency_safe = False
 
     async def run(self, args: CommitSessionBranchArgs, ctx: LoopContext) -> ToolResult:
-        unverified = _unverified_changed_files(ctx)
+        unverified = unverified_changed_files(ctx)
         if unverified:
             return ToolResult(
                 content=(

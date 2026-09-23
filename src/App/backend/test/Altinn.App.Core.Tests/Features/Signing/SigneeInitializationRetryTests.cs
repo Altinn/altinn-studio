@@ -371,9 +371,15 @@ public sealed class SigneeInitializationRetryTests
                 })
                 .ToList();
             partyClient
-                .Setup(x => x.LookupParty(It.IsAny<PartyLookup>(), It.IsAny<StorageAuthenticationMethod?>()))
+                .Setup(x =>
+                    x.LookupParty(
+                        It.IsAny<PartyLookup>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(
-                    (PartyLookup lookup, StorageAuthenticationMethod? _) =>
+                    (PartyLookup lookup, StorageAuthenticationMethod? _, CancellationToken _) =>
                         parties.FirstOrDefault(x => x.OrgNumber == lookup.OrgNo) ?? parties[0]
                 );
             var provider = new Mock<ISigneeProvider>();

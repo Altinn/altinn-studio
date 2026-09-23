@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// Request payloads are sent from app → engine → app callback.
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(ExecuteProcessStagePayload), typeDiscriminator: "executeProcessStage")]
+[JsonDerivedType(typeof(AcquireProcessingStatusPayload), typeDiscriminator: "acquireProcessingStatus")]
 [JsonDerivedType(typeof(ExecuteServiceTaskPayload), typeDiscriminator: "executeServiceTask")]
 [JsonDerivedType(typeof(ProcessStateChangePayload), typeDiscriminator: "processStateChange")]
 [JsonDerivedType(typeof(CommonTaskInitializationPayload), typeDiscriminator: "commonTaskInitialization")]
@@ -42,8 +42,8 @@ internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayloa
 /// </summary>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(CommandRequestPayload))]
+[JsonSerializable(typeof(AcquireProcessingStatusPayload))]
 [JsonSerializable(typeof(ExecuteServiceTaskPayload))]
-[JsonSerializable(typeof(ExecuteProcessStagePayload))]
 [JsonSerializable(typeof(ProcessStateChangePayload))]
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]
 [JsonSerializable(typeof(TaskDataLockPayload))]

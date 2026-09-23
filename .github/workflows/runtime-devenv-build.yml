@@ -2,12 +2,11 @@ name: devenv - Lint
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-devenv-build.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -16,6 +15,7 @@ concurrency:
 
 jobs:
   lint:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Check formatting and lint
     runs-on: self-hosted-ubuntu
     timeout-minutes: 30

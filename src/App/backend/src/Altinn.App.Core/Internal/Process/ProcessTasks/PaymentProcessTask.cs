@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// Declares its work as commands: any earlier payment is cleaned up when the task is entered and when it is
 /// abandoned, and the payment is verified and its receipt generated when the task is ended.
 /// </remarks>
-internal sealed class PaymentProcessTask : IPipelineProcessTask
+internal sealed class PaymentProcessTask : IProcessTask
 {
     private readonly IProcessReader _processReader;
     private readonly IHostEnvironment _hostEnvironment;

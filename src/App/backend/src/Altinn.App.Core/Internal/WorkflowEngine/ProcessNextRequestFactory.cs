@@ -146,6 +146,56 @@ internal sealed class ProcessNextRequestFactory
         );
 
     /// <summary>
+    /// Claims the instance before the callback computes and enqueues the transition's steps.
+    /// Only the source task is known until acquisition succeeds and the callback computes the transition.
+    /// </summary>
+    public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
+        Instance instance,
+        string? action,
+        string state,
+        string idempotencyKey
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        InstanceIdentifier instanceId = new(instance);
+        var context = new AppWorkflowContext
+        {
+            Actor = await ExtractActor(),
+            Org = _appIdentifier.Org,
+            App = _appIdentifier.App,
+            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
+            InstanceGuid = instanceId.InstanceGuid,
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid),
+        };
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (CreateProcessNextId(instance.Process?.CurrentTask) is { } sourceId)
+        {
+            labels[ProcessNextSourceIdLabel] = sourceId;
+        }
+        labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
+        var request = new WorkflowEnqueueRequest
+        {
+            Labels = labels,
+            Context = JsonSerializer.SerializeToElement(context),
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    OperationId = $"{MainOperationIdPrefix} acquire",
+                    Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
+                    State = state,
+                },
+            ],
+        };
+        return new WorkflowEnqueueEnvelope(
+            request,
+            $"{_appIdentifier.Org}/{_appIdentifier.App}",
+            idempotencyKey,
+            CreateCollectionKey(instanceId)
+        );
+    }
+
+    /// <summary>
     /// Creates an engine-owned continuation that remains inside an already acquired transition chain.
     /// </summary>
     public Task<WorkflowEnqueueEnvelope> CreateDependent(
@@ -232,7 +282,8 @@ internal sealed class ProcessNextRequestFactory
             var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
             {
                 Labels = labels,
-                Context = serializedContext,
+                // Runtime authentication is added by the enqueue command. Embedding a freshly minted
+                // callback token here would change the parent's hashed payload on every reconstruction.
                 // One single-step workflow per side effect: the effects are independent
                 // outcomes, so each gets its own failure containment - a dead-lettered event
                 // registration must not starve the notification behind it - and its own retry
@@ -485,12 +536,7 @@ internal sealed class ProcessNextRequestFactory
         if (taskId is null)
             return [];
         IProcessTask task = _processTaskResolver.GetProcessTaskInstance(taskType);
-        return PipelineStagePlanner.PlanLifecycle(
-            task.ResolveLifecyclePipeline(taskId, phase),
-            task.Type,
-            taskId,
-            phase
-        );
+        return PipelineStagePlanner.PlanLifecycle(task.ResolveLifecyclePipeline(taskId, phase));
     }
 
     /// <summary>
@@ -528,15 +574,11 @@ internal sealed class ProcessNextRequestFactory
         string? resolvedLanguage = await currentAuth.GetLanguage();
         return currentAuth switch
         {
-            Authenticated.Org org => new Actor
-            {
-                OrgId = org.OrgNo,
-                AuthenticationLevel = org.AuthenticationLevel,
-                Language = resolvedLanguage,
-            },
+            // Organization authentication currently emits an empty PlatformUser in process events.
+            Authenticated.Org => new Actor { Language = resolvedLanguage },
             Authenticated.ServiceOwner serviceOwner => new Actor
             {
-                OrgId = serviceOwner.OrgNo,
+                OrgId = serviceOwner.Name,
                 AuthenticationLevel = serviceOwner.AuthenticationLevel,
                 Language = resolvedLanguage,
             },
@@ -597,12 +639,15 @@ internal sealed class ProcessNextRequestFactory
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private StepRequest CreateCommand(string commandKey)
+    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)
     {
         var step = new StepRequest
         {
             OperationId = commandKey,
-            Command = CommandDefinition.Create("app", new AppCommandData { CommandKey = commandKey }),
+            Command = CommandDefinition.Create(
+                "app",
+                new AppCommandData { CommandKey = commandKey, Payload = CommandPayloadSerializer.Serialize(payload) }
+            ),
         };
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }

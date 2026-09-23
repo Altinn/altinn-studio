@@ -1,21 +1,22 @@
-use std::rc::Rc;
+use std::{cell::Cell, rc::Rc, time::Duration};
 
 use sandbox::LocalFuture;
 use serde::Serialize;
 use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::sync::Notify;
 
 use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::Reporter, sessions};
 
 use super::outbox::Outbox;
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
-    CODE_PARSE_ERROR, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
-    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
+    CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, NameParams, Notification, PROTOCOL_VERSION, ReadMessage, Request,
-    Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams,
-    error_response, read_message,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification,
+    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Agent operations exposed through the Agent Control API.
@@ -30,7 +31,11 @@ pub trait AgentApi {
     fn list(&self) -> LocalFuture<'_, Result<Vec<Agent>, Error>>;
 
     /// Resolves an Agent from its persisted source directory.
-    fn resolve_directory<'a>(&'a self, directory: &'a std::path::Path) -> LocalFuture<'a, Result<Agent, Error>>;
+    fn resolve_directory<'a>(
+        &'a self,
+        directory: &'a std::path::Path,
+        variant: Option<&'a crate::AgentVariantName>,
+    ) -> LocalFuture<'a, Result<Agent, Error>>;
 
     /// Requests asynchronous deletion.
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
@@ -49,8 +54,12 @@ impl AgentApi for control_plane::ControlPlane {
         Box::pin(async move { Self::list(self).await })
     }
 
-    fn resolve_directory<'a>(&'a self, directory: &'a std::path::Path) -> LocalFuture<'a, Result<Agent, Error>> {
-        Box::pin(async move { Self::resolve_directory(self, directory).await })
+    fn resolve_directory<'a>(
+        &'a self,
+        directory: &'a std::path::Path,
+        variant: Option<&'a crate::AgentVariantName>,
+    ) -> LocalFuture<'a, Result<Agent, Error>> {
+        Box::pin(async move { self.resolve_directory_variant(directory, variant).await })
     }
 
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
@@ -86,13 +95,12 @@ impl AuthenticationApi for harness::AuthenticationManager {
 
 /// Host-tracked session operations exposed through the local control API.
 pub trait SessionApi {
-    /// Creates or resolves one named session attach target.
+    /// Creates or resolves one named session attach target; see [`sessions::Service::ensure`].
     fn ensure<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<&'a str>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
@@ -125,6 +133,9 @@ pub trait SessionApi {
         name: &'a sessions::SessionName,
         last: Option<usize>,
     ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
+
+    /// Lists Sessions whose work or terminal attachment prevents an upgrade.
+    fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>>;
 }
 
 impl SessionApi for sessions::Service {
@@ -132,12 +143,11 @@ impl SessionApi for sessions::Service {
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
-        harness: Option<harness::Harness>,
-        initial_prompt: Option<&'a str>,
+        request: sessions::SessionRequest,
         wait: WaitPolicy,
         progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, harness, initial_prompt, wait, progress).await })
+        Box::pin(async move { Self::ensure(self, agent, name, request, wait, progress).await })
     }
 
     fn prompt<'a>(
@@ -171,6 +181,10 @@ impl SessionApi for sessions::Service {
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>> {
         Box::pin(async move { Self::list(self, agent).await })
     }
+
+    fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>> {
+        Box::pin(Self::upgrade_readiness(self))
+    }
 }
 
 /// Transient Agent Execution target resolution exposed through the local control API.
@@ -195,8 +209,91 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
     }
 }
 
+/// SSH access descriptors exposed through the local control API.
+pub trait SshAccessApi {
+    /// Describes the SSH access of a named Agent.
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::ssh::AccessInfo, Error>>;
+}
+
+impl SshAccessApi for crate::ssh::Access {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::ssh::AccessInfo, Error>> {
+        Box::pin(async move { Self::describe(self, name).await })
+    }
+}
+
 /// Observes an isolated connection error without terminating the daemon.
 pub type ErrorHandler = Rc<dyn Fn(&Error)>;
+
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
+enum LifecycleState {
+    #[default]
+    Running,
+    Checking,
+    Draining,
+}
+
+#[derive(Default)]
+struct Lifecycle {
+    state: Cell<LifecycleState>,
+    active_mutations: Cell<usize>,
+    mutations_idle: Notify,
+    shutdown: Notify,
+}
+
+impl Lifecycle {
+    fn admit_mutation(&self) -> Option<MutationGuard<'_>> {
+        if self.state.get() != LifecycleState::Running {
+            return None;
+        }
+        self.active_mutations.set(self.active_mutations.get() + 1);
+        Some(MutationGuard { lifecycle: self })
+    }
+
+    async fn wait_for_mutations(&self) {
+        loop {
+            let notified = self.mutations_idle.notified();
+            if self.active_mutations.get() == 0 {
+                return;
+            }
+            notified.await;
+        }
+    }
+}
+
+struct MutationGuard<'a> {
+    lifecycle: &'a Lifecycle,
+}
+
+impl Drop for MutationGuard<'_> {
+    fn drop(&mut self) {
+        let remaining = self.lifecycle.active_mutations.get() - 1;
+        self.lifecycle.active_mutations.set(remaining);
+        if remaining == 0 {
+            self.lifecycle.mutations_idle.notify_waiters();
+        }
+    }
+}
+
+struct ShutdownCheck<'a> {
+    lifecycle: &'a Lifecycle,
+    committed: bool,
+}
+
+impl ShutdownCheck<'_> {
+    fn commit(mut self) {
+        self.lifecycle.state.set(LifecycleState::Draining);
+        self.lifecycle.shutdown.notify_waiters();
+        self.committed = true;
+    }
+}
+
+impl Drop for ShutdownCheck<'_> {
+    fn drop(&mut self) {
+        if !self.committed {
+            self.lifecycle.state.set(LifecycleState::Running);
+        }
+    }
+}
 
 /// Serves the Agent Control API.
 pub struct Server {
@@ -204,7 +301,9 @@ pub struct Server {
     authentication: Rc<dyn AuthenticationApi>,
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
+    ssh: Rc<dyn SshAccessApi>,
     on_error: ErrorHandler,
+    lifecycle: Lifecycle,
 }
 
 impl Server {
@@ -215,6 +314,7 @@ impl Server {
         authentication: Rc<dyn AuthenticationApi>,
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
+        ssh: Rc<dyn SshAccessApi>,
         on_error: ErrorHandler,
     ) -> Self {
         Self {
@@ -222,7 +322,9 @@ impl Server {
             authentication,
             executions,
             sessions,
+            ssh,
             on_error,
+            lifecycle: Lifecycle::default(),
         }
     }
 
@@ -246,7 +348,14 @@ impl Server {
     {
         let mut stream = BufReader::new(stream);
         loop {
-            let line = match read_message(&mut stream).await? {
+            if self.is_draining() {
+                return Ok(());
+            }
+            let message = tokio::select! {
+                message = read_message(&mut stream) => message?,
+                () = self.shutdown_requested() => return Ok(()),
+            };
+            let line = match message {
                 ReadMessage::EndOfStream => return Ok(()),
                 ReadMessage::Complete(line) => line,
                 ReadMessage::TooLarge => {
@@ -287,23 +396,44 @@ impl Server {
         (self.on_error)(error);
     }
 
+    pub(crate) fn is_draining(&self) -> bool {
+        self.lifecycle.state.get() == LifecycleState::Draining
+    }
+
+    pub(crate) async fn shutdown_requested(&self) {
+        if !self.is_draining() {
+            self.lifecycle.shutdown.notified().await;
+        }
+    }
+
     async fn handle(&self, request: Request, progress: crate::progress::Reporter) -> Response {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
         }
+        let _mutation = if is_mutating(&request.method) {
+            let Some(mutation) = self.lifecycle.admit_mutation() else {
+                return error_response(request.id, CODE_UPDATING, "Agent daemon is preparing for an upgrade");
+            };
+            Some(mutation)
+        } else {
+            None
+        };
         match request.method.as_str() {
             METHOD_APPLY => self.handle_apply(request.id, request.params).await,
             METHOD_HEALTH => result_response(
                 request.id,
                 Ok(serde_json::json!({
-                    "protocolVersion": PROTOCOL_VERSION
+                    "protocolVersion": PROTOCOL_VERSION,
+                    "buildVersion": crate::build_version()
                 })),
             ),
+            METHOD_SHUTDOWN => self.handle_shutdown(request.id, request.params).await,
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params, progress).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params, progress).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
@@ -311,6 +441,45 @@ impl Server {
             METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
             METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
+        }
+    }
+
+    async fn handle_shutdown(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<ShutdownParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "shutdown reason is required");
+        };
+        if params.reason != "upgrade" {
+            return error_response(id, CODE_INVALID_PARAMS, "unsupported shutdown reason");
+        }
+        if self.lifecycle.state.get() != LifecycleState::Running {
+            return error_response(id, CODE_UPDATING, "Agent daemon is already preparing for an upgrade");
+        }
+        self.lifecycle.state.set(LifecycleState::Checking);
+        let check = ShutdownCheck {
+            lifecycle: &self.lifecycle,
+            committed: false,
+        };
+        let readiness = tokio::time::timeout(Duration::from_mins(1), async {
+            let readiness = self.sessions.upgrade_readiness().await?;
+            if !readiness.blockers.is_empty() {
+                return Ok(readiness);
+            }
+            self.lifecycle.wait_for_mutations().await;
+            self.sessions.upgrade_readiness().await
+        })
+        .await;
+        match readiness {
+            Ok(Ok(readiness)) if readiness.blockers.is_empty() => {
+                check.commit();
+                result_response(id, Ok(serde_json::json!({"warnings": readiness.warnings})))
+            }
+            Ok(Ok(readiness)) => error_response(
+                id,
+                CODE_INVALID_PARAMS,
+                format!("active Sessions block the upgrade: {}", readiness.blockers.join(", ")),
+            ),
+            Ok(Err(error)) => result_response::<serde_json::Value>(id, Err(error)),
+            Err(_) => error_response(id, CODE_UPDATING, "Agent did not finish preparing for an upgrade"),
         }
     }
 
@@ -333,7 +502,12 @@ impl Server {
         let Ok(params) = serde_json::from_value::<DirectoryParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "directory is required");
         };
-        result_response(id, self.agents.resolve_directory(&params.directory).await)
+        result_response(
+            id,
+            self.agents
+                .resolve_directory(&params.directory, params.variant.as_ref())
+                .await,
+        )
     }
 
     async fn handle_delete(&self, id: u64, value: Value) -> Response {
@@ -345,6 +519,14 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
+    }
+
+    async fn handle_ssh_access(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.ssh.describe(&params.name).await)
     }
 
     async fn handle_execution_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
@@ -371,21 +553,28 @@ impl Server {
     }
 
     async fn handle_session_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
-        let Ok(params) = serde_json::from_value::<SessionEnsureParams>(value) else {
-            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        let params = match serde_json::from_value::<SessionEnsureParams>(value) {
+            Ok(params) => params,
+            // The selections carry their own validation, so name the decoding failure
+            // instead of blaming the two required fields.
+            Err(error) => {
+                return error_response(
+                    id,
+                    CODE_INVALID_PARAMS,
+                    format!("agent and session name are required, and selections must be valid: {error}"),
+                );
+            }
         };
         let (wait, progress) = observation(params.follow, params.progress, progress);
+        let request = sessions::SessionRequest {
+            harness: params.harness,
+            model_selection: params.model_selection,
+            initial_prompt: params.initial_prompt,
+        };
         result_response(
             id,
             self.sessions
-                .ensure(
-                    &params.agent,
-                    &params.name,
-                    params.harness,
-                    params.initial_prompt.as_deref(),
-                    wait,
-                    progress,
-                )
+                .ensure(&params.agent, &params.name, request, wait, progress)
                 .await,
         )
     }
@@ -433,6 +622,18 @@ fn observation(follow: bool, progress: bool, reporter: Reporter) -> (WaitPolicy,
         WaitPolicy::FirstPass
     };
     (wait, progress.then_some(reporter))
+}
+
+fn is_mutating(method: &str) -> bool {
+    matches!(
+        method,
+        METHOD_APPLY
+            | METHOD_DELETE
+            | METHOD_EXECUTION_ENSURE
+            | METHOD_AUTH_LOGIN
+            | METHOD_SESSION_ENSURE
+            | METHOD_SESSION_PROMPT
+    )
 }
 
 async fn flush<W: AsyncWrite + Unpin>(outbox: &Outbox, writer: &mut W) -> Result<(), Error> {

@@ -12,7 +12,9 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 )
 
-func (s *Service) buildDisk() *Disk {
+// buildDisk reports on studioctl's own state, plus the detected app's secrets when there is an app: the
+// Maskinporten client is per-app, so it is only meaningful once buildApp has found one.
+func (s *Service) buildDisk(app *App) *Disk {
 	checks := []DiskCheck{
 		s.checkDirState("home_dir", s.cfg.Home, true),
 		s.checkDirState("socket_dir", s.cfg.SocketDir, true),
@@ -22,6 +24,12 @@ func (s *Service) buildDisk() *Disk {
 		s.checkCredentialsFileState(),
 		s.checkStudioctlServerBinaryState(),
 		s.checkStudioctlServerRuntimeState(),
+	}
+
+	if app != nil && app.Found && app.Path != "" {
+		if check, reportable := s.checkMaskinportenClientState(app.Path); reportable {
+			checks = append(checks, check)
+		}
 	}
 
 	hasIssues := false

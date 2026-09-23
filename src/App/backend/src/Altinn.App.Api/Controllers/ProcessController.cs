@@ -74,7 +74,7 @@ public class ProcessController : ControllerBase
     /// does not consult the workflow engine. Opt-out for bulk/machine-to-machine consumers that
     /// don't need liveness.
     /// </param>
-    /// <param name="ct">cancellation token</param>
+    /// <param name="cancellationToken">cancellation token</param>
     /// <returns>the instance's process state</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -86,7 +86,7 @@ public class ProcessController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromQuery] bool includeWorkflowStatus = true,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         try
@@ -97,14 +97,14 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 authenticationMethod: null,
-                ct
+                cancellationToken
             );
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
                 instance,
                 instance.Process,
                 User,
                 includeWorkflowStatus,
-                ct
+                cancellationToken
             );
 
             return Ok(appProcessState);
@@ -241,7 +241,7 @@ public class ProcessController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="elementId">obsolete: alias for action</param>
     /// <param name="language">Signal the language to use for pdf generation, error messages...</param>
     /// <param name="returnInstance">When true, returns <see cref="EnrichedInstanceResponse"/> with the final process state. If the transition removes the caller's read access, retains the instance metadata authorized before the action. Defaults to false for backward compatibility.</param>
@@ -261,7 +261,7 @@ public class ProcessController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? elementId = null,
         [FromQuery] string? language = null,
         [FromQuery] bool returnInstance = false,
@@ -276,7 +276,7 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 null,
-                ct
+                cancellationToken
             );
             Instance instance = fetchedInstance.Instance;
 
@@ -294,7 +294,7 @@ public class ProcessController : ControllerBase
                 Language = language,
             };
 
-            ProcessChangeResult result = await _processEngine.Next(processNextRequest, ct);
+            ProcessChangeResult result = await _processEngine.Next(processNextRequest, cancellationToken);
 
             if (!result.Success)
             {
@@ -313,7 +313,7 @@ public class ProcessController : ControllerBase
                         instanceOwnerPartyId,
                         instanceGuid,
                         authenticationMethod: null,
-                        ct
+                        cancellationToken
                     );
                 }
                 catch (PlatformHttpException exception) when (exception.StatusCode == HttpStatusCode.Forbidden)
@@ -331,13 +331,13 @@ public class ProcessController : ControllerBase
 
                 var instanceOwnerPartyTask = _registerClient.GetPartyUnchecked(
                     instanceOwnerPartyId,
-                    cancellationToken: ct
+                    cancellationToken: cancellationToken
                 );
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
                     result.ProcessStateChange.NewProcessState,
                     User,
-                    ct: ct
+                    cancellationToken: cancellationToken
                 );
                 await Task.WhenAll(instanceOwnerPartyTask, processStateTask);
 
@@ -354,7 +354,7 @@ public class ProcessController : ControllerBase
                 instance,
                 result.ProcessStateChange.NewProcessState,
                 User,
-                ct: ct
+                cancellationToken: cancellationToken
             );
 
             return Ok(appProcessState);
@@ -386,7 +386,7 @@ public class ProcessController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         try
@@ -397,7 +397,7 @@ public class ProcessController : ControllerBase
                 instanceOwnerPartyId,
                 instanceGuid,
                 null,
-                ct
+                cancellationToken
             );
             Instance instance = fetchedInstance.Instance;
 
@@ -410,7 +410,7 @@ public class ProcessController : ControllerBase
                     Action = null,
                     Language = null,
                 },
-                ct
+                cancellationToken
             );
 
             if (!result.Success)
@@ -423,7 +423,7 @@ public class ProcessController : ControllerBase
                 freshInstance,
                 freshInstance.Process,
                 User,
-                ct: ct
+                cancellationToken: cancellationToken
             );
 
             return Ok(appProcessState);
@@ -586,7 +586,8 @@ public class ProcessController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ProcessHistoryList>> GetProcessHistory(
         [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
     )
     {
         try
@@ -594,7 +595,8 @@ public class ProcessController : ControllerBase
             return Ok(
                 await _processClient.GetProcessHistory(
                     instanceGuid.ToString(),
-                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture)
+                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
+                    cancellationToken: cancellationToken
                 )
             );
         }
@@ -604,6 +606,10 @@ public class ProcessController : ControllerBase
                 e,
                 $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {e}"
             );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception processException)
         {

@@ -116,4 +116,29 @@ public sealed class ProjectChecksTests : IDisposable
 
         Assert.True(checks.SupportedSourceVersion());
     }
+
+    [Theory]
+    [InlineData("9.0.0")]
+    [InlineData("9.*")]
+    [InlineData("[9.1.2]")]
+    [InlineData("[9.0,10.0)")]
+    public void IsTargetVersion_AcceptsV9ForSafeUpgradeReruns(string version)
+    {
+        var path = CreateTempProject(version, coreVersion: version);
+        var checks = new ProjectChecks(path);
+
+        Assert.True(checks.IsTargetVersion());
+    }
+
+    [Theory]
+    [InlineData("8.8.0", "9.0.0")]
+    [InlineData("9.0.0", "8.8.0")]
+    [InlineData("10.0.0", "10.0.0")]
+    public void IsTargetVersion_RejectsMixedOrDifferentMajorVersions(string apiVersion, string coreVersion)
+    {
+        var path = CreateTempProject(apiVersion, coreVersion);
+        var checks = new ProjectChecks(path);
+
+        Assert.False(checks.IsTargetVersion());
+    }
 }

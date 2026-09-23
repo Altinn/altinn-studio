@@ -77,8 +77,15 @@ public class AltinnAppGitRepository : AltinnGitRepository
         ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) },
     };
 
-    private static readonly Regex s_layoutSetNameRegex = new(@"^[a-zA-Z0-9_\-]{2,28}$", RegexOptions.Compiled);
-    private static readonly Regex s_layoutNameRegex = new(@"^[a-zA-Z0-9_\-]{1,128}$", RegexOptions.Compiled);
+    private const string InvalidLayoutSetNameMessage = "Invalid layout set name.";
+    private const string InvalidLayoutNameMessage = "Invalid layout name.";
+
+    // Naming policy for new names only, so a repository authored outside Designer stays editable.
+    private static readonly Regex s_allowedNewLayoutSetNameRegex = new(
+        @"^[a-zA-Z0-9_\-]{2,28}$",
+        RegexOptions.Compiled
+    );
+    private static readonly Regex s_allowedNewLayoutNameRegex = new(@"^[a-zA-Z0-9_\-]{1,128}$", RegexOptions.Compiled);
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
@@ -330,10 +337,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     public async Task CreatePageLayoutFile(string layoutSetId, string pageId, AltinnPageLayout altinnPageLayout)
     {
-        await WriteObjectByRelativePathAsync(
-            Path.Combine([LayoutsFolderName, layoutSetId, LayoutsInSetFolderName, $"{pageId}.json"]),
-            altinnPageLayout.Structure
-        );
+        string layoutFilePath = GetPathToLayoutFile(layoutSetId, pageId);
+        EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
+        await WriteObjectByRelativePathAsync(layoutFilePath, altinnPageLayout.Structure);
     }
 
     /// <summary>
@@ -583,6 +589,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         string layoutFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
+        EnsureLayoutWriteIsAllowed(layoutSetName, layoutFileName);
         string serializedLayout = layout.ToJsonString(s_jsonOptions);
         await WriteTextByRelativePathAsync(layoutFilePath, serializedLayout, true, cancellationToken);
     }
@@ -590,6 +597,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     public void UpdateFormLayoutName(string layoutSetName, string layoutName, string newLayoutName)
     {
         string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
+        EnsureAllowedNewLayoutName(newLayoutName);
         string newFilePath = GetPathToLayoutFile(layoutSetName, newLayoutName);
         MoveFileByRelativePath(currentFilePath, newFilePath, newLayoutName);
     }
@@ -1057,43 +1065,108 @@ public class AltinnAppGitRepository : AltinnGitRepository
             : Path.Combine(ConfigFolderPath, LanguageResourceFolderName, fileName);
     }
 
-    private static string ValidateLayoutSetName(string layoutSetName)
+    /// <summary>
+    /// Verifies that a layout set name is safe to use as a path segment. An empty name means the app does
+    /// not use layout sets.
+    /// </summary>
+    private static string EnsureSafeLayoutSetName(string layoutSetName)
     {
         if (string.IsNullOrEmpty(layoutSetName))
         {
             return layoutSetName;
         }
-        if (
-            layoutSetName.Contains("..", StringComparison.Ordinal)
-            || layoutSetName.Contains('/')
-            || layoutSetName.Contains('\\')
-            || !s_layoutSetNameRegex.IsMatch(layoutSetName)
-        )
+        if (!Guard.IsSafePathSegment(layoutSetName))
         {
-            throw new BadHttpRequestException("Invalid layout set name.");
+            throw new BadHttpRequestException(InvalidLayoutSetNameMessage);
         }
         return layoutSetName;
     }
 
-    private static string ValidateLayoutName(string layoutName)
+    /// <summary>
+    /// Verifies that a layout name is safe to use as a path segment.
+    /// </summary>
+    private static string EnsureSafeLayoutName(string layoutName)
     {
-        if (
-            string.IsNullOrEmpty(layoutName)
-            || layoutName.Contains("..", StringComparison.Ordinal)
-            || layoutName.Contains('/')
-            || layoutName.Contains('\\')
-            || !s_layoutNameRegex.IsMatch(layoutName)
-        )
+        if (!Guard.IsSafePathSegment(layoutName))
         {
-            throw new BadHttpRequestException("Invalid layout name.");
+            throw new BadHttpRequestException(InvalidLayoutNameMessage);
         }
         return layoutName;
+    }
+
+    /// <summary>
+    /// Verifies that a new layout set name follows the naming policy for new names.
+    /// </summary>
+    private static void EnsureAllowedNewLayoutSetName(string layoutSetName)
+    {
+        EnsureSafeLayoutSetName(layoutSetName);
+        if (string.IsNullOrEmpty(layoutSetName) || !s_allowedNewLayoutSetNameRegex.IsMatch(layoutSetName))
+        {
+            throw new BadHttpRequestException(InvalidLayoutSetNameMessage);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a new layout name follows the naming policy for new names.
+    /// </summary>
+    private static void EnsureAllowedNewLayoutName(string layoutName)
+    {
+        EnsureSafeLayoutName(layoutName);
+        if (!s_allowedNewLayoutNameRegex.IsMatch(layoutName))
+        {
+            throw new BadHttpRequestException(InvalidLayoutNameMessage);
+        }
+    }
+
+    /// <summary>
+    /// Applies the naming policy for new names to the layout set and layout a write would create, and
+    /// allows writes to ones that already exist whatever they are called. Writes nothing.
+    /// </summary>
+    public void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName)
+    {
+        if (!string.IsNullOrEmpty(layoutSetName) && !LayoutSetFolderExistsByExactName(layoutSetName))
+        {
+            EnsureAllowedNewLayoutSetName(layoutSetName);
+        }
+        if (!LayoutFileExistsByExactName(layoutSetName, layoutName))
+        {
+            EnsureAllowedNewLayoutName(layoutName);
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a layout set folder of exactly this name exists. Matching by exact name makes a
+    /// case-insensitive file system behave like Linux.
+    /// </summary>
+    private bool LayoutSetFolderExistsByExactName(string layoutSetName)
+    {
+        if (!DirectoryExistsByRelativePath(LayoutsFolderName))
+        {
+            return false;
+        }
+        return GetDirectoriesByRelativeDirectory(LayoutsFolderName).Contains(layoutSetName, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether a layout file of exactly this name exists in the layout set. Matching by exact
+    /// name makes a case-insensitive file system behave like Linux.
+    /// </summary>
+    private bool LayoutFileExistsByExactName(string layoutSetName, string layoutName)
+    {
+        string layoutsFolderPath = GetPathToLayoutSet(layoutSetName);
+        if (!DirectoryExistsByRelativePath(layoutsFolderPath))
+        {
+            return false;
+        }
+        return GetFilesByRelativeDirectory(layoutsFolderPath)
+            .Select(Path.GetFileName)
+            .Contains($"{layoutName}.json", StringComparer.Ordinal);
     }
 
     // can be null if app does not use layout set
     private static string GetPathToLayoutSet(string layoutSetName, bool excludeLayoutsFolderName = false)
     {
-        layoutSetName = ValidateLayoutSetName(layoutSetName);
+        layoutSetName = EnsureSafeLayoutSetName(layoutSetName);
         var layoutFolderName = excludeLayoutsFolderName ? string.Empty : LayoutsInSetFolderName;
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, layoutFolderName)
@@ -1103,8 +1176,8 @@ public class AltinnAppGitRepository : AltinnGitRepository
     // can be null if app does not use layout set
     private static string GetPathToLayoutFile(string layoutSetName, string layoutName)
     {
-        layoutSetName = ValidateLayoutSetName(layoutSetName);
-        layoutName = ValidateLayoutName(layoutName);
+        layoutSetName = EnsureSafeLayoutSetName(layoutSetName);
+        layoutName = EnsureSafeLayoutName(layoutName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, LayoutsInSetFolderName, $"{layoutName}.json")
             : Path.Combine(LayoutsFolderName, layoutSetName, LayoutsInSetFolderName, $"{layoutName}.json");
@@ -1113,7 +1186,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     // can be null if app does not use layout set
     private static string GetPathToLayoutSettings(string layoutSetName)
     {
-        layoutSetName = ValidateLayoutSetName(layoutSetName);
+        layoutSetName = EnsureSafeLayoutSetName(layoutSetName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, SettingsFilename)
             : Path.Combine(LayoutsFolderName, layoutSetName, SettingsFilename);
@@ -1136,7 +1209,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private static string GetPathToRuleHandler(string layoutSetName)
     {
-        layoutSetName = ValidateLayoutSetName(layoutSetName);
+        layoutSetName = EnsureSafeLayoutSetName(layoutSetName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, RuleHandlerFilename)
             : Path.Combine(LayoutsFolderName, layoutSetName, RuleHandlerFilename);
@@ -1144,7 +1217,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private static string GetPathToRuleConfiguration(string layoutSetName)
     {
-        layoutSetName = ValidateLayoutSetName(layoutSetName);
+        layoutSetName = EnsureSafeLayoutSetName(layoutSetName);
         return string.IsNullOrEmpty(layoutSetName)
             ? Path.Combine(LayoutsFolderName, RuleConfigurationFilename)
             : Path.Combine(LayoutsFolderName, layoutSetName, RuleConfigurationFilename);

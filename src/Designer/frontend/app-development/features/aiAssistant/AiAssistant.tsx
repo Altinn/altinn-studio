@@ -1,76 +1,46 @@
 import type { ReactElement } from 'react';
-import { Assistant } from '@studio/assistant';
-import { useTranslation } from 'react-i18next';
-import { useAssistant, useAssistantPermissions, useAssistantTexts } from './hooks';
-import { Preview } from './components/Preview';
-import { FileBrowser } from './components/FileBrowser';
-import classes from './AiAssistant.module.css';
-import { useUserQuery } from 'app-shared/hooks/queries';
-import { useChatFeedbackMutation } from 'app-shared/hooks/mutations/useChatFeedbackMutation';
-import { useClearChatFeedbackMutation } from 'app-shared/hooks/mutations/useClearChatFeedbackMutation';
+import { Trans, useTranslation } from 'react-i18next';
+import {
+  StudioAlert,
+  StudioCenter,
+  StudioLink,
+  StudioPageSpinner,
+  StudioParagraph,
+} from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
+import { FeatureName } from 'app-shared/enums/CanUseFeature';
+import { useCanUseFeatureQuery } from '../../hooks/queries/useCanUseFeatureQuery';
+import { AssistantWorkspace } from './components/AssistantWorkspace';
 
+/**
+ * During beta, access is restricted to selected service owners.
+ * Allowlist is set by CanUseAiAssistantEvaluator in the backend.
+ */
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: currentUser } = useUserQuery();
-  const userHasAccessToAssistant = useAssistantPermissions();
-  const { mutate: sendChatFeedback } = useChatFeedbackMutation(org, app);
-  const { mutate: clearChatFeedback } = useClearChatFeedbackMutation(org, app);
-  const texts = useAssistantTexts();
+  const { data, isPending } = useCanUseFeatureQuery(org, app, FeatureName.AiAssistant);
 
-  const {
-    connectionStatus,
-    workflowStatusByThread,
-    chatThreads,
-    messages,
-    selectedThreadId,
-    onSubmitMessage,
-    cancelCurrentWorkflow,
-    respondToPermission,
-    cancelledMessageContent,
-    clearCancelledMessageContent,
-    selectThread,
-    deleteThread,
-  } = useAssistant();
+  if (isPending) {
+    return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
+  }
 
-  if (!userHasAccessToAssistant) {
+  if (!data?.canUseFeature) {
     return (
       <StudioCenter>
         <StudioAlert>
-          <StudioParagraph>{t('ai_assistant.access_denied')}</StudioParagraph>
+          <StudioParagraph>
+            <Trans
+              i18nKey='ai_assistant.access_denied'
+              components={{ a: <StudioLink href='/info/contact'> </StudioLink> }}
+            />
+          </StudioParagraph>
         </StudioAlert>
       </StudioCenter>
     );
   }
 
-  return (
-    <div className={classes.container}>
-      <Assistant
-        texts={texts}
-        enableCompactInterface={false}
-        chatThreads={chatThreads}
-        messages={messages}
-        activeThreadId={selectedThreadId}
-        onSubmitMessage={onSubmitMessage}
-        onCancelWorkflow={cancelCurrentWorkflow}
-        cancelledMessageContent={cancelledMessageContent}
-        onCancelledMessageConsumed={clearCancelledMessageContent}
-        onSelectThread={selectThread}
-        onCreateThread={() => selectThread(null)}
-        onDeleteThread={deleteThread}
-        onMessageFeedback={sendChatFeedback}
-        onClearMessageFeedback={clearChatFeedback}
-        onPermissionResponse={respondToPermission}
-        connectionStatus={connectionStatus}
-        workflowStatusByThread={workflowStatusByThread}
-        previewContent={<Preview />}
-        fileBrowserContent={<FileBrowser />}
-        currentUser={currentUser}
-      />
-    </div>
-  );
+  return <AssistantWorkspace />;
 }
 
 export default AiAssistant;

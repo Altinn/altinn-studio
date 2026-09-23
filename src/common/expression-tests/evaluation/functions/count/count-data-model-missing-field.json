@@ -1,0 +1,17 @@
+{
+  "name": "Counting a field that is missing from the data model fails",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": {
+        "numberList": [1, 2]
+      }
+    }
+  ],
+  "expression": ["count", ["dataModel", "doesNotExist"]],
+  "expectsFailure": "Expected list, got value null",
+  "expectsFailureBackend": "Expected argument to be list, got Null"
+}

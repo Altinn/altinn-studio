@@ -36,6 +36,21 @@ impl GuestConnection {
     pub async fn relay(self, stream: tokio::net::TcpStream) -> Result<(), Error> {
         self.0.relay(stream).await.map_err(Error::from)
     }
+
+    /// Pipes bytes between a host reader/writer pair, such as this process's
+    /// standard input and output, and the guest connection until both sides
+    /// close.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either side of the relay fails.
+    pub async fn relay_io<R, W>(self, reader: R, writer: W) -> Result<(), Error>
+    where
+        R: tokio::io::AsyncRead + Unpin,
+        W: tokio::io::AsyncWrite + Unpin,
+    {
+        self.0.relay_io(reader, writer).await.map_err(Error::from)
+    }
 }
 
 /// Connects a TCP dialer to an already-materialized Microsandbox.

@@ -290,8 +290,7 @@ internal sealed class WorkflowCommandSet
                                 ),
                                 operationId: $"{ExecuteServiceTask.Key}: {index.ToString(CultureInfo.InvariantCulture)}",
                                 serviceTaskItemIndex: index
-                            ),
-                            directCommand: false
+                            )
                         )
                     );
                     break;

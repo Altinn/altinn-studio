@@ -122,15 +122,22 @@ ARG YARN_VERSION=4.18.0
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
-RUN mkdir -p "${COREPACK_HOME}" \
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    mkdir -p "${COREPACK_HOME}" \
     && corepack enable \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
-ARG CODEX_VERSION=0.147.0
-ARG CLAUDE_CODE_VERSION=2.1.239
+ARG CODEX_VERSION=0.156.0
+ARG CLAUDE_CODE_VERSION=2.1.280
 
-RUN npm install --global "@openai/codex@${CODEX_VERSION}" \
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 
@@ -143,6 +150,9 @@ RUN { getent group docker >/dev/null || groupadd --system docker; } \
     && chmod 0440 /etc/sudoers.d/agent \
     && install -d /etc/systemd/system/init.scope.d \
     && printf '[Scope]\nTasksMax=infinity\n' >/etc/systemd/system/init.scope.d/50-agent-tasks.conf \
+    && install -d /usr/lib/sysctl.d \
+    && printf 'fs.inotify.max_user_instances = 1024\nfs.inotify.max_user_watches = 1048576\nfs.inotify.max_queued_events = 32768\n' \
+        >/usr/lib/sysctl.d/50-agent-inotify.conf \
     && systemctl mask serial-getty@hvc0.service \
     && systemctl enable docker.service \
     && rm -f /etc/machine-id /var/lib/dbus/machine-id \

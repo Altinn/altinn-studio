@@ -8,14 +8,14 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A task type declares what happens when a task of that type is entered, ended or abandoned as lists of
+/// A task type declares what happens when a task of that type is entered, ended or abandoned as pipelines of
 /// <see cref="IWorkflowEngineCommand"/> references. Each declared command runs as a durable step of its own in the
 /// workflow engine: it commits its data changes when it completes, and a failed command is retried without
 /// re-running the commands before it. A task that has nothing to do in a phase declares nothing, and the
 /// transition has no step for it.
 /// </para>
 /// <para>
-/// The lists are validated at app startup and fixed when a transition is enqueued, so they must depend on
+/// The pipelines are validated at app startup and fixed when a transition is enqueued, so they must depend on
 /// the task's configuration alone: never on instance data, the clock, or anything that can differ between those
 /// reads. The BPMN task's element id is provided so a task type can declare different commands for
 /// differently configured tasks.
@@ -43,20 +43,23 @@ public interface IProcessTask
     /// The commands that run, in order, when a task of this type is entered. They run before the process state
     /// commits, after the app's <see cref="IOnTaskStartingHandler"/> for the task.
     /// </summary>
+    /// <param name="pipeline">Builder for this lifecycle phase.</param>
     /// <param name="taskId">The BPMN element id of the task being entered.</param>
-    IReadOnlyList<WorkflowCommandRef> GetStartCommands(string taskId) => [];
+    ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline) => pipeline.Build();
 
     /// <summary>
     /// The commands that run, in order, when a task of this type is ended. They run before the app's
     /// <see cref="IOnTaskEndingHandler"/> for the task and before the task's data is locked.
     /// </summary>
+    /// <param name="pipeline">Builder for this lifecycle phase.</param>
     /// <param name="taskId">The BPMN element id of the task being left.</param>
-    IReadOnlyList<WorkflowCommandRef> GetEndCommands(string taskId) => [];
+    ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline) => pipeline.Build();
 
     /// <summary>
     /// The commands that run, in order, when a task of this type is abandoned (the process is moved backwards
     /// out of it). They run before the app's <see cref="IOnTaskAbandonHandler"/> for the task.
     /// </summary>
+    /// <param name="pipeline">Builder for this lifecycle phase.</param>
     /// <param name="taskId">The BPMN element id of the task being left.</param>
-    IReadOnlyList<WorkflowCommandRef> GetAbandonCommands(string taskId) => [];
+    ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline) => pipeline.Build();
 }

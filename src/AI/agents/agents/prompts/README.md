@@ -15,6 +15,7 @@ prompts/
 ├── intent_security.md
 ├── goal_suggestions.md
 ├── scope_check.md
+├── retired.json                 # Prompts deleted from Langfuse, kept readable
 ├── llm-as-a-judge/              # Langfuse-managed evaluator prompts
 └── templates/                   # User prompts (with variables)
     ├── intake_planning_user.md
@@ -101,6 +102,8 @@ To use a prompt from Langfuse instead of the local file:
    - **Content**: Paste the prompt content (without YAML frontmatter for system prompts)
 4. **Label it `production`** — By default, `get_prompt()` fetches the version labeled `production`. If no version has this label, the fetch will fail and fall back to local.
 
+For a prompt that already has a file here, do steps 3 and 4 by editing the file and merging: `.github/workflows/assistant-prompts.yaml` publishes it as `production` on merge to main. Editing the served prompt in the UI instead leaves the repo copy behind, which the workflow reports as drift on the next pull request.
+
 ### Prompt Naming Reference
 
 The Langfuse prompt name is the local filename without its `.md` extension and
@@ -117,12 +120,24 @@ get_prompt_with_langfuse("intake_planning")
 | `intake_planning.md`                | `intake_planning`           |
 | `spec_extraction.md`                | `spec_extraction`           |
 | `semantic_query_extraction.md`      | `semantic_query_extraction` |
-| `intent_security.md`                | `intent_security`           |
+| `intent_security.md`                | `intent_check`              |
 | `goal_suggestions.md`               | `goal_suggestions`          |
 | `scope_check.md`                    | `scope_check`               |
 | `templates/intake_planning_user.md` | `intake_planning_user`      |
 | `templates/spec_extraction_user.md` | `spec_extraction_user`      |
 | `templates/semantic_query_user.md`  | `semantic_query_user`       |
+
+`intent_security.md` is the one file whose name differs from the prompt it
+serves. Pass `local_path` when the two diverge, and add the pair to
+`SERVED_FROM` in `scripts/sync_prompts.py` so the drift report follows it.
+
+### Retired prompts
+
+A prompt left in Langfuse after its file is deleted keeps serving the version it
+last held, so re-adding the name later silently serves that old text.
+`scripts/sync_prompts.py --diff` reports any Langfuse prompt with no file, and
+`--retire` writes its every version into `retired.json` before deleting it there.
+Deletion cannot be undone, so it is gated behind `ALLOW_PROMPT_DELETE=1`.
 
 ### LLM-as-a-judge prompts
 
@@ -161,7 +176,7 @@ The Langfuse SDK caches prompts internally (default 60s TTL). You can override t
 - **Organized**: One file per prompt, separate system vs user
 - **Type-safe**: Frontmatter provides metadata
 - **No Inline Strings**: All prompts external to code
-- **Remote Management**: Edit prompts via Langfuse UI without code changes or redeployment
+- **Reviewed publication**: CI publishes the repo copy to Langfuse on merge to main, so the served prompt has a reviewed commit behind it
 
 ## Prompt Files
 

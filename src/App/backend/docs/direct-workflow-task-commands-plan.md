@@ -1,5 +1,7 @@
 # Direct workflow commands from process tasks
 
+> Historical design notes. The implemented lifecycle API is documented in [process pipelines](process-pipelines.md); command lists have been replaced by a single command-based builder.
+
 This document records the ordinary-command refactor. For how the signing task's three start commands
 behave once they run, see [Delegated signing initialization](per-signee-signing-experiment.md).
 
@@ -101,19 +103,19 @@ protocol and database schema should not need changes.
 
 ## Task inventory and required behavior
 
-| Task type | Start | End | Abandon | Required behavior |
-| --- | --- | --- | --- | --- |
-| Data | Empty | Empty | Empty | Common initialization/finalization, hooks, and locking still run. |
-| Confirmation | Empty | Empty | Empty | Preserve ordinary transition behavior and app task overrides. |
-| Feedback | Empty | Empty | Empty | Empty declarations introduce no extra steps. |
-| NullType | Empty | Empty | Empty | Preserve fallback for tasks without an Altinn type. |
-| Payment | `CleanupPayment` | `CompletePayment` | `CleanupPayment` | Reuse one registered cleanup command in both phases; carry the correct BPMN task ID for every occurrence. |
-| Signing | Conditional `ResolveSignees`, `DelegateSigneeRights`, `NotifySignees` | Conditional `GenerateSigningPdf`, then conditional `RevokeSigneeRights` | Always `AbortRuntimeDelegatedSigning` | Preserve delegated versus non-delegated behavior, command order, failure classification, and saved progress. |
-| PDF service task | Inherited empty lifecycle | Inherited empty lifecycle | Inherited empty lifecycle | Existing service body generates/stores PDFs and auto-advances after successful persistence. |
-| Subform PDF service task | Inherited empty lifecycle | Inherited empty lifecycle | Inherited empty lifecycle | Existing single service operation generates the configured subform PDFs. |
-| eFormidling service task | Inherited empty lifecycle | Inherited empty lifecycle | Inherited empty lifecycle | Send and polling remain separate; polling owns its wait budget and cannot rerun a completed send. |
-| Fiks Arkiv service task | Inherited empty lifecycle | Inherited empty lifecycle | Inherited empty lifecycle | Preserve mailbox minting, sending, acknowledgement handling, final replies, closure, and continuation workflows. |
-| Customer task/service task | Customer command references | Customer command references | Customer command references | Discover registrations under `IProcessTask`, `IServiceTask`, and `IPipelineServiceTask` as appropriate; service tasks must not require an additional `IProcessTask` registration. |
+| Task type                  | Start                                                                 | End                                                                     | Abandon                               | Required behavior                                                                                                                                                                 |
+| -------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data                       | Empty                                                                 | Empty                                                                   | Empty                                 | Common initialization/finalization, hooks, and locking still run.                                                                                                                 |
+| Confirmation               | Empty                                                                 | Empty                                                                   | Empty                                 | Preserve ordinary transition behavior and app task overrides.                                                                                                                     |
+| Feedback                   | Empty                                                                 | Empty                                                                   | Empty                                 | Empty declarations introduce no extra steps.                                                                                                                                      |
+| NullType                   | Empty                                                                 | Empty                                                                   | Empty                                 | Preserve fallback for tasks without an Altinn type.                                                                                                                               |
+| Payment                    | `CleanupPayment`                                                      | `CompletePayment`                                                       | `CleanupPayment`                      | Reuse one registered cleanup command in both phases; carry the correct BPMN task ID for every occurrence.                                                                         |
+| Signing                    | Conditional `ResolveSignees`, `DelegateSigneeRights`, `NotifySignees` | Conditional `GenerateSigningPdf`, then conditional `RevokeSigneeRights` | Always `AbortRuntimeDelegatedSigning` | Preserve delegated versus non-delegated behavior, command order, failure classification, and saved progress.                                                                      |
+| PDF service task           | Inherited empty lifecycle                                             | Inherited empty lifecycle                                               | Inherited empty lifecycle             | Existing service body generates/stores PDFs and auto-advances after successful persistence.                                                                                       |
+| Subform PDF service task   | Inherited empty lifecycle                                             | Inherited empty lifecycle                                               | Inherited empty lifecycle             | Existing single service operation generates the configured subform PDFs.                                                                                                          |
+| eFormidling service task   | Inherited empty lifecycle                                             | Inherited empty lifecycle                                               | Inherited empty lifecycle             | Send and polling remain separate; polling owns its wait budget and cannot rerun a completed send.                                                                                 |
+| Fiks Arkiv service task    | Inherited empty lifecycle                                             | Inherited empty lifecycle                                               | Inherited empty lifecycle             | Preserve mailbox minting, sending, acknowledgement handling, final replies, closure, and continuation workflows.                                                                  |
+| Customer task/service task | Customer command references                                           | Customer command references                                             | Customer command references           | Discover registrations under `IProcessTask`, `IServiceTask`, and `IPipelineServiceTask` as appropriate; service tasks must not require an additional `IProcessTask` registration. |
 
 Payment details that must survive conversion:
 
@@ -352,14 +354,14 @@ semantics, payment/signing recovery fixes, and final review. Use `gpt-5.6-luna` 
 work once a compiled example and the shared signatures are fixed. Luna already performed the
 read-only task/payment inventory for this plan; the primary model checked the payment findings.
 
-| Work package | Model | Prerequisite | Ownership boundary | Acceptance |
-| --- | --- | --- | --- | --- |
-| Common API, serialization, dispatch, options, startup validation | Primary | Source audit | Shared Core/API infrastructure | App-assembly payload/scoped-command proof passes. |
-| Signing command conversions | Luna | Frozen API and reference conversion | Six signing command files and their focused tests | Mechanical diff preserves behavior; primary reviews retries and failure mapping. |
-| Payment command conversions | Luna | Frozen API and reference conversion | Two payment commands and focused tests | Existing state matrix passes; replay fixes remain primary-owned. |
-| Integration fixture migration and new app scaffolding | Luna | Frozen API and scenario specifications | Shared test-app sources, decorators, registrations, new scenario skeleton | Builds and emits real command keys; primary supplies/reviews behavioral assertions. |
-| Documentation, stale references, formatting | Luna | Implementation stable | Specified docs and leftover references only | Searches/checks pass; no blanket snapshot acceptance. |
-| Recovery behavior, integration verdict, security/API review | Primary | Parallel edits integrated | Cross-cutting review and targeted fixes | All required cases pass with clear evidence. |
+| Work package                                                     | Model   | Prerequisite                           | Ownership boundary                                                        | Acceptance                                                                          |
+| ---------------------------------------------------------------- | ------- | -------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Common API, serialization, dispatch, options, startup validation | Primary | Source audit                           | Shared Core/API infrastructure                                            | App-assembly payload/scoped-command proof passes.                                   |
+| Signing command conversions                                      | Luna    | Frozen API and reference conversion    | Six signing command files and their focused tests                         | Mechanical diff preserves behavior; primary reviews retries and failure mapping.    |
+| Payment command conversions                                      | Luna    | Frozen API and reference conversion    | Two payment commands and focused tests                                    | Existing state matrix passes; replay fixes remain primary-owned.                    |
+| Integration fixture migration and new app scaffolding            | Luna    | Frozen API and scenario specifications | Shared test-app sources, decorators, registrations, new scenario skeleton | Builds and emits real command keys; primary supplies/reviews behavioral assertions. |
+| Documentation, stale references, formatting                      | Luna    | Implementation stable                  | Specified docs and leftover references only                               | Searches/checks pass; no blanket snapshot acceptance.                               |
+| Recovery behavior, integration verdict, security/API review      | Primary | Parallel edits integrated              | Cross-cutting review and targeted fixes                                   | All required cases pass with clear evidence.                                        |
 
 With four total agent slots, use one coordinating primary and at most three agents with disjoint file
 ownership. Do not have agents edit shared contracts or run competing builds in the shared directory.

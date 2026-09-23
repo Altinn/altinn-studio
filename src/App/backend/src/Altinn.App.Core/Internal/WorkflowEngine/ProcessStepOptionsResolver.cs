@@ -68,7 +68,8 @@ internal sealed class ProcessStepOptionsResolver
         TimeSpan? maxExecutionTime =
             stageOptions?.MaxExecutionTime
             ?? implementationOverride?.MaxExecutionTime
-            ?? commandDefault?.MaxExecutionTime;
+            ?? commandDefault?.MaxExecutionTime
+            ?? (commandKey == ExecuteServiceTask.Key ? ExecuteServiceTask.DefaultServiceTaskTimeout : null);
         ProcessStepRetryStrategy? retryStrategy =
             stageOptions?.RetryStrategy ?? implementationOverride?.RetryStrategy ?? commandDefault?.RetryStrategy;
         TimeSpan? waitBudget =

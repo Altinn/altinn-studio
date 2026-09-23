@@ -74,6 +74,17 @@ export class SchemaModel extends SchemaModelBase {
     ]);
   }
 
+  public hasUniquePointer(uniquePointer: string): boolean {
+    const schemaPointer = SchemaModel.removeUniquePointerPrefix(uniquePointer);
+    if (this.hasNode(schemaPointer)) return true;
+
+    // Resolving a pointer whose ancestors no longer exist throws, so check them first
+    const parentUniquePointer = this.getParentUniquePointer(uniquePointer);
+    if (!parentUniquePointer || !this.hasUniquePointer(parentUniquePointer)) return false;
+
+    return this.hasNode(this.getSchemaPointerByUniquePointer(uniquePointer));
+  }
+
   private getParentSchemaPointerByUniquePointer(uniquePointer: string): string {
     const parentPropertyNode = this.getParentPropertyNodeByUniquePointer(uniquePointer);
     return isReference(parentPropertyNode)
@@ -400,7 +411,11 @@ export class SchemaModel extends SchemaModelBase {
       throw new Error('It is not possible to delete the root node.');
     if (this.hasReferringNodes(schemaPointer))
       throw new Error('Cannot delete a definition that is in use.');
-    return this.deleteNodeWithChildrenRecursively(schemaPointer);
+    const parent = this.getParentNode(schemaPointer);
+    this.deleteNodeWithChildrenRecursively(schemaPointer);
+    // The names of combination children are their indices, so the remaining ones must be renumbered.
+    if (isCombination(parent)) this.synchronizeCombinationChildPointers(parent);
+    return this;
   }
 
   private deleteNodeWithChildrenRecursively(schemaPointer: string): SchemaModel {

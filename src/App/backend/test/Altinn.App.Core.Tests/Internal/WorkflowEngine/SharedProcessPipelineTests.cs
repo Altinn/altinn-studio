@@ -17,23 +17,21 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 public class SharedProcessPipelineTests
 {
     [Fact]
-    public void LifecycleAndServiceCommandStages_ShareModelNamesAndOptions()
+    public void LifecycleAndServiceCommandStages_ShareModelAndOptions()
     {
         var reference = new WorkflowCommandRef("Notify", "original input");
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        ProcessPipeline lifecycle = new ProcessPipelineBuilder().Stage(reference, options, "Notify signees").Build();
+        ProcessPipeline lifecycle = new ProcessPipelineBuilder().Stage(reference, options).Build();
         ServiceTaskPipeline service = new ServiceTaskPipelineBuilder()
-            .Stage(reference, options, "Notify signees")
+            .Stage(reference, options)
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         Assert.IsType<ProcessPipelineStage.Command>(Assert.Single(lifecycle.Stages));
         Assert.IsType<ProcessPipelineStage.Command>(service.Items[0]);
-        StepRequest lifecycleStep = Assert.Single(
-            PipelineStagePlanner.PlanLifecycle(lifecycle, "signing", "Task_Sign", "start")
-        );
+        StepRequest lifecycleStep = Assert.Single(PipelineStagePlanner.PlanLifecycle(lifecycle));
         StepRequest serviceStep = WorkflowCommandSet.PlanSegment("archive", service).Steps[0];
-        Assert.Equal("Notify signees", lifecycleStep.OperationId);
-        Assert.Equal(lifecycleStep.OperationId, serviceStep.OperationId);
+        Assert.Equal("Notify", lifecycleStep.OperationId);
+        Assert.Equal("ExecuteServiceTask: 0", serviceStep.OperationId);
         Assert.Same(options, lifecycleStep.StageOptions);
         Assert.Same(options, serviceStep.StageOptions);
         Assert.Equal("Notify", lifecycleStep.CommandKey);
@@ -61,12 +59,7 @@ public class SharedProcessPipelineTests
             .Stage(new WorkflowCommandRef("Notify", "A"), new() { MaxExecutionTime = TimeSpan.FromSeconds(10) })
             .Stage(new WorkflowCommandRef("Notify", "B"), new() { MaxExecutionTime = TimeSpan.FromSeconds(20) })
             .Build();
-        IReadOnlyList<StepRequest> steps = PipelineStagePlanner.PlanLifecycle(
-            pipeline,
-            "signing",
-            "Task_Sign",
-            "start"
-        );
+        IReadOnlyList<StepRequest> steps = PipelineStagePlanner.PlanLifecycle(pipeline);
         Assert.Equal(["A", "B"], steps.Select(step => Wire(step).Payload));
         Assert.Equal(
             [TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20)],
@@ -75,69 +68,15 @@ public class SharedProcessPipelineTests
     }
 
     [Fact]
-    public void NamedLifecycleHandlers_MustHaveUniqueNamesWithinTheirPhase()
-    {
-        var builder = new ProcessPipelineBuilder().Stage(
-            "Prepare",
-            _ => Task.FromResult(ProcessEngineCommandResult.Completed())
-        );
-        Assert.Throws<ArgumentException>(() =>
-            builder.Stage("Prepare", _ => Task.FromResult(ProcessEngineCommandResult.Completed()))
-        );
-    }
-
-    [Fact]
-    public async Task LifecycleHandler_UsesExplicitTaskId_AndLeavesProcessingOwnershipAlone()
-    {
-        var task = new LifecycleTask();
-        var services = new ServiceCollection().AddSingleton<IProcessTask>(task);
-        using ServiceProvider provider = services.BuildServiceProvider();
-        var factory = new AppImplementationFactory(provider);
-        var command = new ExecuteProcessStage(new ProcessTaskResolver(provider), factory);
-        ProcessEngineCommandContext context = Context();
-
-        ProcessEngineCommandResult result = await command.Execute(
-            context,
-            new("custom", "Task_Target", "start", "Prepare")
-        );
-
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Equal("Task_Target", task.ObservedTaskId);
-        Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process.Status);
-        Assert.Equal("Task_Source", context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId);
-    }
-
-    [Fact]
-    public async Task LifecycleHandler_RemovedAfterEnqueue_FailsPermanently()
-    {
-        var task = new LifecycleTask { IncludeHandler = false };
-        using ServiceProvider provider = new ServiceCollection()
-            .AddSingleton<IProcessTask>(task)
-            .BuildServiceProvider();
-        var command = new ExecuteProcessStage(
-            new ProcessTaskResolver(provider),
-            new AppImplementationFactory(provider)
-        );
-        FailedProcessEngineCommandResult result = Assert.IsType<FailedProcessEngineCommandResult>(
-            await command.Execute(Context(), new("custom", "Task_Target", "start", "Prepare"))
-        );
-        Assert.True(result.NonRetryable);
-        Assert.Equal("PipelineStageNotFound", result.ExceptionType);
-    }
-
-    [Fact]
     public async Task OrdinaryStage_CannotAcquireServiceConclusionSemantics()
     {
-        ProcessPipeline pipeline = new ProcessPipelineBuilder()
-            .Stage(
-                "Invalid",
-                _ =>
-                    Task.FromResult<ProcessEngineCommandResult>(
-                        new SuccessfulProcessEngineCommandResult { AutoAdvanceProcess = true }
-                    )
-            )
-            .Build();
-        using ServiceProvider provider = new ServiceCollection().BuildServiceProvider();
+        ProcessPipeline pipeline = new ProcessPipelineBuilder().Stage(new WorkflowCommandRef("Invalid")).Build();
+        var invalid = new Mock<IWorkflowEngineCommand>();
+        invalid.Setup(x => x.GetKey()).Returns("Invalid");
+        invalid
+            .Setup(x => x.Execute(It.IsAny<ProcessEngineCommandContext>()))
+            .ReturnsAsync(new SuccessfulProcessEngineCommandResult { ProcessNextContinuation = new(null) });
+        using ServiceProvider provider = new ServiceCollection().AddSingleton(invalid.Object).BuildServiceProvider();
         FailedProcessEngineCommandResult result = Assert.IsType<FailedProcessEngineCommandResult>(
             await PipelineStageExecutor.Execute(pipeline.Stages[0], new AppImplementationFactory(provider), Context())
         );
@@ -168,7 +107,8 @@ public class SharedProcessPipelineTests
 
         Assert.Equal("before redeploy", command.Input);
         Assert.Equal(context.Payload.StepId, command.StepId);
-        Assert.False(result.AutoAdvanceProcess);
+        Assert.Equal("Task_Source", command.TaskId);
+        Assert.Null(result.ProcessNextContinuation);
         Assert.Null(result.MailboxContinuation);
         Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process.Status);
     }
@@ -219,7 +159,7 @@ public class SharedProcessPipelineTests
             await execute.Execute(context, ServicePayload(step))
         );
         Assert.IsType<MailboxContinuation.ContinueAfterStage>(result.MailboxContinuation);
-        Assert.False(result.AutoAdvanceProcess);
+        Assert.Null(result.ProcessNextContinuation);
         Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process.Status);
     }
 
@@ -248,7 +188,7 @@ public class SharedProcessPipelineTests
             )
             .Build();
         StepRequest lifecycle = Assert
-            .Single(PipelineStagePlanner.PlanLifecycle(pipeline, "custom", "Task_Target", "start"))
+            .Single(PipelineStagePlanner.PlanLifecycle(pipeline))
             .ApplyStepOptions(resolver, "Task_Target", null);
         Assert.Equal(TimeSpan.FromSeconds(20), lifecycle.Command.MaxExecutionTime);
         Assert.Null(lifecycle.Command.WaitBudget);
@@ -258,9 +198,7 @@ public class SharedProcessPipelineTests
     [Fact]
     public void LifecycleStages_KeepDashboardTaskAndPhaseLabels()
     {
-        ProcessPipeline pipeline = new ProcessPipelineBuilder()
-            .Stage(new WorkflowCommandRef("Record"), name: "Record outcome")
-            .Build();
+        ProcessPipeline pipeline = new ProcessPipelineBuilder().Stage(new WorkflowCommandRef("Record")).Build();
         WorkflowCommandSet set = WorkflowCommandSet.GetTaskStartSteps(
             new TaskStartContext
             {
@@ -268,11 +206,11 @@ public class SharedProcessPipelineTests
                 ServiceTask = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
-                StartSteps = PipelineStagePlanner.PlanLifecycle(pipeline, "custom", "Task_Target", "start"),
+                StartSteps = PipelineStagePlanner.PlanLifecycle(pipeline),
             }
         );
         StepRequest step = set.Commands[^1];
-        Assert.Equal("Record outcome", step.OperationId);
+        Assert.Equal("Record", step.OperationId);
         Assert.Equal("Record", step.CommandKey);
         Assert.Equal("Task_Target", step.Labels!["processTask"]);
         Assert.Equal("start", step.Labels["processTaskPhase"]);
@@ -383,6 +321,84 @@ public class SharedProcessPipelineTests
         }
     }
 
+    [Theory]
+    [InlineData(null, 600)]
+    [InlineData(45, 45)]
+    public void CommandStage_UsesServiceTimeoutUnlessCommandOverridesIt(int? commandSeconds, int expectedSeconds)
+    {
+        var command = new Mock<IWorkflowEngineCommand>();
+        command.Setup(x => x.GetKey()).Returns("Record");
+        command
+            .SetupGet(x => x.DefaultStepOptions)
+            .Returns(
+                commandSeconds is { } seconds
+                    ? new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(seconds) }
+                    : null
+            );
+        var task = new BareCommandTask();
+        using ServiceProvider provider = new ServiceCollection()
+            .AddSingleton(command.Object)
+            .AddSingleton<IPipelineServiceTask>(task)
+            .BuildServiceProvider();
+        StepRequest step = WorkflowCommandSet
+            .PlanSegment(task.Type, task.ResolvePipeline())
+            .Steps[0]
+            .ApplyStepOptions(new ProcessStepOptionsResolver(provider), "Task_Service", task.Type);
+        Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), step.Command.MaxExecutionTime);
+    }
+
+    [Theory]
+    [InlineData("missing", "PipelineCommandNotFound", true)]
+    [InlineData("retryable", "DependencyUnavailable", false)]
+    [InlineData("permanent", "InvalidRecipient", true)]
+    [InlineData("throws", "InvalidOperationException", false)]
+    public async Task CommandStage_PreservesFailureSemantics(string scenario, string code, bool permanent)
+    {
+        var task = new BareCommandTask();
+        var services = new ServiceCollection().AddSingleton<IPipelineServiceTask>(task);
+        var command = new Mock<IWorkflowEngineCommand>();
+        command.Setup(x => x.GetKey()).Returns("Record");
+        if (scenario == "throws")
+            command
+                .Setup(x => x.Execute(It.IsAny<ProcessEngineCommandContext>()))
+                .ThrowsAsync(new InvalidOperationException("Unavailable"));
+        else
+            command
+                .Setup(x => x.Execute(It.IsAny<ProcessEngineCommandContext>()))
+                .ReturnsAsync(
+                    permanent
+                        ? ProcessEngineCommandResult.FailedPermanent("Unavailable", code)
+                        : ProcessEngineCommandResult.FailedRetryable("Unavailable", code)
+                );
+        if (scenario != "missing")
+            services.AddSingleton(command.Object);
+        using ServiceProvider provider = services.BuildServiceProvider();
+        var execute = new ExecuteServiceTask(
+            new AppImplementationFactory(provider),
+            TestMailboxDeliveryEnvelope.Create()
+        );
+        ProcessEngineCommandContext context = Context();
+        var result = Assert.IsType<FailedProcessEngineCommandResult>(
+            await execute.Execute(
+                context,
+                ServicePayload(WorkflowCommandSet.PlanSegment(task.Type, task.ResolvePipeline()).Steps[0])
+            )
+        );
+        Assert.Equal(code, result.ExceptionType);
+        Assert.Equal(permanent, result.NonRetryable);
+        Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process.Status);
+    }
+
+    private sealed class BareCommandTask : IPipelineServiceTask
+    {
+        public string Type => "command";
+
+        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+            pipeline
+                .Stage(new WorkflowCommandRef("Record"))
+                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    }
+
     private sealed class FailureTask(string location, bool permanent) : IPipelineServiceTask
     {
         public string Type => "failing";
@@ -471,31 +487,11 @@ public class SharedProcessPipelineTests
         };
     }
 
-    private sealed class LifecycleTask : IPipelineProcessTask
-    {
-        public string Type => "custom";
-        public bool IncludeHandler { get; init; } = true;
-        public string? ObservedTaskId { get; private set; }
-
-        public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline)
-        {
-            if (IncludeHandler)
-                pipeline.Stage(
-                    "Prepare",
-                    context =>
-                    {
-                        ObservedTaskId = context.TaskId;
-                        return Task.FromResult(ProcessEngineCommandResult.Completed());
-                    }
-                );
-            return pipeline.Build();
-        }
-    }
-
     private sealed class RecordingCommand : IWorkflowEngineCommand
     {
         public string? Input { get; private set; }
         public Guid StepId { get; private set; }
+        public string? TaskId { get; private set; }
 
         public string GetKey() => "Record";
 
@@ -510,6 +506,7 @@ public class SharedProcessPipelineTests
         {
             Input = context.CommandPayload;
             StepId = context.StepId;
+            TaskId = context.TaskId;
             return Task.FromResult(ProcessEngineCommandResult.Completed());
         }
     }

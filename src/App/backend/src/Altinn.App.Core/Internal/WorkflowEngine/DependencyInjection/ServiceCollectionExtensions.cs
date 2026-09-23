@@ -63,7 +63,6 @@ internal static class ServiceCollectionExtensions
 
         // Process engine callback handlers - ServiceTask
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
-        services.AddTransient<IWorkflowEngineCommand, ExecuteProcessStage>();
         services.AddTransient<IWorkflowEngineCommand, MintMailbox>();
 
         // Process engine callback handlers - Notifications
