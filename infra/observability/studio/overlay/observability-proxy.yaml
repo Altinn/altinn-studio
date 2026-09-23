@@ -76,6 +76,10 @@ spec:
             # also defines, so they live in appsettings.json rather than being restated here.
             - name: ObservabilityProxy__Authentication__TokensFilePath
               value: /etc/observability-proxy/auth-tokens.json
+            # Every rate limit below is per replica: each replica counts only the requests
+            # it serves, so the effective limit for an identity is replicas x limit, twice
+            # the configured number with the two replicas in prod.
+            #
             # The default is sized for an identity that is one cluster: studio-dev,
             # studio-staging, studio-prod and grafana.
             - name: ObservabilityProxy__RateLimiting__PermitLimit

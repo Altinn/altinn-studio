@@ -38,6 +38,35 @@ public sealed class RateLimitingTests
     }
 
     [Fact]
+    public async Task Rejection_SaysWhenToRetry()
+    {
+        // The otlphttp exporter waits for Retry-After on a 429 rather than its own backoff.
+        await using var downstream = await TestWebApplication.StartDownstreamAsync();
+        await using var proxy = await TestWebApplication.StartProxyAsync(
+            new Dictionary<string, string?>
+            {
+                ["ObservabilityProxy:Downstreams:Agents:Traces"] = downstream.Address,
+                ["ObservabilityProxy:RateLimiting:PermitLimit"] = "1",
+                ["ObservabilityProxy:RateLimiting:WindowSeconds"] = "60",
+                ["ObservabilityProxy:Authentication:Tokens:0:Token"] = "studio-token",
+                ["ObservabilityProxy:Authentication:Tokens:0:SourceIdentity"] = "studio-prod",
+                ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:0"] = "otlp",
+            }
+        );
+
+        Assert.Equal(HttpStatusCode.OK, await PostAsync(proxy, "studio-token"));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/internal/observability/otlp/v1/traces");
+        request.Headers.Authorization = new("Bearer", "studio-token");
+        using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+        var retryAfter = response.Headers.RetryAfter?.Delta;
+        Assert.NotNull(retryAfter);
+        Assert.InRange(retryAfter.Value, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(60));
+    }
+
+    [Fact]
     public async Task RejectedRequests_DoNotSpendTheIdentitysPermits()
     {
         // Authentication and authorization run before the limiter, so neither an unknown token nor
