@@ -99,18 +99,17 @@ describe('ProcessEditor', () => {
   });
 
   describe('saveBpmn', () => {
-    const renderLoadedProcessEditor = (updateBpmnXml: jest.Mock) =>
-      renderProcessEditorAndGetProps({ updateBpmnXml }).saveBpmn;
-
     it('resolves when the process definition is saved', async () => {
-      const saveBpmn = renderLoadedProcessEditor(jest.fn().mockResolvedValue(undefined));
+      const { saveBpmn } = renderProcessEditorAndGetProps({
+        updateBpmnXml: jest.fn().mockResolvedValue(undefined),
+      });
       await act(() => expect(saveBpmn('<xml></xml>')).resolves.toBeUndefined());
     });
 
     it('rejects and shows an error when saving the process definition fails', async () => {
-      const saveBpmn = renderLoadedProcessEditor(
-        jest.fn().mockRejectedValue(createApiErrorMock(ServerCodes.BadRequest)),
-      );
+      const { saveBpmn } = renderProcessEditorAndGetProps({
+        updateBpmnXml: jest.fn().mockRejectedValue(createApiErrorMock(ServerCodes.BadRequest)),
+      });
       await act(() => expect(saveBpmn('<xml></xml>')).rejects.toEqual(expect.anything()));
       expect(
         await screen.findByText(textMock('process_editor.save_bpmn_xml_error')),
