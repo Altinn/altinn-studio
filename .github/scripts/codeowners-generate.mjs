@@ -113,6 +113,7 @@ const GROUPS = [
       '.github/workflows/deploy-studio-observability.yaml',
       '.github/workflows/deploy-studio-otel-operator.yaml',
       '.github/workflows/deploy-studio-syncroot.yaml',
+      '.github/workflows/deploy-studio-victoriametrics-operator.yaml',
       '.github/workflows/deployer-check.yaml',
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',
