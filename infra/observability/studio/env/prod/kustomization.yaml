@@ -2,6 +2,3 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../overlay
-  # Studio prod is the only cluster with the observability node pool, and all
-  # telemetry is centralized here, so the Victoria backend is prod only.
-  - ../../victoria
