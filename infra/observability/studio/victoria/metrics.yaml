@@ -24,6 +24,10 @@ spec:
   image:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
+  # The operator's default port is 8429, the vmagent port, with 8428 only as a
+  # Service alias. Setting it serves the binary's own port directly, on the
+  # container and the Service alike.
+  port: "8428"
   # Metrics are time-bound rather than disk-bound: VictoriaMetrics stops
   # accepting writes when the disk fills instead of dropping old data, so the
   # retention period has to be chosen to stay inside the volume and the free
@@ -92,6 +96,7 @@ spec:
   image:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
+  port: "8428"
   retentionPeriod: 90d
   secrets:
     - observability-backend-auth-keys
