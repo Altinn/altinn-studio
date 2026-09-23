@@ -1,0 +1,53 @@
+# The operator only talks to the Kubernetes API server, and nothing needs to
+# talk to it. Every pod in this namespace is the operator, so the policy selects
+# them all and denies anything the rules below do not allow.
+#
+# Egress to the API server is allowed by port, to any destination, because it
+# cannot be allowed by address. Pods reach it through the kubernetes Service,
+# which kube-proxy DNATs to the control plane's own address, and policy engines
+# (Azure network policy included) match the translated address. On AKS that is
+# the API server's IP outside the cluster, which no selector matches and which
+# can change during control plane maintenance, so an ipBlock pinned to it would
+# eventually cut the operator off. AKS serves the API on 443; 6443 is the
+# Kubernetes default that kind uses, so these manifests also run locally. Every
+# other port stays closed, which keeps the operator away from instance metadata
+# and from in-cluster services, including the workloads it manages.
+#
+# If the operator is ever given VMAuth resources, it also scrapes their
+# config-reloader sidecars on port 8435 in observability; add that here.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: victoriametrics-operator
+  namespace: victoriametrics-operator
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # The kubelet probes /health on this port. Traffic from the pod's own node
+    # is exempt from NetworkPolicy in the Kubernetes spec, but allowing the port
+    # keeps the probes independent of how the policy engine implements that.
+    # The metrics port, 8080, stays closed until something scrapes it.
+    - ports:
+        - protocol: TCP
+          port: 8081
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 6443
