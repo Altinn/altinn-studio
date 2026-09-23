@@ -37,6 +37,47 @@ public sealed class RateLimitingTests
         Assert.Equal(HttpStatusCode.TooManyRequests, await PostAsync(proxy, "studio-token"));
     }
 
+    [Fact]
+    public async Task RejectedRequests_DoNotSpendTheIdentitysPermits()
+    {
+        // Authentication and authorization run before the limiter, so neither an unknown token nor
+        // a refused path can use up a source's window.
+        await using var downstream = await TestWebApplication.StartDownstreamAsync();
+        var configuration = ProxyConfiguration.WithBothTokens(downstream.Address);
+        configuration["ObservabilityProxy:RateLimiting:PermitLimit"] = "1";
+        await using var proxy = await TestWebApplication.StartProxyAsync(configuration);
+
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            Assert.Equal(HttpStatusCode.Unauthorized, await PostAsync(proxy, "unknown-token"));
+            Assert.Equal(
+                404,
+                await proxy.SendRawAsync(
+                    "POST",
+                    "/internal/observability/metrics/api/v1/write",
+                    ProxyConfiguration.QueryToken
+                )
+            );
+        }
+
+        Assert.Equal(
+            200,
+            await proxy.SendRawAsync(
+                "GET",
+                "/internal/observability/metrics/api/v1/query",
+                ProxyConfiguration.QueryToken
+            )
+        );
+        Assert.Equal(
+            429,
+            await proxy.SendRawAsync(
+                "GET",
+                "/internal/observability/metrics/api/v1/query",
+                ProxyConfiguration.QueryToken
+            )
+        );
+    }
+
     private static async Task<HttpStatusCode> PostAsync(TestWebApplication proxy, string token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/internal/observability/otlp/v1/traces");

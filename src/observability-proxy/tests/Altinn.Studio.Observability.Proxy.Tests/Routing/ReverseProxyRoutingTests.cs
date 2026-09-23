@@ -20,18 +20,18 @@ public sealed class ReverseProxyRoutingTests
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
-            "/internal/observability/metrics/api/v1/write?tenant=studio"
+            "/internal/observability/metrics/api/v1/query_range?nocache=1"
         );
         request.Headers.Authorization = new("Bearer", "grafana-token");
         request.Headers.Add("X-Grafana-Org-Id", "1");
-        request.Content = new StringContent("request-body", Encoding.UTF8, "application/x-protobuf");
+        request.Content = new StringContent("query=up", Encoding.UTF8, "application/x-www-form-urlencoded");
 
         using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
 
         response.EnsureSuccessStatusCode();
-        Assert.Equal("request-body", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal("query=up", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         Assert.Equal("POST", response.Headers.GetValues("X-Observed-Method").Single());
-        Assert.Equal("/api/v1/write?tenant=studio", response.Headers.GetValues("X-Observed-Path").Single());
+        Assert.Equal("/api/v1/query_range?nocache=1", response.Headers.GetValues("X-Observed-Path").Single());
         Assert.Equal("1", response.Headers.GetValues("X-Observed-Grafana-Org").Single());
         Assert.Equal("platform-grafana", response.Headers.GetValues("X-Observed-Source").Single());
         Assert.False(response.Headers.TryGetValues("X-Observed-Authorization", out _));

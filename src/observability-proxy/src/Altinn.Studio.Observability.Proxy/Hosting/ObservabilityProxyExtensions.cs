@@ -32,19 +32,15 @@ internal static class ObservabilityProxyExtensions
         builder.Services.AddRateLimiter(options =>
         {
             var rateLimitingOptions = proxyOptions.RateLimiting;
-            var pathPrefix = ObservabilityPaths.NormalizePrefix(proxyOptions.PathPrefix);
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
             {
-                // Only observability traffic is limited, and only per authenticated identity.
-                // StaticBearerTokenMiddleware runs before the limiter and answers 401 to anything on
-                // this prefix it cannot authenticate, so every request that reaches here on the
-                // prefix carries a source identity and there is no unauthenticated partition.
-                if (
-                    !context.Request.Path.StartsWithSegments(pathPrefix)
-                    || context.Features.Get<ObservabilitySourceFeature>() is not { } observabilitySource
-                )
+                // Only authenticated observability traffic is limited, and per source identity.
+                // StaticBearerTokenMiddleware runs before the limiter and sets the source on every
+                // request it lets through to a proxy route, and a proxy route forwards nothing without
+                // one, so there is no unauthenticated partition.
+                if (context.Features.Get<ObservabilitySourceFeature>() is not { } observabilitySource)
                 {
                     return RateLimitPartition.GetNoLimiter("non-observability");
                 }
@@ -105,10 +101,40 @@ internal static class ObservabilityProxyExtensions
         app.MapGet("/health/live", () => Results.Text("Healthy"));
         app.MapHealthChecks("/health/ready", new HealthCheckOptions());
 
+        // Routing first, so authorization can read the matched route; authentication before the
+        // limiter, so the limiter can partition by the identity it established.
+        app.UseRouting();
         app.UseMiddleware<StaticBearerTokenMiddleware>();
         app.UseRateLimiter();
 
-        app.MapReverseProxy();
+        app.MapReverseProxy(proxyPipeline =>
+        {
+            // StaticBearerTokenMiddleware is the authority. This only makes sure nothing is ever
+            // forwarded without it, whatever the order above becomes.
+            proxyPipeline.Use(
+                (context, next) =>
+                {
+                    if (context.Features.Get<ObservabilitySourceFeature>() is not null)
+                    {
+                        return next(context);
+                    }
+
+                    context
+                        .RequestServices.GetRequiredService<ILoggerFactory>()
+                        .CreateLogger(typeof(ObservabilityProxyExtensions))
+                        .LogError(
+                            "Refused to forward an observability request that was not authorized. Method={Method} Path={Path}",
+                            context.Request.Method,
+                            context.Request.Path
+                        );
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                }
+            );
+            proxyPipeline.UseSessionAffinity();
+            proxyPipeline.UseLoadBalancing();
+            proxyPipeline.UsePassiveHealthChecks();
+        });
 
         return app;
     }

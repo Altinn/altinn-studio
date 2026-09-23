@@ -40,10 +40,16 @@ internal static class ObservabilityReverseProxyConfig
         return clusters;
     }
 
+    /// <summary>The route group <paramref name="route"/> requires, or <c>null</c> when it names none.</summary>
+    public static string? RouteGroupOf(RouteConfig? route)
+    {
+        return route?.Metadata?.GetValueOrDefault(ObservabilityPaths.RouteGroupMetadataKey);
+    }
+
     /// <summary>
     /// One OTLP write route per signal. The three public paths under <c>/otlp</c> reach three
     /// different agents, so they cannot share a cluster, but they share the <c>otlp</c> route group
-    /// that a token is granted.
+    /// that a token is granted. OTLP/HTTP only ever POSTs.
     /// </summary>
     private static RouteConfig CreateWriteRoute(string pathPrefix, ObservabilitySignal signal)
     {
@@ -54,6 +60,7 @@ internal static class ObservabilityReverseProxyConfig
             Match = new RouteMatch
             {
                 Path = $"{pathPrefix}/{ObservabilityPaths.OtlpRouteGroup}{signal.PublicWritePath}",
+                Methods = [HttpMethods.Post],
             },
             Transforms =
             [
@@ -64,7 +71,7 @@ internal static class ObservabilityReverseProxyConfig
             ],
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                ["ObservabilityRouteGroup"] = ObservabilityPaths.OtlpRouteGroup,
+                [ObservabilityPaths.RouteGroupMetadataKey] = ObservabilityPaths.OtlpRouteGroup,
             },
         };
     }
@@ -72,7 +79,8 @@ internal static class ObservabilityReverseProxyConfig
     /// <summary>
     /// One read route per signal. The public prefix is stripped and the backend's own path put in
     /// its place, so the datasource's base URL is the public prefix and nothing else has to know
-    /// where the backend serves its query API.
+    /// where the backend serves its query API. Which paths below the prefix a token may reach is
+    /// the signal's <see cref="ObservabilitySignal.ReadEndpoints"/>, checked before forwarding.
     /// </summary>
     private static RouteConfig CreateReadRoute(string pathPrefix, ObservabilitySignal signal)
     {
@@ -95,11 +103,14 @@ internal static class ObservabilityReverseProxyConfig
         {
             RouteId = signal.RouteGroup,
             ClusterId = signal.RouteGroup,
-            Match = new RouteMatch { Path = $"{pathPrefix}/{signal.RouteGroup}/{{**catch-all}}" },
+            Match = new RouteMatch
+            {
+                Path = $"{pathPrefix}/{signal.RouteGroup}/{{**{ObservabilityPaths.ReadPathRouteValue}}}",
+            },
             Transforms = transforms,
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                ["ObservabilityRouteGroup"] = signal.RouteGroup,
+                [ObservabilityPaths.RouteGroupMetadataKey] = signal.RouteGroup,
             },
         };
     }
@@ -121,6 +132,12 @@ internal static class ObservabilityReverseProxyConfig
     /// with the other, so spreading reads across them would return a partial answer half the time.
     /// <c>FirstAlphabetical</c> sends every read to the first healthy destination, and the
     /// destination keys are ordered so that is the first configured address.
+    ///
+    /// Reads return to the first instance as soon as its health check passes again, not once its
+    /// agent has replayed the writes it buffered while the instance was down. Until the backlog is
+    /// drained, the most recent data can briefly be missing from query results after a failover.
+    /// That is accepted: the data is not lost, both instances converge, and holding reads on the
+    /// second instance would need state this proxy does not keep.
     /// </summary>
     private static ClusterConfig CreateReadCluster(ObservabilitySignal signal, IReadOnlyList<string> addresses)
     {
