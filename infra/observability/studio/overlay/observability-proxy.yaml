@@ -40,11 +40,36 @@ spec:
       labels:
         app: observability-proxy
       annotations:
-        linkerd.io/inject: enabled
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       serviceAccountName: observability-proxy
+      # The proxy never talks to the API server.
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
+      # One replica per node, and across zones where the pool has them, so a node or zone
+      # outage takes at most one replica. The hostname spread is a hard rule; tainted pools
+      # the proxy cannot run on are left out of the count, or their empty nodes would block
+      # scheduling. The zone spread is best effort: the general pool is not zonal, and there
+      # every node carries the same zone label or only a fault domain number.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app: observability-proxy
+          matchLabelKeys:
+            - pod-template-hash
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app: observability-proxy
+          matchLabelKeys:
+            - pod-template-hash
       securityContext:
         runAsUser: 1654
         runAsGroup: 1654
@@ -67,6 +92,14 @@ spec:
             - containerPort: 8080
               name: http
               protocol: TCP
+          lifecycle:
+            # Keeps serving while the endpoint removal reaches kube-proxy and the load
+            # balancer, so a replica being stopped is not sent new requests it would refuse.
+            # The native sleep action, because the chiseled image has no shell; it is GA
+            # from Kubernetes 1.34, and the Studio clusters run 1.34.2.
+            preStop:
+              sleep:
+                seconds: 5
           env:
             - name: ASPNETCORE_URLS
               value: http://+:8080
@@ -174,3 +207,75 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+---
+# Egress only to what the proxy forwards to: the three agents on their OTLP ports and
+# the six storage instances on their HTTP ports, which is also where the read
+# clusters' health checks go, plus cluster DNS. The selectors are the labels the
+# VictoriaMetrics operator puts on its pods, and the ones the hand-written vtagent
+# StatefulSet copies. Kubelet probes need no rule: traffic from the pod's own node is
+# always allowed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-proxy-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: observability-proxy
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+      ports:
+        - protocol: TCP
+          port: 8429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtagent
+      ports:
+        - protocol: TCP
+          port: 10429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlagent
+      ports:
+        - protocol: TCP
+          port: 9429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+      ports:
+        - protocol: TCP
+          port: 8428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+      ports:
+        - protocol: TCP
+          port: 10428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+      ports:
+        - protocol: TCP
+          port: 9428
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
