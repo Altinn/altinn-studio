@@ -21,6 +21,7 @@ export * from './Link';
 export * from './MultipleSelect';
 export * from './NavigationBar';
 export * from './NavigationButtons';
+export * from './Number';
 export * from './Option';
 export * from './Paragraph';
 export * from './PDFPreviewButton';

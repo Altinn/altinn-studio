@@ -374,7 +374,7 @@ class TestCommitSessionBranch:
 
         assert not result.is_error
         # Cached branch name persists across the session.
-        assert ctx.extras["session_branch"].startswith("altinity_session_")
+        assert ctx.extras["session_branch"].startswith("assistant_")
         # The auto-commit safety net keys off this flag.
         assert ctx.extras.get("session_committed") is True
 

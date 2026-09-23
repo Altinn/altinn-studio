@@ -2,12 +2,11 @@ name: App Backend - Verify formatting
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/App/backend/**'
       - '.github/workflows/app-backend-formatting.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
@@ -16,7 +15,8 @@ concurrency:
 jobs:
   verify-no-changes:
     if: |
-      github.event.pull_request.user.login != 'renovate[bot]'
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft))
+      && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: self-hosted-ubuntu
     timeout-minutes: 5
     defaults:

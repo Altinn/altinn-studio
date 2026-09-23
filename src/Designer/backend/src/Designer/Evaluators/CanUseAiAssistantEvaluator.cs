@@ -1,23 +1,34 @@
 #nullable disable
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Evaluators;
 
-public class CanUseAiAssistantEvaluator : ICanUseFeatureEvaluator
+public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
 {
-    private readonly IAiAssistantAccessService _aiAssistantAccessService;
+    /// <summary>
+    /// Service owners with access during the beta.
+    /// </summary>
+    private static readonly string[] s_allowedServiceOwners = ["ttd", "nfk", "ssb", "dat", "brg", "staf", "ikta"];
+
+    private readonly IUserOrganizationService _userOrganizationService;
 
     public CanUseFeatureEnum Feature => CanUseFeatureEnum.AiAssistant;
 
-    public CanUseAiAssistantEvaluator(IAiAssistantAccessService aiAssistantAccessService)
+    public CanUseAiAssistantEvaluator(IUserOrganizationService userOrganizationService)
     {
-        _aiAssistantAccessService = aiAssistantAccessService;
+        _userOrganizationService = userOrganizationService;
     }
 
     public async Task<bool> CanUseFeatureAsync(string org, string app)
     {
-        return await _aiAssistantAccessService.HasAccessAsync(org);
+        if (!s_allowedServiceOwners.Contains(org))
+        {
+            return false;
+        }
+
+        return await _userOrganizationService.UserIsMemberOfOrganization(org);
     }
 }

@@ -59,6 +59,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -145,6 +146,13 @@ impl Provider for MemoryProvider {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: self.report_runtime_restart.replace(false),
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
@@ -870,6 +878,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection::default(),
     });
@@ -936,6 +945,7 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     let mut changed = request;
     changed.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: Some("GH_PAT".into()),
@@ -982,6 +992,7 @@ async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
     let mut request = apply_request_in("worker", source_directory.clone());
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1132,6 +1143,7 @@ async fn existing_default_env_outside_bind_mount_is_allowed() {
     request.env_file = Some(external.path().join("worker.env"));
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1162,6 +1174,7 @@ async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
     let mut request = apply_request_in("worker", source_directory);
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1195,6 +1208,7 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
     secret_agent.env_file = Some(selected_secret_file);
     secret_agent.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1898,6 +1912,23 @@ fn is_ssh_server_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
     )
 }
 
+fn is_ssh_policy_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo"
+                && args == &[
+                    "-n",
+                    "/usr/sbin/sshd",
+                    "-T",
+                    "-f",
+                    "/var/lib/agent/ssh/sshd_config",
+                    "-C",
+                    "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+                ]
+    )
+}
+
 fn exited(code: i32) -> Vec<sandbox::execution::ExecutionEvent> {
     vec![
         sandbox::execution::ExecutionEvent::Started { process_id: None },
@@ -1959,6 +1990,14 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
 
     // A server is present: the Agent is Ready and SshReady is reported alongside SandboxReady.
     backend.queue_execution_events_matching(is_ssh_server_check, exited(0));
+    backend.queue_execution_events_matching(
+        is_ssh_policy_check,
+        vec![
+            sandbox::execution::ExecutionEvent::Started { process_id: None },
+            sandbox::execution::ExecutionEvent::Stdout(b"permituserenvironment yes\nusepam no\n".as_slice().into()),
+            sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code: 0 }),
+        ],
+    );
     reconciler.reconcile(id).await.expect("reconcile with a server");
     let status = store.get(id).await.expect("record").agent.status;
     assert!(status.is_ready());

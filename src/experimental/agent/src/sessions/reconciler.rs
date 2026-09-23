@@ -60,19 +60,8 @@ impl Reconciler {
             return Ok(Lifecycle::idle());
         }
         let agent = self.sandboxes.agent(session.agent_id).await?;
-        if agent.agent.metadata.deletion_timestamp.is_some()
-            || !agent.agent.status.is_ready()
-            || !matches!(
-                agent.agent.status.sandbox,
-                Some(crate::sandbox::Assignment::Materialized { .. })
-            )
-        {
-            let reason = format!("Agent {:?} is not ready", agent.agent.metadata.name);
-            return Ok(if session.status.lifecycle.state == LifecycleState::Resuming {
-                Lifecycle::resuming_with(reason)
-            } else {
-                Lifecycle::starting(reason)
-            });
+        if let Some(held) = launch_blocked(&agent, session) {
+            return Ok(held);
         }
         let sandbox = self.sandboxes.open(&agent).await?;
         let platform = &sandbox.snapshot().image.platform;
@@ -283,6 +272,36 @@ fn backoff_seconds(attempts: u32) -> i64 {
     } else {
         wait
     }
+}
+
+/// Holds a Session short of launching while its Agent cannot run it.
+///
+/// The image ships every harness binary, so launching one convergence never installed starts a
+/// process that sits at a login prompt nobody can answer and reports the Session as running.
+fn launch_blocked(agent: &crate::control_plane::AgentRecord, session: &Session) -> Option<Lifecycle> {
+    let installed = agent
+        .agent
+        .status
+        .sandbox
+        .as_ref()
+        .and_then(crate::sandbox::Assignment::installed_harnesses);
+    let reason = if agent.agent.metadata.deletion_timestamp.is_some() || !agent.agent.status.is_ready() {
+        format!("Agent {:?} is not ready", agent.agent.metadata.name)
+    } else if !installed.is_some_and(|installed| installed.contains(&session.harness)) {
+        format!(
+            "Agent {:?} does not carry harness {:?}; sign in on the host and the next Agent \
+             convergence installs it",
+            agent.agent.metadata.name,
+            session.harness.as_str()
+        )
+    } else {
+        return None;
+    };
+    Some(if session.status.lifecycle.state == LifecycleState::Resuming {
+        Lifecycle::resuming_with(reason)
+    } else {
+        Lifecycle::starting(reason)
+    })
 }
 
 #[cfg(test)]

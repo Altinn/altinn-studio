@@ -175,7 +175,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
-    services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
+    services.Configure<AssistantSettings>(configuration.GetSection("AltinitySettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
         maskinPortenClientName,

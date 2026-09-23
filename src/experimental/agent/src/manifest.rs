@@ -581,9 +581,12 @@ impl Spec {
         for (index, skill) in self.skills.iter().enumerate() {
             let Some(name) = skill.name() else {
                 return Err(Error::Invalid(format!(
-                    "spec.skills[{index}].source must end in the skill's directory name"
+                    "spec.skills[{index}] must declare a name or use a source ending in the skill's directory name"
                 )));
             };
+            if name.is_empty() || name == "." || name == ".." || name.contains('/') || name.contains('\\') {
+                return Err(Error::Invalid(format!("spec.skills[{index}].name is invalid")));
+            }
             if !skill_names.insert(name) {
                 return Err(Error::Invalid(format!(
                     "spec.skills[{index}] duplicates skill {name:?}"
@@ -644,16 +647,21 @@ pub struct InstructionsSpec {
 pub struct SkillSpec {
     /// Host directory holding `SKILL.md`, resolved relative to the manifest directory.
     pub source: std::path::PathBuf,
+    /// Installed skill directory name; defaults to the source directory name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 }
 
 impl SkillSpec {
-    /// Returns the skill name: the final component of the source directory.
+    /// Returns the explicit skill name or the final component of the source directory.
     #[must_use]
     pub fn name(&self) -> Option<&str> {
-        self.source
-            .file_name()?
-            .to_str()
-            .filter(|name| !name.is_empty() && *name != ".")
+        self.name.as_deref().or_else(|| {
+            self.source
+                .file_name()?
+                .to_str()
+                .filter(|name| !name.is_empty() && *name != ".")
+        })
     }
 }
 
@@ -663,6 +671,9 @@ impl SkillSpec {
 pub struct SecretSpec {
     /// Guest environment variable and stable secret binding name.
     pub environment: String,
+    /// Whether a missing or empty environment-file value omits this binding.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub optional: bool,
     /// Optional inert value; the selected Network Backend generates one when omitted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub placeholder: Option<String>,
@@ -671,6 +682,11 @@ pub struct SecretSpec {
     /// Optional variable name in the manifest directory's `.env`; defaults to `environment`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+const fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 impl SecretSpec {

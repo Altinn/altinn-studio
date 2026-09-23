@@ -10,6 +10,7 @@ public class EventsClientMock : IEventsClient
         string eventType,
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
         CancellationToken cancellationToken = default
     )
     {

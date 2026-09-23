@@ -53,6 +53,21 @@ internal sealed class ComponentHiddenExpressionInjector
         // Handle conversion failure
         if (conversionResult.Status == ConversionStatus.Failed)
         {
+            var placeholder = $"__MANUAL_CONVERSION_REQUIRED_{ruleId}__";
+            if (ContainsExpression(existingHiddenExpression, JsonValue.Create(placeholder)))
+            {
+                return new InjectionResult
+                {
+                    Success = true,
+                    ComponentId = componentId,
+                    LayoutFile = layoutFile,
+                    Status = InjectionStatus.ConversionFailed,
+                    Message = $"Conversion still requires manual work for component '{componentId}'",
+                    RuleId = ruleId,
+                    JsFunctionBody = jsFunctionBody,
+                };
+            }
+
             // Store the rule config and JS function in a comment property for developer reference
             var commentInfo = "";
             if (!string.IsNullOrEmpty(ruleConfigJson))
@@ -71,7 +86,7 @@ internal sealed class ComponentHiddenExpressionInjector
             component["_conversionFailureInfo"] = commentInfo;
 
             // Inject placeholder that will be replaced with invalid JSON
-            var placeholderNode = JsonNode.Parse($"\"__MANUAL_CONVERSION_REQUIRED_{ruleId}__\"");
+            var placeholderNode = JsonValue.Create(placeholder);
             if (placeholderNode == null)
             {
                 throw new InvalidOperationException("Failed to create placeholder node");
@@ -116,6 +131,18 @@ internal sealed class ComponentHiddenExpressionInjector
             throw new InvalidOperationException("Failed to serialize expression");
         }
 
+        if (ContainsExpression(existingHiddenExpression, expressionNode))
+        {
+            return new InjectionResult
+            {
+                Success = true,
+                ComponentId = componentId,
+                LayoutFile = layoutFile,
+                Status = InjectionStatus.AlreadyApplied,
+                Message = $"Hidden expression for component '{componentId}' was already migrated",
+            };
+        }
+
         // If there's an existing hidden expression, combine with 'or'
         JsonNode finalHiddenExpression;
         if (existingHiddenExpression != null)
@@ -148,6 +175,20 @@ internal sealed class ComponentHiddenExpressionInjector
                 : $"Successfully injected hidden expression into component '{componentId}'",
         };
     }
+
+    private static bool ContainsExpression(JsonNode? existing, JsonNode expected)
+    {
+        if (existing is null)
+            return false;
+        if (JsonNode.DeepEquals(existing, expected))
+            return true;
+
+        return existing is JsonArray { Count: > 1 } expression
+            && expression[0] is JsonValue operation
+            && operation.TryGetValue<string>(out var operationName)
+            && operationName == "or"
+            && expression.Skip(1).OfType<JsonNode>().Any(node => ContainsExpression(node, expected));
+    }
 }
 
 /// <summary>
@@ -172,5 +213,6 @@ internal enum InjectionStatus
     Success,
     ComponentNotFound,
     ExistingHiddenConflict,
+    AlreadyApplied,
     ConversionFailed,
 }

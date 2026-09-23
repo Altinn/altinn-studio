@@ -1,0 +1,13 @@
+[Unit]
+Description=Trust the Agent certificate bundle in Chromium
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+ExecStart=/usr/local/libexec/agent-browser-ca-init
+
+[Install]
+WantedBy=multi-user.target

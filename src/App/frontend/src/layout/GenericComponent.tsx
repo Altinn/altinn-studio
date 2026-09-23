@@ -88,12 +88,18 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
   const nodeId = useIndexedId(baseComponentId);
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
+  const handleFocusContainerMount = useHandleFocusComponent(nodeId, containerDivRef);
+  const focusContainerRef = React.useCallback(
+    (div: HTMLDivElement | null) => {
+      containerDivRef.current = div;
+      handleFocusContainerMount();
+    },
+    [handleFocusContainerMount],
+  );
   const hiddenState = useIsHidden(baseComponentId, { includeReason: true });
   const howToHide = useDevToolsStore((state) => (state.isOpen ? state.hiddenComponents : 'hide'));
   const layoutComponent = getComponentDef(component.type);
   const addError = FormStore.layoutDiagnostics.useAddError();
-
-  useHandleFocusComponent(nodeId, containerDivRef);
 
   useEffect(() => {
     if (containerDivRef.current && hiddenState.reason === 'forcedByDeVTools' && howToHide === 'disabled') {
@@ -161,7 +167,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         <AppLanguageTranslatorProvider>
           <RenderComponent
             {...componentProps}
-            ref={containerDivRef}
+            ref={focusContainerRef}
           />
         </AppLanguageTranslatorProvider>
       </FormComponentContextProvider>
@@ -174,7 +180,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         data-componentbaseid={baseComponentId}
         data-componentid={nodeId}
         data-componenttype={component.type}
-        ref={containerDivRef}
+        ref={focusContainerRef}
         item
         container
         size={grid}

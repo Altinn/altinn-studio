@@ -14,7 +14,7 @@ import { AssistantWorkspace } from './components/AssistantWorkspace';
 
 /**
  * During beta, access is restricted to selected service owners.
- * Allowlist is set by AiAssistantAccessService in the backend.
+ * Allowlist is set by CanUseAiAssistantEvaluator in the backend.
  */
 function AiAssistant(): ReactElement {
   const { t } = useTranslation();

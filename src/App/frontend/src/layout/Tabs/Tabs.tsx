@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
 
 import { TabsLayout } from '@app/form-component';
 import type { TabsLayoutTab } from '@app/form-component';
 
-import { SearchParams } from 'src/core/routing/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useFocusComponentRequest } from 'src/layout/focusComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
@@ -19,10 +18,10 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
   const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
   const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const [searchParams] = useSearchParams();
+  const focusRequest = useFocusComponentRequest();
 
   useEffect(() => {
-    const targetIndexedId = searchParams.get(SearchParams.FocusComponentId);
+    const targetIndexedId = focusRequest?.nodeId;
     if (!targetIndexedId) {
       return;
     }
@@ -41,7 +40,7 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
       }
       parent = layoutLookups.componentToParent[parent.id];
     }
-  }, [baseComponentId, layoutLookups.componentToParent, searchParams, tabs]);
+  }, [baseComponentId, focusRequest, layoutLookups.componentToParent, tabs]);
 
   const layoutTabs: TabsLayoutTab[] = tabs.map((tab) => ({
     id: tab.id,

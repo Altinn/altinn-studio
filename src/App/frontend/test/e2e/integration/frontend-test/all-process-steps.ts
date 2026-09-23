@@ -10,9 +10,11 @@ import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
+const processNextTimeout = 60_000;
 
 describe('All process steps', () => {
   it('Should be possible to fill out all steps from beginning to end', () => {
+    cy.intercept('PUT', '**/instances/*/*/process/next*').as('processNext');
     cy.goto('message');
 
     // Later in this test we will make sure PDFs are created. PDF generation now runs as a
@@ -20,20 +22,20 @@ describe('All process steps', () => {
     // so we opt in by selecting the toggle on the first task before submitting (defaults to off to
     // keep other test runs fast).
     cy.get('#createPdfToggle').findByRole('radio', { name: 'Yes' }).check();
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    submitTask();
 
     cy.fillOut('changename');
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    submitTask();
 
     cy.fillOut('group');
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    submitTask();
 
     cy.fillOut('likert');
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    submitTask();
 
     cy.fillOut('datalist');
     testAllSummary2();
-    cy.get(appFrontend.sendinButton).clickAndGone();
+    submitTask();
 
     testConfirmationPage();
 
@@ -50,6 +52,11 @@ describe('All process steps', () => {
     testInstanceData();
   });
 });
+
+function submitTask() {
+  cy.get(appFrontend.sendinButton).click();
+  cy.wait('@processNext', { responseTimeout: processNextTimeout }).its('response.statusCode').should('eq', 200);
+}
 
 function testAllSummary2() {
   cy.findByRole('button', { name: /Neste/ }).click();

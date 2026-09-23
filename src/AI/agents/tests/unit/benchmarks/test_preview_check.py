@@ -85,7 +85,7 @@ class TestOptIn:
 
         monkeypatch.setattr("benchmarks.preview_check._render_results", raise_unavailable)
 
-        assert run("altinity_session_abc123", ["Side1"]) == []
+        assert run("assistant_abc123", ["Side1"]) == []
 
 
 class TestItRunsInsideTheExperimentRunner:
@@ -111,7 +111,7 @@ class TestItRunsInsideTheExperimentRunner:
         monkeypatch.setattr(preview_check, "_render_results", fake_render_results)
 
         async def run_like_the_sdk_does():
-            return preview_check.collect("altinity_session_abcd1234", ["Side1"])
+            return preview_check.collect("assistant_abcd1234", ["Side1"])
 
         assert asyncio.run(run_like_the_sdk_does()) == []
         assert calling_thread["loop"] is False, (
@@ -129,7 +129,7 @@ class TestItRunsInsideTheExperimentRunner:
 
         monkeypatch.setattr(preview_check, "_render_results", unavailable)
 
-        assert preview_check.collect("altinity_session_abcd1234", ["Side1"]) is None
+        assert preview_check.collect("assistant_abcd1234", ["Side1"]) is None
 
 
 class TestAPreviewThatNeverAnsweredIsNotAFailure:

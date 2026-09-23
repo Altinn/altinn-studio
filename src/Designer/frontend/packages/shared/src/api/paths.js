@@ -223,8 +223,8 @@ export const syncEventsWebSocketHub = () => '/hubs/sync';
 export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
 export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
-export const altinityWebSocketHub = () => '/hubs/altinity';
-export const altinityAttachmentsUploadPath = () => `/designer/api/altinity/attachments`;
+export const assistantWebSocketHub = () => '/hubs/assistant';
+export const assistantAttachmentsUploadPath = () => `/designer/api/assistant/attachments`;
 
 // Assistant Chat
 export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post

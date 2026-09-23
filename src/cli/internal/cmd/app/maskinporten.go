@@ -36,7 +36,7 @@ func (s *Service) AppSecretsDir(appPath string) (string, error) {
 	if s.cfg == nil || s.cfg.Home == "" {
 		return "", errStudioctlHomeRequired
 	}
-	appID, err := readAppID(appPath)
+	appID, err := ReadAppID(appPath)
 	if err != nil {
 		return "", fmt.Errorf("read app id: %w", err)
 	}
@@ -81,7 +81,7 @@ func (s *Service) appKeysDirOrEmpty(appPath string) string {
 	if s.cfg == nil || s.cfg.Home == "" {
 		return ""
 	}
-	appID, err := readAppID(appPath)
+	appID, err := ReadAppID(appPath)
 	if err != nil {
 		return ""
 	}
@@ -137,7 +137,7 @@ func (s *Service) RemoveMaskinportenClient(appPath string) (MaskinportenClientRe
 }
 
 func (s *Service) resolveAppSecrets(appPath string) (string, string, error) {
-	appID, err := readAppID(filepath.Clean(appPath))
+	appID, err := ReadAppID(filepath.Clean(appPath))
 	if err != nil {
 		return "", "", fmt.Errorf("read app id: %w", err)
 	}

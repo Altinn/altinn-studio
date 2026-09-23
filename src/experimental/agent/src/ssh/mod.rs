@@ -8,11 +8,11 @@
 //! the owner-protected database, the client key pair lives under the
 //! control-plane home and its private half never enters the guest.
 //!
-//! The image owns the installed server and its static units and
-//! configuration; `agentd` owns the per-Agent state written at setup, exactly
-//! as for Podman. Nothing here is a security boundary beyond the Sandbox
-//! itself: the guest user has passwordless `sudo`, so the server hardening is
-//! hygiene, and Sessions and SSH logins share one trust boundary.
+//! The image provides OpenSSH, systemd and a usable `agent` account; `agentd`
+//! owns the server policy, unit and per-Agent state written at setup. Nothing
+//! here is a security boundary beyond the Sandbox itself: the guest user has
+//! passwordless `sudo`, so the server hardening is hygiene, and Sessions and
+//! SSH logins share one trust boundary.
 
 mod client_config;
 mod keys;
@@ -164,8 +164,8 @@ pub struct GuestMaterial {
 #[must_use]
 pub fn image_contract_missing(what: &str) -> String {
     format!(
-        "the Agent's image cannot provide SSH access: {what}; re-apply the Agent with a newer image that installs \
-         openssh-server with the platform's agent-ssh unit, or remove `ssh` from spec.access"
+        "the Agent's image cannot provide SSH access: {what}; re-apply the Agent with an image that provides \
+         OpenSSH, runs systemd and has a usable `agent` account, or remove `ssh` from spec.access"
     )
 }
 

@@ -12,6 +12,15 @@
         <xs:element name="Forfatter" type="xs:string" />
         <xs:element name="Serie" type="xs:string" />
         <xs:element name="Publikasjonsaar" type="xs:long" />
+        <xs:element name="PageCount" type="xs:int" minOccurs="0" />
+        <xs:element name="CopyCount" minOccurs="0">
+          <xs:simpleType>
+            <xs:restriction base="xs:integer">
+              <xs:minInclusive value="-999999999999999" />
+              <xs:maxInclusive value="999999999999999" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

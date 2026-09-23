@@ -2984,7 +2984,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     public class EventsClient : Altinn.App.Core.Internal.Events.IEventsClient
     {
         public EventsClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Guid? idempotencyKey = default, System.Threading.CancellationToken cancellationToken = default) { }
     }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
@@ -3464,7 +3464,7 @@ namespace Altinn.App.Core.Internal.Events
 {
     public interface IEventsClient
     {
-        System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Guid? idempotencyKey = default, System.Threading.CancellationToken cancellationToken = default);
     }
 }
 namespace Altinn.App.Core.Internal.Expressions
