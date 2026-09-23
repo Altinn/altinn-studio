@@ -1,4 +1,7 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
@@ -9,56 +12,144 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
 
-public class SigningProcessTaskTests
+public class SigningProcessTaskTests : IDisposable
 {
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
     private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new(MockBehavior.Strict);
-    private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
-    private readonly Mock<IHostEnvironment> _hostEnvironmentMock = new(MockBehavior.Strict);
     private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
     private readonly SigningProcessTask _signingProcessTask;
+    private readonly ServiceProvider _services;
+    private readonly FakeLogger<SigningProcessTask> _logger = new();
 
     public SigningProcessTaskTests()
     {
+        var provider = new Mock<ISigneeProvider>(MockBehavior.Strict);
+        provider.SetupGet(p => p.Id).Returns("SigneeProviderId");
+        _services = new ServiceCollection().AddSingleton(provider.Object).BuildServiceProvider();
         _signingProcessTask = new SigningProcessTask(
             _signingServiceMock.Object,
             _processReaderMock.Object,
-            _appMetadataMock.Object,
-            _hostEnvironmentMock.Object,
+            _services,
+            _logger,
             _pdfServiceMock.Object,
             _signeeContextsManagerMock.Object
         );
+    }
 
-        _appMetadataMock
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(
-                new ApplicationMetadata("ttd/app")
+    public void Dispose() => _services.Dispose();
+
+    [Fact]
+    public void ValidateConfiguration_MissingSigningConfiguration_ReturnsFinding()
+    {
+        _processReaderMock
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { SignatureConfiguration = null });
+
+        string finding = Assert.Single(
+            _signingProcessTask.ValidateConfiguration(ValidationContext(HostingEnvironment.Production))
+        );
+
+        Assert.Contains("SignatureConfig is missing", finding);
+    }
+
+    [Fact]
+    public void ValidateConfiguration_ReportsMissingSignatureDataTypeAndIncompleteDelegationTogether()
+    {
+        _processReaderMock
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(
+                new AltinnTaskExtension
                 {
-                    DataTypes =
-                    [
-                        new DataType()
-                        {
-                            Id = "SignatureDataType",
-                            TaskId = "Task_1",
-                            AllowedContributors = ["app:owned"],
-                        },
-                        new DataType()
-                        {
-                            Id = "SigneeStatesDataTypeId",
-                            TaskId = "Task_1",
-                            AllowedContributors = ["app:owned"],
-                        },
-                    ],
+                    SignatureConfiguration = new AltinnSignatureConfiguration
+                    {
+                        SigneeStatesDataTypeId = "signee-states",
+                    },
                 }
             );
-        _hostEnvironmentMock.SetupGet(e => e.EnvironmentName).Returns("Development");
+
+        string[] findings = _signingProcessTask
+            .ValidateConfiguration(ValidationContext(HostingEnvironment.Production))
+            .ToArray();
+
+        Assert.Equal(2, findings.Length);
+        Assert.Contains(findings, finding => finding.Contains("SignatureDataType"));
+        Assert.Contains(findings, finding => finding.Contains("must either be set together"));
     }
+
+    [Theory]
+    [InlineData(HostingEnvironment.Development, 2)]
+    [InlineData(HostingEnvironment.Production, 0)]
+    public void ValidateConfiguration_DataTypesMustBeAppOwnedDuringDevelopment(
+        HostingEnvironment environment,
+        int expectedFindings
+    )
+    {
+        AltinnSignatureConfiguration configuration = CreateSigningConfiguration();
+        configuration.CorrespondenceResources = [new AltinnEnvironmentConfig { Value = "correspondence-resource" }];
+        _processReaderMock
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { SignatureConfiguration = configuration });
+        ProcessTaskValidationContext context = ValidationContext(environment);
+        context.ApplicationMetadata.DataTypes.ForEach(type => type.AllowedContributors = null);
+
+        string[] findings = _signingProcessTask.ValidateConfiguration(context).ToArray();
+
+        Assert.Equal(expectedFindings, findings.Length);
+        Assert.All(findings, finding => Assert.Contains("app:owned", finding));
+    }
+
+    [Theory]
+    [InlineData(HostingEnvironment.Development, false)]
+    [InlineData(HostingEnvironment.Staging, false)]
+    [InlineData(HostingEnvironment.Production, true)]
+    public void ValidateConfiguration_CorrespondenceResourceIsRequiredForTheDeployedEnvironment(
+        HostingEnvironment environment,
+        bool fails
+    )
+    {
+        AltinnSignatureConfiguration configuration = CreateSigningConfiguration();
+        configuration.CorrespondenceResources =
+        [
+            new AltinnEnvironmentConfig { Environment = "tt02", Value = "staging-resource" },
+        ];
+        _processReaderMock
+            .Setup(r => r.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { SignatureConfiguration = configuration });
+
+        string[] findings = _signingProcessTask.ValidateConfiguration(ValidationContext(environment)).ToArray();
+
+        if (fails)
+            Assert.Contains("No correspondence resource", Assert.Single(findings));
+        else
+            Assert.Empty(findings);
+        Assert.Equal(
+            environment == HostingEnvironment.Development,
+            _logger.Collector.GetSnapshot().Any(log => log.Level == LogLevel.Warning && log.Message.Contains("Task_1"))
+        );
+    }
+
+    private static ProcessTaskValidationContext ValidationContext(HostingEnvironment environment) =>
+        new()
+        {
+            TaskId = "Task_1",
+            Environment = environment,
+            ApplicationMetadata = new ApplicationMetadata("ttd/app")
+            {
+                DataTypes =
+                [
+                    new DataType { Id = "SignatureDataType", AllowedContributors = ["app:owned"] },
+                    new DataType { Id = "SigneeStatesDataTypeId", AllowedContributors = ["app:owned"] },
+                ],
+            },
+        };
 
     [Fact]
     public async Task Start_ShouldDeleteExistingSigningData()

@@ -39,6 +39,9 @@ public sealed class PaymentControllerProcessStatusGuardTests
         {
             var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
             processReader
+                .Setup(reader => reader.GetProcessTasks())
+                .Returns(Services.GetRequiredService<IProcessReader>().GetProcessTasks());
+            processReader
                 .Setup(reader => reader.GetAltinnTaskExtension("Task_1"))
                 .Returns(CreatePaymentTaskExtension());
             var paymentService = new Mock<IPaymentService>(MockBehavior.Strict);
@@ -120,6 +123,9 @@ public sealed class PaymentControllerProcessStatusGuardTests
         try
         {
             var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
+            processReader
+                .Setup(reader => reader.GetProcessTasks())
+                .Returns(Services.GetRequiredService<IProcessReader>().GetProcessTasks());
             processReader
                 .Setup(reader => reader.GetAltinnTaskExtension(historicalTaskId))
                 .Returns(CreatePaymentTaskExtension());
