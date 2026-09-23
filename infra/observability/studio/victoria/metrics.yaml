@@ -21,6 +21,8 @@ spec:
   # volume backed: -storageDataPath on the storage volume, and the agent's
   # -remoteWrite.tmpDataPath on the stateful volume.
   useStrictSecurity: true
+  # Storage never calls the Kubernetes API, so the pod gets no token.
+  disableAutomountServiceAccountToken: true
   image:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
@@ -93,6 +95,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   useStrictSecurity: true
+  disableAutomountServiceAccountToken: true
   image:
     repository: victoriametrics/victoria-metrics
     tag: v1.152.0
@@ -140,8 +143,10 @@ spec:
           topologyKey: kubernetes.io/hostname
 ---
 # Accepts OTLP metrics and replicates them to both instances, buffering to disk
-# when one is unreachable. It does no scraping: selectAllByDefault is off and no
-# scrape selectors are set, so it is purely an ingest and fan-out tier.
+# when one is unreachable. Ingest-only mode makes it purely an ingest and fan-out
+# tier: the operator generates no scrape configuration, runs no config-reloader
+# sidecar and creates no Role or RoleBinding, so nothing in the pod needs the
+# Kubernetes API.
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMAgent
 metadata:
@@ -151,11 +156,16 @@ spec:
   podDisruptionBudget:
     maxUnavailable: 1
   useStrictSecurity: true
+  ingestOnlyMode: true
+  # disableAutomountServiceAccountToken does not remove the token from vmagent:
+  # the operator then mounts a projected token into the vmagent container
+  # itself. A service account that opts out of automounting does, and naming one
+  # also stops the operator creating its own.
+  serviceAccountName: vmagent-metrics-no-api-access
   replicaCount: 2
   image:
     repository: victoriametrics/vmagent
     tag: v1.152.0
-  selectAllByDefault: false
   statefulMode: true
   statefulStorage:
     volumeClaimTemplate:
@@ -191,3 +201,9 @@ spec:
             matchLabels:
               app.kubernetes.io/name: vmagent
           topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vmagent-metrics-no-api-access
+automountServiceAccountToken: false

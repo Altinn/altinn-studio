@@ -10,6 +10,8 @@ spec:
   # Same hardened pod and container security context as the rest of the stack;
   # see the note in metrics.yaml.
   useStrictSecurity: true
+  # Storage never calls the Kubernetes API, so the pod gets no token.
+  disableAutomountServiceAccountToken: true
   image:
     repository: victoriametrics/victoria-traces
     tag: v0.11.1
@@ -60,6 +62,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   useStrictSecurity: true
+  disableAutomountServiceAccountToken: true
   image:
     repository: victoriametrics/victoria-traces
     tag: v0.11.1

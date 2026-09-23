@@ -12,6 +12,8 @@ spec:
   # Same hardened pod and container security context as the rest of the stack;
   # see the note in metrics.yaml.
   useStrictSecurity: true
+  # Storage never calls the Kubernetes API, so the pod gets no token.
+  disableAutomountServiceAccountToken: true
   image:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
@@ -66,6 +68,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   useStrictSecurity: true
+  disableAutomountServiceAccountToken: true
   image:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
@@ -116,6 +119,9 @@ spec:
   podDisruptionBudget:
     maxUnavailable: 1
   useStrictSecurity: true
+  # vlagent only forwards to remoteWrite; the Kubernetes API is used only by its
+  # log collector mode, which is off. The operator mounts no token for it.
+  disableAutomountServiceAccountToken: true
   replicaCount: 2
   image:
     repository: victoriametrics/vlagent
