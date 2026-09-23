@@ -9,6 +9,7 @@ use agent::{
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use sandbox::progress::{OperationStatus, Progress};
+use time::OffsetDateTime;
 
 use crate::{format, forward::ForwardSpec};
 
@@ -1097,7 +1098,11 @@ impl App {
 
     pub(crate) fn triage_counts(&self) -> TriageCounts {
         let mut counts = TriageCounts {
-            provisioning: self.agents.iter().filter(|agent| provisioning(agent).is_some()).count(),
+            provisioning: self
+                .agents
+                .iter()
+                .filter(|agent| agent_state(agent).label == "Provisioning")
+                .count(),
             ..TriageCounts::default()
         };
         for session in &self.sessions {
@@ -1693,7 +1698,12 @@ impl App {
                     } else {
                         "▾"
                     };
-                    let (tone, state, status) = agent_state(agent);
+                    let AgentState {
+                        tone,
+                        label: state,
+                        detail: status,
+                        since,
+                    } = agent_state(agent);
                     let count = match sessions.len() {
                         0 => String::new(),
                         1 => "1 session".to_owned(),
@@ -1722,11 +1732,7 @@ impl App {
                         name: agent.metadata.name.clone(),
                         state,
                         tone,
-                        since: agent
-                            .status
-                            .ready_condition()
-                            .and_then(|condition| condition.last_transition_time)
-                            .map_or_else(String::new, format::format_age),
+                        since: since.map_or_else(String::new, format::format_age),
                         detail,
                         age: String::new(),
                     })
@@ -1792,24 +1798,66 @@ fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
     }
 }
 
-/// Reads an Agent's state from its typed status: deletion first, then the pass
-/// in progress, readiness and the class of the last failure.
-fn agent_state(agent: &Agent) -> (Tone, &'static str, String) {
-    if agent.metadata.deletion_timestamp.is_some() {
-        return (Tone::Red, "Terminating", String::new());
-    }
-    if let Some(progress) = provisioning(agent) {
-        return (Tone::Cyan, "Provisioning", progress_summary(progress));
-    }
-    let Some(ready) = agent.status.ready_condition() else {
-        return (Tone::Gray, "Pending", String::new());
+/// An Agent row's state, the detail beside it and when it entered the state.
+struct AgentState {
+    tone: Tone,
+    label: &'static str,
+    detail: String,
+    since: Option<OffsetDateTime>,
+}
+
+/// Reads an Agent's state from its typed status: deletion first, then the
+/// class of the last failure, the pass in progress and readiness.
+///
+/// A failure holds while its generation is current, so an Agent that is
+/// retrying stays Retrying through each retry, and time in state is how long
+/// `Ready` has been in its current state. A pass for a newer generation is
+/// provisioning the change, and its time in state is the pass's own.
+fn agent_state(agent: &Agent) -> AgentState {
+    let state = |tone, label, detail, since| AgentState {
+        tone,
+        label,
+        detail,
+        since,
     };
-    match (ready.status, agent.status.failure) {
-        (ConditionStatus::True, _) => (Tone::Green, "Ready", String::new()),
-        (_, Some(FailureKind::Invalid)) => (Tone::Red, "Failed", ready.detail()),
-        (_, Some(FailureKind::Transient)) => (Tone::Yellow, "Retrying", ready.detail()),
-        (_, None) => (Tone::Cyan, "Starting", ready.detail()),
+    if let Some(deleted) = agent.metadata.deletion_timestamp {
+        return state(Tone::Red, "Terminating", String::new(), Some(deleted));
     }
+    let ready = agent.status.ready_condition();
+    let entered = ready.and_then(|ready| ready.last_transition_time);
+    let message = || ready.map_or_else(String::new, |ready| ready.detail().trim_end().to_owned());
+    let failure = agent
+        .status
+        .failure
+        .filter(|_| agent.status.observed_generation == agent.metadata.generation);
+    match (failure, provisioning(agent)) {
+        (Some(FailureKind::Invalid), _) => state(Tone::Red, "Failed", message(), entered),
+        (Some(FailureKind::Transient), Some(progress)) => {
+            state(Tone::Yellow, "Retrying", progress_summary(progress), entered)
+        }
+        (Some(FailureKind::Transient), None) => state(Tone::Yellow, "Retrying", message(), entered),
+        (None, Some(progress)) => state(
+            Tone::Cyan,
+            "Provisioning",
+            progress_summary(progress),
+            Some(pass_started(progress)),
+        ),
+        (None, None) => match ready.map(|ready| ready.status) {
+            None => state(Tone::Gray, "Pending", String::new(), None),
+            Some(ConditionStatus::True) => state(Tone::Green, "Ready", String::new(), entered),
+            Some(_) => state(Tone::Cyan, "Starting", message(), entered),
+        },
+    }
+}
+
+/// When a pass started: before the phase in progress by the time its
+/// finished phases took.
+fn pass_started(progress: &Progress) -> OffsetDateTime {
+    let finished = progress.finished().iter().map(|phase| phase.elapsed_ms).sum::<u64>();
+    let end = progress
+        .current()
+        .map_or_else(OffsetDateTime::now_utc, |phase| phase.started_at);
+    end - time::Duration::milliseconds(i64::try_from(finished).unwrap_or(i64::MAX))
 }
 
 /// The Agent's pass while it is running.
@@ -2745,7 +2793,7 @@ mod tests {
         agent
     }
 
-    fn provisioning_agent(name: &str) -> Agent {
+    fn provisioning_agent(name: &str, failure: Option<FailureKind>) -> Agent {
         let phase = sandbox::SandboxPhase::ImageResolve.phase();
         let step = sandbox::StepId::generate();
         let mut progress = Progress::new();
@@ -2766,6 +2814,7 @@ mod tests {
             progress.apply(&event);
         }
         let mut agent = failed_agent(name, FailureKind::Transient);
+        agent.status.failure = failure;
         agent.status.progress = Some(agent::progress::Provisioning {
             pass: agent::resources::Changes::new().revision(),
             progress,
@@ -2777,6 +2826,9 @@ mod tests {
     fn agent_state_comes_from_typed_status_and_the_pass_in_progress() {
         let mut terminating = ready_agent("done");
         terminating.metadata.deletion_timestamp = Some(time::OffsetDateTime::now_utc());
+        let mut updating = provisioning_agent("updating", Some(FailureKind::Invalid));
+        updating.metadata.generation = 2;
+        updating.status.observed_generation = 1;
         let mut app = App::new();
         app.apply_snapshot(
             vec![
@@ -2785,7 +2837,9 @@ mod tests {
                 agent("fresh"),
                 failed_agent("broken", FailureKind::Invalid),
                 failed_agent("flaky", FailureKind::Transient),
-                provisioning_agent("pulling"),
+                provisioning_agent("pulling", None),
+                provisioning_agent("retrying", Some(FailureKind::Transient)),
+                updating,
             ],
             Vec::new(),
         );
@@ -2808,9 +2862,46 @@ mod tests {
                     Tone::Cyan,
                     "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
                 ),
+                (
+                    "retrying".into(),
+                    "Retrying",
+                    Tone::Yellow,
+                    "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
+                ),
+                (
+                    "updating".into(),
+                    "Provisioning",
+                    Tone::Cyan,
+                    "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
+                ),
             ]
         );
-        assert_eq!(app.triage_counts().provisioning, 1);
+        assert_eq!(
+            app.triage_counts().provisioning,
+            2,
+            "the header counts the rows shown as Provisioning"
+        );
+    }
+
+    #[test]
+    fn time_in_state_is_readys_for_failures_and_the_passs_while_provisioning() {
+        let entered = OffsetDateTime::now_utc() - time::Duration::minutes(5);
+        let mut retrying = provisioning_agent("retrying", Some(FailureKind::Transient));
+        retrying.status.conditions[0].last_transition_time = Some(entered);
+        let mut updating = provisioning_agent("updating", None);
+        updating.status.conditions[0].last_transition_time = Some(entered);
+        let mut app = App::new();
+        app.apply_snapshot(vec![retrying, updating], Vec::new());
+        let since = app
+            .render_rows()
+            .into_iter()
+            .map(|row| (row.name, row.since))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            since,
+            [("retrying".into(), "5m".into()), ("updating".into(), "0s".into())],
+            "a retry keeps the time the Agent started failing, and a pass shows its own"
+        );
     }
 
     #[test]
