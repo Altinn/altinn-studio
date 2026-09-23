@@ -28,6 +28,17 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Validates that a process task can be renamed. A task whose layout set folder carries its id can only
+    /// take a new id that the layout set could also be renamed to.
+    /// </summary>
+    public Task ValidateTaskIdChange(
+        AltinnRepoEditingContext editingContext,
+        string oldTaskId,
+        string newTaskId,
+        CancellationToken cancellationToken
+    );
+
     public Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
