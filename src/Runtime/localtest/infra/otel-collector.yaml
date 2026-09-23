@@ -1,8 +1,7 @@
 receivers:
   otlp:
     protocols:
-      # Collector 0.104.0 changed the default receiver host from 0.0.0.0 to
-      # localhost, which makes the published port unreachable from the host.
+      # The receiver listens on localhost by default, which the published port cannot reach.
       grpc:
         endpoint: 0.0.0.0:4317
 
@@ -11,13 +10,15 @@ processors:
     timeout: 5s
     send_batch_size: 10000
 
+# Every signal is exported as OTLP. VictoriaMetrics stores metrics under their OpenTelemetry
+# names and attributes (http.server.request.duration{service.name="..."}), as it does in prod.
 exporters:
   otlphttp/victoria-logs:
     logs_endpoint: http://localtest-victoria-logs:9428/insert/opentelemetry/v1/logs
+  otlphttp/victoria-metrics:
+    metrics_endpoint: http://localtest-victoria-metrics:8428/opentelemetry/v1/metrics
   otlphttp/victoria-traces:
     traces_endpoint: http://localtest-victoria-traces:10428/insert/opentelemetry/v1/traces
-  prometheusremotewrite/victoria-metrics:
-    endpoint: http://localtest-victoria-metrics:8428/api/v1/write
 
 service:
   telemetry:
@@ -31,7 +32,7 @@ service:
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [prometheusremotewrite/victoria-metrics]
+      exporters: [otlphttp/victoria-metrics]
     logs:
       receivers: [otlp]
       processors: [batch]
