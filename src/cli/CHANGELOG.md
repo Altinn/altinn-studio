@@ -9,11 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- The local monitoring stack (`studioctl env up --monitoring`) now stores metrics, traces and logs in VictoriaMetrics, VictoriaTraces and VictoriaLogs instead of Mimir, Tempo and Loki, and runs Grafana 13.2 (from 10.4) and OpenTelemetry Collector 0.161 (from 0.98). Metrics keep their OpenTelemetry names and attributes, so you query `http.server.request.duration_bucket{service.name="..."}` instead of `http_server_request_duration_seconds_bucket{job="..."}`, and the bundled Grafana dashboards use these names. The containers are now `localtest-victoria-metrics`, `localtest-victoria-traces`, `localtest-victoria-logs`, `localtest-otel-collector` and `localtest-grafana`, which are the names `studioctl env logs --component` accepts. `STUDIOCTL_IMAGE_TEMPO`, `STUDIOCTL_IMAGE_MIMIR` and `STUDIOCTL_IMAGE_LOKI` are replaced by `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `STUDIOCTL_IMAGE_VICTORIA_TRACES` and `STUDIOCTL_IMAGE_VICTORIA_LOGS`. Telemetry collected by the previous stack is not carried over. Grafana downloads its VictoriaLogs datasource plugin each time the environment starts, so `studioctl env up --monitoring` needs network access.
+
 ## [0.1.0-preview.27] - 2026-09-23
 
 ### Added
 
-- The local monitoring stack now keeps logs again, in VictoriaLogs, so Grafana can explore local application logs.
 - `studioctl self upgrade` runs the same update as `studioctl self update`, so either name works.
 - `studioctl agent skills` now distributes an Altinn Studio app-development skill and installs it for Codex, Claude Code, repository-local harnesses, or an explicit skills directory. Installing synchronizes the named skill with the version packaged by studioctl, replacing an existing copy at that skill path when it differs.
 - `studioctl app upgrade v9` adds `Invalid` wherever a validation-type list explicitly includes `Schema`, preserving validation of input that cannot be saved after the two types are separated in v9.
@@ -22,20 +25,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- The local monitoring stack now stores metrics in VictoriaMetrics and traces in VictoriaTraces, replacing Mimir,
-  Tempo and Loki. Local Grafana queries traces through the Tempo datasource, so TraceQL is available. Existing local
-  telemetry is not carried over; run `studioctl env down` and `studioctl env up` to rebuild the stack. The
-  `STUDIOCTL_IMAGE_TEMPO`, `STUDIOCTL_IMAGE_MIMIR` and `STUDIOCTL_IMAGE_LOKI` overrides are replaced by
-  `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `STUDIOCTL_IMAGE_VICTORIA_TRACES` and `STUDIOCTL_IMAGE_VICTORIA_LOGS`.
-- Local Grafana installs the VictoriaLogs datasource plugin when the environment starts, which needs network access
-  the first time.
 - `studioctl app upgrade v9` now applies all layout changes together, so each layout file is read and written only once and keeps its original byte order mark, line endings and trailing newline.
 - Maskinporten guidance in `studioctl app upgrade v9` says that scopes are needed both in Studio and on the client you use locally.
 
 ### Fixed
 
-- The local monitoring stack receives application telemetry again. The OpenTelemetry Collector stopped listening on
-  anything but its own loopback address, so nothing an app exported reached Grafana.
 - `studioctl app upgrade v9` converts primitive calculation rules without the previous shared-function parameter limit, preserves arithmetic grouping, missing-input guards, early returns and JavaScript rounding, and writes their results through the v9 data-model API. Package removal also recognizes package names regardless of letter case.
 - `studioctl app run` on macOS 27 no longer times out with "no matching app metadata endpoint was discovered". The app port discovery no longer relies on `netstat`, which stopped listing TCP sockets in that release.
 - Installing `studioctl` on a new machine no longer requires Docker or another container runtime. Legacy data migrations are recorded as already satisfied on a fresh installation and still run normally during updates.
