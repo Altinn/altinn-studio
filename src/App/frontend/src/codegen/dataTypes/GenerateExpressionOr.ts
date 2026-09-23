@@ -37,7 +37,10 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
 
   private expressionFallback?: ExprValToActual<Val>;
 
-  /** Overrides the runtime fallback without changing the schema default or optionality. */
+  /**
+   * Sets the value returned when expression evaluation fails. If omitted, the default passed to
+   * `.optional()` is used. Properties without that default need an explicit fallback.
+   */
   setFallback(value: ExprValToActual<Val>): this {
     this.ensureMutable();
     this.expressionFallback = value;
