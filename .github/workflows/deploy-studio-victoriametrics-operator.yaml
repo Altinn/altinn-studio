@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - infra/studio/victoriametrics-operator/**
-      - .github/workflows/deploy-studio-victoriametrics-operator.yaml
+      - 'infra/studio/victoriametrics-operator/**'
+      - '.github/workflows/deploy-studio-victoriametrics-operator.yaml'
+      - '!**/AGENTS.md'
   workflow_dispatch:
     inputs:
       environments:
@@ -14,8 +15,11 @@ on:
         default: 'prod'
 
 permissions:
-  id-token: write
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   construct-environments-array:
@@ -27,7 +31,11 @@ jobs:
   push-artifact:
     name: Push victoriametrics-operator as OCI artifact
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: dev
+    permissions:
+      contents: read
+      id-token: write
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     outputs:
@@ -38,6 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Set vars
@@ -70,7 +79,11 @@ jobs:
     name: Tag artifact
     needs: [push-artifact, construct-environments-array]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: ${{ matrix.environment }}
+    permissions:
+      contents: read
+      id-token: write
     env:
       REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
