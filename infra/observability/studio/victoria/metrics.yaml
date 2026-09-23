@@ -5,6 +5,13 @@ apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMSingle
 metadata:
   name: metrics-a
+  annotations:
+    # Flux must never delete a storage object. The operator keeps a VMSingle's
+    # volume claim when the object is deleted, but VLSingle and VTSingle do not
+    # (their finalizers leave the claim owned by the object, so it is garbage
+    # collected with it), so all six are protected the same way. Removing one of
+    # these objects from Git then leaves it running until it is deleted by hand.
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   # Strict security makes the operator apply its hardened pod and container
   # security context: non-root, RuntimeDefault seccomp, read-only root
@@ -56,6 +63,8 @@ apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMSingle
 metadata:
   name: metrics-b
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   useStrictSecurity: true
   image:
