@@ -10,7 +10,11 @@ import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
 import { StudioRecommendedNextActionContextProvider } from '@studio/components';
-import { BpmnConfigPanelFormContextProvider } from '../contexts/BpmnConfigPanelContext';
+import {
+  BpmnConfigPanelFormContextProvider,
+  useBpmnConfigPanelFormContext,
+} from '../contexts/BpmnConfigPanelContext';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import type { TaskEvent } from '../types/TaskEvent';
 import { EventListeners } from '../../test/EventListeners';
 import type {
@@ -29,9 +33,10 @@ const appVersion: AppVersion = {
   backendVersion: '8.0.0',
   frontendVersion: '4.0.0',
 };
+const initialXml = '<initialxml></initialxml>';
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
   appVersion,
-  bpmnXml: undefined,
+  bpmnXml: initialXml,
 };
 const layoutSetId = 'someLayoutSetId';
 const layoutSets: LayoutSets = [
@@ -210,6 +215,64 @@ describe('useBpmnEditor', () => {
     expect(saveBpmn2).toHaveBeenCalledTimes(1);
   });
 
+  it('Does not reload the process when the save succeeds', async () => {
+    const saveBpmn = jest.fn().mockResolvedValue(undefined);
+    await setup({ bpmnApiContextProps: { saveBpmn } });
+
+    eventListeners.triggerEvent('commandStack.changed');
+    await waitFor(expect(saveBpmn).toHaveBeenCalled);
+
+    expect(importXML).toHaveBeenCalledTimes(1);
+    expect(importXML).toHaveBeenCalledWith(initialXml);
+  });
+
+  it('Reloads the process as it was last saved and clears the selection when the save fails', async () => {
+    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
+    const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
+    act(() =>
+      eventListeners.triggerEvent('selection.changed', {
+        oldSelection: [],
+        newSelection: [element],
+      }),
+    );
+
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+
+    await waitFor(() => expect(importXML).toHaveBeenCalledTimes(2));
+    expect(importXML).toHaveBeenLastCalledWith(initialXml);
+    expect(result.current.bpmnContext.bpmnDetails).toBeNull();
+  });
+
+  it('Reloads the most recently saved process when a later save fails', async () => {
+    const savedXml = '<savedxml></savedxml>';
+    const rejectedXml = '<rejectedxml></rejectedxml>';
+    saveXML.mockResolvedValueOnce({ xml: savedXml }).mockResolvedValueOnce({ xml: rejectedXml });
+    const saveBpmn = jest
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('Bad request'));
+    await setup({ bpmnApiContextProps: { saveBpmn } });
+
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(savedXml, null));
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+
+    await waitFor(() => expect(importXML).toHaveBeenCalledTimes(2));
+    expect(importXML).toHaveBeenLastCalledWith(savedXml);
+  });
+
+  it('Clears the metadata form before the save completes, so the next edit does not resend it', async () => {
+    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
+    const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
+    const taskIdChange = { oldId: 'Task_1', newId: 'Task_2' };
+    result.current.metadataFormRef.current = { taskIdChange };
+
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange }));
+    expect(result.current.metadataFormRef.current).toBeUndefined();
+  });
+
   it('Resets the modeler ref when the callback is called with null', async () => {
     const { result } = await setupWithBpmnContext();
     const { modelerRef } = result.current.bpmnContext;
@@ -258,10 +321,10 @@ function renderWithBpmnProviders(
   );
 }
 
-async function setupWithBpmnContext(): Promise<
-  RenderHookResult<UseBpmnEditorAndContextResult, void>
-> {
-  const wrapper = ({ children }) => renderWithBpmnProviders(children);
+async function setupWithBpmnContext(
+  props?: Partial<BpmnProviderProps>,
+): Promise<RenderHookResult<UseBpmnEditorAndContextResult, void>> {
+  const wrapper = ({ children }) => renderWithBpmnProviders(children, props);
   const utils = renderHook(() => useBpmnEditorAndContext(), { wrapper });
   const { result } = utils;
   const div = document.createElement('div');
@@ -286,10 +349,12 @@ async function waitForEventListenerRegistration(): Promise<void> {
 type UseBpmnEditorAndContextResult = {
   bpmnEditor: UseBpmnEditorResult;
   bpmnContext: Partial<BpmnContextProps>;
+  metadataFormRef: React.MutableRefObject<MetadataForm>;
 };
 
 const useBpmnEditorAndContext = (): UseBpmnEditorAndContextResult => {
   const bpmnEditor = useBpmnEditor();
   const bpmnContext = useBpmnContext();
-  return { bpmnEditor, bpmnContext };
+  const { metadataFormRef } = useBpmnConfigPanelFormContext();
+  return { bpmnEditor, bpmnContext, metadataFormRef };
 };

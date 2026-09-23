@@ -14,7 +14,6 @@ import classes from './ProcessEditor.module.css';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
-import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export type ProcessEditorProps = {
@@ -30,7 +29,7 @@ export type ProcessEditorProps = {
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataTypes: BpmnApiContextProps['mutateDataTypes'];
-  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
+  saveBpmn: BpmnApiContextProps['saveBpmn'];
   onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
   onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };

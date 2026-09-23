@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { BpmnModelerInstance } from '../utils/bpmnModeler/BpmnModelerInstance';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
@@ -14,17 +14,27 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
 export const useBpmnEditor = (): UseBpmnEditorResult => {
-  const { getUpdatedXml, setBpmnDetails } = useBpmnContext();
+  const { getUpdatedXml, setBpmnDetails, modelerRef, initialBpmnXml } = useBpmnContext();
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { addAction } = useStudioRecommendedNextActionContext();
+  const lastSavedXmlRef = useRef<string>(initialBpmnXml);
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = useCallback(async () => {
     const xml = await getUpdatedXml();
-    saveBpmn(xml, metadataFormRef.current || null);
+    const metadata = metadataFormRef.current || null;
     resetForm();
-  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml]);
+    try {
+      await saveBpmn(xml, metadata);
+      lastSavedXmlRef.current = xml;
+    } catch {
+      // Show the process as it is saved, so the rejected change is not sent again with the next edit.
+      // Importing clears the command stack without firing "commandStack.changed", so this does not save.
+      setBpmnDetails(null);
+      await modelerRef.current?.importXML(lastSavedXmlRef.current);
+    }
+  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, setBpmnDetails, modelerRef]);
 
   const handleShapeAdd = useCallback(
     async (taskEvent: TaskEvent): Promise<void> => {
