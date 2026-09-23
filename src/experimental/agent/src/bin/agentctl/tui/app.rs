@@ -932,16 +932,21 @@ impl App {
     pub(crate) fn apply_snapshot(&mut self, mut agents: Vec<Agent>, mut sessions: Vec<Session>) {
         agents.sort_by(|left, right| left.metadata.name.cmp(&right.metadata.name));
         sessions.sort_by(|left, right| left.agent.cmp(&right.agent).then_with(|| left.name.cmp(&right.name)));
+        // The selection's position is read before the rows it indexes are replaced.
+        let fallback = self.selected_index().unwrap_or_default();
         self.agents = agents;
         self.sessions = sessions;
         self.loaded = true;
-        self.rebuild();
+        self.rebuild_from(fallback);
     }
 
     /// Rebuilds the tree. A selection whose row disappeared falls back to the
     /// row now at its former position.
     pub(crate) fn rebuild(&mut self) {
-        let fallback = self.selected_index().unwrap_or_default();
+        self.rebuild_from(self.selected_index().unwrap_or_default());
+    }
+
+    fn rebuild_from(&mut self, fallback: usize) {
         self.groups = self
             .agents
             .iter()
@@ -1011,19 +1016,51 @@ impl App {
         .any(|value| self.matches(value))
     }
 
-    /// Selects the next shown Session waiting for input, after the selection and wrapping around.
+    /// Selects the next Session waiting for input in tree order, after the
+    /// selection and wrapping around. The header counts every such Session, so
+    /// one in a folded Agent is unfolded and one the filter hides clears it.
     fn select_next_needing_input(&mut self) {
-        let start = self.selected_index().map_or(0, |index| index + 1);
-        let next = (0..self.rows.len())
-            .map(|step| (start + step) % self.rows.len())
-            .find(|index| {
-                matches!(self.rows[*index], Row::Session { group, position }
-                    if self.group_session(group, position)
-                        .is_some_and(|session| session.status.state == State::WaitingForInput))
-            });
-        if let Some(index) = next {
-            self.select_index(index);
+        let order = self
+            .groups
+            .iter()
+            .filter_map(|group| {
+                let agent = self.agents.get(group.agent)?;
+                let sessions = group.sessions.iter().filter_map(|index| self.sessions.get(*index));
+                Some(
+                    std::iter::once((TreeRowId::Agent(agent.metadata.name.clone()), None)).chain(sessions.map(
+                        |session| {
+                            (
+                                TreeRowId::Session {
+                                    agent: session.agent.clone(),
+                                    session: session.name.clone(),
+                                },
+                                Some(session),
+                            )
+                        },
+                    )),
+                )
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+        let start = self
+            .selection
+            .as_ref()
+            .and_then(|selection| order.iter().position(|(id, _)| id == selection))
+            .map_or(0, |index| index + 1);
+        let Some((target, session)) = (0..order.len())
+            .map(|step| &order[(start + step) % order.len()])
+            .find(|(_, session)| session.is_some_and(|session| session.status.state == State::WaitingForInput))
+        else {
+            return;
+        };
+        if let Some(session) = session {
+            if !self.session_matches(session) && !self.matches(&session.agent) {
+                self.filter.clear();
+            }
+            self.collapsed.remove(&session.agent);
         }
+        self.selection = Some(target.clone());
+        self.rebuild();
     }
 
     pub(crate) fn selected_row(&self) -> Option<Row> {
@@ -2042,6 +2079,58 @@ mod tests {
         assert_eq!(app.selected_index(), Some(4));
         app.on_key(key(KeyCode::Tab));
         assert_eq!(app.selected_index(), Some(1), "the jump wraps around");
+    }
+
+    #[test]
+    fn tab_unfolds_and_clears_the_filter_to_reach_every_session_the_header_counts() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("first"), agent("second")],
+            vec![
+                session("first", "a", "working"),
+                session("second", "c", "waitingForInput"),
+            ],
+        );
+        app.on_key(key(KeyCode::Char('z')));
+        assert_eq!(app.rows.len(), 2, "both Agents are folded");
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "second".into(),
+                session: SessionName::new("c").expect("name"),
+            })
+        );
+        assert!(!app.collapsed.contains("second"), "the Agent holding it unfolds");
+
+        app.filter = "first".into();
+        app.select_index(0);
+        app.rebuild();
+        app.on_key(key(KeyCode::Tab));
+        assert!(app.filter.is_empty(), "a filter hiding it is cleared");
+        assert_eq!(app.selected_row(), Some(Row::Session { group: 1, position: 0 }));
+    }
+
+    #[test]
+    fn a_removed_row_leaves_the_selection_on_its_neighbour() {
+        let mut app = App::new();
+        app.apply_snapshot(vec![agent("a"), agent("b"), agent("c")], Vec::new());
+        app.select_index(2);
+        app.apply_snapshot(vec![agent("a"), agent("b")], Vec::new());
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("b".into())),
+            "the last row falls back to the one above"
+        );
+
+        app.apply_snapshot(vec![agent("a"), agent("b"), agent("c")], Vec::new());
+        app.select_index(1);
+        app.apply_snapshot(vec![agent("a"), agent("c")], Vec::new());
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("c".into())),
+            "a middle row falls back to the one now in its place"
+        );
     }
 
     #[test]
