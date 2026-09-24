@@ -7,9 +7,15 @@ import userEvent from '@testing-library/user-event';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { doProcessResume } from 'src/queries/queries';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcessWorkflow } from 'src/types/shared';
+
+vi.mock('src/queries/queries', async () => ({
+  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
+  doProcessResume: vi.fn(),
+}));
 
 type RouterRef = { current: ReturnType<typeof createMemoryRouter> | undefined };
 
@@ -411,6 +417,76 @@ describe('ProcessWrapper workflow state machine', () => {
       expect(fetchCount).toBe(fetchesAfterLoad);
       expect(screen.getByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).toBeInTheDocument();
       expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows the transition loader and its warning while a resume keeps failing, then the retry view again', async () => {
+    // process/resume holds the request until the resumed workflow settles. Without a poll while it
+    // is pending, the session would sit on a spinning retry button through every failed retry,
+    // unlike any other session looking at the same instance.
+    vi.useFakeTimers();
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      let phase: 'failed' | 'retrying' | 'failedAgain' = 'failed';
+      let settleResume: () => void = () => {};
+      vi.mocked(doProcessResume).mockImplementation(async () => {
+        phase = 'retrying';
+        await new Promise<void>((resolve) => {
+          settleResume = resolve;
+        });
+        phase = 'failedAgain';
+        throw Object.assign(new Error('Request failed with status code 500'), {
+          response: { status: 500, data: { workflowFailure: { kind: 'stepFailed' } } },
+        });
+      });
+
+      await renderWithDefaultProviders({
+        renderer: () => (
+          <InstanceProvider>
+            <ProcessWrapper>
+              <div data-testid='task-content'>Task content</div>
+            </ProcessWrapper>
+          </InstanceProvider>
+        ),
+        router: ({ children }) => <InstanceRouter taskId='Task_Service'>{children}</InstanceRouter>,
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => {
+              // A service task with no layout of its own, so processing renders the transition loader.
+              const instance = getInstanceWithProcessMock();
+              instance.process.processTasks = [
+                { altinnTaskType: 'data', elementId: 'Task_1' },
+                { altinnTaskType: 'scenario', elementId: 'Task_Service' },
+              ];
+              instance.process.currentTask!.elementId = 'Task_Service';
+              instance.process.currentTask!.altinnTaskType = 'scenario';
+              instance.process.currentTask!.elementType = 'ServiceTask';
+              instance.process.currentTask!.userActions = [{ id: 'write', authorized: true, type: 'ProcessAction' }];
+              instance.process.workflow =
+                phase === 'retrying'
+                  ? { status: 'processing', targetTask: 'Task_Service', failedAttempts: 2 }
+                  : { status: 'failed', targetTask: 'Task_Service', failure: { kind: 'stepFailed' } };
+              return instance;
+            },
+          },
+        },
+      });
+
+      await user.click(await screen.findByRole('button', { name: /prøv igjen/i }));
+
+      await expectWorkflowLoader();
+      expect(await screen.findByText(/vi får ikke behandlet skjemaet ditt/i)).toBeInTheDocument();
+
+      await act(async () => {
+        settleResume();
+        await vi.advanceTimersByTimeAsync(1_000);
+      });
+
+      expect(await screen.findByRole('button', { name: /prøv igjen/i })).toBeInTheDocument();
+      expect(screen.queryByText(/vi får ikke behandlet skjemaet ditt/i)).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }
