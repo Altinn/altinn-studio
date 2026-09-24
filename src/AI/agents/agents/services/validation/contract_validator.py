@@ -146,7 +146,7 @@ class ContractValidator:
             required_file_types = []
             
             # Must have one layout file
-            has_layout = any(re.match(r'App/ui/form/layouts/.*\.json$', f) for f in patch_files)
+            has_layout = any(re.match(ALTINN_FILE_PATTERNS['layout'], f) for f in patch_files)
             if not has_layout:
                 required_file_types.append("layout")
             

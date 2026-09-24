@@ -79,6 +79,39 @@ public class DatamodelsController : ControllerBase
     }
 
     /// <summary>
+    /// Checks whether the generated model files are out of date with the stored datamodel.
+    /// </summary>
+    /// <param name="org">The org owning the repository.</param>
+    /// <param name="repository">The repository name</param>
+    /// <param name="modelPath">The path to the datamodel to check.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("datamodel/generation-status")]
+    public async Task<ActionResult<bool>> GetGenerationStatus(
+        [FromRoute] string org,
+        [FromRoute] string repository,
+        [FromQuery] string? modelPath,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(modelPath))
+        {
+            return BadRequest();
+        }
+
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+        bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+            editingContext,
+            modelPath,
+            cancellationToken
+        );
+
+        return Ok(isOutOfDate);
+    }
+
+    /// <summary>
     /// Updates the specified datamodel in the git repository.
     /// </summary>
     /// <param name="org">The org owning the repository.</param>

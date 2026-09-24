@@ -14,7 +14,6 @@ import classes from './ProcessEditor.module.css';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
-import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export type ProcessEditorProps = {
@@ -30,7 +29,8 @@ export type ProcessEditorProps = {
   deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
   mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
   mutateDataTypes: BpmnApiContextProps['mutateDataTypes'];
-  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
+  saveBpmn: BpmnApiContextProps['saveBpmn'];
+  getSavedBpmn: BpmnApiContextProps['getSavedBpmn'];
   onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
   onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
@@ -49,6 +49,7 @@ export const ProcessEditor = ({
   mutateLayoutSetId,
   mutateDataTypes,
   saveBpmn,
+  getSavedBpmn,
   onProcessTaskAdd,
   onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
@@ -76,6 +77,7 @@ export const ProcessEditor = ({
         mutateLayoutSetId={mutateLayoutSetId}
         mutateDataTypes={mutateDataTypes}
         saveBpmn={saveBpmn}
+        getSavedBpmn={getSavedBpmn}
         onProcessTaskAdd={onProcessTaskAdd}
         onProcessTaskRemove={onProcessTaskRemove}
       >

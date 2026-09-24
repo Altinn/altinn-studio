@@ -36,7 +36,8 @@ _ALTINN_ANATOMY = """\
 ## Altinn app anatomy
 An Altinn application is a Git repo with four interrelated file groups:
 
-- **Layouts** (`App/ui/layouts/*.json`) define the UI.  Each layout is a tree of components with `id`, `type`, `dataModelBindings`, and `textResourceBindings`.
+- **Layout sets** (`App/ui/layout-sets.json`) map each layout set id to the process task(s) and data type it belongs to.  An app can have more than one set (form, receipt, subforms).  Read this file first to find which set belongs to the task the user is talking about, then edit the layouts under `App/ui/<layoutSetId>/layouts/`.
+- **Layouts** (`App/ui/<layoutSetId>/layouts/*.json`) define the UI.  Each layout is a tree of components with `id`, `type`, `dataModelBindings`, and `textResourceBindings`.
 - **Data models** (`App/models/*.cs` or `App/models/*.json`) define the form's fields.  Layout `dataModelBindings` reference these by exact property name.
 - **Text resources** (`App/config/texts/resource.<locale>.json`) hold localized strings.  Keys follow `app.field.camelCase`; locales are typically `nb` (Bokmål), sometimes `nn` and `en`.
 - **Policy / authorization** (`App/config/authorization/policy.xml`, plus resource files) controls who can do what.

@@ -3,6 +3,7 @@ import { useBpmnContext } from '../contexts/BpmnContext';
 import { BpmnModelerInstance } from '../utils/bpmnModeler/BpmnModelerInstance';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
+import { useReloadSavedProcess } from './useReloadSavedProcess';
 import type { TaskEvent } from '../types/TaskEvent';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
@@ -14,20 +15,29 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
 export const useBpmnEditor = (): UseBpmnEditorResult => {
-  const { getUpdatedXml, setBpmnDetails } = useBpmnContext();
+  const { getUpdatedXml, setBpmnDetails, isReloadingRef } = useBpmnContext();
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { addAction } = useStudioRecommendedNextActionContext();
+  const reloadSavedProcess = useReloadSavedProcess();
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = useCallback(async () => {
     const xml = await getUpdatedXml();
-    saveBpmn(xml, metadataFormRef.current || null);
+    const metadata = metadataFormRef.current || null;
     resetForm();
-  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml]);
+    try {
+      await saveBpmn(xml, metadata);
+    } catch {
+      // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
+      // renames the task's layout set. Other failed changes are sent again with the next edit, as before.
+      if (metadata?.taskIdChange) await reloadSavedProcess();
+    }
+  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, reloadSavedProcess]);
 
   const handleShapeAdd = useCallback(
     async (taskEvent: TaskEvent): Promise<void> => {
+      if (isReloadingRef.current) return; // Reloading re-adds every shape; those are not new tasks.
       const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(
         taskEvent?.element?.businessObject,
       );
@@ -42,11 +52,12 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
       )
         addAction(bpmnDetails.id);
     },
-    [addAction, onProcessTaskAdd],
+    [addAction, onProcessTaskAdd, isReloadingRef],
   );
 
   const handleShapeRemove = useCallback(
     (taskEvent: TaskEvent): void => {
+      if (isReloadingRef.current) return; // Reloading removes every shape; those are not deleted tasks.
       const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(
         taskEvent?.element?.businessObject,
       );
@@ -55,7 +66,7 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
         taskType: bpmnDetails.taskType,
       });
     },
-    [onProcessTaskRemove],
+    [onProcessTaskRemove, isReloadingRef],
   );
 
   const updateBpmnDetails = useCallback(
