@@ -64,7 +64,6 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
       returnType: ExprVal.${typeName},
       defaultValue: ${serializeFallback(fallback)},
       errorIntroText: ${JSON.stringify(`Invalid expression for ${componentType}, property ${propertyPath}`)},
-      propertyPath: ${JSON.stringify(propertyPath)},
     } satisfies ExpressionDescriptor<ExprVal.${typeName}>`;
     if (leaves.has(propertyPath) && leaves.get(propertyPath) !== definition) {
       throw new Error(`Conflicting expression descriptors at ${componentType}.${propertyPath}`);

@@ -20,7 +20,6 @@ it('discovers inherited, nested, array, dictionary, union and text resource expr
     'date',
     'textResourceBindings.title',
   ]) {
-    expect(result).toContain(`propertyPath: ${JSON.stringify(path)}`);
     expect(result).toContain(`Invalid expression for AnyNewComponent, property ${path}`);
   }
 });
@@ -28,7 +27,6 @@ it('discovers inherited, nested, array, dictionary, union and text resource expr
 it('respects local overrides of inherited expression properties', () => {
   const root = new CG.obj(new CG.prop('required', new CG.bool())).extends(CG.common('FormComponentProps'));
   const result = generateExpressionDescriptors('Prototype', root);
-  expect(result).not.toContain('propertyPath: "required"');
   expect(result).toContain('Prototype, property readOnly');
 });
 
