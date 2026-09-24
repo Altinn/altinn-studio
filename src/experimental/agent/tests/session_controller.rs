@@ -2384,8 +2384,8 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
     assert!(commands.iter().any(|spec| matches!(
         spec.program(),
         Program::Command { executable, args }
-            if executable.as_str() == "/usr/bin/tmux"
-                && args.first().is_some_and(|argument| argument == "kill-session")
+            if executable.as_str() == "/bin/sh"
+                && args.iter().any(|argument| argument.contains("/usr/bin/tmux kill-session"))
     )));
     assert!(commands.iter().any(|spec| {
         matches!(
