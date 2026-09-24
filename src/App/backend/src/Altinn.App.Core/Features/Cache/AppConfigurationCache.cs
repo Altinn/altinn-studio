@@ -45,7 +45,7 @@ internal sealed class AppConfigurationCache(
                 // local dev, config can change
                 {
                     await using var scope = await Scope.Create(_serviceProvider);
-                    await UpdateCache(this, scope, stoppingToken);
+                    UpdateCache(this, scope);
                 }
 
                 using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
@@ -53,20 +53,20 @@ internal sealed class AppConfigurationCache(
                 while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
                     await using var scope = await Scope.Create(_serviceProvider);
-                    await UpdateCache(this, scope, stoppingToken);
+                    UpdateCache(this, scope);
                 }
             }
             else if (env.IsStaging())
             {
                 // tt02 (container deployment, immutable infra)
                 await using var scope = await Scope.Create(_serviceProvider);
-                await UpdateCache(this, scope, stoppingToken);
+                UpdateCache(this, scope);
             }
             else if (env.IsProduction())
             {
                 // prod (container deployment, immutable infra)
                 await using var scope = await Scope.Create(_serviceProvider);
-                await UpdateCache(this, scope, stoppingToken);
+                UpdateCache(this, scope);
             }
         }
         catch (OperationCanceledException)
@@ -79,9 +79,9 @@ internal sealed class AppConfigurationCache(
             _logger.LogError(ex, "Error starting AppConfigurationCache");
         }
 
-        static async ValueTask UpdateCache(AppConfigurationCache self, Scope scope, CancellationToken cancellationToken)
+        static void UpdateCache(AppConfigurationCache self, Scope scope)
         {
-            self._appMetadata = await scope.AppMetadata.GetApplicationMetadata();
+            self._appMetadata = scope.AppMetadata.ApplicationMetadata;
 
             self._firstTick.TrySetResult();
         }

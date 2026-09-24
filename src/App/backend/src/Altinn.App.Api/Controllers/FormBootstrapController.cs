@@ -470,7 +470,7 @@ public class FormBootstrapController : ControllerBase
 
     private async Task<bool> IsAnonymousAllowedForFolder(HashSet<string> referencedDataTypes)
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         if (referencedDataTypes.Count == 0)
         {
             return false;

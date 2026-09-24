@@ -66,7 +66,7 @@ public class RegisterERClient : IOrganizationClient
             cancellationToken
         );
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,

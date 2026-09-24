@@ -125,7 +125,7 @@ public class ValidatorFactory : IValidatorFactory
         validators.AddRange(GetIValidators(taskId));
         // add legacy task validators, data element validators and form data validators
         validators.AddRange(GetTaskValidators(taskId).Select(tv => new TaskValidatorWrapper(tv)));
-        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
+        var dataTypes = _appMetadata.ApplicationMetadata.DataTypes;
 
         validators.AddRange(
             GetDataElementValidators(taskId, dataTypes)

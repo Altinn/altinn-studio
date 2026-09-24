@@ -52,7 +52,7 @@ internal sealed class SigningProcessTask : IProcessTask
         CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
 
         ValidateSigningConfiguration(appMetadata, signingConfiguration);
 

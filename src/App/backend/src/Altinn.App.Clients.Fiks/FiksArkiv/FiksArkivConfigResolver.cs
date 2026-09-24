@@ -59,7 +59,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     /// <inheritdoc />
     public async Task<string> GetApplicationTitle(CancellationToken cancellationToken = default)
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         return await _translationService.TranslateTextKey("appName", LanguageConst.Nb)
             ?? appMetadata.Title.GetValueOrDefault(LanguageConst.Nb)

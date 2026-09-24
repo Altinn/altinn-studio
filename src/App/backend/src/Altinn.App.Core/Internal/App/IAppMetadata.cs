@@ -31,15 +31,18 @@ public interface IAppMetadata
     /// <summary>
     /// <see cref="ApplicationMetadata"/> as a task, for code written when the file was read from disk.
     /// </summary>
-    public Task<ApplicationMetadata> GetApplicationMetadata();
+    [Obsolete("The file is in memory. Use the ApplicationMetadata property.")]
+    public Task<ApplicationMetadata> GetApplicationMetadata() => Task.FromResult(ApplicationMetadata);
 
     /// <summary>
     /// <see cref="XacmlPolicy"/> as a task, for code written when the file was read from disk.
     /// </summary>
-    public Task<string> GetApplicationXACMLPolicy();
+    [Obsolete("The file is in memory. Use the XacmlPolicy property.")]
+    public Task<string> GetApplicationXACMLPolicy() => Task.FromResult(XacmlPolicy);
 
     /// <summary>
     /// <see cref="ProcessDefinition"/> as a task, for code written when the file was read from disk.
     /// </summary>
-    public Task<string> GetApplicationBPMNProcess();
+    [Obsolete("The file is in memory. Use the ProcessDefinition property.")]
+    public Task<string> GetApplicationBPMNProcess() => Task.FromResult(ProcessDefinition);
 }

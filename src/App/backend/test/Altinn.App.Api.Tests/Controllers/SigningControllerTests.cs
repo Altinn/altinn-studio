@@ -129,8 +129,8 @@ public class SigningControllerTests
             ]);
 
         _applicationMetadataMock
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/app")
                 {
                     DataTypes =

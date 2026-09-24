@@ -48,7 +48,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
         try
         {
-            ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+            ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
             List<Task> tasks = [];
             foreach (

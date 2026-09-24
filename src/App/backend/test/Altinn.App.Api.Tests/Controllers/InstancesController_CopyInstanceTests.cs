@@ -31,7 +31,7 @@ public class InstancesController_CopyInstanceTests
         var auth = TestAuthentication.GetUserAuthentication(userPartyId: 343234);
         using var fixture = InstancesControllerFixture.Create(auth);
         ApplicationMetadata application = new("ttd/copy-instance") { };
-        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(application);
+        fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(application);
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
@@ -56,8 +56,8 @@ public class InstancesController_CopyInstanceTests
         const string AppName = "copy-instance";
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, false));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, false));
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
@@ -108,8 +108,8 @@ public class InstancesController_CopyInstanceTests
         const string AppName = "copy-instance";
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -151,8 +151,8 @@ public class InstancesController_CopyInstanceTests
 
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -208,8 +208,8 @@ public class InstancesController_CopyInstanceTests
             .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -265,8 +265,8 @@ public class InstancesController_CopyInstanceTests
             .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -321,8 +321,8 @@ public class InstancesController_CopyInstanceTests
             .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -386,8 +386,8 @@ public class InstancesController_CopyInstanceTests
             .Returns(TestAuthentication.GetUserPrincipal(partyId: instanceOwnerPartyId));
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -483,8 +483,8 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -669,7 +669,7 @@ public class InstancesController_CopyInstanceTests
         // Create app metadata with IncludeAttachments = true to enable binary data copying
         var appMetadata = CreateApplicationMetadata(Org, AppName, true);
         appMetadata.CopyInstanceSettings.IncludeAttachments = true;
-        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -889,7 +889,7 @@ public class InstancesController_CopyInstanceTests
             .Setup(hc => hc.User)
             .Returns(TestAuthentication.GetUserPrincipal(1337, instanceOwnerPartyId));
         fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
-        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -1108,7 +1108,7 @@ public class InstancesController_CopyInstanceTests
             .Setup(hc => hc.User)
             .Returns(TestAuthentication.GetUserPrincipal(1337, instanceOwnerPartyId));
         fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
-        fixture.Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
@@ -1333,8 +1333,8 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<HttpContext>().Setup(hc => hc.Request).Returns(Mock.Of<HttpRequest>());
         fixture
             .Mock<IAppMetadata>()
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(CreateApplicationMetadata(Org, AppName, true));
         fixture
             .Mock<IPDP>()
             .Setup<Task<XacmlJsonResponse>>(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))

@@ -121,7 +121,7 @@ public sealed class MockedServiceCollection
         // Add standard mocks
 
         // Setup default mock behaviours
-        Mock<IAppMetadata>().Setup(a => a.GetApplicationMetadata()).ReturnsAsync(AppMetadata);
+        Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(AppMetadata);
         Mock<IAuthenticationTokenResolver>()
             .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new JwtToken());

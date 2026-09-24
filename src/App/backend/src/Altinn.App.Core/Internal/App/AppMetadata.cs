@@ -94,15 +94,6 @@ internal sealed class AppMetadata : IAppMetadata
         }
     }
 
-    /// <inheritdoc />
-    public Task<ApplicationMetadata> GetApplicationMetadata() => Task.FromResult(ApplicationMetadata);
-
-    /// <inheritdoc />
-    public Task<string> GetApplicationXACMLPolicy() => Task.FromResult(XacmlPolicy);
-
-    /// <inheritdoc />
-    public Task<string> GetApplicationBPMNProcess() => Task.FromResult(ProcessDefinition);
-
     /// <summary>
     /// A hash of the flags that does not depend on their order.
     /// </summary>

@@ -53,8 +53,8 @@ public sealed class SigneeContextsManagerTests : IDisposable
         _serviceProvider = services.BuildServiceProvider();
 
         _appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/app")
                 {
                     DataTypes =

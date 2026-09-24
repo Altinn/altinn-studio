@@ -53,13 +53,11 @@ public class ExpressionValidator : IValidator
     /// Only run for tasks that has layouts
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
-        _appMetadata
-            .GetApplicationMetadata()
-            .Result.DataTypes.Exists(dt =>
-                dt.TaskId == taskId
-                && dt.AppLogic?.ClassRef is not null
-                && _appResourceService.GetValidationConfiguration(dt.Id) is not null
-            );
+        _appMetadata.ApplicationMetadata.DataTypes.Exists(dt =>
+            dt.TaskId == taskId
+            && dt.AppLogic?.ClassRef is not null
+            && _appResourceService.GetValidationConfiguration(dt.Id) is not null
+        );
 
     /// <summary>
     /// This validator has the code "Expression" and this is known by the frontend, who may request this validator to not run for incremental validation.

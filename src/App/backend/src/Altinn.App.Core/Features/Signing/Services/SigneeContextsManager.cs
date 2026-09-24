@@ -181,7 +181,7 @@ internal sealed class SigneeContextsManager(
                 "SigneeStatesDataTypeId is not set in the signature configuration."
             );
 
-        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
         instanceDataAccessor.OverrideAuthenticationMethodForRestrictedDataTypes(
             applicationMetadata,
             [signatureConfiguration.SigneeStatesDataTypeId],

@@ -238,7 +238,7 @@ public class NotificationCancelClientTests
 
         var appId = Guid.NewGuid().ToString();
         var appDataMock = new Mock<IAppMetadata>();
-        appDataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata($"ttd/{appId}"));
+        appDataMock.Setup(a => a.ApplicationMetadata).Returns(new ApplicationMetadata($"ttd/{appId}"));
         services.AddSingleton<IAppMetadata>(appDataMock.Object);
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();

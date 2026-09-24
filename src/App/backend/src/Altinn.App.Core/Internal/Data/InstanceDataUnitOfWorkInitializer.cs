@@ -63,7 +63,7 @@ internal class InstanceDataUnitOfWorkInitializer
         StorageAuthenticationMethod? authenticationMethodForAllDataTypes = null
     )
     {
-        var applicationMetadata = await _applicationMetadata.GetApplicationMetadata();
+        var applicationMetadata = _applicationMetadata.ApplicationMetadata;
         var uow = new InstanceDataUnitOfWork(
             instance,
             versions,

@@ -183,7 +183,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
-        _appMetadataMock.Verify(a => a.GetApplicationMetadata());
+        _appMetadataMock.VerifyGet(a => a.ApplicationMetadata);
         _dataClientMock.Verify(d =>
             d.GetBinaryData(
                 500001,
@@ -245,7 +245,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
-        _appMetadataMock.Verify(a => a.GetApplicationMetadata());
+        _appMetadataMock.VerifyGet(a => a.ApplicationMetadata);
         _dataClientMock.Verify(d =>
             d.GetBinaryData(
                 500001,
@@ -351,7 +351,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
-        _appMetadataMock.Verify(a => a.GetApplicationMetadata());
+        _appMetadataMock.VerifyGet(a => a.ApplicationMetadata);
         _dataClientMock.Verify(d =>
             d.GetBinaryData(
                 500001,
@@ -416,7 +416,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
-        _appMetadataMock.Verify(a => a.GetApplicationMetadata());
+        _appMetadataMock.VerifyGet(a => a.ApplicationMetadata);
         _dataClientMock.Verify(d =>
             d.GetBinaryData(
                 500001,
@@ -481,7 +481,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
-        _appMetadataMock.Verify(a => a.GetApplicationMetadata());
+        _appMetadataMock.VerifyGet(a => a.ApplicationMetadata);
         _dataClientMock.Verify(d =>
             d.GetBinaryData(
                 500001,
@@ -546,7 +546,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 It.IsAny<CancellationToken>()
             )
         );
-        _appMetadataMock.Verify(a => a.GetApplicationMetadata());
+        _appMetadataMock.VerifyGet(a => a.ApplicationMetadata);
         _dataClientMock.Verify(d =>
             d.GetBinaryData(
                 500001,
@@ -567,7 +567,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
     {
         _processReaderMock.Setup(sr => sr.GetFlowElement(It.IsAny<string>())).Returns(task);
         _applicationMetadata = new ApplicationMetadata("ttd/xunit-app");
-        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
+        _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(_applicationMetadata);
         _instanceClientMock
             .Setup(i =>
                 i.GetInstance(

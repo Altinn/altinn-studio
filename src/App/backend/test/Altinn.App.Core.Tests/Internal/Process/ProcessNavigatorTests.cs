@@ -295,7 +295,7 @@ public class ProcessNavigatorTests
         services.AddTransient<ExclusiveGatewayFactory>();
         services.AddSingleton(new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict).Object);
         var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
-        appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
+        appMetadata.Setup(a => a.ApplicationMetadata).Returns(new ApplicationMetadata("org/app"));
         services.AddSingleton(appMetadata.Object);
         var dataClient = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
         var mutationClient = dataClient.As<IInstanceMutationClient>();

@@ -8,5 +8,5 @@ public sealed class AppConfigurationCacheMock(IAppMetadata appMetadata) : IAppCo
 {
     private readonly IAppMetadata _appMetadata = appMetadata;
 
-    public ApplicationMetadata ApplicationMetadata => _appMetadata.GetApplicationMetadata().GetAwaiter().GetResult();
+    public ApplicationMetadata ApplicationMetadata => _appMetadata.ApplicationMetadata;
 }

@@ -68,8 +68,8 @@ public class EFormidlingConfigValidationServiceTests
 
         var appMetadata = new Mock<IAppMetadata>();
         appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/test-app")
                 {
                     Org = "ttd",

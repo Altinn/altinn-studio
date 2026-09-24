@@ -78,7 +78,7 @@ public class CustomOpenApiController : Controller
     [HttpGet("/{org}/{app}/v1/customOpenapi.json")]
     public async Task<ActionResult> Index()
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var document = new OpenApiDocument()
         {
             Info = new()

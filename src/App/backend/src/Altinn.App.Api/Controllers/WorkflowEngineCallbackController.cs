@@ -381,9 +381,9 @@ public class WorkflowEngineCallbackController : ControllerBase
                 {
                     activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
 
-                    ApplicationMetadata appMetadata = await _serviceProvider
+                    ApplicationMetadata appMetadata = _serviceProvider
                         .GetRequiredService<IAppMetadata>()
-                        .GetApplicationMetadata();
+                        .ApplicationMetadata;
 
                     _logger.LogError(
                         "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",

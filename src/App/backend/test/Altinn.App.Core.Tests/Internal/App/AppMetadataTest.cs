@@ -66,7 +66,7 @@ public class AppMetadataTest
             Features = enabledFrontendFeatures,
             ExternalApiIds = [],
         };
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
@@ -113,8 +113,8 @@ public class AppMetadataTest
             Features = new Dictionary<string, bool>() { { "footer", true } },
             ExternalApiIds = [],
         };
-        var actual = await appMetadata.GetApplicationMetadata();
-        var actual2 = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
+        var actual2 = appMetadata.ApplicationMetadata;
         appFeaturesMock.Verify(af => af.GetDictionary());
         appFeaturesMock.VerifyAll();
         actual.Should().NotBeNull();
@@ -123,7 +123,7 @@ public class AppMetadataTest
     }
 
     [Fact]
-    public async Task GetApplicationMetadata_keeps_the_cache_for_equal_flags_and_rebuilds_when_a_flag_changes()
+    public void GetApplicationMetadata_keeps_the_cache_for_equal_flags_and_rebuilds_when_a_flag_changes()
     {
         AppFiles appFiles = GetAppFiles("AppMetadata", "default.applicationmetadata.json");
         var flags = new Dictionary<string, bool> { ["footer"] = true };
@@ -132,12 +132,12 @@ public class AppMetadataTest
         frontendFeatures.Setup(f => f.GetDictionary()).Returns(() => new Dictionary<string, bool>(flags));
         IAppMetadata appMetadata = SetupAppMetadata(appFiles, null, frontendFeatures.Object);
 
-        var first = await appMetadata.GetApplicationMetadata();
-        Assert.Same(first, await appMetadata.GetApplicationMetadata());
+        var first = appMetadata.ApplicationMetadata;
+        Assert.Same(first, appMetadata.ApplicationMetadata);
         Assert.True(first.Features!["footer"]);
 
         flags["footer"] = false;
-        var second = await appMetadata.GetApplicationMetadata();
+        var second = appMetadata.ApplicationMetadata;
         Assert.NotSame(first, second);
         Assert.False(second.Features!["footer"]);
     }
@@ -194,7 +194,7 @@ public class AppMetadataTest
             Features = enabledFrontendFeatures,
             ExternalApiIds = [],
         };
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
         actual.OnEntry?.InstanceSelection?.DefaultSelectedOption.Should().Be(1);
@@ -251,7 +251,7 @@ public class AppMetadataTest
             Features = enabledFrontendFeatures,
             ExternalApiIds = [],
         };
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
         actual.OnEntry?.InstanceSelection?.DefaultSelectedOption.Should().Be(2);
@@ -309,7 +309,7 @@ public class AppMetadataTest
             Features = enabledFrontendFeatures,
             ExternalApiIds = [],
         };
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
         actual.OnEntry?.InstanceSelection?.DefaultSelectedOption.Should().Be(3);
@@ -373,7 +373,7 @@ public class AppMetadataTest
             Features = enabledFrontendFeatures,
             ExternalApiIds = [],
         };
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
     }
@@ -388,7 +388,7 @@ public class AppMetadataTest
 
         IAppMetadata appMetadata = SetupAppMetadata(appFiles, externalApiFactoryMock.Object);
 
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.ExternalApiIds.Should().BeEquivalentTo(externalApiIds);
     }
 
@@ -397,7 +397,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles("AppMetadata", "unmapped-properties.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        var actual = await appMetadata.GetApplicationMetadata();
+        var actual = appMetadata.ApplicationMetadata;
         actual.Should().NotBeNull();
         actual.UnmappedProperties.Should().NotBeNull();
         actual.UnmappedProperties!["foo"].Should().BeOfType<JsonElement>();
@@ -409,7 +409,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles("AppMetadata", "unmapped-properties.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        var appMetadataObj = await appMetadata.GetApplicationMetadata();
+        var appMetadataObj = appMetadata.ApplicationMetadata;
         string serialized = JsonSerializer.Serialize(appMetadataObj, _jsonSerializerOptions);
         serialized = serialized.Replace(
             ApplicationMetadata.LibVersion ?? throw new Exception("Couldn't get library version"),
@@ -424,7 +424,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles("AppMetadata", "notfound.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        await Assert.ThrowsAsync<ApplicationConfigException>(appMetadata.GetApplicationMetadata);
+        Assert.Throws<ApplicationConfigException>(() => appMetadata.ApplicationMetadata);
     }
 
     [Fact]
@@ -432,7 +432,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles("AppMetadata", "invalid.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        await Assert.ThrowsAsync<ApplicationConfigException>(appMetadata.GetApplicationMetadata);
+        Assert.Throws<ApplicationConfigException>(() => appMetadata.ApplicationMetadata);
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles("AppMetadata", "invalid-int.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        await Assert.ThrowsAsync<ApplicationConfigException>(appMetadata.GetApplicationMetadata);
+        Assert.Throws<ApplicationConfigException>(() => appMetadata.ApplicationMetadata);
     }
 
     [Fact]
@@ -449,7 +449,7 @@ public class AppMetadataTest
         AppFiles appFiles = GetAppFiles(subfolder: "AppPolicy", policyFilename: "policy.xml");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
         string expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine + "<root>policy</root>";
-        var actual = await appMetadata.GetApplicationXACMLPolicy();
+        var actual = appMetadata.XacmlPolicy;
         actual.Should().BeEquivalentTo(expected);
     }
 
@@ -458,7 +458,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles(subfolder: "AppPolicy", policyFilename: "notfound.xml");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        await Assert.ThrowsAsync<FileNotFoundException>(appMetadata.GetApplicationXACMLPolicy);
+        Assert.Throws<FileNotFoundException>(() => appMetadata.XacmlPolicy);
     }
 
     [Fact]
@@ -467,7 +467,7 @@ public class AppMetadataTest
         AppFiles appFiles = GetAppFiles(subfolder: "AppProcess", bpmnFilename: "process.bpmn");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
         string expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine + "<root>process</root>";
-        var actual = await appMetadata.GetApplicationBPMNProcess();
+        var actual = appMetadata.ProcessDefinition;
         actual.Should().BeEquivalentTo(expected);
     }
 
@@ -476,7 +476,7 @@ public class AppMetadataTest
     {
         AppFiles appFiles = GetAppFiles(subfolder: "AppProcess", policyFilename: "notfound.xml");
         IAppMetadata appMetadata = SetupAppMetadata(appFiles);
-        await Assert.ThrowsAsync<ApplicationConfigException>(appMetadata.GetApplicationBPMNProcess);
+        Assert.Throws<ApplicationConfigException>(() => appMetadata.ProcessDefinition);
     }
 
     /// <summary>

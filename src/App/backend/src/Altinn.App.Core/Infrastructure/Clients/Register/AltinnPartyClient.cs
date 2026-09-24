@@ -68,7 +68,7 @@ public class AltinnPartyClient : IAltinnPartyClient
     {
         using var activity = _telemetry?.StartGetPartyActivity(partyId);
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string endpointUrl = $"parties/{partyId}";
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
@@ -114,7 +114,7 @@ public class AltinnPartyClient : IAltinnPartyClient
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string endpointUrl = "parties/lookup";
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
@@ -153,7 +153,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 
@@ -198,7 +198,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 

@@ -46,11 +46,5 @@ namespace Altinn.App.logic.MetaData
         public string XacmlPolicy => _inner.XacmlPolicy;
 
         public string ProcessDefinition => _inner.ProcessDefinition;
-
-        public Task<ApplicationMetadata> GetApplicationMetadata() => Task.FromResult(ApplicationMetadata);
-
-        public Task<string> GetApplicationXACMLPolicy() => _inner.GetApplicationXACMLPolicy();
-
-        public Task<string> GetApplicationBPMNProcess() => _inner.GetApplicationBPMNProcess();
     }
 }

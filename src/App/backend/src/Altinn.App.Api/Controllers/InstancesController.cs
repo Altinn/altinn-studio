@@ -340,7 +340,7 @@ public class InstancesController : ControllerBase
             return BadRequest("The path parameter 'app' cannot be empty");
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         if (VerifyInstantiationPermissions(application, org, app) is { } verificationResult)
             return verificationResult;
 
@@ -638,7 +638,7 @@ public class InstancesController : ControllerBase
 
         bool isCopyRequest = !string.IsNullOrEmpty(instantiationInstance.SourceInstanceId);
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         if (VerifyInstantiationPermissions(application, org, app, isCopy: isCopyRequest) is { } verificationResult)
             return verificationResult;
 
@@ -964,7 +964,7 @@ public class InstancesController : ControllerBase
             return Forbid();
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         if (application.CopyInstanceSettings?.Enabled is null or false)
         {

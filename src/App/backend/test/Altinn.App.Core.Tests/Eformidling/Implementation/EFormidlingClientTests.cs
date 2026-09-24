@@ -63,9 +63,7 @@ public class EFormidlingClientTests
             );
 
         var appMetadata = new Mock<IAppMetadata>();
-        appMetadata
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { Org = "ttd" });
+        appMetadata.Setup(a => a.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/test-app") { Org = "ttd" });
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
         accessTokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");

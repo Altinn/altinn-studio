@@ -48,7 +48,7 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
         string? httpContent = null;
         try
         {
-            var application = await _appMetadata.GetApplicationMetadata();
+            var application = _appMetadata.ApplicationMetadata;
 
             var uri = _platformSettings.ApiNotificationEndpoint.TrimEnd('/') + "/orders/email";
             var body = JsonSerializer.Serialize(emailNotification);

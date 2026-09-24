@@ -100,7 +100,7 @@ internal sealed class CommitProcessState(IAppMetadata appMetadata)
 
     private async Task StageProcessEndCleanup(InstanceDataUnitOfWork unitOfWork)
     {
-        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
         HashSet<string> dataTypesToDelete = applicationMetadata
             .DataTypes.Where(dataType => dataType?.AppLogic?.AutoDeleteOnProcessEnd == true)
             .Select(dataType => dataType.Id)

@@ -622,8 +622,8 @@ public class CommitProcessStateTests
     {
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(applicationMetadata ?? new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(applicationMetadata ?? new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
         return new CommitProcessState(appMetadataMock.Object);
     }
 

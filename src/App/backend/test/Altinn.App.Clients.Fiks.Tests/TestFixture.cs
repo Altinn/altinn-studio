@@ -185,9 +185,7 @@ internal sealed record TestFixture(
             .Returns(() => new HttpClient(httpMessageHandlerMock.Object));
         hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(hostEnvironment);
         loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(Mock.Of<ILogger>());
-        appMetadataMock
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/unit-testing"));
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/unit-testing"));
 
         builder.Services.AddSingleton(hostEnvironmentMock.Object);
         builder.Services.AddSingleton(appMetadataMock.Object);

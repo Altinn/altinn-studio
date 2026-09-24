@@ -46,7 +46,7 @@ public class ApplicationMetadataController : ControllerBase
         [FromQuery] bool checkOrgApp = true
     )
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         string wantedAppId = $"{org}/{app}";
 
@@ -72,10 +72,10 @@ public class ApplicationMetadataController : ControllerBase
     [HttpGet("{org}/{app}/api/v1/meta/authorizationpolicy")]
     public async Task<ActionResult<string>> GetPolicy(string org, string app)
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         try
         {
-            string policy = await _appMetadata.GetApplicationXACMLPolicy();
+            string policy = _appMetadata.XacmlPolicy;
             string wantedAppId = $"{org}/{app}";
 
             if (application.Id.Equals(wantedAppId, StringComparison.Ordinal))
@@ -105,13 +105,13 @@ public class ApplicationMetadataController : ControllerBase
     [HttpGet("{org}/{app}/api/v1/meta/process")]
     public async Task<ActionResult<string>> GetProcess(string org, string app)
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string wantedAppId = $"{org}/{app}";
         try
         {
             if (application.Id.Equals(wantedAppId, StringComparison.Ordinal))
             {
-                string process = await _appMetadata.GetApplicationBPMNProcess();
+                string process = _appMetadata.ProcessDefinition;
                 return Content(process, "text/xml", System.Text.Encoding.UTF8);
             }
 

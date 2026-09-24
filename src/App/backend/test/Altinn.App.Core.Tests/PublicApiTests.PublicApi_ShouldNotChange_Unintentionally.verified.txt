@@ -3169,8 +3169,11 @@ namespace Altinn.App.Core.Internal.App
         Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; }
         string ProcessDefinition { get; }
         string XacmlPolicy { get; }
+        [System.Obsolete("The file is in memory. Use the ProcessDefinition property.")]
         System.Threading.Tasks.Task<string> GetApplicationBPMNProcess();
+        [System.Obsolete("The file is in memory. Use the ApplicationMetadata property.")]
         System.Threading.Tasks.Task<Altinn.App.Core.Models.ApplicationMetadata> GetApplicationMetadata();
+        [System.Obsolete("The file is in memory. Use the XacmlPolicy property.")]
         System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy();
     }
     public interface IAppResources
