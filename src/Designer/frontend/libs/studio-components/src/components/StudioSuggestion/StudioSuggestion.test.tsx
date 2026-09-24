@@ -31,6 +31,15 @@ describe('StudioSuggestion', () => {
     expect(screen.getByText('required')).toBeInTheDocument();
   });
 
+  it('renders the required tag next to the label text, inside the label', () => {
+    // A label inside a field is a block, so a tag placed after it would drop to its own line.
+    renderStudioSuggestion({
+      suggestionProps: { required: true, tagText: 'required' },
+    });
+
+    expect(screen.getByText(defaultProps.label)).toContainElement(screen.getByText('required'));
+  });
+
   it('renders the placeholder on the input when given', () => {
     const placeholder = 'Search…';
     renderStudioSuggestion({ suggestionProps: { placeholder } });

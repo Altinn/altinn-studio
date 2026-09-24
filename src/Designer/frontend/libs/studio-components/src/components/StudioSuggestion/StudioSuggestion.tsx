@@ -64,9 +64,11 @@ function StudioSuggestion(
 
   return (
     <StudioField className={className}>
-      <StudioLabelWrapper required={required} tagText={tagText}>
-        <StudioLabel htmlFor={inputId}>{label}</StudioLabel>
-      </StudioLabelWrapper>
+      <StudioLabel htmlFor={inputId}>
+        <StudioLabelWrapper required={required} tagText={tagText}>
+          {label}
+        </StudioLabelWrapper>
+      </StudioLabel>
       {description && (
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
