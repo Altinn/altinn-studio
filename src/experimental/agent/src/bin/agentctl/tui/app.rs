@@ -1,4 +1,5 @@
 use std::{
+    cell::Cell,
     collections::HashSet,
     path::{Path, PathBuf},
 };
@@ -260,15 +261,29 @@ pub(crate) struct Detail {
     /// Agent whose provisioning the detail follows; its lines are replaced as
     /// progress arrives.
     pub(crate) follows: Option<String>,
+    /// Furthest scroll that still fills the view, recorded by the last draw,
+    /// which wraps long lines into more rows than `lines` has.
+    pub(crate) scroll_limit: Cell<Option<usize>>,
 }
 
 impl Detail {
+    /// Moves the scroll by `delta` rows within what the last draw can show.
+    /// Before the first draw, every line may start the view.
+    fn scroll_by(&mut self, delta: isize) {
+        let limit = self
+            .scroll_limit
+            .get()
+            .unwrap_or_else(|| self.lines.len().saturating_sub(1));
+        self.scroll = offset_clamped(self.scroll.min(limit), limit, delta);
+    }
+
     pub(crate) const fn text(title: String, lines: Vec<String>) -> Self {
         Self {
             title,
             lines,
             scroll: 0,
             follows: None,
+            scroll_limit: Cell::new(None),
         }
     }
 
@@ -278,6 +293,7 @@ impl Detail {
             lines: vec!["Waiting for agentd…".to_owned()],
             scroll: 0,
             follows: Some(agent),
+            scroll_limit: Cell::new(None),
         }
     }
 }
@@ -1260,8 +1276,7 @@ impl App {
                 let Some(detail) = self.detail.as_mut() else {
                     return Action::None;
                 };
-                let limit = detail.lines.len().saturating_sub(1);
-                detail.scroll = offset_clamped(detail.scroll, limit, delta);
+                detail.scroll_by(delta);
                 Action::None
             }
             MouseAction::FocusSessionField(field) => {
@@ -1470,13 +1485,12 @@ impl App {
         let Some(detail) = self.detail.as_mut() else {
             return;
         };
-        let limit = detail.lines.len().saturating_sub(1);
         match key.code {
             KeyCode::Esc | KeyCode::Char('q') => self.detail = None,
-            KeyCode::Down | KeyCode::Char('j') => detail.scroll = (detail.scroll + 1).min(limit),
-            KeyCode::Up | KeyCode::Char('k') => detail.scroll = detail.scroll.saturating_sub(1),
-            KeyCode::PageDown => detail.scroll = (detail.scroll + 10).min(limit),
-            KeyCode::PageUp => detail.scroll = detail.scroll.saturating_sub(10),
+            KeyCode::Down | KeyCode::Char('j') => detail.scroll_by(1),
+            KeyCode::Up | KeyCode::Char('k') => detail.scroll_by(-1),
+            KeyCode::PageDown => detail.scroll_by(10),
+            KeyCode::PageUp => detail.scroll_by(-10),
             _ => {}
         }
     }
@@ -1701,6 +1715,8 @@ impl App {
         {
             detail.scroll = detail.scroll.min(lines.len().saturating_sub(1));
             detail.lines = lines;
+            // The next draw measures the new lines.
+            detail.scroll_limit.set(None);
         }
     }
 

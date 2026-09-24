@@ -936,9 +936,10 @@ mod tests {
         use ratatui::{Terminal, backend::TestBackend};
 
         let mut app = App::new();
+        // More lines than the view shows, so there is something to scroll.
         app.detail = Some(app::Detail::text(
             "detail".into(),
-            vec!["one".into(), "two".into(), "three".into()],
+            (1..=12).map(|line| format!("line {line}")).collect(),
         ));
         let mut state = view::ViewState::default();
         let mut hit_map = None;

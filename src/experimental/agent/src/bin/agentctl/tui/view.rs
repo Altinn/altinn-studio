@@ -529,7 +529,9 @@ fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail, hit
     let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
     let inner = block.inner(area);
     let rows = wrapped(&detail.lines, inner.width);
-    let scroll = detail.scroll.min(rows.len().saturating_sub(usize::from(inner.height)));
+    let limit = rows.len().saturating_sub(usize::from(inner.height));
+    detail.scroll_limit.set(Some(limit));
+    let scroll = detail.scroll.min(limit);
     let visible = rows.into_iter().skip(scroll).map(Line::from).collect::<Vec<_>>();
     frame.render_widget(Paragraph::new(visible).block(block), area);
     hit_map.wheel(inner, WheelTarget::Detail);
@@ -1451,6 +1453,39 @@ mod tests {
         ] {
             assert!(text.contains(expected), "{expected:?} in:\n{text}");
         }
+    }
+
+    #[test]
+    fn a_detail_scrolls_to_the_end_of_its_wrapped_lines() {
+        let mut app = triage_app();
+        let lines = (1..=5)
+            .map(|line| format!("{}END{line}", "x".repeat(117)))
+            .collect::<Vec<_>>();
+        app.detail = Some(super::super::app::Detail::text("long".into(), lines));
+        let mut terminal = Terminal::new(TestBackend::new(40, 12)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let press = |app: &mut App, code| {
+            app.on_key(crossterm::event::KeyEvent::new(
+                code,
+                crossterm::event::KeyModifiers::NONE,
+            ));
+        };
+        for _ in 0..30 {
+            press(&mut app, crossterm::event::KeyCode::Char('j'));
+        }
+        draw(&mut terminal, &app);
+        assert!(
+            buffer_text(&terminal).contains("END5"),
+            "the last wrapped row comes into view:\n{}",
+            buffer_text(&terminal)
+        );
+        let bottom = app.detail.as_ref().map(|detail| detail.scroll);
+        press(&mut app, crossterm::event::KeyCode::Char('k'));
+        assert_eq!(
+            app.detail.as_ref().map(|detail| detail.scroll),
+            bottom.map(|scroll| scroll - 1),
+            "one step up moves at once"
+        );
     }
 
     #[test]
