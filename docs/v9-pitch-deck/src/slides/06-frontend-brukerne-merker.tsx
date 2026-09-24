@@ -8,25 +8,25 @@ const FEATURES: Feature[] = [
     icon: 'clock',
     eyebrow: 'Innsending',
     title: 'Tydelig venting',
-    body: 'Én lasteskjerm i stedet for skiftende spinnere. Etter åtte sekunder står det at det er trygt å lukke siden.',
+    body: 'Én lasteside i stedet for flere ulike lasteikoner. Etter åtte sekunder står det at det er trygt å lukke siden.',
   },
   {
     icon: 'refresh',
     eyebrow: 'Omlasting',
     title: 'Status som varer',
-    body: 'Lastes siden på nytt midt i en innsending, står statusen der den stod.',
+    body: 'Laster brukeren siden på nytt midt i en innsending, vises samme status som før.',
   },
   {
     icon: 'shield',
     eyebrow: 'Svar',
     title: 'Ingen tapte svar',
-    body: 'Nettleseren advarer før siden lukkes med svar som ikke er lagret.',
+    body: 'Nettleseren sier fra hvis brukeren lukker siden før svarene er lagret.',
   },
   {
     icon: 'check',
     eyebrow: 'Feil i skjemaet',
-    title: 'Feil når det passer',
-    body: 'Feillisten vises først når brukeren prøver å gå videre, og får fokus — bedre med skjermleser.',
+    title: 'Feil til rett tid',
+    body: 'Feillisten dukker opp først når brukeren prøver å gå videre, og får fokus. Det hjelper dem som bruker skjermleser.',
   },
 ];
 

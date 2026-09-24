@@ -13,7 +13,7 @@ const FEATURES: Feature[] = [
     icon: 'layers',
     eyebrow: 'Flere steg',
     title: 'Tjenesteoppgaver i flere steg',
-    body: 'Del en oppgave opp i steg. Hvert steg lagres når det er ferdig, og kjøres ikke på nytt.',
+    body: 'Del opp en oppgave i steg. Hvert steg lagres når det er ferdig, og kjøres ikke på nytt.',
   },
   {
     icon: 'clock',
@@ -25,13 +25,13 @@ const FEATURES: Feature[] = [
     icon: 'user',
     eyebrow: 'Ventesteg',
     title: 'Oppgaven venter selv',
-    body: 'Brukeren ser ventevisningen, eller appens egen side, til oppgaven er ferdig. Et eget «feedback»-steg trengs ikke lenger.',
+    body: 'Brukeren ser en venteside, eller appens egen side, til oppgaven er ferdig. Du trenger ikke lenger et eget «feedback»-steg.',
   },
   {
     icon: 'refresh',
     eyebrow: 'Nye forsøk',
     title: 'Egne regler for nye forsøk',
-    body: 'Velg per steg hvor ofte og hvor lenge plattformen skal prøve igjen.',
+    body: 'Bestem for hvert steg hvor ofte og hvor lenge plattformen skal prøve igjen.',
   },
 ];
 
@@ -42,7 +42,7 @@ export default function ForUtviklereSlide(_: SlideProps) {
       variant="full"
       kicker="Backend"
       title="Nye muligheter for utviklere"
-      subtitle="Tjenesteoppgaver kan gjøre mer, og tåle mer."
+      subtitle="Tjenesteoppgaver kan gjøre mer og tåle mer."
     >
       <div className="s-fill">
         <FeatureGrid features={FEATURES} />

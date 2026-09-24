@@ -21,7 +21,7 @@ export default function ForsideSlide(_: SlideProps) {
           <p className='s-cover__kicker'>Altinn-apper · v9</p>
           <h1 className='s-cover__title'>Hva blir bedre med v9?</h1>
           <p className='s-cover__lead'>
-            Raskere skjema, tryggere prosesser og enklere drift — fra plattformen og helt ut til
+            Raskere skjemaer, tryggere prosesser og enklere drift, fra plattformen og helt ut til
             brukeren.
           </p>
         </div>

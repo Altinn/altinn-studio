@@ -24,8 +24,8 @@ export default function FrontendFolgerAppenSlide({ step }: SlideProps) {
     <Slide
       variant="full"
       kicker="Frontend"
-      title="Raskere, og i takt med appen"
-      subtitle="Ny arkitektur under panseret, og frontend som alltid har samme versjon som appen."
+      title="Raskere og i takt med appen"
+      subtitle="Ny arkitektur under panseret, og en frontend som alltid har samme versjon som appen."
     >
       <div className="s-fe">
         <section className="s-fe__panel">

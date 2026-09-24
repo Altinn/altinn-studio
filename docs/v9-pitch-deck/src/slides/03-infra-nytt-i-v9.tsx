@@ -18,7 +18,7 @@ const FEATURES: Feature[] = [
     icon: 'shield',
     eyebrow: 'Maskinporten',
     title: 'Satt opp for deg',
-    body: 'Plattformen oppretter og forvalter Maskinporten-klienten til appen. Ingen nøkler å håndtere selv.',
+    body: 'Plattformen lager Maskinporten-klienten til appen og tar seg av den. Du slipper å håndtere nøkler.',
   },
   {
     icon: 'eye',

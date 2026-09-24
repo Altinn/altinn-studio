@@ -44,16 +44,16 @@ const RECEIPT: Screen = { title: 'Kvittering klar', body: 'Skjemaet er levert.',
 export const FEIL: Scenario = {
   name: 'feil',
   title: 'Noe feiler under innsending',
-  headline: 'En tjeneste appen bruker, svarer ikke et øyeblikk.',
+  headline: 'En tjeneste appen er avhengig av, er nede en kort stund.',
   frame: 'skjema.altinn.no',
   v8: {
     start: READY,
     beats: [
       { id: 'send', text: 'Kari trykker «Send inn»', status: 'running', screen: SENDING },
-      { id: 'fail', text: 'En tjeneste svarer ikke', status: 'fail' },
+      { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
       { id: 'seen', text: 'Kari står igjen på samme side', status: 'fail', screen: V8_ERROR },
-      { id: 'retry', text: 'Hun må selv prøve igjen', status: 'wait' },
-      { id: 'again', text: 'Alt kjøres på nytt fra starten', status: 'fail' },
+      { id: 'retry', text: 'Hun må prøve på nytt selv', status: 'wait' },
+      { id: 'again', text: 'Alt kjøres på nytt fra start', status: 'fail' },
       {
         id: 'twice',
         text: 'Noe blir gjort to ganger',
@@ -68,15 +68,15 @@ export const FEIL: Scenario = {
     start: READY,
     beats: [
       { id: 'send', text: 'Kari trykker «Send inn»', status: 'running', screen: SENDING },
-      { id: 'fail', text: 'En tjeneste svarer ikke', status: 'fail' },
+      { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
       { id: 'seen', text: 'Kari ser at arbeidet fortsetter', status: 'running', screen: V9_WORKING },
       { id: 'retry', text: 'Plattformen prøver igjen selv', status: 'running' },
       { id: 'only', text: 'Bare det som feilet, kjøres igjen', status: 'ok' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
-    outcome: 'Kari trengte ikke gjøre noe, og ingenting ble gjort to ganger.',
+    outcome: 'Kari trengte ikke å gjøre noe, og ingenting ble gjort to ganger.',
   },
-  takeaway: 'En kortvarig feil blir litt ventetid — ikke en ny innsending.',
+  takeaway: 'En kort feil gir litt ventetid, ikke en ny innsending.',
 };
 
 /**
@@ -117,7 +117,7 @@ export const OMSTART: Scenario = {
       { id: 'resume', text: 'Arbeidet fortsetter der det slapp', status: 'running' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
-    outcome: 'Ferdig — Kari merket bare litt venting.',
+    outcome: 'Ferdig. Kari merket bare litt venting.',
   },
   takeaway: 'Nye versjoner kan rulles ut midt på dagen. Innsendingene fortsetter der de slapp.',
 };
