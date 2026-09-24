@@ -92,49 +92,17 @@ def layout_properties_tool(
 
 
 def _component_not_found_result(component_type: str, component_types: List[str]) -> Dict[str, Any]:
-    if not component_types:
-        return _no_component_types_result(component_type)
     return {
         "status": "error",
         "error_code": "COMPONENT_NOT_FOUND",
         "message": f"Component type '{component_type}' not found in schema. "
-                   f"{_casing_advice(component_type, component_types)} "
+                   f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
                    f"Component types in the schema: {', '.join(component_types)}. "
                    f"DO NOT RETRY with the same component_type - pick one of the listed component types.",
         "allowed_properties": [],
         "required_properties": [],
         "property_details": {}
     }
-
-
-def _no_component_types_result(component_type: str) -> Dict[str, Any]:
-    return {
-        "status": "error",
-        "error_code": "SCHEMA_HAS_NO_COMPONENT_TYPES",
-        "message": f"Component type '{component_type}' not found in schema. "
-                   f"The schema has no component types in a structure that this tool can read. "
-                   f"Thus this tool cannot give the properties of any component type. "
-                   f"DO NOT RETRY this tool with a different component_type.",
-        "allowed_properties": [],
-        "required_properties": [],
-        "property_details": {}
-    }
-
-
-def _casing_advice(component_type: str, component_types: List[str]) -> str:
-    same_name_with_other_casing = next(
-        (name for name in component_types if name.lower() == component_type.lower()),
-        None,
-    )
-    if same_name_with_other_casing:
-        return (
-            f"Use '{same_name_with_other_casing}' instead: "
-            f"component type names are case-sensitive."
-        )
-    return (
-        "Verify the component_type is spelled correctly with proper casing "
-        "(e.g., 'Input' not 'input')."
-    )
 
 
 def list_component_types(schema: Dict[str, Any]) -> List[str]:
