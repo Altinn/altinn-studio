@@ -36,6 +36,7 @@ import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
 import {
+  useInstanceDataQuery,
   useOptimisticallyUpdateCachedInstance,
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
@@ -46,6 +47,7 @@ import { PaymentInformationProvider } from 'src/features/payment/PaymentInformat
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
@@ -167,6 +169,21 @@ function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasP
   return children;
 }
 
+/**
+ * A subform PDF service task renders its subform through its own UI folder, which uses the subform data type. There
+ * is one such data element per subform, so loading that folder needs the id of the subform being rendered.
+ */
+function usePdfSubformDataElementId(uiFolder: string | undefined): string | undefined {
+  const isPdf = useIsPdf();
+  const dataElementId = useNavigationParam('dataElementId');
+  const dataType = useInstanceDataQuery({
+    select: (instance) => instance.data.find((element) => element.id === dataElementId)?.dataType,
+  }).data;
+
+  const isSubformOfFolder = dataType !== undefined && dataType === getUiFolderSettings(uiFolder)?.defaultDataType;
+  return isPdf && isSubformOfFolder ? dataElementId : undefined;
+}
+
 function useHasProcess() {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -179,7 +196,8 @@ function useBootstrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProv
   const isStateless = useIsStateless();
 
   const uiFolder = uiFolderOverride ?? folderNameFromUrl ?? undefined;
-  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? undefined;
+  const pdfSubformDataElementId = usePdfSubformDataElementId(uiFolder);
+  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? pdfSubformDataElementId;
 
   const prefillRef = useRef<string | undefined>(
     isStateless && uiFolder ? getPrefillFromSessionStorage(uiFolder) : undefined,
