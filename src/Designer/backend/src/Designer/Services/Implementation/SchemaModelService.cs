@@ -226,9 +226,20 @@ public class SchemaModelService : ISchemaModelService
             altinnRepoEditingContext.Developer
         );
 
+        // A data models repository has no generated C# classes to compare against.
+        if (await altinnAppGitRepository.GetRepositoryType() == AltinnRepositoryType.Datamodels)
+        {
+            return false;
+        }
+
         string schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
-        string csharpModelPath = Path.Combine(altinnAppGitRepository.GetRelativeModelFolder(), $"{schemaFileName}.cs");
-        if (!altinnAppGitRepository.FileExistsByRelativePath(csharpModelPath))
+        string modelFolder = altinnAppGitRepository.GetRelativeModelFolder();
+        string csharpModelPath = Path.Combine(modelFolder, $"{schemaFileName}.cs");
+        string xsdModelPath = Path.Combine(modelFolder, $"{schemaFileName}.xsd");
+        if (
+            !altinnAppGitRepository.FileExistsByRelativePath(csharpModelPath)
+            || !altinnAppGitRepository.FileExistsByRelativePath(xsdModelPath)
+        )
         {
             return true;
         }

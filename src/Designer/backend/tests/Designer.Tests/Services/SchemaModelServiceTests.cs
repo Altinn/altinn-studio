@@ -285,6 +285,69 @@ public class SchemaModelServiceTests
     }
 
     [Fact]
+    public async Task AreModelFilesOutOfDate_WhenXsdIsMissing_ShouldBeTrue()
+    {
+        // Arrange
+        var org = "ttd";
+        var sourceRepository = "hvem-er-hvem";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        try
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                targetRepository,
+                developer
+            );
+            altinnAppGitRepository.DeleteFileByRelativePath("App/models/HvemErHvem_SERES.xsd");
+
+            // Act
+            bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json"
+            );
+
+            // Assert
+            Assert.True(isOutOfDate);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
+    [Fact]
+    public async Task AreModelFilesOutOfDate_InDataModelsRepository_ShouldBeFalse()
+    {
+        // Arrange
+        var org = "ttd";
+        var sourceRepository = "ttd-datamodels";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        try
+        {
+            // Act
+            bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json"
+            );
+
+            // Assert
+            Assert.False(isOutOfDate);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
+    [Fact]
     public async Task AreModelFilesOutOfDate_WhenCsharpModelIsMissing_ShouldBeTrue()
     {
         // Arrange
