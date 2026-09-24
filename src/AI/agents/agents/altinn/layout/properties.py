@@ -1,8 +1,6 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
 from typing import Dict, Any, List, Set, Optional, Tuple
-import requests
-from urllib.parse import urlparse
 
 
 # Pairings the schema marks optional but the renderer requires.
@@ -35,32 +33,21 @@ _BINDING_ADVICE = (
 def layout_properties_tool(
     user_goal: str,
     component_type: str,
-    schema_url: str
+    schema: Dict[str, Any],
+    binding_constraints: Dict[str, List[str]]
 ) -> Dict[str, Any]:
     """
     Retrieves schema information for a specific Altinn Studio component type.
     
     Args:
         component_type: Type of component to get schema for (e.g., "Input", "Button")
-        schema_url: Direct URL to the schema file
+        schema: The loaded layout schema
+        binding_constraints: Renderer constraints to report, keyed by component type
         
     Returns:
         Dictionary containing schema information with allowed properties and details
     """
     try:
-        # Load the schema
-        try:
-            schema = load_layout_schema_from_url(schema_url)
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Error loading schema: {str(e)}",
-                "allowed_properties": [],
-                "required_properties": [],
-                "property_details": {}
-            }
-        
-        # Find the component definition in the schema
         component_def = find_component_definition(schema, component_type)
         if not component_def:
             return {
@@ -83,7 +70,7 @@ def layout_properties_tool(
             "status": "success",
             "message": f"Schema information retrieved for component type '{component_type}'",
             "constraints": [
-                *BINDING_CONSTRAINTS.get(component_type, []),
+                *binding_constraints.get(component_type, []),
                 _BINDING_ADVICE,
             ],
             "allowed_properties": sorted(list(allowed_properties)),
@@ -281,41 +268,3 @@ def find_component_definition(schema: Dict[str, Any], component_type: str) -> Op
                         return item["then"]
     
     return None
-
-
-def load_layout_schema_from_url(schema_url: str) -> Dict[str, Any]:
-    """Load the layout schema from a direct URL.
-    
-    Args:
-        schema_url: Direct URL to the schema file
-        
-    Returns:
-        The parsed schema dictionary
-    """
-    try:
-        # Validate that the URL is from altinncdn.no domain for security
-        parsed_url = urlparse(schema_url)
-        if parsed_url.netloc != 'altinncdn.no':
-            raise Exception(
-                f"INVALID_DOMAIN: Schema URL must be from altinncdn.no domain, got: '{parsed_url.netloc}'. "
-                f"Use a valid URL like: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json. "
-                f"DO NOT RETRY with the same URL - this error is not recoverable without changing the schema_url parameter."
-            )
-        
-        # Ensure HTTPS for security
-        if parsed_url.scheme != 'https':
-            raise Exception(
-                f"INVALID_PROTOCOL: Schema URL must use HTTPS, got: '{parsed_url.scheme}'. "
-                f"Change the URL to use https:// instead of {parsed_url.scheme}://. "
-                f"DO NOT RETRY with the same URL."
-            )
-        
-        # Fetch the schema from the URL
-        response = requests.get(schema_url)
-        response.raise_for_status()
-        
-        schema = response.json()
-        return schema
-        
-    except Exception as e:
-        raise Exception(f"Failed to load layout schema from URL: {str(e)}")

@@ -1,3 +1,5 @@
+import type { AppVersion } from 'app-shared/types/AppVersion';
+
 /**
  * Minimum version of Altinn.App .NET libraries required for PDF service task
  */
@@ -13,6 +15,15 @@ export const MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK = '4.25.2';
  * renaming the task renames the layout set.
  */
 export const MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK = '9.0.0';
+
+/**
+ * Returns true if the app names a task's layout set after the task, so renaming one renames the other.
+ */
+export const isLayoutSetNamedAfterTask = (appVersion?: AppVersion): boolean =>
+  isVersionEqualOrGreater(
+    appVersion?.backendVersion ?? '',
+    MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK,
+  );
 
 /**
  * Returns true if the version is 8 or higher, and false otherwise

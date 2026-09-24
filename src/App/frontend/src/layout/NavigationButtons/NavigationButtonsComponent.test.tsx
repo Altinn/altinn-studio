@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { PageValidation } from '@app/layout-contract/generated/common.generated';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CompNavigationButtonsExternal } from '@app/layout-contract/generated/components/NavigationButtons/config.generated';
 
@@ -179,8 +179,6 @@ describe('NavigationButtons', () => {
 
     await userEvent.click(screen.getByText('Neste'));
 
-    await waitForElementToBeRemoved(() => screen.queryByText('Neste'));
-
-    expect(screen.queryByText('Neste')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Neste')).not.toBeInTheDocument());
   });
 });

@@ -248,12 +248,7 @@
     },
     {
       "matchFileNames": ["src/Designer/backend/**"],
-      "ignoreDeps": [
-        "Moq",
-        "Basic.Reference.Assemblies",
-        "Microsoft.CodeAnalysis.CSharp",
-        "Microsoft.CodeAnalysis.Common"
-      ]
+      "ignoreDeps": ["Moq"]
     },
     {
       "matchFileNames": [
