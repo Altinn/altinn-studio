@@ -86,7 +86,7 @@ export default function FrontendFolgerAppenSlide({ step }: SlideProps) {
               </span>
             </div>
 
-            <p className="s-fe__body">Det du tester, er det brukerne får.</p>
+            <p className="s-fe__body">Den versjonen du tester, er den samme som brukerne får.</p>
           </section>
         </Reveal>
       </div>
