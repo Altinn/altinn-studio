@@ -1,0 +1,102 @@
+name: Gitea Runner - Act cache seed
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/gitea-runner-act-cache-seed.yaml'
+      - '.github/scripts/gitea-runner-act-cache-warmup.yaml'
+      - '.github/scripts/prewarm-gitea-runner-act-cache.sh'
+      - 'src/gitea-runner-act-cache/**'
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-push-seed:
+    runs-on: ubuntu-latest
+    environment: dev # dev environment has push access and doesn't require review
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry.azurecr.io
+      RUNNER_REPOSITORY: altinn-gitea-runner
+      SEED_REPOSITORY: altinn-gitea-runner-act-cache
+      IMMUTABLE_TAG: ${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Azure login
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ env.REGISTRY_NAME }} \
+          --expose-token --output tsv \
+          --query accessToken \
+          --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }} \
+          --only-show-errors | docker login ${{ env.REGISTRY_NAME }} \
+                                --username 00000000-0000-0000-0000-000000000000 \
+                                --password-stdin
+
+      - name: Pull runner image
+        run: docker pull "${REGISTRY_NAME}/${RUNNER_REPOSITORY}:latest"
+
+      - name: Prewarm act_runner cache
+        run: |
+          .github/scripts/prewarm-gitea-runner-act-cache.sh \
+            "${REGISTRY_NAME}/${RUNNER_REPOSITORY}:latest" \
+            "src/gitea-runner-act-cache/act-cache"
+
+      - name: Calculate act cache digest
+        id: act-cache-digest
+        run: |
+          digest=$(tar \
+            --sort=name \
+            --mtime='UTC 1970-01-01' \
+            --owner=0 \
+            --group=0 \
+            --numeric-owner \
+            -cf - \
+            -C src/gitea-runner-act-cache/act-cache . | sha256sum | cut -d ' ' -f 1)
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+
+      - name: Check current seed image
+        id: current-seed
+        run: |
+          if docker pull "${REGISTRY_NAME}/${SEED_REPOSITORY}:latest"; then
+            current_digest=$(docker image inspect \
+              "${REGISTRY_NAME}/${SEED_REPOSITORY}:latest" \
+              --format '{{ if .Config.Labels }}{{ index .Config.Labels "no.altinn.act-cache.digest" }}{{ end }}')
+          else
+            current_digest=""
+          fi
+
+          echo "digest=${current_digest}" >> "$GITHUB_OUTPUT"
+          if [ "${current_digest}" = "${{ steps.act-cache-digest.outputs.digest }}" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build seed image
+        if: steps.current-seed.outputs.changed == 'true'
+        run: |
+          docker build \
+            --build-arg ACT_CACHE_DIGEST="${{ steps.act-cache-digest.outputs.digest }}" \
+            -t "${REGISTRY_NAME}/${SEED_REPOSITORY}:${IMMUTABLE_TAG}" \
+            -t "${REGISTRY_NAME}/${SEED_REPOSITORY}:latest" \
+            -f src/gitea-runner-act-cache/Dockerfile \
+            src/gitea-runner-act-cache
+
+      - name: Push seed image
+        if: steps.current-seed.outputs.changed == 'true'
+        run: |
+          docker push "${REGISTRY_NAME}/${SEED_REPOSITORY}:${IMMUTABLE_TAG}"
+          docker push "${REGISTRY_NAME}/${SEED_REPOSITORY}:latest"
