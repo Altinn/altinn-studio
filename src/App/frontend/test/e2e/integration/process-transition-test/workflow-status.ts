@@ -368,8 +368,9 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: 'Prøv igjen' }).click();
     workflowLoader().should('be.visible');
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service', failedAttempts: 1 });
-    cy.contains('Dette tar uvanlig lang tid').should('not.exist');
-    cy.contains('Vi får ikke behandlet skjemaet ditt').should('not.exist');
+    // Checked once: retrying would wait out the processing and pass on the failed view that follows.
+    cy.contains('Dette tar uvanlig lang tid', { timeout: 0 }).should('not.exist');
+    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 0 }).should('not.exist');
     cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
 
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
