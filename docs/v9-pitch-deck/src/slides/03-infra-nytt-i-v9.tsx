@@ -2,7 +2,10 @@ import type { SlideProps } from '../deck';
 import { Slide } from '../components';
 import { ComingStrip, FeatureGrid, type Feature } from './_kit';
 
-/** Platform improvements that need the app on v9 (CONTENT.md §1, «Infrastructure»). */
+/**
+ * The platform part in one slide: what v9 adds, what is on its way, and one
+ * line for what v8 apps already have (CONTENT.md §1.26–28).
+ */
 const FEATURES: Feature[] = [
   {
     icon: 'server',
@@ -24,14 +27,14 @@ const FEATURES: Feature[] = [
   },
 ];
 
-/** Infrastructure, part 2: what v9 adds, and what is on its way. */
+/** Infrastructure: what v9 adds, and what is on its way. */
 export default function InfraNyttIV9Slide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
       kicker="Infrastruktur"
       title="Nytt med v9"
-      subtitle="Noen forbedringer krever at appen er oppgradert."
+      subtitle="Plattformen tar mer av jobben, så appen kan gjøre mindre."
     >
       <div className="s-fill">
         <FeatureGrid features={FEATURES} />
@@ -39,6 +42,10 @@ export default function InfraNyttIV9Slide({ step }: SlideProps) {
           Status fra prosessmotoren i adminsidene i Studio: se hvilke innsendinger som står fast,
           og start dem igjen derfra.
         </ComingStrip>
+        <p className="s-footnote">
+          Mye har v8-appene også fått: utrulling du kan følge, Maskinporten-nøkler som byttes
+          automatisk, ny PDF-tjeneste og varsler når noe feiler.
+        </p>
       </div>
     </Slide>
   );

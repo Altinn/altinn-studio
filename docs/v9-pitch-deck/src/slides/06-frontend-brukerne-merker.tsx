@@ -30,14 +30,14 @@ const FEATURES: Feature[] = [
   },
 ];
 
-/** Frontend, part 2: what the people filling in the form notice. */
+/** Frontend: what the people filling in the form notice. */
 export default function FrontendBrukerneMerkerSlide(_: SlideProps) {
   return (
     <Slide
       variant="full"
       kicker="Frontend"
       title="Det brukerne merker"
-      subtitle="Små endringer som gjør skjemaene tryggere å fylle ut og sende inn."
+      subtitle="Tryggere å fylle ut, og roligere å sende inn."
     >
       <div className="s-fill">
         <FeatureGrid features={FEATURES} />

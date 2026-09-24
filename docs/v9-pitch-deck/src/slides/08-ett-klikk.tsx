@@ -2,9 +2,13 @@ import { motion } from 'framer-motion';
 import type { SlideProps } from '../deck';
 import { Slide, Icon } from '../components';
 import type { IconName } from '../components';
-import { Backdrop, BrandMark } from './_kit';
+import { Backdrop } from './_kit';
 
-/** The ten things one «Send inn» sets off. */
+/**
+ * The ten things one «Send inn» sets off — the opener of the backend part.
+ * Step 1 fans them out; step 2 marks every one of them as saved, which is
+ * the whole v9 promise in one picture.
+ */
 const THINGS: { label: string; icon: IconName }[] = [
   { label: 'Hindre dobbel innsending', icon: 'lock' },
   { label: 'Sjekk skjemaet', icon: 'check' },
@@ -23,23 +27,24 @@ const BUTTON_Y = 350;
 
 export default function EttKlikkSlide({ step }: SlideProps) {
   const show = step >= 1;
+  const saved = step >= 2;
 
   return (
     <Slide variant="full">
       <Backdrop />
-      <BrandMark place="top" />
 
       <div className="s-cover">
         <div className="s-cover__col">
-          <p className="s-cover__kicker">Altinn-apper · v9</p>
+          <p className="s-cover__kicker">Backend</p>
           <h1 className="s-cover__title">
             Ett klikk,
             <br />
-            mange ting
+            ti ting
           </h1>
           <p className="s-cover__lead">
-            Når en bruker trykker «Send inn», skjer det ti ting. I v8 må alle ti lykkes mens
-            brukeren venter.
+            {saved
+              ? 'I v9 blir hver av dem lagret og gjort ferdig — også når noe feiler underveis.'
+              : 'Når en bruker trykker «Send inn», skjer alt dette. I v8 må alt lykkes mens brukeren venter.'}
           </p>
         </div>
 
@@ -75,6 +80,14 @@ export default function EttKlikkSlide({ step }: SlideProps) {
             >
               <Icon name={thing.icon} size={26} />
               {thing.label}
+              <motion.span
+                className="s-fan__saved"
+                initial={false}
+                animate={{ opacity: saved ? 1 : 0, scale: saved ? 1 : 0.6 }}
+                transition={{ duration: 0.25, delay: saved ? i * 0.04 : 0, ease: 'easeOut' }}
+              >
+                <Icon name="check" size={20} strokeWidth={3} />
+              </motion.span>
             </motion.div>
           ))}
         </div>

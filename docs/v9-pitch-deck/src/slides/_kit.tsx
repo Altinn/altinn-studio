@@ -306,14 +306,14 @@ export function FeatureGrid({
   );
 }
 
-/** A full-width strip for what is on its way — named plainly as not shipped yet. */
+/** A full-width strip for what is on its way. */
 export function ComingStrip({ show, children }: { show: boolean; children: ReactNode }) {
   return (
     <Reveal show={show}>
       <div className="s-coming">
         <span className="s-coming__tag">
           <Icon name="rocket" size={30} />
-          Kommer
+          På vei
         </span>
         <p className="s-coming__text">{children}</p>
       </div>
