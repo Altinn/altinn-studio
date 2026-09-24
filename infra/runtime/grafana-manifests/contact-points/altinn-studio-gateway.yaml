@@ -5,6 +5,10 @@ metadata:
 spec:
   name: altinn-studio-gateway
   type: webhook
+  # Every sync re-encrypts authorization_credentials, which Grafana treats as a new Alertmanager
+  # configuration: it restarts notification dispatch and cancels webhooks in flight to the gateway.
+  # Keep periodic syncs rare; spec and token secret changes still sync immediately.
+  resyncPeriod: 24h
   instanceSelector:
     matchLabels:
       dashboards: external-grafana
