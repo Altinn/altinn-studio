@@ -13,15 +13,15 @@ const FIRST_ID = 'forside';
 const DEEP = { hash: '/#/12/7', id: 'scenario-feil', step: '7' };
 const LAST_ID = 'bli-med';
 const TOTAL = 15;
-/** Build steps on slide 1 — the first `→` must build, not navigate. */
-const FIRST_SLIDE_STEPS = 2;
+/** Build steps on slide 1 (the cover has none, so the first `→` navigates). */
+const FIRST_SLIDE_STEPS = 0;
 /** Build steps on the last slide, so `→` parks there fully built. */
-const LAST_SLIDE_STEPS = 3;
+const LAST_SLIDE_STEPS = 0;
 /**
- * 15 slides + 32 build steps = every state a presenter clicks through. Each
+ * 15 slides + 24 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 7: six paired beats, and the comparison.
  */
-const TOTAL_STATES = 47;
+const TOTAL_STATES = 39;
 
 const root = (page: Page) => page.locator('[data-deck-root]');
 

@@ -1,7 +1,7 @@
 import type { SlideProps } from '../deck';
-import { Slide, Icon, Reveal } from '../components';
+import { Slide, Icon } from '../components';
 import type { IconName } from '../components';
-import { Backdrop, BrandMark } from './_kit';
+import { Backdrop, BrandMark, Enter } from './_kit';
 
 const PARTS: { icon: IconName; no: string; title: string; body: string }[] = [
   { icon: 'server', no: 'Del 1', title: 'Infrastruktur', body: 'Plattformen appene kjører på' },
@@ -9,8 +9,8 @@ const PARTS: { icon: IconName; no: string; title: string; body: string }[] = [
   { icon: 'send', no: 'Del 3', title: 'Backend', body: 'Det appen gjør bak kulissene' },
 ];
 
-/** The cover, and the map of the talk: one part per click. */
-export default function ForsideSlide({ step }: SlideProps) {
+/** The cover, and the map of the talk. */
+export default function ForsideSlide(_: SlideProps) {
   return (
     <Slide variant='full'>
       <Backdrop />
@@ -28,7 +28,7 @@ export default function ForsideSlide({ step }: SlideProps) {
 
         <ol className='s-pillars'>
           {PARTS.map((part, i) => (
-            <Reveal key={part.title} show={step >= i} from='right'>
+            <Enter key={part.title} index={i}>
               <li className='s-pillar'>
                 <span className='s-pillar__icon'>
                   <Icon name={part.icon} size={40} />
@@ -39,7 +39,7 @@ export default function ForsideSlide({ step }: SlideProps) {
                   <span className='s-pillar__body'>{part.body}</span>
                 </span>
               </li>
-            </Reveal>
+            </Enter>
           ))}
         </ol>
       </div>

@@ -229,8 +229,26 @@ test('a slide change crossfades without a gap, a ghost or a flash', async ({ pag
   expect(flashes, `arriving slide blinked: ${flashes.join(' | ')}`).toEqual([]);
 });
 
+test('tiles enter with their slide without blinking', async ({ page }) => {
+  await page.goto('/#/2'); // the next slide, `infra-nytt-i-v9`, has tiles that enter
+  await settle(page);
+  const { frames } = await record(page, () => page.keyboard.press('ArrowDown'));
+  await settle(page);
+  const id = (await root(page).getAttribute('data-slide-id'))!;
+  expect(id).toBe('infra-nytt-i-v9');
+
+  const tracks = framesOf(frames, id).map((f) => f.layer.reveals);
+  // Prove the check ran: the tiles must actually have animated in.
+  expect(tracks.length, 'never sampled the slide').toBeGreaterThan(20);
+  const moved = tracks[0]!.some((op, i) => Math.abs((tracks.at(-1)![i] ?? op) - op) > 0.5);
+  expect(moved, 'the tiles did not animate, so nothing was checked').toBe(true);
+
+  const flashes = findFlashes(tracks);
+  expect(flashes, `a tile blinked as it entered: ${flashes.join(' | ')}`).toEqual([]);
+});
+
 test('build-step content lands without blinking out', async ({ page }) => {
-  await page.goto('/#/9'); // `for-utviklere` — one card revealed per build step
+  await page.goto('/#/8'); // `prosessmotor` — one part of the drawing per build step
   await settle(page);
   const id = (await root(page).getAttribute('data-slide-id'))!;
 
@@ -263,10 +281,10 @@ test('five presses in one second leave a settled, correct stage', async ({ page 
   ).toBeGreaterThan(MIN_COVERAGE);
 
   await settle(page);
-  // Slide 1 has 2 build steps and slides 2-3 have none, so five presses land
-  // on slide 4.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '3');
-  await expect(root(page)).toHaveAttribute('data-slide-step', '0');
+  // Slides 1-4 have no build steps and slide 5 has one, so five presses land
+  // on slide 5's build step.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '4');
+  await expect(root(page)).toHaveAttribute('data-slide-step', '1');
 
   // Exactly one layer left, and it is the slide the deck claims to be on.
   const layers = page.locator('.deck__slide');
@@ -289,13 +307,15 @@ test('keyboard repeat never strands the deck on a stale slide', async ({ page })
     'data-slide-layer',
     (await root(page).getAttribute('data-slide-id'))!,
   );
-  // Slides 1-5 hold 2 + 0 + 0 + 0 + 1 build steps, so the eighth press opens
-  // slide 6. Anything short of that means presses were swallowed.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '5');
+  // Slides 1-7 hold 0 + 0 + 0 + 0 + 1 + 0 + 0 build steps, so the eighth
+  // press opens slide 8. Anything short of that means presses were swallowed.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '7');
   await expect(root(page)).toHaveAttribute('data-slide-step', '0');
 });
 
 test('a build step re-renders the slide instead of remounting it', async ({ page }) => {
+  await page.goto('/#/5'); // `frontend-folger-appen` has one build step
+  await settle(page);
   const stamp = () =>
     page.evaluate(() => {
       const el = document.querySelector('.deck__slide') as

@@ -33,7 +33,6 @@ export const slides: SlideDef[] = [
   {
     id: 'forside',
     component: Forside,
-    steps: 2,
     notes:
       'Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kommer i gang.',
   },
@@ -81,7 +80,6 @@ export const slides: SlideDef[] = [
   {
     id: 'for-utviklere',
     component: ForUtviklere,
-    steps: 3,
     notes:
       'For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.',
   },
@@ -123,7 +121,6 @@ export const slides: SlideDef[] = [
   {
     id: 'bli-med',
     component: BliMed,
-    steps: 3,
     notes:
       'v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, eller med studioctl. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.',
   },
