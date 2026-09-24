@@ -1,5 +1,6 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
+from collections.abc import Iterator
 from typing import Dict, Any, List, Set, Optional, Tuple
 import requests
 from urllib.parse import urlparse
@@ -91,11 +92,13 @@ def layout_properties_tool(
 
 
 def _component_not_found_result(component_type: str, component_types: List[str]) -> Dict[str, Any]:
+    if not component_types:
+        return _no_component_types_result(component_type)
     return {
         "status": "error",
         "error_code": "COMPONENT_NOT_FOUND",
         "message": f"Component type '{component_type}' not found in schema. "
-                   f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
+                   f"{_casing_advice(component_type, component_types)} "
                    f"Component types in the schema: {', '.join(component_types)}. "
                    f"DO NOT RETRY with the same component_type - pick one of the listed component types.",
         "allowed_properties": [],
@@ -104,20 +107,68 @@ def _component_not_found_result(component_type: str, component_types: List[str])
     }
 
 
+def _no_component_types_result(component_type: str) -> Dict[str, Any]:
+    return {
+        "status": "error",
+        "error_code": "SCHEMA_HAS_NO_COMPONENT_TYPES",
+        "message": f"Component type '{component_type}' not found in schema. "
+                   f"The schema has no component types in a structure that this tool can read. "
+                   f"Thus this tool cannot give the properties of any component type. "
+                   f"DO NOT RETRY this tool with a different component_type.",
+        "allowed_properties": [],
+        "required_properties": [],
+        "property_details": {}
+    }
+
+
+def _casing_advice(component_type: str, component_types: List[str]) -> str:
+    same_name_with_other_casing = next(
+        (name for name in component_types if name.lower() == component_type.lower()),
+        None,
+    )
+    if same_name_with_other_casing:
+        return (
+            f"Use '{same_name_with_other_casing}' instead: "
+            f"component type names are case-sensitive."
+        )
+    return (
+        "Verify the component_type is spelled correctly with proper casing "
+        "(e.g., 'Input' not 'input')."
+    )
+
+
 def list_component_types(schema: Dict[str, Any]) -> List[str]:
-    """List the component types declared in the schema's AnyComponent definition."""
+    """List the component types that the schema declares, sorted and without duplicates."""
+    return sorted({component_type for component_type, _ in _iterate_component_definitions(schema)})
+
+
+def _iterate_component_definitions(schema: Dict[str, Any]) -> Iterator[Tuple[str, Dict[str, Any]]]:
+    """Give each (component type, definition) pair that the schema declares.
+
+    The pairs come from ``definitions.AnyComponent.allOf`` first and from the
+    top-level ``allOf`` after it. Each item is an ``if``/``then`` pair where
+    ``if.properties.type.const`` is the component type and ``then`` is its definition.
+    """
     any_component = schema.get("definitions", {}).get("AnyComponent", {})
-    component_types = [
-        _component_type_of(item) for item in any_component.get("allOf", [])
-    ]
-    return sorted(component_type for component_type in component_types if component_type)
+    for items in (any_component.get("allOf", []), schema.get("allOf", [])):
+        for item in items:
+            component = _read_component_definition(item)
+            if component:
+                yield component
 
 
-def _component_type_of(any_component_item: Any) -> Optional[str]:
-    if not isinstance(any_component_item, dict):
+def _read_component_definition(item: Any) -> Optional[Tuple[str, Dict[str, Any]]]:
+    if not isinstance(item, dict):
         return None
-    type_constraint = any_component_item.get("if", {}).get("properties", {}).get("type", {})
-    return type_constraint.get("const")
+    condition = item.get("if")
+    definition = item.get("then")
+    if not isinstance(condition, dict) or not isinstance(definition, dict):
+        return None
+    type_constraint = condition.get("properties", {}).get("type", {})
+    component_type = type_constraint.get("const") if isinstance(type_constraint, dict) else None
+    if not isinstance(component_type, str):
+        return None
+    return component_type, definition
 
 
 def extract_schema_metadata(
@@ -265,40 +316,9 @@ def find_component_definition(schema: Dict[str, Any], component_type: str) -> Op
     Returns:
         The component definition dictionary, or None if not found
     """
-    # Traverse down json schema to find the component definition
-    if "definitions" in schema:
-        if "AnyComponent" in schema["definitions"]:
-            any_component = schema["definitions"]["AnyComponent"]
-        
-            if "allOf" in any_component: 
-                
-                # Iterate over allOf items to find the component definition
-                for i, item in enumerate(any_component["allOf"]):
-                    if isinstance(item, dict) and "if" in item and "then" in item:
-                        if_condition = item["if"]
-                        
-                        if ("properties" in if_condition and 
-                            "type" in if_condition["properties"]):
-                            type_constraint = if_condition["properties"]["type"]
-                            
-                            if ("const" in type_constraint and
-                                type_constraint["const"] == component_type):
-                                return item["then"]
-    
-    # Look for the component definition in the top-level allOf array
-    if "allOf" in schema:
-        for i, item in enumerate(schema["allOf"]):
-            if isinstance(item, dict) and "if" in item and "then" in item:
-                if_condition = item["if"]
-                
-                if ("properties" in if_condition and 
-                    "type" in if_condition["properties"]):
-                    type_constraint = if_condition["properties"]["type"]
-                    
-                    if ("const" in type_constraint and
-                        type_constraint["const"] == component_type):
-                        return item["then"]
-    
+    for declared_type, definition in _iterate_component_definitions(schema):
+        if declared_type == component_type:
+            return definition
     return None
 
 

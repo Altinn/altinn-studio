@@ -82,6 +82,41 @@ def test_an_unknown_component_is_not_sent_to_a_tool_that_does_not_exist():
     assert "layout_components_tool" not in str(result)
 
 
+def test_a_component_with_the_wrong_casing_is_told_the_correct_name():
+    result = _props("header")
+
+    assert result["error_code"] == "COMPONENT_NOT_FOUND"
+    assert "Use 'Header' instead" in result["message"]
+
+
+def test_a_schema_without_component_types_does_not_point_at_an_empty_list(monkeypatch):
+    monkeypatch.setitem(globals(), "SCHEMA", {})
+
+    result = _props("Header")
+
+    assert result["error_code"] == "SCHEMA_HAS_NO_COMPONENT_TYPES"
+    assert "Component types in the schema" not in result["message"]
+    assert "listed" not in result["message"]
+
+
+def test_the_list_and_the_lookup_read_the_same_component_types():
+    schema = {
+        "allOf": [
+            {
+                "if": {"properties": {"type": {"const": "Paragraph"}}},
+                "then": {"properties": {"id": {"type": "string"}}},
+            },
+            {"if": {"properties": {"type": {"const": "NoDefinition"}}}},
+        ]
+    }
+
+    listed = properties.list_component_types(schema)
+
+    assert listed == ["Paragraph"]
+    assert all(properties.find_component_definition(schema, name) for name in listed)
+    assert properties.find_component_definition(schema, "NoDefinition") is None
+
+
 def test_checkboxes_are_warned_off_the_group_binding():
     stated = " ".join(properties.BINDING_CONSTRAINTS["Checkboxes"])
 
