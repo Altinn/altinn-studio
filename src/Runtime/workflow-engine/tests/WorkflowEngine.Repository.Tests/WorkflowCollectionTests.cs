@@ -245,6 +245,17 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         Assert.NotNull(failing);
         Assert.Equal(2, Assert.Single(failing.Heads).FailedAttempts);
 
+        steps[0].Status = PersistentItemStatus.Processing;
+        await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
+
+        var retrying = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(retrying);
+        Assert.Equal(2, Assert.Single(retrying.Heads).FailedAttempts);
+
         steps[0].Status = PersistentItemStatus.Completed;
         await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
         steps[1].Status = PersistentItemStatus.Requeued;
