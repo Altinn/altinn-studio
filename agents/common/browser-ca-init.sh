@@ -20,19 +20,27 @@ fi
 
 umask 077
 mkdir -p "$nssdb" "$state_dir"
-if [ ! -f "$nssdb/cert9.db" ]; then
-    certutil -N --empty-password -d "sql:$nssdb"
+
+work=$(mktemp -d "${TMPDIR:-/tmp}/agent-browser-ca.XXXXXX")
+trap 'find "$work" -depth -delete' EXIT HUP INT TERM
+
+# Every certutil call commits the SQLite database with its own flushes, which add up to about 15
+# seconds for the system bundle on the guest disk. The database is edited in the temporary directory,
+# a tmpfs in the guest, and copied back once.
+staged=$work/nssdb
+mkdir "$staged"
+if [ -f "$nssdb/cert9.db" ]; then
+    cp -p "$nssdb"/* "$staged"/
+else
+    certutil -N --empty-password -d "sql:$staged"
 fi
 
 if [ -f "$state_file" ]; then
     sed -n '2,$p' "$state_file" | while IFS= read -r nickname; do
         [ -n "$nickname" ] || continue
-        certutil -D -d "sql:$nssdb" -n "$nickname" 2>/dev/null || true
+        certutil -D -d "sql:$staged" -n "$nickname" 2>/dev/null || true
     done
 fi
-
-work=$(mktemp -d "${TMPDIR:-/tmp}/agent-browser-ca.XXXXXX")
-trap 'find "$work" -depth -delete' EXIT HUP INT TERM
 
 awk -v directory="$work" '
     /-----BEGIN CERTIFICATE-----/ {
@@ -55,9 +63,16 @@ for certificate in "$work"/certificate-*.pem; do
     openssl x509 -in "$certificate" -noout >/dev/null
     fingerprint=$(openssl x509 -in "$certificate" -outform DER | sha256sum | awk '{ print $1 }')
     nickname=altinn-agent-system-ca-$fingerprint
-    certutil -D -d "sql:$nssdb" -n "$nickname" 2>/dev/null || true
-    certutil -A -d "sql:$nssdb" -n "$nickname" -t 'C,,' -i "$certificate"
+    certutil -D -d "sql:$staged" -n "$nickname" 2>/dev/null || true
+    certutil -A -d "sql:$staged" -n "$nickname" -t 'C,,' -i "$certificate"
     printf '%s\n' "$nickname" >>"$next_state"
 done
 
+# Each database file is replaced atomically, and the state file is written last, so an interrupted
+# update is redone on the next boot.
+for file in "$staged"/*; do
+    name=${file##*/}
+    cp -p "$file" "$nssdb/.$name.new"
+    mv "$nssdb/.$name.new" "$nssdb/$name"
+done
 mv "$next_state" "$state_file"
