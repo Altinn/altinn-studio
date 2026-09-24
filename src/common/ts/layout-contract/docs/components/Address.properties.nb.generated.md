@@ -330,7 +330,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     <span class="component-property-name" title="saveWhileTyping">saveWhileTyping</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">true</span></span>
+      <span class="component-property-default">Standardverdi: <span class="component-property-value">400</span></span>
       <span class="component-property-type" title="number">Type: <span class="component-property-value">number</span></span>
     </span>
   </summary>
