@@ -4,10 +4,10 @@ import { screen } from '@testing-library/react';
 import { RequiredIndicator } from './RequiredIndicator';
 
 describe('RequiredIndicator', () => {
-  it('renders the required marker when required', () => {
+  it('renders the required marker with an accessible name when required', () => {
     renderWithTranslations(<RequiredIndicator required />);
 
-    expect(screen.getByText('*')).toBeInTheDocument();
+    expect(screen.getByLabelText('Required')).toHaveTextContent('*');
   });
 
   it('renders nothing when not required', () => {

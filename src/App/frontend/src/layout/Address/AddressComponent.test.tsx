@@ -107,7 +107,7 @@ describe('AddressComponent', () => {
 
     expect(screen.queryByText(/postnummer er ugyldig/i)).not.toBeInTheDocument();
 
-    await userEvent.type(screen.getByRole('textbox', { name: /Postnr\s?\*/ }), '1');
+    await userEvent.type(screen.getByRole('textbox', { name: /Postnr\s?Obligatorisk/ }), '1');
     await userEvent.tab();
 
     expect(screen.getByText(/postnummer er ugyldig/i)).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe('AddressComponent', () => {
       },
     });
 
-    const field = screen.getByRole('textbox', { name: /Postnr\s?\*/ });
+    const field = screen.getByRole('textbox', { name: /Postnr\s?Obligatorisk/ });
     await userEvent.clear(field);
     await userEvent.type(field, '0001');
     await userEvent.tab();
@@ -215,10 +215,12 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(screen.getByRole('textbox', { name: /Gateadresse\s?\*/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Postnr\s?\*/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?\*/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer\s?\*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Gateadresse\s?Obligatorisk/ })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Postnr\s?Obligatorisk/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?Obligatorisk/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer\s?Obligatorisk/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: /Gateadresse\s?\(Valgfri\)/ })).not.toBeInTheDocument();
@@ -242,7 +244,7 @@ describe('AddressComponent', () => {
     expect(screen.queryByRole('textbox', { name: 'Gateadresse' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Postnr' })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: /Bolignummer\s?\*/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer\s?Obligatorisk/i })).not.toBeInTheDocument();
 
     expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
@@ -328,10 +330,12 @@ describe('AddressComponent', () => {
       },
     });
 
-    expect(screen.getByRole('textbox', { name: /Gateadresse\s?\*/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Postnr\s?\*/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?\*/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer\s?\*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Gateadresse\s?Obligatorisk/ })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Postnr\s?Obligatorisk/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?Obligatorisk/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer\s?Obligatorisk/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /Poststed/i })).toBeInTheDocument();
 
     expect(screen.queryByRole('textbox', { name: /Gateadresse\s?\(Valgfri\)/ })).not.toBeInTheDocument();

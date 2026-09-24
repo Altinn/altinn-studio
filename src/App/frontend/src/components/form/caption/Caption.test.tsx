@@ -34,7 +34,7 @@ describe('Caption', () => {
 
   it('provides an required indicator', async () => {
     await render({ required: true });
-    const title = screen.getByRole('table', { name: /title test\s?\* description test/i });
+    const title = screen.getByRole('table', { name: /title test\s?obligatorisk description test/i });
     expect(title).toBeInTheDocument();
   });
 });

@@ -1,8 +1,7 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
+from collections.abc import Iterator
 from typing import Dict, Any, List, Set, Optional, Tuple
-import requests
-from urllib.parse import urlparse
 
 
 # Pairings the schema marks optional but the renderer requires.
@@ -35,46 +34,24 @@ _BINDING_ADVICE = (
 def layout_properties_tool(
     user_goal: str,
     component_type: str,
-    schema_url: str
+    schema: Dict[str, Any],
+    binding_constraints: Dict[str, List[str]]
 ) -> Dict[str, Any]:
     """
     Retrieves schema information for a specific Altinn Studio component type.
     
     Args:
         component_type: Type of component to get schema for (e.g., "Input", "Button")
-        schema_url: Direct URL to the schema file
+        schema: The loaded layout schema
+        binding_constraints: Renderer constraints to report, keyed by component type
         
     Returns:
         Dictionary containing schema information with allowed properties and details
     """
     try:
-        # Load the schema
-        try:
-            schema = load_layout_schema_from_url(schema_url)
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Error loading schema: {str(e)}",
-                "allowed_properties": [],
-                "required_properties": [],
-                "property_details": {}
-            }
-        
-        # Find the component definition in the schema
         component_def = find_component_definition(schema, component_type)
         if not component_def:
-            return {
-                "status": "error",
-                "error_code": "COMPONENT_NOT_FOUND",
-                "message": f"Component type '{component_type}' not found in schema. "
-                           f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
-                           f"Common component types: Input, Checkboxes, RadioButtons, Dropdown, Datepicker, TextArea, Header, Paragraph, Button. "
-                           f"DO NOT RETRY with the same component_type - use layout_components_tool to discover valid component types.",
-                "allowed_properties": [],
-                "required_properties": [],
-                "property_details": {},
-                "hint": "Use layout_components_tool first to see all available component types and their exact names."
-            }
+            return _component_not_found_result(component_type, list_component_types(schema))
         
         # Extract schema metadata
         allowed_properties, required_properties, property_details = extract_schema_metadata(component_def, schema)
@@ -83,7 +60,7 @@ def layout_properties_tool(
             "status": "success",
             "message": f"Schema information retrieved for component type '{component_type}'",
             "constraints": [
-                *BINDING_CONSTRAINTS.get(component_type, []),
+                *binding_constraints.get(component_type, []),
                 _BINDING_ADVICE,
             ],
             "allowed_properties": sorted(list(allowed_properties)),
@@ -99,6 +76,54 @@ def layout_properties_tool(
             "required_properties": [],
             "property_details": {}
         }
+
+
+def _component_not_found_result(component_type: str, component_types: List[str]) -> Dict[str, Any]:
+    return {
+        "status": "error",
+        "error_code": "COMPONENT_NOT_FOUND",
+        "message": f"Component type '{component_type}' not found in schema. "
+                   f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
+                   f"Component types in the schema: {', '.join(component_types)}. "
+                   f"DO NOT RETRY with the same component_type - pick one of the listed component types.",
+        "allowed_properties": [],
+        "required_properties": [],
+        "property_details": {}
+    }
+
+
+def list_component_types(schema: Dict[str, Any]) -> List[str]:
+    """List the component types that the schema declares, sorted and without duplicates."""
+    return sorted({component_type for component_type, _ in _iterate_component_definitions(schema)})
+
+
+def _iterate_component_definitions(schema: Dict[str, Any]) -> Iterator[Tuple[str, Dict[str, Any]]]:
+    """Give each (component type, definition) pair that the schema declares.
+
+    The pairs come from ``definitions.AnyComponent.allOf`` first and from the
+    top-level ``allOf`` after it. Each item is an ``if``/``then`` pair where
+    ``if.properties.type.const`` is the component type and ``then`` is its definition.
+    """
+    any_component = schema.get("definitions", {}).get("AnyComponent", {})
+    for items in (any_component.get("allOf", []), schema.get("allOf", [])):
+        for item in items:
+            component = _read_component_definition(item)
+            if component:
+                yield component
+
+
+def _read_component_definition(item: Any) -> Optional[Tuple[str, Dict[str, Any]]]:
+    if not isinstance(item, dict):
+        return None
+    condition = item.get("if")
+    definition = item.get("then")
+    if not isinstance(condition, dict) or not isinstance(definition, dict):
+        return None
+    type_constraint = condition.get("properties", {}).get("type", {})
+    component_type = type_constraint.get("const") if isinstance(type_constraint, dict) else None
+    if not isinstance(component_type, str):
+        return None
+    return component_type, definition
 
 
 def extract_schema_metadata(
@@ -246,76 +271,7 @@ def find_component_definition(schema: Dict[str, Any], component_type: str) -> Op
     Returns:
         The component definition dictionary, or None if not found
     """
-    # Traverse down json schema to find the component definition
-    if "definitions" in schema:
-        if "AnyComponent" in schema["definitions"]:
-            any_component = schema["definitions"]["AnyComponent"]
-        
-            if "allOf" in any_component: 
-                
-                # Iterate over allOf items to find the component definition
-                for i, item in enumerate(any_component["allOf"]):
-                    if isinstance(item, dict) and "if" in item and "then" in item:
-                        if_condition = item["if"]
-                        
-                        if ("properties" in if_condition and 
-                            "type" in if_condition["properties"]):
-                            type_constraint = if_condition["properties"]["type"]
-                            
-                            if ("const" in type_constraint and
-                                type_constraint["const"] == component_type):
-                                return item["then"]
-    
-    # Look for the component definition in the top-level allOf array
-    if "allOf" in schema:
-        for i, item in enumerate(schema["allOf"]):
-            if isinstance(item, dict) and "if" in item and "then" in item:
-                if_condition = item["if"]
-                
-                if ("properties" in if_condition and 
-                    "type" in if_condition["properties"]):
-                    type_constraint = if_condition["properties"]["type"]
-                    
-                    if ("const" in type_constraint and
-                        type_constraint["const"] == component_type):
-                        return item["then"]
-    
+    for declared_type, definition in _iterate_component_definitions(schema):
+        if declared_type == component_type:
+            return definition
     return None
-
-
-def load_layout_schema_from_url(schema_url: str) -> Dict[str, Any]:
-    """Load the layout schema from a direct URL.
-    
-    Args:
-        schema_url: Direct URL to the schema file
-        
-    Returns:
-        The parsed schema dictionary
-    """
-    try:
-        # Validate that the URL is from altinncdn.no domain for security
-        parsed_url = urlparse(schema_url)
-        if parsed_url.netloc != 'altinncdn.no':
-            raise Exception(
-                f"INVALID_DOMAIN: Schema URL must be from altinncdn.no domain, got: '{parsed_url.netloc}'. "
-                f"Use a valid URL like: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json. "
-                f"DO NOT RETRY with the same URL - this error is not recoverable without changing the schema_url parameter."
-            )
-        
-        # Ensure HTTPS for security
-        if parsed_url.scheme != 'https':
-            raise Exception(
-                f"INVALID_PROTOCOL: Schema URL must use HTTPS, got: '{parsed_url.scheme}'. "
-                f"Change the URL to use https:// instead of {parsed_url.scheme}://. "
-                f"DO NOT RETRY with the same URL."
-            )
-        
-        # Fetch the schema from the URL
-        response = requests.get(schema_url)
-        response.raise_for_status()
-        
-        schema = response.json()
-        return schema
-        
-    except Exception as e:
-        raise Exception(f"Failed to load layout schema from URL: {str(e)}")
