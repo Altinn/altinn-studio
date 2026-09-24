@@ -184,8 +184,9 @@ deck; section 2 says where the copy lives; section 3 is the glossary.
 27. **v9-only on the platform side:** the process engine; exactly one Maskinporten identity, which
     the app can no longer override (#20433, a breaking change); and graceful shutdown, so in-flight
     work finishes when an app restarts or scales (#20003).
-28. **Coming, not shipped:** engine health in the Studio admin pages — which instances are stuck, and
-    resume or abandon from there (#20233–#20236, open on 2026-09-24). Say «kommer».
+28. **Engine health in the Studio admin pages:** which instances are stuck, and resume or abandon
+    from there (#20233–#20236). Still open on 2026-09-24, but it will be merged before the talk, so
+    the deck states it as fact. **Re-check that it merged before presenting.**
 
 ### Frontend: what users notice
 

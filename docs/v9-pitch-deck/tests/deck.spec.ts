@@ -19,11 +19,11 @@ const FIRST_SLIDE_STEPS = 2;
 /** Build steps on the last slide, so `→` parks there fully built. */
 const LAST_SLIDE_STEPS = 3;
 /**
- * 22 slides + 62 build steps = every state a presenter clicks through. Each
+ * 22 slides + 61 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 14: six beats per version, the switch, and the
  * comparison.
  */
-const TOTAL_STATES = 84;
+const TOTAL_STATES = 83;
 
 const root = (page: Page) => page.locator('[data-deck-root]');
 
@@ -82,11 +82,10 @@ test('Home and End jump to the ends', async ({ page }) => {
 });
 
 test('the URL hash tracks the current slide and step', async ({ page }) => {
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('ArrowDown'); // slide 3 has a build step
-  await expect(page).toHaveURL(/#\/3$/);
+  for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown'); // slide 5 has a build step
+  await expect(page).toHaveURL(/#\/5$/);
   await page.keyboard.press('ArrowRight');
-  await expect(page).toHaveURL(/#\/3\/1$/);
+  await expect(page).toHaveURL(/#\/5\/1$/);
 });
 
 test('a deep link restores the slide and step', async ({ page }) => {

@@ -53,9 +53,8 @@ export const slides: SlideDef[] = [
   {
     id: 'infra-nytt-i-v9',
     component: InfraNyttIV9,
-    steps: 1,
     notes:
-      'Plattformen tar mer av jobben: prosessmotoren, én fast Maskinporten-identitet per app, og myke omstarter der det som pågår får bli ferdig. Siste klikk: det som er på vei — status fra prosessmotoren rett i adminsidene i Studio. Den er ikke ute ennå; si «på vei». Linja nederst er ærlig ment: utrulling, Maskinporten-klienten (fra 8.3.0), PDF-tjenesten og varslene har v8-appene også fått.',
+      'Plattformen tar mer av jobben. Prosessmotoren gjør prosessene robuste: hvert steg lagres og gjøres ferdig, også når noe feiler. Maskinporten-klienten opprettes og forvaltes av plattformen. Og adminsidene i Studio viser hvilke prosesser som står fast, og lar dere starte dem igjen. Banneret nederst er ærlig ment: utrulling, PDF-tjenesten og varslene har v8-appene også fått. Om noen spør: den plattformstyrte Maskinporten-klienten finnes for v8-apper fra 8.3.0, men i v9 er den den eneste måten.',
   },
   {
     id: 'seksjon-frontend',

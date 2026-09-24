@@ -3,7 +3,7 @@
 One page for the person holding the clicker. Structure in English, the spoken notes verbatim in
 norsk bokmål (they are the `notes` fields in `src/slides/index.ts`, which is the source of truth).
 
-**The talk is slides 1–14: 44 build steps, 57 presses of `→` from the opening slide to the
+**The talk is slides 1–14: 43 build steps, 56 presses of `→` from the opening slide to the
 last.** Slides 15–22 are reserve slides for questions, reached with `o`.
 
 Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrome, press `f`.
@@ -53,7 +53,7 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 4. **The frontend is not a rebuild,** and the only speed figure is one early measurement in a test
    app. Never «mye raskere».
 5. **Much of the platform work already reaches v8 apps.** The footnote on slide 3 says so.
-6. **The admin-page status is «på vei»,** not something that exists today.
+6. **The admin-page status is stated as fact.** It is merged before the talk — check that it was.
 7. **Never name an archive-system vendor.** Say *arkivintegrasjon* / *arkivsystem*.
 
 ---
@@ -68,9 +68,9 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 > Del 1: plattformen.
 
-### 3 — Nytt med v9 · 1 click
+### 3 — Nytt med v9 · 0 clicks
 
-> Plattformen tar mer av jobben: prosessmotoren, én fast Maskinporten-identitet per app, og myke omstarter der det som pågår får bli ferdig. Siste klikk: det som er på vei — status fra prosessmotoren rett i adminsidene i Studio. Den er ikke ute ennå; si «på vei». Linja nederst er ærlig ment: utrulling, Maskinporten-klienten (fra 8.3.0), PDF-tjenesten og varslene har v8-appene også fått.
+> Plattformen tar mer av jobben. Prosessmotoren gjør prosessene robuste: hvert steg lagres og gjøres ferdig, også når noe feiler. Maskinporten-klienten opprettes og forvaltes av plattformen. Og adminsidene i Studio viser hvilke prosesser som står fast, og lar dere starte dem igjen. Banneret nederst er ærlig ment: utrulling, PDF-tjenesten og varslene har v8-appene også fått. Om noen spør: den plattformstyrte Maskinporten-klienten finnes for v8-apper fra 8.3.0, men i v9 er den den eneste måten.
 
 ### 4 — Del 2 — Frontend · 0 clicks
 
