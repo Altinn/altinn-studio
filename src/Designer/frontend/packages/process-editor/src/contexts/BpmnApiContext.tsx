@@ -24,9 +24,15 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
-  mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => void;
+  mutateLayoutSetId: (
+    data: { layoutSetIdToUpdate: string; newLayoutSetId: string },
+    options?: QueryOptions,
+  ) => void;
   mutateDataTypes: (dataTypesChange: DataTypesChange, options?: QueryOptions) => void;
-  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
+  /** Saves the process definition, and rejects when the save fails. */
+  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => Promise<void>;
+  /** Fetches the process definition as it is saved. */
+  getSavedBpmn: () => Promise<string>;
   onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
   onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
 };
