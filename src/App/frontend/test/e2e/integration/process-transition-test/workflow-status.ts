@@ -345,6 +345,31 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
   });
 
+  it('failing (post-commit): repeated failures escalate the loader, and "Prøv igjen" restarts the clock', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // Each attempt takes ~3s; the first two fail retryably and the third fails terminally. A resume
+    // replays all three, since endState "failure" resets the attempt counter.
+    fillLevers({ path: 'postCommit', delayMs: 3000, attempts: 3, endState: 'failure' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The second failed attempt escalates the loader's notice to a warning before the step gives up.
+    workflowLoader().should('be.visible');
+    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+
+    // process/resume holds its request until the workflow settles; the loader takes over from the
+    // retry button meanwhile. Resume keeps the transition's original start, so the still-working
+    // notice showing at once would mean the clock was not restarted by the resume.
+    cy.findByRole('button', { name: 'Prøv igjen' }).click();
+    workflowLoader().should('be.visible');
+    cy.contains('Dette tar uvanlig lang tid').should('not.exist');
+    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
+
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
+  });
+
   it('deferral (post-commit): the service task yields until ready, then advances on its own', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     // deferrals: the service task answers "ran fine, the outcome isn't here yet" three times. Each
