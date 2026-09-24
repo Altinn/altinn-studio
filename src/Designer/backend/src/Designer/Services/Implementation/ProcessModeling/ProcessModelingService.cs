@@ -20,14 +20,17 @@ public class ProcessModelingService : IProcessModelingService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IAppVersionService _appVersionService;
 
     public ProcessModelingService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IAppDevelopmentService appDevelopmentService
+        IAppDevelopmentService appDevelopmentService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _appDevelopmentService = appDevelopmentService;
+        _appVersionService = appVersionService;
     }
 
     private string TemplatesFolderIdentifier(SemanticVersion version) =>
@@ -147,6 +150,14 @@ public class ProcessModelingService : IProcessModelingService
                 MaxCount = 1,
                 TaskId = taskId,
             };
+
+            if (!_appVersionService.IsV9App(altinnRepoEditingContext))
+            {
+                // V8 enables legacy PDF generation when this property is omitted.
+#pragma warning disable CS0618 // Required by apps using the v8 runtime
+                dataTypeToAdd.EnablePdfCreation = false;
+#pragma warning restore CS0618
+            }
 
             if (allowedContributors?.Count > 0)
             {

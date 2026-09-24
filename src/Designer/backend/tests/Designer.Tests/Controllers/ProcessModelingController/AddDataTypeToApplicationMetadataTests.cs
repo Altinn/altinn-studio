@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -24,6 +25,47 @@ public class AddDataTypeToApplicationMetadataTests
 
     public AddDataTypeToApplicationMetadataTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(9)]
+    public async Task AddDataType_DisablesLegacyPdfCreationOnlyForV8(int majorVersion)
+    {
+        const string org = "ttd";
+        const string developer = "testUser";
+        const string dataTypeId = "signatureInformation";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, "empty-app", developer, targetRepository);
+        await File.WriteAllTextAsync(
+            Path.Combine(TestRepoPath, "App", "App.csproj"),
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup><PackageReference Include="Altinn.App.Api" Version="{majorVersion}.0.0" /></ItemGroup>
+            </Project>
+            """
+        );
+        using var content = new StringContent("[]", Encoding.UTF8, "application/json");
+
+        using var response = await HttpClient.PostAsync(
+            VersionPrefix(org, targetRepository, dataTypeId, "Task_1"),
+            content
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using JsonDocument metadata = JsonDocument.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json")
+        );
+        JsonElement dataType = metadata
+            .RootElement.GetProperty("dataTypes")
+            .EnumerateArray()
+            .Single(type => type.GetProperty("id").GetString() == dataTypeId);
+        bool hasLegacyFlag = dataType.TryGetProperty("enablePdfCreation", out JsonElement legacyFlag);
+        Assert.Equal(majorVersion == 8, hasLegacyFlag);
+        if (hasLegacyFlag)
+        {
+            Assert.False(legacyFlag.GetBoolean());
+        }
+    }
 
     [Theory]
     [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1")]
@@ -61,6 +103,9 @@ public class AddDataTypeToApplicationMetadataTests
             MaxCount = 1,
             MinCount = 0,
             TaskId = taskId,
+#pragma warning disable CS0618 // V8 still uses this flag
+            EnablePdfCreation = false,
+#pragma warning restore CS0618
             EnableFileScan = false,
             ValidationErrorOnPendingFileScan = false,
             EnabledFileAnalysers = new List<string>(),
@@ -116,6 +161,9 @@ public class AddDataTypeToApplicationMetadataTests
             MaxCount = 1,
             MinCount = 0,
             TaskId = taskId,
+#pragma warning disable CS0618 // V8 still uses this flag
+            EnablePdfCreation = false,
+#pragma warning restore CS0618
             EnableFileScan = false,
             ValidationErrorOnPendingFileScan = false,
             EnabledFileAnalysers = new List<string>(),
@@ -174,6 +222,9 @@ public class AddDataTypeToApplicationMetadataTests
             MaxCount = 1,
             MinCount = 0,
             TaskId = taskId,
+#pragma warning disable CS0618 // V8 still uses this flag
+            EnablePdfCreation = false,
+#pragma warning restore CS0618
             EnableFileScan = false,
             ValidationErrorOnPendingFileScan = false,
             EnabledFileAnalysers = new List<string>(),
