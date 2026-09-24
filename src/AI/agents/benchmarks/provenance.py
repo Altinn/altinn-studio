@@ -161,9 +161,11 @@ def _sampling_value(value: object) -> str:
 def _actor_prompt_digest() -> str | None:
     """A hash of the actor's static system prompt."""
     try:
+        from agents.altinn.app_version import V8_PROFILE
         from agents.core.context import stable_prefix_sections
 
-        sections = stable_prefix_sections()
+        # The benchmark items run against v8 apps.
+        sections = stable_prefix_sections(V8_PROFILE)
     except Exception:
         return None
     payload = "\n\n".join(sections).encode()

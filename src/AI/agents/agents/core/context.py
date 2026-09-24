@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
+from agents.altinn.app_version import V8_PROFILE, AppVersionProfile
 from shared.utils.spotlight import FORM_SPEC_TAG, wrap_untrusted
 
 _IDENTITY = """\
@@ -28,12 +29,12 @@ _OPERATING_PRINCIPLES = """\
 - **Stop on real blockers.**  If you genuinely cannot accomplish the goal safely (missing context, ambiguous request, conflicting state), say so in a final message instead of guessing."""
 
 
-_ALTINN_ANATOMY = """\
+_ALTINN_ANATOMY_INTRO = """\
 ## Altinn app anatomy
 An Altinn application is a Git repo with four interrelated file groups:
+"""
 
-- **Layout sets** (`App/ui/layout-sets.json`) map each layout set id to the process task(s) and data type it belongs to.  An app can have more than one set (form, receipt, subforms).  Read this file first to find which set belongs to the task the user is talking about, then edit the layouts under `App/ui/<layoutSetId>/layouts/`.
-- **Layouts** (`App/ui/<layoutSetId>/layouts/*.json`) define the UI.  Each layout is a tree of components with `id`, `type`, `dataModelBindings`, and `textResourceBindings`.
+_ALTINN_ANATOMY_SHARED_FILE_GROUPS = """\
 - **Data models** (`App/models/*.cs` or `App/models/*.json`) define the form's fields.  Layout `dataModelBindings` reference these by exact property name.
 - **Text resources** (`App/config/texts/resource.<locale>.json`) hold localized strings.  Keys follow `app.field.camelCase`; locales are typically `nb` (Bokmål), sometimes `nn` and `en`.
 - **Policy / authorization** (`App/config/authorization/policy.xml`, plus resource files) controls who can do what.
@@ -46,7 +47,7 @@ The pieces glue together like this:
 A break in any link causes silent failure: missing labels, unbound fields, validation that never fires.  Always think about *all four layers* when adding or changing anything user-visible."""
 
 
-_CRITICAL_RULES = """\
+_SHARED_CRITICAL_RULES = """\
 ## Critical rules — the things people get wrong
 1.  **Component IDs must match this regex:** `^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$`
     The trailing segment must be **letters only**, **letters with attached digits** (no hyphen), or **a hyphen followed by 6+ digits**.
@@ -72,11 +73,7 @@ _CRITICAL_RULES = """\
     - ❌ `if (field == "x") hide`
     - ✅ `["not", ["equals", ["dataModel", "field"], "x"]]`
 
-7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one.
-
-8.  **A `Datepicker` bound to a date field must set `"timeStamp": false`.**  The property defaults to `true`, which stores `2026-05-22T00:00:00.000Z` into a field the data model declares as `"format": "date"`, and Studio refuses to render the page.  Write it on every `Datepicker` you emit; only a field that really holds a date *and* a time leaves it out.
-    - ❌ `{"id": "fodselsdato", "type": "Datepicker", "dataModelBindings": {"simpleBinding": "fodselsdato"}}`
-    - ✅ the same component with `"timeStamp": false`"""
+7.  **Every page of a multi-page form needs a `NavigationButtons` component.**  `pages.order` in Settings.json controls the sequence, but the buttons are what let the user move between pages.  When you add a page: register it in `pages.order` AND put a `NavigationButtons` component at the bottom of the layout (the final page usually also gets a submit `Button`).  `verify_changes` rejects a multi-page layout without one."""
 
 
 _TOOL_USE = """\
@@ -197,16 +194,31 @@ class SessionContext:
     developer: str = ""
     org: str = ""
     today: date | None = None
+    app_version_profile: AppVersionProfile = V8_PROFILE
 
 
-def stable_prefix_sections() -> tuple[str, ...]:
-    """The deployment-static part of the actor's system prompt."""
-    return (_IDENTITY, _OPERATING_PRINCIPLES, _ALTINN_ANATOMY, _CRITICAL_RULES, _TOOL_USE)
+def stable_prefix_sections(profile: AppVersionProfile) -> tuple[str, ...]:
+    """The deployment-static part of the actor's system prompt, for one app version."""
+    return (
+        _IDENTITY,
+        _OPERATING_PRINCIPLES,
+        _altinn_anatomy(profile),
+        _critical_rules(profile),
+        _TOOL_USE,
+    )
+
+
+def _altinn_anatomy(profile: AppVersionProfile) -> str:
+    return "\n".join((_ALTINN_ANATOMY_INTRO, profile.ui_anatomy_prompt, _ALTINN_ANATOMY_SHARED_FILE_GROUPS))
+
+
+def _critical_rules(profile: AppVersionProfile) -> str:
+    return "\n\n".join((_SHARED_CRITICAL_RULES, profile.version_rules_prompt))
 
 
 def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -> str:
     """Compose the immutable system prompt for a session."""
-    sections: list[str] = list(stable_prefix_sections())
+    sections: list[str] = list(stable_prefix_sections(ctx.app_version_profile))
 
     if skill_listing:
         sections.append(

@@ -12,6 +12,7 @@ import re
 import time
 from typing import Any
 
+from agents.altinn.app_version import detect_app_version_profile
 from agents.core import (
     AssistantMessage,
     CommitSessionBranchTool,
@@ -199,6 +200,9 @@ def _framed_turn(state: AgentState, message: str) -> tuple[str, list]:
 async def handle(state: AgentState) -> AgentState:
     log.info("🤖 Agentic loop node executing")
 
+    app_version_profile = detect_app_version_profile(state.repo_path)
+    log.info("App version for session %s: v%s", state.session_id, app_version_profile.major_version)
+
     session = SessionContext(
         session_id=state.session_id,
         repo_path=state.repo_path,
@@ -208,6 +212,7 @@ async def handle(state: AgentState) -> AgentState:
         developer=state.developer,
         org=state.org,
         repo_facts=state.repo_facts,
+        app_version_profile=app_version_profile,
     )
     skills = discover_skills()
     system_prompt = build_system_prompt(session, skill_listing=format_skill_listing(skills))
@@ -232,6 +237,7 @@ async def handle(state: AgentState) -> AgentState:
         report_status=lambda message: sink.send(
             AgentEvent(type="status", session_id=state.session_id, data={"message": message})
         ),
+        app_version_profile=app_version_profile,
     )
     ctx.extras["app_name"] = state.app_name
 

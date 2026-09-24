@@ -25,7 +25,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from agents.altinn.layout import LAYOUT_SCHEMA_URL, get_layout_schema
+from agents.altinn.layout import get_layout_schema
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import resource_validator_tool
 from agents.core.tool import LoopContext, ToolResult
@@ -132,7 +132,7 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
         return True, [f"{file_path}: deleted, nothing to validate"]
 
     if _is_layout_file(file_path):
-        return _validate_layout(file_path, full_path)
+        return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)
     if _is_text_resource(file_path):
         return _validate_resource(ctx, file_path, full_path)
     if _is_layout_settings(file_path):
@@ -321,8 +321,8 @@ def _has_navigation_component(layout_path: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
-    """Validate a layout JSON in-process against the official schema."""
+def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> tuple[bool, list[str]]:
+    """Validate a layout JSON in-process against the app version's layout schema."""
     try:
         json_content = full_path.read_text(encoding="utf-8")
     except OSError as exc:
@@ -341,7 +341,7 @@ def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     ) as span:
         span.update(input={"file_content": json_content})
         try:
-            schema = get_layout_schema(LAYOUT_SCHEMA_URL)
+            schema = get_layout_schema(schema_location)
         except Exception as exc:
             span.update(output={"error": str(exc)})
             return False, [f"{file_path}: could not load layout schema — {exc}"]
