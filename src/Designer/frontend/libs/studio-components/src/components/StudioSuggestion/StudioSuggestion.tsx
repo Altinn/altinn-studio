@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useId, useRef } from 'react';
 import { forwardRef, type Ref, type ReactElement } from 'react';
 import {
   type SuggestionProps,
@@ -10,6 +10,7 @@ import { StudioField } from '../StudioField';
 import { StudioLabel } from '../StudioLabel';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioValidationMessage } from '../StudioValidationMessage';
+import type { StudioSuggestionItem } from './StudioSuggestionItem/StudioSuggestionItem';
 import { useCommitPendingClear } from './useCommitPendingClear';
 import classes from './StudioSuggestion.module.css';
 
@@ -43,10 +44,23 @@ function StudioSuggestion(
   // Only a single select has a pending clear: a multiple select keeps its values as chips, and its
   // input is empty whenever the user is not typing.
   const singleSelectProps = props.multiple === true ? undefined : props;
+  // The web component reports an emptied field on its own, and the commit below reports it when that
+  // report is dropped. Whichever comes first is passed on, and the other is not, until the user selects
+  // something or focuses the field again.
+  const clearReportedRef = useRef(false);
+  const reportSelectedChange = (item: StudioSuggestionItem | null): void => {
+    if (item === null && clearReportedRef.current) return;
+    clearReportedRef.current = item === null;
+    singleSelectProps?.onSelectedChange?.(item);
+  };
   const commitPendingClear = useCommitPendingClear({
     hasSelection: Boolean(singleSelectProps?.selected),
-    onClear: () => singleSelectProps?.onSelectedChange?.(null),
+    onClear: () => reportSelectedChange(null),
   });
+  // `rest` is typed for both select modes, but this branch only runs for a single select.
+  const suggestionProps: SuggestionProps = singleSelectProps
+    ? ({ ...rest, onSelectedChange: reportSelectedChange } as SuggestionProps)
+    : rest;
 
   return (
     <StudioField className={className}>
@@ -57,7 +71,11 @@ function StudioSuggestion(
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
       <Suggestion
-        {...rest}
+        {...suggestionProps}
+        onFocus={(event) => {
+          rest.onFocus?.(event);
+          clearReportedRef.current = false;
+        }}
         onBlur={(event) => {
           rest.onBlur?.(event);
           commitPendingClear.onBlur(event);

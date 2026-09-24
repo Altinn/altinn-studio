@@ -65,6 +65,55 @@ describe('StudioSuggestion', () => {
       expect(onSelectedChange).toHaveBeenCalledWith(null);
     });
 
+    it('reports the clear once when the web component reports it before the focus leaves', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+      showSelectedOption();
+      emptyField();
+      reportClearFromWebComponent();
+      fireEvent.focusOut(getInput());
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(1);
+      expect(onSelectedChange).toHaveBeenCalledWith(null);
+    });
+
+    it('reports the clear once when the web component reports it after the focus left', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+      showSelectedOption();
+      emptyField();
+      fireEvent.focusOut(getInput());
+      reportClearFromWebComponent();
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(1);
+      expect(onSelectedChange).toHaveBeenCalledWith(null);
+    });
+
+    it('reports a clear again after a new selection', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+      reportClearFromWebComponent();
+      reportSelectionFromWebComponent(defaultOptions[1]);
+      reportClearFromWebComponent();
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(3);
+      expect(onSelectedChange).toHaveBeenLastCalledWith(null);
+    });
+
+    it('reports a clear again after the field was focused again', () => {
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+      reportClearFromWebComponent();
+      fireEvent.focusIn(getInput());
+      reportClearFromWebComponent();
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(2);
+    });
+
     it('does not report a cleared selection when several values can be selected', () => {
       // A multiple select keeps its values as chips; its input is empty unless the user is typing.
       const onSelectedChange = jest.fn();
@@ -119,6 +168,29 @@ function showSelectedOption(): void {
 
 function emptyField(): void {
   setFieldText('');
+}
+
+// The design system turns the web component's `comboboxbeforeselect` into a selection report: a
+// connected option means the selection was removed, a detached one means it was added.
+function reportFromWebComponent(option: HTMLElement): void {
+  const event = new CustomEvent('comboboxbeforeselect', {
+    detail: option,
+    bubbles: true,
+    cancelable: true,
+  });
+  fireEvent(getInput(), event);
+}
+
+function reportClearFromWebComponent(): void {
+  reportFromWebComponent(screen.getByRole('option', { name: selectedOption.label, hidden: true }));
+}
+
+function reportSelectionFromWebComponent(option: StudioSuggestionOptionProps): void {
+  const detachedOption = document.createElement('u-option');
+  detachedOption.setAttribute('value', String(option.value));
+  detachedOption.textContent = String(option.label);
+  Object.defineProperty(detachedOption, 'value', { value: option.value });
+  reportFromWebComponent(detachedOption);
 }
 
 function renderStudioSuggestion(
