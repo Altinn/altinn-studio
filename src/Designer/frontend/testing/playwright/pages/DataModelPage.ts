@@ -139,15 +139,16 @@ export class DataModelPage extends BasePage {
     await this.page.getByRole('option', { name: option }).isVisible();
   }
 
-  public async clickOnDeleteDataModelButton(): Promise<void> {
+  public async clickOnDataModelMenuButton(): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.delete_data_model') })
+      .getByRole('button', { name: this.textMock('schema_editor.data_model_menu') })
       .click();
   }
 
-  public async clickOnConfirmDeleteDataModelButton(): Promise<void> {
+  public async clickOnDeleteDataModelButton(): Promise<void> {
+    this.page.once('dialog', (dialog) => dialog.accept());
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.confirm_deletion') })
+      .getByRole('button', { name: this.textMock('schema_editor.delete_data_model') })
       .click();
   }
 

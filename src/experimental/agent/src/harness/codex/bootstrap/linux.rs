@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-use super::super::{ACCESS_PLACEHOLDER, ACCOUNT_PLACEHOLDER, REFRESH_PLACEHOLDER};
+use super::super::{ACCESS_PLACEHOLDER, ACCOUNT_ENVIRONMENT, REFRESH_PLACEHOLDER};
 
 pub(super) async fn configure(
     sandbox: &SandboxHandle,
@@ -27,6 +27,12 @@ pub(super) async fn configure(
     let instructions_path = format!("{config}/AGENTS.md");
 
     run_checked(sandbox, "/usr/bin/mkdir", ["-p", hooks_path.as_str()]).await?;
+    let account_id = sandbox
+        .snapshot()
+        .environment
+        .get(ACCOUNT_ENVIRONMENT)
+        .cloned()
+        .ok_or_else(|| Error::SandboxSetup("Codex account ID was not prepared for this Sandbox".into()))?;
     // Codex must believe it owns a normal ChatGPT login while the real,
     // rotating grant remains host-only. The fake JWT expiry and fresh refresh
     // timestamp suppress proactive guest refresh; a 401 can only attempt the
@@ -42,7 +48,7 @@ pub(super) async fn configure(
             "id_token": ACCESS_PLACEHOLDER,
             "access_token": ACCESS_PLACEHOLDER,
             "refresh_token": REFRESH_PLACEHOLDER,
-            "account_id": ACCOUNT_PLACEHOLDER,
+            "account_id": account_id,
         },
         "last_refresh": last_refresh,
     });

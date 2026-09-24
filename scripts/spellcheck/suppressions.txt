@@ -96,7 +96,7 @@ Axe
 
 # Altinn service-owner org slugs (als, staf) used as config/test values and
 # in the AI assistant beta allow list
-@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/backend/src/Designer/Infrastructure/Authorization/AiAssistantPermissionHandler.cs src/Designer/development/setup.js src/Designer/frontend/app-development/features/aiAssistant/hooks/useAssistantPermissions/useAssistantPermissions.ts
+@paths src/App/azure-pipelines/** src/Designer/backend/src/Designer/Configuration/** src/Designer/backend/src/Designer/Evaluators/CanUseAiAssistantEvaluator.cs src/Designer/development/setup.js
 als
 staf
 

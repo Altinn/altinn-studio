@@ -313,6 +313,8 @@ jobs:
             src/App/frontend/frontend-server.log
             src/App/frontend/local-env-diagnostics.log
             src/App/frontend/localtest-container.log
+            src/App/frontend/workflow-engine-container.log
+            src/App/frontend/workflow-engine-database.dump
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**

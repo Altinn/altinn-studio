@@ -80,12 +80,8 @@ Pushes workflow arrays. Uses PG NOTIFY to wake up on changes (2s timeout fallbac
 
 ```json
 {
-    "active": [
-        /* Workflow[] or null */
-    ],
-    "recent": [
-        /* Workflow[] or null */
-    ]
+    "active": [/* Workflow[] or null */],
+    "recent": [/* Workflow[] or null */]
 }
 ```
 
@@ -292,12 +288,12 @@ Response:
 often long-lived state, since the mailbox exists from the moment its id goes out as a reply address.
 The four `state` values:
 
-| State       | Meaning                                                                                 |
-| ----------- | --------------------------------------------------------------------------------------- |
+| State       | Meaning                                                                               |
+| ----------- | ------------------------------------------------------------------------------------- |
 | `delivered` | A message stands here and no receiver has been enqueued for it — an unpaired delivery |
-| `paired`    | A receiver holds this position and its message is standing at it                        |
-| `waiting`   | A receiver is parked here and its message has not arrived                               |
-| `closed`    | A receiver holds this position, no message ever came, and the mailbox closed            |
+| `paired`    | A receiver holds this position and its message is standing at it                      |
+| `waiting`   | A receiver is parked here and its message has not arrived                             |
+| `closed`    | A receiver holds this position, no message ever came, and the mailbox closed          |
 
 `heldAt` is what separates a receiver that parked from one that ran straight away, which the workflow
 status alone cannot say once the receiver has settled — and it is what makes `parkedForSeconds` a park
@@ -317,10 +313,10 @@ Distinct values for a label key. Response: `string[]`
 The dashboard has no mutation endpoints of its own. The Retry, Retry now / Check now and Fail buttons call the
 engine's public API directly, so the same contract that external callers use is what the UI exercises:
 
-| Button                        | Request                                                              |
-| ----------------------------- | -------------------------------------------------------------------- |
-| **Retry** (Failed step)       | `POST /api/v1/{namespace}/workflows/{id}/resume`                     |
-| **Retry now** / **Check now** | `POST /api/v1/{namespace}/workflows/{id}/nudge`                      |
+| Button                        | Request                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| **Retry** (Failed step)       | `POST /api/v1/{namespace}/workflows/{id}/resume`                                          |
+| **Retry now** / **Check now** | `POST /api/v1/{namespace}/workflows/{id}/nudge`                                           |
 | **Fail** (parked step)        | `POST /api/v1/{namespace}/workflows/{id}/fail` with a fixed `reason` naming the dashboard |
 
 The namespace and workflow id are URL-encoded route segments. Both 200 and 202 count as success; a refusal
@@ -335,11 +331,11 @@ the namespace circuit breaker, so the workflow gets its re-check even while its 
 The Throttled Namespaces panel uses the engine's public throttle endpoints directly rather than
 dashboard-prefixed wrappers:
 
-| Endpoint                       | Method | Used for                                              |
-| ------------------------------ | ------ | ----------------------------------------------------- |
-| `/api/v1/throttles`            | GET    | Breaker list (200 array / 204 when none — panel hides) |
-| `/api/v1/{ns}/throttle/trip`   | POST   | Force-trip override (202; 409 when throttling disabled) |
-| `/api/v1/{ns}/throttle/clear`  | POST   | Force-clear override (202; 200 already clear; 404; 409 disabled) |
+| Endpoint                      | Method | Used for                                                         |
+| ----------------------------- | ------ | ---------------------------------------------------------------- |
+| `/api/v1/throttles`           | GET    | Breaker list (200 array / 204 when none — panel hides)           |
+| `/api/v1/{ns}/throttle/trip`  | POST   | Force-trip override (202; 409 when throttling disabled)          |
+| `/api/v1/{ns}/throttle/clear` | POST   | Force-clear override (202; 200 already clear; 404; 409 disabled) |
 
 Breaker shape: `{ namespace, state: "Tripped"|"Recovering"|"Clear", trippedAt, currentWindow, canaryCount, lastEvaluatedAt?, lastRequeuedCount, lastActiveCount, updatedAt? }`
 
@@ -740,7 +736,8 @@ All dashboard state is encoded in the URL query string via `syncUrl()` / `restor
 TypeDefs in `state.js`:
 
 ```typescript
-type StepStatus = 'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled';
+type StepStatus =
+    'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled';
 type CommandType = 'app' | 'webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate';
 
 interface Step {
@@ -821,7 +818,7 @@ Timestamps are deliberately absent from both this formula and the server's own c
 the `active` array (`{databaseId}|{status}|{backoffUntil}|{step status}:{retryCount}`), so a new
 `executionStartedAt` is pushed and drawn only because the status change that accompanies it is. That
 costs nothing today — the elapsed counter reads the anchor out of `state.previousWorkflows` on every
-frame rather than from the rendered HTML — but anything new that renders a timestamp *into* card
+frame rather than from the rendered HTML — but anything new that renders a timestamp _into_ card
 markup would sit stale until some other field moved, and belongs in the formula.
 
 ### Animations

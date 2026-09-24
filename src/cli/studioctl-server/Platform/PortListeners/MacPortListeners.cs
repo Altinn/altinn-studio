@@ -1,81 +1,47 @@
 using System.Globalization;
-using System.Runtime.InteropServices;
 
 namespace Altinn.Studio.StudioctlServer.Platform.PortListeners;
 
-internal sealed partial class MacPortListeners : IPortListenerSource
+internal sealed class MacPortListeners(MacPortListeners.CommandRunner runCommand) : IPortListenerSource
 {
-    private const int SignalZero = 0;
-    private const int ErrorPermissionDenied = 1;
-    private const int NetstatLocalAddressFieldIndex = 3;
-    private readonly Dictionary<MacListenerKey, PortListener> _knownListeners = [];
+    private const string LsofArguments = "-Fpcn -nPw -iTCP -sTCP:LISTEN";
+    private readonly Dictionary<int, string> _commandLines = [];
+
+    public MacPortListeners()
+        : this(RunProcess) { }
 
     public bool SupportsCurrentPlatform() => OperatingSystem.IsMacOS();
 
     public async Task<IReadOnlyList<PortListener>> Get(CancellationToken cancellationToken)
     {
-        var currentListeners = await ReadListeningPorts(cancellationToken);
-        if (currentListeners.Count == 0)
+        var output = await RunLsof(cancellationToken);
+        var bindings = ParseLsofOutput(output);
+        if (bindings.Count == 0)
         {
-            _knownListeners.Clear();
+            _commandLines.Clear();
             return [];
         }
 
-        var needsRefresh = false;
-        var nextKnownListeners = new Dictionary<MacListenerKey, PortListener>(currentListeners.Count);
-        foreach (var listenerKey in currentListeners)
+        var listeners = new List<PortListener>(bindings.Count);
+        foreach (var binding in bindings)
         {
-            if (!_knownListeners.TryGetValue(listenerKey, out var listener))
-            {
-                needsRefresh = true;
-                continue;
-            }
-
-            if (!IsProcessAlive(listener.ProcessId))
-            {
-                needsRefresh = true;
-                continue;
-            }
-
-            nextKnownListeners[listenerKey] = listener;
+            var commandLine = await ReadCommandLine(binding.ProcessId, cancellationToken);
+            listeners.Add(
+                new PortListener(binding.ProcessId, binding.Port, binding.BindScope, binding.ProcessName, commandLine)
+            );
         }
 
-        if (needsRefresh)
-            await AddProcessMetadata(nextKnownListeners, currentListeners, cancellationToken);
+        PruneCommandLines(bindings);
 
-        _knownListeners.Clear();
-        foreach (var (listenerKey, listener) in nextKnownListeners)
-            _knownListeners[listenerKey] = listener;
-
-        return [.. nextKnownListeners.Values.Distinct()];
+        return [.. listeners.Distinct()];
     }
 
-    private async Task<HashSet<MacListenerKey>> ReadListeningPorts(CancellationToken cancellationToken)
+    private static IReadOnlyList<MacListenerBinding> ParseLsofOutput(string output)
     {
-        var output = await RunCommand("netstat", "-na", cancellationToken);
-        var listeners = new HashSet<MacListenerKey>();
-        foreach (var line in output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (!TryParseNetstatLine(line, out var listener))
-                continue;
-
-            listeners.Add(listener);
-        }
-
-        return listeners;
-    }
-
-    private async Task AddProcessMetadata(
-        Dictionary<MacListenerKey, PortListener> knownListeners,
-        HashSet<MacListenerKey> currentListeners,
-        CancellationToken cancellationToken
-    )
-    {
-        var output = await RunCommand("lsof", "-Fpcn -nP -iTCP -sTCP:LISTEN", cancellationToken);
-        var commandLines = new Dictionary<int, string?>();
+        var bindings = new HashSet<MacListenerBinding>();
         var processName = string.Empty;
         var processId = 0;
-        foreach (var line in output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var field = line[0];
             var value = line.AsSpan(1);
@@ -94,47 +60,21 @@ internal sealed partial class MacPortListeners : IPortListenerSource
                     if (processId == 0 || value.Contains("->", StringComparison.Ordinal))
                         continue;
 
-                    if (!TryParseListener(value, out var listenerKey))
+                    if (!TryParseListener(value, out var port, out var bindScope))
                         continue;
 
-                    if (!currentListeners.Contains(listenerKey))
-                        continue;
-
-                    var commandLine = await ReadCommandLine(processId, commandLines, cancellationToken);
-                    knownListeners[listenerKey] = new PortListener(
-                        processId,
-                        listenerKey.Port,
-                        listenerKey.BindScope,
-                        processName,
-                        commandLine
-                    );
+                    bindings.Add(new MacListenerBinding(processId, port, bindScope, processName));
                     break;
             }
         }
+
+        return [.. bindings];
     }
 
-    private static bool TryParseNetstatLine(string line, out MacListenerKey listener)
+    private static bool TryParseListener(ReadOnlySpan<char> addressField, out int port, out ListenerBindScope bindScope)
     {
-        listener = default;
-        if (string.IsNullOrWhiteSpace(line))
-            return false;
-
-        var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (fields.Length <= NetstatLocalAddressFieldIndex)
-            return false;
-
-        if (!fields[0].StartsWith("tcp", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        if (!fields[^1].Equals("LISTEN", StringComparison.Ordinal))
-            return false;
-
-        return TryParseListener(fields[NetstatLocalAddressFieldIndex].AsSpan(), out listener);
-    }
-
-    private static bool TryParseListener(ReadOnlySpan<char> addressField, out MacListenerKey listener)
-    {
-        listener = default;
+        port = 0;
+        bindScope = default;
         var spaceIndex = addressField.IndexOf(' ');
         if (spaceIndex >= 0)
             addressField = addressField[..spaceIndex];
@@ -147,16 +87,15 @@ internal sealed partial class MacPortListeners : IPortListenerSource
         if (separatorIndex < 0)
             return false;
 
-        var hostField = addressField[..separatorIndex];
+        var hostField = UnwrapIpv6Literal(addressField[..separatorIndex]);
         var portField = addressField[(separatorIndex + 1)..];
-        hostField = UnwrapIpv6Literal(hostField);
         if (portField.Equals("*", StringComparison.Ordinal))
             return false;
 
-        if (!int.TryParse(portField, CultureInfo.InvariantCulture, out var port))
+        if (!int.TryParse(portField, CultureInfo.InvariantCulture, out port))
             return false;
 
-        listener = new MacListenerKey(port, ClassifyBindScope(hostField));
+        bindScope = ClassifyBindScope(hostField);
         return true;
     }
 
@@ -187,39 +126,50 @@ internal sealed partial class MacPortListeners : IPortListenerSource
         return hostField;
     }
 
-    private static bool IsProcessAlive(int processId)
+    private async Task<string?> ReadCommandLine(int processId, CancellationToken cancellationToken)
     {
-        var result = Kill(processId, SignalZero);
-        return result == 0 || Marshal.GetLastPInvokeError() == ErrorPermissionDenied;
-    }
-
-    private static async Task<string?> ReadCommandLine(
-        int processId,
-        Dictionary<int, string?> commandLines,
-        CancellationToken cancellationToken
-    )
-    {
-        if (commandLines.TryGetValue(processId, out var cached))
+        if (_commandLines.TryGetValue(processId, out var cached))
             return cached;
 
-        string? commandLine = null;
-        try
-        {
-            commandLine = (await RunCommand("ps", $"-p {processId} -o command=", cancellationToken)).Trim();
-            if (commandLine.Length == 0)
-                commandLine = null;
-        }
-        catch (InvalidOperationException)
-        {
-            commandLines[processId] = null;
+        var result = await runCommand("ps", $"-p {processId} -o command=", cancellationToken);
+        if (result.ExitCode != 0)
             return null;
-        }
 
-        commandLines[processId] = commandLine;
+        var commandLine = result.StandardOutput.Trim();
+        if (commandLine.Length == 0)
+            return null;
+
+        _commandLines[processId] = commandLine;
         return commandLine;
     }
 
-    private static async Task<string> RunCommand(string fileName, string arguments, CancellationToken cancellationToken)
+    private void PruneCommandLines(IReadOnlyList<MacListenerBinding> bindings)
+    {
+        var activeProcessIds = bindings.Select(static binding => binding.ProcessId).ToHashSet();
+        foreach (var processId in _commandLines.Keys.ToArray())
+            if (!activeProcessIds.Contains(processId))
+                _commandLines.Remove(processId);
+    }
+
+    private async Task<string> RunLsof(CancellationToken cancellationToken)
+    {
+        var result = await runCommand("lsof", LsofArguments, cancellationToken);
+        if (result.ExitCode != 0 && result.StandardOutput.Length == 0)
+        {
+            if (result.StandardError.Length == 0)
+                return string.Empty;
+
+            throw new InvalidOperationException($"command 'lsof {LsofArguments}' failed: {result.StandardError}");
+        }
+
+        return result.StandardOutput;
+    }
+
+    private static async Task<CommandResult> RunProcess(
+        string fileName,
+        string arguments,
+        CancellationToken cancellationToken
+    )
     {
         using var process = new System.Diagnostics.Process
         {
@@ -233,14 +183,21 @@ internal sealed partial class MacPortListeners : IPortListenerSource
         var stderr = process.StandardError.ReadToEndAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
 
-        if (process.ExitCode != 0)
-            throw new InvalidOperationException($"command '{fileName} {arguments}' failed: {await stderr}");
-
-        return await stdout;
+        return new CommandResult(process.ExitCode, await stdout, await stderr);
     }
 
-    [LibraryImport("libc", SetLastError = true, EntryPoint = "kill")]
-    private static partial int Kill(int processId, int signal);
+    internal delegate Task<CommandResult> CommandRunner(
+        string fileName,
+        string arguments,
+        CancellationToken cancellationToken
+    );
 
-    private readonly record struct MacListenerKey(int Port, ListenerBindScope BindScope);
+    internal readonly record struct CommandResult(int ExitCode, string StandardOutput, string StandardError);
+
+    private readonly record struct MacListenerBinding(
+        int ProcessId,
+        int Port,
+        ListenerBindScope BindScope,
+        string ProcessName
+    );
 }

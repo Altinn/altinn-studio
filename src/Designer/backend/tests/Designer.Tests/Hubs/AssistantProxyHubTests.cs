@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Hubs.Assistant;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ApiKey;
@@ -32,8 +33,32 @@ public class AssistantProxyHubTests
 
     private readonly Mock<IChatService> _chatServiceMock = new();
     private readonly Mock<IAssistantWebSocketService> _webSocketServiceMock = new();
-    private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
+    private readonly Mock<ICanUseAiAssistantEvaluator> _canUseAiAssistantEvaluatorMock = new();
     private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
+
+    public AssistantProxyHubTests()
+    {
+        SetupAssistantAccess(TestOrg, hasAccess: true);
+    }
+
+    [Fact]
+    public async Task RegisterSession_ThrowsHubException_WhenDeveloperHasNoAssistantAccess()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupAssistantAccess(TestOrg, hasAccess: false);
+        var hub = CreateHub();
+
+        var exception = await Assert.ThrowsAsync<HubException>(() =>
+            hub.RegisterSession(TestOrg, TestApp, threadId.ToString())
+        );
+
+        Assert.Contains("Access denied", exception.Message);
+        _webSocketServiceMock.Verify(
+            ws => ws.RegisterSessionAsync(It.IsAny<string>(), It.IsAny<AltinnRepoEditingContext>()),
+            Times.Never
+        );
+    }
 
     [Fact]
     public async Task RegisterSession_ThrowsHubException_WhenThreadIdIsNotAGuid()
@@ -129,11 +154,35 @@ public class AssistantProxyHubTests
     }
 
     [Fact]
+    public async Task StartWorkflow_ThrowsHubException_WhenDeveloperHasNoAssistantAccess()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+        SetupAssistantAccess(TestOrg, hasAccess: false);
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestOrg,
+                app = TestApp,
+            }
+        );
+
+        var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
+
+        Assert.Contains("Access denied", exception.Message);
+        Assert.Empty(_agentHttpHandler.Requests);
+    }
+
+    [Fact]
     public async Task StartWorkflow_ThrowsHubException_WhenRequestContextDoesNotOwnThread()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization("other-org")).ReturnsAsync(true);
+        SetupAssistantAccess("other-org", hasAccess: true);
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
@@ -164,7 +213,6 @@ public class AssistantProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(TestOrg)).ReturnsAsync(true);
         _apiKeyServiceMock
             .Setup(a =>
                 a.CreateAsync(
@@ -202,6 +250,13 @@ public class AssistantProxyHubTests
                 ),
             Times.Exactly(2)
         );
+    }
+
+    private void SetupAssistantAccess(string org, bool hasAccess)
+    {
+        _canUseAiAssistantEvaluatorMock
+            .Setup(e => e.CanUseFeatureAsync(org, It.IsAny<string>()))
+            .ReturnsAsync(hasAccess);
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -250,7 +305,7 @@ public class AssistantProxyHubTests
             Options.Create(new AssistantSettings { AgentUrl = "http://test-path" }),
             Options.Create(new ServiceRepositorySettings { RepositoryBaseURL = "http://test-repos" }),
             _webSocketServiceMock.Object,
-            _userOrganizationServiceMock.Object,
+            _canUseAiAssistantEvaluatorMock.Object,
             new AssistantAttachmentBuffer(),
             _apiKeyServiceMock.Object,
             _chatServiceMock.Object

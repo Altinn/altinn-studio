@@ -13,6 +13,8 @@ from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
+LAYOUT_FILE_GLOB_PATTERN = "*/layouts/*.json"
+
 
 class RepositoryDiscovery:
     """Discovers repository structure and context for adaptive planning"""
@@ -64,18 +66,17 @@ class RepositoryDiscovery:
     
     def _discover_layout_files(self) -> List[str]:
         """Find all available layout files"""
-        layouts_dir = self.repo_path / "App" / "ui" / "form" / "layouts"
+        ui_dir = self.repo_path / "App" / "ui"
         layout_files = []
-        
-        if not layouts_dir.exists():
-            log.warning(f"Layouts directory not found: {layouts_dir}")
-            return []
-        
-        for layout_file in layouts_dir.glob("*.json"):
+
+        for layout_file in ui_dir.glob(LAYOUT_FILE_GLOB_PATTERN):
             relative_path = str(layout_file.relative_to(self.repo_path))
             layout_files.append(relative_path)
             log.debug(f"Found layout: {relative_path}")
-        
+
+        if not layout_files:
+            log.warning(f"No layout files found under: {ui_dir}")
+
         return sorted(layout_files)
     
     def _discover_model_files(self) -> List[str]:

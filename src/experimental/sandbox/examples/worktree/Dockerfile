@@ -131,7 +131,7 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
-ARG CODEX_VERSION=0.155.1
+ARG CODEX_VERSION=0.156.0
 ARG CLAUDE_CODE_VERSION=2.1.280
 
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \

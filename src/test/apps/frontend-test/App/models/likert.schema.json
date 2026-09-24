@@ -1,44 +1,41 @@
 {
-  "$schema" : "http://json-schema.org/schema#",
-  "$id" : "schema.json",
-  "type" : "object",
-  "properties" : {
-    "melding" : {
-      "$ref" : "#/definitions/LikertSurvey"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "@xsdRootElement": "melding",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/LikertSurvey"
     }
-  },
-  "definitions" : {
-    "LikertSurvey" : {
-      "properties" : {
-        "Questions" : {
-          "type" : "array",
-          "minItems" : 1,
-          "items" : {
-            "$ref" : "#/definitions/Question"
+  ],
+  "$defs": {
+    "LikertSurvey": {
+      "properties": {
+        "Questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/Question"
           }
         }
       },
-      "required" : [
+      "required": [
         "Questions"
-      ],
-      "@xsdAnyAttribute" : true
+      ]
     },
-    "Question" : {
-      "properties" : {
-        "Id" : {
-          "$ref" : "#/definitions/Text"
+    "Question": {
+      "properties": {
+        "Id": {
+          "type": "string"
         },
-        "Answer" : {
-          "$ref" : "#/definitions/Text"
+        "Answer": {
+          "type": "string"
         }
       },
-      "required" : [
+      "required": [
         "Id",
         "Answer"
       ]
-    },
-    "Text" : {
-      "type" : "string"
     }
   }
 }

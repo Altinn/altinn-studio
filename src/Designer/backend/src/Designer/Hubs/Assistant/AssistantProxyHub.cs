@@ -7,9 +7,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
-using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Hubs.Assistant;
 /// <summary>
 /// SignalR Hub for proxying assistant communication with user authentication
 /// </summary>
-[Authorize(Policy = AltinnPolicy.MustHaveAiAssistantPermission)]
+[Authorize]
 public class AssistantProxyHub : Hub<IAssistantClient>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -37,7 +37,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
     private readonly IAssistantWebSocketService _webSocketService;
     private readonly AssistantAttachmentBuffer _attachmentStore;
     private readonly IApiKeyService _apiKeyService;
-    private readonly IUserOrganizationService _userOrganizationService;
+    private readonly ICanUseAiAssistantEvaluator _canUseAiAssistantEvaluator;
     private readonly IChatService _chatService;
 
     private static readonly ConcurrentDictionary<string, HashSet<string>> s_connectionToSessionIds = new();
@@ -49,7 +49,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         IOptions<AssistantSettings> assistantSettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAssistantWebSocketService webSocketService,
-        IUserOrganizationService userOrganizationService,
+        ICanUseAiAssistantEvaluator canUseAiAssistantEvaluator,
         AssistantAttachmentBuffer attachmentStore,
         IApiKeyService apiKeyService,
         IChatService chatService
@@ -61,7 +61,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         _assistantSettings = assistantSettings.Value;
         _serviceRepositorySettings = serviceRepositorySettings.Value;
         _webSocketService = webSocketService;
-        _userOrganizationService = userOrganizationService;
+        _canUseAiAssistantEvaluator = canUseAiAssistantEvaluator;
         _attachmentStore = attachmentStore;
         _apiKeyService = apiKeyService;
         _chatService = chatService;
@@ -110,6 +110,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
+
+        await ValidateAssistantAccessAsync(org, app, developer);
 
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(parsedThreadId, context);
@@ -168,13 +170,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
         string sessionId = ExtractSessionIdFromRequest(request);
         ValidateConnectionOwnsSession(sessionId);
-        await ValidateOrgMembershipAsync(request, developer);
-
-        _logger.LogInformation(
-            "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
-            developer,
-            sessionId
-        );
 
         // Re-register session on the agents WS before starting. The editing context is
         // rebuilt from the start request, so re-verify thread ownership against it —
@@ -184,6 +179,14 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         string app = ExtractRequiredString(request, "app");
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
+
+        await ValidateAssistantAccessAsync(org, app, developer);
+
+        _logger.LogInformation(
+            "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
+            developer,
+            sessionId
+        );
 
         if (!Guid.TryParse(sessionId, out Guid threadId))
         {
@@ -294,18 +297,11 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         return value;
     }
 
-    private async Task ValidateOrgMembershipAsync(JsonElement request, string developer)
+    private async Task ValidateAssistantAccessAsync(string org, string app, string developer)
     {
-        string? org = request.TryGetProperty("org", out var orgElement) ? orgElement.GetString() : null;
-
-        if (string.IsNullOrWhiteSpace(org))
+        if (!await _canUseAiAssistantEvaluator.CanUseFeatureAsync(org, app))
         {
-            throw new HubException("Missing org in request");
-        }
-
-        if (!await _userOrganizationService.UserIsMemberOfOrganization(org))
-        {
-            _logger.LogWarning("User {Developer} was denied access to start workflow for org {Org}", developer, org);
+            _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
             throw new HubException("Access denied");
         }
     }
