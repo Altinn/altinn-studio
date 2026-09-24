@@ -19,8 +19,8 @@ procedure — the deck needs no network once it is built (Inter is self-hosted),
 on a dead conference Wi-Fi.
 
 **[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (40), the keyboard cheat sheet, and the three "do not overclaim" guardrails. Print
-it or keep it on the second screen.
+takes, the total (62 for the talk), the keyboard cheat sheet, and the "do not overclaim" guardrails.
+Print it or keep it on the second screen.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
 step. `O` is the overview grid — the whole deck fits one screen, click to jump.
@@ -37,7 +37,7 @@ step. `O` is the overview grid — the whole deck fits one screen, click to jump
 | `npm test`            | Playwright suites: deck engine + frame-by-frame transitions          |
 | `npm run shots`       | Build, then capture `shots/slide-NN.png` at 1920 × 1080             |
 | `npm run walkthrough` | Build, then photograph every state a presenter clicks through       |
-| `npm run qa`          | Build, then the full QA pass: every state, the simulations in real time, the overlays |
+| `npm run qa`          | Build, then the full QA pass: every state measured for clipping, the overlays |
 
 First time only: `npx playwright install chromium`.
 
@@ -165,12 +165,12 @@ src/
   deck/          engine: Deck, Stage (canvas scaling), nav + hash sync, overview, help, progress
   components/    Slide, Card, Pill/Badge, StatBig, Reveal, Icon
   slides/        one file per slide + index.ts (the registry) + _kit.tsx (shared slide parts)
-  sims/          the three self-playing simulations: one template (parts/) + one data file each
+  sims/          the two scenarios: one stage (parts/) + one script file (scenarios.ts)
   styles/        tokens.css + global.css + slides.css
 scripts/
   screenshot.mjs     one PNG per slide
   walkthrough.mjs    every state a presenter clicks through, forwards and back
-  qa-walkthrough.mjs the QA pass: the same, plus the simulations in real time
+  qa-walkthrough.mjs the QA pass: the same, with a clipping probe on every state
 tests/           deck.spec.ts (engine smoke) + transition.spec.ts (frame-by-frame motion)
 ```
 
@@ -192,19 +192,15 @@ samples `requestAnimationFrame` and fails if any of it comes back.
 Three capture modes.
 
 **`shots`** deep-links each slide and freezes animations — fast, deterministic, one PNG per slide,
-good for pasting into a doc. On a simulation slide it first waits for the scene to park on its end
-state (`[data-sim][data-done="true"]`): the scene runs on a timer rather than on CSS, so
-`animations: 'disabled'` does not stop it and without the wait the shutter caught a different beat
-on every run.
+good for pasting into a doc. With `--steps` it also captures every build step, which is how the
+scenarios are reviewed line by line.
 
 **`walkthrough`** presents the deck for real: `→` from the first state to the last, ~2.5 s on each so
 every animation settles, then `←` all the way back, plus the `O` and `?` overlays. It is what catches
 a build step that lands on top of its neighbour.
 
-**`qa`** is the walkthrough with the simulations given their real running time: a frame 1 s after
-arriving, then one every 2 s across the whole ~15 s autoplay, then `←` and `→` to prove the scene
-restarts from zero. It finishes with both overlays and six `→` presses inside one second, and asserts
-where the deck lands. Every shot also carries a geometry probe, so anything poking outside the
+**`qa`** is the walkthrough with every state measured. It finishes with both overlays and six `→`
+presses inside one second, and asserts where the deck lands. Every shot also carries a geometry probe, so anything poking outside the
 1920 × 1080 canvas, or any text clipped inside its own box, is reported by measurement rather than
 left to the eye.
 
@@ -228,37 +224,40 @@ to close.
 
 ## The deck
 
-Fourteen slides, norsk bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of
-each entry in `src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run
-sheet in [`NOTES.md`](NOTES.md). Fourteen slides + 27 build steps = **40 presses of `→`**.
+Three parts — infrastruktur, frontend, backend — then the ask, in norsk bokmål, authored from
+`CONTENT.md`. Speaker notes live in the `notes` field of each entry in `src/slides/index.ts`, are
+surfaced in the overview (`O`), and are laid out as a run sheet in [`NOTES.md`](NOTES.md). The talk is
+slides 1–16, 16 slides + 47 build steps = **62 presses of `→`**; slides 17–24 are reserve slides for
+questions.
 
-| #   | `id`               | Slide                                                              | Steps |
-| --- | ------------------ | ------------------------------------------------------------------ | ----- |
-| 1   | `ett-klikk`        | Ett klikk, mange ting — one «Send inn» fans out to ten things      | 1     |
-| 2   | `i-dag`            | Slik ser det ut i dag — the whole v8 chain inside one request      | 2     |
-| 3   | `en-trad`          | Alt henger i én tråd — nothing is written down underway            | 2     |
-| 4   | `midtveis`         | Når det ryker midtveis — the pod dies after the PDF                | 2     |
-| 5   | `dobbeltinnsending`| Dobbeltinnsending — two clicks, two of everything                  | 3     |
-| 6   | `halvveis`         | Halvveis utført — four half-finished outcomes + dobbeltklikk       | 4     |
-| 7   | `driftshverdagen`  | Driftshverdagen — the answer is somewhere in the logs              | 2     |
-| 8   | `prosessmotor`     | En motor for prosessen — app ↔ engine ↔ steps in Postgres          | 3     |
-| 9   | `sim-innbygger`    | Simulation 1: Innbyggeren — the server restarts mid-submit         | auto  |
-| 10  | `sim-ustabil`      | Simulation 2: Mottakeren — the receiving system is down a while    | auto  |
-| 11  | `sim-drift`        | Simulation 3: Driftsvakta — a step fails for real at 03:00         | auto  |
-| 12  | `dashbord`         | Vi kan se hva som skjer — the engine dashboard                     | 3     |
-| 13  | `for-apputviklere` | Hva betyr det for apputviklere — same BPMN, small code delta       | 2     |
-| 14  | `bli-med`          | Bli med i pilotene — three steps and the ask                       | 3     |
+| #   | `id`                       | Slide                                                          | Steps |
+| --- | -------------------------- | -------------------------------------------------------------- | ----- |
+| 1   | `ett-klikk`                | Ett klikk, mange ting — one «Send inn» fans out to ten things  | 1     |
+| 2   | `tre-omrader`              | Hva blir bedre med v9? — the three parts                       | 2     |
+| 3   | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                          | 0     |
+| 4   | `infra-for-alle`           | Allerede bedre — også for v8-apper                             | 0     |
+| 5   | `infra-nytt-i-v9`          | Nytt med v9, and what is coming                                | 1     |
+| 6   | `seksjon-frontend`         | Del 2 — Frontend                                               | 0     |
+| 7   | `frontend-folger-appen`    | Frontend følger appen — shipped with the app, one measurement  | 1     |
+| 8   | `frontend-brukerne-merker` | Det brukerne merker                                            | 0     |
+| 9   | `seksjon-backend`          | Del 3 — Backend                                                | 0     |
+| 10  | `arbeidet-skrives-ned`     | Arbeidet skrives ned før det gjøres — the promise              | 3     |
+| 11  | `scenario-feil`            | Scenario 1: a service does not answer for a moment             | 14    |
+| 12  | `scenario-omstart`         | Scenario 2: the server restarts during a deploy                | 14    |
+| 13  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now   | 3     |
+| 14  | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard                 | 3     |
+| 15  | `oppgradering`             | Hva koster oppgraderingen? — same process, one tool            | 2     |
+| 16  | `bli-med`                  | Bli med i pilotene — closed beta and the ask                   | 3     |
+| 17  | `seksjon-reserve`          | Reserve — Under panseret                                       | 0     |
+| 18–24 | `i-dag` … `prosessmotor` | The v8 mechanism and the engine architecture, for questions    | 18    |
 
-Slides 9–11 render the simulations from `src/sims` full-bleed under a small title chip. They are
-registered with `steps: 0` because they **play themselves**: the presenter hands the slide over to
-the scene, talks across it, and the next `→` moves on. All three are the *same* component — one
-sentence saying what goes wrong, two columns showing what one person sees today and with the engine,
-one sentence saying what that means — with a different data file; see
-[`src/sims/README.md`](src/sims/README.md). Slide-specific styling lives in `src/styles/slides.css`;
-shared slide primitives (animated backdrop, the v8 chain, wires, the simulation frame) live in
-`src/slides/_kit.tsx`.
+Slides 11 and 12 render the scenarios from `src/sims` full-bleed under a small title chip. Each one
+is clicked through, one line per press: the v8 telling, the same accident with v9, then both outcomes
+side by side; see [`src/sims/README.md`](src/sims/README.md). Slide-specific styling lives in
+`src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section dividers, the v8
+chain, wires, the scenario frame) live in `src/slides/_kit.tsx`.
 
-Accuracy rules the copy follows: «ingen dupliserte sideeffekter», never «nøyaktig én gang»; the
-engine is mandatory in v9; live process status is still in progress; throttling is built but off;
-never name an archive-system vendor. The first three are on the run sheet as the "do not overclaim"
-guardrails — every claim on a slide traces back to the fact sheet in `CONTENT.md`.
+Accuracy rules the copy follows: never «nøyaktig én gang»; the engine is mandatory in v9; v9 is a
+closed beta; the frontend is not a rebuild and has one speed measurement; most platform gains reach
+v8 apps too; never name an archive-system vendor. They are on the run sheet as the "do not
+overclaim" guardrails — every claim on a slide traces back to the fact sheet in `CONTENT.md`.
