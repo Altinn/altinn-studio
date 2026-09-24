@@ -19,7 +19,7 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
 
-public class SigningProcessTaskTests : IDisposable
+public sealed class SigningProcessTaskTests : IDisposable
 {
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
