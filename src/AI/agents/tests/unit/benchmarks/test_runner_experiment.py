@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from benchmarks import check, registry
-from benchmarks.agent_task import AgentTask, STRUCTURAL_SCORE_NAMES
+from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask
 
 
 class _Dataset:

@@ -87,9 +87,7 @@ class ToolRegistry:
             for t in self._tools.values()
         ]
 
-    def prepare_call(
-        self, name: str, raw_input: dict[str, Any]
-    ) -> PreparedCall:
+    def prepare_call(self, name: str, raw_input: dict[str, Any]) -> PreparedCall:
         """Resolve `name` and validate `raw_input` against its schema.
 
         Raises `ToolNotFoundError` or `ToolArgsInvalidError` — the loop
@@ -120,24 +118,16 @@ def _validate_tool(tool: Tool) -> None:
     # `name` must be a non-empty string — the registry key.
     name = getattr(tool, "name", None)
     if not isinstance(name, str) or not name:
-        raise ValueError(
-            f"Tool {type(tool).__name__} is missing required attribute 'name'"
-        )
+        raise ValueError(f"Tool {type(tool).__name__} is missing required attribute 'name'")
     # `description` is shown to the model.  Allow empty strings — some
     # tools can legitimately ship an empty description — but the attribute
     # itself must be a string so the JSON-schema emit doesn't break.
     if not isinstance(getattr(tool, "description", None), str):
-        raise ValueError(
-            f"Tool {tool.name!r} is missing required attribute 'description'"
-        )
+        raise ValueError(f"Tool {tool.name!r} is missing required attribute 'description'")
     if getattr(tool, "input_schema", None) is None:
-        raise ValueError(
-            f"Tool {tool.name!r} is missing required attribute 'input_schema'"
-        )
+        raise ValueError(f"Tool {tool.name!r} is missing required attribute 'input_schema'")
     if not isinstance(tool.is_concurrency_safe, bool):
-        raise TypeError(
-            f"Tool {tool.name!r}: is_concurrency_safe must be bool"
-        )
+        raise TypeError(f"Tool {tool.name!r}: is_concurrency_safe must be bool")
     if not isinstance(tool.is_read_only, bool):
         raise TypeError(f"Tool {tool.name!r}: is_read_only must be bool")
     for method in ("concurrency_safe_for", "read_only_for", "check_permission", "run"):

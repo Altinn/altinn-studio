@@ -59,10 +59,7 @@ def _payload(report: Report) -> dict:
                 "error": row.error,
                 "trace": row.trace_url,
                 "seconds": row.seconds,
-                "siblings": [
-                    {"name": name, "value": value, "said": said}
-                    for name, value, said in row.siblings
-                ],
+                "siblings": [{"name": name, "value": value, "said": said} for name, value, said in row.siblings],
                 "silent": row.silent,
                 "shape": shapes.get(row.item_id),
             }
@@ -91,12 +88,8 @@ def _payload(report: Report) -> dict:
                 "current": view.current,
                 "delta": view.delta,
                 "readings": {
-                    "baseline": view.reading(
-                        view.baseline, view.scored_in("baseline"), slot="baseline"
-                    ),
-                    "previous": view.reading(
-                        view.previous, view.scored_in("previous"), slot="previous"
-                    ),
+                    "baseline": view.reading(view.baseline, view.scored_in("baseline"), slot="baseline"),
+                    "previous": view.reading(view.previous, view.scored_in("previous"), slot="previous"),
                     "current": view.reading(view.current, count, slot="current"),
                 },
                 "items": items,
@@ -171,9 +164,7 @@ def _payload(report: Report) -> dict:
         ],
         "adopted_reference": report.baseline.name if report.baseline else None,
         "identifier_max_chars": IDENTIFIER_MAX_CHARS,
-        "scored_items": len(
-            {row.item_id for view in report.behaviors for row in view.rows()}
-        ),
+        "scored_items": len({row.item_id for view in report.behaviors for row in view.rows()}),
         "verdict_words": VERDICT_WORDS,
         "verdict_class": VERDICT_CLASS,
         "fix_kinds": manifest.FIX_KIND_MEANINGS,
@@ -197,7 +188,7 @@ def _prose(text: str, judge: str, run: str) -> str:
         '<section><div class="panel"><div class="panel-head">'
         f"<h3>What {html.escape(judge)} made of the evidence above</h3>"
         '<span class="panel-note">generated prose over the payload for '
-        f'{html.escape(run)}, saved beside the run. No score on this page comes '
+        f"{html.escape(run)}, saved beside the run. No score on this page comes "
         "from a model.</span></div>"
         '<div class="prose">'
     ]

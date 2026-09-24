@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .app_model import AppModel, NAVIGATION_COMPONENT_TYPES, titles_match
+from .app_model import NAVIGATION_COMPONENT_TYPES, AppModel, titles_match
 
 
 @dataclass(frozen=True)
@@ -78,9 +78,7 @@ def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
     missing = [
         page
         for page in app.page_order
-        if not any(
-            c.get("type") in NAVIGATION_COMPONENT_TYPES for c in app.layouts.get(page, [])
-        )
+        if not any(c.get("type") in NAVIGATION_COMPONENT_TYPES for c in app.layouts.get(page, []))
     ]
     return Score(
         name="bench_navigation",

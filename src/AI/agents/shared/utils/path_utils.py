@@ -1,10 +1,9 @@
 """Path utilities"""
 
 from pathlib import Path
-from typing import Union
 
 
-def ensure_directory(path: Union[str, Path]) -> Path:
+def ensure_directory(path: str | Path) -> Path:
     """
     Ensure a directory exists, creating it if necessary.
 
@@ -37,7 +36,7 @@ def app_name_from_repo_url(repo_url: str) -> str:
     return last_segment
 
 
-def normalize_path(path: Union[str, Path]) -> Path:
+def normalize_path(path: str | Path) -> Path:
     """
     Normalize a path (resolve, absolute).
 

@@ -1,9 +1,10 @@
 """Verification and validation services"""
+
 import json
 from pathlib import Path
-from typing import Dict, List
 
-def run_all(repo_path: str, changed_files: List[str]) -> dict:
+
+def run_all(repo_path: str, changed_files: list[str]) -> dict:
     """Only fast checks for MVP"""
     notes = []
     ok = True
@@ -14,7 +15,7 @@ def run_all(repo_path: str, changed_files: List[str]) -> dict:
         file_full_path = repo / file_path
 
         # Layout schema validation
-        if file_path.endswith('.json') and 'layouts' in file_path:
+        if file_path.endswith(".json") and "layouts" in file_path:
             layout_ok = validate_layout(file_full_path)
             if layout_ok:
                 notes.append(f"Layout {file_path}: schema valid")
@@ -23,7 +24,7 @@ def run_all(repo_path: str, changed_files: List[str]) -> dict:
                 ok = False
 
         # Binding check (basic)
-        if file_path.endswith('.json'):
+        if file_path.endswith(".json"):
             binding_ok = check_bindings(file_full_path)
             if binding_ok:
                 notes.append(f"File {file_path}: bindings ok")
@@ -32,7 +33,7 @@ def run_all(repo_path: str, changed_files: List[str]) -> dict:
                 ok = False
 
         # Resource key check
-        if 'texts' in file_path and file_path.endswith('.json'):
+        if "texts" in file_path and file_path.endswith(".json"):
             resource_ok = check_resources(file_full_path)
             if resource_ok:
                 notes.append(f"Resources {file_path}: keys valid")
@@ -42,13 +43,14 @@ def run_all(repo_path: str, changed_files: List[str]) -> dict:
 
     return {"ok": ok, "notes": notes}
 
+
 def validate_layout(layout_file: Path) -> bool:
     """Basic layout validation"""
     try:
         if not layout_file.exists():
             return False
 
-        with open(layout_file, 'r') as f:
+        with open(layout_file) as f:
             layout = json.load(f)
 
         # Basic structure checks
@@ -56,13 +58,11 @@ def validate_layout(layout_file: Path) -> bool:
             return False
 
         # Check for required layout properties
-        if 'data' not in layout:
-            return False
+        return "data" in layout
 
-        return True
-
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
+
 
 def check_bindings(json_file: Path) -> bool:
     """Basic binding validation"""
@@ -70,15 +70,16 @@ def check_bindings(json_file: Path) -> bool:
         if not json_file.exists():
             return False
 
-        with open(json_file, 'r') as f:
-            content = json.load(f)
+        with open(json_file) as f:
+            json.load(f)
 
         # TODO: Implement actual binding validation
         # For MVP, assume bindings are ok if file is valid JSON
         return True
 
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
+
 
 def check_resources(resource_file: Path) -> bool:
     """Basic resource key validation"""
@@ -86,16 +87,16 @@ def check_resources(resource_file: Path) -> bool:
         if not resource_file.exists():
             return False
 
-        with open(resource_file, 'r') as f:
+        with open(resource_file) as f:
             resources = json.load(f)
 
         # Basic structure check
         return isinstance(resources, dict)
 
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
 
 
-def run_checks(repo_path: str, changed_files: List[str]) -> dict:
+def run_checks(repo_path: str, changed_files: list[str]) -> dict:
     """Alias for run_all to maintain compatibility"""
     return run_all(repo_path, changed_files)

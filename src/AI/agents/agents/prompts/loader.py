@@ -1,17 +1,20 @@
 """Prompt loader utility for managing system prompts"""
+
 import re
-import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
+
+import yaml
+
+from shared.utils.langfuse_utils import fetch_langfuse_prompt, get_raw_langfuse_prompt, is_langfuse_enabled
 from shared.utils.logging_utils import get_logger
-from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt, get_raw_langfuse_prompt
 
 log = get_logger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent
 
 
-def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> Optional[str]:
+def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> str | None:
     """
     Try to fetch a prompt from Langfuse, optionally substituting variables into {{placeholders}}.
     Returns None if Langfuse is disabled or unavailable.
@@ -39,7 +42,7 @@ def _prompt_file(prompt_name: str) -> Path:
     raise FileNotFoundError(f"Prompt name {prompt_name!r} is ambiguous: {listed}")
 
 
-def load_prompt(prompt_name: str) -> Dict[str, Any]:
+def load_prompt(prompt_name: str) -> dict[str, Any]:
     """Load a prompt from a markdown file with YAML frontmatter."""
     prompt_file = _prompt_file(prompt_name)
 
@@ -83,7 +86,7 @@ def get_prompt_content(prompt_name: str) -> str:
     return load_prompt(prompt_name)["content"]
 
 
-def _system_message(compiled: Any) -> Optional[str]:
+def _system_message(compiled: Any) -> str | None:
     """The system half of a compiled prompt."""
     if isinstance(compiled, str):
         return compiled or None
@@ -107,9 +110,7 @@ def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) ->
             content = _system_message(lf_prompt.compile())
             if content:
                 return content, lf_prompt
-            log.warning(
-                f"Langfuse prompt '{prompt_name}' has no system message; using local file"
-            )
+            log.warning(f"Langfuse prompt '{prompt_name}' has no system message; using local file")
         except Exception as e:
             log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
             # Fall through to local prompt
@@ -121,6 +122,7 @@ _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 def _compile_template(content: str, variables: dict) -> str:
     """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behavior."""
+
     def _replace_match(match: re.Match) -> str:
         inner = match.group(1).strip()
         if _IDENTIFIER_RE.match(inner):

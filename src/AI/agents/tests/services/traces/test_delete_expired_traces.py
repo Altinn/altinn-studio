@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 
@@ -10,7 +10,7 @@ from services.traces.delete_expired_traces import (
 )
 from shared.utils.langfuse_public_api import PAGE_SIZE
 
-CUTOFF = datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc)
+CUTOFF = datetime(2026, 4, 2, 12, 0, tzinfo=UTC)
 
 
 class TestDeleteTracesBefore:
@@ -30,9 +30,7 @@ class TestDeleteTracesBefore:
         assert deleted == PAGE_SIZE + 3
 
     async def test_chunks_deletions_into_batches(self):
-        client, deleted_batches = _create_client_mock(
-            total_old_traces=DELETE_BATCH_SIZE * 2 + 7
-        )
+        client, deleted_batches = _create_client_mock(total_old_traces=DELETE_BATCH_SIZE * 2 + 7)
 
         await _delete_traces_before(client, CUTOFF)
 
@@ -62,9 +60,7 @@ class TestFetchTraceIdPage:
         captured_environments: list[str] = []
 
         def handler(request: httpx.Request) -> httpx.Response:
-            captured_environments.extend(
-                request.url.params.get_list("environment")
-            )
+            captured_environments.extend(request.url.params.get_list("environment"))
             return httpx.Response(200, json={"data": []})
 
         client = _client_with_handler(handler)
@@ -75,9 +71,7 @@ class TestFetchTraceIdPage:
 
 
 def _client_with_handler(handler) -> httpx.AsyncClient:
-    return httpx.AsyncClient(
-        base_url="https://langfuse.test", transport=httpx.MockTransport(handler)
-    )
+    return httpx.AsyncClient(base_url="https://langfuse.test", transport=httpx.MockTransport(handler))
 
 
 def _create_client_mock(

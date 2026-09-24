@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-from typing import Dict, List, Optional, Any
+from typing import Any
 
-from shared.utils.langfuse_utils import trace_span
-
-from agents.graph.state import FormSpec, FormSpecPage, FormSpecField
-from agents.services.llm import LLMClient
+from agents.graph.state import FormSpec, FormSpecField, FormSpecPage
 from agents.prompts import get_prompt_with_langfuse, render_template
+from agents.services.llm import LLMClient
 from shared.models import AgentAttachment
+from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -18,8 +17,8 @@ log = get_logger(__name__)
 
 def run_spec_pipeline(
     user_goal: str,
-    attachments: List[AgentAttachment],
-) -> Optional[FormSpec]:
+    attachments: list[AgentAttachment],
+) -> FormSpec | None:
     """Extract a FormSpec from the provided attachments using vision LLM.
 
     Returns None if extraction fails or no usable spec can be produced.
@@ -43,7 +42,9 @@ def run_spec_pipeline(
     ) as span:
         try:
             raw_response = client.call_sync(
-                system_prompt, user_prompt, attachments=attachments,
+                system_prompt,
+                user_prompt,
+                attachments=attachments,
                 langfuse_prompt=lf_prompt,
             )
         except Exception as e:
@@ -62,9 +63,7 @@ def run_spec_pipeline(
                     "\nOmit description, options, required unless essential. Minimize whitespace."
                 )
                 try:
-                    raw_response = client.call_sync(
-                        "", compact_prompt, attachments=attachments
-                    )
+                    raw_response = client.call_sync("", compact_prompt, attachments=attachments)
                     log.info(f"Retry succeeded, response length: {len(raw_response)}")
                 except Exception as retry_err:
                     log.error(f"Spec extraction retry also failed: {retry_err}")
@@ -78,32 +77,36 @@ def run_spec_pipeline(
 
         if form_spec:
             log.info(
-                f"✅ Spec extracted: \"{form_spec.title}\" — "
+                f'✅ Spec extracted: "{form_spec.title}" — '
                 f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
             )
-            span.update(output={
-                "response_length": len(raw_response),
-                "parse_success": True,
-                "spec_title": form_spec.title,
-                "spec_pages": form_spec.total_pages,
-                "spec_fields": form_spec.field_count(),
-            })
+            span.update(
+                output={
+                    "response_length": len(raw_response),
+                    "parse_success": True,
+                    "spec_title": form_spec.title,
+                    "spec_pages": form_spec.total_pages,
+                    "spec_fields": form_spec.field_count(),
+                }
+            )
         else:
             log.warning(
                 f"⚠️ Could not parse spec from LLM response "
                 f"(response length: {len(raw_response)}, "
                 f"first 500 chars: {raw_response[:500]!r})"
             )
-            span.update(output={
-                "response_length": len(raw_response),
-                "parse_success": False,
-                "response_preview": raw_response[:1000],
-            })
+            span.update(
+                output={
+                    "response_length": len(raw_response),
+                    "parse_success": False,
+                    "response_preview": raw_response[:1000],
+                }
+            )
 
     return form_spec
 
 
-def _try_parse_json(text: str) -> Optional[dict]:
+def _try_parse_json(text: str) -> dict | None:
     """Try to parse JSON, with repair strategies for truncated output."""
     # 1. Direct parse
     try:
@@ -142,7 +145,7 @@ def _try_parse_json(text: str) -> Optional[dict]:
         repaired += "}" * max(opens, 0)
         try:
             data = json.loads(repaired)
-            log.info(f"Repaired truncated JSON (closed {max(opens,0)} braces, {max(open_sq,0)} brackets)")
+            log.info(f"Repaired truncated JSON (closed {max(opens, 0)} braces, {max(open_sq, 0)} brackets)")
             return data
         except json.JSONDecodeError as e:
             log.debug(f"Truncation repair parse failed: {e}")
@@ -165,13 +168,10 @@ def _try_parse_json(text: str) -> Optional[dict]:
                     len(repaired_text),
                 )
                 return data
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         log.debug(f"json_repair fallback failed: {e}")
 
-    log.error(
-        f"All JSON parse strategies failed for text of length {len(text)} "
-        f"(starts with: {text[:200]!r})"
-    )
+    log.error(f"All JSON parse strategies failed for text of length {len(text)} (starts with: {text[:200]!r})")
     return None
 
 
@@ -201,27 +201,21 @@ def _normalize_options(options: Any) -> Any:
         if not isinstance(fallback, str) or not fallback:
             label = opt.get("label", "")
             fallback = (
-                "".join(c if c.isalnum() else "-" for c in str(label).lower())
-                .strip("-")
-                .replace("--", "-")
-                or "value"
+                "".join(c if c.isalnum() else "-" for c in str(label).lower()).strip("-").replace("--", "-") or "value"
             )
         normalized.append({**opt, "value": fallback})
     return normalized
 
 
-def _parse_spec_response(raw: str) -> Optional[FormSpec]:
+def _parse_spec_response(raw: str) -> FormSpec | None:
     """Parse raw LLM JSON response into a validated FormSpec."""
     # Strip markdown fences if present
     text = raw.strip()
     if text.startswith("```"):
         first_newline = text.find("\n")
-        if first_newline != -1:
-            text = text[first_newline + 1 :]
-        else:
-            text = text[3:]
+        text = text[first_newline + 1 :] if first_newline != -1 else text[3:]
     if text.endswith("```"):
-        text = text[: -3]
+        text = text[:-3]
     text = text.strip()
 
     data = _try_parse_json(text)

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator, NamedTuple
+from typing import Any, NamedTuple
 
 from langfuse import get_client
 
@@ -46,9 +47,7 @@ def load_datasets() -> Iterator[Dataset]:
     for entry in registry.with_items_in_repo():
         path = entry.path
         if not path or not path.exists():
-            raise FileNotFoundError(
-                f"{entry.name} declares {entry.file} and it is not on disk"
-            )
+            raise FileNotFoundError(f"{entry.name} declares {entry.file} and it is not on disk")
         items = _read_items(path)
         yield Dataset(
             name=entry.name,
@@ -61,12 +60,8 @@ def load_datasets() -> Iterator[Dataset]:
 
 
 MESSAGE_BUILDERS = {
-    "scope_check": lambda item: build_scope_check_message(
-        item["input"]["goal"], item["input"].get("conversation")
-    ),
-    "intent_check": lambda item: build_intent_parse_message(
-        item["input"]["goal"], item["input"].get("attachments")
-    ),
+    "scope_check": lambda item: build_scope_check_message(item["input"]["goal"], item["input"].get("conversation")),
+    "intent_check": lambda item: build_intent_parse_message(item["input"]["goal"], item["input"].get("attachments")),
 }
 
 
@@ -97,12 +92,14 @@ def validate(dataset: Dataset) -> list[str]:
             problems.append(f"{dataset.path.name}: item is missing {sorted(missing)}")
             continue
         shaped.append(item)
-    if dataset.kind == "prompt" and dataset.prompt not in MESSAGE_BUILDERS:
-        if not all(item["input"].get("user_message") for item in shaped):
-            problems.append(
-                f"{dataset.path.name}: no message builder for '{dataset.prompt}' and "
-                "not every item carries a user_message"
-            )
+    if (
+        dataset.kind == "prompt"
+        and dataset.prompt not in MESSAGE_BUILDERS
+        and not all(item["input"].get("user_message") for item in shaped)
+    ):
+        problems.append(
+            f"{dataset.path.name}: no message builder for '{dataset.prompt}' and not every item carries a user_message"
+        )
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
     seen: set[str] = set()
@@ -128,10 +125,7 @@ def missing_assets(dataset: Dataset) -> list[str]:
     for item in dataset.items:
         for name in item["input"].get("attachments") or []:
             if not (ASSETS_DIR / name).is_file():
-                problems.append(
-                    f"{dataset.path.name}: {item['id']} names {name!r}, which is not "
-                    f"in {ASSETS_DIR.name}/"
-                )
+                problems.append(f"{dataset.path.name}: {item['id']} names {name!r}, which is not in {ASSETS_DIR.name}/")
     return problems
 
 
@@ -166,17 +160,13 @@ def _archive_orphans(client: Any, lf: LangfuseApi, dataset: Dataset) -> None:
     for item in remote:
         if item.id in local or getattr(item, "status", "ACTIVE") == "ARCHIVED":
             continue
-        lf.upsert_dataset_item(
-            dataset_name=dataset.name, item_id=item.id, status="ARCHIVED"
-        )
+        lf.upsert_dataset_item(dataset_name=dataset.name, item_id=item.id, status="ARCHIVED")
         print(f"  archived (no longer in the file): {item.id}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check", action="store_true", help="validate the files without contacting Langfuse"
-    )
+    parser.add_argument("--check", action="store_true", help="validate the files without contacting Langfuse")
     parser.add_argument("--dataset", help="sync only this dataset name")
     args = parser.parse_args()
 

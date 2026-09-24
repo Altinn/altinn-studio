@@ -53,6 +53,9 @@ class CompactionConfig:
     keep_recent_messages: int = DEFAULT_KEEP_RECENT_MESSAGES
 
 
+_DEFAULT_COMPACTION_CONFIG = CompactionConfig()
+
+
 def estimate_tokens(chars: int) -> int:
     """Char-to-token heuristic. Conservative — overestimates char->token
     by rounding up, so we hit thresholds slightly early."""
@@ -75,10 +78,7 @@ def message_chars(message: Message) -> int:
     Sums the text of every content block plus overhead per block.  Used
     to decide when to compact.
     """
-    if isinstance(message, UserMessage):
-        content = message.content
-    else:
-        content = message.content
+    content = message.content
 
     if isinstance(content, str):
         return len(content)
@@ -106,7 +106,7 @@ def total_chars(messages: list[Message]) -> int:
 
 def compact_if_needed(
     messages: list[Message],
-    config: CompactionConfig = CompactionConfig(),
+    config: CompactionConfig = _DEFAULT_COMPACTION_CONFIG,
 ) -> list[Message]:
     """Return a (possibly compacted) copy of `messages` for the next API call.
 
@@ -127,8 +127,8 @@ def compact_if_needed(
         return messages
 
     head = messages[0]  # original user goal
-    tail = messages[-config.keep_recent_messages:]
-    middle = messages[1:-config.keep_recent_messages]
+    tail = messages[-config.keep_recent_messages :]
+    middle = messages[1 : -config.keep_recent_messages]
 
     digest = _summarize_middle(middle)
     return [head, digest, *tail]
@@ -155,10 +155,7 @@ def _summarize_middle(middle: list[Message]) -> UserMessage:
             for block in msg.content:
                 if isinstance(block, ToolResultBlock):
                     status = "error" if block.is_error else "ok"
-                    lines.append(
-                        f"  -> result ({status}, {len(block.content)} chars): "
-                        f"{block.content.strip()[:200]}"
-                    )
+                    lines.append(f"  -> result ({status}, {len(block.content)} chars): {block.content.strip()[:200]}")
 
     return UserMessage(content="\n".join(lines))
 

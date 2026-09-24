@@ -33,9 +33,7 @@ def _ctx(
         page_order = ["Side1", "Side2"]
     settings_dir = tmp_path / "App" / "ui" / "form"
     settings_dir.mkdir(parents=True, exist_ok=True)
-    (settings_dir / "Settings.json").write_text(
-        json.dumps({"pages": {"order": page_order}}), encoding="utf-8"
-    )
+    (settings_dir / "Settings.json").write_text(json.dumps({"pages": {"order": page_order}}), encoding="utf-8")
 
     ctx = LoopContext(
         session_id="session-abcdef12",
