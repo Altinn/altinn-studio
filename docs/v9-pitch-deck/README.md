@@ -19,7 +19,7 @@ procedure — the deck needs no network once it is built (Inter is self-hosted),
 on a dead conference Wi-Fi.
 
 **[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (57 for the talk), the keyboard cheat sheet, and the "do not overclaim" guardrails.
+takes, the total (56 for the talk), the keyboard cheat sheet, and the "do not overclaim" guardrails.
 Print it or keep it on the second screen.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
@@ -227,14 +227,14 @@ to close.
 A cover that maps the talk, three parts — infrastruktur, frontend, backend — then the ask, in norsk
 bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of each entry in
 `src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run sheet in
-[`NOTES.md`](NOTES.md). The talk is slides 1–14, 14 slides + 44 build steps = **57 presses of
+[`NOTES.md`](NOTES.md). The talk is slides 1–14, 14 slides + 43 build steps = **56 presses of
 `→`**; slides 15–22 are reserve slides for questions.
 
 | #     | `id`                       | Slide                                                         | Steps |
 | ----- | -------------------------- | ------------------------------------------------------------- | ----- |
 | 1     | `forside`                  | Hva blir bedre med v9? — the three parts, one per click       | 2     |
 | 2     | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                         | 0     |
-| 3     | `infra-nytt-i-v9`          | Nytt med v9, what is on its way, and what v8 apps already have | 1     |
+| 3     | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have       | 0     |
 | 4     | `seksjon-frontend`         | Del 2 — Frontend                                              | 0     |
 | 5     | `frontend-folger-appen`    | Raskere, og levert med appen — architecture, shipping, speed  | 1     |
 | 6     | `frontend-brukerne-merker` | Det brukerne merker                                           | 0     |

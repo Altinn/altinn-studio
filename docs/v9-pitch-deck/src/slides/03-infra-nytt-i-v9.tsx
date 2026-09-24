@@ -1,34 +1,35 @@
 import type { SlideProps } from '../deck';
-import { Slide } from '../components';
-import { ComingStrip, FeatureGrid, type Feature } from './_kit';
+import { Slide, Icon } from '../components';
+import { FeatureGrid, type Feature } from './_kit';
 
 /**
- * The platform part in one slide: what v9 adds, what is on its way, and one
- * line for what v8 apps already have (CONTENT.md §1.26–28).
+ * The platform part in one slide: what v9 brings, and a banner for what v8
+ * apps already have (CONTENT.md §1.26–28). The admin-page status is stated as
+ * fact because it is merged before the talk; re-check #20233–#20236.
  */
 const FEATURES: Feature[] = [
   {
     icon: 'server',
     eyebrow: 'Prosessmotor',
-    title: 'Arbeidet blir gjort ferdig',
+    title: 'Robuste prosesser',
     body: 'Hvert steg i prosessen lagres og gjøres ferdig, også når noe feiler underveis.',
   },
   {
     icon: 'shield',
     eyebrow: 'Maskinporten',
-    title: 'Én identitet per app',
-    body: 'Appen bruker alltid klienten plattformen har satt opp. Ingen egne klienter å holde styr på.',
+    title: 'Satt opp for deg',
+    body: 'Plattformen oppretter og forvalter Maskinporten-klienten til appen. Ingen nøkler å håndtere selv.',
   },
   {
-    icon: 'refresh',
-    eyebrow: 'Omstart',
-    title: 'Myke omstarter',
-    body: 'Når appen startes på nytt eller skaleres, får det som pågår, bli ferdig først.',
+    icon: 'eye',
+    eyebrow: 'Studio',
+    title: 'Status i adminsidene',
+    body: 'Se hvilke prosesser som står fast, og start dem igjen rett fra Studio.',
   },
 ];
 
-/** Infrastructure: what v9 adds, and what is on its way. */
-export default function InfraNyttIV9Slide({ step }: SlideProps) {
+/** Infrastructure: what v9 brings to the platform. */
+export default function InfraNyttIV9Slide(_: SlideProps) {
   return (
     <Slide
       variant="full"
@@ -38,14 +39,15 @@ export default function InfraNyttIV9Slide({ step }: SlideProps) {
     >
       <div className="s-fill">
         <FeatureGrid features={FEATURES} />
-        <ComingStrip show={step >= 1}>
-          Status fra prosessmotoren i adminsidene i Studio: se hvilke prosesser som står fast,
-          og start dem igjen derfra.
-        </ComingStrip>
-        <p className="s-footnote">
-          Mye har v8-appene også fått: utrulling du kan følge, Maskinporten-nøkler som byttes
-          automatisk, ny PDF-tjeneste og varsler når noe feiler.
-        </p>
+        <div className="s-banner">
+          <span className="s-banner__icon">
+            <Icon name="check" size={30} strokeWidth={2.6} />
+          </span>
+          <p className="s-banner__label">Også i v8</p>
+          <p className="s-banner__text">
+            Utrulling du kan følge, ny PDF-tjeneste og varsler når noe feiler.
+          </p>
+        </div>
       </div>
     </Slide>
   );

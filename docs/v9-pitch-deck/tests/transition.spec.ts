@@ -263,10 +263,10 @@ test('five presses in one second leave a settled, correct stage', async ({ page 
   ).toBeGreaterThan(MIN_COVERAGE);
 
   await settle(page);
-  // Slide 1 has 2 build steps and slide 2 has none, so five presses land on
-  // slide 3's build step.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '2');
-  await expect(root(page)).toHaveAttribute('data-slide-step', '1');
+  // Slide 1 has 2 build steps and slides 2-3 have none, so five presses land
+  // on slide 4.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '3');
+  await expect(root(page)).toHaveAttribute('data-slide-step', '0');
 
   // Exactly one layer left, and it is the slide the deck claims to be on.
   const layers = page.locator('.deck__slide');
@@ -289,11 +289,10 @@ test('keyboard repeat never strands the deck on a stale slide', async ({ page })
     'data-slide-layer',
     (await root(page).getAttribute('data-slide-id'))!,
   );
-  // Slides 1-4 hold 2 + 0 + 1 + 0 build steps, so the eighth press lands on
-  // slide 5's first build step. Anything short of that means presses were
-  // swallowed.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '4');
-  await expect(root(page)).toHaveAttribute('data-slide-step', '1');
+  // Slides 1-5 hold 2 + 0 + 0 + 0 + 1 build steps, so the eighth press opens
+  // slide 6. Anything short of that means presses were swallowed.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '5');
+  await expect(root(page)).toHaveAttribute('data-slide-step', '0');
 });
 
 test('a build step re-renders the slide instead of remounting it', async ({ page }) => {
