@@ -66,7 +66,7 @@ export const slides: SlideDef[] = [
     component: FrontendFolgerAppen,
     steps: 1,
     notes:
-      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Og i v9 ligger frontend i appen, så det du tester er det brukerne får — i v8 henter appen alltid nyeste versjon. Tallet er én måling i et skjema med 32 sider; si det om noen spør. Ikke si «bygget på nytt».',
+      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene er én måling i et skjema med 32 sider — si det om noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.',
   },
   {
     id: 'frontend-brukerne-merker',
