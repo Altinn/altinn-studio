@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Altinn.App.Api" Version="8.0.0" />
+  </ItemGroup>
+</Project>

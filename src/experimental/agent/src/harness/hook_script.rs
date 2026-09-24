@@ -30,24 +30,44 @@ const sessionId = process.env.AGENT_SESSION_ID;
 const EVENTS = __EVENTS__;
 const WAITING_NOTIFICATIONS = __WAITING_NOTIFICATIONS__;
 
-async function read(stream) {
-  let data = "";
-  stream.setEncoding("utf8");
-  for await (const chunk of stream) {
-    data += chunk;
-    if (data.length > 1048576) return null;
-  }
-  return data;
+function read(stream) {
+  // Codex 0.156 keeps stdin open while waiting for the hook to exit.
+  // Resolve on a complete object without waiting for EOF or stream cleanup.
+  return new Promise((resolve) => {
+    let data = "";
+    const finish = (value) => {
+      stream.off("data", onData);
+      stream.off("end", onEnd);
+      stream.off("error", onEnd);
+      resolve(value);
+    };
+    const parse = () => {
+      try {
+        const value = JSON.parse(data);
+        return value !== null && typeof value === "object" && !Array.isArray(value) ? value : null;
+      } catch {
+        return null;
+      }
+    };
+    const onData = (chunk) => {
+      data += chunk;
+      if (data.length > 1048576) {
+        finish(null);
+      } else {
+        const value = parse();
+        if (value !== null) finish(value);
+      }
+    };
+    const onEnd = () => finish(parse());
+    stream.setEncoding("utf8");
+    stream.on("data", onData);
+    stream.on("end", onEnd);
+    stream.on("error", onEnd);
+  });
 }
 
-const raw = await read(process.stdin);
-if (!url || !token || !sessionId || raw === null) process.exit(0);
-let input;
-try {
-  input = JSON.parse(raw);
-} catch {
-  process.exit(0);
-}
+const input = await read(process.stdin);
+if (!url || !token || !sessionId || input === null) process.exit(0);
 const event = EVENTS[input.hook_event_name];
 if (!event) process.exit(0);
 // A nested Agent's own reports carry an agent_id; never forward those.
@@ -142,6 +162,64 @@ pub(super) fn embedded_events(script: &str) -> Vec<(String, ActivityEvent)> {
 mod tests {
     use super::{HookScript, embedded_events};
     use crate::sessions::ActivityEvent;
+
+    #[tokio::test]
+    async fn hook_exits_after_complete_json_even_when_stdin_remains_open() {
+        use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
+
+        let script = HookScript {
+            events: &[("SessionStart", ActivityEvent::SessionStart)],
+            waiting_notifications: &[],
+        }
+        .render()
+        .expect("script");
+        let script = script.replacen(
+            "const input = await read(process.stdin);",
+            "process.stdout.write('ready\\n');\nconst input = await read(process.stdin);",
+            1,
+        );
+        let Ok(mut child) = tokio::process::Command::new("node")
+            .arg("--input-type=module")
+            .arg("-e")
+            .arg(script)
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null())
+            .env_remove("AGENT_SESSION_HOOK_URL")
+            .env_remove("AGENT_SESSION_TOKEN")
+            .env_remove("AGENT_SESSION_ID")
+            .kill_on_drop(true)
+            .spawn()
+        else {
+            // Node is optional for Rust-only development environments.
+            return;
+        };
+        let mut ready = [0; 6];
+        tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            child.stdout.as_mut().expect("stdout").read_exact(&mut ready),
+        )
+        .await
+        .expect("Node started")
+        .expect("Node reported readiness");
+        assert_eq!(&ready, b"ready\n");
+        child
+            .stdin
+            .as_mut()
+            .expect("stdin")
+            .write_all(br#"{"hook_event_name":"SessionStart"}"#)
+            .await
+            .expect("write hook payload");
+        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(2);
+        loop {
+            if let Some(status) = child.try_wait().expect("hook status") {
+                assert!(status.success());
+                break;
+            }
+            assert!(tokio::time::Instant::now() < deadline, "hook waited for stdin EOF");
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    }
 
     #[test]
     fn renders_the_given_tables_verbatim() {

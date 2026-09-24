@@ -72,7 +72,7 @@ def repo_org(repo_url: str) -> str:
 
 def session_branch(session_id: str) -> str:
     # Mirrors agents.core.tools.git_tool._session_branch_name.
-    return f"altinity_session_{session_id[:8]}"
+    return f"assistant_{session_id[:8]}"
 
 
 def agent_headers() -> dict[str, str]:

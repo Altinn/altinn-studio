@@ -67,12 +67,16 @@ public class CompletedAltinnEventTests
 
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        // The engine's step id is the idempotency key: it is what Altinn Events dedupes a retried
+        // registration on, so a command that stopped passing it would silently restore at-least-once
+        // publication.
         eventsClientMock.Verify(
             x =>
                 x.AddEvent(
                     "app.instance.process.completed",
                     instance,
                     It.Is<StorageAuthenticationMethod>(a => a != null),
+                    context.Payload.StepId,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -109,6 +113,7 @@ public class CompletedAltinnEventTests
                     It.IsAny<string>(),
                     It.IsAny<Instance>(),
                     It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<Guid?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

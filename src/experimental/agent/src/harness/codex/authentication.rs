@@ -9,7 +9,7 @@ use zeroize::Zeroizing;
 
 use crate::{Error, harness::ImportedAuthentication, persistence};
 
-use super::{ACCESS_SECRET, ACCOUNT_PLACEHOLDER, ACCOUNT_SECRET, PROVIDER, REFRESH_PLACEHOLDER, REFRESH_SECRET};
+use super::{ACCESS_PLACEHOLDER, ACCESS_SECRET, ACCOUNT_SECRET, PROVIDER, REFRESH_PLACEHOLDER, REFRESH_SECRET};
 
 const REFRESH_URL: &str = "https://auth.openai.com/oauth/token";
 const OAUTH_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
@@ -70,7 +70,7 @@ impl Authentication {
         if access_token.is_empty() || refresh_token.is_empty() {
             return Err(Error::Invalid("Codex login produced incomplete ChatGPT tokens".into()));
         }
-        let kind = if *refresh_token == REFRESH_PLACEHOLDER && account_id == ACCOUNT_PLACEHOLDER {
+        let kind = if *refresh_token == REFRESH_PLACEHOLDER && *access_token == ACCESS_PLACEHOLDER {
             CredentialKind::Mediated
         } else if imported {
             return Err(Error::Invalid(
@@ -267,6 +267,16 @@ impl Authentication {
         self.refresh_url = refresh_url;
         self
     }
+}
+
+pub(super) async fn selected_account_id(database: &persistence::Database) -> Result<String, Error> {
+    let metadata = database
+        .provider_account_metadata(PROVIDER)
+        .await?
+        .ok_or_else(|| Error::Invalid("Codex authentication is not ready; run `agentctl codex login`".into()))?;
+    let metadata: CodexMetadata = serde_json::from_str(&metadata)
+        .map_err(|_| Error::Invalid("stored Codex authentication metadata is invalid; log in again".into()))?;
+    Ok(metadata.account_id)
 }
 
 #[derive(Clone)]
@@ -556,7 +566,6 @@ mod tests {
     async fn placeholder_credentials_are_stored_verbatim_and_never_refreshed() {
         let directory = TempDir::new().expect("temporary directory");
         let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
-        let expired_access = jwt(unix_time().expect("time") - 1);
         let (endpoint, refresh_calls) = serve_refresh_failure("500 Internal Server Error", "{}").await;
         let manager = Authentication::new(database.clone()).with_refresh_url(endpoint);
         let credential = Zeroizing::new(
@@ -564,10 +573,10 @@ mod tests {
                 "auth_mode": "chatgpt",
                 "OPENAI_API_KEY": null,
                 "tokens": {
-                    "id_token": expired_access,
-                    "access_token": expired_access,
+                    "id_token": ACCESS_PLACEHOLDER,
+                    "access_token": ACCESS_PLACEHOLDER,
                     "refresh_token": REFRESH_PLACEHOLDER,
-                    "account_id": ACCOUNT_PLACEHOLDER
+                    "account_id": "account-test"
                 },
                 "last_refresh": "2026-08-24T00:00:00Z"
             })
@@ -577,7 +586,11 @@ mod tests {
 
         let resolved = manager.resolve_access().await.expect("placeholder access token");
 
-        assert_eq!(resolved.expose(), expired_access.as_bytes());
+        assert_eq!(resolved.expose(), ACCESS_PLACEHOLDER.as_bytes());
+        assert_eq!(
+            selected_account_id(&database).await.expect("account ID"),
+            "account-test"
+        );
         assert_eq!(refresh_calls.get(), 0);
         assert!(is_ready(&database).await.expect("readiness"));
     }

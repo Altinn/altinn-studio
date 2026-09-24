@@ -27,7 +27,7 @@ public class CanUseUploadDataModelEvaluatorTests
         userOrgServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
 
         var evaluator = new CanUseUploadDataModelEvaluator(userOrgServiceMock.Object);
-        bool result = await evaluator.CanUseFeatureAsync();
+        bool result = await evaluator.CanUseFeatureAsync("ttd", "test-app");
 
         Assert.True(result);
     }
@@ -39,7 +39,7 @@ public class CanUseUploadDataModelEvaluatorTests
         userOrgServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(false);
 
         var evaluator = new CanUseUploadDataModelEvaluator(userOrgServiceMock.Object);
-        bool result = await evaluator.CanUseFeatureAsync();
+        bool result = await evaluator.CanUseFeatureAsync("ttd", "test-app");
 
         Assert.False(result);
     }

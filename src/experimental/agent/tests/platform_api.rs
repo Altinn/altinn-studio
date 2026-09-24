@@ -22,6 +22,12 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
         Some(SandboxAssignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
+            harnesses: resource
+                .spec
+                .harnesses
+                .iter()
+                .map(|installation| installation.kind)
+                .collect(),
         }),
         vec![Condition {
             kind: "Ready".into(),

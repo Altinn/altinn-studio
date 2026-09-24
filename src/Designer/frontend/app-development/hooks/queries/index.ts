@@ -1,6 +1,7 @@
 export { useAppDeploymentsQuery } from './useAppDeploymentsQuery';
 export { useAppReleasesQuery } from './useAppReleasesQuery';
 export { useBranchStatusQuery } from './useBranchStatusQuery';
+export { useDataModelGenerationStatusQuery } from './useDataModelGenerationStatusQuery';
 export { useDeployPermissionsQuery } from './useDeployPermissionsQuery';
 export { useEnvironmentsQuery } from './useEnvironmentsQuery';
 export { useLanguagesQuery } from './useLanguagesQuery';

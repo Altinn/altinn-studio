@@ -16,6 +16,7 @@ pub(super) struct Preparation {
 pub(super) struct PreparedNetwork {
     pub(super) bindings_changed: bool,
     pub(super) environment: BTreeMap<String, String>,
+    pub(super) harnesses: Vec<crate::Harness>,
 }
 
 impl Preparation {
@@ -76,7 +77,13 @@ impl Preparation {
             let mut managed_secrets = Vec::new();
             let mut managed_environments = BTreeMap::new();
             let mut managed_placeholders = BTreeMap::new();
+            let mut installed = Vec::with_capacity(record.agent.spec.harnesses.len());
             for installation in &record.agent.spec.harnesses {
+                // Re-evaluated every pass, so signing in later installs it with no manifest change.
+                if installation.optional && !harness::authentication_ready(installation.kind, &self.database).await? {
+                    continue;
+                }
+                installed.push(installation.kind);
                 for secret in harness::prepare(installation.kind, &self.database).await? {
                     if let Some(existing) = managed_environments.insert(secret.environment, installation.kind.as_str())
                     {
@@ -87,7 +94,8 @@ impl Preparation {
                             secret.environment
                         )));
                     }
-                    if let Some(existing) = managed_placeholders.insert(secret.placeholder, installation.kind.as_str())
+                    if let Some(existing) =
+                        managed_placeholders.insert(secret.placeholder.clone(), installation.kind.as_str())
                     {
                         return Err(Error::Invalid(format!(
                             "harnesses {:?} and {:?} use the same managed placeholder {:?}",
@@ -109,7 +117,7 @@ impl Preparation {
             for secret in managed_secrets {
                 bindings.push(SecretBinding::with_placeholder(
                     secret.environment,
-                    secret.placeholder,
+                    &secret.placeholder,
                     secret.reference,
                 )?);
             }
@@ -124,6 +132,7 @@ impl Preparation {
             Ok(PreparedNetwork {
                 bindings_changed,
                 environment: guest_environment,
+                harnesses: installed,
             })
         }
         .await;

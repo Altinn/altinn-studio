@@ -59,6 +59,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -145,6 +146,13 @@ impl Provider for MemoryProvider {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: self.report_runtime_restart.replace(false),
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
@@ -870,6 +878,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection::default(),
     });

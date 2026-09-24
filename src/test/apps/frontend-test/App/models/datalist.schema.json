@@ -1,23 +1,24 @@
-﻿{
-  "$schema": "http://json-schema.org/schema#",
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
+  "@xsdRootElement": "melding",
   "type": "object",
-  "properties": {
-    "melding": {
-      "$ref": "#/definitions/Datalist"
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Datalist"
     }
-  },
-  "definitions": {
+  ],
+  "$defs": {
     "Datalist": {
       "properties": {
         "SelectedItem": {
-          "$ref": "#/definitions/Text"
+          "type": "string"
         },
         "SelectedItemProfession": {
-          "$ref": "#/definitions/Text"
+          "type": "string"
         },
         "Search": {
-          "$ref": "#/definitions/Text"
+          "type": "string"
         },
         "UseCustomConfirm": {
           "type": "boolean"
@@ -25,11 +26,7 @@
       },
       "required": [
         "SelectedItem"
-      ],
-      "@xsdAnyAttribute": true
-    },
-    "Text": {
-      "type": "string"
+      ]
     }
   }
 }

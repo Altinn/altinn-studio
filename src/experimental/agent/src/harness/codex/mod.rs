@@ -19,7 +19,7 @@ const PROVIDER: &str = "codex";
 const ACCESS_SECRET: &str = "codex-access-token";
 const REFRESH_SECRET: &str = "codex-refresh-token";
 const ACCOUNT_SECRET: &str = "codex-account-id";
-const ACCESS_ENVIRONMENT: &str = "AGENT_CODEX_ACCESS_TOKEN";
+pub(super) const ACCESS_ENVIRONMENT: &str = "AGENT_CODEX_ACCESS_TOKEN";
 const ACCOUNT_ENVIRONMENT: &str = "AGENT_CODEX_ACCOUNT_ID";
 const ACCESS_PLACEHOLDER: &str = concat!(
     "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.",
@@ -34,6 +34,10 @@ pub(super) fn owns_secret(reference: &SecretReference) -> bool {
     reference.as_str() == ACCESS_SECRET
 }
 
+pub(super) async fn authentication_ready(database: &persistence::Database) -> Result<bool, Error> {
+    authentication::is_ready(database).await
+}
+
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
     if !authentication::is_ready(database).await? {
         return Err(Error::Invalid(
@@ -43,13 +47,15 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
     Ok(vec![
         MediatedSecret {
             environment: ACCESS_ENVIRONMENT,
-            placeholder: ACCESS_PLACEHOLDER,
+            placeholder: ACCESS_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![CHATGPT_HOST.into()],
         },
         MediatedSecret {
             environment: ACCOUNT_ENVIRONMENT,
-            placeholder: ACCOUNT_PLACEHOLDER,
+            // The account ID is visible in authenticated workspace discovery. Codex 0.156
+            // needs the selected ID locally to match that response before it can start.
+            placeholder: authentication::selected_account_id(database).await?,
             reference: SecretReference::from_opaque(ACCOUNT_SECRET),
             allowed_hosts: vec![CHATGPT_HOST.into()],
         },
@@ -192,6 +198,7 @@ pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
     // https://developers.openai.com/codex/config-reference
     let mut configuration = format!(
         "-c 'cli_auth_credentials_store=\"file\"' -c 'tui.alternate_screen=\"never\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+         -c 'tui.status_line=[\"model-with-reasoning\",\"current-dir\",\"git-branch\",\"context-used\",\"weekly-limit\",\"codex-version\",\"fast-mode\"]' \
          -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );

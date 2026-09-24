@@ -3,7 +3,6 @@ Altinn.App.Common/
 Altinn.App.PlatformServices/
 Altinn.App.PlatformServices.Tests/
 App.IntegrationTests/
-.editorconfig
 .releaseignore
 AppRef.sln
 .idea/

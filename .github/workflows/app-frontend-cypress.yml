@@ -27,7 +27,6 @@ on:
       - '.github/actions/**'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -314,6 +313,8 @@ jobs:
             src/App/frontend/frontend-server.log
             src/App/frontend/local-env-diagnostics.log
             src/App/frontend/localtest-container.log
+            src/App/frontend/workflow-engine-container.log
+            src/App/frontend/workflow-engine-database.dump
             src/App/frontend/test/logs/*
             src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**

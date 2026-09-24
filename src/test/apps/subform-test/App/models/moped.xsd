@@ -5,7 +5,7 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
-  <xs:element name="moped">
+  <xs:element name="Moped">
     <xs:complexType>
       <xs:sequence>
         <xs:element name="RegNo" type="xs:string" />

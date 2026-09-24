@@ -6,7 +6,7 @@ import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ViewportWrapper } from 'src/components/ViewportWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
-import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
+import { UiPreferencesProvider } from 'src/features/form/layout/UiPreferencesContext';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { NavigationFocusStateProvider } from 'src/features/navigation/NavigationFocusStateContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
@@ -19,7 +19,7 @@ export default function AppLayout() {
         <NavigationFocusStateProvider>
           <ErrorBoundary>
             <ViewportWrapper>
-              <UiConfigProvider>
+              <UiPreferencesProvider>
                 <GlobalFormDataReadersProvider>
                   <PartyProvider>
                     <KeepAliveProvider>
@@ -34,7 +34,7 @@ export default function AppLayout() {
                   </PartyProvider>
                   <PartyPrefetcher />
                 </GlobalFormDataReadersProvider>
-              </UiConfigProvider>
+              </UiPreferencesProvider>
             </ViewportWrapper>
           </ErrorBoundary>
         </NavigationFocusStateProvider>

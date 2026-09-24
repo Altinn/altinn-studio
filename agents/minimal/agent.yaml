@@ -31,6 +31,10 @@ spec:
     - source: ../../src/cli/resources/agent/skills/app-development
       name: altinn-studio-app-development
     - source: ../skills/pr-evidence
+    # Repository-wide Skills live where Claude Code discovers them in a plain checkout, and the
+    # manifests reach across so every harness in an Agent gets them too.
+    - source: ../../.claude/skills/tekstforfatter-docs
+    - source: ../../.claude/skills/text-content-review
   harnesses:
     - type: claudeCode
       auth: mediated
@@ -38,9 +42,12 @@ spec:
       # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
       defaults:
         model: fable
-    # - type: codex
-    #   version: "0.149.1"
-    #   auth: mediated
+    # Optional: an Agent is created without Codex when the host has no Codex login, so nobody who
+    # only uses Claude Code is blocked. Run `agentctl codex login` and the next convergence
+    # installs it.
+    - type: codex
+      auth: mediated
+      optional: true
   environment:
     - name: GIT_USER_NAME
     - name: GIT_USER_EMAIL

@@ -16,7 +16,6 @@ on:
       - 'src/<area>/**'
       - '.github/workflows/<this-workflow>.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
 
 jobs:
   build:
@@ -24,7 +23,7 @@ jobs:
 ```
 
 Guard every job that does work, rather than filtering at `on:`. Listing
-`ready_for_review` *without* the guard is the one combination that is strictly
+`ready_for_review` _without_ the guard is the one combination that is strictly
 wrong: the workflow then runs on every draft push and again on ready. Teardown
 work goes in a separate job keyed on `github.event.action == 'closed'` — see
 [`apps-storybook-preview.yaml`](workflows/apps-storybook-preview.yaml).
@@ -51,7 +50,7 @@ when they do both.
 ## Path filters
 
 Scope `paths` to what the workflow tests, always including its own file, and
-exclude `'!**/AGENTS.md'` / `'!**/CLAUDE.md'`.
+exclude `'!**/AGENTS.md'`.
 
 ## Runners
 
@@ -85,10 +84,10 @@ Three mechanisms, by content type:
    invisible to other PRs and evict the shared entries (letting PR jobs save
    freely is what blew the quota; see #20121). Two bounded exceptions save
    wherever they run:
-   - *Run-handoff caches* (LocalTest image tar, focused node_modules, studioctl
+   - _Run-handoff caches_ (LocalTest image tar, focused node_modules, studioctl
      dev-home): content-addressed archives one job builds and sibling jobs in
      the same run require; the nightly cypress cron seeds them on main.
-   - *setup-node's built-in yarn cache* saves only on a primary-key miss, i.e.
+   - _setup-node's built-in yarn cache_ saves only on a primary-key miss, i.e.
      one entry per lockfile-changing PR. Go outgrew that same behavior
      (Renovate churn) and uses
      [`actions/setup-go-cached`](actions/setup-go-cached/action.yaml) instead.
@@ -105,13 +104,13 @@ Three mechanisms, by content type:
 
 Couplings to keep in sync:
 
-| When changing… | Also update… |
-| --- | --- |
-| Go modules (add/remove) | The `go-modules` matrix in cache-warm **and** the workflow's `setup-go-cached` step — the matrix must cover every (module, runner environment) combination the PR workflows use — keys are scoped per runner environment and image. |
-| Yarn caching | Single scheme: `setup-node` with `cache: 'yarn'` + `cache-dependency-path: yarn.lock` (the root lockfile), seeded by cache-warm's `yarn` job. |
-| ghcr `localtest-*-cache` refs | Hardcoded in [`core.go`](../src/cli/internal/cmd/env/localtest/components/core.go) and [`pdf.go`](../src/cli/internal/cmd/env/localtest/components/pdf.go); written only by cache-warm. |
-| Cypress (`src/App/frontend/package.json`) or Rust (root `Cargo.toml`) versions | Nothing by hand — `deploy-github-runners.yaml` bakes them into the runner image; workflows fall back (`npx cypress install` / rustup) on drift until it rebuilds. |
-| rust-cache | One `shared-key: rust`; cache-warm is the only saver (`save-if: false` in the PR workflows). |
+| When changing…                                                                 | Also update…                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go modules (add/remove)                                                        | The `go-modules` matrix in cache-warm **and** the workflow's `setup-go-cached` step — the matrix must cover every (module, runner environment) combination the PR workflows use — keys are scoped per runner environment and image. |
+| Yarn caching                                                                   | Single scheme: `setup-node` with `cache: 'yarn'` + `cache-dependency-path: yarn.lock` (the root lockfile), seeded by cache-warm's `yarn` job.                                                                                       |
+| ghcr `localtest-*-cache` refs                                                  | Hardcoded in [`core.go`](../src/cli/internal/cmd/env/localtest/components/core.go) and [`pdf.go`](../src/cli/internal/cmd/env/localtest/components/pdf.go); written only by cache-warm.                                             |
+| Cypress (`src/App/frontend/package.json`) or Rust (root `Cargo.toml`) versions | Nothing by hand — `deploy-github-runners.yaml` bakes them into the runner image; workflows fall back (`npx cypress install` / rustup) on drift until it rebuilds.                                                                   |
+| rust-cache                                                                     | One `shared-key: rust`; cache-warm is the only saver (`save-if: false` in the PR workflows).                                                                                                                                        |
 
 Prefer `restore-keys` prefixes on hash-keyed caches (dependency-bump PRs get
 partial hits from the latest main entry) but never on content-addressed ones (a
