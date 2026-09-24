@@ -63,18 +63,7 @@ def layout_properties_tool(
         # Find the component definition in the schema
         component_def = find_component_definition(schema, component_type)
         if not component_def:
-            return {
-                "status": "error",
-                "error_code": "COMPONENT_NOT_FOUND",
-                "message": f"Component type '{component_type}' not found in schema. "
-                           f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
-                           f"Common component types: Input, Checkboxes, RadioButtons, Dropdown, Datepicker, TextArea, Header, Paragraph, Button. "
-                           f"DO NOT RETRY with the same component_type - use layout_components_tool to discover valid component types.",
-                "allowed_properties": [],
-                "required_properties": [],
-                "property_details": {},
-                "hint": "Use layout_components_tool first to see all available component types and their exact names."
-            }
+            return _component_not_found_result(component_type, list_component_types(schema))
         
         # Extract schema metadata
         allowed_properties, required_properties, property_details = extract_schema_metadata(component_def, schema)
@@ -99,6 +88,36 @@ def layout_properties_tool(
             "required_properties": [],
             "property_details": {}
         }
+
+
+def _component_not_found_result(component_type: str, component_types: List[str]) -> Dict[str, Any]:
+    return {
+        "status": "error",
+        "error_code": "COMPONENT_NOT_FOUND",
+        "message": f"Component type '{component_type}' not found in schema. "
+                   f"Verify the component_type is spelled correctly with proper casing (e.g., 'Input' not 'input'). "
+                   f"Component types in the schema: {', '.join(component_types)}. "
+                   f"DO NOT RETRY with the same component_type - pick one of the listed component types.",
+        "allowed_properties": [],
+        "required_properties": [],
+        "property_details": {}
+    }
+
+
+def list_component_types(schema: Dict[str, Any]) -> List[str]:
+    """List the component types declared in the schema's AnyComponent definition."""
+    any_component = schema.get("definitions", {}).get("AnyComponent", {})
+    component_types = [
+        _component_type_of(item) for item in any_component.get("allOf", [])
+    ]
+    return sorted(component_type for component_type in component_types if component_type)
+
+
+def _component_type_of(any_component_item: Any) -> Optional[str]:
+    if not isinstance(any_component_item, dict):
+        return None
+    type_constraint = any_component_item.get("if", {}).get("properties", {}).get("type", {})
+    return type_constraint.get("const")
 
 
 def extract_schema_metadata(
