@@ -158,17 +158,14 @@ class Impact:
                     "not comparable to anything produced after this lands."
                 )
                 lines.append(
-                    "Run a full check and adopt it, and commit BASELINE.json in this pull "
-                    "request. See EVALS.md."
+                    "Run a full check and adopt it, and commit BASELINE.json in this pull request. See EVALS.md."
                 )
         if self.behavior_hits:
             lines.append("This change moves the agent without moving the yardstick:")
             for hit in self.behavior_hits:
                 lines.append(f"  {hit.path}  ({hit.axis}) {hit.because}")
             if not self.yardstick_hits:
-                lines.append(
-                    "The baseline stays valid. Run a check and show it against the baseline."
-                )
+                lines.append("The baseline stays valid. Run a check and show it against the baseline.")
         return tuple(lines)
 
 

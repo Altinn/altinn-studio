@@ -19,9 +19,7 @@ PAGE_SIZE = 100
 
 
 def _since() -> str:
-    return (datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
+    return (datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _experiments(api: LangfuseApi) -> list[dict]:
@@ -61,9 +59,7 @@ def _items(api: LangfuseApi, experiment_id: str) -> list[dict]:
             return out
 
 
-def check_ids(
-    api: LangfuseApi | None = None, *, experiments: list[dict] | None = None
-) -> dict[str, dict]:
+def check_ids(api: LangfuseApi | None = None, *, experiments: list[dict] | None = None) -> dict[str, dict]:
     """Every `check` invocation Langfuse holds, newest first."""
     api = api or LangfuseApi()
     found: dict[str, dict] = {}
@@ -83,9 +79,7 @@ def check_ids(
             },
         )
         entry["datasets"].append(experiment["name"])
-    return dict(
-        sorted(found.items(), key=lambda kv: kv[1]["recorded_at"] or "", reverse=True)
-    )
+    return dict(sorted(found.items(), key=lambda kv: kv[1]["recorded_at"] or "", reverse=True))
 
 
 def _provenance_from(metadata: dict) -> Provenance:
@@ -161,10 +155,7 @@ def fetch(check_id: str, *, api: LangfuseApi | None = None) -> Run:
     experiments = _experiments(api)
     known = check_ids(api, experiments=experiments)
     if check_id not in known:
-        raise LookupError(
-            f"No run in Langfuse carries check_id {check_id!r}. Known: "
-            f"{list(known)[:5]}"
-        )
+        raise LookupError(f"No run in Langfuse carries check_id {check_id!r}. Known: {list(known)[:5]}")
     entry = known[check_id]
 
     per_eval: dict[str, dict[str, ItemResult]] = {}
@@ -187,17 +178,11 @@ def fetch(check_id: str, *, api: LangfuseApi | None = None) -> Run:
                 item_id=item_id,
                 scores=scores,
                 output=_output_text(item.get("output")),
-                label=(
-                    item_metadata.get("label")
-                    or item_metadata.get("note")
-                    or item_metadata.get("why")
-                )
+                label=(item_metadata.get("label") or item_metadata.get("note") or item_metadata.get("why"))
                 if isinstance(item_metadata, dict)
                 else None,
                 meta=_kept_metadata(item_metadata) if isinstance(item_metadata, dict) else {},
-                error="the item was recorded at level ERROR"
-                if item.get("level") == "ERROR"
-                else None,
+                error="the item was recorded at level ERROR" if item.get("level") == "ERROR" else None,
                 comments=_comments(api, trace_id) if trace_id else {},
                 input=_output_text(item.get("input")),
                 expected=_output_text(item.get("expectedOutput")),
@@ -208,9 +193,7 @@ def fetch(check_id: str, *, api: LangfuseApi | None = None) -> Run:
     behaviors = []
     for behavior in manifest.BEHAVIORS:
         if not behavior.is_pinned:
-            behaviors.append(
-                BehaviorResult(behavior.id, "none", None, (), skipped="nothing pins this behavior")
-            )
+            behaviors.append(BehaviorResult(behavior.id, "none", None, (), skipped="nothing pins this behavior"))
             continue
         evaluator = behavior.evaluator or ""
         assert behavior.eval

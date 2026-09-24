@@ -14,9 +14,7 @@ log = logging.getLogger(__name__)
 # already been sent, and a trailing status/permission event would resurrect
 # the workflow activity indicator in the frontend with nothing left to turn
 # it off. Result-bearing events (assistant_message, error, done) still flow.
-PROGRESS_EVENT_TYPES = frozenset(
-    {"status", "assistant_message_chunk", "permission_request", "plan_proposed"}
-)
+PROGRESS_EVENT_TYPES = frozenset({"status", "assistant_message_chunk", "permission_request", "plan_proposed"})
 
 
 class _SessionBuffer:
@@ -139,9 +137,7 @@ class EventSink:
         # Update session status cache
         with self._state_lock:
             if event.type in PROGRESS_EVENT_TYPES and event.session_id in self._cancelled:
-                log.info(
-                    f"🛑 Dropping {event.type} for cancelled session {event.session_id}"
-                )
+                log.info(f"🛑 Dropping {event.type} for cancelled session {event.session_id}")
                 return
             if event.type == "status":
                 started = self._session_started_monotonic.get(event.session_id)
@@ -251,16 +247,18 @@ class EventSink:
                 "status": "cancelled",
                 "cancelled_at": datetime.now(timezone.utc).isoformat(),
             }
-        self.send(AgentEvent(
-            type="error",
-            session_id=session_id,
-            data={
-                "done": True,
-                "success": False,
-                "status": "cancelled",
-                "message": "Workflow cancelled by user",
-            },
-        ))
+        self.send(
+            AgentEvent(
+                type="error",
+                session_id=session_id,
+                data={
+                    "done": True,
+                    "success": False,
+                    "status": "cancelled",
+                    "message": "Workflow cancelled by user",
+                },
+            )
+        )
 
     def deliver_unless_cancelled(
         self,
@@ -295,7 +293,10 @@ class EventSink:
     # --- conversation history -------------------------------------------------
 
     def add_to_conversation_history(
-        self, session_id: str, role: str, content: str,
+        self,
+        session_id: str,
+        role: str,
+        content: str,
         sources: Optional[List[Dict[str, Any]]] = None,
     ):
         """Add a message to the conversation history for a session."""

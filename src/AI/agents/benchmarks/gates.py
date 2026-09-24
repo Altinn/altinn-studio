@@ -37,9 +37,7 @@ def _band(confidence: Any) -> str | None:
     return ABOVE if confidence >= CONFIDENCE_THRESHOLD else BELOW
 
 
-def gate_verdict(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Did the gate reach the decision the item expects."""
     expected = expected_output or {}
     verdict = (output or {}).get("verdict") if isinstance(output, dict) else None
@@ -61,16 +59,14 @@ def gate_verdict(
                 name="gate_verdict",
                 value=1.0 if actual == wanted else 0.0,
                 data_type="BOOLEAN",
-                comment=f"confidence {verdict.get('confidence')} is {actual}, "
-                f"expected {wanted}",
+                comment=f"confidence {verdict.get('confidence')} is {actual}, expected {wanted}",
             )
         ]
 
     if "intent_keywords" in expected:
         wanted = [word.lower() for word in expected["intent_keywords"]]
         haystack = " ".join(
-            str(verdict.get(field) or "")
-            for field in ("task_type", "description", "target_element")
+            str(verdict.get(field) or "") for field in ("task_type", "description", "target_element")
         ).lower()
         hit = next((word for word in wanted if word in haystack), None)
         return [
@@ -97,9 +93,7 @@ def gate_verdict(
     return []
 
 
-def decline_language(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def decline_language(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """A decline has to be in the user's language."""
     wanted = (expected_output or {}).get("decline_language")
     if not wanted:
@@ -118,12 +112,10 @@ def decline_language(
 
     lowered = f" {message.lower()} "
     norwegian = sum(
-        token in lowered
-        for token in (" jeg ", " kan ", " ikke ", " hjelpe ", " med ", " deg ", " og ", " å ")
+        token in lowered for token in (" jeg ", " kan ", " ikke ", " hjelpe ", " med ", " deg ", " og ", " å ")
     )
     english = sum(
-        token in lowered
-        for token in (" i ", " can ", " only ", " help ", " with ", " you ", " and ", " the ")
+        token in lowered for token in (" i ", " can ", " only ", " help ", " with ", " you ", " and ", " the ")
     )
     detected = "nb" if norwegian > english else "en"
     return [
@@ -136,9 +128,7 @@ def decline_language(
     ]
 
 
-def required_keys(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def required_keys(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Does the answer carry every key the consumer reads."""
     wanted = (expected_output or {}).get("required_keys")
     if not wanted:
@@ -204,12 +194,8 @@ class GateTask:
             )
 
         adapter = adapter_for(self.model, self.max_tokens)
-        reply = await adapter.chat(
-            messages=[_user(message)], system_prompt=system, tool_schemas=[]
-        )
-        text = "".join(
-            block.text for block in reply.content if getattr(block, "text", None)
-        )
+        reply = await adapter.chat(messages=[_user(message)], system_prompt=system, tool_schemas=[])
+        text = "".join(block.text for block in reply.content if getattr(block, "text", None))
         return {
             "text": text,
             "verdict": parse_verdict(text),
@@ -222,6 +208,7 @@ def _user(text: str):
     from agents.core.messages import UserMessage
 
     return UserMessage(content=text)
+
 
 SCORE_NAMES = (
     "gate_decline_language",

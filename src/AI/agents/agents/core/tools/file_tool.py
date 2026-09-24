@@ -150,8 +150,7 @@ class ReadFileTool(Tool):
             head = text[:_MAX_READ_CHARS]
             return ToolResult(
                 content=(
-                    head
-                    + f"\n\n[…truncated {len(text) - _MAX_READ_CHARS} chars. "
+                    head + f"\n\n[…truncated {len(text) - _MAX_READ_CHARS} chars. "
                     "Use a more specific tool or read a smaller file if you need the rest.]"
                 ),
                 metadata={"truncated": True, "chars": len(text)},
@@ -240,10 +239,7 @@ class EditFileTool(WriteToolMixin):
             if len(spans) != 1:
                 found = ""
                 if len(spans) > 1:
-                    found = (
-                        f"  Ignoring whitespace it would match {len(spans)} places, so "
-                        "add surrounding context."
-                    )
+                    found = f"  Ignoring whitespace it would match {len(spans)} places, so add surrounding context."
                 return ToolResult(
                     content=(
                         f"`old_string` not found in {args.path}.  Re-read the file and "
@@ -279,8 +275,7 @@ class EditFileTool(WriteToolMixin):
 
         _mark_changed(ctx, args.path)
         note = (
-            "  `old_string` matched only after ignoring whitespace, so that region now "
-            "carries your formatting."
+            "  `old_string` matched only after ignoring whitespace, so that region now carries your formatting."
             if matched_on_whitespace
             else ""
         )
@@ -356,10 +351,7 @@ def _whitespace_insensitive_spans(text: str, needle: str) -> list[tuple[int, int
         return []
     # Every start position, not just the non-overlapping ones: two candidates that
     # overlap are still two, and this match only applies when there is exactly one.
-    spans = [
-        (found.start(), found.start() + len(found.group(1)))
-        for found in re.finditer(f"(?=({joined}))", text)
-    ]
+    spans = [(found.start(), found.start() + len(found.group(1))) for found in re.finditer(f"(?=({joined}))", text)]
     return _without_whitespace_variants(spans)
 
 

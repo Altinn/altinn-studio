@@ -62,8 +62,7 @@ class TestPartialPageValidation:
         monkeypatch.setattr(
             render_check_module,
             "_check_single_page",
-            lambda page, url, layout: checked.append(layout)
-            or PageRenderResult(layout, True, ""),
+            lambda page, url, layout: checked.append(layout) or PageRenderResult(layout, True, ""),
         )
 
         results = _check_pages(
@@ -86,9 +85,7 @@ class TestPageOrderShapes:
         settings.write_text(content, encoding="utf-8")
         return tmp_path
 
-    @pytest.mark.parametrize(
-        "content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}']
-    )
+    @pytest.mark.parametrize("content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}'])
     def test_a_shape_that_is_not_an_order_is_skipped(self, tmp_path, content):
         assert read_page_order(self._write(tmp_path, content)) == []
 

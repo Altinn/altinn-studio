@@ -44,9 +44,7 @@ from .conftest import (
 
 class TestHistory:
     async def test_history_is_prepended_before_current_message(self, ctx):
-        adapter = FakeAdapter(
-            [AssistantMessage(content=[TextBlock(text="svar")], stop_reason="end_turn")]
-        )
+        adapter = FakeAdapter([AssistantMessage(content=[TextBlock(text="svar")], stop_reason="end_turn")])
         history = [
             UserMessage(content="Lag en oppsummeringsside"),
             AssistantMessage(content=[TextBlock(text="Laget Summary-siden.")]),
@@ -115,12 +113,8 @@ class TestSourceCollection:
     async def test_repeated_lookups_are_deduplicated(self, ctx):
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("sourced", text="expressions")], stop_reason="tool_use"
-                ),
-                AssistantMessage(
-                    content=[tool_use("sourced", text="expressions")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("sourced", text="expressions")], stop_reason="tool_use"),
+                AssistantMessage(content=[tool_use("sourced", text="expressions")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
             ]
         )
@@ -138,9 +132,7 @@ class TestSourceCollection:
     async def test_failed_lookup_records_no_source(self, ctx):
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("sourced", text="fail")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("sourced", text="fail")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
             ]
         )
@@ -175,9 +167,7 @@ class TestPermissionEscalation:
         ctx = self._read_only_ctx(grant)
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("gated", text="hello")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("gated", text="hello")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
             ]
         )
@@ -191,10 +181,7 @@ class TestPermissionEscalation:
 
         assert asked and "gated" in asked[0]
         assert ctx.allow_app_changes is True
-        tool_results = [
-            b for b in adapter.calls[1]["messages"][-1].content
-            if isinstance(b, ToolResultBlock)
-        ]
+        tool_results = [b for b in adapter.calls[1]["messages"][-1].content if isinstance(b, ToolResultBlock)]
         assert tool_results[0].is_error is False
         assert "wrote: hello" in tool_results[0].content
         assert result.reason is TerminationReason.COMPLETED
@@ -209,12 +196,8 @@ class TestPermissionEscalation:
         ctx = self._read_only_ctx(decline)
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("gated", text="a")], stop_reason="tool_use"
-                ),
-                AssistantMessage(
-                    content=[tool_use("gated", text="b")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("gated", text="a")], stop_reason="tool_use"),
+                AssistantMessage(content=[tool_use("gated", text="b")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -229,10 +212,7 @@ class TestPermissionEscalation:
         # Asked exactly once; the second attempt is refused without re-asking.
         assert len(asks) == 1
         assert ctx.allow_app_changes is False
-        second_turn_results = [
-            b for b in adapter.calls[2]["messages"][-1].content
-            if isinstance(b, ToolResultBlock)
-        ]
+        second_turn_results = [b for b in adapter.calls[2]["messages"][-1].content if isinstance(b, ToolResultBlock)]
         assert second_turn_results[0].is_error is True
         assert "already declined" in second_turn_results[0].content
 
@@ -240,9 +220,7 @@ class TestPermissionEscalation:
         ctx = self._read_only_ctx(None)
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("gated", text="x")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("gated", text="x")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -253,19 +231,14 @@ class TestPermissionEscalation:
             adapter=adapter,
             ctx=ctx,
         )
-        results = [
-            b for b in adapter.calls[1]["messages"][-1].content
-            if isinstance(b, ToolResultBlock)
-        ]
+        results = [b for b in adapter.calls[1]["messages"][-1].content if isinstance(b, ToolResultBlock)]
         assert results[0].is_error is True
         assert "read-only session" in results[0].content
 
 
 class TestTermination:
     async def test_completed_when_no_tool_use(self, ctx):
-        adapter = FakeAdapter(
-            [AssistantMessage(content=[TextBlock(text="all done")], stop_reason="end_turn")]
-        )
+        adapter = FakeAdapter([AssistantMessage(content=[TextBlock(text="all done")], stop_reason="end_turn")])
         result = await run_loop(
             user_message="hi",
             system_prompt="sys",
@@ -322,9 +295,7 @@ class TestTermination:
         """Chat-style runs are often a single streaming turn with no tool
         calls — a cancel during that stream must not be returned as a
         normal completion carrying the answer."""
-        adapter = FakeAdapter(
-            [AssistantMessage(content=[TextBlock(text="the answer")], stop_reason="end_turn")]
-        )
+        adapter = FakeAdapter([AssistantMessage(content=[TextBlock(text="the answer")], stop_reason="end_turn")])
         checks = {"count": 0}
 
         def is_cancelled() -> bool:
@@ -398,9 +369,7 @@ class TestTruncation:
         adapter = FakeAdapter(
             [
                 # Turn 1: one tool call survived the cut.
-                AssistantMessage(
-                    content=[tool_use("echo", text="a")], stop_reason="max_tokens"
-                ),
+                AssistantMessage(content=[tool_use("echo", text="a")], stop_reason="max_tokens"),
                 AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
             ]
         )
@@ -424,9 +393,7 @@ class TestTruncation:
         registry.register(EchoTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("echo", text="a")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("echo", text="a")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
             ]
         )
@@ -455,9 +422,7 @@ class TestTruncation:
         registry.register(CountingTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("counting", text="write-1")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("counting", text="write-1")], stop_reason="tool_use"),
             ]
         )
         checks = {"count": 0}
@@ -507,9 +472,7 @@ class TestToolDispatch:
         registry.register(EchoTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("echo", text="hello")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("echo", text="hello")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -535,9 +498,7 @@ class TestToolDispatch:
         registry.register(EchoTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("nope", text="x")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("nope", text="x")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -580,9 +541,7 @@ class TestToolDispatch:
         registry.register(BoomTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("boom", text="kaboom")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("boom", text="kaboom")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -602,9 +561,7 @@ class TestToolDispatch:
         registry.register(DeniedTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("denied", text="x")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("denied", text="x")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -723,10 +680,10 @@ class TestConcurrency:
             [
                 AssistantMessage(
                     content=[
-                        tool_use("echo", text="a"),     # safe
-                        tool_use("echo", text="b"),     # safe
-                        tool_use("counting", text="C"), # unsafe barrier
-                        tool_use("echo", text="d"),     # safe
+                        tool_use("echo", text="a"),  # safe
+                        tool_use("echo", text="b"),  # safe
+                        tool_use("counting", text="C"),  # unsafe barrier
+                        tool_use("echo", text="d"),  # safe
                     ],
                     stop_reason="tool_use",
                 ),
@@ -782,9 +739,7 @@ class TestConcurrency:
         adapter = FakeAdapter(
             [
                 AssistantMessage(
-                    content=[
-                        tool_use("peak_echo", text=f"n{i}") for i in range(6)
-                    ],
+                    content=[tool_use("peak_echo", text=f"n{i}") for i in range(6)],
                     stop_reason="tool_use",
                 ),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
@@ -852,8 +807,7 @@ class TestConcurrency:
         # minimum is ~0.15s (three steps).  If the predicate were
         # ignored and everything ran in parallel, we'd see ~0.05s.
         assert elapsed >= 0.13, (
-            f"per-input predicate ignored — elapsed {elapsed:.3f}s suggests "
-            "the unsafe call did not act as a barrier"
+            f"per-input predicate ignored — elapsed {elapsed:.3f}s suggests the unsafe call did not act as a barrier"
         )
 
 
@@ -870,9 +824,7 @@ class TestResultCapping:
         big_text = "x" * 5000
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("echo", text=big_text)], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("echo", text=big_text)], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="ok")], stop_reason="end_turn"),
             ]
         )
@@ -943,9 +895,7 @@ class TestAntiThrash:
                 )
             )
         # Final clean turn so we don't hit max_turns either.
-        adapter.queue(
-            AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn")
-        )
+        adapter.queue(AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"))
 
         result = await run_loop(
             user_message="x",
@@ -964,9 +914,7 @@ class TestEvents:
         registry.register(EchoTool())
         adapter = FakeAdapter(
             [
-                AssistantMessage(
-                    content=[tool_use("echo", text="x")], stop_reason="tool_use"
-                ),
+                AssistantMessage(content=[tool_use("echo", text="x")], stop_reason="tool_use"),
                 AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
             ]
         )

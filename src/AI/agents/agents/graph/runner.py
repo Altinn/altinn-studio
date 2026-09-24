@@ -1,4 +1,5 @@
 """LangGraph runner for agent workflow"""
+
 import asyncio
 
 from langgraph.graph import StateGraph, END
@@ -14,6 +15,7 @@ from shared.utils.logging_utils import get_logger
 
 class WorkflowCancelled(Exception):
     """Raised when a workflow is cancelled by the user."""
+
     pass
 
 
@@ -30,11 +32,14 @@ def _raise_if_cancelled(state: AgentState, event_sink: EventSink) -> None:
 
 def _with_cancellation(fn):
     """Wrap an async node handler to check for cancellation before execution."""
+
     async def wrapper(state: AgentState) -> AgentState:
         _check_cancelled(state)
         return await fn(state)
+
     wrapper.__name__ = fn.__name__
     return wrapper
+
 
 log = get_logger(__name__)
 
@@ -121,6 +126,7 @@ from agents.services.llm import (
 )
 
 import logging as _logging
+
 _log = _logging.getLogger(__name__)
 
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
@@ -134,8 +140,7 @@ _GATE_UNAVAILABLE_MESSAGE = (
     "litt."
 )
 _UNCLEAR_GOAL_MESSAGE = (
-    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive "
-    "endringen litt mer konkret?"
+    "Jeg forstod ikke helt hva du vil at jeg skal gjøre. Kan du beskrive endringen litt mer konkret?"
 )
 
 
@@ -169,7 +174,8 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
         decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
         _log.info(
             "Out-of-scope goal for session %s (%s)",
-            state.session_id, scope_result.reason,
+            state.session_id,
+            scope_result.reason,
         )
         if state.allow_app_changes:
             raise GoalRejected(decline_text)
@@ -234,9 +240,7 @@ async def _validate_intent(state: AgentState):
     parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
 
     if parsed.action == GATE_FAILED_ACTION:
-        _log.error(
-            "Intent gate could not run for session %s: %s", state.session_id, parsed.reason
-        )
+        _log.error("Intent gate could not run for session %s: %s", state.session_id, parsed.reason)
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
 
     if not parsed.safe:
@@ -251,8 +255,12 @@ async def _validate_intent(state: AgentState):
 
     _log.info(
         "Parsed intent for session %s: action=%s, component=%s, confidence=%s",
-        state.session_id, parsed.action, parsed.component, parsed.confidence,
+        state.session_id,
+        parsed.action,
+        parsed.component,
+        parsed.confidence,
     )
+
 
 def _mark_as_experiment_item(state: AgentState, root_span) -> None:
     """Declare this trace one item of a dataset run."""
@@ -277,10 +285,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     # Use start_as_current_observation as the root - this creates a trace and sets context
     # so all nested observations will be children of this root
     if langfuse:
-        history_for_trace = [
-            {"role": m.role, "content": m.content[:300]}
-            for m in state.conversation_history
-        ]
+        history_for_trace = [{"role": m.role, "content": m.content[:300]} for m in state.conversation_history]
         with langfuse.start_as_current_observation(
             as_type="span",
             name="Altinity Agent Workflow",
@@ -307,15 +312,17 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                         # The decline IS the workflow result — record it in the
                         # trace output so the evaluators (in particular
                         # no_irrelevant_responses) see declined turns too.
-                        root_span.update(output={
-                            "success": True,
-                            "changed_files": [],
-                            "verify_notes": [],
-                            "summary": decline_text,
-                            "sources": [],
-                            "commit": None,
-                            "next_action": "declined_out_of_scope",
-                        })
+                        root_span.update(
+                            output={
+                                "success": True,
+                                "changed_files": [],
+                                "verify_notes": [],
+                                "summary": decline_text,
+                                "sources": [],
+                                "commit": None,
+                                "next_action": "declined_out_of_scope",
+                            }
+                        )
                         return None
 
                     final_state = await graph.ainvoke(state)
@@ -329,23 +336,22 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
                     # `sources` list gives the no_hallucination evaluator
                     # ground truth for what the agent actually consulted.
                     assistant_response = final_state.get("assistant_response") or {}
-                    root_span.update(output={
-                        "success": bool(final_state.get("tests_passed", False)),
-                        "changed_files": sorted(final_state.get("changed_files") or []),
-                        "verify_notes": (final_state.get("verify_notes") or [])[:30],
-                        "summary": str(
-                            assistant_response.get("text") or assistant_response.get("response") or ""
-                        )[:4000],
-                        "sources": assistant_response.get("sources") or [],
-                        "commit": assistant_response.get("commit"),
-                        "next_action": str(final_state.get("next_action", ""))
-                    })
+                    root_span.update(
+                        output={
+                            "success": bool(final_state.get("tests_passed", False)),
+                            "changed_files": sorted(final_state.get("changed_files") or []),
+                            "verify_notes": (final_state.get("verify_notes") or [])[:30],
+                            "summary": str(assistant_response.get("text") or assistant_response.get("response") or "")[
+                                :4000
+                            ],
+                            "sources": assistant_response.get("sources") or [],
+                            "commit": assistant_response.get("commit"),
+                            "next_action": str(final_state.get("next_action", "")),
+                        }
+                    )
 
                 except Exception as e:
-                    root_span.update(
-                        output={"error": str(e)},
-                        metadata={"error": str(e)}
-                    )
+                    root_span.update(output={"error": str(e)}, metadata={"error": str(e)})
                     raise
     else:
         decline_text = await _gate_goal(state, event_sink)
@@ -369,16 +375,13 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
             message = "Task failed: " + "; ".join(str(n) for n in notes)
         else:
             message = "Task completed with issues"
-    event_sink.send(AgentEvent(
-        type="status",
-        session_id=final_state.get("session_id", state.session_id),
-        data={
-            "done": True, 
-            "success": success,
-            "status": "completed" if success else "failed",
-            "message": message
-        }
-    ))
+    event_sink.send(
+        AgentEvent(
+            type="status",
+            session_id=final_state.get("session_id", state.session_id),
+            data={"done": True, "success": success, "status": "completed" if success else "failed", "message": message},
+        )
+    )
 
     return final_state
 
@@ -386,8 +389,9 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 def run_in_background(state: AgentState, event_sink: EventSink = None):
     """Start workflow in background task"""
     import logging
+
     log = logging.getLogger(__name__)
-    
+
     if event_sink is None:
         event_sink = sink
 
@@ -397,32 +401,36 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
         except WorkflowCancelled:
             log.info(f"🛑 Workflow cancelled for session {state.session_id}")
         except GoalRejected as e:
-            event_sink.send(AgentEvent(
-                type="error",
-                session_id=state.session_id,
-                data={
-                    "done": True,
-                    "success": False,
-                    "status": "rejected",
-                    "message": e.message,
-                    "suggestions": e.suggestions,
-                }
-            ))
+            event_sink.send(
+                AgentEvent(
+                    type="error",
+                    session_id=state.session_id,
+                    data={
+                        "done": True,
+                        "success": False,
+                        "status": "rejected",
+                        "message": e.message,
+                        "suggestions": e.suggestions,
+                    },
+                )
+            )
         except Exception as e:
             if event_sink.is_cancelled(state.session_id):
                 log.info(f"🛑 Workflow error after cancellation for session {state.session_id}: {e}")
                 return
             log.error(f"Workflow failed with exception: {e}", exc_info=True)
-            event_sink.send(AgentEvent(
-                type="error",
-                session_id=state.session_id,
-                data={
-                    "done": True,
-                    "success": False,
-                    "status": "error",
-                    "message": "Noe gikk galt, og forespørselen stoppet.  Prøv igjen om litt.",
-                }
-            ))
+            event_sink.send(
+                AgentEvent(
+                    type="error",
+                    session_id=state.session_id,
+                    data={
+                        "done": True,
+                        "success": False,
+                        "status": "error",
+                        "message": "Noe gikk galt, og forespørselen stoppet.  Prøv igjen om litt.",
+                    },
+                )
+            )
         finally:
             # Force Langfuse to export buffered spans now instead of waiting for
             # the BatchSpanProcessor's periodic flush. Without this the trace can
@@ -432,4 +440,3 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
     # Create background task
     task = asyncio.create_task(_run())
     return task
-

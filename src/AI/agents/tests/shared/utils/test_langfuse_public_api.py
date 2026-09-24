@@ -32,8 +32,6 @@ class TestCreatePublicApiClient:
             LANGFUSE_SECRET_KEY=None,
             LANGFUSE_HOST="https://langfuse.test",
         )
-        with patch(
-            "shared.utils.langfuse_public_api.get_config", return_value=config
-        ):
+        with patch("shared.utils.langfuse_public_api.get_config", return_value=config):
             with pytest.raises(RuntimeError, match="credentials are not configured"):
                 create_public_api_client()

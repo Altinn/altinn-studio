@@ -17,6 +17,7 @@ from agents.prompts.loader import _compile_template, render_template
 # _compile_template — identifier matching
 # ---------------------------------------------------------------------------
 
+
 class TestCompileTemplateIdentifiers:
     """Only valid Python identifiers inside {{...}} should be treated as variables."""
 
@@ -52,17 +53,11 @@ class TestCompileTemplateIdentifiers:
         assert result == '{"simpleBinding": "sokerensNavn"}'
 
     def test_mixed_variables_and_json_examples(self):
-        template = (
-            "Goal: {{user_goal}}\n"
-            'Example: {{"op": "insert", "file": "test.json"}}\n'
-            "Step: {{step}}"
-        )
-        result = _compile_template(
-            template, {"user_goal": "Add field", "step": "1"}
-        )
-        assert 'Goal: Add field' in result
+        template = 'Goal: {{user_goal}}\nExample: {{"op": "insert", "file": "test.json"}}\nStep: {{step}}'
+        result = _compile_template(template, {"user_goal": "Add field", "step": "1"})
+        assert "Goal: Add field" in result
         assert 'Example: {"op": "insert", "file": "test.json"}' in result
-        assert 'Step: 1' in result
+        assert "Step: 1" in result
 
     def test_underscore_variable(self):
         result = _compile_template("{{my_var}}", {"my_var": "ok"})
@@ -90,6 +85,7 @@ class TestCompileTemplateIdentifiers:
 # ---------------------------------------------------------------------------
 # render_template — Langfuse variable-drop protection
 # ---------------------------------------------------------------------------
+
 
 class TestRenderTemplateLangfuseProtection:
     """Langfuse templates that silently drop variables should fall back to local."""

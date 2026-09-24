@@ -1,4 +1,5 @@
 """Prompt loader utility for managing system prompts"""
+
 import re
 import yaml
 from pathlib import Path
@@ -107,9 +108,7 @@ def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) ->
             content = _system_message(lf_prompt.compile())
             if content:
                 return content, lf_prompt
-            log.warning(
-                f"Langfuse prompt '{prompt_name}' has no system message; using local file"
-            )
+            log.warning(f"Langfuse prompt '{prompt_name}' has no system message; using local file")
         except Exception as e:
             log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
             # Fall through to local prompt
@@ -121,6 +120,7 @@ _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 def _compile_template(content: str, variables: dict) -> str:
     """Substitute ``{{variable}}`` placeholders, matching Langfuse's compile() behavior."""
+
     def _replace_match(match: re.Match) -> str:
         inner = match.group(1).strip()
         if _IDENTIFIER_RE.match(inner):

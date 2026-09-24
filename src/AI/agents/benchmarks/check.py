@@ -99,8 +99,7 @@ def task_for(args, dataset, agent_models: dict[str, str] | None = None):
         return (
             task,
             PLANNER_EVALUATORS,
-            ["spec_parses", "spec_label_coverage", "spec_field_count",
-             "query_terms", "query_is_a_query"],
+            ["spec_parses", "spec_label_coverage", "spec_field_count", "query_terms", "query_is_a_query"],
             model,
         )
 
@@ -205,9 +204,7 @@ def _collect(result: object, eval_name: str, dataset_version: str | None) -> Eva
             outputs[item_id] = text
         metadata = getattr(getattr(item_result, "item", None), "metadata", None) or {}
         if isinstance(metadata, dict):
-            labels[item_id] = (
-                metadata.get("label") or metadata.get("note") or metadata.get("why")
-            )
+            labels[item_id] = metadata.get("label") or metadata.get("note") or metadata.get("why")
             meta[item_id] = _kept_metadata(metadata)
         trace = getattr(item_result, "trace_id", None)
         if trace:
@@ -237,9 +234,7 @@ KEPT_METADATA = ("language", "verification", "pairs_with", "source_trace", "regr
 
 def _kept_metadata(metadata: dict) -> dict[str, str]:
     kept = {k: str(v) for k, v in metadata.items() if k in KEPT_METADATA and v is not None}
-    kept.update(
-        {k: str(v) for k, v in metadata.items() if k.startswith("observed_") and v is not None}
-    )
+    kept.update({k: str(v) for k, v in metadata.items() if k.startswith("observed_") and v is not None})
     return kept
 
 
@@ -247,11 +242,7 @@ def _scored_set_digest(outcomes: dict[str, EvalOutcome]) -> str:
     """What was measured, as one value a comparison can refuse on."""
     import hashlib
 
-    pairs = sorted(
-        f"{name}:{item_id}"
-        for name, outcome in outcomes.items()
-        for item_id in outcome.per_item
-    )
+    pairs = sorted(f"{name}:{item_id}" for name, outcome in outcomes.items() for item_id in outcome.per_item)
     if not pairs:
         return "nothing scored"
     digest = hashlib.sha256("\n".join(pairs).encode()).hexdigest()[:12]
@@ -373,9 +364,7 @@ def run(
         dataset_version = dataset_version or version_stamp
 
     judged = {b.evaluator: b.judge_version for b in manifest.judged()}
-    evaluator_versions = {
-        name: int(str(version).lstrip("v")) for name, version in judged.items() if version
-    }
+    evaluator_versions = {name: int(str(version).lstrip("v")) for name, version in judged.items() if version}
 
     state = provenance.collect(
         prompts=prompt_versions,
@@ -437,11 +426,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
         print(f"  {entry.name}: {len(items)} items on {model}{slow}", flush=True)
         _warn_if_stale(entry, len(items))
         started = time.monotonic()
-        concurrency = (
-            E2E_MAX_CONCURRENCY
-            if entry.kind in SLOW_KINDS
-            else getattr(args, "max_concurrency", 5)
-        )
+        concurrency = E2E_MAX_CONCURRENCY if entry.kind in SLOW_KINDS else getattr(args, "max_concurrency", 5)
         state = provenance.collect(agent_models=getattr(task, "role_models", None))
         result = client.run_experiment(
             name=entry.name,
@@ -459,11 +444,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
             },
         )
         client.flush()
-        scored = sum(
-            1
-            for item in getattr(result, "item_results", []) or []
-            if getattr(item, "evaluations", None)
-        )
+        scored = sum(1 for item in getattr(result, "item_results", []) or [] if getattr(item, "evaluations", None))
         print(
             f"    done in {time.monotonic() - started:.0f}s, {scored}/{len(items)} scored",
             flush=True,

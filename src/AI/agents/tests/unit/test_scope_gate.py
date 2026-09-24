@@ -162,7 +162,6 @@ class TestGateGoal:
         assert excinfo.value.message == piped.decline_message
         assert excinfo.value.suggestions == []
 
-
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)
         event_sink = EventSink()
@@ -190,9 +189,7 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch(
-                "agents.graph.runner._validate_intent", new=AsyncMock()
-            ) as validate_intent,
+            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
@@ -207,9 +204,7 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch(
-                "agents.graph.runner._validate_intent", new=AsyncMock()
-            ) as validate_intent,
+            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
@@ -234,9 +229,7 @@ class TestGateGoal:
 
         with patch("agents.graph.runner.check_scope_async", new=slow_scope_check):
             with pytest.raises(WorkflowCancelled):
-                await asyncio.gather(
-                    _gate_goal(state, event_sink=event_sink), cancel_once_started()
-                )
+                await asyncio.gather(_gate_goal(state, event_sink=event_sink), cancel_once_started())
 
         assert started.is_set()
         event_sink.send.assert_not_called()
@@ -244,9 +237,7 @@ class TestGateGoal:
 
     async def test_a_cancelled_session_never_calls_the_scope_check(self):
         state = _state(allow_app_changes=False)
-        with patch(
-            "agents.graph.runner.check_scope_async", new=AsyncMock()
-        ) as check_scope:
+        with patch("agents.graph.runner.check_scope_async", new=AsyncMock()) as check_scope:
             with pytest.raises(WorkflowCancelled):
                 await _gate_goal(state, event_sink=_sink(cancelled=True))
 
@@ -266,9 +257,7 @@ class TestGateGoal:
                 cancelling.wait(timeout=2)
             return original_send(event)
 
-        cancel_thread = threading.Thread(
-            target=lambda: (cancelling.set(), event_sink.cancel_session("sess-1"))
-        )
+        cancel_thread = threading.Thread(target=lambda: (cancelling.set(), event_sink.cancel_session("sess-1")))
         event_sink.send = send_and_let_the_cancel_race
 
         with patch(

@@ -129,9 +129,7 @@ class Tool(ABC):
         `rm` is not)."""
         return self.is_read_only
 
-    async def check_permission(
-        self, args: BaseModel, ctx: LoopContext
-    ) -> PermissionResult:
+    async def check_permission(self, args: BaseModel, ctx: LoopContext) -> PermissionResult:
         return PermissionResult.allow()
 
     @abstractmethod

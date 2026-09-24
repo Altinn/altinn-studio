@@ -69,7 +69,7 @@ class Skill:
         """
         raw = self.path.read_text(encoding="utf-8")
         match = _FRONTMATTER_PATTERN.match(raw)
-        body = raw[match.end():] if match else raw
+        body = raw[match.end() :] if match else raw
         sections = [body.strip()]
 
         fields = _parse_frontmatter(raw)

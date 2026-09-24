@@ -5,7 +5,7 @@ from .naming import NamingConverter
 from .restrictions import RestrictionMapper
 
 __all__ = [
-    'TypeMapper',
-    'NamingConverter',
-    'RestrictionMapper',
+    "TypeMapper",
+    "NamingConverter",
+    "RestrictionMapper",
 ]

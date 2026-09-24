@@ -47,10 +47,7 @@ def _stateful_handler(remaining: list[str], deleted_batches: list[list[str]]):
             for trace_id in batch:
                 remaining.remove(trace_id)
             return httpx.Response(200, json={})
-        page = [
-            {"id": f"span-{trace_id}", "traceId": trace_id}
-            for trace_id in remaining[:PAGE_SIZE]
-        ]
+        page = [{"id": f"span-{trace_id}", "traceId": trace_id} for trace_id in remaining[:PAGE_SIZE]]
         return httpx.Response(200, json={"data": page, "meta": {}})
 
     return handler

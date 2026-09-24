@@ -404,9 +404,7 @@ async def run_loop(
             blocks.append(TextBlock(text=_TRUNCATION_PARTIAL_NOTICE))
         turns_remaining = max_turns - turn
         if turns_remaining == _WRAPUP_WARNING_TURNS:
-            blocks.append(
-                TextBlock(text=_WRAPUP_NOTICE.format(turns_remaining=turns_remaining))
-            )
+            blocks.append(TextBlock(text=_WRAPUP_NOTICE.format(turns_remaining=turns_remaining)))
         messages.append(UserMessage(content=blocks))
 
     await _emit(on_event, "terminated", {"reason": "max_turns", "turn": max_turns})
@@ -627,9 +625,7 @@ async def _execute_tool(
                 on_event,
             )
         try:
-            granted = await ctx.permission_requester(
-                f"{tool_use.name}: {_describe_tool_use(tool_use)}"
-            )
+            granted = await ctx.permission_requester(f"{tool_use.name}: {_describe_tool_use(tool_use)}")
         except Exception:
             log.exception("permission escalation failed for %s", tool_use.name)
             granted = False

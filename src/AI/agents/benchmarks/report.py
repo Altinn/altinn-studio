@@ -136,9 +136,7 @@ class BehaviorView:
         prove nothing, since a perfect ratio and a rate look identical."""
         if self.result is None:
             return False
-        return any(
-            0.0 < (i.value(self.result.evaluator) or 0) < 1.0 for i in self.result.scored_items
-        )
+        return any(0.0 < (i.value(self.result.evaluator) or 0) < 1.0 for i in self.result.scored_items)
 
     @property
     def misdeclared(self) -> bool:
@@ -180,8 +178,7 @@ class BehaviorView:
             )
             if not self.floor_applies:
                 absorbed = (
-                    " A single item moving on a model that did not change is treated as "
-                    "variance rather than a finding."
+                    " A single item moving on a model that did not change is treated as variance rather than a finding."
                     if step <= NOISE_FLOOR * COARSE_MULTIPLE
                     else " Every single item answering differently is reported as a change."
                 )
@@ -348,8 +345,15 @@ class Report:
 
     def counts(self) -> dict[str, int]:
         counts = {
-            "holding": 0, "moved": 0, "failing": 0, "recorded": 0, "variance": 0,
-            "confirmed": 0, "unpinned": 0, "not_run": 0, "no_score": 0,
+            "holding": 0,
+            "moved": 0,
+            "failing": 0,
+            "recorded": 0,
+            "variance": 0,
+            "confirmed": 0,
+            "unpinned": 0,
+            "not_run": 0,
+            "no_score": 0,
         }
         for view in self.behaviors:
             if view.verdict == "variance":
@@ -369,11 +373,7 @@ class Report:
 
     def moved_in_this_run(self) -> frozenset[str]:
         """Behaviors whose score moved against the reference by more than noise."""
-        return frozenset(
-            v.behavior.id
-            for v in self.behaviors
-            if v.verdict in ("regressed", "improved")
-        )
+        return frozenset(v.behavior.id for v in self.behaviors if v.verdict in ("regressed", "improved"))
 
     def short_of_full_marks(self) -> tuple[BehaviorView, ...]:
         """Pinned behaviors not at 1.0, worst first."""
@@ -382,9 +382,17 @@ class Report:
 
     def worst_verdict(self, component_id: str) -> str:
         rank = {
-            "failing": 6, "no-score": 5, "regressed": 4, "output-changed": 3,
-            "confirmed": 3, "improved": 2, "variance": 2, "unpinned": 1, "not-run": 1,
-            "new": 0, "holding": 0,
+            "failing": 6,
+            "no-score": 5,
+            "regressed": 4,
+            "output-changed": 3,
+            "confirmed": 3,
+            "improved": 2,
+            "variance": 2,
+            "unpinned": 1,
+            "not-run": 1,
+            "new": 0,
+            "holding": 0,
         }
         views = self.of_component(component_id)
         if not views:
@@ -394,8 +402,12 @@ class Report:
     def open_work(self) -> tuple[BehaviorView, ...]:
         """Behaviors with something to do, worst first. What the prompts are for."""
         rank = {
-            "failing": 0, "no-score": 1, "regressed": 2, "output-changed": 3,
-            "confirmed": 4, "unpinned": 5,
+            "failing": 0,
+            "no-score": 1,
+            "regressed": 2,
+            "output-changed": 3,
+            "confirmed": 4,
+            "unpinned": 5,
         }
         return tuple(
             sorted(
@@ -463,11 +475,7 @@ def readable(payload: str | None, *, unwrap: bool = False) -> str | None:
             value = json.loads(value)
         except (TypeError, ValueError):
             return value[:_READABLE_MAX_CHARS]
-    text = (
-        value
-        if isinstance(value, str)
-        else json.dumps(value, ensure_ascii=False, indent=1, sort_keys=True)
-    )
+    text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False, indent=1, sort_keys=True)
     return text[:_READABLE_MAX_CHARS]
 
 
@@ -475,9 +483,7 @@ def _unwrap(value: object) -> object:
     """What the model said, with the envelope around it removed."""
     if not isinstance(value, dict):
         return value
-    carried = {
-        k: v for k, v in value.items() if k not in _ENVELOPE_KEYS and v is not None
-    }
+    carried = {k: v for k, v in value.items() if k not in _ENVELOPE_KEYS and v is not None}
     if any(key in carried for key in _PARSED_KEYS):
         carried.pop("text", None)
     if "goal" in carried:
@@ -569,14 +575,10 @@ def _flat_scalars(payload: str | None) -> dict[str, str]:
     return out
 
 
-def _siblings(
-    item: ItemResult, evaluator: str
-) -> tuple[tuple[str, float, str | None], ...]:
+def _siblings(item: ItemResult, evaluator: str) -> tuple[tuple[str, float, str | None], ...]:
     """The other scores the same item received, which often explain the claimed one."""
     return tuple(
-        (name, value, item.comments.get(name))
-        for name, value in sorted(item.scores.items())
-        if name != evaluator
+        (name, value, item.comments.get(name)) for name, value in sorted(item.scores.items()) if name != evaluator
     )
 
 
@@ -660,8 +662,7 @@ def shape_of(item) -> dict | None:
         "added": list(change.added[:40]),
         "total": len(change.removed) + len(change.added),
         "rows": [
-            {"kind": kind, "path": path.split("=")[0].split(":")[0], "entry": path}
-            for kind, path in change.paths(40)
+            {"kind": kind, "path": path.split("=")[0].split(":")[0], "entry": path} for kind, path in change.paths(40)
         ],
     }
 
@@ -682,9 +683,7 @@ def _as_reference(built: Report, kind: str, *, adopted: bool) -> Reference:
             "attributable": view.attributable,
             "evidence": list(view.evidence),
             "prompt": view.prompt,
-            "reading": view.reading(
-                view.baseline, view.scored_in("baseline"), slot="baseline"
-            ),
+            "reading": view.reading(view.baseline, view.scored_in("baseline"), slot="baseline"),
             "items": {
                 row.item_id: {
                     "before": row.before,
@@ -773,9 +772,7 @@ def build(
         )
     references: tuple[Reference, ...] = ()
     if with_references:
-        references = _references(
-            current, baseline, previous, directory=directory, pointer=pointer
-        )
+        references = _references(current, baseline, previous, directory=directory, pointer=pointer)
 
     return Report(
         references=references,

@@ -138,6 +138,7 @@ _TOOL_PHASES: dict[str, str] = {
 def _phase_for_tool(name: str) -> str:
     return _TOOL_PHASES.get(name, _PHASE_THINKING)
 
+
 _DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
@@ -205,9 +206,7 @@ async def handle(state: AgentState) -> AgentState:
         repo_facts=state.repo_facts,
     )
     skills = discover_skills()
-    system_prompt = build_system_prompt(
-        session, skill_listing=format_skill_listing(skills)
-    )
+    system_prompt = build_system_prompt(session, skill_listing=format_skill_listing(skills))
 
     registry = _build_registry(skills)
     log.info(
@@ -224,9 +223,7 @@ async def handle(state: AgentState) -> AgentState:
         org=state.org,
         designer_api_key=state.designer_api_key,
         permission_requester=(
-            None
-            if state.allow_app_changes
-            else lambda action: permission_broker.request(state.session_id, action)
+            None if state.allow_app_changes else lambda action: permission_broker.request(state.session_id, action)
         ),
     )
     ctx.extras["app_name"] = state.app_name
@@ -309,13 +306,10 @@ async def _repair_render_failures(
                 MAX_RENDER_REPAIR_ROUNDS,
             )
             state.tests_passed = False
-            state.verify_notes = [
-                f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."
-            ]
+            state.verify_notes = [f"A page still fails to render after {MAX_RENDER_REPAIR_ROUNDS} repair round(s)."]
             if uncommitted_repair:
                 state.verify_notes.append(
-                    "A repair round was never committed, so the last check ran "
-                    "against the previous commit."
+                    "A repair round was never committed, so the last check ran against the previous commit."
                 )
             return result
 
@@ -340,8 +334,7 @@ async def _repair_render_failures(
         if not ctx.extras.get("session_committed"):
             uncommitted_repair = True
             log.warning(
-                "Repair round %d for session %s produced no commit; the next "
-                "render check sees the previous commit",
+                "Repair round %d for session %s produced no commit; the next render check sees the previous commit",
                 attempt + 1,
                 state.session_id,
             )
@@ -420,7 +413,6 @@ def _auto_commit_message(state: AgentState, result: LoopResult) -> str:
         TerminationReason.ERROR: "wip",
     }.get(result.reason, "wip")
     return f"{prefix}: {goal}"
-
 
 
 def _augment_goal_for_missing_spec(state: AgentState) -> str:
@@ -512,10 +504,10 @@ def _make_event_bridge(session_id: str) -> EventCallback:
     ) -> None:
         """Push a status event with phase and tool-use bookkeeping.
 
-    `tool_use_id` lets the frontend replace a pending placeholder in place
-    rather than rendering both. The dedupe is asymmetric: a non-pending status
-    replaces a pending one, never the reverse.
-    """
+        `tool_use_id` lets the frontend replace a pending placeholder in place
+        rather than rendering both. The dedupe is asymmetric: a non-pending status
+        replaces a pending one, never the reverse.
+        """
         delta_state["phase"] = phase
         data: dict[str, Any] = {"message": message, "phase": phase}
         if tool_use_id:
@@ -638,9 +630,7 @@ def _emit_workflow_completion(state: AgentState, result: LoopResult, ctx: LoopCo
     try:
         # A fixed marker, never the notice itself: replaying attacker text as
         # assistant history would reintroduce it undelimited on the next turn.
-        history_text = (
-            f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_MARKER}]" if security_notice else summary
-        )
+        history_text = f"{summary}\n\n[{SECURITY_NOTICE_HISTORY_MARKER}]" if security_notice else summary
         sink.add_to_conversation_history(state.session_id, "assistant", history_text)
     except Exception:
         log.exception("Failed to store assistant message in conversation history")
@@ -749,14 +739,10 @@ def _apply_result_to_state(
         state.verify_notes = []
     elif result.reason is TerminationReason.MAX_TURNS:
         state.tests_passed = False
-        state.verify_notes = [
-            f"Loop hit max_turns ({_DEFAULT_MAX_TURNS}) without completing."
-        ]
+        state.verify_notes = [f"Loop hit max_turns ({_DEFAULT_MAX_TURNS}) without completing."]
     elif result.reason is TerminationReason.STUCK:
         state.tests_passed = False
-        state.verify_notes = [
-            f"Loop terminated for repeating itself: {result.error or 'see logs'}"
-        ]
+        state.verify_notes = [f"Loop terminated for repeating itself: {result.error or 'see logs'}"]
     elif result.reason is TerminationReason.CANCELLED:
         state.tests_passed = False
         state.verify_notes = ["Workflow cancelled."]

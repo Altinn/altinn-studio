@@ -45,9 +45,7 @@ def _run(name: str, label: str, scores: dict, *, outputs=None, prov=None, under_
     behaviors = []
     for behavior in manifest.BEHAVIORS:
         if not behavior.is_pinned:
-            behaviors.append(
-                BehaviorResult(behavior.id, "none", None, (), skipped="nothing pins this")
-            )
+            behaviors.append(BehaviorResult(behavior.id, "none", None, (), skipped="nothing pins this"))
             continue
         assert behavior.evaluator
         score = scores.get(behavior.id)
@@ -254,9 +252,9 @@ class TestTheReportShowsWhatWasMeasured:
 
     def test_an_item_the_evaluator_skipped_is_not_a_failure(self, tmp_path):
         self._run_with_items(tmp_path)
-        rows = {r.item_id: r for r in _view(
-            report.build(directory=tmp_path), "scope.declines-in-users-language"
-        ).rows()}
+        rows = {
+            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
+        }
 
         assert rows["nothing-to-decline"].state == "not-applicable"
         assert rows["declined-in-the-wrong-language"].state == "fail"
@@ -265,9 +263,9 @@ class TestTheReportShowsWhatWasMeasured:
     def test_every_row_carries_what_the_evaluator_computed(self, tmp_path):
         """The evaluators already write this; dropping it was the whole problem."""
         self._run_with_items(tmp_path)
-        rows = {r.item_id: r for r in _view(
-            report.build(directory=tmp_path), "scope.declines-in-users-language"
-        ).rows()}
+        rows = {
+            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
+        }
 
         assert rows["declined-in-the-wrong-language"].said == "declined in nb, expected en"
         assert '"decline_language": "en"' in rows["declined-in-english"].expected
@@ -275,9 +273,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_an_answer_is_shown_without_its_transport(self):
         """Tasks wrap the answer in an envelope carrying the model and prompt
         version. Showing the envelope buries the answer a reader came for."""
-        wrapped = json.dumps(
-            {"text": json.dumps({"in_scope": True, "reason": "app work"}), "model": "m"}
-        )
+        wrapped = json.dumps({"text": json.dumps({"in_scope": True, "reason": "app work"}), "model": "m"})
 
         shown = report.readable(wrapped, unwrap=True)
 
@@ -352,13 +348,11 @@ class TestTheReportShowsWhatWasMeasured:
     def test_a_sibling_score_on_the_same_item_is_kept(self, tmp_path):
         """A sibling usually explains the claimed score, so it travels with it."""
         self._run_with_items(tmp_path)
-        rows = {r.item_id: r for r in _view(
-            report.build(directory=tmp_path), "scope.declines-in-users-language"
-        ).rows()}
+        rows = {
+            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
+        }
 
-        assert rows["declined-in-english"].siblings == (
-            ("gate_verdict", 1.0, "in_scope=False, expected False"),
-        )
+        assert rows["declined-in-english"].siblings == (("gate_verdict", 1.0, "in_scope=False, expected False"),)
         assert rows["nothing-to-decline"].siblings == ()
 
     def test_the_page_states_the_resolution_of_the_score(self, tmp_path):
@@ -410,9 +404,7 @@ class TestTheReportShowsWhatWasMeasured:
 
         assert view.scored_in("baseline") == 2
         assert view.scored_in("current") == 2
-        assert view.reading(view.baseline, view.scored_in("baseline"), slot="baseline") == (
-            "1 of 2 pass"
-        )
+        assert view.reading(view.baseline, view.scored_in("baseline"), slot="baseline") == ("1 of 2 pass")
 
     def test_a_scale_is_read_off_the_values_not_the_declaration(self, tmp_path):
         """A declared rate whose items take partial credit is reported as declared
@@ -476,6 +468,7 @@ class TestTheReportShowsWhatWasMeasured:
 def test_an_item_delta_reads_the_score_the_behavior_claims(tmp_path):
     """Items carry every sibling score, so taking the first one in the dict
     reported spec_field_count where spec_label_coverage was claimed."""
+
     def one(name, coverage):
         return Run(
             name=name,
@@ -568,8 +561,7 @@ class TestNoiseIsNotReportedAsARegression:
     def _pair(self, tmp_path, passing_after):
         def one(name, passing):
             items = tuple(
-                ItemResult(item_id=f"i{n}", scores={"gate_verdict": 1.0 if n < passing else 0.0})
-                for n in range(15)
+                ItemResult(item_id=f"i{n}", scores={"gate_verdict": 1.0 if n < passing else 0.0}) for n in range(15)
             )
             return Run(
                 name=name,
@@ -584,6 +576,7 @@ class TestNoiseIsNotReportedAsARegression:
                     ),
                 ),
             )
+
         base, cand = one("20260909T100000Z-base", 15), one("20260909T110000Z-cand", passing_after)
         for run in (base, cand):
             runstore.save(run, directory=tmp_path)
@@ -617,7 +610,6 @@ class TestNoiseIsNotReportedAsARegression:
 
 
 class TestThePageLeadsWithFindings:
-
     def _page(self, tmp_path):
         run = _run("20260909T100000Z-now", "now", {**HOLDING, "spec.parses": 0.5})
         runstore.save(run, directory=tmp_path)
@@ -865,7 +857,9 @@ def test_a_zero_on_both_runs_reads_as_failing_not_as_no_change():
 def test_output_can_change_while_the_score_holds():
     """The case a score cannot report: same number, different product."""
     base = _run(
-        "20260909T100000Z-baseline", "baseline", HOLDING,
+        "20260909T100000Z-baseline",
+        "baseline",
+        HOLDING,
         outputs={
             "build.pages-render": json.dumps(
                 {"component": "FileUpload", "displayMode": "list", "label": "Last opp vedlegg"}
@@ -873,7 +867,9 @@ def test_output_can_change_while_the_score_holds():
         },
     )
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         outputs={
             "build.pages-render": json.dumps(
                 {
@@ -901,7 +897,9 @@ def test_a_changed_actor_prompt_refuses_a_comparison():
     """The actor prompt is code, not a Langfuse prompt, so only its digest catches a change."""
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         prov=_provenance(actor_prompt="0000deadbeef"),
     )
     assert diff.compare(base, cand).refused == ("actor_prompt",)
@@ -920,7 +918,9 @@ def test_the_actor_prompt_digest_tracks_what_the_agent_sends():
 def test_a_comparison_across_an_undeclared_axis_is_refused():
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         prov=_provenance(environment="dev", dataset="2026-09-02T11:05Z", evaluators={"intent_match": 5}),
     )
     comparison = diff.compare(base, cand)
@@ -970,7 +970,9 @@ def test_an_axis_recorded_as_empty_is_a_real_answer_and_does_not_refuse():
 def test_declaring_an_axis_as_under_test_allows_the_comparison():
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         prov=_provenance(prompts={"scope_check": 2}),
         under_test=("prompts",),
     )
@@ -981,7 +983,9 @@ def test_a_model_change_alone_never_refuses_a_comparison():
     """Models are not a blocking axis: swapping one is the usual reason to run this."""
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         prov=_provenance(models={"actor": "gpt-5.6-sol", "planner": "gpt-5.6-terra", "default": "gpt-5.4-mini"}),
     )
     assert not diff.compare(base, cand).is_refused
@@ -991,8 +995,16 @@ def test_provenance_records_every_axis_or_says_which_are_missing():
     state = provenance.collect()
     axes = state.axes()
     assert set(axes) == {
-        "code", "environment", "models", "sampling", "prompts", "actor_prompt",
-        "tools", "dataset", "evaluators", "judge",
+        "code",
+        "environment",
+        "models",
+        "sampling",
+        "prompts",
+        "actor_prompt",
+        "tools",
+        "dataset",
+        "evaluators",
+        "judge",
     }
     for name in state.missing():
         assert any(name in note for note in state.notes), f"{name} missing but not noted"
@@ -1068,7 +1080,9 @@ def test_the_page_renders_and_embeds_the_manifest(tmp_path):
 def test_the_page_states_a_refusal_instead_of_deltas(tmp_path):
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     cand = _run(
-        "20260909T110000Z-cand", "candidate", {**HOLDING, "query.names-needed-concepts": 0.5},
+        "20260909T110000Z-cand",
+        "candidate",
+        {**HOLDING, "query.names-needed-concepts": 0.5},
         prov=_provenance(environment="dev"),
     )
     for run in (base, cand):
@@ -1090,9 +1104,7 @@ def test_the_judge_payload_shows_the_blind_spots(tmp_path):
 
 
 def test_a_models_reply_cannot_inject_markup():
-    html_out = report_html._prose(
-        "<script>alert(1)</script>\n\n**bold** text", "gpt-5.6-sol", "a-run"
-    )
+    html_out = report_html._prose("<script>alert(1)</script>\n\n**bold** text", "gpt-5.6-sol", "a-run")
     assert "<script>alert(1)</script>" not in html_out
     assert "&lt;script&gt;" in html_out
     assert "<b>bold</b>" in html_out
@@ -1134,15 +1146,9 @@ def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
                 )
             )
         elif behavior.is_pinned:
-            behaviors.append(
-                BehaviorResult(
-                    behavior.id, behavior.evaluator or "", None, (), skipped="not run"
-                )
-            )
+            behaviors.append(BehaviorResult(behavior.id, behavior.evaluator or "", None, (), skipped="not run"))
         else:
-            behaviors.append(
-                BehaviorResult(behavior.id, "none", None, (), skipped="nothing pins this")
-            )
+            behaviors.append(BehaviorResult(behavior.id, "none", None, (), skipped="nothing pins this"))
     run = Run(
         name="20260909T100000Z-only",
         label="one eval",
@@ -1219,7 +1225,9 @@ def test_a_behavior_that_ran_and_scored_nothing_is_never_holding(tmp_path):
             assert behavior.evaluator
             behaviors.append(
                 BehaviorResult(
-                    behavior.id, behavior.evaluator, 1.0,
+                    behavior.id,
+                    behavior.evaluator,
+                    1.0,
                     (ItemResult(f"{behavior.id}-1", {behavior.evaluator: 1.0}),),
                 )
             )
@@ -1238,10 +1246,10 @@ def test_movement_on_a_component_whose_model_did_not_change_is_not_attributable(
     """Two gate behaviors moved across a swap that left the gate model alone."""
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
     cand = _run(
-        "20260909T110000Z-cand", "candidate", {**HOLDING, "scope.declines-out-of-scope": 0.7},
-        prov=_provenance(
-            models={"actor": "gpt-5.6-sol", "planner": "gpt-5.6-terra", "default": "gpt-5.4-mini"}
-        ),
+        "20260909T110000Z-cand",
+        "candidate",
+        {**HOLDING, "scope.declines-out-of-scope": 0.7},
+        prov=_provenance(models={"actor": "gpt-5.6-sol", "planner": "gpt-5.6-terra", "default": "gpt-5.4-mini"}),
     )
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
@@ -1261,15 +1269,17 @@ def test_movement_on_a_component_whose_model_did_not_change_is_not_attributable(
 def test_an_output_change_on_a_swapped_model_is_expected_not_a_finding(tmp_path):
     """A different model writes different words; ranking that as movement buries the scores."""
     base = _run(
-        "20260909T100000Z-baseline", "baseline", HOLDING,
+        "20260909T100000Z-baseline",
+        "baseline",
+        HOLDING,
         outputs={"query.names-needed-concepts": json.dumps({"terms": ["attachment", "binding"]})},
     )
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         outputs={"query.names-needed-concepts": json.dumps({"terms": ["layout", "binding"]})},
-        prov=_provenance(
-            models={"actor": "gpt-5.6-sol", "planner": "gpt-5.6-terra", "default": "gpt-5.4-mini"}
-        ),
+        prov=_provenance(models={"actor": "gpt-5.6-sol", "planner": "gpt-5.6-terra", "default": "gpt-5.4-mini"}),
     )
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
@@ -1282,11 +1292,15 @@ def test_an_output_change_on_a_swapped_model_is_expected_not_a_finding(tmp_path)
 def test_an_output_change_with_no_model_change_stays_a_finding(tmp_path):
     """A refactor that alters output is exactly what output diffing is for."""
     base = _run(
-        "20260909T100000Z-baseline", "baseline", HOLDING,
+        "20260909T100000Z-baseline",
+        "baseline",
+        HOLDING,
         outputs={"query.names-needed-concepts": json.dumps({"terms": ["attachment", "binding"]})},
     )
     cand = _run(
-        "20260909T110000Z-cand", "candidate", HOLDING,
+        "20260909T110000Z-cand",
+        "candidate",
+        HOLDING,
         outputs={"query.names-needed-concepts": json.dumps({"terms": ["layout", "binding"]})},
         prov=_provenance(commit="b" * 40),
     )
@@ -1321,12 +1335,10 @@ def test_a_new_session_is_not_an_output_change():
     from benchmarks import outputs
 
     before = json.dumps(
-        {"completed": True, "session_id": "162243c5", "session_branch": "s_162243c5",
-         "workflow_status": "done"}
+        {"completed": True, "session_id": "162243c5", "session_branch": "s_162243c5", "workflow_status": "done"}
     )
     after = json.dumps(
-        {"completed": True, "session_id": "61bcb79e", "session_branch": "s_61bcb79e",
-         "workflow_status": "done"}
+        {"completed": True, "session_id": "61bcb79e", "session_branch": "s_61bcb79e", "workflow_status": "done"}
     )
 
     assert not outputs.compare(before, after).changed
@@ -1344,10 +1356,23 @@ def test_a_workflow_that_stopped_completing_is_an_output_change():
 def test_a_renamed_id_is_not_an_output_change():
     """Ids and bindings are names the model invents, so their spelling is noise."""
     from benchmarks import outputs
-    before = json.dumps({"spec": {"fields": [
-        {"id": "fulgt-kontroller", "data_model_binding": "fulgtKontroller", "field_type": "boolean"}]}})
-    after = json.dumps({"spec": {"fields": [
-        {"id": "followed_checkups", "data_model_binding": "followedCheckups", "field_type": "boolean"}]}})
+
+    before = json.dumps(
+        {
+            "spec": {
+                "fields": [{"id": "fulgt-kontroller", "data_model_binding": "fulgtKontroller", "field_type": "boolean"}]
+            }
+        }
+    )
+    after = json.dumps(
+        {
+            "spec": {
+                "fields": [
+                    {"id": "followed_checkups", "data_model_binding": "followedCheckups", "field_type": "boolean"}
+                ]
+            }
+        }
+    )
 
     assert outputs.compare(before, after).comparable
     assert not outputs.compare(before, after).changed
@@ -1356,6 +1381,7 @@ def test_a_renamed_id_is_not_an_output_change():
 def test_a_field_losing_its_binding_is_still_an_output_change():
     """Only the spelling is ignored, not whether the field carries one."""
     from benchmarks import outputs
+
     before = json.dumps({"spec": {"fields": [{"id": "a", "data_model_binding": "aName"}]}})
     after = json.dumps({"spec": {"fields": [{"id": "a"}]}})
 
@@ -1365,6 +1391,7 @@ def test_a_field_losing_its_binding_is_still_an_output_change():
 def test_an_option_slug_is_ignored_but_its_label_is_not():
     """The slug is derived from the label, so the label carries the meaning."""
     from benchmarks import outputs
+
     same_label = json.dumps({"spec": {"options": [{"label": "Annet", "value": "annet"}]}})
     reslugged = json.dumps({"spec": {"options": [{"label": "Annet", "value": "other"}]}})
     relabelled = json.dumps({"spec": {"options": [{"label": "Ukjent", "value": "annet"}]}})
@@ -1377,10 +1404,23 @@ def test_a_collapsed_page_structure_is_an_output_change():
     """The finding the noise hid: a four page form extracted onto one page, with
     every label still present so no score moved."""
     from benchmarks import outputs
-    four = json.dumps({"spec": {"total_pages": 4, "pages": [
-        {"page_name": f"side{n}", "fields": [{"label": f"F{n}"}]} for n in (1, 2, 3, 4)]}})
-    one = json.dumps({"spec": {"total_pages": 1, "pages": [
-        {"page_name": "helseattest", "fields": [{"label": f"F{n}"} for n in (1, 2, 3, 4)]}]}})
+
+    four = json.dumps(
+        {
+            "spec": {
+                "total_pages": 4,
+                "pages": [{"page_name": f"side{n}", "fields": [{"label": f"F{n}"}]} for n in (1, 2, 3, 4)],
+            }
+        }
+    )
+    one = json.dumps(
+        {
+            "spec": {
+                "total_pages": 1,
+                "pages": [{"page_name": "helseattest", "fields": [{"label": f"F{n}"} for n in (1, 2, 3, 4)]}],
+            }
+        }
+    )
 
     assert outputs.compare(four, one).substantive
 
@@ -1418,9 +1458,7 @@ def test_an_insertion_reports_one_change_not_a_shifted_index_for_every_item():
     from benchmarks import outputs as out
 
     before = json.dumps({"fields": [{"type": "a"}, {"type": "b"}, {"type": "c"}]})
-    after = json.dumps(
-        {"fields": [{"type": "a"}, {"type": "new"}, {"type": "b"}, {"type": "c"}]}
-    )
+    after = json.dumps({"fields": [{"type": "a"}, {"type": "new"}, {"type": "b"}, {"type": "c"}]})
     change = out.compare(before, after)
     assert change.added == ("fields[].type=new",)
     assert change.removed == ()
@@ -1566,8 +1604,7 @@ class TestReadingARunBackFromLangfuse:
                 if "experiments" in path and "items" not in path:
                     return {
                         "data": [
-                            {"id": "exp-1", "name": "run-1", "startTime": "2026-09-09T10:00:00Z",
-                             "metadata": metadata}
+                            {"id": "exp-1", "name": "run-1", "startTime": "2026-09-09T10:00:00Z", "metadata": metadata}
                         ],
                         "meta": {},
                     }
@@ -1603,9 +1640,7 @@ class TestReadingARunBackFromLangfuse:
                 "scores": [{"name": "gate_verdict", "value": 1.0}],
             }
         ]
-        run = remote.fetch(
-            "20260909T100000Z-base-ab12", api=self._api(self._metadata(), items)
-        )
+        run = remote.fetch("20260909T100000Z-base-ab12", api=self._api(self._metadata(), items))
         scope = run.behavior("scope.declines-out-of-scope")
         assert scope is not None and scope.score == 1.0
         assert scope.items[0].output == json.dumps({"in_scope": False})
@@ -1613,9 +1648,7 @@ class TestReadingARunBackFromLangfuse:
     def test_the_provenance_is_decoded_from_the_flat_metadata(self):
         from benchmarks import remote
 
-        run = remote.fetch(
-            "20260909T100000Z-base-ab12", api=self._api(self._metadata(), [])
-        )
+        run = remote.fetch("20260909T100000Z-base-ab12", api=self._api(self._metadata(), []))
         assert run.provenance.models == {"actor": "claude-sonnet-5"}
         assert run.provenance.actor_prompt == "77dd32dbde59"
         assert run.provenance.code.dirty is True
@@ -1624,9 +1657,7 @@ class TestReadingARunBackFromLangfuse:
     def test_what_cannot_be_recovered_is_noted_rather_than_guessed(self):
         from benchmarks import remote
 
-        run = remote.fetch(
-            "20260909T100000Z-base-ab12", api=self._api(self._metadata(), [])
-        )
+        run = remote.fetch("20260909T100000Z-base-ab12", api=self._api(self._metadata(), []))
         assert run.provenance.code.branch is None
         assert any("reconstructed from Langfuse" in note for note in run.provenance.notes)
 
@@ -1643,21 +1674,15 @@ class TestReadingARunBackFromLangfuse:
         from benchmarks import remote
 
         run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer_file.write(
-            pointer_file.from_run(run, "because"), path=tmp_path / "BASELINE.json"
-        )
-        monkeypatch.setattr(
-            remote, "fetch", lambda *a, **k: (_ for _ in ()).throw(LookupError("gone"))
-        )
+        pointer_file.write(pointer_file.from_run(run, "because"), path=tmp_path / "BASELINE.json")
+        monkeypatch.setattr(remote, "fetch", lambda *a, **k: (_ for _ in ()).throw(LookupError("gone")))
 
         assert runstore.baseline(directory=tmp_path, pointer=tmp_path / "BASELINE.json") is None
 
     def test_a_dataset_absent_from_the_run_is_marked_not_run(self):
         from benchmarks import remote
 
-        run = remote.fetch(
-            "20260909T100000Z-base-ab12", api=self._api(self._metadata(), [])
-        )
+        run = remote.fetch("20260909T100000Z-base-ab12", api=self._api(self._metadata(), []))
         spec = run.behavior("spec.parses")
         assert spec is not None and spec.score is None
         assert spec.skipped and "not in this run" in spec.skipped
@@ -1674,9 +1699,7 @@ class TestAdoptingACandidateAsTheNewBaseline:
         found = runstore.baseline(directory=tmp_path)
         assert found is not None and found.name == run.name
 
-    def test_a_partial_run_is_refused_because_a_holed_baseline_poisons_every_comparison(
-        self, tmp_path
-    ):
+    def test_a_partial_run_is_refused_because_a_holed_baseline_poisons_every_comparison(self, tmp_path):
         """`--only Gates/scope` leaves most behaviors unscored."""
         from benchmarks.runstore import BehaviorResult
 
@@ -1686,14 +1709,14 @@ class TestAdoptingACandidateAsTheNewBaseline:
                 assert behavior.evaluator
                 behaviors.append(
                     BehaviorResult(
-                        behavior.id, behavior.evaluator, 1.0,
+                        behavior.id,
+                        behavior.evaluator,
+                        1.0,
                         (ItemResult("scope-1", {behavior.evaluator: 1.0}),),
                     )
                 )
             else:
-                behaviors.append(
-                    BehaviorResult(behavior.id, "", None, (), skipped="not run")
-                )
+                behaviors.append(BehaviorResult(behavior.id, "", None, (), skipped="not run"))
         run = Run("20260909T100000Z-only", "one eval", _provenance(), tuple(behaviors))
         runstore.save(run, directory=tmp_path)
 
@@ -1704,10 +1727,7 @@ class TestAdoptingACandidateAsTheNewBaseline:
     def test_force_adopts_a_partial_run_for_someone_who_means_it(self, tmp_path):
         from benchmarks.runstore import BehaviorResult
 
-        behaviors = [
-            BehaviorResult(b.id, b.evaluator or "", None, (), skipped="not run")
-            for b in manifest.BEHAVIORS
-        ]
+        behaviors = [BehaviorResult(b.id, b.evaluator or "", None, (), skipped="not run") for b in manifest.BEHAVIORS]
         run = Run("20260909T100000Z-part", "partial", _provenance(), tuple(behaviors))
         runstore.save(run, directory=tmp_path)
         runstore.set_baseline(run.name, directory=tmp_path, why="deliberate", force=True)
@@ -1781,9 +1801,7 @@ class TestADeclaredRegressionIsEvidenceNotRot:
         item = ItemResult(
             item_id="convert-writes-layouts-with-valid-datepickers",
             scores={"gen_content_pairings": 0.0},
-            meta={"regression": "True", "defect": "Datepickers with no timeStamp"}
-            if regression
-            else {},
+            meta={"regression": "True", "defect": "Datepickers with no timeStamp"} if regression else {},
         )
         run = Run(
             name="20260909T100000Z-held",
@@ -1800,11 +1818,7 @@ class TestADeclaredRegressionIsEvidenceNotRot:
         )
         runstore.save(run, directory=tmp_path)
         built = report.build(directory=tmp_path)
-        return next(
-            v.verdict
-            for v in built.behaviors
-            if v.behavior.id == "actor.writes-usable-component-content"
-        )
+        return next(v.verdict for v in built.behaviors if v.behavior.id == "actor.writes-usable-component-content")
 
     def test_a_declared_regression_reads_as_a_known_defect(self, tmp_path):
         assert self._verdict(tmp_path, regression=True) == "confirmed"

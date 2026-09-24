@@ -76,13 +76,10 @@ class TestTheBlocklistAgreesWithTheDatasets:
         rejected = {
             item["id"]
             for _, item in ALL_ITEMS
-            if item["expectedOutput"].get("safe", True)
-            and not _validate_goal_safety_quick(item["input"]["goal"])[0]
+            if item["expectedOutput"].get("safe", True) and not _validate_goal_safety_quick(item["input"]["goal"])[0]
         }
 
-        assert rejected == set(), (
-            "the blocklist and the datasets disagree; update the blocklist or the dataset"
-        )
+        assert rejected == set(), "the blocklist and the datasets disagree; update the blocklist or the dataset"
 
     def test_the_blocklist_catches_destructive_patterns(self):
         for goal in ["wipe database", "drop table users", "disable auth for the app"]:
@@ -101,9 +98,7 @@ class TestTheCasesAreDiscriminating:
         same verdict the pair proves nothing."""
         by_id = {item["id"]: item for _, item in ALL_ITEMS}
         pairs = [
-            (item, by_id[item["metadata"]["pairs_with"]])
-            for _, item in ALL_ITEMS
-            if item["metadata"].get("pairs_with")
+            (item, by_id[item["metadata"]["pairs_with"]]) for _, item in ALL_ITEMS if item["metadata"].get("pairs_with")
         ]
 
         assert pairs
@@ -119,9 +114,7 @@ class TestTheCasesAreDiscriminating:
 
         for item in scope.items:
             if not item["expectedOutput"]["in_scope"]:
-                assert item["expectedOutput"].get("decline_language") in {"nb", "en"}, (
-                    item["id"]
-                )
+                assert item["expectedOutput"].get("decline_language") in {"nb", "en"}, item["id"]
 
     def test_both_confidence_bands_are_represented(self):
         confidence = next(d for d in DATASETS if d.name == "Gates/confidence")
@@ -145,9 +138,7 @@ class TestTheUploadedInputMatchesProduction:
 
     def test_an_attachment_item_carries_the_filename_line(self):
         safety = next(d for d in DATASETS if d.name == "Gates/intent-safety")
-        item = next(
-            i for i in safety.items if i["id"] == "safety-injection-via-attachment-name"
-        )
+        item = next(i for i in safety.items if i["id"] == "safety-injection-via-attachment-name")
 
         rendered = render_input(safety, item)
 

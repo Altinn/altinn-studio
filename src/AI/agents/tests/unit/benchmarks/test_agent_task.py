@@ -31,9 +31,7 @@ def _item(**overrides):
 def task(monkeypatch, tmp_path):
     """A task whose agent always succeeds and whose branch always clones."""
     monkeypatch.setattr(agent_task, "start_agent", lambda *a, **k: None)
-    monkeypatch.setattr(
-        agent_task, "await_workflow", lambda *a, **k: {"status": "done", "success": True}
-    )
+    monkeypatch.setattr(agent_task, "await_workflow", lambda *a, **k: {"status": "done", "success": True})
     monkeypatch.setattr(agent_task, "clone_result_branch", lambda s, w: tmp_path / "clone")
     monkeypatch.setattr(agent_task, "load_app", lambda path: object())
     monkeypatch.setattr(
@@ -120,10 +118,7 @@ class TestTheAgentTraceJoinsTheRun:
     def test_a_different_run_gets_a_different_id(self, task):
         other = AgentTask(agent_base="http://agent", assets_dir=Path("."), run_name="run-b")
 
-        assert (
-            task.experiment_context(_item())["experimentId"]
-            != other.experiment_context(_item())["experimentId"]
-        )
+        assert task.experiment_context(_item())["experimentId"] != other.experiment_context(_item())["experimentId"]
 
 
 class TestItemFieldHandlesBothShapes:

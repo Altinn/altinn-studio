@@ -43,7 +43,9 @@ def run_spec_pipeline(
     ) as span:
         try:
             raw_response = client.call_sync(
-                system_prompt, user_prompt, attachments=attachments,
+                system_prompt,
+                user_prompt,
+                attachments=attachments,
                 langfuse_prompt=lf_prompt,
             )
         except Exception as e:
@@ -62,9 +64,7 @@ def run_spec_pipeline(
                     "\nOmit description, options, required unless essential. Minimize whitespace."
                 )
                 try:
-                    raw_response = client.call_sync(
-                        "", compact_prompt, attachments=attachments
-                    )
+                    raw_response = client.call_sync("", compact_prompt, attachments=attachments)
                     log.info(f"Retry succeeded, response length: {len(raw_response)}")
                 except Exception as retry_err:
                     log.error(f"Spec extraction retry also failed: {retry_err}")
@@ -78,27 +78,31 @@ def run_spec_pipeline(
 
         if form_spec:
             log.info(
-                f"✅ Spec extracted: \"{form_spec.title}\" — "
+                f'✅ Spec extracted: "{form_spec.title}" — '
                 f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
             )
-            span.update(output={
-                "response_length": len(raw_response),
-                "parse_success": True,
-                "spec_title": form_spec.title,
-                "spec_pages": form_spec.total_pages,
-                "spec_fields": form_spec.field_count(),
-            })
+            span.update(
+                output={
+                    "response_length": len(raw_response),
+                    "parse_success": True,
+                    "spec_title": form_spec.title,
+                    "spec_pages": form_spec.total_pages,
+                    "spec_fields": form_spec.field_count(),
+                }
+            )
         else:
             log.warning(
                 f"⚠️ Could not parse spec from LLM response "
                 f"(response length: {len(raw_response)}, "
                 f"first 500 chars: {raw_response[:500]!r})"
             )
-            span.update(output={
-                "response_length": len(raw_response),
-                "parse_success": False,
-                "response_preview": raw_response[:1000],
-            })
+            span.update(
+                output={
+                    "response_length": len(raw_response),
+                    "parse_success": False,
+                    "response_preview": raw_response[:1000],
+                }
+            )
 
     return form_spec
 
@@ -142,7 +146,7 @@ def _try_parse_json(text: str) -> Optional[dict]:
         repaired += "}" * max(opens, 0)
         try:
             data = json.loads(repaired)
-            log.info(f"Repaired truncated JSON (closed {max(opens,0)} braces, {max(open_sq,0)} brackets)")
+            log.info(f"Repaired truncated JSON (closed {max(opens, 0)} braces, {max(open_sq, 0)} brackets)")
             return data
         except json.JSONDecodeError as e:
             log.debug(f"Truncation repair parse failed: {e}")
@@ -168,10 +172,7 @@ def _try_parse_json(text: str) -> Optional[dict]:
     except Exception as e:  # noqa: BLE001
         log.debug(f"json_repair fallback failed: {e}")
 
-    log.error(
-        f"All JSON parse strategies failed for text of length {len(text)} "
-        f"(starts with: {text[:200]!r})"
-    )
+    log.error(f"All JSON parse strategies failed for text of length {len(text)} (starts with: {text[:200]!r})")
     return None
 
 
@@ -201,10 +202,7 @@ def _normalize_options(options: Any) -> Any:
         if not isinstance(fallback, str) or not fallback:
             label = opt.get("label", "")
             fallback = (
-                "".join(c if c.isalnum() else "-" for c in str(label).lower())
-                .strip("-")
-                .replace("--", "-")
-                or "value"
+                "".join(c if c.isalnum() else "-" for c in str(label).lower()).strip("-").replace("--", "-") or "value"
             )
         normalized.append({**opt, "value": fallback})
     return normalized
@@ -221,7 +219,7 @@ def _parse_spec_response(raw: str) -> Optional[FormSpec]:
         else:
             text = text[3:]
     if text.endswith("```"):
-        text = text[: -3]
+        text = text[:-3]
     text = text.strip()
 
     data = _try_parse_json(text)

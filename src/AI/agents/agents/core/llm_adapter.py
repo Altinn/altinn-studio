@@ -63,10 +63,7 @@ def _trace_output_summary(response: "AssistantMessage") -> dict[str, Any]:
     """Compact view of an assistant turn for Langfuse output."""
     return {
         "text": extract_text(response),
-        "tool_calls": [
-            {"name": tc.name, "input": tc.input}
-            for tc in extract_tool_uses(response)
-        ],
+        "tool_calls": [{"name": tc.name, "input": tc.input} for tc in extract_tool_uses(response)],
         "stop_reason": response.stop_reason,
     }
 
@@ -279,9 +276,7 @@ class AnthropicAdapter(LLMAdapter):
                 if block_type == "text":
                     content.append(TextBlock(text=block.text))
                 elif block_type == "tool_use":
-                    content.append(
-                        ToolUseBlock(id=block.id, name=block.name, input=dict(block.input))
-                    )
+                    content.append(ToolUseBlock(id=block.id, name=block.name, input=dict(block.input)))
                 else:
                     # Other block types (e.g. thinking) are dropped — the loop
                     # only acts on text + tool_use.  Log them: dropped blocks
@@ -301,12 +296,8 @@ class AnthropicAdapter(LLMAdapter):
             usage = {
                 "input_tokens": getattr(usage_obj, "input_tokens", 0) if usage_obj else 0,
                 "output_tokens": getattr(usage_obj, "output_tokens", 0) if usage_obj else 0,
-                "cache_creation_input_tokens": getattr(
-                    usage_obj, "cache_creation_input_tokens", 0
-                ) if usage_obj else 0,
-                "cache_read_input_tokens": getattr(
-                    usage_obj, "cache_read_input_tokens", 0
-                ) if usage_obj else 0,
+                "cache_creation_input_tokens": getattr(usage_obj, "cache_creation_input_tokens", 0) if usage_obj else 0,
+                "cache_read_input_tokens": getattr(usage_obj, "cache_read_input_tokens", 0) if usage_obj else 0,
             }
 
             assistant = AssistantMessage(
@@ -391,9 +382,7 @@ def _block_to_anthropic(block: ContentBlock) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def _usage_details(
-    *, fresh: int, output: int, cache_read: int = 0, cache_creation: int = 0
-) -> dict[str, int]:
+def _usage_details(*, fresh: int, output: int, cache_read: int = 0, cache_creation: int = 0) -> dict[str, int]:
     """Token kinds as the provider reports them, and a total counting all of them.
 
     Anthropic excludes cache reads from `input_tokens` and Azure includes them, so
@@ -465,9 +454,7 @@ class OpenAIAdapter(LLMAdapter):
 
             self._client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
         else:
-            raise ValueError(
-                "OpenAIAdapter requires AZURE_API_KEY (Azure) or OPENAI_API_KEY."
-            )
+            raise ValueError("OpenAIAdapter requires AZURE_API_KEY (Azure) or OPENAI_API_KEY.")
         self.model = model
         self._is_reasoning = _is_reasoning_model(model)
         if max_tokens is not None:
@@ -498,9 +485,7 @@ class OpenAIAdapter(LLMAdapter):
                 "reasoning": self._is_reasoning,
             },
         ) as span:
-            api_messages: list[dict[str, Any]] = [
-                {"role": "system", "content": system_prompt}
-            ]
+            api_messages: list[dict[str, Any]] = [{"role": "system", "content": system_prompt}]
             for message in messages:
                 api_messages.extend(_message_to_openai(message))
 
@@ -529,9 +514,7 @@ class OpenAIAdapter(LLMAdapter):
                     # validation will raise a clean error the loop converts
                     # into a tool_result error the model can recover from.
                     args = {}
-                content.append(
-                    ToolUseBlock(id=call.id, name=call.function.name, input=args)
-                )
+                content.append(ToolUseBlock(id=call.id, name=call.function.name, input=args))
 
             usage_obj = getattr(response, "usage", None)
             prompt_details = getattr(usage_obj, "prompt_tokens_details", None)
@@ -540,8 +523,7 @@ class OpenAIAdapter(LLMAdapter):
                 "output_tokens": getattr(usage_obj, "completion_tokens", 0) if usage_obj else 0,
                 # prompt_tokens includes both; Anthropic reports them apart.
                 "cache_read_input_tokens": getattr(prompt_details, "cached_tokens", 0) or 0,
-                "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0)
-                or 0,
+                "cache_creation_input_tokens": getattr(prompt_details, "cache_write_tokens", 0) or 0,
             }
 
             assistant = AssistantMessage(

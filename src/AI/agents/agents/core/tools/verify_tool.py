@@ -235,9 +235,7 @@ def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[s
 
     # A changed resource file can strip a key any layout still references.
     touched_texts = any(_is_text_resource(f) for f in changed)
-    layouts = _all_layout_files(repo) if touched_texts else [
-        repo / f for f in changed if _is_layout_file(f)
-    ]
+    layouts = _all_layout_files(repo) if touched_texts else [repo / f for f in changed if _is_layout_file(f)]
 
     notes: list[str] = []
     for layout in layouts:
@@ -318,9 +316,7 @@ def _has_navigation_component(layout_path: Path) -> bool:
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
     if not isinstance(layout, list):
         return True
-    return any(
-        isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout
-    )
+    return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout)
 
 
 # ---------------------------------------------------------------------------
@@ -388,9 +384,7 @@ def _as_full_layout(parsed: Any) -> dict[str, Any]:
     return {"data": {"layout": []}}
 
 
-def _validate_resource(
-    ctx: LoopContext, file_path: str, full_path: Path
-) -> tuple[bool, list[str]]:
+def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Validate a text resource in-process (schema + business rules).
 
     Language is inferred from the filename (`resource.nb.json` → `nb`);

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Any, Literal, Optional, Dict, List
 
+
 class AgentEvent(BaseModel):
     type: Literal[
         "plan_proposed",
@@ -14,7 +15,7 @@ class AgentEvent(BaseModel):
         "assistant_message",
         "assistant_message_chunk",
         "permission_request",
-        "done"
+        "done",
     ]
     session_id: str
     data: Dict[str, Any]

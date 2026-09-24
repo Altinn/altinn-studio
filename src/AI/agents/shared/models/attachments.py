@@ -73,21 +73,23 @@ class AgentAttachment(BaseModel):
         data = self._ensure_base64()
 
         if self.mime_type.startswith("image/") and data:
-            return [{
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:{self.mime_type};base64,{data}"
-                },
-            }]
+            return [
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{self.mime_type};base64,{data}"},
+                }
+            ]
 
         if data:
-            return [{
-                "type": "file",
-                "file": {
-                    "filename": self.name,
-                    "file_data": f"data:{self.mime_type};base64,{data}",
-                },
-            }]
+            return [
+                {
+                    "type": "file",
+                    "file": {
+                        "filename": self.name,
+                        "file_data": f"data:{self.mime_type};base64,{data}",
+                    },
+                }
+            ]
 
         return [{"type": "text", "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable"}]
 
@@ -111,30 +113,36 @@ class AgentAttachment(BaseModel):
         data = self._ensure_base64()
 
         if data and self.mime_type.startswith("image/"):
-            return [{
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": self.mime_type,
-                    "data": data,
-                },
-            }]
+            return [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": self.mime_type,
+                        "data": data,
+                    },
+                }
+            ]
 
         if data and self.mime_type == "application/pdf":
-            return [{
-                "type": "document",
-                "source": {
-                    "type": "base64",
-                    "media_type": "application/pdf",
-                    "data": data,
-                },
-                "title": self.name,
-            }]
+            return [
+                {
+                    "type": "document",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "application/pdf",
+                        "data": data,
+                    },
+                    "title": self.name,
+                }
+            ]
 
-        return [{
-            "type": "text",
-            "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable or unsupported format",
-        }]
+        return [
+            {
+                "type": "text",
+                "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable or unsupported format",
+            }
+        ]
 
 
 def get_session_dir(root: Path, session_id: str) -> Path:

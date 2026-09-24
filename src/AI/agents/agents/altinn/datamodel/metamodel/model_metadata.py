@@ -8,8 +8,9 @@ from .enums import ElementType, BaseValueType
 @dataclass
 class Restriction:
     """Represents a restriction on an element."""
+
     value: str
-    
+
     def __repr__(self):
         return self.value
 
@@ -17,9 +18,10 @@ class Restriction:
 @dataclass
 class ElementMetadata:
     """Metadata for a single element in the model.
-    
+
     Matches Altinn.Studio.DataModeling.Metamodel.ElementMetadata
     """
+
     ID: str
     Name: str
     XName: str
@@ -45,12 +47,13 @@ class ElementMetadata:
 @dataclass
 class ModelMetadata:
     """Container for all element metadata in the model.
-    
+
     Matches Altinn.Studio.DataModeling.Metamodel.ModelMetadata
     """
+
     Elements: Dict[str, ElementMetadata] = field(default_factory=dict)
     TargetNamespace: Optional[str] = None
-    
+
     def get_root_element(self) -> ElementMetadata:
         """Get the root element (element with no parent)."""
         for element in self.Elements.values():

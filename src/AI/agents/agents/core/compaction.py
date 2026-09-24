@@ -127,8 +127,8 @@ def compact_if_needed(
         return messages
 
     head = messages[0]  # original user goal
-    tail = messages[-config.keep_recent_messages:]
-    middle = messages[1:-config.keep_recent_messages]
+    tail = messages[-config.keep_recent_messages :]
+    middle = messages[1 : -config.keep_recent_messages]
 
     digest = _summarize_middle(middle)
     return [head, digest, *tail]
@@ -155,10 +155,7 @@ def _summarize_middle(middle: list[Message]) -> UserMessage:
             for block in msg.content:
                 if isinstance(block, ToolResultBlock):
                     status = "error" if block.is_error else "ok"
-                    lines.append(
-                        f"  -> result ({status}, {len(block.content)} chars): "
-                        f"{block.content.strip()[:200]}"
-                    )
+                    lines.append(f"  -> result ({status}, {len(block.content)} chars): {block.content.strip()[:200]}")
 
     return UserMessage(content="\n".join(lines))
 

@@ -181,9 +181,7 @@ def score_validation(
         if score_id:
             kwargs["score_id"] = score_id
         client.create_score(**kwargs)
-        log.debug(
-            "Langfuse score '%s' = %s written to trace %s", name, passed, trace_id
-        )
+        log.debug("Langfuse score '%s' = %s written to trace %s", name, passed, trace_id)
     except Exception as e:
         log.debug("Failed to create Langfuse score '%s': %s", name, e)
 
@@ -270,11 +268,7 @@ def get_trace_developer(trace_id: str) -> str | None:
 
     observations = getattr(trace, "observations", None) or []
     root_observation = next(
-        (
-            obs
-            for obs in observations
-            if not getattr(obs, "parent_observation_id", None)
-        ),
+        (obs for obs in observations if not getattr(obs, "parent_observation_id", None)),
         None,
     )
     if root_observation is None:
@@ -310,9 +304,7 @@ def trace_span(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(
-        as_type="span", name=name, **kwargs
-    ) as span:
+    with get_client().start_as_current_observation(as_type="span", name=name, **kwargs) as span:
         yield span
 
 
@@ -326,7 +318,5 @@ def trace_generation(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(
-        name=name, as_type="generation", **kwargs
-    ) as span:
+    with get_client().start_as_current_observation(name=name, as_type="generation", **kwargs) as span:
         yield span

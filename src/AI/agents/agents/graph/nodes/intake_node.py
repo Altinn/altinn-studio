@@ -33,9 +33,10 @@ def _intake_failure_hint(exc: BaseException) -> str:
 
 async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
-    
+
     import time
     from shared.utils.logging_utils import get_logger
+
     log = get_logger(__name__)
     log.info(f"⏱️ [INTAKE NODE] Starting at {time.time()}")
 
@@ -109,9 +110,10 @@ async def handle(state: AgentState) -> AgentState:
 
 async def scan_repository(state: AgentState) -> AgentState:
     """Scan repository to gather facts if not already available."""
-    
+
     import time
     from shared.utils.logging_utils import get_logger
+
     log = get_logger(__name__)
     log.info(f"⏱️ [SCAN NODE] Starting at {time.time()}")
 
@@ -121,25 +123,30 @@ async def scan_repository(state: AgentState) -> AgentState:
         context = discover_repository_context(state.repo_path)
         # Convert PlanContext to dict format for compatibility
         facts = {
-            'layouts': context.layout_pages,
-            'models': context.model_files,
-            'resources': context.resource_files,
-            'app_type': 'altinn',
-            'available_locales': context.available_locales,
-            'source_of_truth': context.source_of_truth
+            "layouts": context.layout_pages,
+            "models": context.model_files,
+            "resources": context.resource_files,
+            "app_type": "altinn",
+            "available_locales": context.available_locales,
+            "source_of_truth": context.source_of_truth,
         }
-        
+
         state.repo_facts = facts
         state.next_action = "plan"
 
         # Count actual directories that exist
         from pathlib import Path
+
         repo_path = Path(state.repo_path)
-        existing_dirs = sum(1 for dir_path in [
-            repo_path / "App" / "ui",
-            repo_path / "App" / "models", 
-            repo_path / "App" / "config" / "texts"
-        ] if dir_path.exists())
+        existing_dirs = sum(
+            1
+            for dir_path in [
+                repo_path / "App" / "ui",
+                repo_path / "App" / "models",
+                repo_path / "App" / "config" / "texts",
+            ]
+            if dir_path.exists()
+        )
 
         sink.send(
             AgentEvent(
@@ -147,18 +154,22 @@ async def scan_repository(state: AgentState) -> AgentState:
                 session_id=state.session_id,
                 data={
                     "message": "Ferdig med å lese repoet",
-                    "file_count": len(facts.get("layouts", [])) + len(facts.get("models", [])) + len(facts.get("resources", [])),
+                    "file_count": len(facts.get("layouts", []))
+                    + len(facts.get("models", []))
+                    + len(facts.get("resources", [])),
                     "directory_count": existing_dirs,  # Actually count existing Altinn directories
                 },
             )
         )
-        
+
         from shared.utils.logging_utils import get_logger
+
         log = get_logger(__name__)
         log.info(f"✅ Scan complete, returning state with next_action={state.next_action}")
 
     except Exception as exc:
         from shared.utils.logging_utils import get_logger
+
         log = get_logger(__name__)
         log.error(f"❌ Scan failed: {exc}", exc_info=True)
         sink.send(

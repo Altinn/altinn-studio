@@ -37,7 +37,9 @@ class RepoManager:
         cmd = ["git", "-c", f"http.extraHeader=X-Api-Key: {api_key}"] + args
         return subprocess.run(cmd, capture_output=True, text=True, check=True, **kwargs)
 
-    def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None, api_key: Optional[str] = None) -> Path:
+    def clone_repo_for_session(
+        self, repo_url: str, session_id: str, branch: Optional[str] = None, api_key: Optional[str] = None
+    ) -> Path:
         """
         Clone a repository for a specific session.
 
@@ -59,8 +61,7 @@ class RepoManager:
 
         if not effective_api_key:
             raise ValueError(
-                f"No API key for session {session_id}. "
-                "Pass an explicit api_key argument or register the session first."
+                f"No API key for session {session_id}. Pass an explicit api_key argument or register the session first."
             )
 
         # Create a unique directory name based on repo URL and session
@@ -85,7 +86,9 @@ class RepoManager:
                         # Try to create and checkout the branch
                         try:
                             create_branch_cmd = ["git", "checkout", "-b", branch]
-                            subprocess.run(create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
+                            subprocess.run(
+                                create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True
+                            )
                             log.info(f"Created and checked out new branch {branch} for existing session {session_id}")
                         except subprocess.CalledProcessError as e2:
                             log.error(f"Failed to create branch {branch}: {e2.stderr}")
@@ -116,7 +119,9 @@ class RepoManager:
                     # Branch doesn't exist, create it
                     try:
                         create_branch_cmd = ["git", "checkout", "-b", branch]
-                        result = subprocess.run(create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
+                        result = subprocess.run(
+                            create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True
+                        )
                         log.info(f"Created and checked out new branch {branch} for session {session_id}")
                     except subprocess.CalledProcessError as e:
                         log.error(f"Failed to create branch {branch}: {e.stderr}")
@@ -210,6 +215,7 @@ class RepoManager:
 
 # Global instance
 _repo_manager: Optional[RepoManager] = None
+
 
 def get_repo_manager() -> RepoManager:
     """Get the global repository manager instance"""

@@ -78,9 +78,7 @@ def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
     missing = [
         page
         for page in app.page_order
-        if not any(
-            c.get("type") in NAVIGATION_COMPONENT_TYPES for c in app.layouts.get(page, [])
-        )
+        if not any(c.get("type") in NAVIGATION_COMPONENT_TYPES for c in app.layouts.get(page, []))
     ]
     return Score(
         name="bench_navigation",

@@ -1,4 +1,5 @@
 """Base configuration"""
+
 import os
 import tempfile
 from pathlib import Path
@@ -26,9 +27,8 @@ class BaseConfig:
         "http://localhost:3000",  # React dev server
         "http://localhost:5173",  # Vite dev server
         "http://localhost:8080",  # Alternative frontend port
-        "http://studio.localhost" # Studio frontend
+        "http://studio.localhost",  # Studio frontend
     ]
-
 
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
     AZURE_ANTHROPIC_API_KEY = os.getenv("AZURE_ANTHROPIC_API_KEY") or os.getenv("AZURE_API_KEY")
@@ -48,7 +48,6 @@ class BaseConfig:
     # Reviews the eval report; not in the agent's path.
     LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-5.6-sol")
     LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "low")
-
 
     LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default

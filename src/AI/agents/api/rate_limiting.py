@@ -21,9 +21,7 @@ def _drop_expired_timestamps(hits: deque[float], now: float) -> None:
 def _reject(hits: deque[float], now: float, group_key: str) -> NoReturn:
     seconds_until_oldest_expires = WINDOW_SECONDS - (now - hits[0])
     retry_after_seconds = max(1, math.ceil(seconds_until_oldest_expires))
-    _log.warning(
-        f"Rate limit exceeded ({group_key}); retry after {retry_after_seconds}s"
-    )
+    _log.warning(f"Rate limit exceeded ({group_key}); retry after {retry_after_seconds}s")
     raise HTTPException(
         status_code=429,
         detail=f"Rate limit exceeded. Try again in {retry_after_seconds} seconds.",

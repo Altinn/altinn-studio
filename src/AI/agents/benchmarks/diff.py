@@ -86,10 +86,7 @@ class BehaviorChange:
         if self.before is None:
             lines.append(f"{behavior.evaluator} {self.after:.3f}, no baseline to compare against")
         elif self.delta is not None and abs(self.delta) > NOISE_FLOOR:
-            lines.append(
-                f"{behavior.evaluator} {self.before:.3f} to {self.after:.3f}, "
-                f"a change of {self.delta:+.3f}"
-            )
+            lines.append(f"{behavior.evaluator} {self.before:.3f} to {self.after:.3f}, a change of {self.delta:+.3f}")
         else:
             lines.append(f"{behavior.evaluator} {self.after:.3f}, unchanged past the noise floor")
         if self.after == 0:
@@ -99,9 +96,7 @@ class BehaviorChange:
             lines.append(f"item {item.item_id} {item.before:.3f} to {item.after:.3f}")
         for item in self.silent_items[:2]:
             shape = item.shape
-            lines.append(
-                f"item {item.item_id} kept its score and changed shape: {shape.summary}"
-            )
+            lines.append(f"item {item.item_id} kept its score and changed shape: {shape.summary}")
             for kind, entry in shape.paths(4):
                 lines.append(f"  {kind}: {entry}")
         unstructured = [i for i in self.items if i.shape.changed is None]

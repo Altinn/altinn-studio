@@ -3,8 +3,10 @@ from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 from shared.models import AgentAttachment
 
+
 class ConversationMessage(BaseModel):
     """Single message in conversation history."""
+
     role: Literal["user", "assistant"]
     content: str
     sources: Optional[List[Dict[str, Any]]] = None  # Sources cited in assistant responses
@@ -17,12 +19,14 @@ class FormSpecOption(BaseModel):
     `value` (what gets stored in the data model).  We keep them separate
     so a label change later doesn't migrate stored data.
     """
+
     label: str
     value: str
 
 
 class FormSpecField(BaseModel):
     """A single field extracted from a PDF/image attachment."""
+
     id: str  # Machine-friendly ID derived from label (e.g., "sokerens-navn")
     label: str  # Exact label text from the document (original language)
     description: Optional[str] = None  # Help text / tooltip content
@@ -63,18 +67,15 @@ def _slugify_option_value(text: str) -> str:
     should return explicit `value`s.
     """
     import re
-    folded = (
-        text.lower()
-        .replace("æ", "ae")
-        .replace("ø", "oe")
-        .replace("å", "aa")
-    )
+
+    folded = text.lower().replace("æ", "ae").replace("ø", "oe").replace("å", "aa")
     slug = re.sub(r"[^a-z0-9]+", "-", folded).strip("-")
     return slug or "option"
 
 
 class FormSpecPage(BaseModel):
     """A page/section in the form spec."""
+
     page_name: str  # Layout file name (e.g., "side1")
     title: str  # Page/section title from the document
     section_id: Optional[str] = None  # Section identifier (e.g., "A", "B")
@@ -83,10 +84,11 @@ class FormSpecPage(BaseModel):
 
 class FormSpec(BaseModel):
     """Complete specification extracted from a PDF/image attachment.
-    
+
     This is the single source of truth for what the generated form must contain.
     All downstream agents (planner, actor, verifier) reference this spec.
     """
+
     title: str  # Form title from the document (original language)
     language: str = "nb"  # Detected language of the document
     total_pages: int = 1
@@ -105,22 +107,27 @@ class FormSpec(BaseModel):
     def to_summary(self) -> str:
         """Compact summary for inclusion in prompts."""
         safe_title = self._sanitize(self.title)
-        lines = [f"FORM SPEC: \"{safe_title}\" ({self.language}), {self.total_pages} pages, {self.field_count()} fields"]
+        lines = [f'FORM SPEC: "{safe_title}" ({self.language}), {self.total_pages} pages, {self.field_count()} fields']
         for page in self.pages:
             safe_page_title = self._sanitize(page.title)
             section = f" (Section {self._sanitize(page.section_id, 20)})" if page.section_id else ""
-            lines.append(f"\n  Page: {page.page_name}{section} — \"{safe_page_title}\"")
+            lines.append(f'\n  Page: {page.page_name}{section} — "{safe_page_title}"')
             for f in page.fields:
                 label = self._sanitize(f.label)
                 desc = f" — {self._sanitize(f.description)}" if f.description else ""
                 opts = (
-                    " [" + ", ".join(
-                        f"{self._sanitize(o.label, 60)} ({self._sanitize(o.value, 40)})"
-                        for o in f.options[:20]
-                    ) + "]"
-                ) if f.options else ""
+                    (
+                        " ["
+                        + ", ".join(
+                            f"{self._sanitize(o.label, 60)} ({self._sanitize(o.value, 40)})" for o in f.options[:20]
+                        )
+                        + "]"
+                    )
+                    if f.options
+                    else ""
+                )
                 req = " *" if f.required else ""
-                lines.append(f"    - [{f.field_type}] \"{label}\"{desc}{opts}{req}")
+                lines.append(f'    - [{f.field_type}] "{label}"{desc}{opts}{req}')
         return "\n".join(lines)
 
 
@@ -155,4 +162,7 @@ class AgentState(BaseModel):
     verify_notes: List[str] = []
     tests_passed: Optional[bool] = None
     next_action: Literal["plan", "scan", "spec", "act", "verify", "review", "stop"] = "plan"
-    limits: Dict[str, Any] = {"max_files": 50, "max_lines": 2000}  # Altinn apps need multiple files (layout, resources, models)
+    limits: Dict[str, Any] = {
+        "max_files": 50,
+        "max_lines": 2000,
+    }  # Altinn apps need multiple files (layout, resources, models)

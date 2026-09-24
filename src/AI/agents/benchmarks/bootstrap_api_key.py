@@ -17,9 +17,7 @@ KEY_LIFETIME_DAYS = 364  # ApiKeySettings.MaxExpiryDays is 365
 
 
 def _docker_exec(container: str, *command: str) -> str:
-    result = subprocess.run(
-        ["docker", "exec", container, *command], capture_output=True, text=True
-    )
+    result = subprocess.run(["docker", "exec", container, *command], capture_output=True, text=True)
     if result.returncode != 0:
         sys.exit(f"docker exec {container} failed: {result.stderr.strip()}")
     return result.stdout
@@ -59,13 +57,10 @@ def main() -> None:
     parser.add_argument("--write-env", action="store_true")
     args = parser.parse_args()
 
-    account_id = _sql(
-        f"SELECT id FROM designer.user_accounts WHERE username = '{_sql_literal(args.username)}';"
-    )
+    account_id = _sql(f"SELECT id FROM designer.user_accounts WHERE username = '{_sql_literal(args.username)}';")
     if not account_id:
         sys.exit(
-            f"No user account {args.username!r} in Designer — log into Studio once "
-            "so the account exists, then re-run."
+            f"No user account {args.username!r} in Designer — log into Studio once so the account exists, then re-run."
         )
 
     raw_key = secrets.token_urlsafe(32)

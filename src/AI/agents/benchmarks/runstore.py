@@ -177,13 +177,11 @@ def new_name(label: str) -> str:
 def save(run: Run, *, directory: Path | None = None, overwrite: bool = False) -> Path:
     """A saved run is evidence, so overwriting one is opt-in."""
     assert NAME_PATTERN.match(run.name), f"{run.name!r} is not a run name"
-    target = (directory or RUNS_DIR)
+    target = directory or RUNS_DIR
     target.mkdir(parents=True, exist_ok=True)
     path = target / f"{run.name}.json"
     assert overwrite or not path.exists(), f"{path} already exists, so a run would be overwritten"
-    path.write_text(
-        json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
 
 
@@ -235,9 +233,7 @@ def baseline(*, directory: Path | None = None, pointer: Path | None = None) -> R
         return None
 
 
-def previous(
-    current: Run | None, *, directory: Path | None = None, pointer: Path | None = None
-) -> Run | None:
+def previous(current: Run | None, *, directory: Path | None = None, pointer: Path | None = None) -> Run | None:
     """The candidate before this one, from the local cache only."""
     from benchmarks import baseline as pointer_file
 
@@ -297,9 +293,7 @@ def set_baseline(
     )
 
 
-def series(
-    *, directory: Path | None = None, pointer: Path | None = None
-) -> tuple[Run | None, Run | None, Run | None]:
+def series(*, directory: Path | None = None, pointer: Path | None = None) -> tuple[Run | None, Run | None, Run | None]:
     """Baseline, previous candidate, current candidate."""
     local = all_runs(directory=directory)
     current = local[0] if local else None

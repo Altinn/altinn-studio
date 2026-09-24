@@ -27,9 +27,7 @@ class FeedbackReq(BaseModel):
         if v is None:
             return v
         if len(v) > FEEDBACK_COMMENT_MAX_LENGTH:
-            raise ValueError(
-                f"comment must not exceed {FEEDBACK_COMMENT_MAX_LENGTH} characters"
-            )
+            raise ValueError(f"comment must not exceed {FEEDBACK_COMMENT_MAX_LENGTH} characters")
         return v
 
 
@@ -66,9 +64,7 @@ def _feedback_score_id(trace_id: str) -> str:
 def _assert_caller_owns_trace(request: Request, trace_id: str) -> None:
     caller = request.headers.get(DEVELOPER_HEADER)
     if not caller:
-        raise HTTPException(
-            status_code=400, detail=f"Missing {DEVELOPER_HEADER} header"
-        )
+        raise HTTPException(status_code=400, detail=f"Missing {DEVELOPER_HEADER} header")
     if get_trace_developer(trace_id) != caller:
         raise HTTPException(status_code=403)
 

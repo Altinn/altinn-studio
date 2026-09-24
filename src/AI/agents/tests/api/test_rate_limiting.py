@@ -89,4 +89,3 @@ async def test_requests_are_allowed_again_after_the_window_passes(clock):
     await call_n_times(limiter, "kari", 2)
     clock.advance(WINDOW_SECONDS + 1)
     await call_n_times(limiter, "kari", 2)
-

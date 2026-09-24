@@ -99,8 +99,7 @@ def test_both_kinds_are_reported_when_both_are_present():
 def test_the_gate_says_one_thing_about_the_baseline(capsys):
     """It asserted the baseline was stale and then that it travelled with the
     change, in the same output."""
-    impact.report(["src/AI/agents/benchmarks/gates.py",
-                   "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
+    impact.report(["src/AI/agents/benchmarks/gates.py", "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
     said = capsys.readouterr().out
 
     assert "was measured with this instrument" in said
@@ -184,9 +183,7 @@ class TestTheFailureTellsYouWhatToDo:
         assert "did not mean to change the yardstick" in text
 
     def test_a_change_carrying_a_new_pointer_passes(self, tmp_path):
-        code, text = self._run_impact(
-            ["benchmarks/datasets/gates_scope.jsonl", "benchmarks/BASELINE.json"], tmp_path
-        )
+        code, text = self._run_impact(["benchmarks/datasets/gates_scope.jsonl", "benchmarks/BASELINE.json"], tmp_path)
         assert code == 0
         assert "measured with this instrument" in text
 
@@ -196,9 +193,7 @@ class TestTheFailureTellsYouWhatToDo:
 
     def test_without_strict_it_reports_and_does_not_fail(self, tmp_path):
         """So a developer can ask before pushing without the command exiting non-zero."""
-        code, text = self._run_impact(
-            ["benchmarks/datasets/gates_scope.jsonl"], tmp_path, strict=False
-        )
+        code, text = self._run_impact(["benchmarks/datasets/gates_scope.jsonl"], tmp_path, strict=False)
         assert code == 0
         assert "INVALIDATES THE BASELINE" in text
 
@@ -211,8 +206,14 @@ class TestTheGateRunsWithoutDependencies:
         import ast
 
         allowed = {
-            "fnmatch", "dataclasses", "json", "pathlib", "subprocess", "sys",
-            "benchmarks", "__future__",
+            "fnmatch",
+            "dataclasses",
+            "json",
+            "pathlib",
+            "subprocess",
+            "sys",
+            "benchmarks",
+            "__future__",
         }
         for name in ("impact", "baseline"):
             source = (AGENTS_ROOT / "benchmarks" / f"{name}.py").read_text()
@@ -255,9 +256,7 @@ class TestTheCommandCatalogue:
         from benchmarks import runner
 
         parser = runner._parser()
-        actions = [
-            a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"
-        ]
+        actions = [a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"]
         assert actions, "the parser has no subcommands"
         assert set(actions[0].choices) == {e.name for e in runner.CATALOGUE}
 
@@ -272,9 +271,7 @@ class TestTheCommandCatalogue:
         from benchmarks import runner
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: False)
-        monkeypatch.setattr(
-            "builtins.input", lambda *_: pytest.fail("the menu prompted without a terminal")
-        )
+        monkeypatch.setattr("builtins.input", lambda *_: pytest.fail("the menu prompted without a terminal"))
         assert runner.menu() == 0
         printed = capsys.readouterr().out
         for entry in runner.CATALOGUE:
@@ -445,8 +442,7 @@ class TestTheOutputStaysReadable:
 def test_documentation_beside_a_prompt_is_not_a_prompt():
     """`agents/prompts/*` matched the README and the loader, so a docs-only change
     was told to re-baseline."""
-    for path in ("src/AI/agents/agents/prompts/README.md",
-                 "src/AI/agents/agents/prompts/loader.py"):
+    for path in ("src/AI/agents/agents/prompts/README.md", "src/AI/agents/agents/prompts/loader.py"):
         assert impact.analyze([path]).hits == ()
 
 

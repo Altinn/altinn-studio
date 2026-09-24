@@ -38,9 +38,7 @@ class TestReplayingTheConversation:
     def test_a_stubbed_tool_result_stands_in_for_the_real_tool(self):
         """This is the faking: the model sees what the tool would have returned,
         so a decision can be scored without a repo behind it."""
-        message = message_from_item(
-            {"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]}
-        )
+        message = message_from_item({"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]})
 
         assert isinstance(message.content[0], ToolResultBlock)
         assert message.content[0].tool_use_id == "t1"
@@ -48,16 +46,18 @@ class TestReplayingTheConversation:
 
     def test_an_error_result_can_be_stubbed_too(self):
         message = message_from_item(
-            {"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "no",
-                                               "is_error": True}]}
+            {"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "no", "is_error": True}]}
         )
 
         assert message.content[0].is_error
 
     def test_an_assistant_turn_carries_its_tool_calls(self):
         message = message_from_item(
-            {"role": "assistant", "text": "ser på filen",
-             "tool_calls": [{"id": "t1", "name": "read_file", "input": {"path": "a.json"}}]}
+            {
+                "role": "assistant",
+                "text": "ser på filen",
+                "tool_calls": [{"id": "t1", "name": "read_file", "input": {"path": "a.json"}}],
+            }
         )
 
         assert isinstance(message.content[0], TextBlock)
@@ -70,11 +70,13 @@ class TestReplayingTheConversation:
 
     def test_a_whole_conversation_round_trips(self):
         messages = conversation_from_item(
-            {"conversation": [
-                {"role": "user", "text": "go"},
-                {"role": "assistant", "tool_calls": [{"id": "t1", "name": "read_file"}]},
-                {"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]},
-            ]}
+            {
+                "conversation": [
+                    {"role": "user", "text": "go"},
+                    {"role": "assistant", "tool_calls": [{"id": "t1", "name": "read_file"}]},
+                    {"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]},
+                ]
+            }
         )
 
         assert len(messages) == 3
@@ -96,9 +98,7 @@ class TestReadingTheReply:
         assert turn.text == "jeg leser filen"
 
     def test_a_final_answer_has_no_tool_calls(self):
-        turn = turn_from_reply(
-            AssistantMessage(content=[TextBlock(text="ferdig")], stop_reason="end_turn")
-        )
+        turn = turn_from_reply(AssistantMessage(content=[TextBlock(text="ferdig")], stop_reason="end_turn"))
 
         assert turn.tool_calls == []
 
@@ -182,16 +182,14 @@ class TestForbiddenTools:
 
 class TestStoppedCleanly:
     def test_a_turn_that_should_finish_and_does(self):
-        scores = stopped_cleanly(output=_output(stop_reason="end_turn"),
-                                 expected_output={"stop": True})
+        scores = stopped_cleanly(output=_output(stop_reason="end_turn"), expected_output={"stop": True})
 
         assert scores[0].value == 1.0
 
     def test_a_turn_that_should_finish_but_calls_a_tool(self):
         """The disabled-tool item: the result says do not retry, so another call
         burns the round budget."""
-        scores = stopped_cleanly(output=_output(("preview_render_check", {})),
-                                 expected_output={"stop": True})
+        scores = stopped_cleanly(output=_output(("preview_render_check", {})), expected_output={"stop": True})
 
         assert scores[0].value == 0.0
         assert "got a tool call" in scores[0].comment
@@ -213,16 +211,12 @@ class TestJsonArguments:
     def test_a_trailing_comma_fails_the_turn(self):
         """Right tool, unusable output. The benchmark would only see this as a
         broken app three steps later."""
-        scores = json_arguments_parse(
-            output=_output(("write_file", {"content": '{"a": 1,}'}))
-        )
+        scores = json_arguments_parse(output=_output(("write_file", {"content": '{"a": 1,}'})))
 
         assert scores[0].value == 0.0
 
     def test_non_json_content_is_not_judged_as_json(self):
-        scores = json_arguments_parse(
-            output=_output(("write_file", {"content": "just some text"}))
-        )
+        scores = json_arguments_parse(output=_output(("write_file", {"content": "just some text"})))
 
         assert scores == [] or scores[0].value == 1.0
 
@@ -266,8 +260,7 @@ class TestTheTaskEndToEnd:
                 seen["system_prompt"] = system_prompt
                 seen["tools"] = [s["name"] for s in tool_schemas]
                 return AssistantMessage(
-                    content=[ToolUseBlock(id="t9", name="read_file",
-                                          input={"path": "App/ui/form/layouts/Side1.json"})],
+                    content=[ToolUseBlock(id="t9", name="read_file", input={"path": "App/ui/form/layouts/Side1.json"})],
                     stop_reason="tool_use",
                 )
 
@@ -382,8 +375,7 @@ class TestTheUiVariant:
         from benchmarks.generation import DECISION_SCHEMA, as_chat_messages
 
         messages = as_chat_messages(
-            [{"role": "assistant",
-              "tool_calls": [{"id": "t1", "name": "read_file", "input": {"path": "a.json"}}]}]
+            [{"role": "assistant", "tool_calls": [{"id": "t1", "name": "read_file", "input": {"path": "a.json"}}]}]
         )
 
         decision = json.loads(messages[0]["content"])
@@ -415,9 +407,7 @@ class TestTheUiVariant:
     def test_a_stubbed_result_becomes_readable_text(self):
         from benchmarks.generation import as_chat_messages
 
-        messages = as_chat_messages(
-            [{"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]}]
-        )
+        messages = as_chat_messages([{"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]}])
 
         assert messages[0]["content"] == "[tool_result]: {}"
 
@@ -425,8 +415,7 @@ class TestTheUiVariant:
         from benchmarks.generation import as_chat_messages
 
         messages = as_chat_messages(
-            [{"role": "user",
-              "tool_results": [{"tool_use_id": "t1", "content": "nope", "is_error": True}]}]
+            [{"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "nope", "is_error": True}]}]
         )
 
         assert "[tool_result err]" in messages[0]["content"]
@@ -449,19 +438,14 @@ class TestBothPathsScoreTheSame:
     def test_a_ui_decision_maps_onto_the_sdk_output_shape(self):
         from benchmarks.generation import tool_choice, ui_output_as_tool_calls
 
-        output = ui_output_as_tool_calls(
-            {"tool": "verify_changes", "arguments": {}, "done": False, "text": ""}
-        )
+        output = ui_output_as_tool_calls({"tool": "verify_changes", "arguments": {}, "done": False, "text": ""})
 
-        assert tool_choice(output=output,
-                           expected_output={"tool": "verify_changes"})[0].value == 1.0
+        assert tool_choice(output=output, expected_output={"tool": "verify_changes"})[0].value == 1.0
 
     def test_a_done_decision_has_no_tool_call(self):
         from benchmarks.generation import stopped_cleanly, ui_output_as_tool_calls
 
-        output = ui_output_as_tool_calls(
-            {"tool": None, "arguments": {}, "done": True, "text": "ferdig"}
-        )
+        output = ui_output_as_tool_calls({"tool": None, "arguments": {}, "done": True, "text": "ferdig"})
 
         assert output["tool_calls"] == []
         assert stopped_cleanly(output=output, expected_output={"stop": True})[0].value == 1.0
@@ -469,13 +453,9 @@ class TestBothPathsScoreTheSame:
     def test_a_ui_decision_is_checked_for_forbidden_tools_too(self):
         from benchmarks.generation import forbidden_tools, ui_output_as_tool_calls
 
-        output = ui_output_as_tool_calls(
-            {"tool": "commit_session_branch", "arguments": {}, "done": False, "text": ""}
-        )
+        output = ui_output_as_tool_calls({"tool": "commit_session_branch", "arguments": {}, "done": False, "text": ""})
 
-        scores = forbidden_tools(
-            output=output, expected_output={"forbidden_tools": ["commit_session_branch"]}
-        )
+        scores = forbidden_tools(output=output, expected_output={"forbidden_tools": ["commit_session_branch"]})
 
         assert scores[0].value == 0.0
 
@@ -522,12 +502,8 @@ class TestTheItemsAssertTheRuleAndNotOneTool:
 
         for item in dataset.items:
             rule = rule_of(item["expectedOutput"])
-            assert (
-                "allowed_tools" in rule or "forbidden_tools" in rule or "stop" in rule
-            ), item["id"]
-            assert "tool" not in rule, (
-                f"{item['id']} pins one exact tool in its rule; prefer allowed_tools"
-            )
+            assert "allowed_tools" in rule or "forbidden_tools" in rule or "stop" in rule, item["id"]
+            assert "tool" not in rule, f"{item['id']} pins one exact tool in its rule; prefer allowed_tools"
 
 
 class TestExpectedOutputMirrorsTheAnswer:
@@ -562,15 +538,13 @@ class TestExpectedOutputMirrorsTheAnswer:
                     for score in evaluator(output=output, expected_output=expected) or []:
                         want = "correct" if score.name == "gen_failure_mode" else 1.0
                         assert score.value == want, (
-                            f"{dataset.name}/{item['id']}: {score.name} = "
-                            f"{score.value} ({score.comment})"
+                            f"{dataset.name}/{item['id']}: {score.name} = {score.value} ({score.comment})"
                         )
 
     def test_the_rule_is_not_mistaken_for_the_answer(self):
         from benchmarks.generation import rule_of
 
-        expected = {"tool": "edit_file", "arguments": {}, "done": False,
-                    "rule": {"allowed_tools": ["edit_file"]}}
+        expected = {"tool": "edit_file", "arguments": {}, "done": False, "rule": {"allowed_tools": ["edit_file"]}}
 
         assert rule_of(expected) == {"allowed_tools": ["edit_file"]}
 
@@ -596,16 +570,19 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
 
         class Client:
             def get_dataset(self, name):
-                return type("D", (), {"items": [Item("kept"), Item("dropped"),
-                                                Item("already", "ARCHIVED")]})()
+                return type("D", (), {"items": [Item("kept"), Item("dropped"), Item("already", "ARCHIVED")]})()
 
         class Api:
             def upsert_dataset_item(self, **kwargs):
                 archived.append((kwargs["item_id"], kwargs.get("status")))
 
         dataset = Dataset(
-            name="Loop/traces", prompt=None, description="d",
-            path=Path("x.jsonl"), items=[{"id": "kept"}], kind="generation",
+            name="Loop/traces",
+            prompt=None,
+            description="d",
+            path=Path("x.jsonl"),
+            items=[{"id": "kept"}],
+            kind="generation",
         )
 
         _archive_orphans(Client(), Api(), dataset)
@@ -629,9 +606,9 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
                 calls.append(kwargs)
 
         _archive_orphans(
-            Client(), Api(),
-            Dataset(name="d", prompt=None, description="d", path=Path("x"),
-                    items=[], kind="generation"),
+            Client(),
+            Api(),
+            Dataset(name="d", prompt=None, description="d", path=Path("x"), items=[], kind="generation"),
         )
 
         assert calls == []
@@ -672,12 +649,8 @@ class TestArgumentsTravelEncoded:
         it is what new-layout-is-valid-json exists for."""
         from benchmarks.generation import json_arguments_parse, ui_output_as_tool_calls
 
-        good = ui_output_as_tool_calls(
-            {"tool": "write_file", "arguments_json": '{"content": "{\\"a\\": 1}"}'}
-        )
-        bad = ui_output_as_tool_calls(
-            {"tool": "write_file", "arguments_json": '{"content": "{\\"a\\": 1,}"}'}
-        )
+        good = ui_output_as_tool_calls({"tool": "write_file", "arguments_json": '{"content": "{\\"a\\": 1}"}'})
+        bad = ui_output_as_tool_calls({"tool": "write_file", "arguments_json": '{"content": "{\\"a\\": 1,}"}'})
 
         assert json_arguments_parse(output=good)[0].value == 1.0
         assert json_arguments_parse(output=bad)[0].value == 0.0
@@ -720,12 +693,7 @@ class TestHarvestedItemsCarryTheirProvenance:
         from benchmarks.harvest import CONTENT_RULE_KEYS
         from benchmarks.generation import rule_of
 
-        defective = [
-            item
-            for dataset in self._harvested()
-            for item in dataset.items
-            if item["metadata"].get("defect")
-        ]
+        defective = [item for dataset in self._harvested() for item in dataset.items if item["metadata"].get("defect")]
 
         assert defective, "the defect-carrying decision should still be harvested"
         for item in defective:
@@ -740,13 +708,18 @@ class TestHarvestedItemsCarryTheirProvenance:
         from benchmarks.harvest import HarvestedTrace, Turn, item_from_decision
 
         harvest = HarvestedTrace(
-            trace_id="t", goal="g", available_tools=[],
+            trace_id="t",
+            goal="g",
+            available_tools=[],
             turns=[Turn(text="", calls=[{"name": "write_file", "input": {}}])],
         )
 
         with pytest.raises(ValueError, match="known defect"):
             item_from_decision(
-                harvest, 0, item_id="x", note="n",
+                harvest,
+                0,
+                item_id="x",
+                note="n",
                 verification="app-verified-with-defect",
                 rule={"arguments": {"path": "a.json"}},
                 defect="the e3-date component omits timeStamp",
@@ -779,9 +752,7 @@ class TestRealTurnsCarrySeveralCalls:
     def test_coverage_is_a_fraction_not_a_verdict(self):
         from benchmarks.generation import required_tools, ui_output_as_tool_calls
 
-        output = ui_output_as_tool_calls(
-            {"tool_calls": [{"tool": "edit_file", "arguments_json": "{}"}], "done": False}
-        )
+        output = ui_output_as_tool_calls({"tool_calls": [{"tool": "edit_file", "arguments_json": "{}"}], "done": False})
 
         scores = required_tools(
             output=output,
@@ -819,66 +790,88 @@ class TestFailureModeNamesTheProblem:
     def _mode(self, decision, rule):
         from benchmarks.generation import failure_mode, ui_output_as_tool_calls
 
-        scores = failure_mode(
-            output=ui_output_as_tool_calls(decision), expected_output={"rule": rule}
-        )
+        scores = failure_mode(output=ui_output_as_tool_calls(decision), expected_output={"rule": rule})
         return scores[0].value
 
     def test_a_good_turn_is_correct(self):
-        assert self._mode(
-            {"tool_calls": [{"tool": "verify_changes", "arguments_json": "{}"}]},
-            {"required_tools": ["verify_changes"], "stop": False},
-        ) == "correct"
+        assert (
+            self._mode(
+                {"tool_calls": [{"tool": "verify_changes", "arguments_json": "{}"}]},
+                {"required_tools": ["verify_changes"], "stop": False},
+            )
+            == "correct"
+        )
 
     def test_stopping_when_asked_to_stop_is_correct_even_with_an_allowed_set(self):
         """An empty turn counted as a call outside the set, so a model that stopped as
         asked was named a tool violator while `stopped_cleanly` scored the same turn 1."""
-        assert self._mode(
-            {"tool_calls": [], "message": "done"},
-            {"allowed_tools": ["read_file"], "stop": True},
-        ) == "correct"
+        assert (
+            self._mode(
+                {"tool_calls": [], "message": "done"},
+                {"allowed_tools": ["read_file"], "stop": True},
+            )
+            == "correct"
+        )
 
     def test_a_call_outside_the_allowed_set_is_still_named(self):
-        assert self._mode(
-            {"tool_calls": [{"tool": "write_file", "arguments_json": "{}"}]},
-            {"allowed_tools": ["read_file"], "stop": False},
-        ) == "tool_outside_set"
+        assert (
+            self._mode(
+                {"tool_calls": [{"tool": "write_file", "arguments_json": "{}"}]},
+                {"allowed_tools": ["read_file"], "stop": False},
+            )
+            == "tool_outside_set"
+        )
 
     def test_an_empty_turn_that_owed_a_call_is_still_named(self):
-        assert self._mode(
-            {"tool_calls": [], "message": "done"},
-            {"allowed_tools": ["read_file"], "required_tools": ["read_file"], "stop": False},
-        ) == "missing_tool"
+        assert (
+            self._mode(
+                {"tool_calls": [], "message": "done"},
+                {"allowed_tools": ["read_file"], "required_tools": ["read_file"], "stop": False},
+            )
+            == "missing_tool"
+        )
 
     def test_a_forbidden_call_outranks_the_others(self):
-        assert self._mode(
-            {"tool_calls": [{"tool": "commit_session_branch", "arguments_json": "{}"}]},
-            {"required_tools": ["verify_changes"],
-             "forbidden_tools": ["commit_session_branch"], "stop": False},
-        ) == "forbidden_tool"
+        assert (
+            self._mode(
+                {"tool_calls": [{"tool": "commit_session_branch", "arguments_json": "{}"}]},
+                {"required_tools": ["verify_changes"], "forbidden_tools": ["commit_session_branch"], "stop": False},
+            )
+            == "forbidden_tool"
+        )
 
     def test_a_missing_call_is_named_as_such(self):
-        assert self._mode(
-            {"tool_calls": [{"tool": "edit_file", "arguments_json": "{}"}]},
-            {"required_tools": ["edit_file", "write_file"], "stop": False},
-        ) == "missing_tool"
+        assert (
+            self._mode(
+                {"tool_calls": [{"tool": "edit_file", "arguments_json": "{}"}]},
+                {"required_tools": ["edit_file", "write_file"], "stop": False},
+            )
+            == "missing_tool"
+        )
 
     def test_finishing_too_early_is_named(self):
         assert self._mode({"tool_calls": [], "done": True}, {"stop": False}) == "stopped_early"
 
     def test_not_finishing_is_named(self):
-        assert self._mode(
-            {"tool_calls": [{"tool": "preview_render_check", "arguments_json": "{}"}]},
-            {"stop": True},
-        ) == "did_not_stop"
+        assert (
+            self._mode(
+                {"tool_calls": [{"tool": "preview_render_check", "arguments_json": "{}"}]},
+                {"stop": True},
+            )
+            == "did_not_stop"
+        )
 
     def test_every_mode_it_can_return_is_declared(self):
         from benchmarks.generation import FAILURE_MODES
 
         assert "correct" in FAILURE_MODES
         assert set(FAILURE_MODES) >= {
-            "off_contract", "missing_tool", "forbidden_tool",
-            "tool_outside_set", "stopped_early", "did_not_stop",
+            "off_contract",
+            "missing_tool",
+            "forbidden_tool",
+            "tool_outside_set",
+            "stopped_early",
+            "did_not_stop",
         }
 
 
@@ -929,11 +922,18 @@ class TestHarvestedConversationsAreValidProtocol:
         from benchmarks.harvest import HarvestedTrace, Turn, conversation_up_to
 
         harvest = HarvestedTrace(
-            trace_id="t", goal="g", available_tools=[],
+            trace_id="t",
+            goal="g",
+            available_tools=[],
             turns=[
-                Turn(text="", calls=[{"id": "a", "name": "read_file", "input": {}},
-                                     {"id": "b", "name": "read_file", "input": {}}],
-                     results=[{"name": "read_file", "content": "x", "is_error": False}]),
+                Turn(
+                    text="",
+                    calls=[
+                        {"id": "a", "name": "read_file", "input": {}},
+                        {"id": "b", "name": "read_file", "input": {}},
+                    ],
+                    results=[{"name": "read_file", "content": "x", "is_error": False}],
+                ),
                 Turn(text="", calls=[]),
             ],
         )
@@ -1017,9 +1017,7 @@ class TestContentPairings:
 
     def test_a_nested_datepicker_is_counted(self):
         nested = {"id": "gruppe", "type": "Group", "children": [_datepicker("dato")]}
-        scores = self._score(
-            [_write("Side1.json", _layout(nested))], _TIMESTAMP_RULE
-        )
+        scores = self._score([_write("Side1.json", _layout(nested))], _TIMESTAMP_RULE)
 
         assert scores[0].value == 0.0
         assert "0/1" in scores[0].comment
@@ -1030,9 +1028,7 @@ class TestContentPairings:
     def test_a_turn_that_wrote_no_datepicker_is_not_scored(self):
         """No subject, so neither 0 nor 1 would be a true claim."""
         header = {"id": "side1-header", "type": "Header"}
-        assert self._score(
-            [_write("Side1.json", _layout(header))], _TIMESTAMP_RULE
-        ) == []
+        assert self._score([_write("Side1.json", _layout(header))], _TIMESTAMP_RULE) == []
 
     def test_a_datepicker_that_sets_the_wrong_value_is_the_defect_not_a_pass(self):
         scores = self._score(
@@ -1048,18 +1044,14 @@ class TestContentPairings:
             assert self._score([_write("Side1.json", payload)], _TIMESTAMP_RULE) == []
 
     def test_content_that_is_not_json_is_skipped_rather_than_crashing(self):
-        assert self._score(
-            [_write("Side1.json", "not json at all")], _TIMESTAMP_RULE
-        ) == []
+        assert self._score([_write("Side1.json", "not json at all")], _TIMESTAMP_RULE) == []
 
     def test_the_regression_item_declares_the_pairing_the_source_run_got_wrong(self):
         from benchmarks.dataset_sync import load_datasets
         from benchmarks.generation import rule_of
 
         dataset = next(d for d in load_datasets() if d.name == "Loop/traces")
-        item = next(
-            i for i in dataset.items if i["id"] == "convert-writes-layouts-with-valid-datepickers"
-        )
+        item = next(i for i in dataset.items if i["id"] == "convert-writes-layouts-with-valid-datepickers")
 
         assert rule_of(item["expectedOutput"])["content_pairings"] == _TIMESTAMP_RULE["content_pairings"]
 
@@ -1068,14 +1060,10 @@ class TestContentPairings:
         from benchmarks.generation import content_pairings, ui_output_as_tool_calls
 
         dataset = next(d for d in load_datasets() if d.name == "Loop/traces")
-        item = next(
-            i for i in dataset.items if i["id"] == "convert-writes-layouts-with-valid-datepickers"
-        )
+        item = next(i for i in dataset.items if i["id"] == "convert-writes-layouts-with-valid-datepickers")
         expected = item["expectedOutput"]
 
-        scores = content_pairings(
-            output=ui_output_as_tool_calls(expected), expected_output=expected
-        )
+        scores = content_pairings(output=ui_output_as_tool_calls(expected), expected_output=expected)
 
         assert scores[0].value == 0.0
         assert scores[0].comment.startswith("0/2 Datepicker(s)")

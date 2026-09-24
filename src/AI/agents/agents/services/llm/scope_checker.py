@@ -6,6 +6,7 @@ documentation previously caused the model to answer questions it should
 have declined (e.g. a phone-number lookup matching Altinn's "lookup-service"
 feature by name).
 """
+
 import json
 from typing import Any, Optional, Sequence
 
@@ -34,11 +35,7 @@ def build_scope_check_message(query: str, conversation: Sequence[Any] | None = N
     recent = _recent_turns(conversation)
     if not recent:
         return f"Classify this question: {query}"
-    return (
-        "Recent conversation, oldest first, for judging a follow-up:\n"
-        f"{recent}\n\n"
-        f"Classify this question: {query}"
-    )
+    return f"Recent conversation, oldest first, for judging a follow-up:\n{recent}\n\nClassify this question: {query}"
 
 
 def _recent_turns(conversation: Sequence[Any] | None) -> str:
@@ -56,9 +53,7 @@ def _field(turn: Any, name: str) -> str:
     return value if isinstance(value, str) else ""
 
 
-async def check_scope_async(
-    query: str, conversation_history: Sequence[Any] | None = None
-) -> ScopeCheckResult:
+async def check_scope_async(query: str, conversation_history: Sequence[Any] | None = None) -> ScopeCheckResult:
     """Classify whether a chat question is about Altinn Studio/apps.
 
     The recent conversation goes with it: a follow-up read alone is about
@@ -79,7 +74,7 @@ async def check_scope_async(
     if cleaned.startswith("```"):
         fence_end = cleaned.find("\n")
         first_line = cleaned[:fence_end] if fence_end != -1 else cleaned
-        cleaned = cleaned[len(first_line):].strip() if first_line.startswith("```") else cleaned
+        cleaned = cleaned[len(first_line) :].strip() if first_line.startswith("```") else cleaned
         if cleaned.endswith("```"):
             cleaned = cleaned[:-3].strip()
 

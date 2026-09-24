@@ -1,4 +1,5 @@
 """Agent workflow API routes"""
+
 import re
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
@@ -25,6 +26,7 @@ config = get_config()
 PER_DEVELOPER_LIMIT = 5
 ALL_DEVELOPERS_LIMIT = 30
 _SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]{1,128}$")
+
 
 def _require_developer(request: Request) -> str:
     developer = request.headers.get("X-Developer")
@@ -55,6 +57,7 @@ class StartReq(BaseModel):
         if not _SESSION_ID_PATTERN.match(v):
             raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
         return v
+
 
 @router.post(
     "/api/agent/start",
@@ -112,12 +115,10 @@ async def start_agent(
         # loop, not a separate pipeline.  allow_app_changes=False runs the
         # loop read-only (write tools denied) — the model can still scan and
         # read the repo, load skills, and fetch docs to answer questions.
-        log.info(
-            f"{'🔧 Write' if req.allow_app_changes else '💬 Read-only'} mode "
-            f"enabled for session {req.session_id}"
-        )
+        log.info(f"{'🔧 Write' if req.allow_app_changes else '💬 Read-only'} mode enabled for session {req.session_id}")
 
         from agents.graph.state import ConversationMessage
+
         stored_history = sink.get_conversation_history(req.session_id)
         conversation_history = [
             ConversationMessage(role=msg["role"], content=msg["content"], sources=msg.get("sources"))
@@ -146,7 +147,7 @@ async def start_agent(
         log.info(f"Started agent session {req.session_id}, goal: {req.goal}")
 
         mode = "chat" if not req.allow_app_changes else "workflow"
-        
+
         return {
             "accepted": True,
             "session_id": req.session_id,

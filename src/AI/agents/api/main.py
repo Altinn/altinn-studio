@@ -41,9 +41,7 @@ class SuppressLangfuseTimeouts(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
         msg = record.getMessage()
-        if (
-            "cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg
-        ) and "ReadTimeout" in msg:
+        if ("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg:
             return False
         return True
 
@@ -69,9 +67,7 @@ async def lifespan(app: FastAPI):
             from shared.utils.langfuse_utils import init_langfuse
 
             init_langfuse()
-            logger.info(
-                f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}"
-            )
+            logger.info(f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}")
         except Exception as e:
             logger.warning(f"⚠️  Failed to initialize Langfuse: {e}")
 

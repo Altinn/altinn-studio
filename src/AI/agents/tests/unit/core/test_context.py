@@ -43,7 +43,7 @@ class TestMode:
         assert "Mode: WRITE" in prompt
 
     def test_read_mode_says_a_write_asks_rather_than_fails(self):
-        """"Write tools are disabled" contradicted the rule to try and let the
+        """ "Write tools are disabled" contradicted the rule to try and let the
         user answer the permission prompt, and the model believed the ban."""
         prompt = build_system_prompt(_base_ctx(allow_app_changes=False))
 
@@ -62,9 +62,7 @@ class TestOptionalSections:
         assert "Repo facts" not in prompt
 
     def test_repo_facts_rendered_when_present(self):
-        prompt = build_system_prompt(
-            _base_ctx(repo_facts={"layouts": ["a", "b", "c"], "model": "Form"})
-        )
+        prompt = build_system_prompt(_base_ctx(repo_facts={"layouts": ["a", "b", "c"], "model": "Form"}))
         assert "Repo facts" in prompt
         assert "layouts" in prompt
         assert "Form" in prompt
@@ -101,9 +99,7 @@ class TestStableOrdering:
             "Final response",
         ]
         positions = [prompt.index(landmark) for landmark in order]
-        assert positions == sorted(positions), (
-            f"Sections out of order: {list(zip(order, positions))}"
-        )
+        assert positions == sorted(positions), f"Sections out of order: {list(zip(order, positions))}"
 
 
 class TestDomainKnowledge:
@@ -150,8 +146,7 @@ class TestDomainKnowledge:
         # "different files" + "same turn" together are the load-bearing
         # phrase — either alone is too generic.
         assert "different" in text and "same turn" in text, (
-            "operating principles should tell the model to batch writes "
-            "to different files into the same turn"
+            "operating principles should tell the model to batch writes to different files into the same turn"
         )
 
 

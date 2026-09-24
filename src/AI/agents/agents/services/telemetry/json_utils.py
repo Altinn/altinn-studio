@@ -1,4 +1,5 @@
 """Simple JSON utility functions."""
+
 import json
 
 

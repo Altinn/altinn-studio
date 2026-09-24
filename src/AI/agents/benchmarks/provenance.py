@@ -223,8 +223,7 @@ def collect(
         notes.append(f"axes not recorded: {', '.join(missing)}")
     if agent_roles:
         notes.append(
-            f"models axis for {', '.join(agent_roles)} came from the agent that built "
-            "the app, not this checkout"
+            f"models axis for {', '.join(agent_roles)} came from the agent that built the app, not this checkout"
         )
     if notes:
         provenance = Provenance(

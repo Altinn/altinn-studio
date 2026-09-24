@@ -100,7 +100,9 @@ def load_resource_key_map(repo_path: str, resource_files: Optional[Iterable[str]
     return key_map
 
 
-def _existing_and_pending_keys(patch: Dict[str, object], locales: Iterable[str], locale_to_file: Dict[str, str], repo_path: str) -> Dict[str, Set[str]]:
+def _existing_and_pending_keys(
+    patch: Dict[str, object], locales: Iterable[str], locale_to_file: Dict[str, str], repo_path: str
+) -> Dict[str, Set[str]]:
     key_map = {locale: set() for locale in locales}
     existing = load_resource_key_map(repo_path, locale_to_file.values())
     for locale, keys in existing.items():
@@ -130,7 +132,9 @@ def _existing_and_pending_keys(patch: Dict[str, object], locales: Iterable[str],
     return key_map
 
 
-def _determine_locales(repo_path: str, resource_files: Optional[Iterable[str]], available_locales: Optional[Iterable[str]]) -> Tuple[List[str], Dict[str, str]]:
+def _determine_locales(
+    repo_path: str, resource_files: Optional[Iterable[str]], available_locales: Optional[Iterable[str]]
+) -> Tuple[List[str], Dict[str, str]]:
     file_list = list(resource_files) if resource_files is not None else []
     locale_to_file: Dict[str, str] = {}
     for path in file_list:
