@@ -14,9 +14,11 @@ import os
 import subprocess
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
+from agents.altinn.app_version import detect_app_version_profile
 from agents.core.tool import LoopContext, ToolResult
 
 from ._write_base import WriteToolMixin
@@ -27,6 +29,15 @@ log = logging.getLogger(__name__)
 _EXIT_SUCCESS = 0
 _EXIT_UNSUPPORTED_VERSION = 2
 _EXIT_MANUAL_ACTION_REQUIRED = 3
+
+_UPGRADED_MESSAGES = {
+    _EXIT_SUCCESS: "Upgraded the app to v9.",
+    _EXIT_MANUAL_ACTION_REQUIRED: "Upgraded the app to v9, but some steps need manual follow-up:",
+}
+
+# The upgrade keeps this file when it holds back layout sets that need manual work.
+_LAYOUT_SETS_FILE = "App/ui/layout-sets.json"
+_HELD_BACK_MESSAGE = "The app was not upgraded, and nothing was changed.  These TODOs block the upgrade:"
 
 _GIT_RESET_TO_HEAD = ["git", "reset", "--hard", "HEAD"]
 _GIT_REMOVE_UNTRACKED_FILES = ["git", "clean", "-fd"]
@@ -82,12 +93,16 @@ class UpgradeAppToV9Tool(WriteToolMixin):
         "official v8-to-v9 migration across the whole app: NuGet packages, "
         "target framework, process/layout/rule configuration, and C# API "
         "changes.\n\n"
+        "WHEN: only when the user asks for the upgrade.  Never suggest it "
+        "yourself; v9 is still a preview release.\n\n"
         "PRECONDITION: the app must be on version 8 (otherwise the upgrade "
         "is refused), and the working tree must be clean.  Prefer running "
         "this before making other edits.\n\n"
-        "RESULT: applies the changes on disk and stages them for commit.  "
-        "Some steps can need manual follow-up — "
-        "relay those to the user.  A failed upgrade discards its changes."
+        "RESULT: the upgrade either completes or changes nothing.  A completed "
+        "upgrade applies the changes on disk and stages them for commit; relay "
+        "any manual follow-up steps to the user.  When the upgrade changes "
+        "nothing, tell the user what blocks it, and offer to fix the blockers "
+        "you can."
     )
     input_schema = UpgradeAppToV9Args
     is_concurrency_safe = False
@@ -120,15 +135,15 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
     steps = result.get("steps", [])
     summary = _summarize_steps(steps)
 
-    if exit_code == _EXIT_SUCCESS:
+    if exit_code in _UPGRADED_MESSAGES and not _held_back_layout_sets(ctx.repo_path):
         _record_changed_files(ctx)
-        return ToolResult(content=f"Upgraded the app to v9.\n\n{summary}")
-
-    if exit_code == _EXIT_MANUAL_ACTION_REQUIRED:
-        _record_changed_files(ctx)
-        return ToolResult(content=(f"Upgraded the app to v9, but some steps need manual follow-up:\n\n{summary}"))
+        sections = [_UPGRADED_MESSAGES[exit_code], summary, _switch_app_version_profile(ctx)]
+        return ToolResult(content="\n\n".join(sections))
 
     _restore_working_tree(ctx.repo_path)
+
+    if exit_code in _UPGRADED_MESSAGES:
+        return ToolResult(content=f"{_HELD_BACK_MESSAGE}\n\n{summary}", is_error=True)
 
     if exit_code == _EXIT_UNSUPPORTED_VERSION:
         return ToolResult(
@@ -139,6 +154,24 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
     return ToolResult(
         content=(f"The v9 upgrade failed, and its changes were discarded:\n\n{result.get('error') or summary}"),
         is_error=True,
+    )
+
+
+def _held_back_layout_sets(repo_path: str) -> bool:
+    return (Path(repo_path) / _LAYOUT_SETS_FILE).is_file()
+
+
+def _switch_app_version_profile(ctx: LoopContext) -> str:
+    """The system prompt is fixed for the turn, so the rules of the new app version travel in the tool result."""
+    previous_profile = ctx.app_version_profile
+    ctx.app_version_profile = detect_app_version_profile(ctx.repo_path)
+    return "\n\n".join(
+        (
+            f"The app is now {ctx.app_version_profile.version_label}.  Follow these rules "
+            f"instead of the {previous_profile.version_label} rules in the system prompt:",
+            ctx.app_version_profile.ui_anatomy_prompt,
+            ctx.app_version_profile.version_rules_prompt,
+        )
     )
 
 

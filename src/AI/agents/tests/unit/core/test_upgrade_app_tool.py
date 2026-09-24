@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import LoopContext, UpgradeAppToV9Tool, VerifyChangesTool
 from agents.core.tool import Tool
 from agents.core.tools import upgrade_app_tool
@@ -23,7 +24,24 @@ from .git_repo import create_committed_repo, git, write_files
 
 _SUCCESS_PAYLOAD = {"message": "", "exitCode": 0, "output": "", "error": "", "steps": []}
 _EXIT_ERROR = 1
-_V8_APP_FILES = {"App/App.csproj": "v8", "App/ui/layout-sets.json": "{}"}
+_EXIT_UNSUPPORTED_VERSION = 2
+_EXIT_MANUAL_ACTION_REQUIRED = 3
+
+
+def _project_file(altinn_app_api_version: str) -> str:
+    return (
+        "<Project><ItemGroup>"
+        f'<PackageReference Include="Altinn.App.Api" Version="{altinn_app_api_version}" />'
+        "</ItemGroup></Project>"
+    )
+
+
+_V8_PROJECT_FILE = _project_file("8.7.0")
+_V9_PROJECT_FILE = _project_file("9.0.0-preview.4")
+_V8_APP_FILES = {"App/App.csproj": _V8_PROJECT_FILE, "App/ui/layout-sets.json": "{}"}
+_UNCONVERTED_RULE_TODO = (
+    "Layout set 'form', rule 'hideAddress', component 'address': the condition could not be converted."
+)
 
 
 @pytest.fixture(autouse=True)
@@ -95,11 +113,34 @@ def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[
     """Mimics studioctl: change the app, then stage every change."""
 
     def upgrade() -> None:
-        write_files(repo, {"App/App.csproj": "v9"})
+        write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE})
         (repo / "App/ui/layout-sets.json").unlink()
         git(repo, "add", "-A")
 
     return upgrade
+
+
+def _stub_held_back_upgrade(monkeypatch, repo: Path) -> None:
+    """Mimics studioctl holding back a layout set: the project file is on v9,
+    but layout-sets.json stays, and a rule is reported as a TODO."""
+
+    async def fake_run(project_folder: str) -> subprocess.CompletedProcess[str]:
+        write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Task_1/Settings.json": "{}"})
+        git(repo, "add", "-A")
+        return _studioctl_result(
+            {
+                **_SUCCESS_PAYLOAD,
+                "exitCode": _EXIT_MANUAL_ACTION_REQUIRED,
+                "steps": [
+                    {
+                        "name": "Layout files",
+                        "messages": [{"text": _UNCONVERTED_RULE_TODO, "status": "TODO"}],
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr("agents.core.tools.upgrade_app_tool._run_studioctl_upgrade", fake_run)
 
 
 async def _run(tool: Tool, ctx: LoopContext):
@@ -228,7 +269,7 @@ class TestUpgradeAppToV9:
         repo = create_committed_repo(tmp_path, _V8_APP_FILES)
 
         def fail_halfway() -> None:
-            write_files(repo, {"App/App.csproj": "v9", "App/ui/Task_1/Settings.json": "{}"})
+            write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Task_1/Settings.json": "{}"})
 
         _stub_upgrade_that_edits_repo(monkeypatch, fail_halfway, exit_code=_EXIT_ERROR)
 
@@ -236,8 +277,85 @@ class TestUpgradeAppToV9:
 
         assert result.is_error
         assert "discarded" in result.content
-        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == "v8"
+        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
         assert not (repo / "App/ui/Task_1").exists()
+
+    async def test_success_switches_the_loop_context_to_the_v9_profile(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
+        )
+        ctx = _ctx(repo)
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert ctx.app_version_profile is V9_PROFILE
+
+    async def test_success_returns_the_v9_rules_to_the_model(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
+        )
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert "The app is now v9." in result.content
+        assert V9_PROFILE.ui_anatomy_prompt in result.content
+        assert V9_PROFILE.version_rules_prompt in result.content
+
+    async def test_manual_follow_up_switches_the_loop_context_to_the_v9_profile(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch,
+            _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo),
+            exit_code=_EXIT_MANUAL_ACTION_REQUIRED,
+        )
+        ctx = _ctx(repo)
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert ctx.app_version_profile is V9_PROFILE
+
+    async def test_refused_upgrade_keeps_the_v8_profile(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_studioctl(monkeypatch, _studioctl_result({**_SUCCESS_PAYLOAD, "exitCode": _EXIT_UNSUPPORTED_VERSION}))
+        ctx = _ctx(repo)
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert ctx.app_version_profile is V8_PROFILE
+
+    async def test_held_back_upgrade_discards_its_changes(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_held_back_upgrade(monkeypatch, repo)
+        ctx = _ctx(repo)
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert result.is_error
+        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
+        assert not (repo / "App/ui/Task_1").exists()
+        assert "changed_files" not in ctx.extras
+
+    async def test_held_back_upgrade_keeps_the_v8_profile(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_held_back_upgrade(monkeypatch, repo)
+        ctx = _ctx(repo)
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert ctx.app_version_profile is V8_PROFILE
+
+    async def test_held_back_upgrade_says_nothing_changed_and_lists_the_blocking_todos(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_held_back_upgrade(monkeypatch, repo)
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert "nothing was changed" in result.content
+        assert _UNCONVERTED_RULE_TODO in result.content
 
     async def test_passes_on_the_studioctl_error_when_studioctl_cannot_run_the_upgrade(
         self, monkeypatch, tmp_path: Path

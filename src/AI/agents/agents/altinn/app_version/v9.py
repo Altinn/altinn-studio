@@ -18,7 +18,7 @@ _UI_ANATOMY_PROMPT = """\
 - **Layouts** (`App/ui/<taskId>/layouts/*.json`) define the UI.  Each layout is a tree of components with `id`, `type`, `dataModelBindings`, and `textResourceBindings`.
 - **UI settings**: `App/ui/<taskId>/Settings.json` holds `pages.order`, `defaultDataType` (the data model the task's layouts bind to) and an optional `type` (`subform`).  Settings for every task, such as `showLanguageSelector`, go in `App/ui/Settings.json` as a flat object with no `pages` wrapper: `{"showLanguageSelector": true}`.
 - **Logic**: show and hide components with `hidden` expressions, and compute values in a C# `IDataWriteProcessor` registered in `App/Program.cs`.  There is no `RuleConfiguration.json` or `RuleHandler.js`; never create them.  There is no `App/views/Home/Index.cshtml`, and PDF and eFormidling are service tasks in `process.bpmn`, not flags in `applicationmetadata.json`.
-- **An unfinished upgrade**: if the app still has `App/ui/layout-sets.json`, `RuleConfiguration.json` or `RuleHandler.js`, its upgrade to v9 needs manual follow-up.  Tell the user.  Once they have fixed the reported TODOs, run `upgrade_app_to_v9` again when they ask for it."""
+- **An unfinished upgrade**: if the app still has `App/ui/layout-sets.json`, `RuleConfiguration.json` or `RuleHandler.js`, its upgrade to v9 was not finished.  Tell the user."""
 
 _VERSION_RULES_PROMPT = """\
 8.  **A `Datepicker` stores a date only, unless told otherwise.**  `timeStamp` defaults to `false`, which stores `2026-05-22`: right for a field the data model declares as `"format": "date"`.  Set `"timeStamp": true` only for a field that holds a date *and* a time.  `format` uses Unicode date tokens: `dd.MM.yyyy`, not `DD.MM.YYYY`.
