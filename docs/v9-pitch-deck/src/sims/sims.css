@@ -185,10 +185,6 @@
   font-size: 24px;
 }
 
-.scn__col .arow__at {
-  font-size: 20px;
-}
-
 .scn__col .arow__spinner {
   width: 20px;
   height: 20px;
@@ -316,7 +312,7 @@
 .arow {
   flex: 0 0 var(--alog-row);
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr);
   align-items: center;
   column-gap: 18px;
   padding: 0 20px 0 16px;
@@ -345,13 +341,6 @@
 .arow.is-ok .arow__text,
 .arow.is-fail .arow__text {
   font-weight: var(--fw-semibold);
-}
-
-.arow__at {
-  font-size: 26px;
-  font-weight: var(--fw-semibold);
-  color: var(--t-soft);
-  white-space: nowrap;
 }
 
 .arow__spinner {
@@ -391,7 +380,7 @@
 .scn__card {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   align-content: center;
   column-gap: 36px;
   row-gap: 18px;
@@ -421,7 +410,7 @@
 /* The phone again, smaller: the room has already seen it full size. */
 .scn__card .scr {
   width: 300px;
-  height: 380px;
+  height: 320px;
 }
 
 .scn__card .scr__head {
@@ -435,6 +424,35 @@
 .scn__card .scr__btn {
   font-size: 22px;
   padding: 6px 22px;
+}
+
+.scn__card-details {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scn__card-details li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 26px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+.scn__card-details li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.55em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--t);
 }
 
 .scn__card-outcome {

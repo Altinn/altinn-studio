@@ -232,8 +232,9 @@ deck; section 2 says where the copy lives; section 3 is the glossary.
 37. **v8 never moves the user back.** The process state is saved only after every hook has run, so a
     failure leaves the user on the same page with the toast `process_error.submit_error_please_retry`
     («Noe gikk galt under innsendingen, prøv igjen om noen minutter.»). Nothing retries by itself,
-    and a retry runs every hook of the transition again; a PDF the first attempt stored is inserted a
-    second time (`v8.12.7:…/ProcessEngine.cs` `HandleEventsAndUpdateStorage`; `PdfService.cs` L179).
+    and a retry runs every hook of the transition again, so a message an app hook sends can go out
+    twice. (A PDF the first attempt stored is cleaned up by the backend on retry, per the user
+    2026-09-24, so the deck does not use duplicate PDFs as the example) (`v8.12.7:…/ProcessEngine.cs` `HandleEventsAndUpdateStorage`; `PdfService.cs` L179).
 38. **v9 retries by itself and skips what is done.** Each hook is its own engine step and a
     completed step is not re-run — but delivery is at-least-once, so a step can run twice if a server
     dies between doing the work and recording it (see the guardrail below). Storage de-duplicates the

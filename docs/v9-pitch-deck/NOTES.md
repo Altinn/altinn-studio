@@ -3,7 +3,7 @@
 One page for the person holding the clicker. Structure in English, the spoken notes verbatim in
 norsk bokmål (they are the `notes` fields in `src/slides/index.ts`, which is the source of truth).
 
-**15 slides, 24 build steps, 38 presses of `→` from the opening slide to the last.**
+**15 slides, 21 build steps, 35 presses of `→` from the opening slide to the last.**
 
 Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrome, press `f`.
 
@@ -88,7 +88,7 @@ Read the left line, then the right one. The lines are short on purpose.
 
 > Del 3: det appen gjør bak kulissene, altså prosessene, stegene og logikken. «Send inn» er bare det mest kjente eksempelet.
 
-### 8. En motor for prosessene · 3 clicks
+### 8. En motor for prosessene · 0 clicks
 
 > Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres før det gjøres, så en feil eller en omstart underveis ikke betyr at noe går tapt. Det gjelder alle overganger i prosessen, ikke bare «Send inn».
 
@@ -106,7 +106,7 @@ Read the left line, then the right one. The lines are short on purpose.
 
 ### 12. Scenario 1: Noe feiler under innsending · plays through in 7 presses
 
-> Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra start. PDF-en blir for eksempel laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.
+> Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra start. En melding appen sender underveis, kan for eksempel gå ut to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.
 
 ### 13. Scenario 2: Serveren startes på nytt · plays through in 7 presses
 

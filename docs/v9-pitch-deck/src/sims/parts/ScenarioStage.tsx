@@ -116,7 +116,6 @@ function RunColumn({ scenario, side, cursor }: { scenario: Scenario; side: Side;
                   )}
                 </span>
                 <span className="arow__text">{beat.text}</span>
-                {beat.at && <span className="arow__at">{beat.at}</span>}
               </motion.li>
             );
           })}
@@ -139,6 +138,11 @@ function SummaryView({ scenario }: { scenario: Scenario }) {
               <h3 className="scn__card-title">{SIDE_TITLE[side]}</h3>
               <Phone frame={scenario.frame} screen={screenAt(run, run.beats.length)} />
               <p className="scn__card-outcome">{run.outcome}</p>
+              <ul className="scn__card-details">
+                {run.details.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ul>
             </section>
           );
         })}

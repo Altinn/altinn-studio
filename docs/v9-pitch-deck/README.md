@@ -19,7 +19,7 @@ procedure — the deck needs no network once it is built (Inter is self-hosted),
 on a dead conference Wi-Fi.
 
 **[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (38), the keyboard cheat sheet, and the "do not overclaim" guardrails.
+takes, the total (35), the keyboard cheat sheet, and the "do not overclaim" guardrails.
 Print it or keep it on the second screen.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
@@ -227,7 +227,7 @@ to close.
 A cover that maps the talk, three parts — infrastruktur, frontend, backend — then the ask, in norsk
 bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of each entry in
 `src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run sheet in
-[`NOTES.md`](NOTES.md). 15 slides + 24 build steps = **38 presses of `→`**.
+[`NOTES.md`](NOTES.md). 15 slides + 21 build steps = **35 presses of `→`**.
 
 | #  | `id`                       | Slide                                                        | Steps |
 | -- | -------------------------- | ------------------------------------------------------------ | ----- |
@@ -238,7 +238,7 @@ bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of 
 | 5  | `frontend-folger-appen`    | Raskere, og i takt med appen — speed bars, one package       | 1     |
 | 6  | `frontend-brukerne-merker` | Brukeropplevelsen                                            | 0     |
 | 7  | `seksjon-backend`          | Del 3 — Backend                                              | 0     |
-| 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 3     |
+| 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 0     |
 | 9  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 0     |
 | 10 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 11 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
