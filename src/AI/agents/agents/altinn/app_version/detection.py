@@ -13,6 +13,7 @@ from pathlib import Path
 
 from .profile import AppVersionProfile
 from .v8 import V8_PROFILE
+from .v9 import V9_PROFILE
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +28,8 @@ def detect_app_version_profile(repo_path: str) -> AppVersionProfile:
 
 
 def get_app_version_profile(major_version: int) -> AppVersionProfile:
+    if major_version >= V9_PROFILE.major_version:
+        return V9_PROFILE
     return V8_PROFILE
 
 

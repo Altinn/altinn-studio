@@ -63,7 +63,9 @@ jobs:
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: docker build
-        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f dockerfile .
+        # Build from the repo root in order to bundle the v9 layout schemas
+        working-directory: ${{ github.workspace }}
+        run: docker build -t ${{ steps.vars.outputs.image-repo }} -f src/AI/agents/dockerfile .
 
       - name: push image
         run: docker push ${{ steps.vars.outputs.image-repo }}

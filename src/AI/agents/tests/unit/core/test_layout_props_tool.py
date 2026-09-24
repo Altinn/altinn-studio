@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 
-from agents.altinn.app_version import V8_PROFILE, AppVersionProfile
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import LoopContext
 from agents.core.tools.altinn_tools import LayoutPropsArgs, LayoutPropsTool
 
@@ -94,3 +94,10 @@ async def test_layout_props_links_the_layout_schema_of_the_app_version(monkeypat
     result = await _run_tool("Header", OTHER_VERSION_PROFILE)
 
     assert result.metadata["source"]["url"] == OTHER_VERSION_PROFILE.layout_schema_display_url
+
+
+async def test_a_v9_app_is_told_a_datepicker_stores_a_date_only_by_default():
+    result = await _run_tool("Datepicker", V9_PROFILE)
+
+    constraints = " ".join(json.loads(result.content)["constraints"])
+    assert '"timeStamp" defaults to false' in constraints
