@@ -162,6 +162,70 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
     }
 
     [Fact]
+    public async Task GetCollection_IncludesCurrentStepFailedAttempts()
+    {
+        // A consumer escalates its waiting message on failed attempts, so the count must be the
+        // current step's own: a completed step's leftover retries must not leak into it.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a") with
+        {
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "step-1",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-2",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+        var results = await EnqueueWithCollection(repo, "failed-attempts-collection", [wf]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var fresh = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(fresh);
+        Assert.Equal(0, Assert.Single(fresh.Heads).FailedAttempts);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        var steps = workflow.Steps.OrderBy(s => s.ProcessingOrder).ToList();
+        steps[0].Status = PersistentItemStatus.Requeued;
+        steps[0].RequeueCount = 2;
+        await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
+
+        var failing = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(failing);
+        Assert.Equal(2, Assert.Single(failing.Heads).FailedAttempts);
+
+        steps[0].Status = PersistentItemStatus.Completed;
+        await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
+        steps[1].Status = PersistentItemStatus.Requeued;
+        steps[1].RequeueCount = 1;
+        await repo.UpdateStep(steps[1], cancellationToken: TestContext.Current.CancellationToken);
+
+        var next = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(next);
+        Assert.Equal(1, Assert.Single(next.Heads).FailedAttempts);
+    }
+
+    [Fact]
     public async Task GetCollection_IncludesHeadCreatedAtAndCurrentEngineTime()
     {
         // The collection detail exposes each head's creation time so a consumer can anchor

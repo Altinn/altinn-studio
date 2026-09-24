@@ -298,6 +298,11 @@
         "Nullable": false
       },
       {
+        "Name": "failedAttempts",
+        "Kind": "int",
+        "Nullable": true
+      },
+      {
         "Name": "labels",
         "Kind": "map<string,string>",
         "Nullable": true

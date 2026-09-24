@@ -148,4 +148,16 @@ public sealed record CollectionHeadStatus
     [JsonPropertyName("waitingReason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WaitingReason { get; init; }
+
+    /// <summary>
+    /// Gets how many consecutive attempts of the head's current step (its first step that has not
+    /// completed) have failed and been scheduled for retry — that step's
+    /// <see cref="Step.RequeueCount"/>. It stays put while a retry attempt executes and returns to
+    /// zero when the step defers or is resumed, so a consumer can tell a failing step apart from a
+    /// slow one. Nullable for the same additive-contract reason as <see cref="StepsCompleted"/>;
+    /// always populated by the engine.
+    /// </summary>
+    [JsonPropertyName("failedAttempts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedAttempts { get; init; }
 }

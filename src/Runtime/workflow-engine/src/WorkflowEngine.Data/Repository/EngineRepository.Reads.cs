@@ -98,6 +98,12 @@ internal sealed partial class EngineRepository
                                         .Select(s => s.LastDeferReason)
                                         .FirstOrDefault()
                                     : null,
+                            FailedAttempts =
+                                w.Steps.Where(s => s.Status != PersistentItemStatus.Completed)
+                                    .OrderBy(s => s.ProcessingOrder)
+                                    .Select(s => (int?)s.RequeueCount)
+                                    .FirstOrDefault()
+                                ?? 0,
                         })
                         .ToListAsync(cancellationToken)
                     : [];
