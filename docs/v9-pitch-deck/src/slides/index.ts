@@ -43,7 +43,7 @@ export const slides: SlideDef[] = [
     component: Forside,
     steps: 2,
     notes:
-      'Tre deler: plattformen appene kjører på, det brukerne ser, og det som skjer etter «Send inn». Vi avslutter med hvordan dere kan bli med som pilot.',
+      'Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kan bli med som pilot.',
   },
   {
     id: 'seksjon-infrastruktur',
@@ -78,7 +78,7 @@ export const slides: SlideDef[] = [
   {
     id: 'seksjon-backend',
     component: SeksjonBackend,
-    notes: 'Del 3: det som skjer etter «Send inn».',
+    notes: 'Del 3: det appen gjør bak kulissene — prosessene, stegene og logikken. «Send inn» er bare det mest kjente eksempelet.',
   },
   {
     id: 'ett-klikk',
@@ -113,7 +113,7 @@ export const slides: SlideDef[] = [
     component: Dashbord,
     steps: 3,
     notes:
-      'Dashbordet viser innsendinger som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.',
+      'Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.',
   },
   {
     id: 'oppgradering',

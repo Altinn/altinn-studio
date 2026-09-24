@@ -10,7 +10,7 @@ export function SeksjonFrontend() {
 }
 
 export function SeksjonBackend() {
-  return <SectionSlide no="Del 3" title="Backend" lead="Det som skjer etter «Send inn»." />;
+  return <SectionSlide no="Del 3" title="Backend" lead="Det appen gjør bak kulissene." />;
 }
 
 export function SeksjonReserve() {

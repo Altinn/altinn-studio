@@ -11,7 +11,7 @@ const FEATURES: Feature[] = [
     icon: 'server',
     eyebrow: 'Prosessmotor',
     title: 'Arbeidet blir gjort ferdig',
-    body: 'Alt som skjer etter «Send inn», lagres steg for steg og fullføres, også når noe feiler underveis.',
+    body: 'Hvert steg i prosessen lagres og gjøres ferdig, også når noe feiler underveis.',
   },
   {
     icon: 'shield',
@@ -39,7 +39,7 @@ export default function InfraNyttIV9Slide({ step }: SlideProps) {
       <div className="s-fill">
         <FeatureGrid features={FEATURES} />
         <ComingStrip show={step >= 1}>
-          Status fra prosessmotoren i adminsidene i Studio: se hvilke innsendinger som står fast,
+          Status fra prosessmotoren i adminsidene i Studio: se hvilke prosesser som står fast,
           og start dem igjen derfra.
         </ComingStrip>
         <p className="s-footnote">
