@@ -23,6 +23,9 @@ export const useReplaceDataModelXsdMutation = (modelPath: string, meta?: Mutatio
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.JsonSchema, org, app, modelPath] }),
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey.DataModelGenerationStatus, org, app, modelPath],
+        }),
       ]);
     },
     meta,

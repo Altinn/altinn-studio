@@ -5,9 +5,16 @@ import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMo
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import userEvent from '@testing-library/user-event';
 
+const updateLayoutSetIdMock = jest.fn();
+jest.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
+  useUpdateLayoutSetId: () => updateLayoutSetIdMock,
+}));
+
 const existingLayoutSetNameMock = 'existingLayoutSetName';
 
 describe('EditLayoutSetName', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should render the layoutSetName button', () => {
     renderEditLayoutSetName();
     const editLayoutSetName = screen.getByRole('button', {
@@ -27,11 +34,10 @@ describe('EditLayoutSetName', () => {
     );
   });
 
-  it('should call mutateLayoutSet when changing name', async () => {
+  it('should call updateLayoutSetId when changing name', async () => {
     const user = userEvent.setup();
     const newLayoutSetName = 'newLayoutSetName';
-    const mutateLayoutSetIdMock = jest.fn();
-    renderEditLayoutSetName({ mutateLayoutSetId: mutateLayoutSetIdMock });
+    renderEditLayoutSetName();
     const editLayoutSetName = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_layout_set_name_label'),
     });
@@ -42,17 +48,13 @@ describe('EditLayoutSetName', () => {
     await user.clear(inputNewLayoutSetName);
     await user.type(inputNewLayoutSetName, newLayoutSetName);
     await user.tab();
-    expect(mutateLayoutSetIdMock).toHaveBeenCalledTimes(1);
-    expect(mutateLayoutSetIdMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: existingLayoutSetNameMock,
-      newLayoutSetId: newLayoutSetName,
-    });
+    expect(updateLayoutSetIdMock).toHaveBeenCalledTimes(1);
+    expect(updateLayoutSetIdMock).toHaveBeenCalledWith(existingLayoutSetNameMock, newLayoutSetName);
   });
 
-  it('should not call mutateLayoutSet when changing name to original', async () => {
+  it('should not call updateLayoutSetId when changing name to original', async () => {
     const user = userEvent.setup();
-    const mutateLayoutSetIdMock = jest.fn();
-    renderEditLayoutSetName({ mutateLayoutSetId: mutateLayoutSetIdMock });
+    renderEditLayoutSetName();
     const editLayoutSetName = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_layout_set_name_label'),
     });
@@ -63,7 +65,7 @@ describe('EditLayoutSetName', () => {
     await user.clear(inputNewLayoutSetName);
     await user.type(inputNewLayoutSetName, existingLayoutSetNameMock);
     await user.tab();
-    expect(mutateLayoutSetIdMock).not.toHaveBeenCalled();
+    expect(updateLayoutSetIdMock).not.toHaveBeenCalled();
   });
 });
 
