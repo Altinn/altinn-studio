@@ -95,13 +95,16 @@ public class DatamodelsController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        string decodedPath = Uri.UnescapeDataString(modelPath!);
+        if (string.IsNullOrWhiteSpace(modelPath))
+        {
+            return BadRequest();
+        }
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
         bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
             editingContext,
-            decodedPath,
+            modelPath,
             cancellationToken
         );
 
