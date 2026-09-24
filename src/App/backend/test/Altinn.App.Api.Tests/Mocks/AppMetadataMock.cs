@@ -82,7 +82,10 @@ public class AppMetadataMock : IAppMetadata
                     );
                 }
 
-                application.Features = await _frontendFeatures.GetFrontendFeatures();
+                application.Features = new Dictionary<string, bool>(
+                    _frontendFeatures.GetDictionary(),
+                    StringComparer.Ordinal
+                );
 
                 foreach (var hook in _mutationHooks)
                     hook.Action(application);

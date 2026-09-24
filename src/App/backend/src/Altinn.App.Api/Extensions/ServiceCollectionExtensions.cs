@@ -26,7 +26,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -92,7 +91,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddMemoryCache();
         services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
-        services.AddFeatureManagement();
 
         services.AddPlatformServices(config, env);
         services.AddAppServices(config, env);

@@ -80,7 +80,10 @@ public class AppMetadata : IAppMetadata
                     );
                 }
 
-                application.Features = await _frontendFeatures.GetFrontendFeatures();
+                application.Features = new Dictionary<string, bool>(
+                    _frontendFeatures.GetDictionary(),
+                    StringComparer.Ordinal
+                );
                 application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
                 application.OnEntry ??= new OnEntry { Show = "new-instance" };
                 application.OnEntry.Show ??= "new-instance";
