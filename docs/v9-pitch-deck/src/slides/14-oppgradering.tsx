@@ -2,16 +2,19 @@ import type { SlideProps } from '../deck';
 import { Slide, Reveal } from '../components';
 
 /**
- * What `studioctl app upgrade v9` does, in plain words. The three TODO lines
- * are the ones the tool reports rather than rewrites: permissions the app uses
- * itself, archive tasks, and feedback steps behind a service task (CHANGELOG).
+ * What `studioctl app upgrade v9` does, in plain words, one line per group of
+ * its steps (`Upgrade/v8Tov9/V8Tov9Upgrade.cs`). Rewritten: namespaces and the
+ * renamed APIs, PDF and eFormidling as service tasks, and the service-owner
+ * grants in policy.xml (ServiceOwnerPolicyMigrator). Reported as TODO: the
+ * removed task hooks (RemovedTaskEventInterfaceDetector, ported by hand) and
+ * feedback steps behind a service task (FeedbackAfterServiceTaskAdvisor).
  */
 const TERMINAL: { text: string; kind: 'cmd' | 'ok' | 'todo' }[] = [
   { text: 'studioctl app upgrade v9', kind: 'cmd' },
-  { text: 'Navn i koden er oppdatert', kind: 'ok' },
+  { text: 'Navn og navnerom i koden er oppdatert', kind: 'ok' },
   { text: 'PDF og forsendelse er egne tjenesteoppgaver', kind: 'ok' },
-  { text: 'Tilganger appen bruker selv', kind: 'todo' },
-  { text: 'Arkivoppgaver: ett steg legges til', kind: 'todo' },
+  { text: 'Tilgangene appen trenger, er lagt til', kind: 'ok' },
+  { text: 'Egen kode i prosessteg skrives om', kind: 'todo' },
   { text: 'Ventesteg som ikke lenger trengs', kind: 'todo' },
 ];
 
@@ -25,7 +28,7 @@ export default function OppgraderingSlide({ step }: SlideProps) {
       splitRatio="820px 788px"
       kicker="Backend"
       title="Slik oppgraderer du til v9"
-      subtitle="Prosessen din er den samme, og ett verktøy gjør det meste av jobben."
+      subtitle="Prosessen din er den samme. Oppgraderingen kjøres rett fra Studio, eller med studioctl."
     >
       <div className="s-fill" style={{ justifyContent: 'flex-start', gap: 'var(--sp-4)' }}>
         <div className="s-bpmn">
@@ -86,7 +89,7 @@ export default function OppgraderingSlide({ step }: SlideProps) {
             </p>
           ))}
           <p className="s-term__note">
-            Verktøyet peker ut de tre punktene som gjøres for hånd.
+            Resten skriver verktøyet om selv, og det peker ut det som gjøres for hånd.
           </p>
         </div>
       </Reveal>

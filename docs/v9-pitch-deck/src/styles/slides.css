@@ -1146,3 +1146,15 @@
 .s-leadswap > * {
   grid-area: 1 / 1;
 }
+
+/* Optical alignment for the cover and the section dividers — same reason as
+   `.slide__title` in components.css, larger type (measured). */
+.s-cover__title,
+.s-cover__lead,
+.s-section__title {
+  margin-left: -0.05em;
+}
+
+.s-section__lead {
+  margin-left: -0.04em;
+}

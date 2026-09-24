@@ -158,16 +158,17 @@ deck; section 2 says where the copy lives; section 3 is the glossary.
     following exclusive gateway (by hand). (source: template diff;
     `src/App/backend/src/Altinn.App.Analyzers/Diagnostics.cs` ALTINNAPP0600/0601;
     `src/App/backend/CHANGELOG.md` 9.0.0-preview.4/.5)
-25. The upgrade is **part-automatic, part TODO list**: `studioctl app upgrade v9` runs ~25 migration
-    jobs, compiles the app against its v8 packages first for exact type information, rewrites what it
-    can and prints `TODO` for what it cannot; some changes have **no** automated upgrade at all. Real
-    work an app must do: task hooks renamed (`IProcessTaskStart/End/Abandon` →
-    `IOnTaskStartingHandler`/`IOnTaskEndingHandler`/`IOnTaskAbandonHandler`), the Altinn Events
-    **receive** stack removed entirely (`IEventHandler`, the `eventsreceiver` endpoint), eFormidling
-    registration moved to a builder, and a new build check that the app's `policy.xml` grants the org
-    the rights it now uses on its own behalf. (source:
-    `src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs`; `src/cli/CHANGELOG.md` L33;
-    `src/App/backend/CHANGELOG.md`, 9.0.0-preview.2/.4/.5)
+25. The upgrade is **part-automatic, part TODO list**: `studioctl app upgrade v9` runs ~33 steps,
+    compiles the app against its v8 packages first for exact type information, rewrites what it
+    can and prints `TODO` for what it cannot (checked on `main` 2026-09-24,
+    `src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs`). **Rewritten:**
+    namespaces and the APIs v9 renamed, PDF and eFormidling as BPMN service tasks, and the
+    service-owner grants the engine needs in `policy.xml` (`ServiceOwnerPolicyMigrator` inserts the
+    missing rule). **Reported as TODO:** the removed task hooks (`IProcessTaskStart/End/Abandon`,
+    `ITaskEvents`) must be ported by hand to `IOnTaskStartingHandler`/`IOnTaskEndingHandler`/
+    `IOnTaskAbandonHandler` (`RemovedTaskEventInterfaceDetector`), and feedback steps behind a
+    service task are flagged (`FeedbackAfterServiceTaskAdvisor`). There is **no** upgrade step for
+    an archive gateway; do not claim one.
 
 ### Infrastructure: what every app already has
 
@@ -255,9 +256,11 @@ deck; section 2 says where the copy lives; section 3 is the glossary.
   appears only while a service task deliberately waits, and **never** for a failure.
 - ✗ **"v8 had no protection against double submits."** True up to v8.10 only. From v8.11 there is a
   Storage lock lease (5 min TTL, 409 on contention). Frame v9 as durable-and-fenced, not first-ever.
-- ✗ **"v9 is out, upgrade today."** Latest is **9.0.0-preview.6** (2026-09-18). The engine is a
-  closed beta, internal only for now (ttd → ring1), deployed in at23 and tt02 and opened to more
-  organisations as needed or on request. This is a «bli med i pilotene» pitch.
+- ✗ **"v9 is out and finished."** Latest is **9.0.0-preview.6** (2026-09-18). The user's plan on
+  2026-09-24: an **open beta within the month**, self-serve (no per-app gating), and an upgrade
+  tool **in the Studio web UI** (studioctl + an AI agent) before that launch. The deck states both
+  as fact («v9 er i åpen beta», «Oppgraderingen kjøres rett fra Studio»). **Re-check both before
+  presenting.**
 - ✗ **"v9 is a new frontend" / "much faster".** See §1.29–31: same codebase, one measurement.
 - ✗ **"Upgrade to get the new platform."** Most of it reaches v8 apps already (§1.26). Say so.
 - ✗ **"Notifications and correspondence de-duplicate themselves in v9."** Correspondence

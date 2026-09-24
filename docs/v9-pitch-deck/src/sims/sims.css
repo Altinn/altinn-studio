@@ -100,9 +100,10 @@
 }
 
 .scn__pair {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
   gap: 40px;
 }
 
@@ -110,7 +111,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 24px 28px;
+  padding: 26px 30px;
   border-radius: var(--r-md);
   border: 3px solid var(--t-line);
   background: color-mix(in srgb, var(--t) 5%, transparent);
@@ -455,6 +456,10 @@
   line-height: 1.2;
   color: var(--ink-2);
   text-wrap: balance;
+}
+
+.scn__takeaway.is-placeholder {
+  visibility: hidden;
 }
 
 .scn__takeaway-rule {
