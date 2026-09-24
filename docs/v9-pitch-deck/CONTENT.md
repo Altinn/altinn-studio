@@ -267,6 +267,9 @@ deck; section 2 says where the copy lives; section 3 is the glossary.
 - ✗ **"Notifications and correspondence de-duplicate themselves in v9."** Correspondence
   de-duplication is opt-in (`WithIdempotentKey`, one recipient, a duplicate comes back as 409); the
   app-facing notification clients send no key at all.
+- ✗ **"Deploy whenever you like; submissions carry on across versions."** Work that resumes
+  under a *new* app version raises version compatibility, which is not solved. Scenario 2 is
+  framed as a restart (maintenance, scaling), never as a deploy.
 - ✗ Never name an archive-system vendor on a slide. Say *arkivintegrasjon* / *arkivsystem*.
 - ⚠ UNVERIFIED: what the *deployed* engine's wait-budget and retry settings are (repo defaults only);
   whether a published v9 migration guide exists outside this repo; whether preview.6 entries survive

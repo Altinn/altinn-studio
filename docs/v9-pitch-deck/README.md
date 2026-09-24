@@ -243,7 +243,7 @@ bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of 
 | 10 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 11 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
 | 12 | `scenario-feil`            | Scenario 1: a service does not answer for a moment           | 7     |
-| 13 | `scenario-omstart`         | Scenario 2: the server restarts during a deploy              | 7     |
+| 13 | `scenario-omstart`         | Scenario 2: the app restarts mid-submission                  | 7     |
 | 14 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
 | 15 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 0     |
 
