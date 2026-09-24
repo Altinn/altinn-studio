@@ -90,7 +90,10 @@ public class GitRepository
 
         string searchPatternMatch = patternMatch ?? "*.*";
 
-        return Directory.GetFiles(absoluteDirectory, searchPatternMatch, searchOption);
+        return Directory
+            .GetFiles(absoluteDirectory, searchPatternMatch, searchOption)
+            .Where(filePath => !IsReplacementFile(filePath))
+            .ToArray();
     }
 
     /// <summary>
@@ -139,7 +142,7 @@ public class GitRepository
 
         // Commented out ref comment below in the ReadTextByRelativePathAsync method
         // return await ReadTextAsync(absoluteFilePath)
-        return await ReadAllTextAsync(absoluteFilePath);
+        return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
     }
 
     /// <summary>
@@ -167,13 +170,13 @@ public class GitRepository
         try
         {
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-            return await ReadAllTextAsync(absoluteFilePath, cancellationToken);
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
         }
         catch (IOException)
         {
             Thread.Sleep(1000);
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-            return await ReadAllTextAsync(absoluteFilePath, cancellationToken);
+            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
         }
     }
 
@@ -188,7 +191,7 @@ public class GitRepository
 
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-        return OpenForReading(absoluteFilePath);
+        return File.OpenRead(absoluteFilePath);
     }
 
     /// <summary>
@@ -540,20 +543,16 @@ public class GitRepository
         );
     }
 
-    /// <summary>
-    /// Opens a file for reading without blocking a concurrent <see cref="ReplaceFileAsync"/> from moving a new file
-    /// over it.
-    /// </summary>
-    private static FileStream OpenForReading(string absoluteFilePath) =>
-        new(absoluteFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+    private const string ReplacementFilePrefix = ".";
 
-    private static async Task<string> ReadAllTextAsync(
-        string absoluteFilePath,
-        CancellationToken cancellationToken = default
-    )
+    // The app template ignores *.tmp, so git does not stage a replacement file in an app repository.
+    private const string ReplacementFileExtension = ".tmp";
+
+    private static bool IsReplacementFile(string filePath)
     {
-        using StreamReader reader = new(OpenForReading(absoluteFilePath), Encoding.UTF8);
-        return await reader.ReadToEndAsync(cancellationToken);
+        string fileName = Path.GetFileName(filePath);
+        return fileName.StartsWith(ReplacementFilePrefix, StringComparison.Ordinal)
+            && fileName.EndsWith(ReplacementFileExtension, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -564,7 +563,7 @@ public class GitRepository
     {
         string temporaryFilePath = Path.Combine(
             Path.GetDirectoryName(absoluteFilePath),
-            $".{Path.GetFileName(absoluteFilePath)}.{Guid.NewGuid():N}.tmp"
+            $"{ReplacementFilePrefix}{Path.GetFileName(absoluteFilePath)}.{Guid.NewGuid():N}{ReplacementFileExtension}"
         );
         try
         {
@@ -591,7 +590,10 @@ public class GitRepository
         }
         catch
         {
-            File.Delete(temporaryFilePath);
+            if (File.Exists(temporaryFilePath))
+            {
+                File.Delete(temporaryFilePath);
+            }
             throw;
         }
     }

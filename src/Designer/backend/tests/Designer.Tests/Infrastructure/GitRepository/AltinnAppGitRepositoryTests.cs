@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -204,6 +205,32 @@ public class AltinnAppGitRepositoryTests : IDisposable
         Assert.NotNull(layoutNames);
         Assert.Equal(2, layoutNames.Length);
         return Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task GetLayoutNames_DuringLayoutWrite_ShouldReturnOnlyLayouts()
+    {
+        string org = "ttd";
+        string repository = "app-with-layoutsets";
+        string developer = "testUser";
+        string layoutSetName = "layoutSet1";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+        string[] layoutNamesBeforeWrite = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+        var layout = new PausingStream(Encoding.UTF8.GetBytes("{\"data\":"), Encoding.UTF8.GetBytes("{}}"));
+        Task write = altinnAppGitRepository.WriteStreamByRelativePathAsync(
+            $"App/ui/{layoutSetName}/layouts/layoutFile1InSet1.json",
+            layout
+        );
+        await layout.Paused;
+
+        string[] layoutNamesDuringWrite = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+
+        layout.Resume();
+        await write;
+        Assert.Equal(layoutNamesBeforeWrite, layoutNamesDuringWrite);
     }
 
     [Fact]
