@@ -5,6 +5,9 @@ bundle=${AGENT_BROWSER_CA_BUNDLE:-/etc/ssl/certs/ca-certificates.crt}
 nssdb=${AGENT_BROWSER_NSSDB_DIR:-${HOME:?HOME is required}/.pki/nssdb}
 state_dir=${AGENT_BROWSER_CA_STATE_DIR:-${HOME}/.config/altinn-agent}
 state_file=$state_dir/chromium-ca-state
+# The import runs in the background after boot. The runtime directory is emptied on every boot, so
+# this marker tells a Session that Chromium trusts the current bundle.
+ready_file=${AGENT_BROWSER_CA_READY_FILE:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/chromium-ca-ready}
 
 if [ ! -r "$bundle" ]; then
     echo "Chromium CA bundle is not readable: $bundle" >&2
@@ -15,6 +18,7 @@ bundle_digest=$(sha256sum "$bundle" | awk '{ print $1 }')
 if [ -f "$nssdb/cert9.db" ] \
     && [ -f "$state_file" ] \
     && [ "$(sed -n '1p' "$state_file")" = "$bundle_digest" ]; then
+    touch "$ready_file"
     exit 0
 fi
 
@@ -76,3 +80,4 @@ for file in "$staged"/*; do
     mv "$nssdb/.$name.new" "$nssdb/$name"
 done
 mv "$next_state" "$state_file"
+touch "$ready_file"
