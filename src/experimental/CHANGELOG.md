@@ -14,21 +14,17 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Added
 
-- `agentctl describe agent` shows whether a failed Agent is being retried or needs a change to its manifest, the
-  phases and step of provisioning that is running or failed with the output of the step that failed, and how long each
-  condition has been in its current state.
-- Agent status in `agentctl get -o yaml` and `-o json` includes each condition's `lastTransitionTime`, the failure
-  class and the provisioning progress.
-- Provisioning reports Agent setup and SSH access as their own phases, so time spent verifying harnesses, syncing the
-  home directory and installing instructions and Skills is visible instead of silent.
+- `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
+  whether a failure is being retried, and how long each condition has held its state.
+- Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and
+  provisioning progress.
+- Provisioning shows Agent setup and SSH access as phases of their own.
 
 ### Changed
 
-- `agentctl apply --wait` and other commands that wait for an Agent show the provisioning phase and step already in
-  progress when they start, and catch up instead of losing output when they fall behind. Without a terminal, every
-  step's output is printed in the order it happened.
-- Image pulls and imports report downloading layers, materializing layers and assembling the root disk as separate
-  steps, instead of one progress figure that jumped between layers.
+- Commands that wait for an Agent, such as `apply --wait`, pick up provisioning already in progress and no longer drop
+  output when they fall behind.
+- Image pulls and imports show downloading, materializing and assembling as separate steps.
 
 ## [0.1.0-preview.6] - 2026-09-23
 

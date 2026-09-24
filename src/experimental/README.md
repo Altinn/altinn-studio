@@ -73,17 +73,12 @@ scans ensure dropped notifications or daemon restarts do not lose work. Provider
 incarnation, and a reused Agent name never inherits resources from a deleted incarnation. The Sandbox is named after the
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
-Progress is observed as state, not as a stream. The Sandbox SDK reports phases and steps as events: a step belongs to
-the phase in progress, and a measured step reports one quantity. The SDK folds them into a `Progress` value that
-renderers read through a cursor, so an observer that joins late or falls behind renders what one that saw every event
-would. The reconciler keeps the `Progress` of each Agent's latest pass, including its own setup and SSH access phases,
-in daemon memory, because after a restart no pass is running. A periodic resync of a Ready Agent replaces it only when
-the resync fails, so the pass that provisioned the Agent stays visible. The durable outcome is the stored conditions,
-stamped with `lastTransitionTime` on each status or reason change, and the failure class. Every Agent and Session write
-and every progress change advances one daemon-wide revision. `agents.v1.progress` long-polls one Agent's status and
-progress, which `agentctl --wait` follows while the call it waits for runs, and `resources.v1.watch` long-polls every
-Agent and Session for views of the whole platform. Neither call is a mutation, and both return when the daemon drains,
-so an observer never holds up an upgrade.
+Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
+value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each
+Agent's latest provisioning pass in memory, and records a routine resync of a Ready Agent only when it fails; the
+durable outcome is the Agent's conditions, with their transition times, and its failure class. Clients follow one Agent
+with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
+drains.
 
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
