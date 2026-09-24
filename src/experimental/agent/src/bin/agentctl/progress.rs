@@ -276,7 +276,10 @@ impl<W: Write> Renderer<W> {
         }
         self.seen_condition = Some(detail.clone());
         let failing = progress.status.failure == Some(FailureKind::Transient);
-        let explained_by_pass = started && progress.provisioning.is_some();
+        // A failed pass reports the failure itself, also when following begins after it.
+        let explained_by_pass = progress.provisioning.as_ref().is_some_and(|provisioning| {
+            started || matches!(provisioning.progress.status(), OperationStatus::Failed { .. })
+        });
         if failing && !explained_by_pass {
             self.clear_active_line()?;
             self.error(&detail)?;
@@ -727,6 +730,25 @@ mod tests {
             vec!["  ✓ Create Microsandbox VM (12ms)", "✓ Start Sandbox (13ms)"],
             "only the pass that ran while following is printed"
         );
+    }
+
+    #[test]
+    fn a_pass_that_failed_before_following_began_reports_its_error_once() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        daemon.phase(SandboxPhase::SandboxStart).fail("VMDK missing");
+        renderer.render(&daemon.snapshot());
+        renderer.finish();
+        let lines = lines(renderer);
+        assert_eq!(
+            lines
+                .iter()
+                .filter(|line| line.as_str() == "error: VMDK missing")
+                .count(),
+            1,
+            "{lines:#?}"
+        );
+        assert_eq!(lines.first().map(String::as_str), Some("✗ Start Sandbox (0ms)"));
     }
 
     #[test]
