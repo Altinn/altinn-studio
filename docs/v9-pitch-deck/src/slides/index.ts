@@ -57,7 +57,7 @@ export const slides: SlideDef[] = [
     component: FrontendFolgerAppen,
     steps: 1,
     notes:
-      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene kommer fra én måling i et skjema med 32 sider. Si det hvis noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen. Appen din er backend, altså Altinn-bibliotekene og deres egen kode, pluss frontend, og alt har samme versjon. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.',
+      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene kommer fra én måling i et skjema med 32 sider. Si det hvis noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen. Appen din er backend, altså Altinn-bibliotekene og deres egen kode, pluss frontend, og alt har samme versjon. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er den versjonen du tester, den samme som brukerne får.',
   },
   {
     id: 'frontend-brukerne-merker',
