@@ -33,4 +33,5 @@ V8_PROFILE = AppVersionProfile(
         **VERSION_NEUTRAL_BINDING_CONSTRAINTS,
         "Datepicker": _DATEPICKER_CONSTRAINTS,
     },
+    forbidden_new_file_patterns={},
 )

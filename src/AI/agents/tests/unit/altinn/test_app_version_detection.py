@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agents.altinn.app_version import detect_app_major_version
+from agents.altinn.app_version import (
+    V8_PROFILE,
+    V9_PROFILE,
+    detect_app_major_version,
+    detect_app_version_profile,
+)
 
 
 def _write_project_file(repo: Path, package_references: str) -> None:
@@ -65,3 +70,15 @@ def test_falls_back_to_v8_when_the_project_file_is_not_valid_xml(tmp_path: Path)
     project_file.write_text("<Project", encoding="utf-8")
 
     assert detect_app_major_version(str(tmp_path)) == 8
+
+
+def test_a_v8_app_gets_the_v8_profile(tmp_path: Path):
+    _write_project_file(tmp_path, _package_reference("8.7.0"))
+
+    assert detect_app_version_profile(str(tmp_path)) is V8_PROFILE
+
+
+def test_a_v9_app_gets_the_v9_profile(tmp_path: Path):
+    _write_project_file(tmp_path, _package_reference("9.0.0-preview.4"))
+
+    assert detect_app_version_profile(str(tmp_path)) is V9_PROFILE

@@ -2,12 +2,26 @@
 
 import json
 from collections import defaultdict
+from collections.abc import Mapping
 from typing import Any
 from urllib.parse import urlparse
 
 import requests
 from jsonschema import Draft7Validator, ValidationError
-from jsonschema.exceptions import SchemaError
+from referencing import Registry, Resource
+from referencing.exceptions import NoSuchResource
+from referencing.jsonschema import DRAFT7
+
+_EXPRESSION_SCHEMA_FILE_NAME = "expression.schema.v1.json"
+# Stands in for an expression schema that cannot be fetched. The layout schemas
+# reference only these three of its definitions.
+_EXPRESSION_SCHEMA_FALLBACK = {
+    "definitions": {
+        "string": {"type": "string"},
+        "boolean": {"type": "boolean"},
+        "number": {"type": "number"},
+    }
+}
 
 
 def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> dict[str, Any]:
@@ -103,13 +117,18 @@ def normalize_input_to_layout(parsed_input: Any) -> dict[str, Any]:
     raise ValueError("Unsupported input type")
 
 
-def validate_layout_json(layout: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
+def validate_layout_json(
+    layout: dict[str, Any],
+    schema: dict[str, Any],
+    referenced_schemas: Mapping[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """
     Validate an entire json against the schema.
 
     Args:
         layout: The json to validate (full structure with $schema and data)
         schema: The schema to validate against
+        referenced_schemas: Schemas its `$ref`s point to, keyed by `$id`
 
     Returns:
         Dictionary with validation results
@@ -117,41 +136,8 @@ def validate_layout_json(layout: dict[str, Any], schema: dict[str, Any]) -> dict
     validation_errors = []
 
     try:
-        # Create a custom resolver that handles missing external references gracefully
-        from jsonschema import RefResolver
-
-        # Create a custom resolver that substitutes missing external refs with basic types
-        def custom_resolver(uri):
-            if "expression.schema.v1.json" in uri:
-                # Return basic type definitions for missing expression schema
-                if "string" in uri:
-                    return {"type": "string"}
-                elif "boolean" in uri:
-                    return {"type": "boolean"}
-                elif "number" in uri:
-                    return {"type": "number"}
-                else:
-                    return {"type": "string"}  # fallback
-            return None
-
-        # Create resolver with custom handling
-        resolver = RefResolver.from_schema(schema)
-
-        # Override the resolver's resolve method to handle missing refs
-        original_resolve = resolver.resolve
-
-        def patched_resolve(url):
-            try:
-                return original_resolve(url)
-            except Exception:
-                # If resolution fails, try our custom resolver
-                result = custom_resolver(url)
-                if result:
-                    return url, result
-                raise
-
-        resolver.resolve = patched_resolve
-        validator = Draft7Validator(schema, resolver=resolver)
+        registry = _build_schema_registry(schema, referenced_schemas or {})
+        validator = Draft7Validator(_reference_to_root(schema), registry=registry)
 
         # Collect all validation errors
         raw_errors = list(validator.iter_errors(layout))
@@ -171,6 +157,39 @@ def validate_layout_json(layout: dict[str, Any], schema: dict[str, Any]) -> dict
         message = "Layout validation passed"
 
     return {"status": status, "message": message, "validation_errors": validation_errors}
+
+
+def _build_schema_registry(schema: dict[str, Any], referenced_schemas: Mapping[str, dict[str, Any]]) -> Registry:
+    schemas_by_uri = {**referenced_schemas, schema.get("$id", ""): schema}
+    resources = [
+        (uri, Resource.from_contents(contents, default_specification=DRAFT7))
+        for uri, contents in schemas_by_uri.items()
+        if uri
+    ]
+    return Registry(retrieve=_retrieve_referenced_schema).with_resources(resources)
+
+
+def _reference_to_root(schema: dict[str, Any]) -> dict[str, Any]:
+    """Draft 7 ignores a `$id` next to `$ref`, as at the root of the layout schemas.
+
+    Without it the schema's relative `$ref`s have no base URI. Validating
+    through a `$ref` to the registered schema gives them that base again.
+    """
+    root_id = schema.get("$id")
+    return {"$ref": root_id} if root_id else schema
+
+
+def _retrieve_referenced_schema(uri: str) -> Resource:
+    """Fetch a `$ref` target that is not registered, from altinncdn.no."""
+    from . import get_layout_schema
+
+    try:
+        contents = get_layout_schema(uri)
+    except Exception as exc:
+        if _EXPRESSION_SCHEMA_FILE_NAME not in uri:
+            raise NoSuchResource(ref=uri) from exc
+        contents = _EXPRESSION_SCHEMA_FALLBACK
+    return Resource.from_contents(contents, default_specification=DRAFT7)
 
 
 def _deduplicate_validation_errors(raw_errors: list[ValidationError]) -> list[dict[str, Any]]:
@@ -248,79 +267,6 @@ def _deduplicate_validation_errors(raw_errors: list[ValidationError]) -> list[di
                 )
 
     return deduplicated_errors
-
-
-def validate_json_object(
-    object: dict[str, Any],
-    schema: dict[str, Any],
-) -> dict[str, Any]:
-    """Validate component using jsonschema library and extract detailed information.
-
-    Args:
-        object: The object instance to validate
-        schema: The complete schema for reference resolution
-        component_type: The component type name
-
-    Returns:
-        Dictionary with validation results and detailed error information
-    """
-    try:
-        # Create validator with the component definition and provide the full schema for $ref resolution
-        from jsonschema import RefResolver
-
-        # Create a resolver with the full schema
-        resolver = RefResolver.from_schema(schema)
-        validator = Draft7Validator(schema, resolver=resolver)
-
-        # Validate and collect errors
-        errors = list(validator.iter_errors(object))
-        validation_errors = []
-        missing_required_properties = []
-
-        # Process validation errors
-        for error in errors:
-            error_info = {
-                "path": ".".join(str(p) for p in error.absolute_path),
-                "message": error.message,
-                "validator": error.validator,
-                "failed_value": error.instance,
-            }
-            validation_errors.append(error_info)
-
-            # Categorize errors
-            if error.validator == "required":
-                # Required properties missing
-                missing_required_properties.extend(error.validator_value)
-
-        # Determine validation status
-        if errors:
-            status = "validation_failed"
-            message = f"Object validation failed with {len(errors)} error(s)"
-        else:
-            status = "validation_passed"
-            message = "Object validation passed"
-
-        return {
-            "status": status,
-            "message": message,
-            "missing_required_properties": list(set(missing_required_properties)),  # Remove duplicates
-            "validation_errors": validation_errors,
-        }
-
-    except SchemaError as e:
-        return {
-            "status": "error",
-            "message": f"Invalid schema definition: {e!s}",
-            "missing_required_properties": [],
-            "validation_errors": [],
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Validation error: {e!s}",
-            "missing_required_properties": [],
-            "validation_errors": [],
-        }
 
 
 def load_layout_schema(schema_url: str) -> dict[str, Any]:

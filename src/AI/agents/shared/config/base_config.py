@@ -75,6 +75,10 @@ class BaseConfig:
     _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"
     ATTACHMENTS_ROOT = Path(os.getenv("AGENT_ATTACHMENTS_PATH", str(_DEFAULT_ATTACHMENTS_PATH)))
 
+    LAYOUT_SCHEMA_V9_DIR = (
+        PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json" / "layout"
+    )
+
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
     LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")

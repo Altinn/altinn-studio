@@ -50,7 +50,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.135.2" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "json-repair", specifier = ">=0.58.7" },
-    { name = "jsonschema", specifier = ">=4.0" },
+    { name = "jsonschema", specifier = ">=4.18" },
     { name = "langchain-core", specifier = ">=1.2.23" },
     { name = "langchain-openai", specifier = ">=1.1.12" },
     { name = "langfuse", specifier = ">=3.0.0" },

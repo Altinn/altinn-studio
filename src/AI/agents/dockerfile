@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
 
+# Built from the repo root so the image can bundle the v9 layout schemas from
+# src/common. dockerfile.dockerignore limits the context to what the image needs.
 FROM python:3.14-slim-bookworm@sha256:9ab8d9c8514b44f90cf0029dd42fdd7e9e211e639c8b995304cc04568dee900f
 
 WORKDIR /app
@@ -37,17 +39,20 @@ RUN curl -fsSL \
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinn.studio"
 
-COPY requirements.txt ./
+COPY src/AI/agents/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install --no-cache-dir "playwright>=1.49.0" && \
     playwright install --with-deps chromium
 
-COPY agents/ ./agents/
-COPY api/ ./api/
-COPY services/ ./services/
-COPY shared/ ./shared/
+COPY src/AI/agents/agents/ ./agents/
+COPY src/AI/agents/api/ ./api/
+COPY src/AI/agents/services/ ./services/
+COPY src/AI/agents/shared/ ./shared/
+# The v9 layout schemas, where BaseConfig.LAYOUT_SCHEMA_V9_DIR points from /app. The CDN
+# serves only the v8 contract.
+COPY src/common/ts/layout-contract/schemas/json/layout/ /common/ts/layout-contract/schemas/json/layout/
 
 EXPOSE 8071
 

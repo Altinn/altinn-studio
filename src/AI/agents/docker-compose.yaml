@@ -1,6 +1,10 @@
 services:
   altinity-agents:
-    build: .
+    # Build from the repo root so the image can bundle the v9 layout schemas
+    # (see dockerfile). dockerfile.dockerignore scopes the context.
+    build:
+      context: ../../..
+      dockerfile: src/AI/agents/dockerfile
     image: altinity-agents
     container_name: altinity-agents
     ports:

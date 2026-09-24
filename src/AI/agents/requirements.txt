@@ -28,5 +28,5 @@ json-repair>=0.58.7
 PyYAML>=6.0
 
 # Altinn domain library (agents/altinn)
-jsonschema>=4.0
+jsonschema>=4.18
 defusedxml>=0.7

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import date
 
-from agents.altinn.app_version import V8_PROFILE
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import SessionContext, build_system_prompt
 
 
@@ -166,6 +166,22 @@ class TestAppVersion:
         prompt = build_system_prompt(_base_ctx(app_version_profile=profile))
 
         assert "without one.\n\n8.  **A rule of this version.**" in prompt
+
+    def test_session_states_the_app_version(self):
+        prompt = build_system_prompt(_base_ctx(app_version_profile=V9_PROFILE))
+
+        assert "- App version: v9" in prompt
+
+    def test_a_v9_app_edits_layouts_in_the_folder_of_its_process_task(self):
+        prompt = build_system_prompt(_base_ctx(app_version_profile=V9_PROFILE))
+
+        assert "App/ui/<taskId>/layouts/" in prompt
+        assert "App/ui/<layoutSetId>/" not in prompt
+
+    def test_a_v9_app_is_told_headings_use_the_heading_component(self):
+        prompt = build_system_prompt(_base_ctx(app_version_profile=V9_PROFILE))
+
+        assert "Headings use the `Heading` component" in prompt
 
 
 class TestFinalAnswerContract:

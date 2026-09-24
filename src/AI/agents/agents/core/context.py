@@ -237,6 +237,7 @@ def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -
         "## Session",
         f"- Mode: {mode}",
         f"- Repo: {ctx.repo_path}",
+        f"- App version: {ctx.app_version_profile.version_label}",
         f"- Goal: {ctx.user_goal}",
         f"- Today: {today_str}",
     ]

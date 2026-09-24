@@ -14,3 +14,8 @@ class AppVersionProfile:
     layout_schema_location: str
     layout_schema_display_url: str
     binding_constraints: Mapping[str, Sequence[str]]
+    forbidden_new_file_patterns: Mapping[str, str]
+
+    @property
+    def version_label(self) -> str:
+        return f"v{self.major_version}"
