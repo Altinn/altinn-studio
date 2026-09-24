@@ -45,7 +45,7 @@ export const slides: SlideDef[] = [
     id: 'infra-nytt-i-v9',
     component: InfraNyttIV9,
     notes:
-      'Plattformen tar mer av jobben. Prosessmotoren gjør prosessene robuste: hvert steg lagres og gjøres ferdig, også når noe feiler. Plattformen lager Maskinporten-klienten og tar seg av den. Og adminsidene i Studio viser hvilke prosesser som står fast, og lar dere starte dem igjen. Banneret nederst er ærlig ment: utrulling, PDF-tjenesten og varslene har v8-appene også fått. Om noen spør: den plattformstyrte Maskinporten-klienten finnes for v8-apper fra 8.3.0, men i v9 er den den eneste måten.',
+      'Plattformen tar mer av jobben. Prosessmotoren gjør at prosessene tåler feil: hvert steg lagres og gjøres ferdig, også når noe feiler. Plattformen lager Maskinporten-klienten og tar seg av den. Og adminsidene i Studio viser hvilke prosesser som står fast, og lar dere starte dem igjen. Banneret nederst er ærlig ment: utrulling, PDF-tjenesten og varslene har v8-appene også fått. Om noen spør: den plattformstyrte Maskinporten-klienten finnes for v8-apper fra 8.3.0, men i v9 er den den eneste måten.',
   },
   {
     id: 'seksjon-frontend',

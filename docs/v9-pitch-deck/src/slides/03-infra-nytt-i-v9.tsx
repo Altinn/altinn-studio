@@ -11,7 +11,7 @@ const FEATURES: Feature[] = [
   {
     icon: 'server',
     eyebrow: 'Prosessmotor',
-    title: 'Robuste prosesser',
+    title: 'Prosesser som tåler feil',
     body: 'Hvert steg i prosessen lagres og gjøres ferdig, også når noe feiler underveis.',
   },
   {
