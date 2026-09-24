@@ -78,10 +78,7 @@ class TestPromptsLangfuseHoldsAlone:
         api = _Langfuse([_page([RETIRED], labels={RETIRED: ["latest", "production"]})])
 
         assert sync_prompts._report_orphans(api) == [RETIRED]
-        assert (
-            f"{RETIRED}: in Langfuse (latest, production) with no repo file"
-            in capsys.readouterr().out
-        )
+        assert f"{RETIRED}: in Langfuse (latest, production) with no repo file" in capsys.readouterr().out
 
     def test_a_prompt_with_a_repo_file_is_not_reported(self, capsys):
         api = _Langfuse([_page([LOCAL])])
@@ -196,9 +193,7 @@ class TestPromote:
 
         sync_prompts._promote(api, IN_SYNC, 3)
 
-        assert api.patched == [
-            (f"/api/public/v2/prompts/{IN_SYNC}/versions/3", {"newLabels": ["production"]})
-        ]
+        assert api.patched == [(f"/api/public/v2/prompts/{IN_SYNC}/versions/3", {"newLabels": ["production"]})]
         assert "is now" in capsys.readouterr().out
 
 
@@ -279,12 +274,15 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
     Langfuse served them as prompts."""
 
     def test_a_chat_prompt_is_compared_by_its_system_turn(self):
-        assert sync_prompts._system_turn(
-            [
-                {"role": "system", "content": "the system half"},
-                {"role": "user", "content": "{{user_message}}"},
-            ]
-        ) == "the system half"
+        assert (
+            sync_prompts._system_turn(
+                [
+                    {"role": "system", "content": "the system half"},
+                    {"role": "user", "content": "{{user_message}}"},
+                ]
+            )
+            == "the system half"
+        )
 
     def test_a_text_prompt_is_its_own_system_turn(self):
         assert sync_prompts._system_turn("plain") == "plain"
@@ -372,20 +370,14 @@ class TestTheFakeCannotOutrunTheRealClient:
     AttributeError against the real Langfuse for as long as it existed."""
 
     def test_every_method_the_script_calls_exists_on_the_real_client(self):
-        called = {
-            name
-            for name in dir(_Langfuse)
-            if name.startswith("_") and not name.startswith("__")
-        }
+        called = {name for name in dir(_Langfuse) if name.startswith("_") and not name.startswith("__")}
 
         assert called <= set(dir(LangfuseApi))
 
 
 class TestAFileThatServesAnotherNameDoesNotShieldItsOwn:
     def test_the_decoy_is_an_orphan_while_the_file_serves_the_other_name(self):
-        assert DECOY in sync_prompts._orphan_prompts(
-            _Langfuse([_page([DECOY, SERVED])])
-        )[0]["name"]
+        assert DECOY in sync_prompts._orphan_prompts(_Langfuse([_page([DECOY, SERVED])]))[0]["name"]
 
     def test_the_name_the_file_serves_is_not_an_orphan(self):
         orphans = sync_prompts._orphan_prompts(_Langfuse([_page([DECOY, SERVED])]))
@@ -437,9 +429,7 @@ class TestRetiring:
         """Deleting first would lose the only copy if the write then failed."""
         api = self._api()
         seen = []
-        monkeypatch.setattr(
-            sync_prompts, "_archive", lambda *a, **kw: seen.append("archived") or 2
-        )
+        monkeypatch.setattr(sync_prompts, "_archive", lambda *a, **kw: seen.append("archived") or 2)
         original = api._delete
         api._delete = lambda path, **kw: seen.append("deleted") or original(path)
 

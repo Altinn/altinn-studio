@@ -27,6 +27,7 @@ use crate::sessions::{Activity, AttachTarget, LaunchToken, LifecycleState, Phase
 const INPUT_READY_GRACE: std::time::Duration = std::time::Duration::from_secs(2);
 const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
+const DETACH_KEYS: &str = "ctrl-b,d";
 
 // Set history-limit before pane creation; reapply on attach for existing servers.
 // Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
@@ -273,8 +274,8 @@ async fn attach_terminal(home: &std::path::Path, target: &AttachTarget) -> Resul
     if target.session.status.lifecycle.state != LifecycleState::Running {
         return Err(target.session.not_running_error());
     }
-    let spec = attach_spec(&target.session);
-    match crate::sandbox::attach_terminal(home, &target.sandbox, AttachTerminalRequest::new(spec)).await? {
+    let request = attach_request(&target.session);
+    match crate::sandbox::attach_terminal(home, &target.sandbox, request).await? {
         TerminalAttachOutcome::Exited(status) if status.success() => Ok(()),
         TerminalAttachOutcome::Detached => Ok(()),
         TerminalAttachOutcome::Exited(status) => Err(Error::Session(format!(
@@ -312,6 +313,10 @@ fn attach_spec(session: &Session) -> ExecutionSpec {
             ("LANG".into(), UTF8_LOCALE.into()),
             ("TERM".into(), PORTABLE_TERMINAL.into()),
         ])
+}
+
+fn attach_request(session: &Session) -> AttachTerminalRequest {
+    AttachTerminalRequest::new(attach_spec(session)).with_detach_keys(DETACH_KEYS)
 }
 
 /// The M0 Unix Session runtime backed by tmux.
@@ -792,12 +797,14 @@ mod tests {
     fn attachment_uses_portable_utf8_terminal_environment() {
         let session = test_session(crate::ModelSelection::default());
 
-        let spec = super::attach_spec(&session);
+        let request = super::attach_request(&session);
+        let spec = request.spec();
 
         assert_eq!(spec.environment().get("LANG").map(String::as_str), Some("C.UTF-8"));
         assert_eq!(
             spec.environment().get("TERM").map(String::as_str),
             Some("xterm-256color")
         );
+        assert_eq!(request.detach_keys(), Some("ctrl-b,d"));
     }
 }

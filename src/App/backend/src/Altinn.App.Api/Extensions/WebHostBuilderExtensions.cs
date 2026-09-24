@@ -1,6 +1,5 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 
@@ -33,40 +32,59 @@ public static class WebHostBuilderExtensions
                 configBuilder.AddInMemoryCollection(config);
                 StudioctlLocalConfiguration.AddIfAvailable(configBuilder, context.HostingEnvironment);
 
-                var runtimeSecretsDirectory = context.Configuration["AppSettings:RuntimeSecretsDirectory"];
-                if (string.IsNullOrWhiteSpace(runtimeSecretsDirectory))
+                // Both the directory and the hosted file names come from the platform, and are read back out
+                // of the configuration built so far - which includes the environment studioctl just imported.
+                // Each file resolves its own name, the same way the provisioned secrets channel does; a name
+                // the platform did not set excludes nothing, because that environment has a bigger problem and
+                // the provisioned secrets startup check is what reports it.
+                HashSet<string> hostedFileNames = new(StringComparer.OrdinalIgnoreCase);
+                foreach (ProvisionedSecretFile file in ProvisionedSecretFiles.All)
                 {
-                    runtimeSecretsDirectory = AppSettings.DefaultRuntimeSecretsDirectory;
+                    if (
+                        file.TryResolve(context.Configuration, out ProvisionedSecretFile? resolved)
+                        && resolved.IsResolved
+                    )
+                    {
+                        hostedFileNames.Add(resolved.FileName);
+                    }
                 }
 
-                configBuilder.AddMaskinportenSettingsFile(
-                    context,
-                    "MaskinportenSettingsFilepath",
-                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings.json")
+                AddRuntimeConfigFiles(
+                    configBuilder,
+                    context.Configuration[ProvisionedSecrets.DirectoryKey],
+                    hostedFileNames
                 );
-                configBuilder.AddMaskinportenSettingsFile(
-                    context,
-                    "MaskinportenSettingsInternalFilepath",
-                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings-internal.json")
-                );
-
-                AddRuntimeConfigFiles(configBuilder, context.HostingEnvironment, runtimeSecretsDirectory);
                 configBuilder.LoadAppConfig(args);
             }
         );
     }
 
+    /// <summary>
+    /// <para>Adds the platform's runtime configuration files to the app's own configuration root.</para>
+    /// <para>The same in every environment: the platform names the secrets directory wherever an app runs,
+    /// and the files the libraries host there are excluded, so a local run sweeps in exactly what a deployed
+    /// app does — an app-owned <c>postgresql.json</c> a developer drops into studioctl's directory included.
+    /// </para>
+    /// </summary>
+    /// <param name="configBuilder">The configuration being built.</param>
+    /// <param name="secretsDirectory">
+    /// The directory the platform provisions the app's secrets into. Blank means the platform never said
+    /// where, which the provisioned secrets startup check reports; there is nothing to sweep either way, so
+    /// this quietly adds nothing rather than raising a second, vaguer failure.
+    /// </param>
+    /// <param name="hostedFileNames">
+    /// The files the libraries host on the provisioned secrets channel, which the sweep must leave alone.
+    /// </param>
     internal static void AddRuntimeConfigFiles(
         IConfigurationBuilder configBuilder,
-        IHostEnvironment hostEnvironment,
-        string secretsDirectory
+        string? secretsDirectory,
+        IReadOnlyCollection<string> hostedFileNames
     )
     {
         ArgumentNullException.ThrowIfNull(configBuilder);
-        ArgumentNullException.ThrowIfNull(hostEnvironment);
-        ArgumentException.ThrowIfNullOrWhiteSpace(secretsDirectory);
+        ArgumentNullException.ThrowIfNull(hostedFileNames);
 
-        if (hostEnvironment.IsDevelopment())
+        if (string.IsNullOrWhiteSpace(secretsDirectory))
         {
             return;
         }
@@ -79,6 +97,11 @@ public static class WebHostBuilderExtensions
 
         string[] jsonFiles = Directory.GetFiles(secretsDirectory, "*.json", SearchOption.TopDirectoryOnly);
         Array.Sort(jsonFiles, StringComparer.OrdinalIgnoreCase);
+
+        // The files the libraries host are read through the private channel (see ProvisionedSecrets) and must
+        // never land in the app's own configuration root: nothing built in reads them from here, and a package
+        // binding one of their sections by convention would otherwise pick up what the platform provisioned.
+        jsonFiles = Array.FindAll(jsonFiles, file => !IsHostedProvisionedFile(Path.GetFileName(file), hostedFileNames));
 
         PhysicalFileProvider? secretsFileProvider = null;
         HashSet<string> existingJsonFilePaths = [];
@@ -142,6 +165,25 @@ public static class WebHostBuilderExtensions
                 reloadOnChange: true
             );
         }
+    }
+
+    /// <summary>
+    /// Whether <paramref name="fileName"/> is one of the files the libraries host on the provisioned secrets
+    /// channel, and therefore one the sweep must leave alone.
+    /// </summary>
+    /// <param name="fileName">The name of a file found in the secrets directory.</param>
+    /// <param name="hostedFileNames">The names the platform gave the hosted files.</param>
+    private static bool IsHostedProvisionedFile(string fileName, IReadOnlyCollection<string> hostedFileNames)
+    {
+        foreach (string hostedFileName in hostedFileNames)
+        {
+            if (string.Equals(fileName, hostedFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static PhysicalFileProvider CreateRuntimeSecretsFileProvider(string secretsDirectory) =>

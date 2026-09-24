@@ -16,7 +16,7 @@ namespace Altinn.App.logic.DataProcessing
             _registerService = registerService;
         }
 
-        public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
         {
 
             if (data.GetType() == typeof(Model))

@@ -3,13 +3,14 @@ import classes from './TopToolbar.module.css';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
-import { DeleteWrapper } from './DeleteWrapper';
+import { DataModelMenu } from './DataModelMenu';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from '@studio/hooks';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
+import { StudioDivider } from '@studio/components';
 
 export interface TopToolbarProps {
   isCreateNewOpen: boolean;
@@ -56,24 +57,25 @@ export function TopToolbar({
           uploadButtonText={t('app_data_modeling.upload_xsd')}
         />
       )}
-      <SchemaSelect
-        dataModels={dataModels}
-        disabled={false}
-        selectedOption={selectedOption}
-        setSelectedOption={setSelectedOption}
-      />
-      <DeleteWrapper selectedOption={selectedOption} />
+      <StudioDivider orientation='vertical' />
+      <div className={classes.dataModelGroup}>
+        <SchemaSelect
+          dataModels={dataModels}
+          disabled={false}
+          selectedOption={selectedOption}
+          setSelectedOption={setSelectedOption}
+        />
+        <DataModelMenu selectedOption={selectedOption} />
+      </div>
       <div className={classes.right}>
-        <div className={classes.generateButtonWrapper}>
-          {modelPath && (
-            <GenerateModelsButton
-              modelPath={modelPath}
-              onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
-                onSetSchemaGenerationErrorMessages(errorMessages)
-              }
-            />
-          )}
-        </div>
+        {modelPath && (
+          <GenerateModelsButton
+            modelPath={modelPath}
+            onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+              onSetSchemaGenerationErrorMessages(errorMessages)
+            }
+          />
+        )}
       </div>
     </section>
   );

@@ -7,8 +7,10 @@ use ignore::WalkBuilder;
 
 use crate::{Error, control_plane, harness};
 
-use super::super::PlatformAdapter;
+use super::{super::PlatformAdapter, files::write_if_changed};
 
+/// The platform-owned Sandbox user every Session, Execution and SSH login runs as.
+pub(crate) const USER: &str = "agent";
 pub(crate) const HOME: &str = "/home/agent";
 pub(crate) const WORKING_DIRECTORY: &str = "/home/agent/code";
 pub(crate) const CONTAINER_HOST: &str = "unix:///run/podman/podman.sock";
@@ -141,14 +143,29 @@ impl PlatformAdapter for Linux {
         &'a self,
         record: &'a control_plane::AgentRecord,
         sandbox: &'a SandboxHandle,
+        harnesses: &'a [crate::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(self.setup(record, sandbox))
+        Box::pin(self.setup(record, sandbox, harnesses))
     }
 }
 
 impl Linux {
-    async fn setup(&self, record: &control_plane::AgentRecord, sandbox: &SandboxHandle) -> Result<(), Error> {
-        for installation in &record.agent.spec.harnesses {
+    /// Sets up only the harnesses preparation reported installing, so setup and preparation
+    /// cannot disagree about an optional installation whose host login was absent.
+    async fn setup(
+        &self,
+        record: &control_plane::AgentRecord,
+        sandbox: &SandboxHandle,
+        harnesses: &[crate::Harness],
+    ) -> Result<(), Error> {
+        let installations: Vec<&crate::HarnessSpec> = record
+            .agent
+            .spec
+            .harnesses
+            .iter()
+            .filter(|installation| harnesses.contains(&installation.kind))
+            .collect();
+        for installation in &installations {
             harness::verify_linux(installation.kind, sandbox, installation.version.as_deref()).await?;
         }
         run_checked(sandbox, "/usr/bin/install", ["-d", "-m", "0755", WORKING_DIRECTORY]).await?;
@@ -158,7 +175,7 @@ impl Linux {
         configure_git_identity(sandbox).await?;
         let instructions = read_instructions(record).await?;
         let skills = read_skills(record).await?;
-        for installation in &record.agent.spec.harnesses {
+        for installation in &installations {
             harness::bootstrap_linux(installation.kind, sandbox, HOME, instructions.as_deref(), &skills).await?;
         }
         Ok(())
@@ -240,13 +257,13 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
         ],
     )
     .await?;
-    write_file(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
-    write_file(sandbox, PODMAN_CA_HOOK_CONF, PODMAN_CA_HOOK_CONF_CONTENTS).await?;
-    write_file(sandbox, PODMAN_CA_HOOK, PODMAN_CA_HOOK_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CONTAINERS_CONF, PODMAN_CONTAINERS_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_RUNTIME_CONF, PODMAN_RUNTIME_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_MOUNTS_CONF, PODMAN_MOUNTS_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_REGISTRIES_CONF, PODMAN_REGISTRIES_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_SOCKET_DROP_IN, PODMAN_SOCKET_DROP_IN_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CA_HOOK_CONF, PODMAN_CA_HOOK_CONF_CONTENTS).await?;
+    write_if_changed(sandbox, PODMAN_CA_HOOK, PODMAN_CA_HOOK_CONTENTS).await?;
     run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/chmod", "0755", PODMAN_CA_HOOK]).await?;
     run_checked(
         sandbox,
@@ -274,7 +291,7 @@ async fn configure_podman(sandbox: &SandboxHandle) -> Result<(), Error> {
 /// because the guest has no D-Bus system bus and only root reaches systemd's
 /// private socket. A `degraded` system counts as ready: a failed optional unit,
 /// such as a best-effort workspace clone, must not block the Podman configuration.
-async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
+pub(super) async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
     let deadline = tokio::time::Instant::now() + SYSTEMD_READY_TIMEOUT;
     loop {
         // `--wait` blocks for as long as boot takes, so the deadline bounds the wait itself
@@ -315,13 +332,6 @@ async fn wait_for_systemd(sandbox: &SandboxHandle) -> Result<(), Error> {
         }
         tokio::time::sleep(SYSTEMD_READY_POLL).await;
     }
-}
-
-async fn write_file(sandbox: &SandboxHandle, path: &str, contents: &[u8]) -> Result<(), Error> {
-    sandbox
-        .write_file(&SandboxPath::new(path), Box::pin(Cursor::new(contents.to_vec())))
-        .await
-        .map_err(Error::from)
 }
 
 /// Concatenates the instruction files in manifest order, each terminated by a newline and

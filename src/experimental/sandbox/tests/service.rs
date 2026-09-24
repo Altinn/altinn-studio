@@ -22,6 +22,7 @@ fn spec() -> SandboxSpec {
         image: ImageSource::Build {
             context: PathBuf::from("."),
             dockerfile: PathBuf::from("Dockerfile"),
+            target: None,
         },
         platform: Platform::native("linux"),
         resources: resources("2", "1Gi", "4Gi"),

@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "07e319515e6a",
-    "code": "56ac9ac clean",
+    "actor_prompt": "9766b2fc3ce5",
+    "code": "8997d20 clean",
     "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
-    "sampling": "reasoning_effort none, temperature 0.1, temperature_planner model default",
+    "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260914T065446Z-whitespace-only-needles-and-ambiguous-prompt-names-refused-2233",
-  "label": "whitespace-only needles and ambiguous prompt names refused",
-  "recorded_at": "2026-09-14T07:00:17+00:00",
-  "why": "whitespace-only needles and ambiguous prompt names are refused rather than guessed"
+  "check_id": "20260924T120441Z-agents-ruff-438e",
+  "label": "agents ruff",
+  "recorded_at": "2026-09-24T12:09:44+00:00",
+  "why": "Added Ruff linting and formatting"
 }

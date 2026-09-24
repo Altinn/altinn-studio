@@ -49,6 +49,15 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 describe('SchemaInspector', () => {
   afterEach(jest.clearAllMocks);
 
+  it('Renders the no item selected message when the selected item no longer exists in the model', () => {
+    const removedItem = {
+      ...nodeMockBase,
+      schemaPointer: `${ROOT_POINTER}/properties/removed/properties/child`,
+    };
+    renderSchemaInspector(mockUiSchema, removedItem);
+    expect(screen.getByText(textMock('schema_editor.no_item_selected'))).toBeInTheDocument();
+  });
+
   it('Saves data model when entering text in textboxes', async () => {
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');

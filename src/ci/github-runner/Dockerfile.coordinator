@@ -18,7 +18,7 @@ RUN cargo build \
 
 FROM ubuntu:24.04@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254 AS runtime-bundle
 
-ARG MICROSANDBOX_RUNTIME_VERSION=0.6.18-digdir.2
+ARG MICROSANDBOX_RUNTIME_VERSION=0.6.18-digdir.3
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates curl \

@@ -6,7 +6,6 @@ import pytest
 from pydantic import BaseModel
 
 from agents.core import (
-    LoopContext,
     Tool,
     ToolArgsInvalidError,
     ToolNotFoundError,

@@ -40,7 +40,6 @@ namespace Altinn.App.Core.Configuration
         public string RuntimeAppFileName { get; set; }
         public string RuntimeCookieName { get; set; }
         public string RuntimeCssFileName { get; set; }
-        public string RuntimeSecretsDirectory { get; set; }
         public string ServiceStylesConfigFileName { get; set; }
         public string TextFolder { get; set; }
         public string UiFolder { get; set; }
@@ -1876,57 +1875,6 @@ namespace Altinn.App.Core.Features.Maskinporten
 }
 namespace Altinn.App.Core.Features.Maskinporten.Models
 {
-    public class JwkWrapper : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper>
-    {
-        public JwkWrapper() { }
-        [System.Text.Json.Serialization.JsonPropertyName("alg")]
-        public string? Alg { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("d")]
-        public string? D { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("dp")]
-        public string? Dp { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("dq")]
-        public string? Dq { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("e")]
-        public string? E { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("kid")]
-        public string? Kid { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("kty")]
-        public string? Kty { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("n")]
-        public string? N { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("p")]
-        public string? P { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("q")]
-        public string? Q { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("qi")]
-        public string? Qi { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("use")]
-        public string? Use { get; init; }
-        public Microsoft.IdentityModel.Tokens.JsonWebKey ToJsonWebKey() { }
-        public Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper.ValidationResult Validate() { }
-        public readonly struct ValidationResult : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper.ValidationResult>
-        {
-            public System.Collections.Generic.IEnumerable<string>? InvalidProperties { get; init; }
-            public bool IsValid() { }
-            public override string ToString() { }
-        }
-    }
-    public sealed class MaskinportenSettings : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings>
-    {
-        public MaskinportenSettings() { }
-        [System.ComponentModel.DataAnnotations.Required]
-        [System.Text.Json.Serialization.JsonPropertyName("authority")]
-        public required string Authority { get; set; }
-        [System.ComponentModel.DataAnnotations.Required]
-        [System.Text.Json.Serialization.JsonPropertyName("clientId")]
-        public required string ClientId { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("jwk")]
-        public Altinn.App.Core.Features.Maskinporten.Models.JwkWrapper? Jwk { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("jwkBase64")]
-        public string? JwkBase64 { get; set; }
-        public Microsoft.IdentityModel.Tokens.JsonWebKey GetJsonWebKey() { }
-    }
     public sealed class MaskinportenSystemUser : System.IEquatable<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSystemUser>
     {
         public MaskinportenSystemUser() { }
@@ -2501,7 +2449,6 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
         public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult SuccessWithoutAutoAdvance() { }
     }
     public sealed class ServiceTaskStageAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult> { }
     public abstract class ServiceTaskStageExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>
@@ -2519,7 +2466,6 @@ namespace Altinn.App.Core.Features.Process
     {
         public ServiceTaskSuccessResult() { }
         public string? Action { get; init; }
-        public bool AutoAdvanceProcess { get; init; }
     }
     public sealed class ServiceTaskWait : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskWait>
     {
@@ -3038,7 +2984,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
     public class EventsClient : Altinn.App.Core.Internal.Events.IEventsClient
     {
         public EventsClient(System.Net.Http.HttpClient httpClient, System.IServiceProvider serviceProvider) { }
-        public System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Guid? idempotencyKey = default, System.Threading.CancellationToken cancellationToken = default) { }
     }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
@@ -3518,7 +3464,7 @@ namespace Altinn.App.Core.Internal.Events
 {
     public interface IEventsClient
     {
-        System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<string> AddEvent(string eventType, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Guid? idempotencyKey = default, System.Threading.CancellationToken cancellationToken = default);
     }
 }
 namespace Altinn.App.Core.Internal.Expressions
@@ -3960,6 +3906,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
     public sealed class AppProcessWorkflowStatus
     {
         public AppProcessWorkflowStatus() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("currentTime")]
+        public System.DateTimeOffset? CurrentTime { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("failure")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure? Failure { get; init; }

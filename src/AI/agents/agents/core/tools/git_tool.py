@@ -46,7 +46,7 @@ def _session_branch_name(ctx: LoopContext) -> str:
     if name:
         return name
     short_id = (ctx.session_id or "anon")[:8] or "anon"
-    name = f"altinity_session_{short_id}"
+    name = f"assistant_{short_id}"
     ctx.extras["session_branch"] = name
     return name
 
@@ -120,18 +120,14 @@ class CommitSessionBranchTool(WriteToolMixin):
             pushed = repo_manager.push_branch(ctx.session_id, branch)
         except Exception as exc:
             return ToolResult(
-                content=(
-                    f"Committed {commit_hash} to {branch}, but push failed: {exc}"
-                ),
+                content=(f"Committed {commit_hash} to {branch}, but push failed: {exc}"),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )
 
         if not pushed:
             return ToolResult(
-                content=(
-                    f"Committed {commit_hash} to {branch}, but the push was rejected."
-                ),
+                content=(f"Committed {commit_hash} to {branch}, but the push was rejected."),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )

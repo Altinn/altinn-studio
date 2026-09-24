@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,7 +15,7 @@ namespace Altinn.App.Models.Model2
     [XmlElement("property1", Order = 1)]
     [JsonProperty("property1")]
     [JsonPropertyName("property1")]
-    public string property1 { get; set; }
+    public string? property1 { get; set; }
 
     [XmlElement("fail", Order = 2)]
     [JsonProperty("fail")]

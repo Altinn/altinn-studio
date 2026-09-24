@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from agents.core import LoopContext, Tool, ToolResult
+from agents.core import Tool, ToolResult
 
 
 class _NoOpArgs(BaseModel):

@@ -13,6 +13,7 @@ export enum QueryKey {
   CanUseFeature = 'CanUseFeature',
   CurrentUser = 'CurrentUser',
   CustomTemplates = 'CustomTemplates',
+  DataModelGenerationStatus = 'DataModelGenerationStatus',
   DataModelMetadata = 'DataModelMetadata',
   DataModelsJson = 'DataModelsJson',
   DataModelsMetadata = 'DataModelsMetadata',

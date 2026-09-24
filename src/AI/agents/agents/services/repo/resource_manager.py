@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
 
-def _parse_locale(path: str) -> Optional[str]:
+def _parse_locale(path: str) -> str | None:
     match = re.search(r"resource\.([a-z]{2})\.json$", path)
     if match:
         return match.group(1)
@@ -28,7 +28,7 @@ def _humanize_binding(binding: str) -> str:
     return " ".join(word.capitalize() for word in words)
 
 
-def _collect_bindings_from_node(node: object, acc: Set[str]) -> None:
+def _collect_bindings_from_node(node: object, acc: set[str]) -> None:
     if isinstance(node, dict):
         bindings = node.get("textResourceBindings")
         if isinstance(bindings, dict):
@@ -42,15 +42,15 @@ def _collect_bindings_from_node(node: object, acc: Set[str]) -> None:
             _collect_bindings_from_node(item, acc)
 
 
-def collect_text_resource_bindings(patch: Dict[str, object]) -> Set[str]:
-    result: Set[str] = set()
+def collect_text_resource_bindings(patch: dict[str, object]) -> set[str]:
+    result: set[str] = set()
     for change in patch.get("changes", []):
         if not isinstance(change, dict):
             continue
         file_path = change.get("file")
         if not isinstance(file_path, str) or "layouts" not in file_path:
             continue
-        candidates: List[object] = []
+        candidates: list[object] = []
         for key in ("item", "value", "component", "details", "content"):
             if key in change:
                 candidates.append(change[key])
@@ -63,7 +63,7 @@ def collect_text_resource_bindings(patch: Dict[str, object]) -> Set[str]:
     return result
 
 
-def load_resource_key_map(repo_path: str, resource_files: Optional[Iterable[str]] = None) -> Dict[str, Set[str]]:
+def load_resource_key_map(repo_path: str, resource_files: Iterable[str] | None = None) -> dict[str, set[str]]:
     repo = Path(repo_path)
     file_list = list(resource_files) if resource_files is not None else []
     if not file_list:
@@ -75,7 +75,7 @@ def load_resource_key_map(repo_path: str, resource_files: Optional[Iterable[str]
         except Exception as exc:
             log.warning("Failed to discover resource files: %s", exc)
             return {}
-    key_map: Dict[str, Set[str]] = {}
+    key_map: dict[str, set[str]] = {}
     for relative_path in file_list:
         locale = _parse_locale(relative_path)
         if not locale:
@@ -100,7 +100,9 @@ def load_resource_key_map(repo_path: str, resource_files: Optional[Iterable[str]
     return key_map
 
 
-def _existing_and_pending_keys(patch: Dict[str, object], locales: Iterable[str], locale_to_file: Dict[str, str], repo_path: str) -> Dict[str, Set[str]]:
+def _existing_and_pending_keys(
+    patch: dict[str, object], locales: Iterable[str], locale_to_file: dict[str, str], repo_path: str
+) -> dict[str, set[str]]:
     key_map = {locale: set() for locale in locales}
     existing = load_resource_key_map(repo_path, locale_to_file.values())
     for locale, keys in existing.items():
@@ -130,14 +132,16 @@ def _existing_and_pending_keys(patch: Dict[str, object], locales: Iterable[str],
     return key_map
 
 
-def _determine_locales(repo_path: str, resource_files: Optional[Iterable[str]], available_locales: Optional[Iterable[str]]) -> Tuple[List[str], Dict[str, str]]:
+def _determine_locales(
+    repo_path: str, resource_files: Iterable[str] | None, available_locales: Iterable[str] | None
+) -> tuple[list[str], dict[str, str]]:
     file_list = list(resource_files) if resource_files is not None else []
-    locale_to_file: Dict[str, str] = {}
+    locale_to_file: dict[str, str] = {}
     for path in file_list:
         locale = _parse_locale(path)
         if locale:
             locale_to_file[locale] = path
-    locales: List[str]
+    locales: list[str]
     if available_locales:
         locales = [locale for locale in available_locales if locale in locale_to_file]
     else:
@@ -159,11 +163,11 @@ def _determine_locales(repo_path: str, resource_files: Optional[Iterable[str]], 
 
 
 def ensure_text_resources_in_patch(
-    patch: Dict[str, object],
+    patch: dict[str, object],
     repo_path: str,
-    resource_files: Optional[Iterable[str]] = None,
-    available_locales: Optional[Iterable[str]] = None,
-) -> List[str]:
+    resource_files: Iterable[str] | None = None,
+    available_locales: Iterable[str] | None = None,
+) -> list[str]:
     locales, locale_to_file = _determine_locales(repo_path, resource_files, available_locales)
     if not locales or not locale_to_file:
         return []
@@ -171,7 +175,7 @@ def ensure_text_resources_in_patch(
     if not bindings:
         return []
     key_map = _existing_and_pending_keys(patch, locales, locale_to_file, repo_path)
-    added: List[str] = []
+    added: list[str] = []
     patch.setdefault("files", [])
     patch.setdefault("changes", [])
     for binding in sorted(bindings):

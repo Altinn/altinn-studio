@@ -14,7 +14,6 @@ on:
       - 'src/ci/github-runner/coordinator/**'
       - '.github/workflows/github-runner-build.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

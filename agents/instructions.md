@@ -16,12 +16,13 @@ and backlog work is managed in that repository and related Altinn repositories o
 
 Other relevant repositories include:
 
-- `Altinn/altinn-studio-docs`
-- `Altinn/app-lib-dotnet`
-- `Altinn/app-frontend-react`
-- `Altinn/app-localtest`
-- `Altinn/altinn-studio-charts`
-- `Altinn/altinn-storage`
+- `Altinn/altinn-studio-docs`: docs site, also for other Altinn products
+- `Altinn/app-lib-dotnet`: app v8 backend code
+- `Altinn/app-frontend-react`: app v4 frontend code (matches v8)
+- `Altinn/app-localtest`: old localtest repo, soon to be archived
+- `Altinn/altinn-studio-charts`: Helm chart currently used for app deployment, see src/App/azure-pipelines/deploy-app.yaml in altinn-studio
+- `brreg/altinn-studio-ops/altinn-studio-infra`: Azure DevOps repository for Altinn Studio infrastructure
+- `Altinn/altinn-storage`: Storage platform service
 - `Altinn/altinn-file-scan`
 - `Altinn/altinn-receipt`
 - `Altinn/altinn-decision-log`
@@ -47,7 +48,12 @@ Sessions start in `/home/agent/code`. Image startup makes one non-destructive at
 checkout by deleting it or performing a destructive reset.
 
 Keep repositories beneath `/home/agent/code` and application checkouts beneath `/home/agent/code/apps`. Use
-`gh repo clone OWNER/REPOSITORY` to clone other relevant repositories as needed.
+`gh repo clone OWNER/REPOSITORY` to clone other relevant GitHub repositories as needed. When `AZURE_DEVOPS_PAT` is
+configured, plain Git authenticates to `dev.azure.com`; clone the infrastructure repository with:
+
+```sh
+git clone https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra /home/agent/code/altinn-studio-infra
+```
 
 Do task work in a dedicated Git worktree under `/home/agent/code/.worktrees/`, with one worktree per task. Keep primary
 checkouts clean for synchronizing remotes and creating, inspecting, or removing worktrees. Start new Altinn Studio
@@ -72,6 +78,8 @@ and rerun the evidence that demonstrates the outcome. Benchmark and profile perf
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
 
+Before using a nested Agent to develop the platform, run `make user-install` in `src/experimental` to get an updated version of `agentctl`.
+
 ## Pull requests
 
 When asked to create or update a pull request:
@@ -88,7 +96,7 @@ When asked to create or update a pull request:
 - After review feedback, fetch the complete current discussion rather than acting on a shortened notification.
 - Treat clear contributor requests and questions as actionable. Implement or answer them in the original GitHub thread.
 - Evaluate automated review comments before acting; escalate conflicts, scope expansion, missing authority, or genuine
-  ambiguity to Martin.
+  ambiguity to the user.
 - Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
 
 When posting multiline GitHub comments from a shell, pass the body through stdin or `--body-file`; do not embed literal
@@ -96,10 +104,12 @@ When posting multiline GitHub comments from a shell, pass the body through stdin
 
 ## Environment
 
-Real secrets are host-mediated. Never search for, print, copy, or persist their values.
-
 The tools installed on this computer are listed in the section that follows this shared text. Detect a tool before
 relying on it.
+
+The image carries no APT package lists, so run `sudo apt-get update` before installing anything. Without it
+`apt-get install` reports `has no installation candidate` for packages that are in fact available, which reads like
+the package is missing from the distribution rather than from your index.
 
 Store reusable local scripts under `/home/agent/code/.scripts/` and downloaded reference repositories or source
 material under `/home/agent/code/.reference/`. Check for existing material before downloading another copy.

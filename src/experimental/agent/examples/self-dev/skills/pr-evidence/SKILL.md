@@ -1,65 +1,57 @@
 ---
 name: pr-evidence
-description: Record agentctl and agentd behavior with asciinema, render it to a GIF with agg and attach it to a pull request with gh. Use when a change alters what a user sees in the terminal.
+description: Help pull request reviewers understand changes to the agentctl and agentd developer experience through terminal recordings. Use when a change affects CLI output, provisioning progress or TUI workflows.
 ---
 
-# Pull request evidence
+# Show the change to reviewers
 
-Changes to `agentctl` output, provisioning progress or the TUI are shown in the pull request as a terminal recording.
-Backend-only changes keep using test output and text.
+Demonstrate the scenario, the relevant change and its result so a reviewer can understand the experience without
+running it locally. Explain the premise and starting state in the recording or PR caption.
 
-## Artifacts
+- Keep artifacts under `/home/agent/code/.artifacts/<task>/<run>/`, outside the checkout. No capture report is required.
+- Keep each attachment within 10 MiB. There is no fixed duration limit, but GIFs should be brief enough to follow
+  without seeking. Split longer demonstrations into focused clips.
+- Capture actual behavior from the tested revision, using test data without secrets.
 
-Keep captures outside the checkout, one directory per task and run:
+## Record
 
-```text
-/home/agent/code/.artifacts/<task>/<run>/
-  capture.md        the commit recorded, the commands, the terminal size, the scenario shown
-  demo.cast demo.gif
-  pr-body.md
-```
+Prepare incidental setup before recording. Prefer familiar command names on `PATH` and a sensible working directory;
+avoid cluttering the demonstration with full binary paths, custom environment variables or a custom `HOME`. If such
+configuration is part of the behavior being demonstrated, show it and explain why it matters.
 
-Never capture secret values. The placeholders in this Sandbox are inert, but the recording still should not show them.
-
-## Recording
-
-A GIF only shows something when output appears over time. Script the demonstration so each command line is visible
-before its output, and give output time to be read. `agentctl` commands that wait, such as `apply --wait`, already
-produce movement.
+Set terminal capabilities on the recorder so the demonstrated program inherits them. The prefix below removes
+`NO_COLOR` and replaces an inherited `TERM=dumb`; it runs before capture, keeping setup out of the demonstration.
+Omit the override when demonstrating behavior under those settings. From the artifact directory:
 
 ```sh
-cat > demo.sh <<'DEMO'
-step() { printf '\033[1;34m$ %s\033[0m\n' "$*"; sleep 1; "$@"; sleep 2; }
-step agentctl apply -f agent.yaml --wait
-step agentctl get agents
-DEMO
-asciinema rec --window-size 120x36 --idle-time-limit 3 --command 'bash demo.sh' demo.cast
-agg --cols 120 --rows 36 --font-size 14 --theme monokai demo.cast demo.gif
+env -u NO_COLOR TERM=xterm-256color COLORTERM=truecolor \
+  asciinema rec --window-size 120x36 --command 'agentctl tui' terminal.cast
+agg --font-size 14 terminal.cast terminal.gif
+agg --select 50% terminal.cast frame.gif
 ```
 
-For the TUI or another interactive flow omit `--command`, perform the steps in the recorded shell, and exit it. Keep
-recordings under 15 seconds of playback; `--idle-time-limit` collapses waits. `agg --help` lists speed and theme
-options; Liberation Mono is installed for its default font resolution. Aim below 8 MB; GitHub accepts GIFs up to
-10 MB.
+For a scripted CLI demonstration, replace `agentctl tui` with `bash demo.sh` and have the script display the commands
+it runs. Pause before execution and after output so a human can follow along. For a TUI, pause on relevant states
+before moving on. `--idle-time-limit` can compress long waits, but preserve enough time to read.
 
-Look at the result before attaching it: `agg` prints the frame count, and a GIF with one frame shows nothing.
+For containerized programs, forward the capabilities with `podman run -e TERM -e COLORTERM ...` and ensure
+`NO_COLOR` is unset inside the container. For missing picker glyphs, try `agg --font-family 'JetBrains Mono'`.
+Keep the application's presentation faithful to the tested revision. Inspect representative frames with the image
+viewer, using `agg --select` at relevant positions to check readability beyond the GIF's first frame.
 
-## Attaching to the pull request
+## Attach
 
-Write the body with a local image reference and run `gh` from the artifact directory; the file is uploaded and the
-reference rewritten to the hosted URL.
+From the artifact directory, use local image references in the PR body; `gh --attach` uploads files and rewrites
+those references to hosted URLs. Pass one `--attach` per file. For example, after pushing the branch:
 
 ```sh
-cd /home/agent/code/.artifacts/<task>/<run>
 gh pr create --repo Altinn/altinn-studio --base main --head <branch> \
-  --title 'feat(experimental): ...' --body-file pr-body.md --attach './demo.gif#agentctl apply --wait'
-gh pr edit <number> --body-file pr-body.md --attach ./demo.gif
+  --title 'fix: ...' --body-file pr-body.md --attach ./result.gif
+gh pr edit <number> --attach ./result.gif
 ```
 
-- If no attachment uploads, `gh` stops before creating or editing the pull request.
-- If some upload and some fail, the pull request exists with the successful ones and `gh` exits nonzero. Retry only
-  the missing files with `gh pr edit --attach`; never repeat `gh pr create`.
-- Uploading needs write access to the repository through the mediated `GITHUB_TOKEN`.
+If an upload fails, inspect the PR before retrying: partial success can create or update the PR despite a nonzero
+exit. Retry missing attachments with `gh pr edit`, rather than repeating creation. Uploads need repository write
+access and a token recognized by `gh` as a personal access or OAuth token.
 
-Finish by reading the body back (`gh pr view <number> --json body -q .body`) and confirming the reference is a hosted
-`github.com` URL.
+Read the body back with `gh pr view <number> --json body -q .body` and confirm attachments have hosted URLs.

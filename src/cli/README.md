@@ -59,6 +59,12 @@ studioctl auth login --env dev --with-token < token.txt
 `studioctl app run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
 `studioctl run` is a short alias for the same operation.
 `studioctl app env --json` prints the local harness environment used by v9 app startup when running from an IDE.
+`studioctl app maskinporten set` stores the Maskinporten client an app uses for local runs - to send a
+Fiks Arkiv test shipment, say - asking for the environment, client id and key, or reading the client as JSON
+from `--file` or a pipe. studioctl provisions it to the app the way Studio does when
+the app is deployed, so the app never reads Maskinporten credentials from its own configuration; a running
+app picks up a stored client without a restart. A section pasted out of a v8 app's appsettings file, name
+and all, is accepted as input.
 
 ## Core commands
 
@@ -67,6 +73,8 @@ studioctl auth login --env dev --with-token < token.txt
 - `studioctl app clone`: clone `org/repo` or a Studio repository URL from the selected or inferred environment
 - `studioctl app run`: run app locally
 - `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
+- `studioctl app maskinporten`: store the Maskinporten client the app uses for local runs (`set`, `show`, `remove`)
+- `studioctl agent skills`: list, locate, and install Agent Skills distributed with studioctl
 - `studioctl env up`: start localtest
 - `studioctl env down`: stop localtest
 - `studioctl env status`: show runtime/container status

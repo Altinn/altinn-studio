@@ -2,7 +2,7 @@
 
 Repository-level test assets shared across suites. Two parts:
 
-See the root [`/AGENTS.md`](../../AGENTS.md) for the wider picture. Note: most projects keep their *own*
+See the root [`/AGENTS.md`](../../AGENTS.md) for the wider picture. Note: most projects keep their _own_
 unit/integration tests next to their code — this folder is for cross-cutting load tests and the sample
 apps that E2E suites drive.
 
@@ -26,5 +26,13 @@ is a full .NET app (with `App.sln` + Dockerfile), e.g. `frontend-test`, `compone
 
 - Each app under `apps/` is a deliberate fixture for specific test scenarios — when adding or changing
   one, check which suite(s) depend on it before altering behavior.
+- The `App/models/*.cs` files are what the suites exercise, so they are authoritative and the
+  `.schema.json` beside each one describes it. Regenerating a model through the Designer changes only
+  formatting, `using`s, nullable annotations, validation attributes and serialization helpers, with these
+  exceptions: `frontend-test` `ServiceModel-test` and `nested-group` and `stateless-app` `stateless` are
+  legacy Seres exports the current converter cannot parse, so those models are hand-maintained; and a few
+  members use types the generator cannot emit (`Dates.String` and `Dates.DateOnly` in
+  `component-library`, non-nullable `bool` in `datalist` and `moped`, initializers such as
+  `GwTargetTask`). When a model changes, change its schema with it.
 - k6 scripts target running environments; keep environment/use-case config in the `use-cases*.yaml`
   files rather than hard-coding it in scripts.

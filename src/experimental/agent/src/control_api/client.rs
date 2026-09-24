@@ -10,7 +10,7 @@ use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
     METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, NameParams, Notification, ReadMessage, Request, Response,
+    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification, ReadMessage, Request, Response,
     SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
     ShutdownResult, read_message,
 };
@@ -120,7 +120,20 @@ impl Client {
     ///
     /// Returns an error when no unique Agent matches or the API call fails.
     pub async fn resolve_agent(&self, directory: std::path::PathBuf) -> Result<Agent, Error> {
-        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }, None)
+        self.resolve_agent_variant(directory, None).await
+    }
+
+    /// Resolves the closest persisted Agent by directory and optional leaf variant.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no unique Agent matches or the API call fails.
+    pub async fn resolve_agent_variant(
+        &self,
+        directory: std::path::PathBuf,
+        variant: Option<crate::AgentVariantName>,
+    ) -> Result<Agent, Error> {
+        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory, variant }, None)
             .await
     }
 
@@ -150,6 +163,16 @@ impl Client {
             progress,
         )
         .await
+    }
+
+    /// Describes how to reach an Agent over SSH.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is unknown, deleting, or declares no SSH access.
+    pub async fn ssh_access(&self, name: &str) -> Result<crate::ssh::AccessInfo, Error> {
+        self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }, None)
+            .await
     }
 
     /// Requests deletion of an Agent and its owned sandbox.

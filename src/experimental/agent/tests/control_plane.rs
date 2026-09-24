@@ -59,6 +59,7 @@ impl PlatformAdapter for NoopPlatform {
         &'a self,
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -145,6 +146,13 @@ impl Provider for MemoryProvider {
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted: self.report_runtime_restart.replace(false),
+                harnesses: record
+                    .agent
+                    .spec
+                    .harnesses
+                    .iter()
+                    .map(|installation| installation.kind)
+                    .collect(),
             })
         })
     }
@@ -392,6 +400,77 @@ async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
         .await
         .expect("nearest Agent source");
     assert_eq!(resolved.metadata.name, "inner");
+}
+
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_selects_leaf_variants_and_prefers_the_default_manifest() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-variant-sources");
+    let default = apply_request_in("default", root.clone());
+    fixture.control_plane.apply(default).await.expect("default Agent");
+
+    let mut nested = apply_request_in("nested", root.clone());
+    nested.manifest_path = Some(root.join("agent.nested.yaml"));
+    fixture.control_plane.apply(nested).await.expect("nested Agent");
+
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory(&root)
+            .await
+            .expect("default preference")
+            .metadata
+            .name,
+        "default"
+    );
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("nested").expect("variant")))
+            .await
+            .expect("variant selection")
+            .metadata
+            .name,
+        "nested"
+    );
+
+    let mut local = apply_request_in("local", root.clone());
+    local.manifest_path = Some(root.join("agent.mine.yaml"));
+    fixture.control_plane.apply(local).await.expect("local Agent");
+    assert_eq!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("mine").expect("variant")))
+            .await
+            .expect("multi-level local variant selection")
+            .metadata
+            .name,
+        "local"
+    );
+    assert!(matches!(
+        fixture
+            .control_plane
+            .resolve_directory_variant(&root, Some(&agent::AgentVariantName::new("missing").expect("variant")))
+            .await,
+        Err(Error::Invalid(message)) if message.contains("agent.missing.yaml")
+    ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn directory_resolution_remains_ambiguous_without_one_default_manifest() {
+    let fixture = fixture();
+    let root = std::env::temp_dir().join("agent-platform-ambiguous-variant-sources");
+    for (name, variant) in [("nested", "nested"), ("worktree", "worktree")] {
+        let mut request = apply_request_in(name, root.clone());
+        request.manifest_path = Some(root.join(format!("agent.{variant}.yaml")));
+        fixture.control_plane.apply(request).await.expect("variant Agent");
+    }
+    let error = fixture
+        .control_plane
+        .resolve_directory(&root)
+        .await
+        .expect_err("ambiguous variants");
+    assert!(matches!(error, Error::Invalid(message) if message.contains("--agent or --variant")));
 }
 
 #[tokio::test(flavor = "local")]
@@ -671,6 +750,7 @@ async fn reconcile_resolves_sources_and_reports_sandbox_ready() {
         sandbox::image::ImageSource::Build {
             context: std::env::temp_dir().join("agent-platform-source").join("image"),
             dockerfile: PathBuf::from("Dockerfile"),
+            target: None,
         }
     );
 }
@@ -798,6 +878,7 @@ async fn repeated_apply_is_idempotent_and_immutable_fields_are_rejected() {
         kind: agent::Harness::Codex,
         version: Some("0.149.1".into()),
         auth: agent::HarnessAuthMode::Mediated,
+        optional: false,
         default: false,
         defaults: agent::ModelSelection::default(),
     });
@@ -864,6 +945,7 @@ async fn secret_binding_definitions_are_mutable_desired_state() {
     let mut changed = request;
     changed.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: Some("GH_PAT".into()),
@@ -902,7 +984,7 @@ async fn directory_resolution_survives_a_symlinked_parent_of_a_missing_source() 
 }
 
 #[tokio::test(flavor = "local")]
-async fn secret_file_inside_a_bind_mount_is_rejected() {
+async fn selected_secret_file_inside_a_bind_mount_is_rejected() {
     let fixture = fixture();
     let root = tempfile::tempdir().expect("temporary checkout");
     let source_directory = root.path().join("examples/worktree");
@@ -910,6 +992,7 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
     let mut request = apply_request_in("worker", source_directory.clone());
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -920,15 +1003,11 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         read_only: false,
     });
 
-    let error = fixture
+    let initial = fixture
         .control_plane
         .apply(request.clone())
         .await
-        .expect_err("the default .env beside the manifest lies inside the mounted checkout");
-    assert!(
-        matches!(&error, Error::Invalid(message) if message.contains("secret file") && message.contains("--env-file")),
-        "{error}"
-    );
+        .expect("an absent default .env does not make the mount unsafe");
 
     let outside = tempfile::tempdir().expect("secret directory outside the checkout");
     request.env_file = Some(outside.path().join("worker.env"));
@@ -945,6 +1024,19 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
         stored(&fixture, "worker").await.env_file_path(),
         outside.path().join("worker.env")
     );
+    assert!(applied.metadata.generation > initial.metadata.generation);
+
+    std::fs::write(root.path().join(".env"), "GITHUB_TOKEN=checkout-token\n").expect("environment file");
+    let error = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect_err("a .env anywhere in the mount is rejected despite the external override");
+    assert!(
+        matches!(&error, Error::Invalid(message) if message.contains("contains .env")),
+        "{error}"
+    );
+    std::fs::remove_file(root.path().join(".env")).expect("remove environment file");
 
     let mut unchanged = request.clone();
     unchanged.env_file = None;
@@ -965,6 +1057,110 @@ async fn secret_file_inside_a_bind_mount_is_rejected() {
     assert!(matches!(error, Error::Invalid(_)));
 }
 
+#[tokio::test(flavor = "local")]
+async fn git_ignored_nested_dot_env_is_rejected_case_insensitively_without_declared_secrets() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    let relative_env = PathBuf::from("ignored").join("nested").join(".EnV");
+    let ignored = checkout
+        .path()
+        .join(relative_env.parent().expect("environment file parent"));
+    std::fs::create_dir_all(&ignored).expect("ignored directory");
+    std::fs::write(checkout.path().join(".gitignore"), "ignored/\n").expect("ignore file");
+    std::fs::write(checkout.path().join(&relative_env), "PRIVATE=value\n").expect("nested environment file");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    let error = fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("ignored directories are still inspected case-insensitively for .env files");
+    let expected_path = relative_env.display().to_string();
+    assert!(
+        matches!(&error, Error::Invalid(message)
+            if message.contains("spec.sandbox.mounts[0]") && message.contains(&expected_path)),
+        "{error}"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_directory_named_dot_env_is_allowed() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    std::fs::create_dir(checkout.path().join(".ENV")).expect("directory named .ENV");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect("a directory named .env is not an environment file");
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local")]
+async fn a_dot_env_symlink_is_rejected() {
+    let fixture = fixture();
+    let checkout = tempfile::tempdir().expect("checkout");
+    std::fs::write(checkout.path().join("credentials"), "PRIVATE=value\n").expect("target file");
+    std::os::unix::fs::symlink("credentials", checkout.path().join(".ENV")).expect("environment symlink");
+    let source = tempfile::tempdir().expect("manifest directory");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect_err("a case-variant .env symlink still exposes a file");
+}
+
+#[tokio::test(flavor = "local")]
+async fn existing_default_env_outside_bind_mount_is_allowed() {
+    let fixture = fixture();
+    let source = tempfile::tempdir().expect("manifest directory");
+    let checkout = tempfile::tempdir().expect("mounted checkout");
+    let external = tempfile::tempdir().expect("external environment directory");
+    std::fs::write(source.path().join(".env"), "GITHUB_TOKEN=unmounted-token\n")
+        .expect("unmounted default environment file");
+    let mut request = apply_request_in("worker", source.path().to_path_buf());
+    request.env_file = Some(external.path().join("worker.env"));
+    request.agent.spec.secrets.push(SecretSpec {
+        environment: "GITHUB_TOKEN".into(),
+        optional: false,
+        placeholder: None,
+        allowed_hosts: vec!["github.com".into()],
+        source: None,
+    });
+    request.agent.spec.sandbox.mounts.push(agent::MountSpec::Bind {
+        source: checkout.path().to_path_buf(),
+        target: sandbox::SandboxPath::new("/home/agent/code/checkout"),
+        read_only: false,
+    });
+
+    fixture
+        .control_plane
+        .apply(request)
+        .await
+        .expect("an unmounted default .env is not exposed");
+}
+
 #[cfg(unix)]
 #[tokio::test(flavor = "local")]
 async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
@@ -978,6 +1174,7 @@ async fn secret_file_reached_through_a_symlinked_ancestor_is_still_rejected() {
     let mut request = apply_request_in("worker", source_directory);
     request.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1006,8 +1203,12 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
     let with_secrets = root.path().join("agents/full");
     std::fs::create_dir_all(&with_secrets).expect("secret Agent source directory");
     let mut secret_agent = apply_request_in("full", with_secrets);
+    let selected_secret_file = root.path().join("credentials.txt");
+    std::fs::write(&selected_secret_file, "GITHUB_TOKEN=private\n").expect("selected environment file");
+    secret_agent.env_file = Some(selected_secret_file);
     secret_agent.agent.spec.secrets.push(SecretSpec {
         environment: "GITHUB_TOKEN".into(),
+        optional: false,
         placeholder: None,
         allowed_hosts: vec!["github.com".into()],
         source: None,
@@ -1027,7 +1228,7 @@ async fn bind_mount_exposing_another_agents_secret_file_is_rejected() {
         .control_plane
         .apply(worktree)
         .await
-        .expect_err("the mount would expose the other Agent's .env");
+        .expect_err("the mount would expose the other Agent's selected environment file");
     assert!(
         matches!(&error, Error::Invalid(message) if message.contains("Agent \"full\"")),
         "{error}"
@@ -1701,4 +1902,140 @@ async fn stale_status_write_is_rejected() {
         .await
         .expect_err("stale status should fail");
     assert!(matches!(error, Error::Conflict));
+}
+
+fn is_ssh_server_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/test" && args == &["-x", "/usr/sbin/sshd"]
+    )
+}
+
+fn is_ssh_policy_check(spec: &sandbox::execution::ExecutionSpec) -> bool {
+    matches!(
+        spec.program(),
+        sandbox::execution::Program::Command { executable, args }
+            if executable.as_str() == "/usr/bin/sudo"
+                && args == &[
+                    "-n",
+                    "/usr/sbin/sshd",
+                    "-T",
+                    "-f",
+                    "/var/lib/agent/ssh/sshd_config",
+                    "-C",
+                    "user=agent,host=localhost,addr=127.0.0.1,laddr=127.0.0.1,lport=2222",
+                ]
+    )
+}
+
+fn exited(code: i32) -> Vec<sandbox::execution::ExecutionEvent> {
+    vec![
+        sandbox::execution::ExecutionEvent::Started { process_id: None },
+        sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code }),
+    ]
+}
+
+#[tokio::test(flavor = "local")]
+async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
+    let temporary = TempDirectory::new("ssh-access");
+    let home = agent::local::home::ControlPlaneHome::resolve(Some(&temporary.path().join("home"))).expect("home");
+    home.prepare().expect("prepare home");
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let keys = Rc::new(agent::ssh::memory::InMemoryHostKeyStore::new());
+    let ssh = Rc::new(
+        agent::ssh::Access::new(
+            &home,
+            PathBuf::from("/usr/local/bin/agentctl"),
+            keys.clone(),
+            store.clone(),
+        )
+        .with_user_home(None),
+    );
+    let reconciler = Reconciler::new(store.clone(), sandbox_service(provider), Observers::new()).with_ssh_access(ssh);
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    let mut request = apply_request("worker");
+    request.agent.spec.access = vec![agent::AccessSpec::Ssh {}];
+    control_plane.apply(request).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("stored").id;
+
+    // The image lacks a server: the Agent is not Ready and the failure is permanent.
+    backend.queue_execution_events_matching(is_ssh_server_check, exited(1));
+    let error = reconciler
+        .reconcile(id)
+        .await
+        .expect_err("missing server fails the pass");
+    assert_eq!(agent::ReconcileFailure::classify(&error).kind, FailureKind::Invalid);
+    let status = store.get(id).await.expect("record").agent.status;
+    let ready = status.ready_condition().expect("Ready condition");
+    assert_eq!(ready.status, ConditionStatus::False);
+    assert_eq!(ready.reason, "SshAccessFailed");
+    assert!(ready.message.contains("cannot provide SSH access"));
+    let ssh_ready = status
+        .conditions
+        .iter()
+        .find(|condition| condition.kind == agent::Condition::SSH_READY)
+        .expect("SshReady condition");
+    assert_eq!(ssh_ready.status, ConditionStatus::False);
+    assert!(
+        status
+            .sandbox
+            .as_ref()
+            .and_then(agent::sandbox::Assignment::id)
+            .is_some()
+    );
+    assert!(!keys.contains(id));
+
+    // A server is present: the Agent is Ready and SshReady is reported alongside SandboxReady.
+    backend.queue_execution_events_matching(is_ssh_server_check, exited(0));
+    backend.queue_execution_events_matching(
+        is_ssh_policy_check,
+        vec![
+            sandbox::execution::ExecutionEvent::Started { process_id: None },
+            sandbox::execution::ExecutionEvent::Stdout(b"permituserenvironment yes\nusepam no\n".as_slice().into()),
+            sandbox::execution::ExecutionEvent::Exited(sandbox::execution::ExitStatus { code: 0 }),
+        ],
+    );
+    reconciler.reconcile(id).await.expect("reconcile with a server");
+    let status = store.get(id).await.expect("record").agent.status;
+    assert!(status.is_ready());
+    assert_eq!(
+        status
+            .conditions
+            .iter()
+            .map(|condition| (condition.kind.as_str(), condition.status))
+            .collect::<Vec<_>>(),
+        [
+            (agent::Condition::SANDBOX_READY, ConditionStatus::True),
+            (agent::Condition::SSH_READY, ConditionStatus::True),
+            (agent::Condition::READY, ConditionStatus::True),
+        ]
+    );
+    assert!(keys.contains(id));
+    let ssh_home = agent::ssh::SshHome::new(&home);
+    assert!(ssh_home.identity_path(id).is_file());
+    let known_hosts = std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts");
+    assert!(known_hosts.starts_with(&format!("agent-{id} ssh-ed25519 ")));
+    assert!(known_hosts.contains("\nagentctl-worker ssh-ed25519 "));
+    assert!(
+        std::fs::read_to_string(ssh_home.config_path())
+            .expect("config")
+            .contains("Host agentctl-worker\n")
+    );
+
+    control_plane.delete("worker").await.expect("delete request");
+    reconciler.reconcile(id).await.expect("delete");
+    assert!(!keys.contains(id));
+    assert!(!ssh_home.agent_directory(id).exists());
+    assert_eq!(
+        std::fs::read_to_string(ssh_home.known_hosts_path()).expect("known_hosts"),
+        ""
+    );
+    assert!(
+        !std::fs::read_to_string(ssh_home.config_path())
+            .expect("config")
+            .contains("Host ")
+    );
 }

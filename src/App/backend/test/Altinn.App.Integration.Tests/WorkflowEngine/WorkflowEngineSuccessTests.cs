@@ -14,12 +14,12 @@ public class WorkflowEngineSuccessTests(ITestOutputHelper output, AppFixtureClas
     : IClassFixture<AppFixtureClassFixture>
 {
     [Fact]
-    public async Task ProcessNext_ServiceTaskSuccessWithoutAutoAdvance_StaysOnServiceTaskUntilManualNext()
+    public async Task ProcessNext_ServiceTaskSuccess_AdvancesToEnd()
     {
         await using var fixtureScope = await classFixture.Get(
             output,
             TestApps.Basic,
-            scenario: "workflow-engine-success-without-auto-advance"
+            scenario: "workflow-engine-success"
         );
         var fixture = fixtureScope.Fixture;
 
@@ -58,18 +58,16 @@ public class WorkflowEngineSuccessTests(ITestOutputHelper output, AppFixtureClas
         using var firstProcessState = await firstProcessNextResponse.Read<AppProcessState>();
 
         Assert.Equal(HttpStatusCode.OK, firstProcessState.Response.StatusCode);
-        Assert.Equal("Task_Service", firstProcessState.Data.Model!.CurrentTask!.ElementId);
-        Assert.Null(firstProcessState.Data.Model.EndEvent);
+        Assert.Null(firstProcessState.Data.Model!.CurrentTask);
+        Assert.Equal("EndEvent_1", firstProcessState.Data.Model.EndEvent);
 
-        using var instanceAtServiceTaskResponse = await fixture.Instances.Get(token, readInstantiationResponse);
-        using var instanceAtServiceTask = await instanceAtServiceTaskResponse.Read<Instance>();
-        Assert.Equal("Task_Service", instanceAtServiceTask.Data.Model!.Process.CurrentTask!.ElementId);
-
-        using var secondProcessNextResponse = await fixture.Instances.ProcessNext(token, instanceAtServiceTask);
-        using var secondProcessState = await secondProcessNextResponse.Read<AppProcessState>();
-
-        Assert.Equal(HttpStatusCode.OK, secondProcessState.Response.StatusCode);
-        Assert.Null(secondProcessState.Data.Model!.CurrentTask);
-        Assert.Equal("EndEvent_1", secondProcessState.Data.Model.EndEvent);
+        using var completedInstanceResponse = await fixture.Instances.Get(token, readInstantiationResponse);
+        using var completedInstance = await completedInstanceResponse.Read<Instance>();
+        Assert.Null(completedInstance.Data.Model!.Process.CurrentTask);
+        Assert.Equal("EndEvent_1", completedInstance.Data.Model.Process.EndEvent);
+        Assert.Equal(
+            Altinn.Platform.Storage.Interface.Enums.ProcessStatus.Idle,
+            completedInstance.Data.Model.Process.Status
+        );
     }
 }

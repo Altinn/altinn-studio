@@ -42,6 +42,13 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
         Some(Assignment::Materialized {
             provider: ProviderId::new("memory").expect("Provider ID"),
             id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
+            harnesses: ready
+                .agent
+                .spec
+                .harnesses
+                .iter()
+                .map(|installation| installation.kind)
+                .collect(),
         }),
         vec![Condition {
             kind: "Ready".into(),
@@ -1141,4 +1148,43 @@ async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
         activity,
         "duplicate does not change count, phase, or timestamp"
     );
+}
+
+#[test]
+fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
+    use agent::ssh::HostKeyStore as _;
+
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let id = test_agent_id();
+        store.put(record("worker", 1), 0).await.expect("Agent");
+        assert!(store.load_host_key(id).await.expect("load").is_none());
+        store
+            .store_host_key(id, zeroize::Zeroizing::new(b"host-key".to_vec()))
+            .await
+            .expect("store");
+        assert_eq!(
+            store.load_host_key(id).await.expect("load").expect("stored").as_slice(),
+            b"host-key"
+        );
+        // Manifest secrets of the same Agent live under another prefix.
+        let agent_secret = store
+            .set(&format!("agent/{id}/github-token"), b"github-secret")
+            .await
+            .expect("Agent secret");
+        store.mark_deleting("worker").await.expect("mark deleting");
+        store.finalize_deletion(id, 1).await.expect("finalize deletion");
+        assert!(store.load_host_key(id).await.expect("load").is_none());
+        assert!(store.resolve(&agent_secret).await.is_err());
+
+        store
+            .store_host_key(id, zeroize::Zeroizing::new(b"again".to_vec()))
+            .await
+            .expect("store");
+        store.delete_host_key(id).await.expect("delete");
+        store.delete_host_key(id).await.expect("deleting twice is fine");
+        assert!(store.load_host_key(id).await.expect("load").is_none());
+    });
 }

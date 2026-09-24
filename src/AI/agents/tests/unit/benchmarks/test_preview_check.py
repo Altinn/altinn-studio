@@ -36,9 +36,7 @@ class TestSwapLayoutInPreviewUrl:
 
 class TestBuildScores:
     def test_all_pages_rendering_scores_full(self):
-        scores = build_scores(
-            [PageRenderResult("Side1", True), PageRenderResult("Side2", True)]
-        )
+        scores = build_scores([PageRenderResult("Side1", True), PageRenderResult("Side2", True)])
         by_name = {score.name: score for score in scores}
         assert by_name["bench_renders"].value == 1.0
         assert by_name["bench_pages_render"].value == 1.0
@@ -85,7 +83,7 @@ class TestOptIn:
 
         monkeypatch.setattr("benchmarks.preview_check._render_results", raise_unavailable)
 
-        assert run("altinity_session_abc123", ["Side1"]) == []
+        assert run("assistant_abc123", ["Side1"]) == []
 
 
 class TestItRunsInsideTheExperimentRunner:
@@ -111,12 +109,11 @@ class TestItRunsInsideTheExperimentRunner:
         monkeypatch.setattr(preview_check, "_render_results", fake_render_results)
 
         async def run_like_the_sdk_does():
-            return preview_check.collect("altinity_session_abcd1234", ["Side1"])
+            return preview_check.collect("assistant_abcd1234", ["Side1"])
 
         assert asyncio.run(run_like_the_sdk_does()) == []
         assert calling_thread["loop"] is False, (
-            "the render check ran on a thread with a live event loop, so Playwright's "
-            "sync API will refuse"
+            "the render check ran on a thread with a live event loop, so Playwright's sync API will refuse"
         )
         assert calling_thread["name"] != "MainThread"
 
@@ -129,7 +126,7 @@ class TestItRunsInsideTheExperimentRunner:
 
         monkeypatch.setattr(preview_check, "_render_results", unavailable)
 
-        assert preview_check.collect("altinity_session_abcd1234", ["Side1"]) is None
+        assert preview_check.collect("assistant_abcd1234", ["Side1"]) is None
 
 
 class TestAPreviewThatNeverAnsweredIsNotAFailure:

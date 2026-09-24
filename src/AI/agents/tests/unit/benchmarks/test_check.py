@@ -69,9 +69,7 @@ class TestTaskForAlsoRefusesWithoutAgentModels:
         monkeypatch.setattr(check, "agent_role_models", fail)
         args = argparse.Namespace(run_name=None, assets_dir=None)
 
-        task, _, _, model = check.task_for(
-            args, registry.by_name("Benchmarks/forms"), {"actor": "gpt-9-snapshot"}
-        )
+        task, _, _, model = check.task_for(args, registry.by_name("Benchmarks/forms"), {"actor": "gpt-9-snapshot"})
 
         assert task.role_models["actor"] == "gpt-9-snapshot"
         assert model == "gpt-9-snapshot"

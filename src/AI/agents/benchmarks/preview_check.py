@@ -94,8 +94,7 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
     failures = [result for result in measured if not result.rendered]
     failure_summary = "; ".join(f"{failure.page}: {failure.detail}" for failure in failures)
     skipped_note = (
-        f" — {len(skipped)} page(s) the preview never answered for: "
-        + ", ".join(result.page for result in skipped)
+        f" — {len(skipped)} page(s) the preview never answered for: " + ", ".join(result.page for result in skipped)
         if skipped
         else ""
     )
@@ -132,7 +131,6 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
     return [pages_render] if entry_unmeasured else [renders, pages_render]
 
 
-
 def _clone_branch(branch: str, workdir: Path) -> Path:
     import subprocess
 
@@ -164,7 +162,7 @@ def _main() -> None:
     from .app_model import load_app
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--branch", required=True, help="session branch, e.g. altinity_session_1a2b3c4d")
+    parser.add_argument("--branch", required=True, help="session branch, e.g. assistant_1a2b3c4d")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(prefix="altinity-preview-") as tmp:

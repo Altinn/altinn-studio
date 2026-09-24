@@ -5,6 +5,7 @@ from enum import Enum, auto
 
 class ElementType(Enum):
     """Type of element in the model metadata."""
+
     FIELD = "Field"
     GROUP = "Group"
     ATTRIBUTE = "Attribute"
@@ -12,6 +13,7 @@ class ElementType(Enum):
 
 class BaseValueType(Enum):
     """XSD base value types matching Altinn Studio's BaseValueType enum."""
+
     STRING = "String"
     NORMALIZED_STRING = "NormalizedString"
     TOKEN = "Token"
@@ -41,6 +43,7 @@ class BaseValueType(Enum):
 
 class SchemaValueType(Enum):
     """JSON Schema value types."""
+
     NULL = auto()
     BOOLEAN = auto()
     OBJECT = auto()
@@ -52,5 +55,6 @@ class SchemaValueType(Enum):
 
 class CompatibleXsdType(Enum):
     """Compatible XSD type indicators."""
+
     NILLABLE = auto()
     SIMPLE_TYPE_RESTRICTION = auto()

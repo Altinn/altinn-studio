@@ -2,8 +2,10 @@
 package install
 
 import (
+	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"altinn.studio/studioctl/internal/config"
@@ -22,6 +24,9 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 
 	serverDir := filepath.Join(dir, "published-"+resourcesServerDir)
 	writeTestFile(t, filepath.Join(serverDir, config.StudioctlServerBinaryName), "binary")
+	resourcesDir := filepath.Join(dir, "resources")
+	writeTestFile(t, filepath.Join(resourcesDir, "agent", "skills", "app-development", "SKILL.md"), testSkill)
+	writeTestFile(t, filepath.Join(resourcesDir, "other", "resource.txt"), "other")
 
 	archivePath, err := CreateResourcesArchive(ResourcesArchiveOptions{
 		GOOS:         osutil.OSLinux,
@@ -29,6 +34,7 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 		OutputDir:    outputDir,
 		ServerDir:    serverDir,
 		LocaltestDir: localtestDir,
+		ResourcesDir: resourcesDir,
 	})
 	if err != nil {
 		t.Fatalf("CreateResourcesArchive() error = %v", err)
@@ -44,10 +50,58 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 
 	assertFileContent(t, filepath.Join(extractDir, resourcesServerDir, config.StudioctlServerBinaryName), "binary")
 	assertFileContent(t, filepath.Join(extractDir, "localtest", "infra", "compose.yaml"), "services: {}")
+	assertFileContent(
+		t,
+		filepath.Join(extractDir, "agent", "skills", "altinn-studio-app-development", "SKILL.md"),
+		testSkill,
+	)
+	assertNoFile(t, filepath.Join(extractDir, "agent", "skills", "app-development", "SKILL.md"))
+	assertFileContent(t, filepath.Join(extractDir, "other", "resource.txt"), "other")
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "ignored.txt"))
 	// Testdata ships inside the localtest image, not in the resources archive.
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "testdata", "apps", "app.json"))
 }
+
+func TestInstallBundleResourcesInstallsAgentSkills(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	cfg, err := config.New(config.Flags{Home: filepath.Join(dir, "home")}, "v1.2.3")
+	if err != nil {
+		t.Fatalf("config.New() error = %v", err)
+	}
+	localtestDir := filepath.Join(dir, "localtest")
+	writeTestFile(t, filepath.Join(localtestDir, "infra", "compose.yaml"), "services: {}")
+	serverDir := filepath.Join(dir, "server")
+	serverPath := filepath.Join(serverDir, filepath.Base(cfg.StudioctlServerBinaryPath()))
+	writeTestFile(t, serverPath, "binary")
+	if runtime.GOOS != osutil.OSWindows {
+		if chmodErr := os.Chmod(serverPath, 0o755); chmodErr != nil {
+			t.Fatal(chmodErr)
+		}
+	}
+	resourcesDir := filepath.Join(dir, "resources")
+	writeTestFile(t, filepath.Join(resourcesDir, "agent", "skills", "app-development", "SKILL.md"), testSkill)
+
+	archivePath, err := CreateResourcesArchive(ResourcesArchiveOptions{
+		GOOS:         runtime.GOOS,
+		GOARCH:       runtime.GOARCH,
+		OutputDir:    filepath.Join(dir, "dist"),
+		ServerDir:    serverDir,
+		LocaltestDir: localtestDir,
+		ResourcesDir: resourcesDir,
+	})
+	if err != nil {
+		t.Fatalf("CreateResourcesArchive() error = %v", err)
+	}
+	bundle := NewBundle("v1.2.3", "", archivePath, "")
+	if err := NewService(cfg).InstallBundleResources(context.Background(), bundle); err != nil {
+		t.Fatalf("InstallBundleResources() error = %v", err)
+	}
+	assertFileContent(t, filepath.Join(cfg.AgentSkillsDir(), "altinn-studio-app-development", "SKILL.md"), testSkill)
+}
+
+const testSkill = "---\nname: altinn-studio-app-development\ndescription: Develop Altinn Studio apps\n---\n"
 
 func TestRemoveObsoleteTestdataDir(t *testing.T) {
 	t.Parallel()

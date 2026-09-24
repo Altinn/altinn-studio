@@ -27,6 +27,7 @@ them.  Only adapter-level failures (network, auth) propagate.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import hashlib
 import json
 import os
@@ -42,7 +43,6 @@ from shared.utils.logging_utils import get_logger
 from .compaction import CompactionConfig, cap_tool_result, compact_if_needed
 from .llm_adapter import LLMAdapter
 from .messages import (
-    AssistantMessage,
     Message,
     TextBlock,
     ToolResultBlock,
@@ -121,6 +121,10 @@ _WRAPUP_NOTICE = (
 # `ALTINITY_MAX_TOOL_USE_CONCURRENCY` to make tuning a config change
 # rather than a code change.
 _DEFAULT_MAX_TOOL_USE_CONCURRENCY = 10
+
+# Keep a reference to fire-and-forget tasks so the garbage collector
+# does not destroy them before they complete.
+_background_tasks: set[asyncio.Task] = set()
 
 
 def _max_tool_use_concurrency() -> int:
@@ -261,9 +265,9 @@ async def run_loop(
             try:
                 on_event(
                     "text_delta",
-                    {"turn": turn, "delta": delta, "accumulated": accumulated},
+                    {"turn": turn, "delta": delta, "accumulated": accumulated},  # noqa: B023 - called only in this turn
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 log.debug("text_delta sink raised", exc_info=True)
 
         def _on_tool_use_start(name: str, tool_use_id: str) -> None:
@@ -272,9 +276,9 @@ async def run_loop(
             try:
                 on_event(
                     "tool_use_pending",
-                    {"turn": turn, "name": name, "tool_use_id": tool_use_id},
+                    {"turn": turn, "name": name, "tool_use_id": tool_use_id},  # noqa: B023 - called only in this turn
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 log.debug("tool_use_pending sink raised", exc_info=True)
 
         try:
@@ -404,9 +408,7 @@ async def run_loop(
             blocks.append(TextBlock(text=_TRUNCATION_PARTIAL_NOTICE))
         turns_remaining = max_turns - turn
         if turns_remaining == _WRAPUP_WARNING_TURNS:
-            blocks.append(
-                TextBlock(text=_WRAPUP_NOTICE.format(turns_remaining=turns_remaining))
-            )
+            blocks.append(TextBlock(text=_WRAPUP_NOTICE.format(turns_remaining=turns_remaining)))
         messages.append(UserMessage(content=blocks))
 
     await _emit(on_event, "terminated", {"reason": "max_turns", "turn": max_turns})
@@ -433,7 +435,7 @@ def _tool_signature(tool_use: ToolUseBlock) -> str:
     """
     try:
         payload = json.dumps(tool_use.input, sort_keys=True, default=str)
-    except Exception:  # noqa: BLE001
+    except Exception:
         payload = repr(tool_use.input)
     digest = hashlib.sha1(payload.encode("utf-8")).hexdigest()[:12]
     return f"{tool_use.name}#{digest}"
@@ -497,7 +499,7 @@ async def _dispatch_tools(
         if not batch:
             return
         gathered = await asyncio.gather(*(run_with_cap(tu) for tu in batch))
-        for tu, block in zip(batch, gathered):
+        for tu, block in zip(batch, gathered, strict=False):
             results[tu.id] = block
         batch.clear()
 
@@ -531,7 +533,7 @@ def _is_concurrency_safe(registry: ToolRegistry, tool_use: ToolUseBlock) -> bool
         return True
     try:
         args = tool.input_schema.model_validate(tool_use.input)
-    except Exception:  # noqa: BLE001 — validation will surface in _execute_tool
+    except Exception:
         return tool.is_concurrency_safe
     return tool.concurrency_safe_for(args)
 
@@ -558,10 +560,8 @@ async def _run_one(
         f"tool_{tool_use.name}",
         metadata={"span_type": "TOOL", "tool_name": tool_use.name},
     ) as span:
-        try:
+        with contextlib.suppress(Exception):
             span.update(input={"args": tool_use.input})
-        except Exception:  # noqa: BLE001
-            pass
 
         block = await _execute_tool(
             tool_use=tool_use,
@@ -571,7 +571,7 @@ async def _run_one(
             on_event=on_event,
         )
 
-        try:
+        with contextlib.suppress(Exception):
             span.update(
                 output={
                     "content": block.content[:2000],
@@ -580,8 +580,6 @@ async def _run_one(
                 },
                 level="ERROR" if block.is_error else "DEFAULT",
             )
-        except Exception:  # noqa: BLE001
-            pass
 
         return block
 
@@ -627,9 +625,7 @@ async def _execute_tool(
                 on_event,
             )
         try:
-            granted = await ctx.permission_requester(
-                f"{tool_use.name}: {_describe_tool_use(tool_use)}"
-            )
+            granted = await ctx.permission_requester(f"{tool_use.name}: {_describe_tool_use(tool_use)}")
         except Exception:
             log.exception("permission escalation failed for %s", tool_use.name)
             granted = False
@@ -717,7 +713,9 @@ def _error_block(tool_use_id: str, message: str, on_event: EventCallback | None)
             maybe_coro = on_event("tool_result", {"id": tool_use_id, "is_error": True, "chars": len(message)})
             if asyncio.iscoroutine(maybe_coro):
                 # Schedule but do not await — caller is already inside the loop.
-                asyncio.create_task(maybe_coro)
+                task = asyncio.create_task(maybe_coro)
+                _background_tasks.add(task)
+                task.add_done_callback(_background_tasks.discard)
         except Exception:
             log.exception("event callback raised in _error_block")
     return block

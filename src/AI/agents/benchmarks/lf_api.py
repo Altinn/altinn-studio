@@ -39,9 +39,7 @@ class LangfuseApi:
                 + " — set them in benchmarks/.env or the environment."
             )
         self.host = host.rstrip("/")
-        self._client = httpx.Client(
-            base_url=self.host, auth=(public_key, secret_key), timeout=60
-        )
+        self._client = httpx.Client(base_url=self.host, auth=(public_key, secret_key), timeout=60)
 
     def _get(self, path: str, **params: Any) -> dict:
         response = self._client.get(path, params=params)
@@ -88,28 +86,21 @@ class LangfuseApi:
     def models_by_connection(self) -> dict[str, list[str]]:
         """The models each LLM connection offers."""
         data = self._get("/api/public/llm-connections", limit=50)
-        return {
-            row["provider"]: sorted(row.get("customModels") or [])
-            for row in data.get("data") or []
-        }
+        return {row["provider"]: sorted(row.get("customModels") or []) for row in data.get("data") or []}
 
     def score_configs_by_name(self) -> dict[str, dict]:
         data = self._get("/api/public/score-configs", limit=100)
         return {sc["name"]: sc for sc in data.get("data") or []}
 
     def create_score_config(self, name: str, data_type: str, **extra: Any) -> dict:
-        return self._post(
-            "/api/public/score-configs", {"name": name, "dataType": data_type, **extra}
-        )
+        return self._post("/api/public/score-configs", {"name": name, "dataType": data_type, **extra})
 
 
-def assert_run_is_new(lf: "LangfuseApi", dataset: str, run_name: str) -> None:
+def assert_run_is_new(lf: LangfuseApi, dataset: str, run_name: str) -> None:
     """Refuse to write into a run that already exists."""
     encoded = quote(dataset, safe="")
     for page in range(1, MAX_RUN_PAGES + 1):
-        existing = lf._get(
-            f"/api/public/datasets/{encoded}/runs", page=page, limit=RUN_PAGE_SIZE
-        ).get("data") or []
+        existing = lf._get(f"/api/public/datasets/{encoded}/runs", page=page, limit=RUN_PAGE_SIZE).get("data") or []
         if not existing:
             return
         if any((run.get("name") or "") == run_name for run in existing):

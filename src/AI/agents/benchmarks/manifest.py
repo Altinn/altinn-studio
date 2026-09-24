@@ -124,8 +124,7 @@ class Behavior:
     def measured_by(self) -> str:
         if self.source == "judge":
             return (
-                f"{self.evaluator} {self.judge_version}, an LLM judge. Only comparable "
-                f"while the judge version matches."
+                f"{self.evaluator} {self.judge_version}, an LLM judge. Only comparable while the judge version matches."
             )
         if self.source == "render":
             return f"{self.evaluator}, a real browser loading the generated page."
@@ -310,8 +309,7 @@ BEHAVIORS = (
         text="Declines a goal it cannot plan",
         checks="Nothing checks this today.",
         blind=(
-            "Everything. The planner currently invents plausible steps for an impossible "
-            "goal and no eval would notice."
+            "Everything. The planner currently invents plausible steps for an impossible goal and no eval would notice."
         ),
         fix=Fix(
             kind="gap",
@@ -351,8 +349,7 @@ BEHAVIORS = (
                 "the eval gap. Report it before adding items."
             ),
             acceptance=(
-                "Multi-turn items in the dataset, or a filed issue if the gate is not called "
-                "after the first turn."
+                "Multi-turn items in the dataset, or a filed issue if the gate is not called after the first turn."
             ),
         ),
     ),
@@ -558,10 +555,7 @@ BEHAVIORS = (
                 "3. Add a field type assertion, either to this evaluator or as a separate "
                 "behavior, so label presence stops standing in for correctness."
             ),
-            acceptance=(
-                "A written finding naming the label and classifying it, and field types "
-                "asserted somewhere."
-            ),
+            acceptance=("A written finding naming the label and classifying it, and field types asserted somewhere."),
         ),
     ),
     Behavior(
@@ -671,8 +665,8 @@ BEHAVIORS = (
         checks=(
             "On a replayed turn that wrote layouts, every component of a type the item names "
             "carries the property value that item requires. One pairing is declared today: a "
-            "Datepicker bound to a string with \"format\": \"date\" has to set "
-            "\"timeStamp\": false, and the item declares the value, not just the property."
+            'Datepicker bound to a string with "format": "date" has to set '
+            '"timeStamp": false, and the item declares the value, not just the property.'
         ),
         blind=(
             "One pairing on one item, so it is a tripwire for a known defect rather than "
@@ -790,8 +784,7 @@ BEHAVIORS = (
         component="build",
         text="The build workflow finishes and reports success",
         checks=(
-            "The agent's session reaches status done with success set, rather than failing or "
-            "running out of time."
+            "The agent's session reaches status done with success set, rather than failing or running out of time."
         ),
         blind=(
             "It cannot tell a fast failure from a hang. A session that fails in two seconds "
@@ -816,8 +809,7 @@ BEHAVIORS = (
                 "are the only ones not version controlled."
             ),
             acceptance=(
-                "A recorded time to terminal state next to this score, and at least eight "
-                "committed e2e items."
+                "A recorded time to terminal state next to this score, and at least eight committed e2e items."
             ),
         ),
         see=("build.reaches-terminal-state",),
@@ -926,10 +918,7 @@ BEHAVIORS = (
         id="build.has-the-requested-fields",
         component="build",
         text="Every field the request asks for is present",
-        checks=(
-            "Each field title the rubric expects is matched against the titles of the app's "
-            "input components."
-        ),
+        checks=("Each field title the rubric expects is matched against the titles of the app's input components."),
         blind=(
             "Titles only, and loosely: either string containing the other counts as a match, "
             "and the component's type is never read. So a request for an attachment answered "
@@ -955,8 +944,7 @@ BEHAVIORS = (
                 "only the rubric entry is specific."
             ),
             acceptance=(
-                "An item whose request implies one upload component and whose app uses the "
-                "other scoring below 1.0."
+                "An item whose request implies one upload component and whose app uses the other scoring below 1.0."
             ),
         ),
         see=("build.matches-the-request",),

@@ -15,7 +15,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
-  "@xsdRootElement": "moped",
+  "@xsdRootElement": "Moped",
   "type": "object",
   "required": [
     "RegNo",

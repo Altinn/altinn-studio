@@ -236,6 +236,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("partnerSkattegrunnlag")]
     public List<Skattegrunnlag> partnerSkattegrunnlag { get; set; }
 
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("skattegrunnlagSummert", Order = 7)]
     [JsonProperty("skattegrunnlagSummert")]
@@ -356,6 +357,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("grunnlagNavn")]
     public string grunnlagNavn { get; set; }
 
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("beloep", Order = 2)]
     [JsonProperty("beloep")]

@@ -20,9 +20,7 @@ def _write_skill(root: Path, name: str, description: str, body: str = "# Content
     skill_dir = root / name
     skill_dir.mkdir(parents=True)
     skill_file = skill_dir / "SKILL.md"
-    skill_file.write_text(
-        f"---\ndescription: {description}\n---\n\n{body}\n", encoding="utf-8"
-    )
+    skill_file.write_text(f"---\ndescription: {description}\n---\n\n{body}\n", encoding="utf-8")
     return skill_file
 
 
@@ -84,9 +82,7 @@ class TestDiscoverSkills:
 
         skills = discover_skills(tmp_path)
         assert skills[0].title == "Dynamiske uttrykk"
-        assert skills[0].docs_url == (
-            "https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/"
-        )
+        assert skills[0].docs_url == ("https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/")
 
     def test_title_and_docs_url_default_to_empty(self, tmp_path):
         _write_skill(tmp_path, "plain", "Desc.")

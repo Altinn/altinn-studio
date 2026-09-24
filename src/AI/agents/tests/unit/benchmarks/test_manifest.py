@@ -33,9 +33,7 @@ def test_every_component_resolves_to_a_symbol_that_exists():
         assert outer in defined, f"{component.id}: {path} defines no {outer!r}"
         if inner:
             members = {
-                node.name
-                for node in defined[outer].body
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                node.name for node in defined[outer].body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
             }
             assert inner in members, f"{component.id}: {outer} has no {inner!r}"
 
@@ -64,8 +62,7 @@ def test_judged_behaviors_record_their_judge_version():
     for behavior in manifest.judged():
         assert behavior.judge_version
         assert "judge version" in behavior.blind, (
-            f"{behavior.id}: a judged score is only comparable while the judge holds, "
-            "so say so in blind"
+            f"{behavior.id}: a judged score is only comparable while the judge holds, so say so in blind"
         )
 
 
@@ -138,8 +135,7 @@ def test_every_pinned_behavior_names_an_evaluator_the_code_can_emit():
     emittable = _emittable_score_names()
     for behavior in manifest.pinned():
         assert behavior.evaluator in emittable, (
-            f"{behavior.id}: no module emits a score named {behavior.evaluator!r}. "
-            f"Available: {sorted(emittable)}"
+            f"{behavior.id}: no module emits a score named {behavior.evaluator!r}. Available: {sorted(emittable)}"
         )
 
 

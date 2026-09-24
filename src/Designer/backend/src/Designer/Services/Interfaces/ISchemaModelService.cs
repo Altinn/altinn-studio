@@ -70,6 +70,22 @@ public interface ISchemaModelService
     );
 
     /// <summary>
+    /// Replaces the model files of an existing schema with the ones derived from the uploaded XSD.
+    /// The model keeps its name, so references to it, e.g. the data type in the application metadata,
+    /// are kept intact.
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="relativeFilePath">Relative path to the JSON schema of the model to be replaced.</param>
+    /// <param name="xsdStream">Stream representing the XSD.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    Task<string> ReplaceSchemaFromXsd(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string relativeFilePath,
+        Stream xsdStream,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Creates a JSON schema based on a template.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
@@ -110,6 +126,20 @@ public interface ISchemaModelService
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>Returns the model metadata</returns>
     Task<ModelMetadata> GenerateModelMetadataFromJsonSchema(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string relativeFilePath,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Checks whether the generated model files are out of date with the stored JSON schema,
+    /// which is the case when the schema has been saved without generating model files since.
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="relativeFilePath">Relative path to the file.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>True if the model files need to be generated again.</returns>
+    Task<bool> AreModelFilesOutOfDate(
         AltinnRepoEditingContext altinnRepoEditingContext,
         string relativeFilePath,
         CancellationToken cancellationToken = default

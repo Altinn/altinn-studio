@@ -10,7 +10,7 @@ namespace Altinn.App.logic
     {
         public string DataType { get; } = "attachments";
 
-        public async Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string language)
+        public async Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string? language)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 

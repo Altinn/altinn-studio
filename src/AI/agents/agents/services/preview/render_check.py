@@ -7,6 +7,7 @@ and it keeps the working copy owned by the user the preview renders for.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 from dataclasses import dataclass
@@ -58,6 +59,7 @@ class PageRenderResult:
 class PreviewCheckUnavailable(Exception):
     pass
 
+
 def render_check(
     *,
     studio_base: str,
@@ -84,9 +86,7 @@ def render_check(
         ) from error
 
     studio_base = studio_base.rstrip("/")
-    launch_args = (
-        [f"--host-resolver-rules={host_resolver_rules}"] if host_resolver_rules else []
-    )
+    launch_args = [f"--host-resolver-rules={host_resolver_rules}"] if host_resolver_rules else []
     with sync_playwright() as playwright:
         try:
             browser = playwright.chromium.launch(args=launch_args)
@@ -137,7 +137,6 @@ def swap_layout_in_preview_url(url: str, layout: str) -> str | None:
     return urlunsplit(parts._replace(fragment=fragment))
 
 
-
 def _authenticated_context(browser, studio_base: str, username: str, storage_state_path: Path):
     if storage_state_path.is_file():
         context = browser.new_context(storage_state=str(storage_state_path))
@@ -177,13 +176,10 @@ def _login(context, studio_base: str, username: str) -> None:
     page.get_by_role("button", name=re.compile(re.escape(username))).click()
     # An org picker only appears when Designer requests authorization_details.
     org_picker_next = page.get_by_role("button", name=ORG_PICKER_NEXT_BUTTON)
-    try:
+    with contextlib.suppress(Exception):
         org_picker_next.click(timeout=ORG_PICKER_TIMEOUT_MS)
-    except Exception:
-        pass
     page.wait_for_url(f"{studio_base}/dashboard/**", timeout=LOGIN_STEP_TIMEOUT_MS)
     page.close()
-
 
 
 def _checkout_branch(context, studio_base: str, org: str, app: str, branch: str) -> None:
@@ -194,9 +190,7 @@ def _checkout_branch(context, studio_base: str, org: str, app: str, branch: str)
 
     reset = context.request.get(f"{repo_api}/reset", timeout=CHECKOUT_TIMEOUT_MS)
     if not reset.ok:
-        raise PreviewCheckUnavailable(
-            f"reset before checkout of {branch!r} failed: {reset.status} {reset.status_text}"
-        )
+        raise PreviewCheckUnavailable(f"reset before checkout of {branch!r} failed: {reset.status} {reset.status_text}")
 
     checkout = context.request.post(
         f"{repo_api}/checkout",
@@ -205,9 +199,7 @@ def _checkout_branch(context, studio_base: str, org: str, app: str, branch: str)
         timeout=CHECKOUT_TIMEOUT_MS,
     )
     if not checkout.ok:
-        raise PreviewCheckUnavailable(
-            f"checkout of {branch!r} failed: {checkout.status} {checkout.status_text}"
-        )
+        raise PreviewCheckUnavailable(f"checkout of {branch!r} failed: {checkout.status} {checkout.status_text}")
 
 
 def _xsrf_token(context, studio_base: str) -> str:
@@ -216,7 +208,6 @@ def _xsrf_token(context, studio_base: str) -> str:
         if cookie["name"] == XSRF_COOKIE_NAME:
             return cookie["value"]
     raise PreviewCheckUnavailable("no XSRF token cookie after login")
-
 
 
 def _resolve_preview_url(page, studio_base: str, org: str, app: str) -> str:
@@ -273,9 +264,7 @@ def _check_single_page(page, url: str, layout: str) -> PageRenderResult:
     try:
         page.goto("about:blank")
         page.goto(url)
-        page.wait_for_selector(
-            RENDERED_OR_ERROR_SELECTOR, state="attached", timeout=PAGE_RENDER_TIMEOUT_MS
-        )
+        page.wait_for_selector(RENDERED_OR_ERROR_SELECTOR, state="attached", timeout=PAGE_RENDER_TIMEOUT_MS)
     except Exception as error:
         detail = uncaught_errors[0] if uncaught_errors else str(error)
         return PageRenderResult(layout, False, f"{NO_MARKER_PREFIX}{_snippet(detail)}")
@@ -296,9 +285,7 @@ def _check_single_page(page, url: str, layout: str) -> PageRenderResult:
     return PageRenderResult(layout, True, detail)
 
 
-def _describe_error_page(
-    page, error_element, uncaught_errors: list[str], console_errors: list[str]
-) -> str:
+def _describe_error_page(page, error_element, uncaught_errors: list[str], console_errors: list[str]) -> str:
     """Status code, error-page text and any uncaught or console errors: "error page
     shown" alone tells whoever must fix it nothing.
     """

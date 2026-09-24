@@ -1,0 +1,33 @@
+/* Override design system component to enable horizontal layout
+  No longer supported with horizontal layout in design system.
+  Possible breaking change if we remove this option of styling.
+  */
+.horizontal {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: var(--ds-size-2);
+}
+
+.checkboxLabelContainer {
+  display: flex;
+  gap: var(--ds-size-1);
+  align-items: center;
+}
+
+.legend {
+  display: inline-flex;
+}
+
+.visuallyHidden {
+  border: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

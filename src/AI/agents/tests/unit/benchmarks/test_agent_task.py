@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from benchmarks import agent_task
-from benchmarks.agent_task import AgentTask, STRUCTURAL_SCORE_NAMES, item_field
+from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, item_field
 from benchmarks.evaluators import Score
 from benchmarks.experiment import SCORES_KEY
 from benchmarks.rubric import RUBRIC_VERSION
@@ -31,9 +31,7 @@ def _item(**overrides):
 def task(monkeypatch, tmp_path):
     """A task whose agent always succeeds and whose branch always clones."""
     monkeypatch.setattr(agent_task, "start_agent", lambda *a, **k: None)
-    monkeypatch.setattr(
-        agent_task, "await_workflow", lambda *a, **k: {"status": "done", "success": True}
-    )
+    monkeypatch.setattr(agent_task, "await_workflow", lambda *a, **k: {"status": "done", "success": True})
     monkeypatch.setattr(agent_task, "clone_result_branch", lambda s, w: tmp_path / "clone")
     monkeypatch.setattr(agent_task, "load_app", lambda path: object())
     monkeypatch.setattr(
@@ -57,7 +55,7 @@ class TestTheOutputCarriesTheScores:
         output = task(item=_item())
 
         assert output["session_id"]
-        assert output["session_branch"] == f"altinity_session_{output['session_id'][:8]}"
+        assert output["session_branch"] == f"assistant_{output['session_id'][:8]}"
 
     def test_a_finished_workflow_scores_completed(self, task):
         output = task(item=_item())
@@ -70,7 +68,7 @@ class TestAnUnusableItemFails:
     """`run_experiment` isolates and records a failing item."""
 
     def test_a_missing_goal_raises(self, task):
-        with pytest.raises(ValueError, match="no input.goal"):
+        with pytest.raises(ValueError, match=r"no input\.goal"):
             task(item=_item(input={}))
 
     def test_a_stale_rubric_raises(self, task):
@@ -120,10 +118,7 @@ class TestTheAgentTraceJoinsTheRun:
     def test_a_different_run_gets_a_different_id(self, task):
         other = AgentTask(agent_base="http://agent", assets_dir=Path("."), run_name="run-b")
 
-        assert (
-            task.experiment_context(_item())["experimentId"]
-            != other.experiment_context(_item())["experimentId"]
-        )
+        assert task.experiment_context(_item())["experimentId"] != other.experiment_context(_item())["experimentId"]
 
 
 class TestItemFieldHandlesBothShapes:

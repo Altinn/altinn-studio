@@ -1,19 +1,11 @@
 {
-  "$schema": "http://json-schema.org/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
+  "@xsdRootElement": "PdfSettings",
   "type": "object",
   "properties": {
-    "PdfSettings": {
-      "$ref": "#/definitions/PdfSettings"
-    }
-  },
-  "definitions": {
-    "PdfSettings": {
-      "properties": {
-        "CreatePdf": {
-          "type": "boolean"
-        }
-      }
+    "CreatePdf": {
+      "type": "boolean"
     }
   }
 }

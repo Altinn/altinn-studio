@@ -1917,8 +1917,13 @@ public sealed class CSharpApiMigrationTests : IDisposable
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
         Assert.NotEmpty(result.Todos);
-        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient"));
-        Assert.Contains(Summaries(result), s => s.Contains("process transitions fail once deployed"));
+        // The section name is what the studioctl command needs, so the call site is reported with it.
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient(\"MyOwnMaskinporten\")")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+        Assert.Contains(Summaries(result), s => s.Contains("studioctl app maskinporten set"));
     }
 
     [Fact]
@@ -1942,18 +1947,42 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     /// <summary>
-    /// Binding the provisioned section by name is what the default registration does anyway, so it changes
-    /// nothing and must not be reported.
+    /// Naming the provisioned section was a no-op in v8 and was therefore exempt. In v9 the method itself
+    /// is gone, so the call no longer compiles whatever it names.
     /// </summary>
     [Fact]
-    public void ClientOverrideDetector_IgnoresRebindingTheProvisionedSection()
+    public void ClientOverrideDetector_FlagsRebindingTheProvisionedSection()
     {
         _app.Write("Program.cs", """services.ConfigureMaskinportenClient("MaskinportenSettings");""");
 
         var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
 
-        Assert.Empty(result.Todos);
-        Assert.Empty(result.Warnings);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
+    }
+
+    /// <summary>
+    /// The Fiks builder forwarded to the same removed API - the blind spot the old call-name-only check had.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_FlagsTheFiksBuilderForwarder()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services
+                .AddFiksArkiv()
+                .WithMaskinportenConfig(config =>
+                {
+                    config.ClientId = "my-client";
+                });
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("WithMaskinportenConfig"));
     }
 
     [Fact]

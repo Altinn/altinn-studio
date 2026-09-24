@@ -9,7 +9,6 @@ on:
       - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-gateway-tests.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

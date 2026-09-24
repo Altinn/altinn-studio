@@ -222,21 +222,33 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Quartz upgrades need a hand-written QuartzTables migration and a tables-file update in designer-backend-check-quartz-update.yml, so keep them out of the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/Designer/backend/**"],
+      "matchPackageNames": ["/^Quartz/"],
+      "groupName": "Quartz packages in Designer",
+      "groupSlug": "designer-quartz",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "MSBuild packages must ship assets for studioctl-server's target framework; a separate PR keeps a mismatch from blocking the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/cli/**"],
+      "matchPackageNames": ["/^Microsoft\\.Build/", "Microsoft.NET.StringTools"],
+      "groupName": "MSBuild packages in studioctl",
+      "groupSlug": "studioctl-msbuild"
+    },
+    {
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
-        "src/App/Designer/**"
+        "src/Designer/backend/**"
       ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
-      "matchFileNames": ["src/App/Designer/**"],
-      "ignoreDeps": [
-        "Moq",
-        "Basic.Reference.Assemblies",
-        "Microsoft.CodeAnalysis.CSharp",
-        "Microsoft.CodeAnalysis.Common"
-      ]
+      "matchFileNames": ["src/Designer/backend/**"],
+      "ignoreDeps": ["Moq"]
     },
     {
       "matchFileNames": [

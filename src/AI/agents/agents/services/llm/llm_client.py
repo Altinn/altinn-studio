@@ -1,18 +1,28 @@
 """LLM client for Altinity agents"""
-import json
+
 import asyncio
-from langfuse import get_client
-from shared.utils.langfuse_utils import trace_generation
-from typing import Dict, Any, Optional, List, Tuple
+import json
+from typing import Any
+
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import (
     AzureChatOpenAI,
     ChatOpenAI,
+)
+from langchain_openai import (
     AzureOpenAI as LangchainAzureOpenAI,
+)
+from langchain_openai import (
     OpenAI as LangchainOpenAI,
 )
-from openai import AzureOpenAI as AzureResponsesClient, OpenAI as OpenAIResponsesClient
-from langchain_core.messages import SystemMessage, HumanMessage
+from langfuse import get_client
+from openai import AzureOpenAI as AzureResponsesClient
+from openai import OpenAI as OpenAIResponsesClient
+
+from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
+from shared.models import AgentAttachment
+from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import (
     ATTACHMENT_TAG,
@@ -20,14 +30,12 @@ from shared.utils.spotlight import (
     defang_delimiter,
     open_delimiter,
 )
-from shared.models import AgentAttachment
-from agents.prompts import get_prompt_content, get_prompt_with_langfuse
 
 log = get_logger(__name__)
 config = get_config()
 
 
-def _is_claude_model(model_name: Optional[str]) -> bool:
+def _is_claude_model(model_name: str | None) -> bool:
     """Check if model name indicates a Claude/Anthropic model"""
     if not model_name:
         return False
@@ -35,16 +43,14 @@ def _is_claude_model(model_name: Optional[str]) -> bool:
     return model_lower.startswith("claude") or "anthropic" in model_lower
 
 
-def _is_reasoning_model(model_name: Optional[str]) -> bool:
+def _is_reasoning_model(model_name: str | None) -> bool:
     """Check if model is a reasoning model that uses internal reasoning tokens."""
     if not model_name:
         return False
     m = model_name.lower()
     # o1, o1-mini, o1-preview, o3, o3-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5-pro
-    return (
-        m.startswith("o1") or m.startswith("o3")
-        or m.startswith("gpt-5")
-    )
+    return m.startswith(("o1", "o3", "gpt-5"))
+
 
 ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
 
@@ -63,20 +69,20 @@ def _defang_attachment_value(value: Any) -> Any:
     return value
 
 
-def _defang_attachment_blocks(blocks: List[dict]) -> List[dict]:
+def _defang_attachment_blocks(blocks: list[dict]) -> list[dict]:
     """Stop an attachment closing the block it sits inside."""
     return [_defang_attachment_value(block) for block in blocks]
 
 
 def _build_anthropic_user_content(
     user_prompt: str,
-    attachments: Optional[List[AgentAttachment]],
+    attachments: list[AgentAttachment] | None,
 ) -> Any:
     """Compose an Anthropic Messages-API `content` value."""
     stripped = user_prompt.strip() if user_prompt else ""
     if not attachments:
         return stripped
-    blocks: List[dict] = [{"type": "text", "text": stripped}] if stripped else []
+    blocks: list[dict] = [{"type": "text", "text": stripped}] if stripped else []
     blocks.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
     for attachment in attachments:
         blocks.extend(_defang_attachment_blocks(attachment.to_anthropic_blocks()))
@@ -87,13 +93,13 @@ def _build_anthropic_user_content(
 class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
-    def __init__(self, role: str = "default", max_tokens: Optional[int] = None):
+    def __init__(self, role: str = "default", max_tokens: int | None = None):
         """Initialize LLM client with role-specific configuration  Args: role: Agent role (planner, actor, reviewer, verifier, default) max_tokens: Maximum tokens for response."""
         self.role = role
 
         # Select model and temperature based on role
-        model: Optional[str] = None
-        temperature: Optional[float] = None
+        model: str | None = None
+        temperature: float | None = None
         self.use_completions = False
         self.use_responses = False
         self.responses_client = None
@@ -253,16 +259,16 @@ class LLMClient:
             log.warning("No LLM API key configured - LLM features will be limited")
             self.llm = None
 
-        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not (self.use_completions or self.use_responses or self.use_anthropic)
+        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not (
+            self.use_completions or self.use_responses or self.use_anthropic
+        )
 
-    def _init_anthropic_client(self, role: str, model: str, temperature: Optional[float]) -> None:
+    def _init_anthropic_client(self, role: str, model: str, temperature: float | None) -> None:
         """Initialize Anthropic/Claude client for Azure AI Foundry or direct Anthropic API"""
         try:
             from anthropic import Anthropic
-        except ImportError:
-            raise ImportError(
-                "anthropic package not installed. Install with: pip install anthropic"
-            )
+        except ImportError as e:
+            raise ImportError("anthropic package not installed. Install with: pip install anthropic") from e
 
         # Check if we should use Azure AI Foundry or direct Anthropic
         if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY:
@@ -303,8 +309,8 @@ class LLMClient:
             return f"{system_prompt.strip()}\n\n{user_prompt.strip()}"
         return user_prompt.strip()
 
-    def _build_responses_input(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
-        messages: List[Dict[str, str]] = []
+    def _build_responses_input(self, system_prompt: str, user_prompt: str) -> list[dict[str, str]]:
+        messages: list[dict[str, str]] = []
         if system_prompt and system_prompt.strip():
             messages.append({"role": "system", "content": system_prompt.strip()})
         messages.append({"role": "user", "content": user_prompt.strip()})
@@ -344,7 +350,7 @@ class LLMClient:
         """Extract text content from Anthropic API response"""
         if response is None:
             return ""
-        
+
         # Anthropic response has content array with text blocks
         content = getattr(response, "content", None)
         if content:
@@ -356,11 +362,11 @@ class LLMClient:
                         text_parts.append(text)
             if text_parts:
                 return "\n".join(text_parts).strip()
-        
+
         # Fallback to string representation
         return str(response)
 
-    def _build_human_message(self, user_prompt: str, attachments: Optional[List[AgentAttachment]] = None) -> HumanMessage:
+    def _build_human_message(self, user_prompt: str, attachments: list[AgentAttachment] | None = None) -> HumanMessage:
         if attachments and not self.supports_vision:
             log.warning(
                 "Attachments provided but model %s does not support multimodal input; attachments will be ignored.",
@@ -379,7 +385,7 @@ class LLMClient:
         self,
         system_prompt: str,
         user_prompt: str,
-        attachments: Optional[List[AgentAttachment]] = None,
+        attachments: list[AgentAttachment] | None = None,
         timeout: int = 300,
         langfuse_prompt=None,
     ) -> str:
@@ -424,10 +430,7 @@ class LLMClient:
                             max_tokens=self.max_tokens,
                         )
 
-                    response = await asyncio.wait_for(
-                        loop.run_in_executor(None, _call_anthropic),
-                        timeout=timeout
-                    )
+                    response = await asyncio.wait_for(loop.run_in_executor(None, _call_anthropic), timeout=timeout)
                     response_text = self._extract_anthropic_text(response)
                     usage = getattr(response, "usage", None)
                     if usage:
@@ -438,7 +441,9 @@ class LLMClient:
                         }
                 elif self.use_responses:
                     if attachments:
-                        log.warning("Attachments provided but responses model does not support them; ignoring attachments")
+                        log.warning(
+                            "Attachments provided but responses model does not support them; ignoring attachments"
+                        )
                     input_messages = self._build_responses_input(system_prompt, user_prompt)
 
                     def _call_responses():
@@ -447,10 +452,7 @@ class LLMClient:
                             input=input_messages,
                         )
 
-                    response = await asyncio.wait_for(
-                        loop.run_in_executor(None, _call_responses),
-                        timeout=timeout
-                    )
+                    response = await asyncio.wait_for(loop.run_in_executor(None, _call_responses), timeout=timeout)
                     response_text = self._extract_responses_text(response)
                     usage = getattr(response, "usage", None)
                     if usage:
@@ -463,21 +465,21 @@ class LLMClient:
                     raise ValueError("LLM client not initialized")
                 elif self.use_completions:
                     if attachments:
-                        log.warning("Attachments provided but completion model does not support them; ignoring attachments")
+                        log.warning(
+                            "Attachments provided but completion model does not support them; ignoring attachments"
+                        )
                     prompt = self._format_completion_prompt(system_prompt, user_prompt)
                     response = await asyncio.wait_for(
-                        loop.run_in_executor(None, self.llm.invoke, prompt),
-                        timeout=timeout
+                        loop.run_in_executor(None, self.llm.invoke, prompt), timeout=timeout
                     )
                     response_text = response.strip() if isinstance(response, str) else str(response)
                 else:
                     messages = [
                         SystemMessage(content=system_prompt),
-                        self._build_human_message(user_prompt, attachments)
+                        self._build_human_message(user_prompt, attachments),
                     ]
                     response = await asyncio.wait_for(
-                        loop.run_in_executor(None, self.llm.invoke, messages),
-                        timeout=timeout
+                        loop.run_in_executor(None, self.llm.invoke, messages), timeout=timeout
                     )
                     response_text = response.content.strip()
                     if hasattr(response, "response_metadata") and "token_usage" in response.response_metadata:
@@ -501,13 +503,15 @@ class LLMClient:
                     log.debug("Failed to update Langfuse span with response: %s", span_e)
                 return response_text
 
-            except asyncio.TimeoutError:
+            except TimeoutError as e:
                 log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
                 try:
                     span.update(metadata={"error": "timeout"})
                 except Exception as span_e:
                     log.debug("Failed to update Langfuse span with timeout error: %s", span_e)
-                raise TimeoutError(f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request.")
+                raise TimeoutError(
+                    f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request."
+                ) from e
             except Exception as e:
                 log.error(f"LLM call failed: {e}")
                 try:
@@ -537,18 +541,14 @@ class LLMClient:
             return metadata
         except Exception as e:
             log.warning(f"Error getting model metadata: {e}")
-            return {
-                "role": str(self.role),
-                "model": "unknown",
-                "temperature": 0.1
-            }
-    
+            return {"role": str(self.role), "model": "unknown", "temperature": 0.1}
+
     def call_sync(
         self,
         system_message: str,
         user_message: str,
-        attachments: Optional[List[AgentAttachment]] = None,
-        conversation_history: Optional[List] = None,
+        attachments: list[AgentAttachment] | None = None,
+        conversation_history: list | None = None,
         langfuse_prompt=None,
     ) -> str:
         """Synchronous call to LLM  Args: system_message: System prompt user_message: User message (current question) attachments: Optional attachments for vision models conversation_history: Optional list of prior messages (dicts with 'role' and 'content')  Returns: Response text"""
@@ -561,9 +561,9 @@ class LLMClient:
                 "role": self.role,
                 "model_metadata": self.get_model_metadata(),
                 "attachment_count": len(attachments) if attachments else 0,
-                "attachment_names": [att.name for att in attachments] if attachments else []
+                "attachment_names": [att.name for att in attachments] if attachments else [],
             },
-            metadata={"role": self.role}
+            metadata={"role": self.role},
         ) as span:
             langfuse = get_client()
             if langfuse_prompt is not None:
@@ -577,6 +577,7 @@ class LLMClient:
                     user_content = _build_anthropic_user_content(user_message, attachments)
 
                     import time
+
                     system_len = len(system_message.strip() if system_message else "")
                     user_len = len(user_message.strip())
                     log.info("🔵 Anthropic API call starting")
@@ -617,11 +618,13 @@ class LLMClient:
                             log.error("   3. Use streaming API (not yet implemented)")
                             log.error("   4. Split task into smaller subtasks")
                         raise
-                    
+
                     response_text = self._extract_anthropic_text(response)
                 elif self.use_responses:
                     if attachments:
-                        log.warning("Attachments provided but responses model does not support them; ignoring attachments")
+                        log.warning(
+                            "Attachments provided but responses model does not support them; ignoring attachments"
+                        )
                     input_messages = self._build_responses_input(system_message, user_message)
                     response = self.responses_client.responses.create(
                         model=self.model,
@@ -632,40 +635,43 @@ class LLMClient:
                     raise ValueError("LLM client not initialized")
                 elif self.use_completions:
                     if attachments:
-                        log.warning("Attachments provided but completion model does not support them; ignoring attachments")
+                        log.warning(
+                            "Attachments provided but completion model does not support them; ignoring attachments"
+                        )
                     prompt = self._format_completion_prompt(system_message, user_message)
                     response = self.llm.invoke(prompt)
                     response_text = response if isinstance(response, str) else str(response)
                 else:
                     # Build messages array with conversation history
                     messages = [SystemMessage(content=system_message)]
-                    
+
                     # Add conversation history if provided
                     if conversation_history:
                         from langchain_core.messages import AIMessage
+
                         for msg in conversation_history:
                             if msg.role == "user":
                                 messages.append(HumanMessage(content=msg.content))
                             elif msg.role == "assistant":
                                 messages.append(AIMessage(content=msg.content))
-                    
+
                     # Add current user message
                     messages.append(self._build_human_message(user_message, attachments))
-                    
+
                     response = self.llm.invoke(messages)
                     response_text = response.content
 
                     # Detect empty/filtered responses
                     if not response_text or not response_text.strip():
                         finish_reason = None
-                        if hasattr(response, 'response_metadata'):
-                            finish_reason = response.response_metadata.get('finish_reason')
+                        if hasattr(response, "response_metadata"):
+                            finish_reason = response.response_metadata.get("finish_reason")
                         log.warning(
                             f"⚠️ LLM returned empty response (role={self.role}, model={self.model}, "
                             f"finish_reason={finish_reason}, "
                             f"metadata={getattr(response, 'response_metadata', {})})"
                         )
-                
+
                 # Set outputs and usage details
                 usage_details = {}
                 if self.use_anthropic:
@@ -674,7 +680,7 @@ class LLMClient:
                         usage_details = {
                             "input_tokens": getattr(usage, "input_tokens", 0),
                             "output_tokens": getattr(usage, "output_tokens", 0),
-                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0)
+                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
                         }
                 elif self.use_responses:
                     usage = getattr(response, "usage", None)
@@ -682,25 +688,25 @@ class LLMClient:
                         usage_details = {
                             "input_tokens": getattr(usage, "input_tokens", 0),
                             "output_tokens": getattr(usage, "output_tokens", 0),
-                            "total_tokens": getattr(usage, "total_tokens", 0)
+                            "total_tokens": getattr(usage, "total_tokens", 0),
                         }
-                elif hasattr(response, 'response_metadata'):
-                    if 'token_usage' in response.response_metadata:
-                        usage = response.response_metadata['token_usage']
+                elif hasattr(response, "response_metadata"):
+                    if "token_usage" in response.response_metadata:
+                        usage = response.response_metadata["token_usage"]
                         usage_details = {
-                            "input_tokens": usage.get('prompt_tokens', 0),
-                            "output_tokens": usage.get('completion_tokens', 0),
-                            "total_tokens": usage.get('total_tokens', 0)
+                            "input_tokens": usage.get("prompt_tokens", 0),
+                            "output_tokens": usage.get("completion_tokens", 0),
+                            "total_tokens": usage.get("total_tokens", 0),
                         }
-                
+
                 try:
                     span.update(
                         output={"response": response_text},
                         usage_details=usage_details if usage_details else None,
                         metadata={
                             "request_length": len(system_message) + len(user_message),
-                            "response_length": len(response_text)
-                        }
+                            "response_length": len(response_text),
+                        },
                     )
                 except Exception as span_e:
                     log.debug("Failed to update Langfuse span with response: %s", span_e)
@@ -716,11 +722,11 @@ class LLMClient:
 
 
 # Global client cache to reuse instances
-_clients: Dict[Tuple[str, ...], LLMClient] = {}
-_client_keys: Dict[str, Tuple[str, ...]] = {}
+_clients: dict[tuple[str, ...], LLMClient] = {}
+_client_keys: dict[str, tuple[str, ...]] = {}
 
 
-def _build_cache_key(role: str) -> Tuple[str, ...]:
+def _build_cache_key(role: str) -> tuple[str, ...]:
     if role == "tool_planner":
         return (
             role,
@@ -761,6 +767,7 @@ def get_llm_client(role: str = "default") -> LLMClient:
     _client_keys[role] = key
     return client
 
+
 def build_intent_parse_message(goal: str, attachment_names: list[str] | None = None) -> str:
     """The user message the safety gate sees, as a value so a dataset can send
     exactly what production sends."""
@@ -771,14 +778,10 @@ def build_intent_parse_message(goal: str, attachment_names: list[str] | None = N
     return message
 
 
-async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
+async def parse_intent_with_llm(goal: str, attachments: list[AgentAttachment] | None = None) -> dict[str, Any]:
     """Parse user intent using LLM."""
-    system_prompt, lf_prompt = get_prompt_with_langfuse(
-        "intent_check", local_path="intent_security"
-    )
-    user_prompt = build_intent_parse_message(
-        goal, [a.name for a in attachments] if attachments else None
-    )
+    system_prompt, lf_prompt = get_prompt_with_langfuse("intent_check", local_path="intent_security")
+    user_prompt = build_intent_parse_message(goal, [a.name for a in attachments] if attachments else None)
 
     client = get_llm_client()
     response = await client.call_async(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
@@ -788,9 +791,9 @@ async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttac
         fence_end = cleaned_response.find("\n")
         first_line = cleaned_response[:fence_end] if fence_end != -1 else cleaned_response
         if first_line.startswith("```json"):
-            cleaned_response = cleaned_response[len("```json"):].strip()
+            cleaned_response = cleaned_response[len("```json") :].strip()
         else:
-            cleaned_response = cleaned_response[len("```"):].strip()
+            cleaned_response = cleaned_response[len("```") :].strip()
         if cleaned_response.endswith("```"):
             cleaned_response = cleaned_response[:-3].strip()
 
@@ -807,8 +810,9 @@ async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttac
             "details": {},
             "confidence": 0.0,
             "safe": False,
-            "reason": "Failed to parse intent"
+            "reason": "Failed to parse intent",
         }
+
 
 def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = None) -> list[str]:
     """Generate goal suggestions using LLM"""
@@ -823,17 +827,14 @@ def suggest_goals_with_llm(rejected_goal: str, rejection_reason: str | None = No
         else f"This goal was unclear: {rejected_goal}\nSuggest clearer goals the user could ask for instead."
     )
     # The chips sit next to a rejection written in the user's language.
-    user_prompt += (
-        "\nWrite them in the same language as the goal above."
-        "\nOne goal per line, no numbering."
-    )
+    user_prompt += "\nWrite them in the same language as the goal above.\nOne goal per line, no numbering."
 
     try:
         client = get_llm_client()
         response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
 
         # Split response into lines and clean up
-        suggestions = [line.strip().lstrip('- ') for line in response.split('\n') if line.strip()]
+        suggestions = [line.strip().lstrip("- ") for line in response.split("\n") if line.strip()]
         return suggestions[:3]  # Limit to 3 suggestions
 
     except Exception as e:

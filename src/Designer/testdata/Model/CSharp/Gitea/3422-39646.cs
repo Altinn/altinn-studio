@@ -265,7 +265,7 @@ namespace Altinn.App.Models
 
   public class Medlemsinntekter30320
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -293,7 +293,7 @@ namespace Altinn.App.Models
 
   public class MedlemsinntekterFjoraret30321
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -359,7 +359,7 @@ namespace Altinn.App.Models
 
   public class TilskuddOffentlig33419
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -387,7 +387,7 @@ namespace Altinn.App.Models
 
   public class TilskuddOffentligFjoraret33420
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -451,7 +451,7 @@ namespace Altinn.App.Models
 
   public class TilskuddAndre33422
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -479,6 +479,7 @@ namespace Altinn.App.Models
 
   public class TilskuddAndreFjoraret33423
   {
+    [RegularExpression(@"^[\-\u2212]?[0-9]+(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -544,7 +545,7 @@ namespace Altinn.App.Models
 
   public class TilskuddOffentlig30311
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -572,7 +573,7 @@ namespace Altinn.App.Models
 
   public class TilskuddOffentligFjoraret30312
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -638,7 +639,7 @@ namespace Altinn.App.Models
 
   public class MidlerGaverInnsamlede30314
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -666,7 +667,7 @@ namespace Altinn.App.Models
 
   public class MidlerGaverInnsamledeFjoraret30315
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -732,7 +733,7 @@ namespace Altinn.App.Models
 
   public class AktiviteterOppfyllerOrganisasjonensFormal33425
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -760,7 +761,7 @@ namespace Altinn.App.Models
 
   public class AktiviteterOppfyllerOrganisasjonensFormalFjoraret33426
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -826,7 +827,7 @@ namespace Altinn.App.Models
 
   public class AktiviteterSkaperInntekt33428
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -854,7 +855,7 @@ namespace Altinn.App.Models
 
   public class AktiviteterSkaperInntektFjoraret33429
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -920,7 +921,7 @@ namespace Altinn.App.Models
 
   public class AktiviteterOperasjonelle33431
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -948,7 +949,7 @@ namespace Altinn.App.Models
 
   public class AktiviteterOperasjonelleFjoraret33432
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1014,7 +1015,7 @@ namespace Altinn.App.Models
 
   public class DriftsinntekterAndreSum7709
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1042,7 +1043,7 @@ namespace Altinn.App.Models
 
   public class DriftsinntekterAndreFjoraretSum7966
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1108,7 +1109,7 @@ namespace Altinn.App.Models
 
   public class FinansinntekterInvesteringsinntekter33434
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1136,7 +1137,7 @@ namespace Altinn.App.Models
 
   public class FinansinntekterInvesteringsinntekterFjoraret33435
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1202,7 +1203,7 @@ namespace Altinn.App.Models
 
   public class InntektAnnen30308
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1230,7 +1231,7 @@ namespace Altinn.App.Models
 
   public class InntektAnnenFjoraret30309
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1296,7 +1297,7 @@ namespace Altinn.App.Models
 
   public class MidlerAnskaffede30317
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1324,7 +1325,7 @@ namespace Altinn.App.Models
 
   public class MidlerAnskaffedeFjoraret30318
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1439,7 +1440,7 @@ namespace Altinn.App.Models
 
   public class KostnadAnskaffelseAvMidler30807
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1467,7 +1468,7 @@ namespace Altinn.App.Models
 
   public class KostnadAnskaffelseAvMidlerFjoraret30808
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1533,7 +1534,7 @@ namespace Altinn.App.Models
 
   public class TilskuddBevilningOppfyllelseOrganisasjonensFormal33437
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1561,7 +1562,7 @@ namespace Altinn.App.Models
 
   public class TilskuddBevilningOppfyllelseOrganisasjonensFormalFjoraret33438
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1627,7 +1628,7 @@ namespace Altinn.App.Models
 
   public class KostnaderOppfyllelseOrganisasjonensFormal33440
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1655,7 +1656,7 @@ namespace Altinn.App.Models
 
   public class KostnaderOppfyllelseOrganisasjonensFormalFjoraret33441
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1721,7 +1722,7 @@ namespace Altinn.App.Models
 
   public class KostnadOrganisasjonensFormal30810
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1749,7 +1750,7 @@ namespace Altinn.App.Models
 
   public class KostnadOrganisasjonensFormalFjoraret30811
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1815,7 +1816,7 @@ namespace Altinn.App.Models
 
   public class RentekostnaderAndre2216
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1843,7 +1844,7 @@ namespace Altinn.App.Models
 
   public class RentekostnaderAndreFjoraret7039
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1909,7 +1910,7 @@ namespace Altinn.App.Models
 
   public class FinanskostnaderAndre156
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -1937,7 +1938,7 @@ namespace Altinn.App.Models
 
   public class FinanskostnaderAndreFjoraret7041
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2003,7 +2004,7 @@ namespace Altinn.App.Models
 
   public class KostnaderAdministrative27926
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2031,7 +2032,7 @@ namespace Altinn.App.Models
 
   public class KostnaderAdministrativeFjoraret27928
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2097,7 +2098,7 @@ namespace Altinn.App.Models
 
   public class DriftskostnaderAndre82
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2125,7 +2126,7 @@ namespace Altinn.App.Models
 
   public class DriftskostnaderAndreFjoraret7023
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2191,7 +2192,7 @@ namespace Altinn.App.Models
 
   public class MidlerForbrukte30813
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2219,7 +2220,7 @@ namespace Altinn.App.Models
 
   public class MidlerForbrukteFjoraret30814
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2339,7 +2340,7 @@ namespace Altinn.App.Models
 
   public class ResultatForSkattekostnad167
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2367,7 +2368,7 @@ namespace Altinn.App.Models
 
   public class ResultatForSkattekostnadFjoraret7042
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2433,7 +2434,7 @@ namespace Altinn.App.Models
 
   public class SkattekostnadOrdinartResultat11835
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2461,7 +2462,7 @@ namespace Altinn.App.Models
 
   public class SkattekostnadOrdinartResultatFjoraret11836
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2527,7 +2528,7 @@ namespace Altinn.App.Models
 
   public class ResultatOrdinart7048
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2555,7 +2556,7 @@ namespace Altinn.App.Models
 
   public class ResultatOrdinartFjordaret7049
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2621,7 +2622,7 @@ namespace Altinn.App.Models
 
   public class ResultatEkstraordinarePoster29048
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2649,7 +2650,7 @@ namespace Altinn.App.Models
 
   public class ResultatEkstraordinarePosterFjoraret29049
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2715,7 +2716,7 @@ namespace Altinn.App.Models
 
   public class SkattekostnadEkstraordinartResultat2821
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2743,7 +2744,7 @@ namespace Altinn.App.Models
 
   public class SkattekostnadEkstraordinartResultatFjoraret8002
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2809,7 +2810,7 @@ namespace Altinn.App.Models
 
   public class Arsresultat172
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2837,7 +2838,7 @@ namespace Altinn.App.Models
 
   public class ArsresultatFjoraret7054
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2903,7 +2904,7 @@ namespace Altinn.App.Models
 
   public class Minoritetsinteresser7717
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2931,7 +2932,7 @@ namespace Altinn.App.Models
 
   public class MinoritetsinteresserFjoraret8004
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -2997,7 +2998,7 @@ namespace Altinn.App.Models
 
   public class ArsresultatEtterMinoritetsinteresser33415
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3025,7 +3026,7 @@ namespace Altinn.App.Models
 
   public class ArsresultatEtterMinoritetsinteresserFjoraret33416
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3089,7 +3090,7 @@ namespace Altinn.App.Models
 
   public class ResultatkomponenterAndreIFRS32929
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3117,7 +3118,7 @@ namespace Altinn.App.Models
 
   public class ResultatkomponenterAndreIFRSFjoraret32930
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3183,7 +3184,7 @@ namespace Altinn.App.Models
 
   public class TotalresultatIFRS36633
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3211,7 +3212,7 @@ namespace Altinn.App.Models
 
   public class TotalresultatIFRSFjoraaret36634
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3306,7 +3307,7 @@ namespace Altinn.App.Models
 
   public class Grunnkapital30816
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3334,7 +3335,7 @@ namespace Altinn.App.Models
 
   public class GrunnkapitalFjoraret30817
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3400,7 +3401,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalRestriksjonerLovpalagte33446
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3428,7 +3429,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalRestriksjonerLovpalagteFjoraret33447
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3494,7 +3495,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalRestriksjonerEksterntPalagt33449
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3522,7 +3523,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalRestriksjonerEksterntPalagtFjoraret33450
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3588,7 +3589,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalRestriksjonerSelvpalagte33452
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3616,7 +3617,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalRestriksjonerSelvpalagteFjoraret33453
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3682,7 +3683,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnen33455
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3710,7 +3711,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenFjoraret33456
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3822,7 +3823,7 @@ namespace Altinn.App.Models
 
   public class PatenterRettigheter205
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3850,7 +3851,7 @@ namespace Altinn.App.Models
 
   public class PatenterRettigheterFjoraret7075
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3916,7 +3917,7 @@ namespace Altinn.App.Models
 
   public class SkattefordelUtsatt202
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -3944,7 +3945,7 @@ namespace Altinn.App.Models
 
   public class SkattefordelUtsattFjoraret7076
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4010,7 +4011,7 @@ namespace Altinn.App.Models
 
   public class ForretningsverdiGoodwill206
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4038,7 +4039,7 @@ namespace Altinn.App.Models
 
   public class ForretningsverdiGoodwillFjoraret7077
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4104,7 +4105,7 @@ namespace Altinn.App.Models
 
   public class EiendelerImmaterielle2400
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4132,7 +4133,7 @@ namespace Altinn.App.Models
 
   public class EiendelerImmaterielleFjoraret8006
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4217,7 +4218,7 @@ namespace Altinn.App.Models
 
   public class FastEiendom1976
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4245,7 +4246,7 @@ namespace Altinn.App.Models
 
   public class FastEiendomFjoraret8007
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4311,7 +4312,7 @@ namespace Altinn.App.Models
 
   public class KjoretoyInventarVerktoyMv7725
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4339,7 +4340,7 @@ namespace Altinn.App.Models
 
   public class KjoretoyInventarVerktoyMvFjoraret8009
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4405,7 +4406,7 @@ namespace Altinn.App.Models
 
   public class DriftsmidlerVarige47
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4433,7 +4434,7 @@ namespace Altinn.App.Models
 
   public class DriftsmidlerVarigeFjoraret8010
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4513,7 +4514,7 @@ namespace Altinn.App.Models
 
   public class DriftsmidlerAndre2836
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4541,7 +4542,7 @@ namespace Altinn.App.Models
 
   public class DriftsmidlerAndreFjoraret7088
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4607,7 +4608,7 @@ namespace Altinn.App.Models
 
   public class DriftsmidlerAndre30980
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4635,7 +4636,7 @@ namespace Altinn.App.Models
 
   public class DriftsmidlerAndreFjoraret30981
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4735,7 +4736,7 @@ namespace Altinn.App.Models
 
   public class InvesteringerDatterselskap9686
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4763,7 +4764,7 @@ namespace Altinn.App.Models
 
   public class InvesteringerDatterselskapFjoraret10289
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4829,7 +4830,7 @@ namespace Altinn.App.Models
 
   public class InvesteringerAksjerAndeler7100
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4857,7 +4858,7 @@ namespace Altinn.App.Models
 
   public class InvesteringerAksjerAndelerFjoraret7101
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4923,7 +4924,7 @@ namespace Altinn.App.Models
 
   public class ObligasjonerLangsiktige27583
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -4951,7 +4952,7 @@ namespace Altinn.App.Models
 
   public class ObligasjonerLangsiktigeFjoraret27584
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5017,7 +5018,7 @@ namespace Altinn.App.Models
 
   public class FordringerAndreLangsiktige203
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5045,7 +5046,7 @@ namespace Altinn.App.Models
 
   public class FordringerAndreLangsiktigeFjoraret27585
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5111,7 +5112,7 @@ namespace Altinn.App.Models
 
   public class AnleggsmidlerFinansielle5267
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5139,7 +5140,7 @@ namespace Altinn.App.Models
 
   public class AnleggsmidlerFinansielleFjoraret8014
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5205,7 +5206,7 @@ namespace Altinn.App.Models
 
   public class Anleggsmidler217
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5233,7 +5234,7 @@ namespace Altinn.App.Models
 
   public class AnleggsmidlerFjoraret7108
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5337,7 +5338,7 @@ namespace Altinn.App.Models
 
   public class Lagerbeholdning30823
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5365,7 +5366,7 @@ namespace Altinn.App.Models
 
   public class LagerbeholdningFjoraret30824
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5431,7 +5432,7 @@ namespace Altinn.App.Models
 
   public class Lagerbeholdning326
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5459,7 +5460,7 @@ namespace Altinn.App.Models
 
   public class LagerbeholdningFjoraret797
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5544,7 +5545,7 @@ namespace Altinn.App.Models
 
   public class FordringerKunder116
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5572,7 +5573,7 @@ namespace Altinn.App.Models
 
   public class FordringerKunderFjoraret6921
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5638,7 +5639,7 @@ namespace Altinn.App.Models
 
   public class FordringerAndreKortsiktig282
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5666,7 +5667,7 @@ namespace Altinn.App.Models
 
   public class FordringerAndreKortsiktigFjoraret7112
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5732,7 +5733,7 @@ namespace Altinn.App.Models
 
   public class Fordringer80
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5760,7 +5761,7 @@ namespace Altinn.App.Models
 
   public class FordringerFjoraret8015
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5850,7 +5851,7 @@ namespace Altinn.App.Models
 
   public class AksjerMvMarkedsbaserte7117
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5878,7 +5879,7 @@ namespace Altinn.App.Models
 
   public class AksjerMvMarkedsbaserteFjoraret7118
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5944,7 +5945,7 @@ namespace Altinn.App.Models
 
   public class FinansielleInstrumenterMarkedsbaserteAndre7731
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -5972,7 +5973,7 @@ namespace Altinn.App.Models
 
   public class FinansielleInstrumenterMarkedsbaserteAndreFjoraret8017
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6038,7 +6039,7 @@ namespace Altinn.App.Models
 
   public class FinansielleInstrumenterAndre6429
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6066,7 +6067,7 @@ namespace Altinn.App.Models
 
   public class FinansielleInstrumenterAndreFjoraret7123
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6132,7 +6133,7 @@ namespace Altinn.App.Models
 
   public class Investeringer6601
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6160,7 +6161,7 @@ namespace Altinn.App.Models
 
   public class InvesteringerFjoraret8018
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6250,7 +6251,7 @@ namespace Altinn.App.Models
 
   public class KontanterBankinnskudd786
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6278,7 +6279,7 @@ namespace Altinn.App.Models
 
   public class KontanterBankinnskuddFjoraret8019
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6344,7 +6345,7 @@ namespace Altinn.App.Models
 
   public class KontanterBankinnskuddSum29042
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6372,7 +6373,7 @@ namespace Altinn.App.Models
 
   public class KontanterBankinnskuddSumFjoraret29043
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6438,7 +6439,7 @@ namespace Altinn.App.Models
 
   public class Omlopsmidler194
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6466,7 +6467,7 @@ namespace Altinn.App.Models
 
   public class OmlopsmidlerFjoraret7126
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6532,7 +6533,7 @@ namespace Altinn.App.Models
 
   public class Eiendeler219
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6560,7 +6561,7 @@ namespace Altinn.App.Models
 
   public class EiendelerFjoraret7127
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6669,7 +6670,7 @@ namespace Altinn.App.Models
 
   public class Grunnkapital30820
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6697,7 +6698,7 @@ namespace Altinn.App.Models
 
   public class GrunnkapitalFjoraret30821
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6763,7 +6764,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalInnskuttAnnen33458
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6791,7 +6792,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalInnskuttAnnenFjoraret33459
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6857,7 +6858,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalInnskuttSum33461
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6937,7 +6938,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenRestriksjonerLovpalagte33464
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -6965,7 +6966,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenRestriksjonerLovpalagteFjoraret33465
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7031,7 +7032,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalOpptjentSumRestriksjonerLovpalagte33467
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7059,7 +7060,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalOpptjentSumRestriksjonerLovpalagteFjoraret33468
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7139,7 +7140,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenRestriksjonerEksterntPalagte33470
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7167,7 +7168,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenRestriksjonerEksterntPalagteFjoraret33471
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7233,7 +7234,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalSumRestriksjonerEksterntPalagte33473
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7261,7 +7262,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalSumRestriksjonerEksterntPalagteFjoraret33474
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7356,7 +7357,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenRestriksjonerSelvpalagte33476
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7384,7 +7385,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenRestriksjonerSelvpalagteFjoraret33477
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7450,7 +7451,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalSumRestriksjonerSelvpalagte33479
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7478,7 +7479,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalSumRestriksjonerSelvpalagteFjoraret33480
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7544,7 +7545,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnen33482
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7572,7 +7573,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalAnnenFjoraret33483
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7638,7 +7639,7 @@ namespace Altinn.App.Models
 
   public class Minoritetsinteresser29045
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7666,7 +7667,7 @@ namespace Altinn.App.Models
 
   public class MinoritetsinteresserFjoraret29046
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7732,7 +7733,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalSum33485
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7760,7 +7761,7 @@ namespace Altinn.App.Models
 
   public class FormalskapitalSumFjoraret33486
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7869,7 +7870,7 @@ namespace Altinn.App.Models
 
   public class Pensjonsforpliktelser238
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7897,7 +7898,7 @@ namespace Altinn.App.Models
 
   public class PensjonsforpliktelserFjoraret6685
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7963,7 +7964,7 @@ namespace Altinn.App.Models
 
   public class SkattUtsatt237
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -7991,7 +7992,7 @@ namespace Altinn.App.Models
 
   public class SkattUtsattFjoraret7143
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8057,7 +8058,7 @@ namespace Altinn.App.Models
 
   public class AvsetningerForpliktelserLangsiktig7157
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8085,7 +8086,7 @@ namespace Altinn.App.Models
 
   public class AvsetningerForpliktelserLangsiktigFjoraret7146
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8151,7 +8152,7 @@ namespace Altinn.App.Models
 
   public class AvsetningerForpliktelser7231
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8179,7 +8180,7 @@ namespace Altinn.App.Models
 
   public class AvsetningerForpliktelserFjoraret7230
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8269,7 +8270,7 @@ namespace Altinn.App.Models
 
   public class GjeldKredittinstitusjoner7150
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8297,7 +8298,7 @@ namespace Altinn.App.Models
 
   public class GjeldKredittinstitusjonerFjoraret7151
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8363,7 +8364,7 @@ namespace Altinn.App.Models
 
   public class GjeldAnnenLangsiktig242
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8391,7 +8392,7 @@ namespace Altinn.App.Models
 
   public class GjeldAnnenLangsiktigFjoraret7155
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8457,7 +8458,7 @@ namespace Altinn.App.Models
 
   public class GjeldAnnenLangsiktigSum25019
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8485,7 +8486,7 @@ namespace Altinn.App.Models
 
   public class GjeldAnnenLangsiktigSumFjoraret25020
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8551,7 +8552,7 @@ namespace Altinn.App.Models
 
   public class GjeldLangsiktig86
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8579,7 +8580,7 @@ namespace Altinn.App.Models
 
   public class GjeldLangsiktigFjoraret7156
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8689,7 +8690,7 @@ namespace Altinn.App.Models
 
   public class GjeldKredittinstitusjonerKortsiktig10926
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8717,7 +8718,7 @@ namespace Altinn.App.Models
 
   public class GjeldKredittinstitusjonerKortsiktigFjoraret13203
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8783,7 +8784,7 @@ namespace Altinn.App.Models
 
   public class Leverandorgjeld220
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8811,7 +8812,7 @@ namespace Altinn.App.Models
 
   public class LeverandorgjeldFjoraret7162
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8877,7 +8878,7 @@ namespace Altinn.App.Models
 
   public class SkattBetalbar2483
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8905,7 +8906,7 @@ namespace Altinn.App.Models
 
   public class SkattBetalbarFjoraret10293
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8971,7 +8972,7 @@ namespace Altinn.App.Models
 
   public class AvgifterOffentligeSkyldig225
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -8999,7 +9000,7 @@ namespace Altinn.App.Models
 
   public class AvgifterOffentligeSkyldigFjoraret7170
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9065,7 +9066,7 @@ namespace Altinn.App.Models
 
   public class GjeldAnnenKortsiktig236
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9093,7 +9094,7 @@ namespace Altinn.App.Models
 
   public class GjeldAnnenKortsiktigFjoraret7182
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9159,7 +9160,7 @@ namespace Altinn.App.Models
 
   public class GjeldKortsiktig85
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9187,7 +9188,7 @@ namespace Altinn.App.Models
 
   public class GjeldKortsiktigFjoraret7183
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9253,7 +9254,7 @@ namespace Altinn.App.Models
 
   public class Gjeld1119
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9281,7 +9282,7 @@ namespace Altinn.App.Models
 
   public class GjeldFjoraret7184
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9347,7 +9348,7 @@ namespace Altinn.App.Models
 
   public class GjeldEgenkapital251
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9375,7 +9376,7 @@ namespace Altinn.App.Models
 
   public class GjeldEgenkapitalFjoraret7185
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9455,7 +9456,7 @@ namespace Altinn.App.Models
 
   public class Garantistillelse16920
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9483,7 +9484,7 @@ namespace Altinn.App.Models
 
   public class GarantistillelseFjoraret16921
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9549,7 +9550,7 @@ namespace Altinn.App.Models
 
   public class Pantstillelser16922
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]
@@ -9577,7 +9578,7 @@ namespace Altinn.App.Models
 
   public class PantstillelserFjoraret16923
   {
-    [RegularExpression(@"^-?[0-9]{0,15}$")]
+    [RegularExpression(@"^[\-\u2212]?[0-9]{1,15}(?:[.,]0+)?$")]
     [Range(Double.MinValue,Double.MaxValue)]
     [Required]
     [XmlIgnore]

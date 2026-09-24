@@ -18,9 +18,7 @@ class _FixedDatetime(datetime):
         return FIXED_NOW
 
 
-def make_raw_trace(
-    trace_id="trace-1", user_id="ttd", metadata=None, environment="default"
-):
+def make_raw_trace(trace_id="trace-1", user_id="ttd", metadata=None, environment="default"):
     return {
         "id": trace_id,
         "userId": user_id,
@@ -53,9 +51,7 @@ class TestGetPreviousDayTokenUsage:
 
     @patch.object(token_usage, "datetime", _FixedDatetime)
     @patch.object(token_usage, "_token_usage_for_window", new_callable=AsyncMock)
-    async def test_sets_observation_window_start_at_midnight_previous_day(
-        self, mock_token_usage_for_window
-    ):
+    async def test_sets_observation_window_start_at_midnight_previous_day(self, mock_token_usage_for_window):
         await get_previous_day_token_usage()
 
         observation_window_start, _ = mock_token_usage_for_window.call_args.args
@@ -72,9 +68,7 @@ class TestTokenUsageForWindow:
 
         await _token_usage_for_window(MIDNIGHT_PREVIOUS_DAY, MIDNIGHT_TODAY)
 
-        trace_window_start, observation_window_start, window_end = (
-            mock_fetch_traces_and_observations.call_args.args
-        )
+        trace_window_start, observation_window_start, window_end = mock_fetch_traces_and_observations.call_args.args
         assert trace_window_start == MIDNIGHT_PREVIOUS_DAY - timedelta(days=1)
         assert observation_window_start == MIDNIGHT_PREVIOUS_DAY
         assert window_end == MIDNIGHT_TODAY
@@ -122,9 +116,7 @@ class TestTokenUsageForWindow:
 
     @patch.object(token_usage, "aggregate_token_usage")
     @patch.object(token_usage, "fetch_traces_and_observations", new_callable=AsyncMock)
-    async def test_maps_traces_by_id(
-        self, mock_fetch_traces_and_observations, _mock_aggregate_token_usage
-    ):
+    async def test_maps_traces_by_id(self, mock_fetch_traces_and_observations, _mock_aggregate_token_usage):
         mock_fetch_traces_and_observations.return_value = (
             [make_raw_trace(trace_id="trace-1"), make_raw_trace(trace_id="trace-2")],
             [],

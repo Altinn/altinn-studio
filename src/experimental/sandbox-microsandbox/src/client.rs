@@ -17,13 +17,13 @@ use tokio::sync::OnceCell;
 
 use crate::{backend::RuntimeBundle, error};
 
-// Published runtime bundle digests for Microsandbox 0.6.18-digdir.2. Update these
+// Published runtime bundle digests for Microsandbox 0.6.18-digdir.3. Update these
 // together with the pinned Microsandbox revisions in the workspace manifest.
-const LINUX_X86_64_RUNTIME_SHA256: &str = "deda913955c82c9a8f91b899dbcd4dcf355c7407e0cdddeaea13efd8dc17faa2";
-const LINUX_AARCH64_RUNTIME_SHA256: &str = "0bcce9368a9fc2ed1440ef3afd294768fa8d8ecb17f31a4dcec1779406c35dad";
-const MACOS_AARCH64_RUNTIME_SHA256: &str = "0e69139544656d3df706dcc530b7f64196397b685c51ed331458895bbb4ba2ef";
-const WINDOWS_X86_64_RUNTIME_SHA256: &str = "28e1b93a366867a868a7f83600b81e7ffbc9668e1fd2a8e7faed91f4202553d2";
-const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "6ea408ff5a5858e49dce1f195353d4c24e7d91ef0d2015b0cbce526b12d2f87e";
+const LINUX_X86_64_RUNTIME_SHA256: &str = "62be72cf92724092f0dbb758dc9fe2ef688fca35b25a122197dc8a8d532a77a1";
+const LINUX_AARCH64_RUNTIME_SHA256: &str = "d99c24933fbcc7dd8064ab66e79d4a8529851870fe3912a4cbad8ecad8ea966a";
+const MACOS_AARCH64_RUNTIME_SHA256: &str = "a3c439f5e89afa647f8b45318c3316e05d081c31e18a9c01663ec39855998957";
+const WINDOWS_X86_64_RUNTIME_SHA256: &str = "88d89550ba569343a4dbc50d54bca1930e0cf15f3209c9db4364515dac08b630";
+const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "b066137c0a60e002654fa22a403948f6b28ac85c2c96051ea4c72cf6edd95b2e";
 
 /// Keeps Microsandbox's thread-safe ownership model at the SDK boundary.
 #[derive(Clone)]
@@ -214,7 +214,7 @@ fn run_directory(home: &Path) -> Result<PathBuf, Error> {
     for byte in &digest[..16] {
         let _ = write!(&mut id, "{byte:02x}");
     }
-    let path = PathBuf::from(format!("/tmp/altinn-agent-{id}"));
+    let path = PathBuf::from(format!("/tmp/microsandbox-{id}"));
     if !microsandbox::runtime::run_directory_fits(&path) {
         return Err(error::io(
             "select private Microsandbox runtime directory",
@@ -309,7 +309,7 @@ mod tests {
         for byte in &digest[..16] {
             write!(&mut id, "{byte:02x}").expect("writing to String cannot fail");
         }
-        let fallback = PathBuf::from(format!("/tmp/altinn-agent-{id}"));
+        let fallback = PathBuf::from(format!("/tmp/microsandbox-{id}"));
 
         std::os::unix::fs::symlink(root.path(), &fallback).expect("fallback symlink");
         assert!(super::run_directory(&home).is_err());

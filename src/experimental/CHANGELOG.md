@@ -12,9 +12,81 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.6] - 2026-09-23
+
+### Changed
+
+- Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
+- Altinn, self-development and worktree Agents install Codex CLI 0.156.0, with workspace routing and activity hooks updated for its startup flow.
+
+## [0.1.0-preview.5] - 2026-09-22
+
+### Added
+
+- Codex and Claude Code Sessions show their model, working directory, Git branch, context usage, usage limits, harness
+  version and Fast mode in a persistent status line.
+- Altinn Agents can authenticate ordinary HTTPS Git commands to Azure DevOps with an optional host-mediated personal
+  access token, including cloning the `altinn-studio-infra` repository without exposing the token in the Sandbox.
+- Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
+  `habamax` theme and built-in syntax highlighting for C#, JavaScript, TypeScript, JSON and XML.
+- Agent images include the `gh stack` extension for creating and managing stacked pull requests.
+- The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
+  actions while retaining all keyboard controls.
+- Agent Skill entries may declare an installed `name` separately from their source directory.
+- A harness installation may be declared `optional`, so an Agent is created without it when its host login is
+  absent. Altinn Agents declare Codex this way, and signing in on the host installs it on the next convergence.
+- Altinn Agents install the repository's text-review and Norwegian copy-editing Skills, so a Session has them as
+  well as a local checkout.
+- Agent manifests may mark a mediated secret as optional, so an absent or empty value omits that binding instead of
+  blocking Agent provisioning.
+- Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
+  app checkouts. They log `studioctl` in to each configured production, staging or development Studio environment
+  with a host-mediated API key. Full images also prepare LocalTest hostnames for browser testing.
+
+### Changed
+
+- Pull request evidence guidance is shorter, with readable pacing and no fixed clip
+  duration. The GIF conversion helper now accepts files up to 10 MiB instead of 8 MiB.
+- Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
+  harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
+
 ### Fixed
 
-- Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex keeps its conversation in that history; Claude Code keeps its selected renderer and handles scrolling itself in fullscreen mode. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
+- Agent Sessions set `XDG_RUNTIME_DIR`, so `skopeo`, `buildah` and other tools that expect a user runtime
+  directory run instead of failing with a permission error on a path they cannot read.
+- `podman run --init` works in full Agents; the `catatonit` binary the flag needs was missing from the image.
+- Chromium in a full Altinn Agent trusts the same host-mediated certificate authorities as command-line tools, so
+  browser tests can load HTTPS dependencies without disabling certificate verification.
+
+## [0.1.0-preview.4] - 2026-09-18
+
+### Added
+
+- The release installers accept `AGENT_INSTALL_MODE=standalone` to verify and copy only `agentctl` and `agentd` into
+  `AGENT_INSTALL_DIR`. This supports immutable images and CI jobs without creating self-update state, migrating Agent
+  data, starting the daemon, or changing `PATH`.
+- Agent manifests support chained `AgentVariant` files named `agent.<variant>.yaml`. Select them with `--variant` or the TUI, which also supports ignored local variants and an environment file.
+- SSH access to Agents. Declare `spec.access: [{type: ssh}]`, then `agentctl ssh <agent> [-- command]` opens a shell or runs a command in the Sandbox as `agent`. `agentctl ssh-config install` lets plain `ssh`, `sftp` and editors reach the Agent as `agentctl-<name>`, and `agentctl ssh-info <agent> -o json` prints the connection details. The Altinn Agent images and the examples declare it; an Agent created from an older image must be deleted and re-applied.
+- Windows contributors can run `.\make-user-install.ps1` to build, package and install a local Agent without Make.
+
+### Changed
+
+- `agentctl apply` defaults to `./agent.yaml`. The self-development and Altinn Agents provide nested and worktree variants; Altinn also provides nested-build variants.
+
+### Fixed
+
+- SSH shells, remote commands and editor terminals now inherit the same Agent tool, configured environment and
+  mediated certificate settings as Sessions and `agentctl exec`.
+- Concurrent network requests from an Agent no longer intermittently fail with DNS, HTTP or TLS errors, especially on Windows hosts.
+- Deleting an Agent no longer logs a panic when its Sandbox has an active network-control connection.
+- The self-development Agent examples build with their SSH configuration, so the checkout, worktree and nested variants can be applied.
+- On Windows, detaching from a Session with `Ctrl-b d` returns control to the terminal UI without dropping the next key press.
+- Attached Sessions support mouse-wheel scrolling through up to 50,000 lines of terminal history for new panes. Codex and Claude Code keep their conversations in that history; Claude Code no longer uses its fullscreen renderer, which could corrupt the display when scrolling in tmux. Reattaching enables mouse support for existing Sessions, but cannot recover discarded output.
+- Agent setup now writes Sandbox files only when their contents changed, and replaces them atomically. Codex no longer reports missing skill frontmatter after each reconciliation pass.
+
+### Security
+
+- Applying an Agent rejects bind mounts containing `.env` files, case-insensitively and regardless of ignore rules.
 
 ## [0.1.0-preview.3] - 2026-09-17
 

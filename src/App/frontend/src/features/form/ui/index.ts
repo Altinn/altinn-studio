@@ -8,7 +8,7 @@ export const defaultGlobalUiSettings: GlobalPageSettings = {
   showExpandWidthButton: false,
   expandedWidth: false,
   showProgress: false,
-  autoSaveBehavior: 'onChangePage',
+  autoSaveBehavior: 'onChangeFormData',
   taskNavigation: [],
   navigationTitle: 'navigation.form_pages',
   validationOnNavigation: undefined,
