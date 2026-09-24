@@ -1798,12 +1798,7 @@ impl App {
                         name: session.name.as_str().to_owned(),
                         state,
                         tone,
-                        since: session
-                            .status
-                            .reported
-                            .activity
-                            .last_event_at
-                            .map_or_else(String::new, format::format_age),
+                        since: session.status.state_since.map_or_else(String::new, format::format_age),
                         detail: session
                             .model_selection
                             .model_str()

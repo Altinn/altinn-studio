@@ -151,6 +151,13 @@ pub struct Status {
     /// Derived Session state; see [`State`].
     #[serde(default)]
     pub state: State,
+    /// When the Session entered `state`, from the half that decides it, when known.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub state_since: Option<time::OffsetDateTime>,
     /// Lifecycle observed by the reconciler.
     #[serde(default)]
     pub lifecycle: Lifecycle,
@@ -179,9 +186,22 @@ impl Status {
         };
         Self {
             state,
+            state_since: None,
             lifecycle,
             reported,
         }
+    }
+
+    /// Sets when the Session entered its state: the activity phase's change
+    /// while the harness runs and reports, otherwise `lifecycle_since`, when
+    /// the lifecycle state last changed.
+    #[must_use]
+    pub const fn entered(mut self, lifecycle_since: Option<time::OffsetDateTime>) -> Self {
+        self.state_since = match self.state {
+            State::Working | State::WaitingForInput => self.reported.activity.phase_since,
+            State::Starting | State::Idle | State::Failed => lifecycle_since,
+        };
+        self
     }
 }
 
@@ -568,6 +588,28 @@ pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::{Activity, Lifecycle, LifecycleState, Phase, Reported, State, Status};
+
+    #[test]
+    fn a_session_entered_its_state_when_the_half_that_decides_it_changed() {
+        let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+        let reported = Reported {
+            harness_session_id: Some("native".into()),
+            harness_transcript_path: None,
+            activity: Activity {
+                phase: Phase::WaitingForInput,
+                phase_since: Some(at(10)),
+                ..Activity::default()
+            },
+        };
+        let waiting = Status::new(Lifecycle::running(), reported.clone()).entered(Some(at(1)));
+        assert_eq!(
+            waiting.state_since,
+            Some(at(10)),
+            "a running Session is in its activity phase"
+        );
+        let failed = Status::new(Lifecycle::failed("boom"), reported).entered(Some(at(20)));
+        assert_eq!(failed.state_since, Some(at(20)), "otherwise the lifecycle decides");
+    }
 
     #[test]
     fn state_is_derived_from_both_halves() {

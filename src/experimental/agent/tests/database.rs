@@ -1146,6 +1146,101 @@ async fn initial_prompt_consumption_and_launch_record_commit_together() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn a_session_records_when_it_entered_its_state() {
+    use agent::sessions::{ActivityEvent, LaunchRecord, State};
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("Session");
+    let failed = Lifecycle::failed("harness exited");
+    database
+        .update_session_lifecycle(session.id, failed.clone(), 0)
+        .await
+        .expect("failed");
+    let entered = database
+        .get_session(session.id)
+        .await
+        .expect("Session")
+        .status
+        .state_since;
+    assert!(entered.is_some(), "a lifecycle change is stamped");
+    database
+        .update_session_lifecycle(session.id, failed, 0)
+        .await
+        .expect("still failed");
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .state_since,
+        entered,
+        "the same lifecycle state keeps its time"
+    );
+
+    database
+        .update_session_lifecycle(session.id, Lifecycle::running(), 0)
+        .await
+        .expect("running");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+    let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+    database
+        .record_session_start_for_launch(session.id, &token, uuid::Uuid::new_v4(), "native", None, at(100))
+        .await
+        .expect("start");
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            ActivityEvent::TurnCompleted,
+            at(110),
+        )
+        .await
+        .expect("turn");
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            ActivityEvent::WaitingForInput,
+            at(170),
+        )
+        .await
+        .expect("idle notification");
+    let status = database.get_session(session.id).await.expect("Session").status;
+    assert_eq!(status.state, State::WaitingForInput);
+    assert_eq!(
+        status.state_since,
+        Some(at(110)),
+        "waiting since the turn ended, not since the notification"
+    );
+}
+
+#[tokio::test(flavor = "local")]
 async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
     use agent::sessions::{ActivityEvent, LaunchRecord};
     let directory = TempDir::new().expect("temporary directory");
