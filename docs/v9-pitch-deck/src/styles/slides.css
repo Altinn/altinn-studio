@@ -1102,65 +1102,62 @@
   font-weight: var(--fw-bold);
 }
 
-/* ---- One equation: din app = (backend + frontend) ---- */
+/* ---- One package ---- */
 
-.s-fe__equation {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
+.s-fe__package {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  column-gap: 14px;
-  row-gap: 22px;
+  gap: 26px;
   margin-top: 30px;
+  padding: 48px 32px 30px;
+  border-radius: var(--r-md);
+  border: 3px solid var(--blue-500);
+  background: #fff;
 }
 
-.s-fe__app {
-  padding: 12px 18px;
+.s-fe__package-tag {
+  position: absolute;
+  top: -20px;
+  left: 32px;
+  padding: 4px 16px;
   border-radius: var(--r-sm);
   background: var(--blue-500);
   color: var(--text-on-dark);
-  font-size: 28px;
+  font-size: 22px;
   font-weight: var(--fw-bold);
-  white-space: nowrap;
 }
 
-.s-fe__op {
-  font-size: 40px;
-  font-weight: var(--fw-bold);
-  color: var(--text-400);
-}
-
-.s-fe__group {
+.s-fe__package-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.s-fe__paren {
-  font-size: 60px;
-  font-weight: 300;
-  line-height: 1;
-  color: var(--text-400);
+  gap: 24px;
 }
 
 .s-fe__item {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 18px 28px;
   border-radius: var(--r-sm);
   background: var(--v9-soft);
   color: var(--text-100);
-  font-size: 26px;
+  font-size: 32px;
   font-weight: var(--fw-semibold);
-  white-space: nowrap;
 }
 
 .s-fe__item .icon {
   color: var(--blue-500);
 }
 
-/* Under the brackets: both halves carry one version. */
-.s-fe__equation .s-fe__version {
+.s-fe__plus {
+  font-size: 40px;
+  font-weight: var(--fw-bold);
+  color: var(--text-400);
+}
+
+.s-fe__version {
   grid-column: 3;
   justify-self: center;
 }
