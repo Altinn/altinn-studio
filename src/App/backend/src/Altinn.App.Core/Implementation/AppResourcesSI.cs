@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
@@ -37,17 +36,17 @@ internal sealed class AppResourcesSI : IAppResources
     private const string JsonExtension = ".json";
 
     private readonly AppFilesAccessor _appFiles;
-    private readonly Telemetry? _telemetry;
+    private readonly IAppMetadata _appMetadata;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
     /// </summary>
     /// <param name="appFiles">The app resource files.</param>
-    /// <param name="telemetry">Telemetry for traces and metrics.</param>
-    public AppResourcesSI(AppFilesAccessor appFiles, Telemetry? telemetry = null)
+    /// <param name="appMetadata">The application metadata.</param>
+    public AppResourcesSI(AppFilesAccessor appFiles, IAppMetadata appMetadata)
     {
         _appFiles = appFiles;
-        _telemetry = telemetry;
+        _appMetadata = appMetadata;
     }
 
     /// <inheritdoc />
@@ -56,7 +55,6 @@ internal sealed class AppResourcesSI : IAppResources
     /// </remarks>
     public byte[] GetText(string org, string app, string textResource)
     {
-        using var activity = _telemetry?.StartGetTextActivity();
         if (
             textResource.Length > TextResourcePrefix.Length + JsonExtension.Length
             && textResource.StartsWith(TextResourcePrefix, StringComparison.Ordinal)
@@ -79,7 +77,6 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public Task<TextResource?> GetTexts(string org, string app, string language)
     {
-        using var activity = _telemetry?.StartGetTextsActivity();
         if (_appFiles.Current.GetTextResource(language) is not { } bytes)
         {
             return Task.FromResult<TextResource?>(null);
@@ -98,7 +95,6 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc/>
     public string GetModelJsonSchema(string dataTypeId)
     {
-        using var activity = _telemetry?.StartGetModelJsonSchemaActivity();
         return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.JsonSchema)
             ?? throw new FileNotFoundException($"Could not find the json schema for data type '{dataTypeId}'");
     }
@@ -106,15 +102,13 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public string? GetPrefillJson(string dataTypeId = "ServiceModel")
     {
-        using var activity = _telemetry?.StartGetPrefillJsonActivity();
         return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.Prefill);
     }
 
     /// <inheritdoc />
     public string GetClassRefForLogicDataType(string dataType)
     {
-        using var activity = _telemetry?.StartGetClassRefActivity();
-        ApplicationMetadata applicationMetadata = ApplicationMetadataParser.Parse(_appFiles.Current);
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         string classRef = string.Empty;
 
         DataType? element = applicationMetadata.DataTypes.SingleOrDefault(d =>
@@ -198,7 +192,6 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public string GetLayoutsInFolder(string folderId)
     {
-        using var activity = _telemetry?.StartGetLayoutsForSetActivity();
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
         if (_appFiles.Current.Ui.GetFolder(folderId) is { } folder)
@@ -220,7 +213,6 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public LayoutModel? GetLayoutModelForFolder(string folder)
     {
-        using var activity = _telemetry?.StartGetLayoutModelActivity();
         // One snapshot for every file, so that a reload in Development cannot mix two versions of the app
         AppFiles files = _appFiles.Current;
         var ui = GetUiConfiguration(files);
@@ -241,9 +233,8 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public UiConfiguration? GetUiConfiguration() => GetUiConfiguration(_appFiles.Current);
 
-    private UiConfiguration? GetUiConfiguration(AppFiles files)
+    private static UiConfiguration? GetUiConfiguration(AppFiles files)
     {
-        using var activity = _telemetry?.StartGetUiConfigurationActivity();
         var folders = new Dictionary<string, LayoutSettings>(StringComparer.Ordinal);
 
         foreach (var folderId in files.Ui.GetFolderIds())
@@ -314,14 +305,12 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public string? GetLayoutSettingsStringForFolder(string folder)
     {
-        using var activity = _telemetry?.StartGetLayoutSettingsStringForSetActivity();
         return ToStringOrNull(GetSettingsBytes(folder));
     }
 
     /// <inheritdoc />
     public LayoutSettings? GetLayoutSettingsForFolder(string? folder)
     {
-        using var activity = _telemetry?.StartGetLayoutSettingsForSetActivity();
         return DeserializeOrNull<LayoutSettings>(GetSettingsBytes(folder));
     }
 
@@ -342,14 +331,12 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public Task<string?> GetFooter()
     {
-        using var activity = _telemetry?.StartGetFooterActivity();
         return Task.FromResult(ToStringOrNull(_appFiles.Current.Ui.Footer));
     }
 
     /// <inheritdoc />
     public string? GetValidationConfiguration(string dataTypeId)
     {
-        using var activity = _telemetry?.StartGetValidationConfigurationActivity();
         return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.ValidationConfiguration);
     }
 
@@ -362,7 +349,6 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public string? GetCalculationConfiguration(string dataTypeId)
     {
-        using var activity = _telemetry?.StartGetCalculationConfigurationActivity();
         return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration);
     }
 

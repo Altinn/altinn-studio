@@ -7,6 +7,7 @@ using Altinn.App.Core.Tests.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
+using Moq;
 
 namespace Altinn.App.Core.Tests.Implementation;
 
@@ -29,7 +30,9 @@ public class AppResourcesSITests
             WriteApplicationMetadata(appDir);
         }
         var appFiles = await TestAppFiles.Load(appDir.FullName);
-        return new AppResourcesSI(appFiles);
+        var frontendFeatures = new Mock<IFrontendFeatures>();
+        frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
+        return new AppResourcesSI(appFiles, new AppMetadata(appFiles, frontendFeatures.Object));
     }
 
     [Fact]

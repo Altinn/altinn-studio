@@ -13,7 +13,6 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Features.Correspondence.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Internal.App;
@@ -48,10 +47,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static void AddAltinnAppControllersWithViews(this IServiceCollection services)
     {
-        // We add this here because it uses a hosted service and we want it to run as early as possible
-        // so that consumers of the cache can rely on it being available.
-        services.AddAppConfigurationCache();
-
         // Add API controllers from Altinn.App.Api
         IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>
         {

@@ -1,5 +1,4 @@
 using System.Text;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,24 +14,20 @@ internal sealed class AppMetadata : IAppMetadata
     private readonly AppFilesAccessor _appFiles;
     private readonly IFrontendFeatures _frontendFeatures;
     private readonly IExternalApiFactory? _externalApiFactory;
-    private readonly Telemetry? _telemetry;
     private volatile CachedApplicationMetadata? _cached;
 
     /// <param name="appFiles">The app resource files</param>
     /// <param name="frontendFeatures">The feature flags the frontend reads from the application metadata</param>
     /// <param name="serviceProvider">A way to resolve internal services</param>
-    /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AppMetadata(
         AppFilesAccessor appFiles,
         IFrontendFeatures frontendFeatures,
-        IServiceProvider? serviceProvider = null,
-        Telemetry? telemetry = null
+        IServiceProvider? serviceProvider = null
     )
     {
         _appFiles = appFiles;
         _frontendFeatures = frontendFeatures;
         _externalApiFactory = serviceProvider?.GetRequiredService<IExternalApiFactory>();
-        _telemetry = telemetry;
     }
 
     /// <inheritdoc />
@@ -40,8 +35,6 @@ internal sealed class AppMetadata : IAppMetadata
     {
         get
         {
-            using var activity = _telemetry?.StartGetApplicationMetadataActivity();
-
             // Cached until the app files are reloaded or the feature flags change. The flags are compared by
             // reference first and by content when the reference differs, so an IFrontendFeatures that builds a new
             // dictionary on every read does not force a parse on every read.
@@ -75,24 +68,10 @@ internal sealed class AppMetadata : IAppMetadata
     }
 
     /// <inheritdoc />
-    public string XacmlPolicy
-    {
-        get
-        {
-            using var activity = _telemetry?.StartGetApplicationXACMLPolicyActivity();
-            return Encoding.UTF8.GetString(_appFiles.Current.XacmlPolicy.Span);
-        }
-    }
+    public string XacmlPolicy => Encoding.UTF8.GetString(_appFiles.Current.XacmlPolicy.Span);
 
     /// <inheritdoc />
-    public string ProcessDefinition
-    {
-        get
-        {
-            using var activity = _telemetry?.StartGetApplicationBPMNProcessActivity();
-            return Encoding.UTF8.GetString(_appFiles.Current.ProcessDefinition.Span);
-        }
-    }
+    public string ProcessDefinition => Encoding.UTF8.GetString(_appFiles.Current.ProcessDefinition.Span);
 
     /// <summary>
     /// A hash of the flags that does not depend on their order.

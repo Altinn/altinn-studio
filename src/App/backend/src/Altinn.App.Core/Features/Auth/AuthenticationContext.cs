@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -23,7 +23,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
     private readonly IProfileClient _profileClient;
     private readonly IAltinnPartyClient _altinnPartyClient;
     private readonly IAuthorizationClient _authorizationClient;
-    private readonly IAppConfigurationCache _appConfigurationCache;
+    private readonly IAppMetadata _appMetadata;
     private readonly RuntimeEnvironment _runtimeEnvironment;
 
     public AuthenticationContext(
@@ -33,7 +33,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
         IProfileClient profileClient,
         IAltinnPartyClient altinnPartyClient,
         IAuthorizationClient authorizationClient,
-        IAppConfigurationCache appConfigurationCache,
+        IAppMetadata appMetadata,
         RuntimeEnvironment runtimeEnvironment
     )
     {
@@ -43,7 +43,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
         _profileClient = profileClient;
         _altinnPartyClient = altinnPartyClient;
         _authorizationClient = authorizationClient;
-        _appConfigurationCache = appConfigurationCache;
+        _appMetadata = appMetadata;
         _runtimeEnvironment = runtimeEnvironment;
     }
 
@@ -105,7 +105,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                         parsedToken,
                         appId,
                         ResolveInstanceFromRoute(httpContext),
-                        _appConfigurationCache.ApplicationMetadata
+                        _appMetadata.ApplicationMetadata
                     );
                 }
                 else
@@ -117,7 +117,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                             tokenStr: token,
                             parsedToken,
                             isAuthenticated: !string.IsNullOrWhiteSpace(token),
-                            _appConfigurationCache.ApplicationMetadata,
+                            _appMetadata.ApplicationMetadata,
                             () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
                             (int userId) => _profileClient.GetUserProfile(userId),
                             (int partyId) => _altinnPartyClient.GetParty(partyId),
@@ -133,7 +133,7 @@ internal sealed class AuthenticationContext : IAuthenticationContext
                             tokenStr: token,
                             parsedToken,
                             isAuthenticated: isAuthenticated,
-                            _appConfigurationCache.ApplicationMetadata,
+                            _appMetadata.ApplicationMetadata,
                             () => _httpContext.Request.Cookies[_generalSettings.CurrentValue.GetAltinnPartyCookieName],
                             (int userId) => _profileClient.GetUserProfile(userId),
                             (int partyId) => _altinnPartyClient.GetParty(partyId),

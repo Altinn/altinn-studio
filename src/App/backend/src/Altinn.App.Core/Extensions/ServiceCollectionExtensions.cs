@@ -148,7 +148,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton(sp =>
         {
-            return ApplicationMetadataParser.Parse(sp.GetRequiredService<AppFilesAccessor>().Current).AppIdentifier;
+            return sp.GetRequiredService<IAppMetadata>().ApplicationMetadata.AppIdentifier;
         });
     }
 

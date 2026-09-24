@@ -1,16 +1,6 @@
 ﻿{
   Activities: [
     {
-      Name: ApplicationMetadata.Client.Get,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ApplicationMetadata.Client.Get,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: GET {org}/{app}/api/v1/applicationmetadata,
       Kind: Server,
       IdFormat: W3C,

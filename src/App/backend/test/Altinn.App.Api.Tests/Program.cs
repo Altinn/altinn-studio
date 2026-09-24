@@ -7,7 +7,6 @@ using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -75,7 +74,6 @@ builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
-builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 
 // The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
 // both files the libraries host: the app's one Maskinporten client, and the callback verification codes whose
@@ -121,7 +119,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-    services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<DataClientMock>();
     services.AddTransient<IDataClientWithStorageMetadata>(sp =>
         (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
