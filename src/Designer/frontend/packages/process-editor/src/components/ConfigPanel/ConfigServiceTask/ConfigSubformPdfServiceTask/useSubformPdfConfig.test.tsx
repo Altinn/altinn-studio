@@ -36,13 +36,14 @@ describe('useSubformPdfConfig', () => {
     expect(result.current.filenameTextResourceId).toBe('my-filename-key');
   });
 
-  it('writes the subform component id into the existing config node', () => {
+  it('writes the subform component id and its data type id in one update', () => {
     const { result, subformPdfConfig } = renderUseSubformPdfConfig({});
 
-    act(() => result.current.setSubformComponentId('my-subform'));
+    act(() => result.current.setSubformComponentAndDataTypeIds('my-subform', 'subform-data'));
 
+    expect(updateModdleProperties).toHaveBeenCalledTimes(1);
     expect(updateModdleProperties).toHaveBeenCalledWith(
-      { subformComponentId: 'my-subform' },
+      { subformComponentId: 'my-subform', subformDataTypeId: 'subform-data' },
       subformPdfConfig,
     );
   });
@@ -77,10 +78,11 @@ describe('useSubformPdfConfig', () => {
   it('creates the config node when a hand-authored task has none', () => {
     const { result, taskExtension } = renderUseSubformPdfConfig(undefined);
 
-    act(() => result.current.setSubformComponentId('my-subform'));
+    act(() => result.current.setSubformComponentAndDataTypeIds('my-subform', 'subform-data'));
 
     expect(createElement).toHaveBeenCalledWith('altinn:SubformPdfConfig', {
       subformComponentId: 'my-subform',
+      subformDataTypeId: 'subform-data',
     });
     expect(updateModdleProperties).toHaveBeenCalledWith(
       { subformPdfConfig: expect.objectContaining({ $type: 'altinn:SubformPdfConfig' }) },
@@ -91,14 +93,15 @@ describe('useSubformPdfConfig', () => {
   it('removes an emptied value rather than writing a blank one', () => {
     const { result, subformPdfConfig } = renderUseSubformPdfConfig({
       subformComponentId: 'my-subform',
+      subformDataTypeId: 'subform-data',
       filenameTextResourceKey: { value: 'my-filename-key' },
     });
 
-    act(() => result.current.setSubformComponentId(''));
+    act(() => result.current.setSubformComponentAndDataTypeIds('', ''));
     act(() => result.current.setFilenameTextResourceId(''));
 
     expect(updateModdleProperties).toHaveBeenCalledWith(
-      { subformComponentId: undefined },
+      { subformComponentId: undefined, subformDataTypeId: undefined },
       subformPdfConfig,
     );
     expect(updateModdleProperties).toHaveBeenCalledWith(
@@ -108,9 +111,12 @@ describe('useSubformPdfConfig', () => {
   });
 
   it('leaves the bpmn alone when a value did not change', () => {
-    const { result } = renderUseSubformPdfConfig({ subformComponentId: 'my-subform' });
+    const { result } = renderUseSubformPdfConfig({
+      subformComponentId: 'my-subform',
+      subformDataTypeId: 'subform-data',
+    });
 
-    act(() => result.current.setSubformComponentId('my-subform'));
+    act(() => result.current.setSubformComponentAndDataTypeIds('my-subform', 'subform-data'));
 
     expect(updateModdleProperties).not.toHaveBeenCalled();
   });

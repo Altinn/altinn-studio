@@ -38,6 +38,7 @@ import {
   resourceAccessListPath,
   uiFoldersLayoutSetPath,
   uiFoldersLayoutSetsPath,
+  subformPdfComponentPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
@@ -99,6 +100,8 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
+import type { SubformPdfComponentPayload } from 'app-shared/types/api/SubformPdfComponentPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ValidationOnNavigationByLevel, ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
@@ -149,6 +152,7 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
+export const saveSubformPdfComponent = (org: string, app: string, layoutSetId: string, payload: SubformPdfComponentPayload) => post<SubformComponent[], SubformPdfComponentPayload>(subformPdfComponentPath(org, app, layoutSetId), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });

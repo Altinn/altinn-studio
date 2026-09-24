@@ -11,7 +11,10 @@ export type UseSubformPdfConfigResult = {
   subformComponentId: string;
   subformDataTypeId: string;
   filenameTextResourceId: string;
-  setSubformComponentId: (subformComponentId: string) => void;
+  setSubformComponentAndDataTypeIds: (
+    subformComponentId: string,
+    subformDataTypeId: string,
+  ) => void;
   setSubformDataTypeId: (subformDataTypeId: string) => void;
   setFilenameTextResourceId: (textResourceId: string) => void;
 };
@@ -43,10 +46,16 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
     forceReRenderComponent();
   };
 
-  const setSubformComponentId = (newSubformComponentId: string): void => {
-    if (newSubformComponentId === subformComponentId) return;
+  const setSubformComponentAndDataTypeIds = (
+    newSubformComponentId: string,
+    newSubformDataTypeId: string,
+  ): void => {
+    const isUnchanged =
+      newSubformComponentId === subformComponentId && newSubformDataTypeId === subformDataTypeId;
+    if (isUnchanged) return;
     updateConfig(new StudioModeler(bpmnDetails.element), {
       subformComponentId: newSubformComponentId || undefined,
+      subformDataTypeId: newSubformDataTypeId || undefined,
     });
   };
 
@@ -71,7 +80,7 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
     subformComponentId,
     subformDataTypeId,
     filenameTextResourceId,
-    setSubformComponentId,
+    setSubformComponentAndDataTypeIds,
     setSubformDataTypeId,
     setFilenameTextResourceId,
   };

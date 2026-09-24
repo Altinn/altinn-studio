@@ -1,41 +1,60 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioFormGroup,
-  StudioList,
-  StudioSuggestion,
-  type StudioSuggestionItem,
-} from '@studio/components';
-import { ArrayUtils } from '@studio/pure-functions';
-import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
+import { StudioDisplayTile, StudioFormGroup, StudioList } from '@studio/components';
+import { useSaveSubformPdfComponentMutation } from 'app-shared/hooks/mutations/useSaveSubformPdfComponentMutation';
+import { useSubformComponentsQuery } from 'app-shared/hooks/queries/useSubformComponentsQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { useCurrentLayoutSet } from '../../../../hooks/useCurrentLayoutSet';
 import { FilenameTextResource } from '../FilenameTextResource';
 import { useSubformPdfConfig } from './useSubformPdfConfig';
 import { SubformComponentIdField } from './SubformComponentIdField';
-import { SubformPdfLayoutSetSection } from './SubformPdfLayoutSetSection';
+import { SubformPdfStatus } from './SubformPdfStatus';
+import {
+  getSelectableSubformComponentIds,
+  getSourceSubformComponent,
+  getSubformPdfIssue,
+} from './subformPdfComponents';
 import sharedClasses from '../ConfigServiceTask.module.css';
 
 export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { availableDataTypeIds } = useBpmnApiContext();
+  const { org, app } = useStudioEnvironmentParams();
+  const { bpmnDetails } = useBpmnContext();
+  const { currentLayoutSet } = useCurrentLayoutSet();
+  const { data: subformComponents } = useSubformComponentsQuery(org, app);
+  const { mutate: saveSubformPdfComponent, isPending: isSavingSubformPdfComponent } =
+    useSaveSubformPdfComponentMutation(org, app);
   const {
     subformComponentId,
     subformDataTypeId,
     filenameTextResourceId,
-    setSubformComponentId,
+    setSubformComponentAndDataTypeIds,
     setSubformDataTypeId,
     setFilenameTextResourceId,
   } = useSubformPdfConfig();
-  const [isDataTypeIdTouched, setIsDataTypeIdTouched] = useState(false);
 
-  // A data type the task already points at stays selectable even when the app no longer has it.
-  const dataTypeOptions: string[] = ArrayUtils.removeDuplicates(
-    ArrayUtils.removeEmptyStrings([...(availableDataTypeIds ?? []), subformDataTypeId]),
-  );
+  const taskId = bpmnDetails.id;
 
-  const handleDataTypeChange = (item: StudioSuggestionItem | null): void => {
-    setIsDataTypeIdTouched(true);
-    setSubformDataTypeId(item?.value ?? '');
+  const saveComponentCopy = ({ componentId, layoutSetId }: SubformComponent): void =>
+    saveSubformPdfComponent({ layoutSetId: taskId, componentId, sourceLayoutSetId: layoutSetId });
+
+  const handleSubformComponentIdChange = (componentId: string): void => {
+    if (!componentId) {
+      setSubformComponentAndDataTypeIds('', '');
+      return;
+    }
+    const sourceComponent = getSourceSubformComponent(subformComponents, componentId, taskId);
+    setSubformComponentAndDataTypeIds(componentId, sourceComponent.subformDataTypeId);
+    saveComponentCopy(sourceComponent);
   };
+
+  const handleCreateComponentCopy = (): void =>
+    saveComponentCopy(getSourceSubformComponent(subformComponents, subformComponentId, taskId));
+
+  // The components lack the copy until the save responds, so the status waits instead of flashing.
+  const isStatusKnown = Boolean(subformComponents) && !isSavingSubformPdfComponent;
 
   return (
     <StudioList.Unordered className={sharedClasses.taskConfigList}>
@@ -47,35 +66,33 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
           required
           tagText={t('general.required')}
         >
-          <StudioSuggestion
-            description={t('process_editor.configuration_panel_subform_pdf_data_type_description')}
-            emptyText={t('process_editor.configuration_panel_subform_pdf_no_data_type_to_select')}
-            error={isDataTypeIdTouched && !subformDataTypeId && t('validation_errors.required')}
-            label={t('process_editor.configuration_panel_subform_pdf_data_type_label')}
-            multiple={false}
-            onBlur={() => setIsDataTypeIdTouched(true)}
-            onSelectedChange={handleDataTypeChange}
-            // `null` rather than `undefined`, which Suggestion treats as uncontrolled.
-            selected={
-              subformDataTypeId ? { value: subformDataTypeId, label: subformDataTypeId } : null
-            }
-          >
-            {dataTypeOptions.map((dataTypeId) => (
-              <StudioSuggestion.Option key={dataTypeId} label={dataTypeId} value={dataTypeId}>
-                {dataTypeId}
-              </StudioSuggestion.Option>
-            ))}
-          </StudioSuggestion>
           <SubformComponentIdField
             subformComponentId={subformComponentId}
-            subformDataTypeId={subformDataTypeId}
-            onChange={setSubformComponentId}
+            componentIds={getSelectableSubformComponentIds(subformComponents ?? [], taskId)}
+            onChange={handleSubformComponentIdChange}
           />
+          <StudioDisplayTile
+            label={t('process_editor.configuration_panel_subform_pdf_data_type_label')}
+            value={subformDataTypeId}
+          />
+          {isStatusKnown && (
+            <SubformPdfStatus
+              issue={getSubformPdfIssue(
+                {
+                  taskId,
+                  hasPages: Boolean(currentLayoutSet),
+                  subformComponentId,
+                  subformDataTypeId,
+                },
+                subformComponents,
+              )}
+              subformComponentId={subformComponentId}
+              pagesLayoutSetId={currentLayoutSet?.id}
+              onFixDataType={setSubformDataTypeId}
+              onCreateComponentCopy={handleCreateComponentCopy}
+            />
+          )}
         </StudioFormGroup>
-      </StudioList.Item>
-
-      <StudioList.Item>
-        <SubformPdfLayoutSetSection />
       </StudioList.Item>
 
       <StudioList.Item>
