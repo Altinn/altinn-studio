@@ -90,6 +90,7 @@ internal sealed partial class EngineRepository
                             StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
                             StepsTotal = w.Steps.Count,
                             CreatedAt = w.CreatedAt,
+                            ResumedAt = w.ResumedAt,
                             WaitingReason =
                                 w.Status == PersistentItemStatus.Waiting
                                     ? w

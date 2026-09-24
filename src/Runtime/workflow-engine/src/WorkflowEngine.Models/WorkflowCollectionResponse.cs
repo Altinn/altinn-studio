@@ -140,6 +140,15 @@ public sealed record CollectionHeadStatus
     public DateTimeOffset? CreatedAt { get; init; }
 
     /// <summary>
+    /// Gets when the head workflow was last resumed, if it has been. Resume reruns a workflow in
+    /// place and keeps <see cref="CreatedAt"/>, so a consumer measuring how long the current run has
+    /// taken starts from this instead when it is set.
+    /// </summary>
+    [JsonPropertyName("resumedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ResumedAt { get; init; }
+
+    /// <summary>
     /// Gets the waiting step's own words for what it is waiting for — its most recent deferral
     /// reason (<see cref="Step.LastDeferReason"/>). Populated only while <see cref="Status"/> is
     /// <see cref="PersistentItemStatus.Waiting"/> and the deferring command gave a reason, so a

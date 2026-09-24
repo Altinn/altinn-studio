@@ -308,6 +308,11 @@
         "Nullable": true
       },
       {
+        "Name": "resumedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "status",
         "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
