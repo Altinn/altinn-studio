@@ -1,4 +1,3 @@
-import { useFocusInput } from '../../../../hooks/useFocusInput';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioToggleableTextfield } from '@studio/components';
@@ -7,7 +6,6 @@ import { StudioModeler } from '../../../../utils/bpmnModeler/StudioModeler';
 
 export const EditTaskName = (): React.ReactElement => {
   const { t } = useTranslation();
-  const inputRef = useFocusInput();
   const { bpmnDetails, setBpmnDetails } = useBpmnContext();
 
   const handleOnTaskNameBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
@@ -26,7 +24,6 @@ export const EditTaskName = (): React.ReactElement => {
 
   return (
     <StudioToggleableTextfield
-      ref={inputRef}
       key={bpmnDetails.name}
       label={t('process_editor.configuration_panel_name_label')}
       title={t('process_editor.configuration_panel_name_label')}
