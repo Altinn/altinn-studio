@@ -339,10 +339,13 @@ impl MicrosandboxImageBackend {
             while let Some(event) = import_events.recv().await {
                 pull.report(progress, event).await;
             }
-            pull.finish().await;
+            pull
         };
-        let (loaded, ()) = tokio::join!(load, report);
+        let (loaded, pull) = tokio::join!(load, report);
         let loaded = loaded.map_err(error::backend)?;
+        // The channel also closes when the import fails; its steps then stay
+        // open and end as failed with the operation.
+        pull.finish().await;
         let image = loaded
             .into_iter()
             .find(|image| image.reference == import_reference)
@@ -447,10 +450,13 @@ impl MicrosandboxImageBackend {
                 while let Some(event) = events.recv().await {
                     pull.report(progress, event).await;
                 }
-                pull.finish().await;
+                pull
             };
-            let (result, ()) = tokio::join!(pull, report);
+            let (result, report) = tokio::join!(pull, report);
             result.map_err(error::backend)?.map_err(error::backend)?;
+            // The channel also closes when the pull fails; its steps then stay
+            // open and end as failed with the operation.
+            report.finish().await;
             cache
                 .read_image_metadata(&parsed)
                 .map_err(error::backend)?
