@@ -15527,9 +15527,9 @@ __metadata:
   linkType: hard
 
 "nwsapi@npm:^2.2.2":
-  version: 2.2.28
-  resolution: "nwsapi@npm:2.2.28"
-  checksum: 10/2395c1d894d2a11c7299c92f62e51849b6a02256d48a9a40c64a40e32ca06b188145cd984256a3134a6930794623abf9d7df9ab9f31dd63f471d1f999efb4830
+  version: 2.2.23
+  resolution: "nwsapi@npm:2.2.23"
+  checksum: 10/aa4a570039c33d70b51436d1bb533f3e2c33c488ccbe9b09285c46a6cee5ef266fd60103461085c6954ba52460786a8138f042958328c7c1b4763898eb3dadfa
   languageName: node
   linkType: hard
 
