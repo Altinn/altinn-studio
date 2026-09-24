@@ -489,7 +489,7 @@ export function nb() {
     'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.having_trouble':
-      'Vi har problemer med å behandle skjemaet ditt akkurat nå, men vi fortsetter å prøve automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
+      'Vi får ikke behandlet skjemaet ditt akkurat nå, men vi prøver igjen automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og arbeidet fortsetter automatisk. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',
