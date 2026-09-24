@@ -1,4 +1,4 @@
-# the only egress should be to apps
+# Egress only to the namespaces nginx proxies to, and to cluster DNS.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -23,3 +23,17 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: "observability"
+  # Cluster DNS: CoreDNS in kube-system, behind the kube-dns Service, which nginx
+  # resolves its upstream names through.
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: "kube-system"
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
