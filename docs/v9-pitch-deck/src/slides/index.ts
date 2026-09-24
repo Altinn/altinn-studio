@@ -125,7 +125,7 @@ export const slides: SlideDef[] = [
     component: BliMed,
     steps: 3,
     notes:
-      'v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, med en AI-assistent som hjelper med resten. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.',
+      'v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, eller med studioctl. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.',
   },
 ];
 

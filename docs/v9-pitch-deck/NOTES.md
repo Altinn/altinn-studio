@@ -117,7 +117,7 @@ Read the left line, then the right one. The lines are short on purpose.
 
 ### 15 — Kom i gang med v9 · 3 clicks
 
-> v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, med en AI-assistent som hjelper med resten. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.
+> v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, eller med studioctl. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.
 
 ---
 
