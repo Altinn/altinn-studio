@@ -388,17 +388,7 @@ public class AuthenticatedTests
                             return Task.FromResult<Party?>(party);
                         },
                         lookupOrgParty: null!,
-                        getPartyList: userId =>
-                        {
-                            Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
-                            return Task.FromResult<List<Party>?>([party]);
-                        },
-                        validateSelectedParty: (userId, partyId) =>
-                        {
-                            Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
-                            Assert.Equal(partyId, ReadClaimInt(AltinnCoreClaimTypes.PartyID));
-                            return Task.FromResult<bool?>(true);
-                        }
+                        getPartyList: () => Task.FromResult<List<Party>?>([party])
                     );
                 }
                 break;
@@ -440,17 +430,7 @@ public class AuthenticatedTests
                             return Task.FromResult<Party?>(party);
                         },
                         lookupOrgParty: null!,
-                        getPartyList: userId =>
-                        {
-                            Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
-                            return Task.FromResult<List<Party>?>([party]);
-                        },
-                        validateSelectedParty: (userId, partyId) =>
-                        {
-                            Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
-                            Assert.Equal(partyId, ReadClaimInt(AltinnCoreClaimTypes.PartyID));
-                            return Task.FromResult<bool?>(true);
-                        }
+                        getPartyList: () => Task.FromResult<List<Party>?>([party])
                     );
                 }
                 break;
@@ -478,8 +458,7 @@ public class AuthenticatedTests
                                 }
                             );
                         },
-                        getPartyList: null!,
-                        validateSelectedParty: null!
+                        getPartyList: null!
                     );
                 }
                 break;
@@ -510,8 +489,7 @@ public class AuthenticatedTests
                                 }
                             );
                         },
-                        getPartyList: null!,
-                        validateSelectedParty: null!
+                        getPartyList: null!
                     );
                 }
                 break;
@@ -547,8 +525,7 @@ public class AuthenticatedTests
                                 }
                             );
                         },
-                        getPartyList: null!,
-                        validateSelectedParty: null!
+                        getPartyList: null!
                     );
                 }
                 break;
@@ -563,8 +540,7 @@ public class AuthenticatedTests
                         getUserProfile: null!,
                         lookupUserParty: null!,
                         lookupOrgParty: null!,
-                        getPartyList: null!,
-                        validateSelectedParty: null!
+                        getPartyList: null!
                     );
                 }
                 break;

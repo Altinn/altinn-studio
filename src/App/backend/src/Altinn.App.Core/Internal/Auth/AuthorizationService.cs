@@ -43,21 +43,17 @@ public class AuthorizationService : IAuthorizationService
     }
 
     /// <inheritdoc />
-    public async Task<List<Party>?> GetPartyList(int userId, CancellationToken cancellationToken = default)
+    public async Task<List<Party>?> GetPartyList(CancellationToken cancellationToken = default)
     {
-        using var activity = _telemetry?.StartGetPartyListActivity(userId);
-        return await _authorizationClient.GetPartyList(userId, cancellationToken: cancellationToken);
+        using var activity = _telemetry?.StartGetPartyListActivity();
+        return await _authorizationClient.GetPartyList(cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<bool?> ValidateSelectedParty(
-        int userId,
-        int partyId,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<bool?> ValidateSelectedParty(int partyId, CancellationToken cancellationToken = default)
     {
-        using var activity = _telemetry?.StartValidateSelectedPartyActivity(userId, partyId);
-        return await _authorizationClient.ValidateSelectedParty(userId, partyId, cancellationToken: cancellationToken);
+        using var activity = _telemetry?.StartValidateSelectedPartyActivity(partyId);
+        return await _authorizationClient.ValidateSelectedParty(partyId, cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />

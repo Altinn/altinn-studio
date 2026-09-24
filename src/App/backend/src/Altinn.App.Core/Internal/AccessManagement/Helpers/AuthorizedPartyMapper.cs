@@ -15,24 +15,15 @@ internal static class AuthorizedPartyMapper
     /// act on behalf of the party anywhere else, so the party must not be offered in party selection.
     /// Parties of an unknown type are left out as well.
     /// </summary>
-    public static List<Party> ToParties(IEnumerable<AuthorizedParty> authorizedParties)
-    {
-        List<Party> parties = [];
-        foreach (var authorizedParty in authorizedParties)
-        {
-            if (ToParty(authorizedParty) is { } party)
-                parties.Add(party);
-        }
-
-        return parties;
-    }
+    public static List<Party> ToParties(IEnumerable<AuthorizedParty> authorizedParties) =>
+        authorizedParties.Select(ToParty).OfType<Party>().ToList();
 
     private static Party? ToParty(AuthorizedParty authorizedParty)
     {
         if (ToPartyType(authorizedParty.Type) is not { } partyType)
             return null;
 
-        List<Party> childParties = authorizedParty.Subunits is null ? [] : ToParties(authorizedParty.Subunits);
+        List<Party> childParties = ToParties(authorizedParty.Subunits ?? []);
 
         // A party without access of its own is only worth showing as the parent of subunits the user can act for.
         bool hasNoAccessOfItsOwn =
@@ -55,18 +46,20 @@ internal static class AuthorizedPartyMapper
         };
     }
 
-    private static bool HasOnlyInstanceAccess(AuthorizedParty authorizedParty) =>
-        authorizedParty.AuthorizedInstances is { Count: > 0 }
-        && authorizedParty.AuthorizedRoles is null or { Count: 0 }
-        && authorizedParty.AuthorizedAccessPackages is null or { Count: 0 }
-        && authorizedParty.AuthorizedResources is null or { Count: 0 };
+    private static bool HasOnlyInstanceAccess(AuthorizedParty party) =>
+        HasAny(party.AuthorizedInstances)
+        && !HasAny(party.AuthorizedRoles)
+        && !HasAny(party.AuthorizedAccessPackages)
+        && !HasAny(party.AuthorizedResources);
+
+    private static bool HasAny<T>(List<T>? list) => list is { Count: > 0 };
 
     private static PartyType? ToPartyType(string? type) =>
-        type?.ToLowerInvariant() switch
+        type switch
         {
-            "person" => PartyType.Person,
-            "organization" => PartyType.Organisation,
-            "selfidentified" => PartyType.SelfIdentified,
+            "Person" => PartyType.Person,
+            "Organization" => PartyType.Organisation,
+            "SelfIdentified" => PartyType.SelfIdentified,
             _ => null,
         };
 }

@@ -51,7 +51,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     selectedPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -59,7 +58,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(false);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {
@@ -114,7 +113,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     userPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -122,7 +120,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(true);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {
@@ -175,7 +173,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     userPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -183,7 +180,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(true);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {
@@ -234,7 +231,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     userPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -242,7 +238,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(true);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {
@@ -294,7 +290,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     userPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -302,7 +297,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(true);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {
@@ -350,7 +345,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     userPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -358,7 +352,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(true);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {
@@ -415,7 +409,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         _authorizationClientMock
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     userPartyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -423,7 +416,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             )
             .ReturnsAsync(true);
         _authorizationClientMock
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
                 {

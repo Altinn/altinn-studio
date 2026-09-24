@@ -127,7 +127,7 @@ public class AuthorizationClientTests
         var cancelled = new CancellationToken(canceled: true);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            client.GetPartyList(1337, cancellationToken: cancelled)
+            client.GetPartyList(cancellationToken: cancelled)
         );
     }
 
@@ -141,7 +141,7 @@ public class AuthorizationClientTests
         );
         AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
 
-        List<Party>? result = await client.GetPartyList(1337, cancellationToken: CancellationToken.None);
+        List<Party>? result = await client.GetPartyList(cancellationToken: CancellationToken.None);
 
         Assert.Null(result);
     }
@@ -161,11 +161,16 @@ public class AuthorizationClientTests
         );
         AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
 
-        List<Party>? parties = await client.GetPartyList(1337);
+        List<Party>? parties = await client.GetPartyList();
 
         Assert.NotNull(requestUri);
         Assert.Equal("/accessmanagement/api/v1/enduser/authorizedparties", requestUri.AbsolutePath);
         Assert.Contains("includeInstances=true", requestUri.Query, StringComparison.Ordinal);
+        // Access Management falls back to the user's profile settings for these, which would hide parties the user
+        // can act for.
+        Assert.Contains("includePartiesViaKeyRoles=true", requestUri.Query, StringComparison.Ordinal);
+        Assert.Contains("includeSubParties=true", requestUri.Query, StringComparison.Ordinal);
+        Assert.Contains("includeInactiveParties=true", requestUri.Query, StringComparison.Ordinal);
 
         Assert.NotNull(parties);
         Assert.Equal([501337, 500000, 500600], parties.Select(p => p.PartyId));
@@ -193,46 +198,6 @@ public class AuthorizationClientTests
     }
 
     [Fact]
-    public async Task GetPartyList_follows_the_next_page_link()
-    {
-        List<string> requestedUrls = [];
-        using var httpClient = new HttpClient(
-            new DelegatingHandlerStub(
-                (request, _) =>
-                {
-                    requestedUrls.Add(request.RequestUri!.ToString());
-                    return Task.FromResult(
-                        requestedUrls.Count == 1
-                            ? JsonResponse(
-                                """
-                                {
-                                  "links": { "next": "http://localhost:5101/accessmanagement/api/v1/enduser/authorizedparties?page=2" },
-                                  "data": [{ "partyId": 1, "type": "Person", "authorizedRoles": ["PRIV"] }]
-                                }
-                                """
-                            )
-                            : JsonResponse(
-                                """
-                                {
-                                  "links": { "next": null },
-                                  "data": [{ "partyId": 2, "type": "Organization", "authorizedRoles": ["DAGL"] }]
-                                }
-                                """
-                            )
-                    );
-                }
-            )
-        );
-        AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
-
-        List<Party>? parties = await client.GetPartyList(1337);
-
-        Assert.Equal(2, requestedUrls.Count);
-        Assert.EndsWith("?page=2", requestedUrls[1], StringComparison.Ordinal);
-        Assert.Equal([1, 2], parties!.Select(p => p.PartyId));
-    }
-
-    [Fact]
     public async Task GetPartyList_returns_null_when_access_management_fails()
     {
         using var httpClient = new HttpClient(
@@ -242,7 +207,7 @@ public class AuthorizationClientTests
         );
         AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
 
-        Assert.Null(await client.GetPartyList(1337));
+        Assert.Null(await client.GetPartyList());
     }
 
     [Theory]
@@ -258,7 +223,7 @@ public class AuthorizationClientTests
         );
         AuthorizationClient client = CreateClient(new Mock<IPDP>().Object, new HttpContextAccessor(), httpClient);
 
-        Assert.Equal(expected, await client.ValidateSelectedParty(1337, partyId));
+        Assert.Equal(expected, await client.ValidateSelectedParty(partyId));
     }
 
     private static HttpResponseMessage JsonResponse(string json) =>

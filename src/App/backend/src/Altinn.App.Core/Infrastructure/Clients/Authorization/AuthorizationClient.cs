@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -34,12 +35,12 @@ public class AuthorizationClient : IAuthorizationClient
     private const string ForwardedForHeaderName = "x-forwarded-for";
 
     // The access lists are needed to leave out parties the user can only reach through delegated instances.
+    // The party filters are set explicitly, because Access Management otherwise applies the user's profile settings
+    // for what to show, and the list is also used to validate which parties the user can act for.
     private const string AuthorizedPartiesPathAndQuery =
-        "/enduser/authorizedparties?includeRoles=true&includeAccessPackages=true&includeResources=true&includeInstances=true";
+        "/enduser/authorizedparties?includeRoles=true&includeAccessPackages=true&includeResources=true&includeInstances=true"
+        + "&includePartiesViaKeyRoles=true&includeSubParties=true&includeInactiveParties=true";
     private readonly string _authorizedPartiesUrl;
-    private static readonly System.Text.Json.JsonSerializerOptions _authorizedPartiesJsonOptions = new(
-        System.Text.Json.JsonSerializerDefaults.Web
-    );
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
 
@@ -73,47 +74,32 @@ public class AuthorizationClient : IAuthorizationClient
 
     /// <inheritdoc />
     public async Task<List<Party>?> GetPartyList(
-        int userId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = _telemetry?.StartClientGetPartyListActivity(userId);
+        using var activity = _telemetry?.StartClientGetPartyListActivity();
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
         try
         {
-            List<AuthorizedParty> authorizedParties = [];
-            string? pageUrl = _authorizedPartiesUrl;
-            while (pageUrl is not null)
+            using HttpResponseMessage response = await _client.GetAsync(
+                token,
+                _authorizedPartiesUrl,
+                cancellationToken: cancellationToken
+            );
+
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                using HttpResponseMessage response = await _client.GetAsync(
-                    token,
-                    pageUrl,
-                    cancellationToken: cancellationToken
+                _logger.LogError(
+                    "Unable to retrieve party list. Access Management responded with status code {StatusCode}",
+                    response.StatusCode
                 );
-
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                {
-                    _logger.LogError(
-                        "Unable to retrieve party list. Access Management responded with status code {StatusCode}",
-                        response.StatusCode
-                    );
-                    return null;
-                }
-
-                string responseData = await response.Content.ReadAsStringAsync(cancellationToken);
-                var page = System.Text.Json.JsonSerializer.Deserialize<AuthorizedPartiesResponse>(
-                    responseData,
-                    _authorizedPartiesJsonOptions
-                );
-                authorizedParties.AddRange(page?.Data ?? []);
-
-                string? nextPageUrl = page?.Links?.Next;
-                pageUrl = nextPageUrl == pageUrl ? null : nextPageUrl;
+                return null;
             }
 
-            return AuthorizedPartyMapper.ToParties(authorizedParties);
+            var result = await response.Content.ReadFromJsonAsync<AuthorizedPartiesResponse>(cancellationToken);
+            return AuthorizedPartyMapper.ToParties(result?.Data ?? []);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -129,25 +115,14 @@ public class AuthorizationClient : IAuthorizationClient
 
     /// <inheritdoc />
     public async Task<bool?> ValidateSelectedParty(
-        int userId,
         int partyId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = _telemetry?.StartClientValidateSelectedPartyActivity(userId, partyId);
-        List<Party>? parties = await GetPartyList(userId, authenticationMethod, cancellationToken);
-        if (parties is null)
-        {
-            _logger.LogError(
-                "Validating selected party {PartyId} for user {UserId} failed because the party list could not be retrieved",
-                partyId,
-                userId
-            );
-            return null;
-        }
-
-        return PartyListHelper.ContainsPartyWithAccess(parties, partyId);
+        using var activity = _telemetry?.StartClientValidateSelectedPartyActivity(partyId);
+        List<Party>? parties = await GetPartyList(authenticationMethod, cancellationToken);
+        return parties is null ? null : PartyListHelper.ContainsPartyWithAccess(parties, partyId);
     }
 
     /// <inheritdoc />

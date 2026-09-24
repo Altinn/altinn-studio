@@ -176,8 +176,7 @@ public abstract class Authenticated
         private Details? _extra;
         private readonly Func<int, Task<UserProfile?>> _getUserProfile;
         private readonly Func<int, Task<Party?>> _lookupParty;
-        private readonly Func<int, Task<List<Party>?>> _getPartyList;
-        private readonly Func<int, int, Task<bool?>> _validateSelectedParty;
+        private readonly Func<Task<List<Party>?>> _getPartyList;
         private readonly ApplicationMetadata _appMetadata;
 
         internal User(
@@ -201,7 +200,6 @@ public abstract class Authenticated
             _getUserProfile = context.GetUserProfile;
             _lookupParty = context.LookupUserParty;
             _getPartyList = context.GetPartyList;
-            _validateSelectedParty = context.ValidateSelectedParty;
             _appMetadata = context.AppMetadata;
         }
 
@@ -260,24 +258,8 @@ public abstract class Authenticated
             /// </summary>
             /// <param name="partyId">Party ID</param>
             /// <returns></returns>
-            public bool CanInstantiateAsParty(int partyId)
-            {
-                var partiesToCheck = new Queue<Party>(PartiesAllowedToInstantiate);
-                while (partiesToCheck.Count > 0)
-                {
-                    var party = partiesToCheck.Dequeue();
-                    if (party.PartyId == partyId && !party.OnlyHierarchyElementWithNoAccess)
-                        return true;
-
-                    if (party.ChildParties is not null)
-                    {
-                        foreach (var childParty in party.ChildParties)
-                            partiesToCheck.Enqueue(childParty);
-                    }
-                }
-
-                return false;
-            }
+            public bool CanInstantiateAsParty(int partyId) =>
+                PartyListHelper.ContainsPartyWithAccess(PartiesAllowedToInstantiate, partyId);
         }
 
         /// <summary>
@@ -321,7 +303,7 @@ public abstract class Authenticated
                 SelectedPartyId == userProfile.PartyId
                     ? Task.FromResult((Party?)userProfile.Party)
                     : _lookupParty(SelectedPartyId);
-            var partiesTask = _getPartyList(UserId);
+            var partiesTask = _getPartyList();
             await Task.WhenAll(lookupPartyTask, partiesTask);
 
             var partyList = await partiesTask;
@@ -340,15 +322,10 @@ public abstract class Authenticated
             if (representsSelf)
                 canRepresent = true;
 
-            if (validateSelectedParty && !representsSelf)
-            {
-                // The selected party must either be the profile/default party or a party the user can represent,
-                // which can be validated against the user's party list. Only ask for a separate validation when the
-                // list could not be loaded, so the parties are not fetched twice.
-                canRepresent = partyList is not null
-                    ? PartyListHelper.ContainsPartyWithAccess(partyList, SelectedPartyId)
-                    : await _validateSelectedParty(UserId, SelectedPartyId);
-            }
+            // The selected party must either be the profile/default party or a party in the user's party list.
+            // If the list could not be loaded, it stays unvalidated.
+            if (validateSelectedParty && !representsSelf && partyList is not null)
+                canRepresent = PartyListHelper.ContainsPartyWithAccess(partyList, SelectedPartyId);
 
             var partiesAllowedToInstantiate = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
                 parties,
@@ -577,8 +554,7 @@ public abstract class Authenticated
         Func<int, Task<UserProfile?>> getUserProfile,
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
-        Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty
+        Func<Task<List<Party>?>> getPartyList
     );
 
     internal static Authenticated FromOldLocalTest(
@@ -590,8 +566,7 @@ public abstract class Authenticated
         Func<int, Task<UserProfile?>> getUserProfile,
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
-        Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty
+        Func<Task<List<Party>?>> getPartyList
     )
     {
         var context = new ParseContext(
@@ -602,8 +577,7 @@ public abstract class Authenticated
             getUserProfile,
             lookupUserParty,
             lookupOrgParty,
-            getPartyList,
-            validateSelectedParty
+            getPartyList
         );
         if (!context.IsAuthenticated)
             return new None(ref context);
@@ -702,8 +676,7 @@ public abstract class Authenticated
         Func<int, Task<UserProfile?>> GetUserProfile,
         Func<int, Task<Party?>> LookupUserParty,
         Func<string, Task<Party>> LookupOrgParty,
-        Func<int, Task<List<Party>?>> GetPartyList,
-        Func<int, int, Task<bool?>> ValidateSelectedParty
+        Func<Task<List<Party>?>> GetPartyList
     )
     {
         public TokenClaim IssuerClaim = default;
@@ -862,8 +835,7 @@ public abstract class Authenticated
                 throw new InvalidOperationException(
                     "Org party lookup is not applicable for an app callback principal."
                 ),
-            static _ => Task.FromResult<List<Party>?>(null),
-            static (_, _) => Task.FromResult<bool?>(null)
+            static () => Task.FromResult<List<Party>?>(null)
         );
 
         if (!string.IsNullOrWhiteSpace(tokenStr))
@@ -888,8 +860,7 @@ public abstract class Authenticated
         Func<int, Task<UserProfile?>> getUserProfile,
         Func<int, Task<Party?>> lookupUserParty,
         Func<string, Task<Party>> lookupOrgParty,
-        Func<int, Task<List<Party>?>> getPartyList,
-        Func<int, int, Task<bool?>> validateSelectedParty
+        Func<Task<List<Party>?>> getPartyList
     )
     {
         var context = new ParseContext(
@@ -900,8 +871,7 @@ public abstract class Authenticated
             getUserProfile,
             lookupUserParty,
             lookupOrgParty,
-            getPartyList,
-            validateSelectedParty
+            getPartyList
         );
         if (string.IsNullOrWhiteSpace(tokenStr))
             return new None(ref context);

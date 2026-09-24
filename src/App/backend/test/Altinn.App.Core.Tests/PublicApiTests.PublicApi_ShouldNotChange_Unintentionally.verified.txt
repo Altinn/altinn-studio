@@ -2975,8 +2975,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         public System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<string> actions, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetKeyRoleOrganizationParties(int userId, System.Collections.Generic.List<string> orgNumbers, System.Threading.CancellationToken cancellationToken = default) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
-        public System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
 }
 namespace Altinn.App.Core.Infrastructure.Clients.Events
@@ -3309,8 +3309,8 @@ namespace Altinn.App.Core.Internal.Auth
         public AuthorizationService(Altinn.App.Core.Internal.Auth.IAuthorizationClient authorizationClient, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction> actions, System.Threading.CancellationToken cancellationToken = default) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, System.Threading.CancellationToken cancellationToken = default) { }
-        public System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public interface IAuthenticationClient
     {
@@ -3321,15 +3321,15 @@ namespace Altinn.App.Core.Internal.Auth
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<string> actions, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetKeyRoleOrganizationParties(int userId, System.Collections.Generic.List<string> orgNumbers, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IAuthorizationService
     {
         System.Threading.Tasks.Task<bool> AuthorizeAction(Altinn.App.Core.Models.AppIdentifier appIdentifier, Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, System.Security.Claims.ClaimsPrincipal user, string action, string? taskId = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.UserAction>> AuthorizeActions(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Security.Claims.ClaimsPrincipal user, System.Collections.Generic.List<Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties.AltinnAction> actions, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(int userId, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int userId, int partyId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>?> GetPartyList(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool?> ValidateSelectedParty(int partyId, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IUserTokenProvider
     {
