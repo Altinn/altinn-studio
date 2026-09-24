@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Chip, Fieldset } from '@digdir/designsystemet-react';
 
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
-import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { skipToken, useQuery } from 'src/core/queries/reactQuery';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { isStudioPreview } from 'src/utils/isDev';
@@ -25,12 +27,12 @@ function PDFGeneratorPreviewWithTarget() {
     ) ?? [];
   const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? [];
 
-  const isSubformPdf = pdfTasks.some(
+  const subformPdfTaskId = pdfTasks.find(
     (task) => task.elementId === target.taskId && task.altinnTaskType === 'subformPdf',
-  );
-  // The UI folder of a subform PDF service task uses the subform data type
-  const subformDataType = isSubformPdf ? getDefaultDataTypeFromUiFolder(target.taskId) : undefined;
-  const subforms = subformDataType ? dataElements.filter((element) => element.dataType === subformDataType) : [];
+  )?.elementId;
+  const isSubformPdf = subformPdfTaskId !== undefined;
+  const subformDataTypes = useSubformDataTypes(subformPdfTaskId);
+  const subforms = dataElements.filter((element) => subformDataTypes.includes(element.dataType));
 
   return (
     <>
@@ -77,4 +79,24 @@ function PDFGeneratorPreviewWithTarget() {
       />
     </>
   );
+}
+
+/**
+ * A subform PDF service task renders its subform through the Subform component in the task's own UI folder, so the
+ * default data type of that component's layout set is the data type of the subforms the task makes PDFs of.
+ */
+function useSubformDataTypes(taskId: string | undefined): string[] {
+  const { fetchLayouts } = useAppQueries();
+  const { data } = useQuery({
+    queryKey: ['pdfPreviewSubformDataTypes', taskId],
+    queryFn: taskId ? () => fetchLayouts(taskId) : skipToken,
+    select: (layouts) =>
+      Object.values(layouts)
+        .flatMap((page) => page.data.layout)
+        .flatMap((component) =>
+          component.type === 'Subform' ? [getUiFolderSettings(component.layoutSet)?.defaultDataType] : [],
+        )
+        .filter((dataType) => dataType !== undefined),
+  });
+  return data ?? [];
 }

@@ -3,9 +3,10 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { defaultMockDataElementId, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { PDFGeneratorPreviewSection } from 'src/features/devtools/components/PDFGeneratorPreviewSection/PDFGeneratorPreviewSection';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
 const subformIds = ['aaaaaaaa-1111-2222-3333-444444444444', 'bbbbbbbb-1111-2222-3333-444444444444'];
@@ -18,11 +19,20 @@ async function render() {
     { elementId: 'Task_SubformPdf', elementType: 'ServiceTask', altinnTaskType: 'subformPdf' },
   ];
   instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' }) as IData));
-  window.altinnAppGlobalData.ui.folders.Task_SubformPdf = { defaultDataType: 'subform', pages: { order: ['Pdf'] } };
+  // The task's UI folder may use the parent's data type. Its Subform component points to the subform's UI folder.
+  window.altinnAppGlobalData.ui.folders.Task_SubformPdf = {
+    defaultDataType: instance.data[0].dataType,
+    pages: { order: ['Pdf'] },
+  };
+  window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
+  const subformPdfLayouts = {
+    Pdf: { data: { layout: [{ id: 'subform-component', type: 'Subform', layoutSet: 'Subform', tableColumns: [] }] } },
+  } as ILayoutCollection;
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <PDFGeneratorPreviewSection />,
     router: ({ children }) => <InstanceRouter initialPage=''>{children}</InstanceRouter>,
+    queries: { fetchLayouts: async (uiFolder) => (uiFolder === 'Task_SubformPdf' ? subformPdfLayouts : {}) },
     apis: { instanceApi: { getInstance: async () => instance } },
   });
 }
@@ -46,6 +56,8 @@ describe('PDFGeneratorPreviewSection', () => {
     await render();
 
     await user.click(await screen.findByText('Task_SubformPdf'));
+    expect(await screen.findByText('aaaaaaaa')).toBeInTheDocument();
+    expect(screen.queryByText(defaultMockDataElementId.slice(0, 8))).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Generer PDF/i })).toBeDisabled();
 
     await user.click(screen.getByText('bbbbbbbb'));
