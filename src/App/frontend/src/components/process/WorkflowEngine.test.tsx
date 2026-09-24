@@ -145,3 +145,58 @@ describe('engine clock reference', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 });
+
+describe('failing transition', () => {
+  const startedAt = '2026-09-16T12:00:00.000Z';
+  const processingFor = (elapsedMs: number, failedAttempts?: number) => ({
+    status: 'processing' as const,
+    startedAt,
+    currentTime: new Date(Date.parse(startedAt) + elapsedMs).toISOString(),
+    failedAttempts,
+  });
+
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('gives a single quick failure until twenty seconds into processing', async () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(2_000, 1));
+    render(<WorkflowProcessing />);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6_000);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(11_999);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
+  });
+
+  it('warns at once after a second failed attempt, before the still-working notice', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
+    render(<WorkflowProcessing />);
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
+  });
+
+  it('warns at once when a first attempt failed slowly', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(100_000, 1));
+    render(<WorkflowProcessing />);
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
+  });
+
+  it('returns to the still-working notice once the failing step succeeds', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(30_000, 3));
+    const { rerender } = render(<WorkflowProcessing />);
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
+
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(35_000));
+    rerender(<WorkflowProcessing />);
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
+  });
+});

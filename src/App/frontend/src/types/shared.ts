@@ -238,6 +238,11 @@ interface IProcessWorkflowProcessing {
    */
   retrying?: boolean;
   /**
+   * How many attempts in a row of the transition's current step have failed and are being retried
+   * automatically. Unlike `retrying` it holds steady while a retry attempt runs. Omitted when zero.
+   */
+  failedAttempts?: number;
+  /**
    * The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
    * awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
    * while the transition is parked on a deferring task that gave a reason. Purely a presentation

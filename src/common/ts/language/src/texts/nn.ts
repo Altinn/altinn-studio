@@ -486,6 +486,8 @@ export function nn() {
     'process_workflow.failure_kind.engineFault': 'Systemet feila under handsaminga',
     'process_workflow.failure_kind.timeout': 'Handsaminga tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjend årsak',
+    'process_workflow.having_trouble':
+      'Vi har problem med å handsame skjemaet ditt akkurat no, men vi held fram med å prøve automatisk. Opplysningane dine er lagra. Du kan trygt lukke sida og kome tilbake seinare. Du kan opne skjema du allereie har starta på, frå innboksen eller frå Utkast-mappa.',
     'process_workflow.still_working':
       'Dette tek uvanleg lang tid. Opplysningane dine er lagra, og arbeidet held fram automatisk. Du kan trygt lukke sida og kome tilbake seinare. Du kan opne skjema du allereie har starta på, frå innboksen eller frå Utkast-mappa.',
     'pdfPreview.error': 'Kunne ikkje førehandsvise PDF',

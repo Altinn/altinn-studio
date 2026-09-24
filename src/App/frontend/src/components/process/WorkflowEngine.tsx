@@ -15,38 +15,38 @@ import type { IProcessWorkflowFailure } from 'src/types/shared';
 /** Delay before explaining that processing is taking unusually long. */
 const STILL_WORKING_MS = 8_000;
 
+/** Failed attempts after which the user is told processing is having trouble, however recent. */
+const TROUBLE_FAILED_ATTEMPTS = 2;
+
+/** Time into processing after which a single failed attempt is enough to tell the user. */
+const TROUBLE_AFTER_ONE_FAILURE_MS = 20_000;
+
 /**
  * Uses the ordinary form loader while a workflow transition is running. After eight seconds
- * of processing, the user also sees the safe-to-leave message. Both timestamps come from the
- * engine clock; a browser timer covers the remaining wait between status responses.
+ * of processing, the user also sees the safe-to-leave message. When a step keeps failing and is
+ * being retried, that message is replaced by a warning: after a second failed attempt, or after
+ * one failed attempt once processing has run for twenty seconds, so a single quick blip passes
+ * unnoticed while a slow failure is reported at once. Both timestamps come from the engine clock;
+ * a browser timer covers the remaining wait between status responses.
  */
 export function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
   const isProcessing = workflow?.status === 'processing';
   const startedAt = isProcessing ? workflow.startedAt : undefined;
   const currentTime = isProcessing ? workflow.currentTime : undefined;
+  const failedAttempts = isProcessing ? (workflow.failedAttempts ?? 0) : 0;
   const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(startedAt ?? '');
-  // Older engines and invalid timestamps fall back to an eight-second wait on this screen.
+  // Older engines and invalid timestamps fall back to measuring from when this screen appeared.
   const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
-  const [stillWorking, setStillWorking] = useState(false);
-
-  useEffect(() => {
-    const remainingMs = Math.max(0, STILL_WORKING_MS - elapsedMs);
-    setStillWorking(isProcessing && remainingMs === 0);
-    if (!isProcessing || remainingMs === 0) {
-      return;
-    }
-    const stillWorkingTimer = setTimeout(() => setStillWorking(true), remainingMs);
-    return () => {
-      clearTimeout(stillWorkingTimer);
-    };
-  }, [isProcessing, startedAt, elapsedMs]);
+  const stillWorking = useHasProcessedFor(STILL_WORKING_MS, isProcessing, startedAt, elapsedMs);
+  const failingForLong = useHasProcessedFor(TROUBLE_AFTER_ONE_FAILURE_MS, failedAttempts > 0, startedAt, elapsedMs);
+  const havingTrouble = failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForLong;
 
   return (
     <Loader
       reason='workflow-processing'
       overlay={
-        isProcessing && stillWorking ? (
+        isProcessing && (stillWorking || havingTrouble) ? (
           <div
             role='status'
             aria-live='polite'
@@ -54,16 +54,39 @@ export function WorkflowProcessing() {
             className={classes.stillWorkingOverlay}
           >
             <Alert
-              data-color='info'
+              data-color={havingTrouble ? 'warning' : 'info'}
               className={classes.stillWorkingAlert}
             >
-              <Lang id='process_workflow.still_working' />
+              <Lang id={havingTrouble ? 'process_workflow.having_trouble' : 'process_workflow.still_working'} />
             </Alert>
           </div>
         ) : undefined
       }
     />
   );
+}
+
+/**
+ * Reports whether processing has run for at least `thresholdMs` while `active`. Starts from the
+ * engine-measured `elapsedMs` and lets a browser timer cover the rest, restarting when a different
+ * transition (`startedAt`) begins.
+ */
+function useHasProcessedFor(thresholdMs: number, active: boolean, startedAt: string | undefined, elapsedMs: number) {
+  const [reached, setReached] = useState(false);
+
+  useEffect(() => {
+    const remainingMs = Math.max(0, thresholdMs - elapsedMs);
+    setReached(active && remainingMs === 0);
+    if (!active || remainingMs === 0) {
+      return;
+    }
+    const timer = setTimeout(() => setReached(true), remainingMs);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [thresholdMs, active, startedAt, elapsedMs]);
+
+  return reached;
 }
 
 /**
