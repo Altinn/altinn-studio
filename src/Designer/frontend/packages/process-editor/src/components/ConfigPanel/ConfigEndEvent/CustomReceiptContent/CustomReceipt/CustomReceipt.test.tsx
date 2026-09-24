@@ -70,8 +70,6 @@ describe('CustomReceipt', () => {
       name: /process_editor\.configuration_panel_set_data_model_label/,
     });
     const newOption: string = mockAllDataModelIds[1];
-    await user.click(combobox);
-    await user.clear(combobox);
     await user.type(combobox, newOption);
     const option = await screen.findByRole('option', { name: newOption, hidden: true });
     await user.click(option);

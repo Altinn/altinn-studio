@@ -70,6 +70,7 @@ export const SelectDataTypes = ({
         selected={selectedItems}
         emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
         className={classes.dataTypeSelect}
+        filter={() => true}
         onSelectedChange={handleSelectedChange}
       >
         {dataModelOptionsToDisplay.map((option) => (
