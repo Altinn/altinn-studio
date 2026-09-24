@@ -26,5 +26,10 @@ export const useSaveSubformPdfComponentMutation = (org: string, app: string) => 
         queryKey: [QueryKey.FormLayouts, org, app, layoutSetId],
       });
     },
+    // The pages may have been created before a later step failed.
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: [QueryKey.SubformComponents, org, app] });
+      void queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+    },
   });
 };

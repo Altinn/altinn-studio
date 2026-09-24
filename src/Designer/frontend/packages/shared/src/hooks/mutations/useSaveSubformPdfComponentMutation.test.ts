@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
@@ -70,5 +71,23 @@ describe('useSaveSubformPdfComponentMutation', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [QueryKey.FormLayouts, org, app, layoutSetId],
     });
+  });
+
+  it('invalidates the subform components and the layout sets when the save fails', async () => {
+    const queryClient = createQueryClientMock();
+    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHookWithProviders(() => useSaveSubformPdfComponentMutation(org, app), {
+      queries: { saveSubformPdfComponent },
+      queryClient,
+    });
+    saveSubformPdfComponent.mockRejectedValueOnce(new Error('Error'));
+
+    result.current.mutate(args);
+
+    await waitFor(() => expect(result.current.status).toBe('error'));
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.SubformComponents, org, app],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: [QueryKey.LayoutSets, org, app] });
   });
 });
