@@ -7,14 +7,14 @@ const FEATURES: Feature[] = [
   {
     icon: 'clock',
     eyebrow: 'Innsending',
-    title: 'Rolig venting',
+    title: 'Tydelig venting',
     body: 'Én lasteskjerm i stedet for skiftende spinnere. Etter åtte sekunder står det at det er trygt å lukke siden.',
   },
   {
     icon: 'refresh',
     eyebrow: 'Omlasting',
-    title: 'Samme status etterpå',
-    body: 'Lastes siden på nytt midt i en innsending, vises samme status som før.',
+    title: 'Status som varer',
+    body: 'Lastes siden på nytt midt i en innsending, står statusen der den stod.',
   },
   {
     icon: 'shield',
@@ -25,7 +25,7 @@ const FEATURES: Feature[] = [
   {
     icon: 'check',
     eyebrow: 'Feil i skjemaet',
-    title: 'Roligere feilliste',
+    title: 'Feil når det passer',
     body: 'Feillisten vises først når brukeren prøver å gå videre, og får fokus — bedre med skjermleser.',
   },
 ];
@@ -36,8 +36,8 @@ export default function FrontendBrukerneMerkerSlide(_: SlideProps) {
     <Slide
       variant="full"
       kicker="Frontend"
-      title="Det brukerne merker"
-      subtitle="Tryggere å fylle ut, og roligere å sende inn."
+      title="Brukeropplevelsen"
+      subtitle="Tryggere å fylle ut, og tydeligere når skjemaet sendes inn."
     >
       <div className="s-fill">
         <FeatureGrid features={FEATURES} />

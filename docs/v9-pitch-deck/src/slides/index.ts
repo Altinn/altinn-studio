@@ -72,7 +72,7 @@ export const slides: SlideDef[] = [
     id: 'frontend-brukerne-merker',
     component: FrontendBrukerneMerker,
     notes:
-      'Fire ting brukerne merker. Rolig venting med beskjed om at det er trygt å lukke siden etter åtte sekunder. Samme status om siden lastes på nytt. Ingen tapte svar. Og en feilliste som ikke roper før brukeren prøver å gå videre.',
+      'Fire ting brukerne merker. Tydelig venting, med beskjed om at det er trygt å lukke siden etter åtte sekunder. Status som varer: lastes siden på nytt, står den der den stod. Ingen tapte svar. Og en feilliste som vises først når brukeren prøver å gå videre.',
   },
   {
     id: 'seksjon-backend',

@@ -80,9 +80,9 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 > Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene er én måling i et skjema med 32 sider — si det om noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.
 
-### 6 — Det brukerne merker · 0 clicks
+### 6 — Brukeropplevelsen · 0 clicks
 
-> Fire ting brukerne merker. Rolig venting med beskjed om at det er trygt å lukke siden etter åtte sekunder. Samme status om siden lastes på nytt. Ingen tapte svar. Og en feilliste som ikke roper før brukeren prøver å gå videre.
+> Fire ting brukerne merker. Tydelig venting, med beskjed om at det er trygt å lukke siden etter åtte sekunder. Status som varer: lastes siden på nytt, står den der den stod. Ingen tapte svar. Og en feilliste som vises først når brukeren prøver å gå videre.
 
 ### 7 — Del 3 — Backend · 0 clicks
 
