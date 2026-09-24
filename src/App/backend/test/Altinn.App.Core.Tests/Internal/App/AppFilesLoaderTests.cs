@@ -142,15 +142,22 @@ public sealed class AppFilesLoaderTests : IDisposable
         Assert.DoesNotContain("unrelated.json", exception.Message);
     }
 
+    // The scanner lists the folders and matches names ordinally, so wrongly cased names are not found even
+    // on a case-insensitive file system, where a path lookup would have succeeded. Each casing gets its own
+    // test (and temp directory) because such a file system keeps only one of two names that differ by case.
+    [Fact]
+    public async Task A_wrongly_cased_application_metadata_file_is_missing_on_every_operating_system()
+    {
+        WriteFile("config/ApplicationMetadata.json", """{ "id": "ttd/app" }""");
+
+        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => Load());
+
+        Assert.Contains("config/applicationmetadata.json", exception.Message);
+    }
+
     [Fact]
     public async Task Names_are_matched_case_sensitively_on_every_operating_system()
     {
-        // The scanner lists the folders and matches names ordinally, so these are not found even on a
-        // case-insensitive file system, where a path lookup would have succeeded
-        WriteFile("config/ApplicationMetadata.json", """{ "id": "ttd/app" }""");
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => Load());
-        Assert.Contains("config/applicationmetadata.json", exception.Message);
-
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
         WriteFile("ui/settings.json", "{}");
         WriteFile("Options/land.json", "[]");
