@@ -82,8 +82,10 @@ export const FEIL: Scenario = {
 };
 
 /**
- * (2) SERVEREN STARTES PÅ NYTT — a new version rolls out while Kari submits.
- * Every deploy restarts the app's servers, so this is the everyday case.
+ * (2) SERVEREN STARTES PÅ NYTT: the app restarts while Kari submits, as it does
+ * for maintenance or scaling. Deliberately not framed as a deploy: resuming
+ * work under a *new* app version raises version compatibility, which v9 does
+ * not solve, so the deck never promises «deploy whenever you like».
  *
  *  - v8 has no durable record of a transition in flight, and the side effects
  *    run before the process state is saved, so a PDF can be stored while the
@@ -95,7 +97,7 @@ export const FEIL: Scenario = {
 export const OMSTART: Scenario = {
   name: 'omstart',
   title: 'Serveren startes på nytt',
-  headline: 'En ny versjon rulles ut mens Kari sender inn.',
+  headline: 'Appen startes på nytt midt i Karis innsending.',
   frame: 'skjema.altinn.no',
   v8: {
     start: READY,
@@ -121,5 +123,5 @@ export const OMSTART: Scenario = {
     ],
     outcome: 'Ferdig, med litt venting.',
   },
-  takeaway: 'Nye versjoner kan rulles ut midt på dagen. Innsendingene fortsetter der de slapp.',
+  takeaway: 'En omstart koster litt ventetid, ikke en ny innsending. Arbeidet fortsetter der det slapp.',
 };
