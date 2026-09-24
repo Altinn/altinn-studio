@@ -69,3 +69,45 @@ class TestScanRepoTool:
         """The model gets no inputs — extras shouldn't sneak through."""
         with pytest.raises(Exception):
             ScanRepoTool.input_schema.model_validate({"path": "/x"})
+
+
+LAYOUT_FILE_NAME = "Side1.json"
+EMPTY_LAYOUT = '{"data": {"layout": []}}'
+
+
+def _create_layout(repo_path, layout_folder: str) -> None:
+    layouts_dir = repo_path / layout_folder
+    layouts_dir.mkdir(parents=True)
+    (layouts_dir / LAYOUT_FILE_NAME).write_text(EMPTY_LAYOUT)
+
+
+async def _scan_layouts(repo_path) -> list[str]:
+    tool = ScanRepoTool()
+    result = await tool.run(tool.input_schema(), _ctx(str(repo_path)))
+    return json.loads(result.content)["layouts"]
+
+
+async def test_scan_repo_lists_layouts_in_a_layout_set_not_named_form(tmp_path):
+    _create_layout(tmp_path, "App/ui/message/layouts")
+
+    assert await _scan_layouts(tmp_path) == [f"App/ui/message/layouts/{LAYOUT_FILE_NAME}"]
+
+
+async def test_scan_repo_lists_layouts_in_a_task_folder(tmp_path):
+    _create_layout(tmp_path, "App/ui/Task_1/layouts")
+
+    assert await _scan_layouts(tmp_path) == [f"App/ui/Task_1/layouts/{LAYOUT_FILE_NAME}"]
+
+
+async def test_scan_repo_lists_layouts_from_every_layout_set_in_sorted_order(tmp_path):
+    _create_layout(tmp_path, "App/ui/Task_2/layouts")
+    _create_layout(tmp_path, "App/ui/Task_1/layouts")
+
+    assert await _scan_layouts(tmp_path) == [
+        f"App/ui/Task_1/layouts/{LAYOUT_FILE_NAME}",
+        f"App/ui/Task_2/layouts/{LAYOUT_FILE_NAME}",
+    ]
+
+
+async def test_scan_repo_lists_no_layouts_when_the_app_has_no_ui_folder(tmp_path):
+    assert await _scan_layouts(tmp_path) == []
