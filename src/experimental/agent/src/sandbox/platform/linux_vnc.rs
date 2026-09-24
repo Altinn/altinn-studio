@@ -13,14 +13,10 @@ use ::sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
 
 use crate::Error;
 
-use super::linux::wait_for_systemd;
+use super::linux::{SYSTEMCTL, SYSTEMD_RUNNING, path_exists, run_checked, systemd_available, wait_for_systemd};
 
 /// The image contract: what this image provides for `access: [{type: vnc}]`.
 pub(crate) const DESCRIPTOR: &str = "/etc/agent-access.d/vnc.conf";
-/// `systemctl`, the only supported guest service manager today.
-const SYSTEMCTL: &str = "/usr/bin/systemctl";
-/// Present exactly when systemd is the running init; the marker systemd documents for this purpose.
-const SYSTEMD_RUNNING: &str = "/run/systemd/system";
 /// Reads listening sockets, so withdrawal can be asserted rather than assumed.
 const SS: &str = "/usr/bin/ss";
 /// A descriptor larger than this is not the one the contract describes.
@@ -84,15 +80,7 @@ pub(crate) async fn verify_capability(sandbox: &SandboxHandle) -> Result<Capabil
 /// Returns an error when a unit cannot be enabled, or when the ports the image declared are not
 /// listening once it has been.
 pub(crate) async fn grant(sandbox: &SandboxHandle, capability: &Capability) -> Result<(), Error> {
-    wait_for_systemd(sandbox).await?;
-    let mut arguments = vec![
-        "-n".to_owned(),
-        SYSTEMCTL.to_owned(),
-        "enable".to_owned(),
-        "--now".to_owned(),
-    ];
-    arguments.extend(capability.units.iter().cloned());
-    run_owned(sandbox, "/usr/bin/sudo", arguments).await?;
+    systemctl(sandbox, "enable", capability).await?;
     for port in capability.ports() {
         if !port_is_listening(sandbox, port).await? {
             return Err(Error::SandboxSetup(format!(
@@ -113,23 +101,12 @@ pub(crate) async fn grant(sandbox: &SandboxHandle, capability: &Capability) -> R
 /// Returns an error when the units cannot be disabled, or when something is still listening on a
 /// declared port afterwards.
 pub(crate) async fn withdraw(sandbox: &SandboxHandle) -> Result<(), Error> {
-    if !path_exists(sandbox, "-x", SYSTEMCTL).await?
-        || !path_exists(sandbox, "-d", SYSTEMD_RUNNING).await?
-        || !path_exists(sandbox, "-f", DESCRIPTOR).await?
-    {
+    if !systemd_available(sandbox).await? || !path_exists(sandbox, "-f", DESCRIPTOR).await? {
         // An image that declares no VNC access never had any units to turn off.
         return Ok(());
     }
     let capability = parse_descriptor(&read_descriptor(sandbox).await?)?;
-    wait_for_systemd(sandbox).await?;
-    let mut arguments = vec![
-        "-n".to_owned(),
-        SYSTEMCTL.to_owned(),
-        "disable".to_owned(),
-        "--now".to_owned(),
-    ];
-    arguments.extend(capability.units.iter().cloned());
-    run_owned(sandbox, "/usr/bin/sudo", arguments).await?;
+    systemctl(sandbox, "disable", &capability).await?;
     for port in capability.ports() {
         if port_is_listening(sandbox, port).await? {
             return Err(Error::SandboxSetup(format!(
@@ -139,6 +116,15 @@ pub(crate) async fn withdraw(sandbox: &SandboxHandle) -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+/// Runs `systemctl <action> --now` on the image's access units once systemd has booted.
+async fn systemctl(sandbox: &SandboxHandle, action: &str, capability: &Capability) -> Result<(), Error> {
+    wait_for_systemd(sandbox).await?;
+    let arguments = ["-n", SYSTEMCTL, action, "--now"]
+        .into_iter()
+        .chain(capability.units.iter().map(String::as_str));
+    run_checked(sandbox, "/usr/bin/sudo", arguments).await
 }
 
 async fn read_descriptor(sandbox: &SandboxHandle) -> Result<String, Error> {
@@ -260,37 +246,6 @@ async fn port_is_listening(sandbox: &SandboxHandle, port: u16) -> Result<bool, E
         )));
     }
     Ok(!String::from_utf8_lossy(&output.stdout).trim().is_empty())
-}
-
-async fn path_exists(sandbox: &SandboxHandle, test: &str, path: &str) -> Result<bool, Error> {
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/test"),
-            [test.to_owned(), path.to_owned()],
-        ))
-        .await?;
-    match output.status.code {
-        0 => Ok(true),
-        1 => Ok(false),
-        code => Err(Error::SandboxSetup(format!(
-            "presence check `test {test} {path}` exited with code {code}"
-        ))),
-    }
-}
-
-async fn run_owned(sandbox: &SandboxHandle, executable: &str, arguments: Vec<String>) -> Result<(), Error> {
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(SandboxPath::new(executable), arguments.clone()))
-        .await?;
-    if output.status.success() {
-        return Ok(());
-    }
-    Err(Error::SandboxSetup(format!(
-        "command `{executable} {}` exited with code {}: {}",
-        arguments.join(" "),
-        output.status.code,
-        String::from_utf8_lossy(&output.stderr).trim()
-    )))
 }
 
 #[cfg(test)]

@@ -283,6 +283,54 @@ async fn withdrawing_access_disables_the_units_and_proves_the_ports_are_free() {
     );
 }
 
+/// Answers a withdrawal's probes: systemd running and a desktop image's descriptor.
+fn queue_withdrawable_image(backend: &memory::Provider) {
+    backend.queue_execution_events_matching(is_test("/usr/bin/systemctl", "-x"), exited(0));
+    backend.queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
+    backend.queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
+    backend.queue_execution_events_matching(is_descriptor_read, valid_descriptor());
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_withdrawal_that_succeeded_is_not_repeated_until_the_incarnation_is_forgotten() {
+    let fixture = Fixture::new();
+    let withdrawn = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", false);
+    fixture.store(&withdrawn, 0).await;
+    let sandbox = fixture.sandbox(&withdrawn).await;
+    let disables = || {
+        fixture
+            .backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_disable(spec))
+            .count()
+    };
+
+    queue_withdrawable_image(&fixture.backend);
+    queue_listening(&fixture.backend, false);
+    assert!(!fixture.access.reconcile(&withdrawn, &sandbox).await.expect("withdraw"));
+    let probes = fixture.backend.execution_specs().len();
+    assert!(!fixture.access.reconcile(&withdrawn, &sandbox).await.expect("resync"));
+    assert_eq!(
+        fixture.backend.execution_specs().len(),
+        probes,
+        "a resync after a successful withdrawal runs nothing in the guest"
+    );
+    assert_eq!(disables(), 1);
+
+    fixture.access.forget(withdrawn.id);
+    queue_withdrawable_image(&fixture.backend);
+    queue_listening(&fixture.backend, false);
+    assert!(
+        !fixture
+            .access
+            .reconcile(&withdrawn, &sandbox)
+            .await
+            .expect("withdraw again")
+    );
+    assert_eq!(disables(), 2, "a forgotten incarnation is withdrawn again");
+}
+
 #[tokio::test(flavor = "local")]
 async fn an_image_still_listening_after_withdrawal_is_reported() {
     let fixture = Fixture::new();

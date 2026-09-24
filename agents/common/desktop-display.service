@@ -9,9 +9,8 @@ After=agent-browser-ca-init.service
 #
 # It listens on a Unix socket and on no TCP port at all, which is what `-rfbport -1` means: the
 # default is not "no listener" but port 5900 plus the display number, on every interface. The
-# desktop is therefore always running and never reachable, and granting a person access to it is
-# the platform's to do, by bridging a guest port to this socket when the Agent declares
-# `access: [{type: vnc}]` and removing that bridge when it stops declaring it.
+# desktop is therefore always running and reachable only through the image's access units, which
+# agentd enables when the Agent declares `access: [{type: vnc}]` and disables when it stops.
 Type=exec
 User=agent
 Group=agent

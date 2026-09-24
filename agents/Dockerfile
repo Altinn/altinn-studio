@@ -516,8 +516,8 @@ ARG WS_VERSION=8.21.3
 # pinned by digest the way the other vendored tools here are. Only the files the viewer loads are
 # installed: the tests, docs and helper scripts in the tarball are not served.
 #
-# The image provides the program; whether it runs is the platform's decision, because reaching the
-# desktop is an access capability rather than something the image grants.
+# The image provides the program and ships its unit disabled; agentd enables it when an Agent
+# declares VNC access.
 # Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \

@@ -4,22 +4,20 @@
 //! bridged to the desktop its image already runs, and `agentctl vnc` forwards
 //! that port to the person's machine.
 //!
-//! The split matters. A desktop Agent has a screen whether or not anyone may
-//! look at it: the model drives it, so the image owns the X server, the bridge
-//! to it and the browser viewer, and ships their units disabled. What the image
-//! does not own is the decision to turn them on. This module reads what the
-//! image declares it provides, enables those units when the Agent declares VNC
-//! access and disables them when it stops, and asserts the observable result —
-//! the declared ports listen afterwards, and nothing listens once access is
-//! withdrawn.
+//! A desktop Agent has a screen whether or not anyone may look at it: the model
+//! drives it, so the image owns the X server, the bridge to it and the browser
+//! viewer, and ships their units disabled. This module reads what the image
+//! declares it provides, enables those units when the Agent declares VNC access
+//! and disables them when it stops. Nothing here names a socket path, a viewer
+//! program or a URL, so an image that serves a different viewer needs no change
+//! on this side.
 //!
-//! Nothing here names a socket path, a viewer program or a URL. An image that
-//! serves a different viewer needs no change on this side.
-//!
-//! Unlike SSH there is no key material and no host-side state, because there
-//! is no client configuration to generate: the transport is a plain RFB stream
-//! over a forwarded loopback port, and the Sandbox boundary is what protects
-//! it, exactly as it protects every other guest loopback port.
+//! This is a platform decision about what it offers, not an isolation
+//! boundary. The Agent has passwordless `sudo` and could enable the same units
+//! itself; what keeps the desktop from anyone else is the Sandbox boundary and
+//! forwarding that only the host can start, as for every other guest loopback
+//! port. The transport is a plain RFB stream, so unlike SSH there is no key
+//! material and no client configuration to generate.
 
 use std::{cell::RefCell, collections::BTreeMap, path::PathBuf, rc::Rc};
 
@@ -88,19 +86,23 @@ pub fn image_contract_missing(what: &str) -> String {
 pub struct Access {
     agentctl: PathBuf,
     agents: Rc<dyn AgentStore>,
-    /// What each Agent's image was last seen to declare.
+    /// What the last successful pass left in each Agent's guest.
     ///
     /// A descriptor lives in the guest, and describing an Agent must not require reaching into a
     /// running Sandbox, so what reconciliation observed is remembered here for the descriptor to
-    /// report. It is deliberately not persisted: after a restart the answer is unknown until the
-    /// next pass, which is the truth rather than a stale claim.
-    observed: RefCell<BTreeMap<AgentId, Observation>>,
+    /// report. It also lets a resync skip a withdrawal that has already succeeded. It is
+    /// deliberately not persisted: after a restart the answer is unknown until the next pass,
+    /// which is the truth rather than a stale claim.
+    applied: RefCell<BTreeMap<AgentId, Applied>>,
 }
 
-/// What one reconciliation pass saw an image declare.
+/// What one successful reconciliation pass left in an Agent's guest.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct Observation {
-    web_port: Option<u16>,
+enum Applied {
+    /// The image's units are enabled, with the browser viewer port it declared.
+    Granted { web_port: Option<u16> },
+    /// The units are disabled, or the image declares none.
+    Withdrawn,
 }
 
 impl Access {
@@ -113,7 +115,7 @@ impl Access {
         Self {
             agentctl,
             agents,
-            observed: RefCell::new(BTreeMap::new()),
+            applied: RefCell::new(BTreeMap::new()),
         }
     }
 
@@ -145,7 +147,10 @@ impl Access {
             agent: name.clone(),
             agent_id: record.id,
             guest_port: GUEST_PORT,
-            web_guest_port: self.observed.borrow().get(&record.id).and_then(|seen| seen.web_port),
+            web_guest_port: match self.applied.borrow().get(&record.id) {
+                Some(Applied::Granted { web_port }) => *web_port,
+                Some(Applied::Withdrawn) | None => None,
+            },
             forward_command: format!("{} port-forward agent/{name} {GUEST_PORT}", self.agentctl.display()),
         }
     }
@@ -153,31 +158,39 @@ impl Access {
     /// Converges VNC access for one Agent against its running Sandbox.
     ///
     /// Returns whether the Agent has VNC access after the pass. An Agent
-    /// without declared access has any earlier bridge removed, which is what
+    /// without declared access has the image's units disabled, which is what
     /// makes withdrawal complete: the desktop keeps running and nothing
-    /// listens.
+    /// listens. A withdrawal that has succeeded is not repeated on later
+    /// passes of the same incarnation, since the units only come back if
+    /// access is declared again.
     ///
     /// # Errors
     ///
     /// Returns `Error::Invalid` when the image runs no desktop or the Sandbox
     /// operating system is unsupported, and transient errors when the guest
-    /// setup cannot be written.
+    /// setup cannot be applied.
     pub async fn reconcile(&self, record: &AgentRecord, sandbox: &SandboxHandle) -> Result<bool, Error> {
         let os = sandbox.snapshot().image.platform.os.clone();
-        if !record.agent.spec.vnc_access() {
-            remove_guest_state(&os, sandbox).await?;
-            self.observed.borrow_mut().remove(&record.id);
-            return Ok(false);
-        }
-        let capability = verify_guest_capability(&os, sandbox).await?;
-        grant_guest_access(&os, sandbox, &capability).await?;
-        self.observed.borrow_mut().insert(
-            record.id,
-            Observation {
+        let applied = if record.agent.spec.vnc_access() {
+            let capability = verify_guest_capability(&os, sandbox).await?;
+            grant_guest_access(&os, sandbox, &capability).await?;
+            Applied::Granted {
                 web_port: capability.web_port,
-            },
-        );
-        Ok(true)
+            }
+        } else {
+            if self.applied.borrow().get(&record.id) == Some(&Applied::Withdrawn) {
+                return Ok(false);
+            }
+            remove_guest_state(&os, sandbox).await?;
+            Applied::Withdrawn
+        };
+        self.applied.borrow_mut().insert(record.id, applied);
+        Ok(applied != Applied::Withdrawn)
+    }
+
+    /// Forgets what was applied to a deleted Agent incarnation.
+    pub fn forget(&self, id: AgentId) {
+        self.applied.borrow_mut().remove(&id);
     }
 }
 

@@ -14,7 +14,7 @@ use crate::{Error, ssh::GuestMaterial};
 
 use super::{
     files::write_if_changed,
-    linux::{run_checked, wait_for_systemd},
+    linux::{SYSTEMCTL, SYSTEMD_RUNNING, path_exists, run_checked, systemd_available, wait_for_systemd},
 };
 
 /// Directory holding every server file `agentd` writes.
@@ -39,10 +39,6 @@ pub(crate) const SERVER: &str = "/usr/sbin/sshd";
 pub(crate) const UNIT: &str = "agent-ssh.service";
 /// Where the platform installs the unit.
 pub(crate) const UNIT_FILE: &str = "/etc/systemd/system/agent-ssh.service";
-/// `systemctl`, the only supported guest service manager today.
-const SYSTEMCTL: &str = "/usr/bin/systemctl";
-/// Present exactly when systemd is the running init; the marker systemd documents for this purpose.
-const SYSTEMD_RUNNING: &str = "/run/systemd/system";
 const ENVIRONMENT_PROGRAM: &str = "/usr/bin/env";
 const MAX_ENVIRONMENT_ENTRIES: usize = 1000;
 
@@ -306,10 +302,7 @@ pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), E
     if !state_exists && !environment_exists {
         return Ok(());
     }
-    if state_exists
-        && path_exists(sandbox, "-x", SYSTEMCTL).await?
-        && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await?
-    {
+    if state_exists && systemd_available(sandbox).await? {
         wait_for_systemd(sandbox).await?;
         let args = ["-n", SYSTEMCTL, "disable", "--now", UNIT];
         let output = sandbox
@@ -332,7 +325,7 @@ pub(crate) async fn remove_server_state(sandbox: &SandboxHandle) -> Result<(), E
     if state_exists {
         run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-f", UNIT_FILE]).await?;
         run_checked(sandbox, "/usr/bin/sudo", ["-n", "/bin/rm", "-rf", STATE_DIRECTORY]).await?;
-        if path_exists(sandbox, "-x", SYSTEMCTL).await? && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await? {
+        if systemd_available(sandbox).await? {
             run_checked(sandbox, "/usr/bin/sudo", ["-n", SYSTEMCTL, "daemon-reload"]).await?;
         }
     }
@@ -428,22 +421,6 @@ fn ssh_supplies(name: &str) -> bool {
 fn unit_is_missing(output: &::sandbox::execution::ExecutionOutput) -> bool {
     let stderr = String::from_utf8_lossy(&output.stderr);
     stderr.contains("does not exist") || stderr.contains("not found") || stderr.contains("No such file")
-}
-
-async fn path_exists(sandbox: &SandboxHandle, test: &str, path: &str) -> Result<bool, Error> {
-    let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/test"),
-            [test.to_owned(), path.to_owned()],
-        ))
-        .await?;
-    match output.status.code {
-        0 => Ok(true),
-        1 => Ok(false),
-        code => Err(Error::SandboxSetup(format!(
-            "presence check `test {test} {path}` exited with code {code}"
-        ))),
-    }
 }
 
 #[cfg(test)]
