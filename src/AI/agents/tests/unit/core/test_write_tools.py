@@ -153,6 +153,16 @@ class TestVerifyChanges:
         body = json.loads(result.content)
         assert any("no automated validator" in note for note in body["notes"])
 
+    async def test_deleted_file_is_noted_but_passes(self, tmp_path: Path):
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/layout-sets.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        assert not result.is_error
+        body = json.loads(result.content)
+        assert any("deleted" in note for note in body["notes"])
+
     async def test_multipage_layout_without_navigation_fails(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
         layouts_dir.mkdir(parents=True)
