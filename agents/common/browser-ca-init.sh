@@ -24,9 +24,9 @@ mkdir -p "$nssdb" "$state_dir"
 work=$(mktemp -d "${TMPDIR:-/tmp}/agent-browser-ca.XXXXXX")
 trap 'find "$work" -depth -delete' EXIT HUP INT TERM
 
-# Every certutil call commits the SQLite database with its own flushes, which add up to about 15
-# seconds for the system bundle on the guest disk. The database is edited in the temporary directory,
-# a tmpfs in the guest, and copied back once.
+# Every certutil call commits the SQLite database with its own flushes, which make importing the
+# system bundle slow on the guest disk. The database is edited in the temporary directory, a tmpfs in
+# the guest, and copied back once.
 staged=$work/nssdb
 mkdir "$staged"
 if [ -f "$nssdb/cert9.db" ]; then
