@@ -1,10 +1,10 @@
 import React, { forwardRef, useId } from 'react';
-import { Label, Search, type SearchProps } from '@digdir/designsystemet-react';
+import { Label, Search, type SearchInputProps } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
 import { StudioValidationMessage } from '../StudioValidationMessage';
 import classes from './StudioSearch.module.css';
 
-export type StudioSearchProps = WithoutAsChild<SearchProps> & {
+export type StudioSearchProps = WithoutAsChild<SearchInputProps> & {
   label: React.ReactNode;
   id?: string;
   value?: string;
@@ -43,7 +43,7 @@ export const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
         <Label className={classes.label} data-size={dataSize} htmlFor={searchId}>
           {label}
         </Label>
-        <Search>
+        <Search data-sr-clear={clearButtonLabel}>
           <Search.Input
             ref={ref}
             id={searchId}
@@ -53,7 +53,7 @@ export const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
             aria-invalid={error ? true : ariaInvalid}
             aria-describedby={describedBy}
           />
-          <Search.Clear aria-label={clearButtonLabel} title={clearButtonLabel} />
+          <Search.Clear title={clearButtonLabel} />
           {onSearchClick && (
             <Search.Button data-size={dataSize} onClick={onSearchClick}>
               {searchButtonLabel}

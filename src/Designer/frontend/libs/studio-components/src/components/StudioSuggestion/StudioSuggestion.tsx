@@ -17,6 +17,7 @@ export type StudioSuggestionProps = SuggestionProps &
     emptyText: string;
     label: string;
     className?: string;
+    clearButtonLabel?: string;
     description?: string;
     error?: string | false;
     placeholder?: string;
@@ -30,6 +31,7 @@ function StudioSuggestion(
     children,
     emptyText,
     className,
+    clearButtonLabel,
     description,
     error,
     placeholder,
@@ -46,7 +48,7 @@ function StudioSuggestion(
       {description && (
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
-      <Suggestion {...rest}>
+      <Suggestion {...rest} data-sr-clear={clearButtonLabel}>
         <Suggestion.Input
           aria-label={label}
           id={inputId}

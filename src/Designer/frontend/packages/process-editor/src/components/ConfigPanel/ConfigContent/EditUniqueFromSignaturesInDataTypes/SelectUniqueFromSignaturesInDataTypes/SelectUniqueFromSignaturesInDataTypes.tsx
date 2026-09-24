@@ -75,6 +75,7 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
     <div className={classes.container}>
       <div className={classes.dataTypeSelectAndButton}>
         <StudioSuggestion
+          clearButtonLabel={t('general.clear_selection')}
           multiple
           label={t('process_editor.configuration_panel_set_unique_from_signatures_in_data_types')}
           selected={selectedItems}

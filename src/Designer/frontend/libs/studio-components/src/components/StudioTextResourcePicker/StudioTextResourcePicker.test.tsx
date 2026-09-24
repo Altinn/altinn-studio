@@ -15,10 +15,12 @@ import type { TextResource } from '@studio/pure-functions';
 const textResources = textResourcesMock;
 const onValueChange = jest.fn();
 const noTextResourceOptionLabel = 'Unset';
+const clearButtonLabel = 'Clear selection';
 const defaultProps: StudioTextResourcePickerProps = {
   onValueChange,
   textResources,
   noTextResourceOptionLabel,
+  clearButtonLabel,
   emptyText: '',
   label: 'Text Resource',
 };
@@ -153,7 +155,7 @@ describe('StudioTextResourcePicker', () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
-    await user.click(screen.getByRole('button', { name: 'Tøm' }));
+    await user.click(screen.getByRole('button', { name: clearButtonLabel }));
     await user.tab();
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
   });

@@ -60,6 +60,7 @@ export const SelectDataTypes = ({
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         multiple={false}
         label={t('process_editor.configuration_panel_set_data_model_label')}
         description={descriptionText}

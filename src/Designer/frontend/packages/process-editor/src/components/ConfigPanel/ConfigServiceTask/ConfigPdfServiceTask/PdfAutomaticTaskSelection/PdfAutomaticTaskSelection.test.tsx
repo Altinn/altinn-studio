@@ -51,7 +51,7 @@ describe('PdfAutomaticTaskSelection', () => {
   it('should render task selector combobox', () => {
     renderPdfAutomaticTaskSelection();
 
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('should display available tasks as options', async () => {
@@ -59,7 +59,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('textbox');
+    const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
     expect(
@@ -75,7 +75,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('textbox');
+    const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
     const option = screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true });
@@ -90,7 +90,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection(['task_1']);
 
-    await user.click(screen.getByRole('textbox'));
+    await user.click(screen.getByRole('combobox'));
 
     const selectedTaskChip = screen.getByRole('option', {
       name: /^Task 1 \(task_1\), /,
@@ -106,7 +106,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
     renderPdfAutomaticTaskSelection();
 
-    const combobox = screen.getByRole('textbox');
+    const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
     await user.click(screen.getByRole('option', { name: /Task 1.*\(task_1\)/, hidden: true }));
@@ -133,7 +133,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('textbox');
+      const combobox = screen.getByRole('combobox');
       await user.click(combobox);
 
       expect(screen.getByRole('option', { name: /\(task_1\)/, hidden: true })).toBeInTheDocument();
@@ -154,7 +154,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('textbox');
+      const combobox = screen.getByRole('combobox');
       await user.click(combobox);
 
       expect(screen.getByRole('option', { name: /\(task_1\)/, hidden: true })).toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('PdfAutomaticTaskSelection', () => {
 
       renderPdfAutomaticTaskSelection();
 
-      const combobox = screen.getByRole('textbox');
+      const combobox = screen.getByRole('combobox');
       await user.click(combobox);
 
       expect(

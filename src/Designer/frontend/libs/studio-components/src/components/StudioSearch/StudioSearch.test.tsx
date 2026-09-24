@@ -79,6 +79,14 @@ describe('StudioSearch', () => {
     expect(onSearchClick).toHaveBeenCalledTimes(1);
   });
 
+  it('labels the clear button with the given clearButtonLabel', () => {
+    renderStudioSearch();
+    expect(screen.getByRole('button', { hidden: true })).toHaveAttribute(
+      'aria-label',
+      defaultProps.clearButtonLabel,
+    );
+  });
+
   const defaultProps: StudioSearchProps = {
     label: 'Search',
     clearButtonLabel: 'Clear search',

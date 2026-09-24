@@ -20,6 +20,7 @@ const texts: TextResourceInputTexts = {
   editValue: 'Rediger verdi',
   idLabel: 'ID:',
   search: 'Søk',
+  clearSelection: 'Fjern valg',
   textResourcePickerLabel: 'Velg tekstressurs',
   noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
@@ -129,8 +130,9 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
 
     await switchToSearchMode(user);
-    const chipButton = screen.getByRole('option', { name: /Press to remove/i });
-    await user.click(chipButton);
+    const clearButton = screen.getByRole('button', { name: texts.clearSelection });
+    await user.click(clearButton);
+    await user.tab();
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);

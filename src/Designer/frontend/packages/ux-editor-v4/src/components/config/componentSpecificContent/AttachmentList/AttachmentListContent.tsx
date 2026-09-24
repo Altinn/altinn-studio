@@ -37,6 +37,7 @@ export const AttachmentListContent = ({
         onChange={(e) => onChange(e.target.checked ? currentAvailableAttachments : [])}
       />
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         multiple
         label={t('ux_editor.component_properties.select_attachments')}
         emptyText={t('general.no_options')}

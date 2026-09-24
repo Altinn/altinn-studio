@@ -77,7 +77,7 @@ describe('EditColumnElementComponentSelect', () => {
           'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
         ),
       ),
-    ).not.toBeInTheDocument();
+    ).not.toBeVisible();
   });
 
   it('should render just components with labels and data model bindings', async () => {

@@ -28,6 +28,7 @@ export const Summary2ComponentReferenceSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       multiple={false}
       label={label}
       emptyText={t('ux_editor.component_properties.target_empty')}

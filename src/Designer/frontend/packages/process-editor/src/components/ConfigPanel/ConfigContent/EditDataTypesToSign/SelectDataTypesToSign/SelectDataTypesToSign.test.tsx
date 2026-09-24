@@ -88,7 +88,7 @@ describe('SelectDataTypesToSign', () => {
 
     renderSelectDataTypesToSign(existingDataTypesProps);
 
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
     await user.click(suggestionInput);
@@ -118,7 +118,7 @@ describe('SelectDataTypesToSign', () => {
 
     renderSelectDataTypesToSign(existingDataTypesProps);
 
-    const suggestionInput = screen.getByRole('textbox', {
+    const suggestionInput = screen.getByRole('combobox', {
       name: textMock('process_editor.configuration_panel_set_data_types_to_sign'),
     });
     await user.click(suggestionInput);

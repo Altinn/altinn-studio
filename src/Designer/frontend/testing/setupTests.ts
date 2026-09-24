@@ -64,6 +64,17 @@ Object.defineProperty(document, 'getAnimations', {
   writable: true,
 });
 
+// document.elementFromPoint must be mocked because the Popover component from the design system uses
+// it to check whether it is the top layer, but jsdom has no layout, so every element reports a
+// zero-sized rect. Returning the open popover lets the Escape key reach it.
+Object.defineProperty(document, 'elementFromPoint', {
+  value: () =>
+    Array.from(document.querySelectorAll<HTMLElement>('[popover]')).findLast(
+      (element) => element.matches(':popover-open') || element.classList.contains(':popover-open'),
+    ) ?? document.body,
+  writable: true,
+});
+
 // Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
 Object.defineProperty(window, 'crypto', {
   value: webcrypto,
