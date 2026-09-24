@@ -1138,7 +1138,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// Determines whether a layout set folder of exactly this name exists. Matching by exact name makes a
     /// case-insensitive file system behave like Linux.
     /// </summary>
-    private bool LayoutSetFolderExistsByExactName(string layoutSetName)
+    public bool LayoutSetFolderExistsByExactName(string layoutSetName)
     {
         if (!DirectoryExistsByRelativePath(LayoutsFolderName))
         {
