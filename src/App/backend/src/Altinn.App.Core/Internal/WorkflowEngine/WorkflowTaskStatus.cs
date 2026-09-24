@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// transition's engine steps execution has come. <see cref="FailedAttempts"/> (also processing-only)
 /// counts the current step's consecutive failed attempts and, unlike retrying, holds steady while a
 /// retry attempt executes. <see cref="StartedAt"/> (also processing-only) is
-/// when the transition was enqueued. Together with <see cref="CurrentTime"/>, sampled on the same
+/// when the transition was enqueued, or last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
 /// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
 /// client and server clocks.
 /// </summary>

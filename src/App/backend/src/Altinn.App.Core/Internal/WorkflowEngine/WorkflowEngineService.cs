@@ -338,7 +338,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
                     ? new WorkflowStepProgress(completed, total)
                     : null,
-                StartedAt: activeHead.CreatedAt,
+                StartedAt: activeHead.ResumedAt ?? activeHead.CreatedAt,
                 WaitingReason: activeHead.WaitingReason,
                 CurrentTime: collection.CurrentTime,
                 FailedAttempts: activeHead.FailedAttempts ?? 0

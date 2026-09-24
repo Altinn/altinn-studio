@@ -72,9 +72,10 @@ public sealed class AppProcessWorkflowStatus
     public AppProcessWorkflowProgress? Progress { get; init; }
 
     /// <summary>
-    /// When the in-flight transition was enqueued, on the workflow engine's clock. Present only
-    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>. Compare with
-    /// <see cref="CurrentTime"/> to measure elapsed processing time across page reloads.
+    /// When the in-flight transition was enqueued, or last resumed, on the workflow engine's clock.
+    /// Present only while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>.
+    /// Compare with <see cref="CurrentTime"/> to measure elapsed processing time across page
+    /// reloads.
     /// </summary>
     [JsonPropertyName("startedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
