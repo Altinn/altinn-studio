@@ -29,7 +29,7 @@ Going backwards is safe: `←` re-enters a slide fully built. Deep-link during a
 
 ## The two scenarios (slides 12 and 13)
 
-Each one is clicked through: **7 presses** per scenario. **I dag (v8)** is on the left and **Med
+Each one is clicked through: **7 presses** per scenario. **Med v8** is on the left and **Med
 v9** on the right, and each press lands the next line on **both** sides at once, so row 3 on the
 left always sits next to row 3 on the right.
 
@@ -39,14 +39,6 @@ left always sits next to row 3 on the right.
 | 7       | Both outcomes side by side, and the closing sentence                      |
 
 Read the left line, then the right one. The lines are short on purpose.
-
-------- | ------------------------------------------------------------------------ |
-| 1–6     | **I dag (v8)**: one line per press, and Kari's phone changes with them    |
-| 7       | The stage resets under **Med v9**: the same accident again                |
-| 8–13    | The v9 telling, one line per press                                        |
-| 14      | Both outcomes side by side, and the closing sentence                      |
-
-Talk over each line; the lines are short on purpose. On press 7, say «samme situasjon, med v9».
 
 ---
 

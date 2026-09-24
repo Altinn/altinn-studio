@@ -11,7 +11,7 @@ import { SIDE_TITLE, type Side, type SimTone } from './types';
  * both sides at once, and a last press shows the two outcomes. The slide's own
  * header carries the title and the one sentence saying what goes wrong.
  *
- *   ┌ I dag (v8) ─────────────────────┐ ┌ Med v9 ─────────────────────────┐
+ *   ┌ Med v8 ─────────────────────────┐ ┌ Med v9 ─────────────────────────┐
  *   │  phone  │ line 1                │ │  phone  │ line 1                │
  *   │         │ line 2 …              │ │         │ line 2 …              │
  *   └─────────────────────────────────┘ └─────────────────────────────────┘
