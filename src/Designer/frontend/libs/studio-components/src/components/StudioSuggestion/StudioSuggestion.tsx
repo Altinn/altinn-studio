@@ -22,6 +22,8 @@ export type StudioSuggestionProps = SuggestionProps &
     description?: string;
     error?: string | false;
     placeholder?: string;
+    /** Commit a cleared single select on blur before its parent can unmount it. */
+    commitPendingClearOnBlur?: boolean;
   };
 
 function StudioSuggestion(
@@ -38,12 +40,13 @@ function StudioSuggestion(
     description,
     error,
     placeholder,
+    commitPendingClearOnBlur = false,
     ...rest
   } = props;
   const inputId = useId();
   // Only a single select has a pending clear: a multiple select keeps its values as chips, and its
   // input is empty whenever the user is not typing.
-  const singleSelectProps = props.multiple === true ? undefined : props;
+  const singleSelectProps = commitPendingClearOnBlur && props.multiple !== true ? props : undefined;
   // The web component reports an emptied field on its own, and the commit below reports it when that
   // report is dropped. Whichever comes first is passed on, and the other is not, until the user selects
   // something or focuses the field again.

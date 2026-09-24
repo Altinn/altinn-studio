@@ -60,11 +60,33 @@ describe('StudioSuggestion', () => {
     );
   });
 
+  it('preserves web component callbacks by default without committing on blur', () => {
+    const onSelectedChange = jest.fn();
+    renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+
+    showSelectedOption();
+    emptyField();
+    fireEvent.focusOut(getInput());
+
+    expect(onSelectedChange).not.toHaveBeenCalled();
+
+    reportClearFromWebComponent();
+
+    expect(onSelectedChange).toHaveBeenCalledTimes(1);
+    expect(onSelectedChange).toHaveBeenCalledWith(null);
+  });
+
   // The web component does not upgrade in jsdom, so the tests set the input text and move focus.
   describe('when the user empties the field', () => {
     it('reports the cleared selection when the focus leaves the field', () => {
       const onSelectedChange = jest.fn();
-      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+      renderStudioSuggestion({
+        suggestionProps: {
+          selected: selectedOption,
+          onSelectedChange,
+          commitPendingClearOnBlur: true,
+        },
+      });
 
       showSelectedOption();
       emptyField();
@@ -76,7 +98,13 @@ describe('StudioSuggestion', () => {
 
     it('reports the clear once when the web component reports it before the focus leaves', () => {
       const onSelectedChange = jest.fn();
-      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+      renderStudioSuggestion({
+        suggestionProps: {
+          selected: selectedOption,
+          onSelectedChange,
+          commitPendingClearOnBlur: true,
+        },
+      });
 
       showSelectedOption();
       emptyField();
@@ -89,7 +117,13 @@ describe('StudioSuggestion', () => {
 
     it('reports the clear once when the web component reports it after the focus left', () => {
       const onSelectedChange = jest.fn();
-      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+      renderStudioSuggestion({
+        suggestionProps: {
+          selected: selectedOption,
+          onSelectedChange,
+          commitPendingClearOnBlur: true,
+        },
+      });
 
       showSelectedOption();
       emptyField();
@@ -102,7 +136,13 @@ describe('StudioSuggestion', () => {
 
     it('reports a clear again after a new selection', () => {
       const onSelectedChange = jest.fn();
-      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+      renderStudioSuggestion({
+        suggestionProps: {
+          selected: selectedOption,
+          onSelectedChange,
+          commitPendingClearOnBlur: true,
+        },
+      });
 
       reportClearFromWebComponent();
       reportSelectionFromWebComponent(defaultOptions[1]);
@@ -114,7 +154,13 @@ describe('StudioSuggestion', () => {
 
     it('reports a clear again after the field was focused again', () => {
       const onSelectedChange = jest.fn();
-      renderStudioSuggestion({ suggestionProps: { selected: selectedOption, onSelectedChange } });
+      renderStudioSuggestion({
+        suggestionProps: {
+          selected: selectedOption,
+          onSelectedChange,
+          commitPendingClearOnBlur: true,
+        },
+      });
 
       reportClearFromWebComponent();
       fireEvent.focusIn(getInput());
@@ -127,7 +173,12 @@ describe('StudioSuggestion', () => {
       // A multiple select keeps its values as chips; its input is empty unless the user is typing.
       const onSelectedChange = jest.fn();
       renderStudioSuggestion({
-        suggestionProps: { multiple: true, selected: [selectedOption], onSelectedChange },
+        suggestionProps: {
+          multiple: true,
+          selected: [selectedOption],
+          onSelectedChange,
+          commitPendingClearOnBlur: true,
+        },
       });
 
       showSelectedOption();

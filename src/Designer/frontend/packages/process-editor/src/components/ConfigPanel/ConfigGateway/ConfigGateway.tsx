@@ -46,6 +46,7 @@ export const ConfigGateway = (): React.ReactElement => {
       />
       <div className={classes.container}>
         <StudioSuggestion
+          commitPendingClearOnBlur
           description={t(
             'process_editor.configuration_panel_gateway_connected_data_type_description',
           )}
