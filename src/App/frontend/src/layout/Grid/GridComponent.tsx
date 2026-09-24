@@ -36,7 +36,7 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -458,22 +458,9 @@ function CellWithLabel({
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
-  const title = useEvalOptionalText(
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings.title
-      : undefined,
-    CommonExpressions.TRBLabel.title,
-  );
-  const help = useEvalOptionalText(
-    config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
-    CommonExpressions.TRBLabel.help,
-  );
-  const description = useEvalOptionalText(
-    config.textResourceBindings && 'description' in config.textResourceBindings
-      ? config.textResourceBindings.description
-      : undefined,
-    CommonExpressions.TRBLabel.description,
-  );
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
+  const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
+  const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
   const required = 'required' in config && evaluatedRequired;
   const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
