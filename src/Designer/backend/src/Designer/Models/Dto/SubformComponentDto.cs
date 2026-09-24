@@ -14,6 +14,9 @@ public class SubformComponentDto
     [JsonPropertyName("layoutSetId")]
     public required string LayoutSetId { get; set; }
 
+    [JsonPropertyName("taskType")]
+    public string? TaskType { get; set; }
+
     [JsonPropertyName("layoutName")]
     public required string LayoutName { get; set; }
 

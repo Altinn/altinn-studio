@@ -66,9 +66,6 @@ public class UiFoldersService : IUiFoldersService
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
         definitions.Process.AllTasks().Any(task => task.Id == taskId);
 
-    private static bool IsSubformPdfTask(Definitions definitions, string taskId) =>
-        string.Equals(definitions.Process.TaskTypeOf(taskId), SubformPdfTaskType, StringComparison.OrdinalIgnoreCase);
-
     public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
@@ -592,6 +589,7 @@ public class UiFoldersService : IUiFoldersService
                         {
                             ComponentId = componentId,
                             LayoutSetId = info.LayoutSetName,
+                            TaskType = info.TaskType,
                             LayoutName = page.LayoutName,
                             SubformLayoutSetId = subformLayoutSetId,
                             SubformDataTypeId = await GetDefaultDataType(
@@ -652,16 +650,20 @@ public class UiFoldersService : IUiFoldersService
             );
         }
 
-        // A task the saved process does not have yet is let through, as its type is not known.
+        // A new task may still be waiting for its BPMN save. Existing folders must belong to a subform PDF task.
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        if (ProcessHasTask(definitions, layoutSetId) && !IsSubformPdfTask(definitions, layoutSetId))
+        bool layoutSetExists = altinnAppGitRepository.LayoutSetFolderExistsByExactName(layoutSetId);
+        if (
+            (ProcessHasTask(definitions, layoutSetId) || layoutSetExists)
+            && definitions.Process.TaskTypeOf(layoutSetId) != SubformPdfTaskType
+        )
         {
             throw new LayoutSetIsNotSubformPdfTaskException(
                 $"Layout set {layoutSetId} belongs to a task that is not a subform PDF task."
             );
         }
 
-        if (!altinnAppGitRepository.LayoutSetFolderExistsByExactName(layoutSetId))
+        if (!layoutSetExists)
         {
             // The app starts the task on the layout set's default data type, which must have a single element
             // per instance. The data task's type has one, whereas the subform's type has one per entry.
@@ -691,8 +693,8 @@ public class UiFoldersService : IUiFoldersService
     }
 
     /// <summary>
-    /// Replaces every Subform component in a layout set with the given copy, which goes on the page that held a
-    /// Subform component before, or else on the first page. Writes nothing when the copy is already the only one.
+    /// Updates the selected component on its existing page, or adds it to the first page.
+    /// Other components, including other Subform components, are preserved.
     /// </summary>
     private async Task SaveSubformComponentCopy(
         AltinnAppGitRepository altinnAppGitRepository,
@@ -712,27 +714,32 @@ public class UiFoldersService : IUiFoldersService
             layoutSettings,
             cancellationToken
         );
-        List<(PageLayout Page, JsonObject Component)> subformComponents =
+        string componentId = componentCopy["id"]!.GetValue<string>();
+        List<(PageLayout Page, JsonObject Component)> matchingComponents =
         [
-            .. pages.SelectMany(page => GetSubformComponentsOnPage(page).Select(component => (page, component))),
+            .. pages.SelectMany(page =>
+                GetSubformComponentsOnPage(page)
+                    .Where(component => GetStringProperty(component, "id") == componentId)
+                    .Select(component => (page, component))
+            ),
         ];
 
-        if (subformComponents.Count == 1 && JsonNode.DeepEquals(subformComponents[0].Component, componentCopy))
+        if (matchingComponents.Count == 1 && JsonNode.DeepEquals(matchingComponents[0].Component, componentCopy))
         {
             return;
         }
 
         PageLayout targetPage =
-            (subformComponents.Count > 0 ? subformComponents[0].Page : pages.FirstOrDefault())
+            (matchingComponents.Count > 0 ? matchingComponents[0].Page : pages.FirstOrDefault())
             ?? throw new InvalidOperationException($"Layout set {layoutSetName} has no page to hold the component.");
 
-        foreach ((PageLayout page, JsonObject component) in subformComponents)
+        foreach ((PageLayout page, JsonObject component) in matchingComponents)
         {
             page.Components.Remove(component);
         }
         targetPage.Components.Add(componentCopy);
 
-        foreach (PageLayout page in subformComponents.Select(item => item.Page).Append(targetPage).Distinct())
+        foreach (PageLayout page in matchingComponents.Select(item => item.Page).Append(targetPage).Distinct())
         {
             await altinnAppGitRepository.SaveLayout(layoutSetName, page.LayoutName, page.Layout, cancellationToken);
         }

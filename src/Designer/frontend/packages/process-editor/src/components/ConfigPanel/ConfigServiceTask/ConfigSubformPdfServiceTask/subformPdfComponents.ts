@@ -83,16 +83,19 @@ const getComponentsWithId = (
   subformComponents.filter((component) => component.componentId === componentId);
 
 /**
- * The components with one id that decide which subform it opens: the originals, since the copy on
- * the task's pages is Studio's to replace, or that copy when the app has no original.
+ * Prefer source tables over copies on PDF tasks. If the source was removed, prefer the
+ * selected task's own copy so other PDF tasks cannot make its configuration ambiguous.
  */
 const getReferenceComponents = (
   components: SubformComponent[],
   taskId: string,
 ): SubformComponent[] => {
-  const originals = components.filter(({ layoutSetId }) => layoutSetId !== taskId);
+  const originals = components.filter(
+    (component) => component.layoutSetId !== taskId && component.taskType !== 'subformPdf',
+  );
+  if (originals.length > 0) return originals;
   const copies = components.filter(({ layoutSetId }) => layoutSetId === taskId);
-  return originals.length > 0 ? originals : copies;
+  return copies.length > 0 ? copies : components;
 };
 
 const opensDifferentSubforms = (components: SubformComponent[]): boolean =>

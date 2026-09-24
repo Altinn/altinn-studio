@@ -100,6 +100,7 @@ public class SubformComponentsTests(WebApplicationFactory<Program> factory)
         JsonArray subformComponents = JsonNode.Parse(await response.Content.ReadAsStringAsync()).AsArray();
 
         JsonObject vehicles = FindDataTaskEntry(subformComponents, "vehicles");
+        Assert.Equal("data", (string)vehicles["taskType"]);
         Assert.Equal("vehicleSubform", (string)vehicles["subformLayoutSetId"]);
         Assert.Equal("vehicle", (string)vehicles["subformDataTypeId"]);
 
@@ -180,11 +181,12 @@ public class SubformComponentsTests(WebApplicationFactory<Program> factory)
             component => component.LayoutSetId == TaskWithoutPages
         );
         Assert.Equal("vehicles", copy.ComponentId);
+        Assert.Equal("subformPdf", copy.TaskType);
         Assert.Equal("vehicle", copy.SubformDataTypeId);
     }
 
     [Fact]
-    public async Task SaveSubformPdfComponent_WhenLayoutSetHoldsOtherSubformComponents_ReplacesThemWithCopy()
+    public async Task SaveSubformPdfComponent_WhenLayoutSetHoldsOtherSubformComponents_PreservesThem()
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -202,9 +204,12 @@ public class SubformComponentsTests(WebApplicationFactory<Program> factory)
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        // The copy goes on the page that held the Subform components, and the page keeps its other components.
+        // Update the selected copy without removing other tables or content on the page.
         JsonArray components = ReadComponents(targetRepository, TaskWithStaleCopy, "Copies");
-        Assert.Equal(["copies-description", "vehicles"], components.Select(component => (string)component["id"]));
+        Assert.Equal(
+            ["notes", "copies-description", "vehicles"],
+            components.Select(component => (string)component["id"])
+        );
         Assert.True(JsonNode.DeepEquals(VehiclesCopy(), components.Last()));
         Assert.Equal(waitingPageBefore, ReadFile(targetRepository, LayoutPath(TaskWithStaleCopy, ServiceTaskLayout)));
     }
@@ -328,6 +333,26 @@ public class SubformComponentsTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(AppDevelopmentErrorCodes.LayoutSetIsNotSubformPdfTask, await ReadErrorCode(response));
         Assert.Equal(dataTaskFilesBefore, LayoutSetFileContents(DataTask));
+    }
+
+    [Fact]
+    public async Task SaveSubformPdfComponent_WhenTargetIsASubform_ReturnsErrorCodeAndWritesNothing()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppV9, Developer, targetRepository);
+        const string Subform = "vehicleSubform";
+        string[] filesBefore = LayoutSetFileContents(Subform);
+
+        using HttpResponseMessage response = await PostSubformPdfComponent(
+            targetRepository,
+            Subform,
+            "vehicles",
+            DataTask
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(AppDevelopmentErrorCodes.LayoutSetIsNotSubformPdfTask, await ReadErrorCode(response));
+        Assert.Equal(filesBefore, LayoutSetFileContents(Subform));
     }
 
     [Fact]

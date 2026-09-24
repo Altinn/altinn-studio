@@ -18,6 +18,20 @@ describe('getSubformPdfIssue', () => {
     expect(getSubformPdfIssue(createTask(), [original, copyOnTaskPages])).toBeUndefined();
   });
 
+  it('ignores stale copies on other PDF tasks when resolving the source table', () => {
+    const staleCopy = createSubformComponent({
+      layoutSetId: 'OtherPdfTask',
+      taskType: 'subformPdf',
+      subformLayoutSetId: 'old-subform',
+      subformDataTypeId: 'old-model',
+    });
+    const components = [staleCopy, original, copyOnTaskPages];
+
+    expect(getSubformPdfIssue(createTask(), components)).toBeUndefined();
+    expect(getSelectableSubformComponentIds(components, taskId)).toEqual([componentId]);
+    expect(getSourceSubformComponent(components, componentId, taskId)).toBe(original);
+  });
+
   it('reports a component id that no component in the app has', () => {
     expect(getSubformPdfIssue(createTask(), [otherComponent])).toEqual({
       kind: 'componentNotFound',
