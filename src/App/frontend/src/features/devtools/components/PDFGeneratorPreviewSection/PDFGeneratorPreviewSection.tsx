@@ -83,7 +83,9 @@ function PDFGeneratorPreviewWithTarget() {
 
 /**
  * A subform PDF service task renders its subform through the Subform component in the task's own UI folder, so the
- * default data type of that component's layout set is the data type of the subforms the task makes PDFs of.
+ * default data type of that component's layout set is the data type of the subforms the task makes PDFs of. If the
+ * folder has several Subform components, the one it renders is the one whose data type the folder itself uses, as in
+ * the documented setup.
  */
 function useSubformDataTypes(taskId: string | undefined): string[] {
   const { fetchLayouts } = useAppQueries();
@@ -98,5 +100,7 @@ function useSubformDataTypes(taskId: string | undefined): string[] {
         )
         .filter((dataType) => dataType !== undefined),
   });
-  return data ?? [];
+  const dataTypes = data ?? [];
+  const folderDataType = getUiFolderSettings(taskId)?.defaultDataType;
+  return folderDataType !== undefined && dataTypes.includes(folderDataType) ? [folderDataType] : dataTypes;
 }

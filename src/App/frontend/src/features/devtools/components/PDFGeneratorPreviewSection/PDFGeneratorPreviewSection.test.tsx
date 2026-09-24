@@ -10,24 +10,37 @@ import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
 const subformIds = ['aaaaaaaa-1111-2222-3333-444444444444', 'bbbbbbbb-1111-2222-3333-444444444444'];
+const otherSubformId = 'cccccccc-1111-2222-3333-444444444444';
 
-async function render() {
+async function render({
+  folderDataType,
+  otherSubform = false,
+}: { folderDataType?: string; otherSubform?: boolean } = {}) {
   const instance = getInstanceWithProcessMock();
   instance.process.processTasks = [
     { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
     { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
     { elementId: 'Task_SubformPdf', elementType: 'ServiceTask', altinnTaskType: 'subformPdf' },
   ];
-  instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' }) as IData));
-  // The task's UI folder may use the parent's data type. Its Subform component points to the subform's UI folder.
+  instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' }) as IData), {
+    ...instance.data[0],
+    id: otherSubformId,
+    dataType: 'otherSubform',
+  } as IData);
+  // The task's UI folder may use the parent's data type. Its Subform components point to the subforms' UI folders.
   window.altinnAppGlobalData.ui.folders.Task_SubformPdf = {
-    defaultDataType: instance.data[0].dataType,
+    defaultDataType: folderDataType ?? instance.data[0].dataType,
     pages: { order: ['Pdf'] },
   };
   window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
-  const subformPdfLayouts = {
-    Pdf: { data: { layout: [{ id: 'subform-component', type: 'Subform', layoutSet: 'Subform', tableColumns: [] }] } },
-  } as ILayoutCollection;
+  window.altinnAppGlobalData.ui.folders.OtherSubform = { defaultDataType: 'otherSubform', pages: { order: ['Side1'] } };
+  const layout = [
+    { id: 'subform-component', type: 'Subform', layoutSet: 'Subform', tableColumns: [] },
+    ...(otherSubform
+      ? [{ id: 'other-subform-component', type: 'Subform', layoutSet: 'OtherSubform', tableColumns: [] }]
+      : []),
+  ];
+  const subformPdfLayouts = { Pdf: { data: { layout } } } as ILayoutCollection;
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <PDFGeneratorPreviewSection />,
@@ -67,5 +80,14 @@ describe('PDFGeneratorPreviewSection', () => {
     expect(fetchMock.mock.calls[0][0]).toContain(`taskId=Task_SubformPdf&dataElementId=${subformIds[1]}`);
     fetchMock.mockRestore();
     HTMLDialogElement.prototype.showModal = originalShowModal;
+  });
+
+  it('only offers the subforms of the data type the task UI folder uses when it has several Subform components', async () => {
+    const user = userEvent.setup();
+    await render({ folderDataType: 'subform', otherSubform: true });
+
+    await user.click(await screen.findByText('Task_SubformPdf'));
+    expect(await screen.findByText('aaaaaaaa')).toBeInTheDocument();
+    expect(screen.queryByText(otherSubformId.slice(0, 8))).not.toBeInTheDocument();
   });
 });
