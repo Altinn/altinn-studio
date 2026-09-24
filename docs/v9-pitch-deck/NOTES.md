@@ -3,7 +3,7 @@
 One page for the person holding the clicker. Structure in English, the spoken notes verbatim in
 norsk bokmål (they are the `notes` fields in `src/slides/index.ts`, which is the source of truth).
 
-**15 slides, 46 build steps, 60 presses of `→` from the opening slide to the last.**
+**15 slides, 32 build steps, 46 presses of `→` from the opening slide to the last.**
 
 Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrome, press `f`.
 
@@ -29,10 +29,18 @@ Going backwards is safe: `←` re-enters a slide fully built. Deep-link during a
 
 ## The two scenarios (slides 12 and 13)
 
-Each one is clicked through, one line per press: **14 presses** per scenario.
+Each one is clicked through: **7 presses** per scenario. **I dag (v8)** is on the left and **Med
+v9** on the right, and each press lands the next line on **both** sides at once, so row 3 on the
+left always sits next to row 3 on the right.
 
-| Presses | On stage                                                                 |
-| ------- | ------------------------------------------------------------------------ |
+| Presses | On stage                                                                  |
+| ------- | ------------------------------------------------------------------------- |
+| 1–6     | One more line on each side, and Kari's two phones change with them        |
+| 7       | Both outcomes side by side, and the closing sentence                      |
+
+Read the left line, then the right one. The lines are short on purpose.
+
+------- | ------------------------------------------------------------------------ |
 | 1–6     | **I dag (v8)**: one line per press, and Kari's phone changes with them    |
 | 7       | The stage resets under **Med v9**: the same accident again                |
 | 8–13    | The v9 telling, one line per press                                        |
@@ -103,11 +111,11 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 > Nå et eksempel alle kjenner. Ett klikk på «Send inn» setter i gang ti ting, og i v8 må alle lykkes mens brukeren venter på svar. Andre klikk: i v9 lagres hvert av dem og gjøres ferdig. Feiler noe, prøves det igjen, og det som er fullført, kjøres ikke på nytt. Si aldri «nøyaktig én gang». Så to scenarier.
 
-### 12 — Scenario 1: Noe feiler under innsending · plays through in 14 presses
+### 12 — Scenario 1: Noe feiler under innsending · plays through in 7 presses
 
 > Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra starten — for eksempel blir PDF-en laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.
 
-### 13 — Scenario 2: Serveren startes på nytt · plays through in 14 presses
+### 13 — Scenario 2: Serveren startes på nytt · plays through in 7 presses
 
 > Dette skjer hver gang en ny versjon rulles ut. I v8 stopper arbeidet midt i: PDF-en er laget, resten er ikke gjort, og ingen vet hvor langt det kom. I v9 er hvert steg lagret, så arbeidet fortsetter der det stoppet når serveren er tilbake. Kari merker bare litt venting.
 

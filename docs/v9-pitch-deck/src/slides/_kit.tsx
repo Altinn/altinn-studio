@@ -115,30 +115,6 @@ export function BrandMark({
    Small shared bits
    --------------------------------------------------------------- */
 
-/**
- * Frame for the scenario slides: a small title chip over an almost-full-bleed
- * stage that the scenario fills on its own.
- */
-export function SimFrame({
-  no,
-  title,
-  children,
-}: {
-  no: ReactNode;
-  title: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <>
-      <div className="s-simchip">
-        <span className="s-simchip__no">{no}</span>
-        <span className="s-simchip__title">{title}</span>
-      </div>
-      <div className="s-simstage">{children}</div>
-    </>
-  );
-}
-
 /** Status dot. `tone` maps to the `is-*` colour classes. */
 export function Dot({ tone }: { tone: 'ok' | 'run' | 'wait' | 'bad' | 'idle' }) {
   return <span className={`s-dot is-${tone}`} aria-hidden />;

@@ -6,14 +6,15 @@ import { SIDE_TITLE, type Side, type SimTone } from './types';
 /**
  * THE ONE SCENARIO TEMPLATE.
  *
- * The same accident, told twice on one full-width stage: first today (v8),
- * then with the process engine (v9), then both outcomes side by side. Every
- * press of `→` lands one line, so the room reads one thing at a time.
+ * The same accident, told side by side: today (v8) on the left, with the
+ * process engine (v9) on the right. Every press of `→` lands the next line on
+ * both sides at once, and a last press shows the two outcomes. The slide's own
+ * header carries the title and the one sentence saying what goes wrong.
  *
- *   ┌ one icon + one sentence: what goes wrong ────── [ I dag (v8) ] ┐
- *   │  the phone Kari is holding  │  the list of what happens, line  │
- *   │                             │  by line                         │
- *   └────────────────────────────────────────────────────────────────┘
+ *   ┌ I dag (v8) ─────────────────────┐ ┌ Med v9 ─────────────────────────┐
+ *   │  phone  │ line 1                │ │  phone  │ line 1                │
+ *   │         │ line 2 …              │ │         │ line 2 …              │
+ *   └─────────────────────────────────┘ └─────────────────────────────────┘
  *
  * There are no servers-in-boxes, queues or status codes in here. The scenes are
  * about the person pressing the button.
@@ -79,46 +80,49 @@ function Phone({ frame, screen }: { frame: string; screen: Screen }) {
   );
 }
 
-function RunView({ scenario, side, cursor }: { scenario: Scenario; side: Side; cursor: number }) {
+function RunColumn({ scenario, side, cursor }: { scenario: Scenario; side: Side; cursor: number }) {
   const run = scenario[side];
   const shown = run.beats.slice(0, cursor);
 
   return (
-    <div className={`scn__run pane--${side}`}>
-      <Phone frame={scenario.frame} screen={screenAt(run, cursor)} />
+    <section className={`scn__col pane--${side} scn__col--${side}`}>
+      <h3 className="scn__col-title">{SIDE_TITLE[side]}</h3>
+      <div className="scn__col-body">
+        <Phone frame={scenario.frame} screen={screenAt(run, cursor)} />
 
-      <ol className="alist">
-        {shown.map((beat, i) => {
-          const tone = rowTone(beat, side);
-          const icon = STATUS_ICON[beat.status];
-          // Only the newest row spins. A row further up is history, and a
-          // spinner that never stops reads as something still going wrong.
-          const spinning = beat.status === 'running' && i === shown.length - 1;
+        <ol className="alist">
+          {shown.map((beat, i) => {
+            const tone = rowTone(beat, side);
+            const icon = STATUS_ICON[beat.status];
+            // Only the newest row spins. A row further up is history, and a
+            // spinner that never stops reads as something still going wrong.
+            const spinning = beat.status === 'running' && i === shown.length - 1;
 
-          return (
-            <motion.li
-              key={beat.id}
-              className={`arow arow--${tone} is-${beat.status}`}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.32, ease: EASE }}
-            >
-              <span className="arow__mark" aria-hidden>
-                {spinning ? (
-                  <span className="arow__spinner" />
-                ) : icon ? (
-                  <Icon name={icon} size={28} strokeWidth={2.6} />
-                ) : (
-                  <span className="arow__past" />
-                )}
-              </span>
-              <span className="arow__text">{beat.text}</span>
-              {beat.at && <span className="arow__at">{beat.at}</span>}
-            </motion.li>
-          );
-        })}
-      </ol>
-    </div>
+            return (
+              <motion.li
+                key={beat.id}
+                className={`arow arow--${tone} is-${beat.status}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.32, ease: EASE }}
+              >
+                <span className="arow__mark" aria-hidden>
+                  {spinning ? (
+                    <span className="arow__spinner" />
+                  ) : icon ? (
+                    <Icon name={icon} size={24} strokeWidth={2.6} />
+                  ) : (
+                    <span className="arow__past" />
+                  )}
+                </span>
+                <span className="arow__text">{beat.text}</span>
+                {beat.at && <span className="arow__at">{beat.at}</span>}
+              </motion.li>
+            );
+          })}
+        </ol>
+      </div>
+    </section>
   );
 }
 
@@ -156,28 +160,10 @@ export interface ScenarioStageProps {
 
 export function ScenarioStage({ scenario, step }: ScenarioStageProps) {
   const phase = phaseAt(scenario, step);
-  const phaseKey = phase.kind === 'run' ? phase.side : 'summary';
+  const phaseKey = phase.kind === 'run' ? 'run' : 'summary';
 
   return (
     <div className="sim" data-sim={scenario.name} data-phase={phaseKey}>
-      <header className="scn__head">
-        <span className="scn__icon" aria-hidden>
-          <Icon name={scenario.icon} size={46} strokeWidth={1.9} />
-        </span>
-        <h2 className="scn__headline">{scenario.headline}</h2>
-        {phase.kind === 'run' && (
-          <motion.span
-            key={phase.side}
-            className={`scn__phase scn__phase--${phase.side}`}
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: EASE }}
-          >
-            {SIDE_TITLE[phase.side]}
-          </motion.span>
-        )}
-      </header>
-
       <motion.div
         key={phaseKey}
         className="scn__body"
@@ -186,7 +172,10 @@ export function ScenarioStage({ scenario, step }: ScenarioStageProps) {
         transition={{ duration: 0.35, ease: EASE }}
       >
         {phase.kind === 'run' ? (
-          <RunView scenario={scenario} side={phase.side} cursor={phase.cursor} />
+          <div className="scn__pair">
+            <RunColumn scenario={scenario} side="v8" cursor={phase.cursor} />
+            <RunColumn scenario={scenario} side="v9" cursor={phase.cursor} />
+          </div>
         ) : (
           <SummaryView scenario={scenario} />
         )}
