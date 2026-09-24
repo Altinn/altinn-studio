@@ -34,8 +34,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   while `agentd` is unreachable.
 - Terminal UI forms share one layout with aligned fields, and `NO_COLOR` turns off color while every state keeps its
   glyph.
-- A new full Altinn Agent finishes setup about 15 seconds sooner, because trusting the certificate bundle in Chromium
-  no longer waits on slow disk writes.
+- New full Altinn Agents finish setup faster, because trusting the certificate bundle in Chromium no longer waits on
+  slow disk writes.
 
 ### Fixed
 
