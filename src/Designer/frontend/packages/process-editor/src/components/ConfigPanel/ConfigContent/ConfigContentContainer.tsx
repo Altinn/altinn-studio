@@ -16,16 +16,17 @@ export const ConfigContentContainer = ({
 }: ConfigContentContainerProps): React.ReactElement => {
   const { bpmnDetails } = useBpmnContext();
   const { t } = useTranslation();
+  const taskType = bpmnDetails?.taskType;
   const configHeaderTexts: Record<'title' | 'helpText', string> = {
-    title: bpmnDetails?.taskType && t(getConfigTitleKey(bpmnDetails.taskType)),
-    helpText: bpmnDetails?.taskType && t(getConfigTitleHelpTextKey(bpmnDetails.taskType)),
+    title: t(getConfigTitleKey(taskType)),
+    helpText: t(getConfigTitleHelpTextKey(taskType)),
   };
 
   return (
     <>
       <StudioSectionHeader
         className={className}
-        icon={<ConfigIcon taskType={bpmnDetails.taskType} />}
+        icon={<ConfigIcon taskType={taskType} />}
         heading={{
           text: configHeaderTexts.title,
           level: 2,

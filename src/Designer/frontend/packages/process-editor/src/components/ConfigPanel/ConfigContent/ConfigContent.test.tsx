@@ -21,7 +21,7 @@ const tasks = [
     id: 'task_1',
     businessObject: {
       extensionElements: {
-        values: [{ taskType: 'signing' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'signing' }],
       },
     },
   },
@@ -29,7 +29,7 @@ const tasks = [
     id: 'task_2',
     businessObject: {
       extensionElements: {
-        values: [{ taskType: 'signing' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'signing' }],
       },
     },
   },
@@ -39,7 +39,8 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(tasks),
+        getElementsByType: jest.fn().mockReturnValue(tasks),
+        getAllElementIds: jest.fn().mockReturnValue(tasks.map((task) => task.id)),
       };
     }),
   };
@@ -171,6 +172,57 @@ describe('ConfigContent', () => {
       textMock('process_editor.configuration_panel_design_title'),
     );
     expect(designDetails).toBeInTheDocument();
+  });
+
+  describe('Default signature validator', () => {
+    const runDefaultValidatorLabel = textMock(
+      'process_editor.configuration_panel_run_default_validator_label',
+    );
+
+    const createSigningElement = (signatureConfig: object) => ({
+      ...mockBpmnDetails.element,
+      businessObject: {
+        extensionElements: {
+          values: [{ $type: 'altinn:TaskExtension', taskType: 'signing', signatureConfig }],
+        },
+      },
+    });
+
+    it('should show the validator switch on a signing task', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'signing',
+            element: createSigningElement({ dataTypesToSign: [] }),
+          },
+        },
+      );
+
+      expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
+    });
+
+    it('should show the validator switch on a user controlled signing task', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'signing',
+            element: createSigningElement({ signeeProviderId: 'my-provider' }),
+          },
+        },
+      );
+
+      expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
+    });
+
+    it('should not show the validator switch on a task that is not signing', () => {
+      renderConfigContent();
+
+      expect(screen.queryByLabelText(runDefaultValidatorLabel)).not.toBeInTheDocument();
+    });
   });
 
   describe('Unique signature', () => {

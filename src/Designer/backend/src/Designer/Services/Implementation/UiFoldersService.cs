@@ -62,7 +62,7 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
-        definitions.Process.Tasks.Any(task => task.Id == taskId);
+        definitions.Process.AllTasks().Any(task => task.Id == taskId);
 
     public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
@@ -337,7 +337,8 @@ public class UiFoldersService : IUiFoldersService
     /// <summary>
     /// Creates the initial layout and Settings.json files for a new layout set. Since v9 apps have no
     /// layout-sets.json, the set's <c>type</c> (e.g. subform) and <c>defaultDataType</c> are persisted
-    /// directly into the set's Settings.json. Payment and PDF tasks get tailored initial content.
+    /// directly into the set's Settings.json. Payment, PDF and subform PDF tasks get tailored initial
+    /// content.
     /// </summary>
     private static async Task CreateLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
@@ -345,9 +346,13 @@ public class UiFoldersService : IUiFoldersService
         TaskType? taskType
     )
     {
-        if (taskType == TaskType.Pdf)
+        if (taskType is TaskType.Pdf or TaskType.SubformPdf)
         {
-            await CreatePdfLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
+            await CreateServiceTaskLayoutSetFiles(
+                altinnAppGitRepository,
+                newLayoutSet,
+                withPdfLayout: taskType == TaskType.Pdf
+            );
             return;
         }
 
@@ -410,34 +415,35 @@ public class UiFoldersService : IUiFoldersService
     }
 
     /// <summary>
-    /// Creates the files of a PDF service task's layout set: the PDF layout the task renders (initially
-    /// empty) and one ordinary page. The page is not optional. The app frontend renders any task that has
-    /// a ui folder as a form task, using that folder's pages in place of its built-in service task views,
-    /// so the set must contain the page a user sees while the PDF is being generated. That is a waiting
-    /// page bound to the same <c>service_task.waiting_*</c> text keys as the built-in waiting view, so an
-    /// app's overrides apply to both. A failed generation needs no page here: the v9 frontend renders its
-    /// own failure view, with retry, over any custom layout. The v8 generator in
-    /// <see cref="AppDevelopmentService"/> still emits an error page with retry and back buttons, since
-    /// the v8 runtime relies on the layout's own buttons for recovery.
+    /// Creates the files of a PDF or subform PDF service task's layout set: the waiting page the app
+    /// frontend shows while the task runs (a ui folder replaces its built-in service task view) and, for a
+    /// PDF task, the initially empty PDF layout it renders. A subform PDF renders from the subform's own
+    /// layout set, so it gets no PDF layout. A failed generation needs no page here: the v9 frontend renders
+    /// its own failure view, with retry, over any custom layout, unlike the v8 generator in
+    /// <see cref="AppDevelopmentService"/>.
     /// </summary>
-    private static async Task CreatePdfLayoutSetFiles(
+    private static async Task CreateServiceTaskLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
-        LayoutSetConfig layoutSet
+        LayoutSetConfig layoutSet,
+        bool withPdfLayout
     )
     {
         const string PdfLayoutFilename = "PdfLayout";
         const string ServiceTaskLayoutFilename = "ServiceTask";
         string layoutSchema = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>();
 
-        await altinnAppGitRepository.SaveLayout(
-            layoutSet.Id,
-            PdfLayoutFilename,
-            new JsonObject
-            {
-                ["$schema"] = layoutSchema,
-                ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
-            }
-        );
+        if (withPdfLayout)
+        {
+            await altinnAppGitRepository.SaveLayout(
+                layoutSet.Id,
+                PdfLayoutFilename,
+                new JsonObject
+                {
+                    ["$schema"] = layoutSchema,
+                    ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
+                }
+            );
+        }
 
         await altinnAppGitRepository.SaveLayout(
             layoutSet.Id,
@@ -466,14 +472,17 @@ public class UiFoldersService : IUiFoldersService
             }
         );
 
+        JsonObject pages = new();
+        if (withPdfLayout)
+        {
+            pages["pdfLayoutName"] = PdfLayoutFilename;
+        }
+        pages["order"] = new JsonArray([ServiceTaskLayoutFilename]);
+
         JsonObject settings = new()
         {
             ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"]!.GetValue<string>(),
-            ["pages"] = new JsonObject
-            {
-                ["pdfLayoutName"] = PdfLayoutFilename,
-                ["order"] = new JsonArray([ServiceTaskLayoutFilename]),
-            },
+            ["pages"] = pages,
         };
         ApplyLayoutSetMetadata(settings, layoutSet);
         await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id, settings);
@@ -482,7 +491,7 @@ public class UiFoldersService : IUiFoldersService
     /// <summary>
     /// Shared logic for resolving layout sets from the UI folders. Since v9 apps no longer have a
     /// layout-sets.json file, layout sets are derived from the UI folders combined with the process
-    /// definitions. Only folders that are subforms or that match a process task are included.
+    /// definitions. Only folders that are subforms or that match a task are included.
     /// </summary>
     private async Task<List<LayoutSetInfo>> GetLayoutSetInfos(
         AltinnRepoEditingContext editingContext,
@@ -495,7 +504,7 @@ public class UiFoldersService : IUiFoldersService
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
         // Order layout sets by their task's position in the process flow, with subforms (no task) last.
-        List<string> orderedTaskIds = definitions.Process.OrderTaskIdsByFlow();
+        List<string> orderedTaskIds = definitions.Process.OrderAllTaskIdsByFlow();
         Dictionary<string, int> taskOrderById = orderedTaskIds
             .Select((taskId, index) => (taskId, index))
             .ToDictionary(entry => entry.taskId, entry => entry.index);
@@ -524,7 +533,7 @@ public class UiFoldersService : IUiFoldersService
                 continue;
             }
 
-            string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
+            string? taskType = hasMatchingTask ? definitions.Process.TaskTypeOf(layoutSetName) ?? string.Empty : null;
 
             layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
@@ -538,14 +547,6 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
-
-    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
-    {
-        return definitions
-                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
-                ?.ExtensionElements?.TaskExtension?.TaskType
-            ?? string.Empty;
-    }
 
     public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
@@ -783,12 +784,7 @@ public class UiFoldersService : IUiFoldersService
 
         IEnumerable<ProcessTask> tasks = GetTasks(editingContext, cancellationToken);
 
-        Dictionary<string, string?> taskTypesById = tasks.ToDictionary(
-            task => task.Id,
-            task => task.ExtensionElements?.TaskExtension?.TaskType
-        );
-
-        return taskNavigationGroups.Select(group => group.ToDto(taskId => taskTypesById.GetValueOrDefault(taskId)));
+        return taskNavigationGroups.Select(group => group.ToDto(taskId => tasks.TaskTypeOf(taskId)));
     }
 
     public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigation(
@@ -810,7 +806,7 @@ public class UiFoldersService : IUiFoldersService
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        return definitions.Process.Tasks;
+        return definitions.Process.AllTasks();
     }
 
     public async Task UpdateGlobalTaskNavigation(

@@ -7,16 +7,10 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates every registered service task's pipeline once at startup. A <c>Define</c> that
-/// throws, returns null, or is replaced on an <c>IServiceTask</c> would otherwise surface only
-/// when a citizen first advances the affected task; validating at boot turns that into an
-/// unmissable startup failure.
+/// Validates that registered service tasks compose usable pipelines and preserve the sealed forwarding
+/// implementation of <see cref="IServiceTask"/>. BPMN task configuration is validated separately by
+/// <see cref="Process.ProcessTaskConfigurationValidationService"/>.
 /// </summary>
-/// <remarks>
-/// Mirrors <see cref="WorkflowStepOptionsValidator"/>: handlers whose constructors cannot run at
-/// startup are skipped with a warning — only an actual contract violation fails the app. The
-/// sealed-<c>Define</c> check is itself a backstop for the compile-time analyzer rule.
-/// </remarks>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -36,15 +30,19 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         using IServiceScope scope = _scopeFactory.CreateScope();
         IServiceProvider sp = scope.ServiceProvider;
 
+        // Resolved once, in this validator's own scope, so a task needing a scoped dependency can be built.
+        List<IServiceTask>? simpleTasks = Resolve<IServiceTask>(sp);
+        List<IPipelineServiceTask>? pipelineTasks = Resolve<IPipelineServiceTask>(sp);
+
         var errors = new List<string>();
 
-        foreach (IPipelineServiceTask task in Resolve<IServiceTask>(sp))
+        foreach (IPipelineServiceTask task in simpleTasks ?? [])
         {
             ValidateSealedDefine(task, errors);
             ValidatePipeline(task, errors);
         }
 
-        foreach (IPipelineServiceTask task in Resolve<IPipelineServiceTask>(sp))
+        foreach (IPipelineServiceTask task in pipelineTasks ?? [])
         {
             ValidatePipeline(task, errors);
         }
@@ -52,7 +50,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         if (errors.Count > 0)
         {
             throw new InvalidOperationException(
-                "One or more service tasks are invalid:"
+                "One or more service task pipelines are invalid:"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine, errors)
             );
@@ -109,7 +107,11 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         }
     }
 
-    private List<THandler> Resolve<THandler>(IServiceProvider serviceProvider)
+    /// <summary>
+    /// The registered implementations of <typeparamref name="THandler"/>, or <c>null</c> when they could
+    /// not be constructed.
+    /// </summary>
+    private List<THandler>? Resolve<THandler>(IServiceProvider serviceProvider)
         where THandler : class
     {
         try
@@ -124,7 +126,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
                     + "they will be validated when first used instead.",
                 typeof(THandler).Name
             );
-            return [];
+            return null;
         }
     }
 }

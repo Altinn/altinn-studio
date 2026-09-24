@@ -41,6 +41,11 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'EFormidlingConfig',
         },
+        {
+          name: 'subformPdfConfig',
+          isMany: false,
+          type: 'SubformPdfConfig',
+        },
       ],
     },
     {
@@ -106,8 +111,11 @@ export const altinnCustomTasks = {
         },
         {
           name: 'correspondenceResource',
-          isMany: false,
-          type: 'String',
+          isMany: true,
+          type: 'EnvironmentConfig',
+          xml: {
+            serialize: 'property',
+          },
         },
         {
           name: 'runDefaultValidator',
@@ -225,6 +233,27 @@ export const altinnCustomTasks = {
       ],
     },
     {
+      name: 'SubformPdfConfig',
+      properties: [
+        {
+          name: 'filenameTextResourceKey',
+          isMany: false,
+          isAttr: false,
+          type: 'FilenameTextResourceKey',
+        },
+        {
+          name: 'subformComponentId',
+          isMany: false,
+          type: 'String',
+        },
+        {
+          name: 'subformDataTypeId',
+          isMany: false,
+          type: 'String',
+        },
+      ],
+    },
+    {
       name: 'EFormidlingConfig',
       properties: [
         {
@@ -298,6 +327,17 @@ export const altinnCustomTasks = {
           xml: {
             serialize: 'property',
           },
+        },
+      ],
+    },
+    {
+      name: 'GatewayExtension',
+      superClass: ['Element'],
+      properties: [
+        {
+          name: 'connectedDataTypeId',
+          isMany: false,
+          type: 'String',
         },
       ],
     },

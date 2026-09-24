@@ -2,6 +2,7 @@ import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { StudioModeler } from './StudioModeler';
 import { getPredefinedActions } from '../processActions';
+import { TaskUtils } from '../taskUtils';
 
 export type Action = ModdleElement;
 export type ActionsElement = {
@@ -29,11 +30,11 @@ export class BpmnActionModeler extends StudioModeler {
   }
 
   public get actionElements(): ActionsElement | undefined {
-    return this.getElement()?.businessObject.extensionElements?.values[0]?.actions;
+    return this.getExtensionElements()?.actions;
   }
 
   public getExtensionElements(): Action | undefined {
-    return this.getElement()?.businessObject.extensionElements?.values[0];
+    return TaskUtils.getTaskExtension(this.getElement());
   }
 
   public get hasActionsAlready(): boolean {

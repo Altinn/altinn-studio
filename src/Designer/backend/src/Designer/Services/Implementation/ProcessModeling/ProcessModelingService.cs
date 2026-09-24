@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -122,6 +123,7 @@ public class ProcessModelingService : IProcessModelingService
         string dataTypeId,
         string taskId,
         List<string>? allowedContributors,
+        List<string>? allowedContentTypes = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -140,10 +142,10 @@ public class ProcessModelingService : IProcessModelingService
             var dataTypeToAdd = new DataType
             {
                 Id = dataTypeId,
-                AllowedContentTypes = new List<string> { "application/json" },
+                AllowedContentTypes =
+                    allowedContentTypes?.Count > 0 ? allowedContentTypes : new List<string> { "application/json" },
                 MaxCount = 1,
                 TaskId = taskId,
-                EnablePdfCreation = false,
             };
 
             if (allowedContributors?.Count > 0)
@@ -190,8 +192,7 @@ public class ProcessModelingService : IProcessModelingService
                 layoutSetId
             );
             string? taskId = layoutSet.Tasks?.FirstOrDefault();
-            ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
-            return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+            return taskId is null ? string.Empty : definitions?.Process.TaskTypeOf(taskId) ?? string.Empty;
         }
     }
 

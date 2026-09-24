@@ -31,6 +31,7 @@ GITEA_CYPRESS_USER=<gitea-cypress-user>
 GITEA_CYPRESS_PASS=<gitea-cypress-user-password>
 GITEA_ORG_USER=ttd
 POSTGRES_PASSWORD=<postgres-password>
+STUDIO_DB_PORT=<host-port-for-postgres, optional, defaults to 5432>
 CLIENT_ID=<client-id>
 CLIENT_SECRET=<client-secret>
 COMMIT=<commit-id>

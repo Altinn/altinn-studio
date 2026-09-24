@@ -6,15 +6,8 @@ import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { BpmnModelerInstance } from './BpmnModelerInstance';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import { type BpmnBusinessObjectEditor } from '../../types/BpmnBusinessObjectEditor';
-
-// Short description: This class is used to interact with the bpmn-js modeler instance to create, update and delete elements in the bpmn diagram.
-// We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.
-
-/*
- * Not all lines in this file are covered by tests because it would require extensive mocking of methods and classes from the bpmn-js library.
- * This effort might not be worthwhile since the package is not very type-safe, meaning our tests might not fail even if the package's API changes.
- */
+import type { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import { TaskUtils } from '../taskUtils';
 
 enum AvailableBpmnInstances {
   Modeling = 'modeling',
@@ -22,44 +15,6 @@ enum AvailableBpmnInstances {
   ElementRegistry = 'elementRegistry',
   BpmnFactory = 'bpmnFactory',
 }
-
-type PaymentTaskConfig = {
-  configNode: string;
-  dataTypeName: string;
-  receiptPdfDataTypeName: string;
-};
-
-type SigningTaskConfig = {
-  configNode: string;
-  dataTypeName: string;
-};
-
-type UserControlledSigningTaskConfig = {
-  configNode: string;
-  dataTypeName: string;
-};
-
-type BpmnTaskConfig = {
-  payment: PaymentTaskConfig;
-  signing: SigningTaskConfig;
-  userControlledSigning: UserControlledSigningTaskConfig;
-};
-
-const bpmnTaskConfig: BpmnTaskConfig = {
-  payment: {
-    configNode: 'paymentConfig',
-    dataTypeName: 'paymentDataType',
-    receiptPdfDataTypeName: 'paymentReceiptPdfDataType',
-  },
-  signing: {
-    configNode: 'signatureConfig',
-    dataTypeName: 'signatureDataType',
-  },
-  userControlledSigning: {
-    configNode: 'signatureConfig',
-    dataTypeName: 'signatureDataType',
-  },
-};
 
 export class StudioModeler {
   public readonly modelerInstance: Modeler = BpmnModelerInstance.getInstance();
@@ -89,9 +44,7 @@ export class StudioModeler {
   }
 
   public get getCurrentTaskType(): BpmnTaskType {
-    const element = this.getElement();
-    const bpmnAttrs = element.businessObject?.$attrs;
-    return bpmnAttrs ? bpmnAttrs['altinn:tasktype'] : null;
+    return TaskUtils.getTaskExtension(this.getElement())?.taskType ?? null;
   }
 
   public createElement<T>(elementType: string, options: T): Element {
@@ -106,34 +59,12 @@ export class StudioModeler {
     this.modeling.updateModdleProperties(this.getElement(), element, { ...properties });
   }
 
-  public getAllTasksByType(elementType: string): Element[] {
+  public getElementsByType(elementType: BpmnTypeEnum): Element[] {
     return this.elementRegistry.filter((element) => element.type === elementType) as Element[];
   }
 
-  public getReceiptPdfDataTypeIdFromBusinessObject(
-    bpmnTaskType: BpmnTaskType,
-    businessObject: BpmnBusinessObjectEditor,
-  ): string {
-    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-    const receiptPdfDataTypeName = bpmnTaskConfig[bpmnTaskType].receiptPdfDataTypeName;
-    return businessObject?.extensionElements?.values[0][configNode][receiptPdfDataTypeName];
-  }
-
-  public getDataTypeIdFromBusinessObject(
-    bpmnTaskType: BpmnTaskType,
-    businessObject: BpmnBusinessObjectEditor,
-  ): string {
-    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-    const dataTypeName = bpmnTaskConfig[bpmnTaskType].dataTypeName;
-    return businessObject.extensionElements?.values[0][configNode][dataTypeName];
-  }
-
-  public getSigneeStatesDataTypeId(
-    bpmnTaskType: BpmnTaskType,
-    businessObject: BpmnBusinessObjectEditor,
-  ): string {
-    const configNode = bpmnTaskConfig[bpmnTaskType].configNode;
-    const signeeStateKey = 'signeeStatesDataTypeId';
-    return businessObject?.extensionElements?.values[0][configNode][signeeStateKey];
+  /** Bpmn ids are unique across the whole document, not only within an element type. */
+  public getAllElementIds(): string[] {
+    return this.elementRegistry.getAll().map((element) => element.id);
   }
 }

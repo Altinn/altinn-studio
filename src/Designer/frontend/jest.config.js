@@ -82,6 +82,7 @@ const config = {
     '^preact(/(.*)|$)': 'preact$1',
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
+    '^@altinn/process-editor-v8/(.*)': path.join(__dirname, 'packages/process-editor-v8/src/$1'),
     '^@altinn/schema-editor/(.*)': path.join(__dirname, 'packages/schema-editor/src/$1'),
     '^@altinn/schema-model/(.*)': path.join(__dirname, 'packages/schema-model/src/$1'),
     '^app-shared/(.*)': path.join(__dirname, 'packages/shared/src/$1'),

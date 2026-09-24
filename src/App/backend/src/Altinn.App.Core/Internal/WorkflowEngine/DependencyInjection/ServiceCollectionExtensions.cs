@@ -86,14 +86,10 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, InstanceCreatedAltinnEvent>();
         services.AddTransient<IWorkflowEngineCommand, MovedToAltinnEvent>();
 
-        // Validate all commands are registered
-        WorkflowEngineCommandValidator.Validate(services);
-
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
 
-        // Fail fast at startup on invalid service-task pipelines (throwing/null Define, replaced
-        // forwarding default).
+        // Fail fast at startup on invalid service-task pipelines and replaced forwarding defaults.
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }

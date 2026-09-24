@@ -11,6 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Same exclusion as in Designer.csproj: keep the stable Storage.Interface DLL out of the test build. -->
+    <PackageReference Include="Altinn.Platform.Storage.Interface" ExcludeAssets="all" />
     <PackageReference Include="DistributedLock.FileSystem" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />

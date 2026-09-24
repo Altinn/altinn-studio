@@ -11,6 +11,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { detectVcs } from '../vcs.mjs';
 import { DICTIONARY_FILES, ORDBANK_FILES, ordbankUrl, rawUrl } from './dictionaries.mjs';
 
 export const REPO_ROOT = resolve(import.meta.dirname, '../..');
@@ -445,16 +446,59 @@ export function excludeLiveness(globs, declarations, tracked) {
   return problems;
 }
 
+// ------------------------------------------------------- version control ---
+
+// Both backends list tracked files plus new, non-ignored ones — jj snapshots
+// the working copy into `@`, so `jj file list` has them already, and its
+// `diff -r @` is git's `diff HEAD` plus untracked in one. NUL-terminated
+// output throughout, because `--name-only` does not escape newlines;
+// `status != "removed"` is jj's `--diff-filter=ACMR`, `path` the rename target.
+const VCS_COMMANDS = {
+  git: {
+    trackedFiles: [['ls-files', '-z', '-co', '--exclude-standard']],
+    changedFiles: [
+      ['diff', '--name-only', '-z', '--diff-filter=ACMR', 'HEAD'],
+      ['ls-files', '-z', '-o', '--exclude-standard'],
+    ],
+  },
+  jj: {
+    trackedFiles: [['file', 'list', '-T', 'path ++ "\\0"']],
+    changedFiles: [['diff', '-r', '@', '-T', 'if(status != "removed", path ++ "\\0")']],
+  },
+};
+
+/** The union of the NUL-separated path lists the checkout's VCS prints for `what`. */
+function vcsList(root, what) {
+  let vcs;
+  try {
+    vcs = detectVcs(root);
+  } catch (err) {
+    throw new HarnessError(err.message);
+  }
+  const files = new Set();
+  for (const args of VCS_COMMANDS[vcs][what]) {
+    const res = spawnSync(vcs, args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    if (res.error) throw new HarnessError(`could not run ${vcs}: ${res.error.message}`);
+    if (res.status !== 0) throw new HarnessError(`${vcs} ${args.join(' ')} failed: ${res.stderr}`);
+    for (const f of res.stdout.split('\0').filter(Boolean)) files.add(f);
+  }
+  return [...files];
+}
+
+/**
+ * Every file the repository holds. An empty list is a broken invocation, not
+ * an empty repository: the checks built on it count their work and must
+ * never read "nothing to do" as "nothing wrong".
+ */
 export function trackedFiles(root = REPO_ROOT) {
-  const res = spawnSync('git', ['ls-files', '-z'], {
-    cwd: root,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  if (res.status !== 0) throw new HarnessError(`git ls-files failed: ${res.stderr}`);
-  const files = res.stdout.split('\0').filter(Boolean);
-  if (files.length === 0) throw new HarnessError('git ls-files returned no files');
+  const files = vcsList(root, 'trackedFiles');
+  if (files.length === 0) throw new HarnessError('the repository listed no tracked files');
   return files;
+}
+
+/** What changed since the last commit: files added, modified or renamed. */
+export function changedFiles(root = REPO_ROOT) {
+  return vcsList(root, 'changedFiles');
 }
 
 // ------------------------------------------------------------ tool runs ---

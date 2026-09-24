@@ -1,7 +1,20 @@
+:has(> .container) {
+  /* The app header's minimum width must not stretch the editor beyond the viewport. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .container {
-  display: flex;
-  gap: 1rem;
-  flex: 1;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(25rem, 32rem);
   height: calc(100vh - var(--header-height));
+  min-height: 0;
+  min-width: 0;
+}
+
+@media (max-width: 64rem) {
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 28rem auto;
+    height: auto;
+  }
 }

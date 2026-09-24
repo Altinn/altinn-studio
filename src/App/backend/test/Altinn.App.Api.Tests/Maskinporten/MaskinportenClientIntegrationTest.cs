@@ -1,4 +1,5 @@
 using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Extensions;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
@@ -120,7 +121,7 @@ public class MaskinportenClientIntegrationTests
 
     /// <summary>
     /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port and no
-    /// localtest probing. The callback app code the workflow engine integration validates at startup is
+    /// localtest probing, plus a valid app configuration for startup validation. The callback app code is
     /// provisioned as a file beside the client, because an <c>AppCodes</c> section is no longer read. The host
     /// name decides which platform the app believes it is on, and a test host is on localtest unless it says
     /// otherwise.
@@ -133,6 +134,8 @@ public class MaskinportenClientIntegrationTests
     ) =>
         [
             .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory),
+            new("AppSettings:AppBasePath", TestData.GetApplicationDirectory("tdd", "contributer-restriction")),
+            new("PlatformSettings:ApiAuthorizationEndpoint", "http://localhost:5101/authorization/api/v1/"),
             new("urls", "http://127.0.0.1:0"),
             new("GeneralSettings:DisableLocaltestValidation", "true"),
             new("GeneralSettings:HostName", hostName),

@@ -1,75 +1,106 @@
 import { render, screen } from '@testing-library/react';
-import type { ProcessEditorProps } from './ProcessEditor';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import userEvent from '@testing-library/user-event';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
-import type { AppVersion } from 'app-shared/types/AppVersion';
+import { app, org } from '@studio/testing/testids';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { useBpmnContext } from './contexts/BpmnContext';
 
-const mockBPMNXML: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
+const mockBpmnXml: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
-const mockAppVersion: AppVersion = {
-  backendVersion: '8.0.3',
-  frontendVersion: '4.0.0',
-};
+jest.mock('./contexts/BpmnContext', () => ({
+  ...jest.requireActual('./contexts/BpmnContext'),
+  useBpmnContext: jest.fn(),
+}));
 
-const defaultProps: ProcessEditorProps = {
-  bpmnXml: mockBPMNXML,
-  saveBpmn: jest.fn(),
-  appVersion: mockAppVersion,
-  availableDataTypeIds: [],
-  availableDataModelIds: [],
-  allDataModelIds: [],
-  layoutSets: [],
-  pendingApiOperations: false,
-  existingCustomReceiptLayoutSetId: undefined,
-  addLayoutSet: jest.fn(),
-  deleteLayoutSet: jest.fn(),
-  mutateLayoutSetId: jest.fn(),
-  mutateDataTypes: jest.fn(),
-  onProcessTaskRemove: jest.fn(),
-  onProcessTaskAdd: jest.fn(),
-};
+jest.mock('./components/Canvas', () => ({
+  Canvas: () => <div></div>,
+}));
 
-const renderProcessEditor = (bpmnXml: string) => {
-  const allProps = { ...defaultProps, bpmnXml };
-  const router = createMemoryRouter([
-    {
-      path: '/',
-      element: <ProcessEditor {...allProps} />,
-    },
-  ]);
-
-  return render(<RouterProvider router={router}></RouterProvider>);
-};
+jest.mock('app-shared/utils/featureToggleUtils', () => ({
+  shouldDisplayFeature: jest.fn().mockReturnValue(true),
+}));
 
 describe('ProcessEditor', () => {
-  beforeEach(jest.clearAllMocks);
-  it('should render loading while bpmnXml is undefined', () => {
-    renderProcessEditor(undefined);
-    expect(screen.getByText(textMock('process_editor.loading'))).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('should render "NoBpmnFoundAlert" when bpmnXml is null', () => {
-    renderProcessEditor(null);
+  it('renders spinner when the application metadata is not fetched', () => {
+    renderProcessEditor({ queryClient: createQueryClientMock() });
+
+    expect(screen.getByLabelText(textMock('process_editor.loading'))).toBeInTheDocument();
+  });
+
+  it('renders the "no bpmn found" error when no bpmn exists', () => {
+    renderProcessEditor({ queryClient: queryClientWithAppData() });
+
     expect(
-      screen.getByRole('heading', {
-        name: textMock('process_editor.fetch_bpmn_error_title'),
-        level: 1,
-      }),
+      screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') }),
     ).toBeInTheDocument();
   });
 
-  it('does not display the information about too old version when the version is 8 or newer', async () => {
-    const user = userEvent.setup();
-    renderProcessEditor(mockBPMNXML);
+  it('renders the "no bpmn found" error when the bpmn query fails', () => {
+    const queryClient = queryClientWithAppData();
+    queryClient.setQueryData([QueryKey.FetchBpmn, org, app], undefined);
+    queryClient
+      .getQueryCache()
+      .find({ queryKey: [QueryKey.FetchBpmn, org, app] })
+      ?.setState({
+        status: 'error',
+        error: new Error('Not found'),
+      });
 
-    await user.tab();
+    renderProcessEditor({ bpmnXml: undefined, queryClient });
 
-    const alertHeader = screen.queryByRole('heading', {
-      name: textMock('process_editor.too_old_version_title'),
-      level: 1,
+    expect(
+      screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders "no task selected" in the config panel when no bpmn details are found', () => {
+    (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: null });
+
+    renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData() });
+
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_no_task_title')),
+    ).toBeInTheDocument();
+  });
+
+  it('renders the config panel for the end event when the bpmn details have the end event type', () => {
+    const queryClient = queryClientWithAppData({ dataTypes: [{ id: 'dataType1' }] });
+    (useBpmnContext as jest.Mock).mockReturnValue({
+      bpmnDetails: { type: 'bpmn:EndEvent' },
     });
-    expect(alertHeader).not.toBeInTheDocument();
+
+    renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient });
+
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel_end_event')),
+    ).toBeInTheDocument();
   });
 });
+
+const queryClientWithAppData = (appMetadata: unknown = []) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.AppMetadata, org, app], appMetadata);
+  return queryClient;
+};
+
+const renderProcessEditor = ({
+  bpmnXml = null,
+  queryClient = createQueryClientMock(),
+}: { bpmnXml?: string | null; queryClient?: ReturnType<typeof createQueryClientMock> } = {}) => {
+  queryClient.setQueryData([QueryKey.FetchBpmn, org, app], bpmnXml);
+  return render(
+    <TestAppRouter>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <ProcessEditor />
+      </ServicesContextProvider>
+    </TestAppRouter>,
+  );
+};

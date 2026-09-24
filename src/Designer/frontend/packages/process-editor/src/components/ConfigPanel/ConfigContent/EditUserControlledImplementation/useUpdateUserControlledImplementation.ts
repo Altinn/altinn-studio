@@ -2,6 +2,7 @@ import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 import { BpmnGuard } from '../../../../utils/bpmnGuard/BpmnGuard';
+import { TaskUtils } from '../../../../utils/taskUtils';
 
 type UpdateUserControlledImplementation = (value: string) => void;
 
@@ -18,7 +19,7 @@ function updateImplementation(modeling: Modeling, value: string, bpmnDetails: Bp
 
   modeling.updateModdleProperties(
     bpmnDetails.element,
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,
+    TaskUtils.getTaskExtension(bpmnDetails.element).signatureConfig,
     {
       signeeProviderId: value,
     },
