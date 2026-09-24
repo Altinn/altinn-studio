@@ -19,7 +19,7 @@ procedure — the deck needs no network once it is built (Inter is self-hosted),
 on a dead conference Wi-Fi.
 
 **[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (60), the keyboard cheat sheet, and the "do not overclaim" guardrails.
+takes, the total (46), the keyboard cheat sheet, and the "do not overclaim" guardrails.
 Print it or keep it on the second screen.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
@@ -227,7 +227,7 @@ to close.
 A cover that maps the talk, three parts — infrastruktur, frontend, backend — then the ask, in norsk
 bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of each entry in
 `src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run sheet in
-[`NOTES.md`](NOTES.md). 15 slides + 46 build steps = **60 presses of `→`**.
+[`NOTES.md`](NOTES.md). 15 slides + 32 build steps = **46 presses of `→`**.
 
 | #  | `id`                       | Slide                                                        | Steps |
 | -- | -------------------------- | ------------------------------------------------------------ | ----- |
@@ -242,16 +242,16 @@ bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of 
 | 9  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 3     |
 | 10 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 11 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
-| 12 | `scenario-feil`            | Scenario 1: a service does not answer for a moment           | 14    |
-| 13 | `scenario-omstart`         | Scenario 2: the server restarts during a deploy              | 14    |
+| 12 | `scenario-feil`            | Scenario 1: a service does not answer for a moment           | 7     |
+| 13 | `scenario-omstart`         | Scenario 2: the server restarts during a deploy              | 7     |
 | 14 | `oppgradering`             | Slik oppgraderer du til v9 — same process, one tool          | 1     |
 | 15 | `bli-med`                  | Bli med i pilotene — the ask                                 | 3     |
 
-Slides 12 and 13 render the scenarios from `src/sims` full-bleed under a small title chip. Each one
-is clicked through, one line per press: the v8 telling, the same accident with v9, then both outcomes
-side by side; see [`src/sims/README.md`](src/sims/README.md). Slide-specific styling lives in
-`src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section dividers, wires,
-the scenario frame) live in `src/slides/_kit.tsx`.
+Slides 12 and 13 render the scenarios from `src/sims` under the standard slide header. Each one is
+clicked through: every press lands the next line on both sides — v8 left, v9 right — and a last
+press shows both outcomes; see [`src/sims/README.md`](src/sims/README.md). Slide-specific styling
+lives in `src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section
+dividers, wires) live in `src/slides/_kit.tsx`.
 
 Accuracy rules the copy follows: never «nøyaktig én gang»; the engine is mandatory in v9; v9 is a
 closed beta; the frontend is not a rebuild and has one speed measurement; most platform gains reach

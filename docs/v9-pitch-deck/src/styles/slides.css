@@ -400,48 +400,6 @@
 }
 
 /* =========================================================
-   Scenario slides — full bleed
-   ========================================================= */
-
-.slide.s-bleed {
-  padding: 0;
-  gap: 0;
-}
-
-/* The simulations own everything under the title chip. The bottom edge clears
-   the deck's progress bar and slide counter; the top edge clears the chip. */
-.s-simstage {
-  position: absolute;
-  inset: 132px var(--slide-pad-x) 84px;
-}
-
-.s-simchip {
-  position: absolute;
-  left: var(--slide-pad-x);
-  top: 56px;
-  z-index: 5;
-  display: flex;
-  align-items: baseline;
-  gap: 18px;
-  pointer-events: none;
-}
-
-.s-simchip__no {
-  color: var(--blue-500);
-  font-size: 22px;
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-}
-
-.s-simchip__title {
-  color: var(--text-100);
-  font-size: 34px;
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-snug);
-}
-
-/* =========================================================
    Dashboard mock
    ========================================================= */
 

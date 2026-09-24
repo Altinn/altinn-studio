@@ -1,11 +1,11 @@
-import type { IconName } from '../../components';
-import type { Side, SimTone } from './types';
+import type { SimTone } from './types';
 
 /**
- * A scenario is a *script*: the same accident told twice, first as it plays out
- * today (v8) and then as it plays out with the process engine (v9). Each run is
- * a short list of beats, and one press of `→` lands one beat, so the presenter
- * sets the pace. A last press shows the two outcomes side by side.
+ * A scenario is a *script*: the same accident told twice, as it plays out today
+ * (v8) and with the process engine (v9), side by side. Both runs have the same
+ * number of beats, and one press of `→` lands the next beat on both sides at
+ * once, so row 3 on the left always sits next to row 3 on the right. A last
+ * press shows the two outcomes.
  */
 
 /** What an action row says about itself. Drives its icon and default tone. */
@@ -34,8 +34,9 @@ export interface Beat {
   /** Stable id — the React key. */
   id: string;
   /**
-   * One line of klarspråk. Keep it under ~44 characters: a row is one line at
-   * 32px, and a longer line is clipped rather than wrapped.
+   * One line of klarspråk. Keep it under ~34 characters: a row is one line at
+   * 24px in a half-width column, and a longer line is clipped rather than
+   * wrapped so the two columns can never fall out of step.
    */
   text: string;
   status: RowStatus;
@@ -59,10 +60,10 @@ export interface Run {
 export interface Scenario {
   /** CSS/debug hook. */
   name: string;
-  /** The one plain sentence at the top: what goes wrong. */
+  /** The slide title: the situation, in a few words. */
+  title: string;
+  /** The subtitle: what goes wrong, in one plain sentence. */
   headline: string;
-  /** The one large flat icon beside it. */
-  icon: IconName;
   /** Address bar on the phone. */
   frame: string;
   v8: Run;
@@ -71,24 +72,30 @@ export interface Scenario {
   takeaway: string;
 }
 
-/** Build steps a scenario slide declares: every beat, the switch to v9, and the comparison. */
-export function scenarioSteps(scenario: Scenario): number {
-  return scenario.v8.beats.length + 1 + scenario.v9.beats.length + 1;
+/** The number of beats in each run. The two runs must match, row for row. */
+function beatCount(scenario: Scenario): number {
+  const n = scenario.v8.beats.length;
+  if (scenario.v9.beats.length !== n) {
+    throw new Error(`Scenario «${scenario.name}»: v8 has ${n} beats, v9 has ${scenario.v9.beats.length}`);
+  }
+  return n;
 }
 
-export type Phase = { kind: 'run'; side: Side; cursor: number } | { kind: 'summary' };
+/** Build steps a scenario slide declares: every beat, then the comparison. */
+export function scenarioSteps(scenario: Scenario): number {
+  return beatCount(scenario) + 1;
+}
+
+export type Phase = { kind: 'run'; cursor: number } | { kind: 'summary' };
 
 /**
- * Where the deck's build step puts the scenario. Step 0 is the v8 run before
- * its first beat; each step lands one beat; the step after the last v8 beat
- * restarts the scene on v9; the final step is the comparison.
+ * Where the deck's build step puts the scenario. Step 0 is both phones before
+ * the first beat; each step lands one beat on both sides; the final step is
+ * the comparison.
  */
 export function phaseAt(scenario: Scenario, step: number): Phase {
-  const n8 = scenario.v8.beats.length;
-  const n9 = scenario.v9.beats.length;
-  if (step <= n8) return { kind: 'run', side: 'v8', cursor: Math.max(0, step) };
-  if (step <= n8 + 1 + n9) return { kind: 'run', side: 'v9', cursor: step - n8 - 1 };
-  return { kind: 'summary' };
+  const n = beatCount(scenario);
+  return step <= n ? { kind: 'run', cursor: Math.max(0, step) } : { kind: 'summary' };
 }
 
 /** The screen a run shows once `cursor` beats have landed. */
