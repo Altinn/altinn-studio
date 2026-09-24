@@ -40,6 +40,7 @@ function PDFGeneratorPreviewWithTarget() {
         <Fieldset data-size='sm'>
           <Fieldset.Legend>Oppgave</Fieldset.Legend>
           <Chip.Radio
+            name='pdf-preview-task'
             checked={!target.taskId}
             onClick={() => setTarget({})}
           >
@@ -48,6 +49,7 @@ function PDFGeneratorPreviewWithTarget() {
           {pdfTasks.map((task) => (
             <Chip.Radio
               key={task.elementId}
+              name='pdf-preview-task'
               checked={target.taskId === task.elementId}
               onClick={() => setTarget({ taskId: task.elementId })}
             >
@@ -63,6 +65,7 @@ function PDFGeneratorPreviewWithTarget() {
           {subforms.map((element) => (
             <Chip.Radio
               key={element.id}
+              name='pdf-preview-subform'
               checked={target.dataElementId === element.id}
               onClick={() => setTarget({ ...target, dataElementId: element.id })}
             >
