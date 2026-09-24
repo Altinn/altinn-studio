@@ -16,7 +16,7 @@ A turn in the loop looks like:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal, Union
+from typing import Any, Literal
 
 
 @dataclass(frozen=True)
@@ -51,7 +51,7 @@ class ToolResultBlock:
     type: Literal["tool_result"] = "tool_result"
 
 
-ContentBlock = Union[TextBlock, ToolUseBlock, ToolResultBlock]
+ContentBlock = TextBlock | ToolUseBlock | ToolResultBlock
 
 
 @dataclass
@@ -63,7 +63,7 @@ class UserMessage:
     tool calls).  The Anthropic protocol uses the user role for both.
     """
 
-    content: Union[str, list[ContentBlock]]
+    content: str | list[ContentBlock]
     role: Literal["user"] = "user"
 
 
@@ -83,7 +83,7 @@ class AssistantMessage:
     role: Literal["assistant"] = "assistant"
 
 
-Message = Union[UserMessage, AssistantMessage]
+Message = UserMessage | AssistantMessage
 
 
 def extract_text(message: AssistantMessage) -> str:

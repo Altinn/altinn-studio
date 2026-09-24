@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import httpx
 
@@ -92,7 +93,7 @@ def _tool_result(span: dict) -> dict[str, Any]:
     if not isinstance(output, str):
         output = json.dumps(output, ensure_ascii=False) if output is not None else ""
     return {
-        "name": (span.get("name") or "")[len(TOOL_SPAN_PREFIX):],
+        "name": (span.get("name") or "")[len(TOOL_SPAN_PREFIX) :],
         "content": output,
         "is_error": is_error,
     }
@@ -142,9 +143,7 @@ def read_trace(reader: TraceReader, trace_id: str) -> HarvestedTrace:
 def conversation_up_to(harvest: HarvestedTrace, decision: int) -> list[dict[str, Any]]:
     """The conversation the model saw before `decision`; 0 is the goal alone."""
     if not 0 <= decision < len(harvest.turns):
-        raise IndexError(
-            f"trace {harvest.trace_id} has {len(harvest.turns)} decisions, asked for {decision}"
-        )
+        raise IndexError(f"trace {harvest.trace_id} has {len(harvest.turns)} decisions, asked for {decision}")
     conversation: list[dict[str, Any]] = [{"role": "user", "text": harvest.goal}]
     for index, turn in enumerate(harvest.turns[:decision]):
         if len(turn.calls) != len(turn.results):
@@ -152,9 +151,7 @@ def conversation_up_to(harvest: HarvestedTrace, decision: int) -> list[dict[str,
                 f"trace {harvest.trace_id} turn {index} has {len(turn.calls)} call(s) "
                 f"and {len(turn.results)} result(s); cannot pair them"
             )
-        conversation.append(
-            {"role": "assistant", "text": turn.text, "tool_calls": turn.calls}
-        )
+        conversation.append({"role": "assistant", "text": turn.text, "tool_calls": turn.calls})
         if turn.results:
             conversation.append(
                 {
@@ -165,7 +162,7 @@ def conversation_up_to(harvest: HarvestedTrace, decision: int) -> list[dict[str,
                             "content": result["content"],
                             "is_error": result["is_error"],
                         }
-                        for call, result in zip(turn.calls, turn.results)
+                        for call, result in zip(turn.calls, turn.results, strict=False)
                     ],
                 }
             )
@@ -185,9 +182,7 @@ def item_from_decision(
 ) -> dict[str, Any]:
     """A dataset item for one real decision."""
     if verification not in VERIFICATION_LEVELS:
-        raise ValueError(
-            f"unknown verification {verification!r}, expected one of {sorted(VERIFICATION_LEVELS)}"
-        )
+        raise ValueError(f"unknown verification {verification!r}, expected one of {sorted(VERIFICATION_LEVELS)}")
     if regression and not defect:
         raise ValueError(
             f"{item_id} is marked a regression but names no defect; a regression item "
@@ -195,8 +190,7 @@ def item_from_decision(
         )
     if defect and not regression and rule and CONTENT_RULE_KEYS & rule.keys():
         raise ValueError(
-            f"{item_id} scores content from a decision with a known defect "
-            f"({defect}); score the tool choice instead"
+            f"{item_id} scores content from a decision with a known defect ({defect}); score the tool choice instead"
         )
     turn = harvest.turns[decision]
     tools = [call["name"] for call in turn.calls]
@@ -322,9 +316,7 @@ def main() -> int:
     from .dataset_sync import DATASETS_DIR
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--spec", default=str(DATASETS_DIR / "harvest_spec.json"), help="harvest spec"
-    )
+    parser.add_argument("--spec", default=str(DATASETS_DIR / "harvest_spec.json"), help="harvest spec")
     parser.add_argument("--list", metavar="TRACE_ID", help="print a trace's decisions")
     parser.add_argument(
         "--planner",
@@ -351,9 +343,7 @@ def main() -> int:
         spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
 
         if args.planner:
-            trace_ids = [entry["trace_id"] for entry in spec["traces"]] + list(
-                spec.get("planner_only_traces") or []
-            )
+            trace_ids = [entry["trace_id"] for entry in spec["traces"]] + list(spec.get("planner_only_traces") or [])
             planner = planner_items(reader, trace_ids)
             destination = DATASETS_DIR / "planner_intake.jsonl"
             with destination.open("w", encoding="utf-8") as handle:
@@ -372,8 +362,7 @@ def main() -> int:
                 collected_prompts[harvest.trace_id] = harvest.system_prompt
             else:
                 print(f"  no system prompt in {harvest.trace_id}, keeping the recorded one")
-            print(f"{entry['trace_id']}: {len(harvest.turns)} decisions "
-                  f"({entry['verification']})")
+            print(f"{entry['trace_id']}: {len(harvest.turns)} decisions ({entry['verification']})")
             for pick in entry["items"]:
                 if pick.get("skip"):
                     print(f"  skipped {pick['id']}: {pick['skip'][:64]}...")
@@ -400,9 +389,7 @@ def main() -> int:
     prompts_path = DATASETS_DIR / SYSTEM_PROMPTS_FILE
     prompts = json.loads(prompts_path.read_text(encoding="utf-8")) if prompts_path.exists() else {}
     prompts.update(collected_prompts)
-    prompts_path.write_text(
-        json.dumps(prompts, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    prompts_path.write_text(json.dumps(prompts, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     print(f"\n{destination}: {len(items)} items")
     print(f"{prompts_path}: {len(prompts)} session prompt(s)")

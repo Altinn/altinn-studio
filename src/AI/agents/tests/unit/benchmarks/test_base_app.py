@@ -7,8 +7,8 @@ import json
 import pytest
 
 from benchmarks.base_app import (
-    _tracked_files,
     APP_TEMPLATE_VERSIONS,
+    _tracked_files,
     materialize_base_app,
     template_app_dir,
 )

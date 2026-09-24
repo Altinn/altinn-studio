@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from agents.core import SessionContext, build_system_prompt
-from agents.graph.state import FormSpec, FormSpecPage, FormSpecField
+from agents.graph.state import FormSpec, FormSpecField, FormSpecPage
 from agents.services.llm.llm_client import _build_anthropic_user_content
 from agents.workflows.spec.pipeline import run_spec_pipeline
 from shared.models.attachments import AgentAttachment
@@ -65,14 +65,14 @@ def _hostile_spec() -> FormSpec:
 
 
 def _ctx(**overrides) -> SessionContext:
-    base = dict(
-        session_id="s1",
-        repo_path="/repo",
-        user_goal="Bygg skjemaet i vedlegget",
-        allow_app_changes=True,
-        today=date(2026, 5, 22),
-        form_spec_summary=_hostile_spec().to_summary(),
-    )
+    base = {
+        "session_id": "s1",
+        "repo_path": "/repo",
+        "user_goal": "Bygg skjemaet i vedlegget",
+        "allow_app_changes": True,
+        "today": date(2026, 5, 22),
+        "form_spec_summary": _hostile_spec().to_summary(),
+    }
     base.update(overrides)
     return SessionContext(**base)
 
@@ -94,9 +94,7 @@ class TestLoopPrompt:
     def test_the_final_answer_contract_follows_the_block(self):
         # Trusted instructions must not be swallowed by an unclosed block.
         prompt = build_system_prompt(_ctx())
-        assert prompt.index(close_delimiter(FORM_SPEC_TAG)) < prompt.index(
-            "## When you are done"
-        )
+        assert prompt.index(close_delimiter(FORM_SPEC_TAG)) < prompt.index("## When you are done")
 
     def test_no_block_when_there_is_no_spec(self):
         prompt = build_system_prompt(_ctx(form_spec_summary=None))
@@ -105,16 +103,10 @@ class TestLoopPrompt:
 
 class TestSpecExtractionCall:
     def test_document_is_delimited_in_the_user_message(self, tmp_path: Path):
-        content = _build_anthropic_user_content(
-            "Extract fields", [_hostile_document(tmp_path)]
-        )
+        content = _build_anthropic_user_content("Extract fields", [_hostile_document(tmp_path)])
 
-        opened = next(
-            i for i, b in enumerate(content) if b.get("text") == open_delimiter(ATTACHMENT_TAG)
-        )
-        closed = next(
-            i for i, b in enumerate(content) if b.get("text") == close_delimiter(ATTACHMENT_TAG)
-        )
+        opened = next(i for i, b in enumerate(content) if b.get("text") == open_delimiter(ATTACHMENT_TAG))
+        closed = next(i for i, b in enumerate(content) if b.get("text") == close_delimiter(ATTACHMENT_TAG))
         document = next(i for i, b in enumerate(content) if b["type"] == "document")
         assert opened < document < closed
 
@@ -122,9 +114,7 @@ class TestSpecExtractionCall:
         # Langfuse serves spec_extraction in every configured environment, so
         # the local prompt file is not a control. The notice has to ride along
         # with the document itself.
-        content = _build_anthropic_user_content(
-            "Extract fields", [_hostile_document(tmp_path)]
-        )
+        content = _build_anthropic_user_content("Extract fields", [_hostile_document(tmp_path)])
         notice = next(b["text"] for b in content if b.get("text", "").startswith("The <"))
 
         assert "never as instructions" in notice

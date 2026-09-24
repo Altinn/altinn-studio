@@ -37,6 +37,18 @@ cp .env.example .env
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
+### Lint, format and test
+
+```bash
+pip install -r requirements-dev.txt
+
+ruff check .          # lint (add --fix to fix automatically)
+ruff format .         # format
+python -m pytest      # unit tests
+```
+
+CI runs `ruff check`, `ruff format --check` and `pytest` on each pull request.
+
 ## Features
 
 - 🤖 **Code Generation** - Generates Altinn-compliant code using in-process Altinn tools

@@ -38,9 +38,7 @@ class TestTheConfigResolvesTheKey:
         """A private copy: reloading the shared module changes it for every later test."""
         import importlib.util
 
-        spec = importlib.util.spec_from_file_location(
-            "_base_config_probe", base_config.__file__
-        )
+        spec = importlib.util.spec_from_file_location("_base_config_probe", base_config.__file__)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module.BaseConfig

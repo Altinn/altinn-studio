@@ -4,19 +4,19 @@ is the only signal, so it decides whether a page counts as rendered."""
 
 from __future__ import annotations
 
-import pytest
-
 from importlib import import_module
 
-render_check_module = import_module("agents.services.preview.render_check")
+import pytest
 
 from agents.services.preview.render_check import (
     PageRenderResult,
     PreviewCheckUnavailable,
     _check_pages,
-    read_page_order,
     _is_thrown_error,
+    read_page_order,
 )
+
+render_check_module = import_module("agents.services.preview.render_check")
 
 THROWN = [
     "TypeError: Cannot read properties of undefined (reading 'render') "
@@ -62,8 +62,7 @@ class TestPartialPageValidation:
         monkeypatch.setattr(
             render_check_module,
             "_check_single_page",
-            lambda page, url, layout: checked.append(layout)
-            or PageRenderResult(layout, True, ""),
+            lambda page, url, layout: checked.append(layout) or PageRenderResult(layout, True, ""),
         )
 
         results = _check_pages(
@@ -86,9 +85,7 @@ class TestPageOrderShapes:
         settings.write_text(content, encoding="utf-8")
         return tmp_path
 
-    @pytest.mark.parametrize(
-        "content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}']
-    )
+    @pytest.mark.parametrize("content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}'])
     def test_a_shape_that_is_not_an_order_is_skipped(self, tmp_path, content):
         assert read_page_order(self._write(tmp_path, content)) == []
 

@@ -17,9 +17,7 @@ KEY_LIFETIME_DAYS = 364  # ApiKeySettings.MaxExpiryDays is 365
 
 
 def _docker_exec(container: str, *command: str) -> str:
-    result = subprocess.run(
-        ["docker", "exec", container, *command], capture_output=True, text=True
-    )
+    result = subprocess.run(["docker", "exec", container, *command], capture_output=True, text=True)
     if result.returncode != 0:
         sys.exit(f"docker exec {container} failed: {result.stderr.strip()}")
     return result.stdout
@@ -46,7 +44,7 @@ def _hash_salt() -> str:
 def _write_env(raw_key: str) -> None:
     env_path = Path(__file__).parent / ".env"
     lines = env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []
-    lines = [l for l in lines if not l.startswith("AGENT_DESIGNER_API_KEY=")]
+    lines = [line for line in lines if not line.startswith("AGENT_DESIGNER_API_KEY=")]
     lines.append(f"AGENT_DESIGNER_API_KEY={raw_key}")
     env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Wrote AGENT_DESIGNER_API_KEY to {env_path}")
@@ -59,13 +57,10 @@ def main() -> None:
     parser.add_argument("--write-env", action="store_true")
     args = parser.parse_args()
 
-    account_id = _sql(
-        f"SELECT id FROM designer.user_accounts WHERE username = '{_sql_literal(args.username)}';"
-    )
+    account_id = _sql(f"SELECT id FROM designer.user_accounts WHERE username = '{_sql_literal(args.username)}';")
     if not account_id:
         sys.exit(
-            f"No user account {args.username!r} in Designer — log into Studio once "
-            "so the account exists, then re-run."
+            f"No user account {args.username!r} in Designer — log into Studio once so the account exists, then re-run."
         )
 
     raw_key = secrets.token_urlsafe(32)

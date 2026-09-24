@@ -16,9 +16,7 @@ FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 def template_app_dir(app_version: str = DEFAULT_APP_VERSION) -> Path:
     """The `App` directory of the template for one app version."""
     if app_version not in APP_TEMPLATE_VERSIONS:
-        raise ValueError(
-            f"unknown app version {app_version!r}, expected one of {APP_TEMPLATE_VERSIONS}"
-        )
+        raise ValueError(f"unknown app version {app_version!r}, expected one of {APP_TEMPLATE_VERSIONS}")
     path = _REPO_SRC / "App" / "template" / app_version / "src" / "App"
     if not path.is_dir():
         raise FileNotFoundError(f"app template not found at {path}")

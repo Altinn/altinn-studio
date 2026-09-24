@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from benchmarks.preview_check import PageRenderResult
 from benchmarks.agent_task import (
     _after_fix_scores,
     _render_fix_goal,
     is_render_fix_enabled,
 )
+from benchmarks.preview_check import PageRenderResult
 
 FAILURES = [
     PageRenderResult("Side3", False, "error page: 500"),

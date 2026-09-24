@@ -94,8 +94,7 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
     failures = [result for result in measured if not result.rendered]
     failure_summary = "; ".join(f"{failure.page}: {failure.detail}" for failure in failures)
     skipped_note = (
-        f" — {len(skipped)} page(s) the preview never answered for: "
-        + ", ".join(result.page for result in skipped)
+        f" — {len(skipped)} page(s) the preview never answered for: " + ", ".join(result.page for result in skipped)
         if skipped
         else ""
     )
@@ -130,7 +129,6 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
     # An unmeasured entry page is not evidence either way, and a later page's
     # result is not the entry page's.
     return [pages_render] if entry_unmeasured else [renders, pages_render]
-
 
 
 def _clone_branch(branch: str, workdir: Path) -> Path:

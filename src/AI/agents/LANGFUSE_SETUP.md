@@ -102,6 +102,7 @@ docker-compose -f docker-compose.langfuse.yml down -v
 4. Try flushing traces manually (for testing):
    ```python
    from shared.utils.langfuse_utils import flush_langfuse
+
    flush_langfuse()
    ```
 

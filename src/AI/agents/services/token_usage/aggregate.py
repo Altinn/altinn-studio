@@ -110,15 +110,11 @@ def aggregate_token_usage(
             model_tokens[usage_key] = model_tokens.get(usage_key, 0) + usage_value
 
     langfuse_host = get_config().LANGFUSE_HOST
-    return [
-        _to_usage_row(bucket, loaded_at, langfuse_host) for bucket in buckets.values()
-    ]
+    return [_to_usage_row(bucket, loaded_at, langfuse_host) for bucket in buckets.values()]
 
 
 def _is_langfuse_internal(trace: Trace) -> bool:
-    return not trace["user_id"] and trace["environment"].startswith(
-        LANGFUSE_ENVIRONMENT_PREFIX
-    )
+    return not trace["user_id"] and trace["environment"].startswith(LANGFUSE_ENVIRONMENT_PREFIX)
 
 
 def _get_service_owner_code(trace: Trace) -> str:
@@ -168,9 +164,7 @@ def _usage_value(usage: dict[str, Any] | None, key: str) -> int:
     return usage.get(key) or 0
 
 
-def _to_usage_row(
-    bucket: dict, loaded_at: str, langfuse_host: str
-) -> DailyTokenUsageRow:
+def _to_usage_row(bucket: dict, loaded_at: str, langfuse_host: str) -> DailyTokenUsageRow:
     year, month, day = bucket["date"].split("-")
     return {
         "date": bucket["date"],

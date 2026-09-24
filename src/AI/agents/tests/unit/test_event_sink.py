@@ -10,8 +10,8 @@ run on the same session (``mark_session_started``) lifts the suppression.
 
 import threading
 
-from agents.services.events.jobs import EventSink
 from agents.services.events.events import AgentEvent
+from agents.services.events.jobs import EventSink
 
 SESSION_ID = "session-1"
 CANCEL_RACE_WINDOW_SECONDS = 0.5

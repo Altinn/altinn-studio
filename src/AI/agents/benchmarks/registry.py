@@ -50,10 +50,7 @@ class Eval:
             held = "; ".join(f"{b.text} ({b.evaluator})" for b in pinned)
             parts.append(f"Holds: {held}.")
         elif claims:
-            parts.append(
-                f"Declared by {claims[0].id}, which nothing scores yet, so runs here "
-                "prove nothing."
-            )
+            parts.append(f"Declared by {claims[0].id}, which nothing scores yet, so runs here prove nothing.")
         else:
             parts.append("No behavior in the repo claims this dataset.")
 
@@ -183,7 +180,6 @@ EVALS = (
             "and assert the instruction is not followed. See manifest.py for that behavior."
         ),
     ),
-
 )
 
 
@@ -191,9 +187,7 @@ def by_name(name: str) -> Eval:
     for entry in EVALS:
         if entry.name == name:
             return entry
-    raise SystemExit(
-        f"{name!r} is not a declared eval. Known: {[e.name for e in EVALS]}"
-    )
+    raise SystemExit(f"{name!r} is not a declared eval. Known: {[e.name for e in EVALS]}")
 
 
 def live() -> tuple[Eval, ...]:
@@ -203,4 +197,3 @@ def live() -> tuple[Eval, ...]:
 def with_items_in_repo() -> tuple[Eval, ...]:
     """The evals whose items are version controlled, so they can be synced."""
     return tuple(e for e in EVALS if e.file and e.status == "live")
-

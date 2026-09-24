@@ -2,30 +2,27 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 
-from shared.utils.langfuse_utils import trace_generation
-
-from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_with_langfuse, render_template
-from shared.utils.logging_utils import get_logger
+from agents.services.llm import LLMClient
 from shared.models import AgentAttachment
+from shared.utils.langfuse_utils import trace_generation
+from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
 
 @dataclass
 class RepositoryContext:
-    available_locales: List[str] = field(default_factory=lambda: ["nb", "nn"])
+    available_locales: list[str] = field(default_factory=lambda: ["nb", "nn"])
     source_of_truth: str = "json_schema"
-    layout_pages: List[str] = field(default_factory=list)
-    model_files: List[str] = field(default_factory=list)
-    resource_files: List[str] = field(default_factory=list)
+    layout_pages: list[str] = field(default_factory=list)
+    model_files: list[str] = field(default_factory=list)
+    resource_files: list[str] = field(default_factory=list)
 
 
-def _build_context(facts: Dict[str, List[str]]) -> RepositoryContext:
+def _build_context(facts: dict[str, list[str]]) -> RepositoryContext:
     # Simplified - just return defaults since intake doesn't scan
     return RepositoryContext()
 
@@ -34,16 +31,16 @@ def run_intake_pipeline(
     repo_path: str,
     user_goal: str,
     *,
-    attachments: Optional[List[AgentAttachment]] = None,
-    conversation_history: Optional[List] = None,
-) -> Dict[str, object]:
+    attachments: list[AgentAttachment] | None = None,
+    conversation_history: list | None = None,
+) -> dict[str, object]:
     """Execute the intake workflow and return plan WITHOUT repository context."""
-    
+
     # Don't scan here - let the scan node handle repository discovery
     context = RepositoryContext()  # Use defaults
     system_prompt, lf_prompt = get_prompt_with_langfuse("intake_planning")
     user_prompt = render_template("intake_planning_user", user_goal=user_goal)
-    
+
     # Add conversation history context for follow-up requests
     if conversation_history and len(conversation_history) > 0:
         history_context = "\n\nPREVIOUS CONVERSATION CONTEXT:\n"
@@ -51,7 +48,9 @@ def run_intake_pipeline(
             role = "User" if msg.role == "user" else "Assistant"
             content = msg.content[:500] + "..." if len(msg.content) > 500 else msg.content
             history_context += f"{role}: {content}\n\n"
-        history_context += "Use this context to understand what has already been done and what the user is asking for now.\n"
+        history_context += (
+            "Use this context to understand what has already been done and what the user is asking for now.\n"
+        )
         user_prompt = history_context + user_prompt
 
     # Intake only produces a high-level task description; the spec agent
@@ -69,7 +68,6 @@ def run_intake_pipeline(
         input={"user_goal": user_goal},
         metadata={"has_attachments": bool(attachments), **client.get_model_metadata()},
     ) as span:
-
         response = client.call_sync(system_prompt, user_prompt, langfuse_prompt=lf_prompt)
         span.update(output={"response": response[:5000]})
 
@@ -80,7 +78,7 @@ def run_intake_pipeline(
     }
 
 
-def _summarize_attachments(attachments: Optional[List[AgentAttachment]]) -> str:
+def _summarize_attachments(attachments: list[AgentAttachment] | None) -> str:
     if not attachments:
         return ""
     return "\n".join(f"- {a.name} ({a.mime_type})" for a in attachments)

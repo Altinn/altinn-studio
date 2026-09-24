@@ -10,8 +10,7 @@ from pathlib import Path
 from benchmarks import registry
 
 SCHEMA_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "Designer/frontend/packages/ux-editor/src/testing/schemas/json/component"
+    Path(__file__).resolve().parents[3] / "Designer/frontend/packages/ux-editor/src/testing/schemas/json/component"
 )
 
 # A component type in a layout, or a field type in an extracted spec.
@@ -38,15 +37,8 @@ class Coverage:
 
     @property
     def rendered(self) -> tuple[str, ...]:
-        rendering = {
-            e.name for e in registry.live() if e.kind in RENDERING_KINDS
-        }
-        seen = {
-            c
-            for name, cs in self.by_dataset.items()
-            if name in rendering
-            for c in cs
-        }
+        rendering = {e.name for e in registry.live() if e.kind in RENDERING_KINDS}
+        seen = {c for name, cs in self.by_dataset.items() if name in rendering for c in cs}
         return tuple(sorted(seen & set(self.universe)))
 
     @property
@@ -100,12 +92,8 @@ def render(coverage: Coverage) -> list[str]:
         return ["  component schemas not found, so coverage cannot be computed"]
     out = [f"  {coverage.summary()}"]
     if coverage.replay_only:
-        out.append(
-            f"  exercised but never rendered: {', '.join(coverage.replay_only)}"
-        )
-        out.append(
-            "    a runtime break in these cannot show up, because no run loads the page"
-        )
+        out.append(f"  exercised but never rendered: {', '.join(coverage.replay_only)}")
+        out.append("    a runtime break in these cannot show up, because no run loads the page")
     for name in coverage.unavailable:
         entry = registry.by_name(name)
         note = " and it is the only kind that renders" if entry.kind in RENDERING_KINDS else ""

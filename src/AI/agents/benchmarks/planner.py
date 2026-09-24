@@ -27,11 +27,7 @@ def _first_json_object(text: str) -> dict[str, Any] | None:
 
 
 def spec_labels(spec: dict[str, Any]) -> list[str]:
-    return [
-        str(field.get("label") or "")
-        for page in spec.get("pages") or []
-        for field in page.get("fields") or []
-    ]
+    return [str(field.get("label") or "") for page in spec.get("pages") or [] for field in page.get("fields") or []]
 
 
 def _shortened(label: str) -> str:
@@ -58,9 +54,7 @@ def spec_parses(*, output: Any = None, expected_output: Any = None, **_: Any) ->
     ]
 
 
-def spec_label_coverage(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def spec_label_coverage(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """How much of the form it actually found."""
     expected = (expected_output or {}).get("labels")
     if not expected:
@@ -76,9 +70,7 @@ def spec_label_coverage(
             )
         ]
     found = [_shortened(label) for label in spec_labels(spec)]
-    missing = [
-        label for label in expected if not any(_shortened(label) in f or f in _shortened(label) for f in found)
-    ]
+    missing = [label for label in expected if not any(_shortened(label) in f or f in _shortened(label) for f in found)]
     return [
         Evaluation(
             name="spec_label_coverage",
@@ -90,9 +82,7 @@ def spec_label_coverage(
     ]
 
 
-def spec_field_count(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def spec_field_count(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Roughly the right number of fields, not exactly."""
     expected = (expected_output or {}).get("field_count")
     if not expected:
@@ -228,8 +218,7 @@ def _attachments(names: list[str]) -> list[Any]:
         path = ASSETS_DIR / name
         if not path.is_file():
             raise FileNotFoundError(
-                f"{name!r} is not in {ASSETS_DIR}. Spec extraction needs the file, so "
-                "the asset has to be present."
+                f"{name!r} is not in {ASSETS_DIR}. Spec extraction needs the file, so the asset has to be present."
             )
         data = path.read_bytes()
         built.append(
@@ -242,6 +231,7 @@ def _attachments(names: list[str]) -> list[Any]:
             )
         )
     return built
+
 
 SCORE_NAMES = (
     "query_is_a_query",

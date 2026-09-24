@@ -6,10 +6,7 @@ without a real LLM.
 
 from __future__ import annotations
 
-import os
 from typing import Any
-
-import pytest
 
 from agents.core import (
     LoopContext,
@@ -29,20 +26,18 @@ from agents.graph.nodes.agentic_loop_node import (
 from agents.graph.state import AgentState
 
 
-
 def _state(**overrides: Any) -> AgentState:
-    base = dict(
-        session_id="sess-1",
-        user_goal="add a date field",
-        repo_path="/tmp/repo",
-        app_name="test-app",
-        developer="dev",
-        org="ttd",
-        allow_app_changes=True,
-    )
+    base = {
+        "session_id": "sess-1",
+        "user_goal": "add a date field",
+        "repo_path": "/tmp/repo",
+        "app_name": "test-app",
+        "developer": "dev",
+        "org": "ttd",
+        "allow_app_changes": True,
+    }
     base.update(overrides)
     return AgentState(**base)
-
 
 
 class TestBuildRegistry:
@@ -68,7 +63,6 @@ class TestBuildRegistry:
     def test_skill_tool_registered_with_discovered_skills(self):
         registry = _build_registry()
         assert "skill" in registry
-
 
 
 class TestEventBridge:
@@ -171,7 +165,6 @@ class TestEventBridge:
         assert seen == []
 
 
-
 class TestFinalSummaryText:
     def test_completed_uses_model_text(self):
         result = LoopResult(
@@ -269,9 +262,7 @@ class TestApplyResultToState:
 
     def test_cancelled_marks_failed(self):
         state = _state()
-        result = LoopResult(
-            reason=TerminationReason.CANCELLED, messages=[], turns=1
-        )
+        result = LoopResult(reason=TerminationReason.CANCELLED, messages=[], turns=1)
         _apply_result_to_state(state, result, self._ctx_with())
         assert state.tests_passed is False
         assert "cancelled" in state.verify_notes[0].lower()
@@ -294,7 +285,6 @@ class TestApplyResultToState:
         ctx = self._ctx_with(changed_files={"z.json", "a.json", "m.json"})
         _apply_result_to_state(state, result, ctx)
         assert state.changed_files == ["a.json", "m.json", "z.json"]
-
 
 
 class _SinkStub:
@@ -345,7 +335,6 @@ class TestEmitWorkflowCompletion:
         assert message.data["traceId"] == "trace-root"
 
 
-
 class TestHandle:
     async def test_cancelled_result_emits_no_completion_message(self, monkeypatch):
         seen: list = []
@@ -353,18 +342,10 @@ class TestHandle:
         async def fake_run_loop(**kwargs):
             return LoopResult(reason=TerminationReason.CANCELLED, messages=[], turns=1)
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt)
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: True
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt))
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: True)
 
         await handle(_state())
 
@@ -383,9 +364,7 @@ class TestHandle:
                 turns=2,
             )
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.build_adapter",
             lambda role: object(),
@@ -430,21 +409,11 @@ class TestHandle:
         async def fake_auto_commit(*args, **kwargs):
             commits.append(args)
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node._maybe_auto_commit", fake_auto_commit
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt)
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node._maybe_auto_commit", fake_auto_commit)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: seen.append(evt))
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
 
         state = _state(allow_app_changes=False)
         await handle(state)
@@ -462,22 +431,12 @@ class TestHandle:
 
         async def fake_run_loop(**kwargs):
             captured.update(kwargs)
-            return LoopResult(
-                reason=TerminationReason.COMPLETED, messages=[], final_text="ok", turns=1
-            )
+            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="ok", turns=1)
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
 
         state = _state(
             conversation_history=[
@@ -504,12 +463,8 @@ class TestHandle:
 
         seen: list = []
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.sink.send",
             lambda evt: seen.append(evt),
@@ -541,15 +496,9 @@ class TestHandle:
                 turns=1,
             )
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.sink.is_cancelled",
             lambda sid: False,
@@ -560,16 +509,13 @@ class TestHandle:
         assert "adapter exploded" in result.verify_notes[0]
 
 
-
 def _patch_loop(monkeypatch, fake_run_loop):
     node = "agents.graph.nodes.agentic_loop_node."
     monkeypatch.setattr(node + "run_loop", fake_run_loop)
     monkeypatch.setattr(node + "build_adapter", lambda role: object())
     monkeypatch.setattr(node + "sink.send", lambda evt: None)
     monkeypatch.setattr(node + "sink.is_cancelled", lambda sid: False)
-    monkeypatch.setattr(
-        node + "sink.add_to_conversation_history", lambda sid, role, text: None
-    )
+    monkeypatch.setattr(node + "sink.add_to_conversation_history", lambda sid, role, text: None)
 
 
 def _verify_returning(passed: bool, seen: list | None = None):
@@ -581,6 +527,7 @@ def _verify_returning(passed: bool, seen: list | None = None):
             if seen is not None:
                 seen.append("verify-called")
             return ToolResult(content="{}" if passed else "boom", is_error=not passed)
+
         return _coro()
 
     return run
@@ -606,20 +553,13 @@ class TestAutoCommitSafetyNet:
             async def _coro():
                 seen.append("auto-commit-called")
                 return ToolResult(content="Committed deadbee0 to branch and pushed.")
+
             return _coro()
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.sink.add_to_conversation_history",
             lambda sid, role, text: None,
@@ -645,6 +585,7 @@ class TestAutoCommitSafetyNet:
             async def _coro():
                 seen.append("auto-commit-called")
                 return ToolResult(content="Committed deadbee0 to branch and pushed.")
+
             return _coro()
 
         _patch_loop(monkeypatch, fake_run_loop)
@@ -674,6 +615,7 @@ class TestAutoCommitSafetyNet:
             async def _coro():
                 called["n"] += 1
                 return ToolResult(content="should not be called")
+
             return _coro()
 
         _patch_loop(monkeypatch, fake_run_loop)
@@ -709,20 +651,13 @@ class TestAutoCommitSafetyNet:
             async def _coro():
                 called["n"] += 1
                 return ToolResult(content="should not be called")
+
             return _coro()
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.sink.add_to_conversation_history",
             lambda sid, role, text: None,
@@ -751,20 +686,13 @@ class TestAutoCommitSafetyNet:
             async def _coro():
                 called["n"] += 1
                 return ToolResult(content="should not be called")
+
             return _coro()
 
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object()
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None
-        )
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.run_loop", fake_run_loop)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.build_adapter", lambda role: object())
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.sink.add_to_conversation_history",
             lambda sid, role, text: None,
@@ -787,7 +715,6 @@ class TestGraphBuilder:
         assert {"intake", "spec", "agentic_loop"}.issubset(node_names)
         for legacy in ("planner", "actor", "verifier", "reviewer", "scan", "planning_tool"):
             assert legacy not in node_names
-
 
 
 class _CheckStub:
@@ -843,8 +770,13 @@ class TestEnforcedRenderCheck:
         monkeypatch.setattr(node, "run_loop", lambda **kw: reran.append(kw))
 
         result = await node._repair_render_failures(
-            _state(), _loop_result(), _committed_ctx(tmp_path),
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            _state(),
+            _loop_result(),
+            _committed_ctx(tmp_path),
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert check.calls == 1
@@ -858,15 +790,18 @@ class TestEnforcedRenderCheck:
         monkeypatch.setattr(node, "run_loop", lambda **kw: reran.append(kw))
 
         await node._repair_render_failures(
-            _state(), _loop_result(), _committed_ctx(tmp_path),
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            _state(),
+            _loop_result(),
+            _committed_ctx(tmp_path),
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert reran == []
 
-    async def test_a_persistent_failure_repairs_only_the_configured_rounds(
-        self, tmp_path, monkeypatch
-    ):
+    async def test_a_persistent_failure_repairs_only_the_configured_rounds(self, tmp_path, monkeypatch):
         """Two failing checks, one repair: the second check verifies the fix
         rather than triggering another."""
         check = _CheckStub([_outcome(is_error=True), _outcome(is_error=True)])
@@ -884,8 +819,13 @@ class TestEnforcedRenderCheck:
         state = _state()
 
         await node._repair_render_failures(
-            state, _loop_result(), ctx,
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            state,
+            _loop_result(),
+            ctx,
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert len(reran) == node.MAX_RENDER_REPAIR_ROUNDS
@@ -893,9 +833,7 @@ class TestEnforcedRenderCheck:
         assert state.tests_passed is False
         assert state.verify_notes
 
-    async def test_a_repair_that_works_is_confirmed_by_a_final_check(
-        self, tmp_path, monkeypatch
-    ):
+    async def test_a_repair_that_works_is_confirmed_by_a_final_check(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=True), _outcome(is_error=False)])
         monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
         monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
@@ -910,16 +848,19 @@ class TestEnforcedRenderCheck:
         ctx = _committed_ctx(tmp_path)
 
         await node._repair_render_failures(
-            _state(), _loop_result(), ctx,
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            _state(),
+            _loop_result(),
+            ctx,
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert len(reran) == 1
         assert check.calls == 2
 
-    async def test_a_repair_that_never_commits_still_runs_the_bounded_check(
-        self, tmp_path, monkeypatch
-    ):
+    async def test_a_repair_that_never_commits_still_runs_the_bounded_check(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=True), _outcome(is_error=True)])
         monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
         monkeypatch.setattr(node, "MAX_RENDER_REPAIR_ROUNDS", 1)
@@ -935,8 +876,13 @@ class TestEnforcedRenderCheck:
         state = _state()
 
         await node._repair_render_failures(
-            state, _loop_result(), _committed_ctx(tmp_path),
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            state,
+            _loop_result(),
+            _committed_ctx(tmp_path),
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert check.calls == node.MAX_RENDER_REPAIR_ROUNDS + 1
@@ -955,8 +901,13 @@ class TestEnforcedRenderCheck:
         monkeypatch.setattr(node, "_maybe_auto_commit", _AsyncRecommit())
 
         await node._repair_render_failures(
-            _state(), _loop_result(), _committed_ctx(tmp_path),
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            _state(),
+            _loop_result(),
+            _committed_ctx(tmp_path),
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert check.calls == 1
@@ -967,8 +918,13 @@ class TestEnforcedRenderCheck:
         ctx = LoopContext(session_id="sess-1", repo_path=str(tmp_path), allow_app_changes=True)
 
         await node._repair_render_failures(
-            _state(), _loop_result(), ctx,
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            _state(),
+            _loop_result(),
+            ctx,
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert check.calls == 0
@@ -976,13 +932,16 @@ class TestEnforcedRenderCheck:
     async def test_cancelled_run_is_left_alone(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=False)])
         monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
-        cancelled = LoopResult(
-            reason=TerminationReason.CANCELLED, messages=[], final_text="", turns=1
-        )
+        cancelled = LoopResult(reason=TerminationReason.CANCELLED, messages=[], final_text="", turns=1)
 
         await node._repair_render_failures(
-            _state(), cancelled, _committed_ctx(tmp_path),
-            registry=None, adapter=None, system_prompt="", on_event=None,
+            _state(),
+            cancelled,
+            _committed_ctx(tmp_path),
+            registry=None,
+            adapter=None,
+            system_prompt="",
+            on_event=None,
         )
 
         assert check.calls == 0
@@ -991,9 +950,7 @@ class TestEnforcedRenderCheck:
         called: list[str] = []
 
         async def fake_run_loop(**kwargs):
-            return LoopResult(
-                reason=TerminationReason.COMPLETED, messages=[], final_text="done", turns=1
-            )
+            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="done", turns=1)
 
         async def fake_repair(state, result, ctx, **kwargs):
             called.append(state.session_id)
@@ -1003,9 +960,7 @@ class TestEnforcedRenderCheck:
         monkeypatch.setattr(node, "build_adapter", lambda role: object())
         monkeypatch.setattr(node, "_repair_render_failures", fake_repair)
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
 
         await handle(_state())
 
@@ -1015,9 +970,7 @@ class TestEnforcedRenderCheck:
         called: list[str] = []
 
         async def fake_run_loop(**kwargs):
-            return LoopResult(
-                reason=TerminationReason.COMPLETED, messages=[], final_text="done", turns=1
-            )
+            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="done", turns=1)
 
         async def fake_repair(state, result, ctx, **kwargs):
             called.append(state.session_id)
@@ -1027,9 +980,7 @@ class TestEnforcedRenderCheck:
         monkeypatch.setattr(node, "build_adapter", lambda role: object())
         monkeypatch.setattr(node, "_repair_render_failures", fake_repair)
         monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.send", lambda evt: None)
-        monkeypatch.setattr(
-            "agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False
-        )
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.sink.is_cancelled", lambda sid: False)
 
         await handle(_state(allow_app_changes=False))
 
@@ -1081,9 +1032,7 @@ class TestCurrentRequestFraming:
 
         async def fake_run_loop(**kwargs):
             captured.update(kwargs)
-            return LoopResult(
-                reason=TerminationReason.COMPLETED, messages=[], final_text="ok", turns=1
-            )
+            return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="ok", turns=1)
 
         _patch_loop(monkeypatch, fake_run_loop)
 

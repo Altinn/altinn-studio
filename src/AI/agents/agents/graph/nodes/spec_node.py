@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextvars
 import time
+
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from agents.workflows.spec.pipeline import run_spec_pipeline
@@ -14,10 +15,7 @@ log = get_logger(__name__)
 
 def _spec_status(form_spec) -> str:
     pages = form_spec.total_pages
-    return (
-        f"Hentet ut feltliste: {form_spec.field_count()} felt "
-        f"på {pages} {'side' if pages == 1 else 'sider'}"
-    )
+    return f"Hentet ut feltliste: {form_spec.field_count()} felt på {pages} {'side' if pages == 1 else 'sider'}"
 
 
 async def handle(state: AgentState) -> AgentState:
@@ -48,6 +46,7 @@ async def handle(state: AgentState) -> AgentState:
 
     try:
         import asyncio
+
         loop = asyncio.get_running_loop()
         ctx = contextvars.copy_context()
         form_spec = await loop.run_in_executor(
@@ -62,7 +61,7 @@ async def handle(state: AgentState) -> AgentState:
         if form_spec:
             state.form_spec = form_spec
             log.info(
-                f"✅ FormSpec stored: \"{form_spec.title}\" — "
+                f'✅ FormSpec stored: "{form_spec.title}" — '
                 f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
             )
             sink.send(

@@ -60,7 +60,7 @@ describe('Expression validation', () => {
     cy.navPage('Skjul felter').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
@@ -100,7 +100,7 @@ describe('Expression validation', () => {
     cy.findByRole('checkbox', { name: /bosted/i }).check();
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
@@ -162,7 +162,7 @@ describe('Expression validation', () => {
     }
 
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
@@ -254,7 +254,7 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /skjul nøstet rad basert på prosjekt-tittel/i }).type('UgyldigProsjekt');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
