@@ -8,9 +8,9 @@ import Dobbeltinnsending from './05-dobbeltinnsending';
 import Halvveis from './06-halvveis';
 import Driftshverdagen from './07-driftshverdagen';
 import Prosessmotor from './08-prosessmotor';
-import SimInnbygger from './10-sim-innbygger';
-import SimUstabil from './11-sim-ustabil';
-import SimDrift from './12-sim-drift';
+import ScenarioFeil from './10-scenario-feil';
+import ScenarioOmstart from './11-scenario-omstart';
+import { SIM_STEPS } from '../sims';
 import Dashbord from './13-dashbord';
 import ForApputviklere from './14-for-apputviklere';
 import BliMed from './15-bli-med';
@@ -83,27 +83,16 @@ export const slides: SlideDef[] = [
       'App-en melder inn hva som skal skje og får svar. Motoren skriver hvert steg til Postgres, kjører dem i rekkefølge, og kaller tilbake til app-en for hvert steg. Databasen er fasit — ingen kø i minnet.',
   },
   {
-    id: 'sim-innbygger',
-    component: SimInnbygger,
-    // The simulations play themselves. `steps: 0` on purpose: the presenter
-    // hands the slide to the scene and the next `→` moves on to the next slide.
-    steps: 0,
-    notes:
-      'Samme uhell på begge sider — spørsmålet er hva det koster Kari. Til venstre: en feilmelding, og ingen som vet om noe ble gjort. Til høyre er arbeidet skrevet ned før det utføres, så en annen server tar over der den forrige slapp, og det som alt var gjort, gjøres ikke om igjen. Merk: venteskjermen kommer når fanen er tilbake — den nye statusvisningen i fanen som trykket, er ikke slått sammen ennå.',
+    id: 'scenario-feil',
+    component: ScenarioFeil,
+    steps: SIM_STEPS.feil,
+    notes: 'TODO',
   },
   {
-    id: 'sim-ustabil',
-    component: SimUstabil,
-    steps: 0,
-    notes:
-      'Her er poenget at venting ikke er en feil. Steget parkeres, slipper arbeideren og sjekker igjen etter avtalt tid. En ekte feil gir nytt forsøk med voksende pause — ett sekund, så mer, med litt tilfeldig spredning så ikke alle banker på samtidig. Kari er ferdig lenge før mottakeren er oppe igjen.',
-  },
-  {
-    id: 'sim-drift',
-    component: SimDrift,
-    steps: 0,
-    notes:
-      'Feil skjer uansett, også med motoren. Forskjellen er natta etterpå: i dag leter vi i loggene og rydder manuelt, sak for sak. Med motoren står steget i dashbordet med status, tidsbruk og hele feilhistorikken — og drift kan kjøre det på nytt fra steget som feilet. Knappene kaller det samme åpne API-et som alle andre bruker.',
+    id: 'scenario-omstart',
+    component: ScenarioOmstart,
+    steps: SIM_STEPS.omstart,
+    notes: 'TODO',
   },
   {
     id: 'dashbord',

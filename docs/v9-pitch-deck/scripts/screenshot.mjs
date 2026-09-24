@@ -34,7 +34,6 @@ const SETTLE_MS = 450;
  * lands on whichever beat happened to be on screen 450 ms after arrival, so the
  * "deterministic" mode produced a different picture on every run.
  */
-const SIM_DONE_TIMEOUT_MS = 25_000;
 
 function parseArgs(argv) {
   const args = { steps: false, url: null, out: 'shots', port: 4173 };
@@ -100,20 +99,6 @@ async function readRegistry(page) {
   });
 }
 
-/**
- * If the slide on stage holds a self-playing simulation, wait for it to park on
- * its end state. Slides without one return immediately.
- */
-async function settleSimulation(page) {
-  const hasSim = await page.evaluate(() => Boolean(document.querySelector('.deck__slide .sim')));
-  if (!hasSim) return;
-  await page.waitForFunction(
-    () => document.querySelector('.deck__slide .sim')?.getAttribute('data-done') === 'true',
-    undefined,
-    { timeout: SIM_DONE_TIMEOUT_MS },
-  );
-}
-
 async function gotoSlide(page, index, step) {
   const hash = step > 0 ? `#/${index + 1}/${step}` : `#/${index + 1}`;
   await page.evaluate((h) => {
@@ -138,7 +123,6 @@ async function gotoSlide(page, index, step) {
     { timeout: READY_TIMEOUT_MS },
   );
 
-  await settleSimulation(page);
   await page.waitForTimeout(SETTLE_MS);
 }
 

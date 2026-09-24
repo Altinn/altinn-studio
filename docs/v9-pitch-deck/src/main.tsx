@@ -11,7 +11,6 @@ import '@fontsource/inter/800.css';
 import './styles/global.css';
 import { App } from './App';
 import { disableAcceleratedAnimations } from './deck';
-import { harnessRoot } from './sims/harnessEntry'; // dev only: `?sim=innbygger`
 
 // Must run before the first animation starts. Without it every framer-motion
 // opacity animation in the deck ends on one frame of the value it started FROM:
@@ -24,6 +23,6 @@ if (!container) throw new Error('Root container #root is missing from index.html
 
 createRoot(container).render(
   <StrictMode>
-    {harnessRoot() ?? <App />}
+    <App />
   </StrictMode>,
 );
