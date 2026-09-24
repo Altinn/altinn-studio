@@ -3,32 +3,36 @@ import { Slide, Icon, Reveal } from '../components';
 import type { IconName } from '../components';
 
 const BULLETS: { icon: IconName; text: string }[] = [
-  { icon: 'refresh', text: 'Noen navn i koden endrer seg.' },
-  { icon: 'document', text: 'PDF og forsendelse blir egne tjenesteoppgaver.' },
-  { icon: 'clock', text: 'Oppgaver som venter lenge, får et eget API.' },
+  { icon: 'terminal', text: 'Ett verktøy skriver om det det kan.' },
+  { icon: 'flag', text: 'Det peker ut det du må gjøre selv.' },
+  { icon: 'user', text: 'Vi hjelper deg med resten.' },
 ];
 
+/**
+ * What `studioctl app upgrade v9` does, in plain words. The three TODO lines
+ * are the ones the tool reports rather than rewrites: permissions the app uses
+ * itself, archive tasks, and feedback steps behind a service task (CHANGELOG).
+ */
 const TERMINAL: { text: string; kind: 'cmd' | 'ok' | 'todo' }[] = [
   { text: 'studioctl app upgrade v9', kind: 'cmd' },
-  { text: 'IProcessTaskEnd → IOnTaskEndingHandler', kind: 'ok' },
-  { text: 'PDF-flagg → tjenesteoppgave i process.bpmn', kind: 'ok' },
-  { text: 'eFormidling → ny registrering', kind: 'ok' },
-  { text: 'Mottak av hendelser fjernet', kind: 'ok' },
-  { text: 'policy.xml: rettigheter appen bruker selv', kind: 'todo' },
-  { text: 'arkivoppgave: legg til gateway etter oppgaven', kind: 'todo' },
+  { text: 'Navn i koden er oppdatert', kind: 'ok' },
+  { text: 'PDF og forsendelse er egne tjenesteoppgaver', kind: 'ok' },
+  { text: 'Tilganger appen bruker selv', kind: 'todo' },
+  { text: 'Arkivoppgaver: ett steg legges til', kind: 'todo' },
+  { text: 'Ventesteg som ikke lenger trengs', kind: 'todo' },
 ];
 
 const PREFIX = { cmd: '$ ', ok: '✔ ', todo: 'TODO ' };
 
-/** Slide 14 — what the engine costs an app developer. */
-export default function ForApputviklereSlide({ step }: SlideProps) {
+/** What the upgrade costs an app developer. */
+export default function OppgraderingSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="split"
       splitRatio="820px 788px"
-      kicker="For apputviklere"
-      title="Hva betyr det for apputviklere"
-      subtitle="BPMN-en din er den samme. Prosessmotoren er en del av plattformen — ikke noe du skrur på."
+      kicker="Backend · oppgradering"
+      title="Hva koster oppgraderingen?"
+      subtitle="Prosessen din er den samme. Prosessmotoren følger med plattformen — det er ingenting å skru på."
     >
       <div className="s-fill" style={{ justifyContent: 'flex-start', gap: 'var(--sp-4)' }}>
         <div className="s-bpmn">
@@ -69,7 +73,7 @@ export default function ForApputviklereSlide({ step }: SlideProps) {
             <circle cx="718" cy="65" r="26" fill="none" stroke="#6b7a8f" strokeWidth="6" />
           </svg>
           <p className="s-bpmn__caption">
-            Prosessfilen i maloppsettet er byte for byte lik mellom v8 og v9.
+            Prosessfilen i malen er lik i v8 og v9.
           </p>
         </div>
 
@@ -97,7 +101,7 @@ export default function ForApputviklereSlide({ step }: SlideProps) {
             </p>
           ))}
           <p className="s-term__note">
-            Resten skriver den om selv. To punkter må gjøres for hånd.
+            Verktøyet peker ut de tre punktene som gjøres for hånd.
           </p>
         </div>
       </Reveal>

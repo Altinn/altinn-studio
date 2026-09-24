@@ -51,9 +51,9 @@ const CHAINS: {
 ];
 
 const ERRORS: { time: string; text: string; badge: string }[] = [
-  { time: '11:05:09', text: '503 fra mottaker', badge: 'Kan prøves igjen' },
-  { time: '11:04:41', text: 'Tidsavbrudd', badge: 'Kan prøves igjen' },
-  { time: '11:04:12', text: '503 fra mottaker', badge: 'Kan prøves igjen' },
+  { time: '11:05:09', text: 'Mottakeren svarte ikke', badge: 'Prøves igjen' },
+  { time: '11:04:41', text: 'Fikk ikke svar i tide', badge: 'Prøves igjen' },
+  { time: '11:04:12', text: 'Mottakeren svarte ikke', badge: 'Prøves igjen' },
 ];
 
 const LEGEND: { tone: 'ok' | 'run' | 'wait' | 'bad'; label: string }[] = [
@@ -63,19 +63,19 @@ const LEGEND: { tone: 'ok' | 'run' | 'wait' | 'bad'; label: string }[] = [
   { tone: 'bad', label: 'Nytt forsøk' },
 ];
 
-/** Slide 13 — the engine dashboard: every step, every attempt, every error. */
+/** The engine dashboard: every step, every attempt, every error. */
 export default function DashbordSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Med prosessmotor · v9"
+      kicker="Backend · drift"
       title="Vi kan se hva som skjer"
-      subtitle="Hver instans, hvert steg, hvert forsøk og hver feilmelding — med tidsbruk og full feilhistorikk."
+      subtitle="Hver innsending, hvert steg og hvert nytt forsøk — med tidsbruk og hele feilhistorikken."
     >
       <div className="s-dash">
         <div className="s-panel">
           <div className="s-panel__head">
-            <span>Aktive kjeder</span>
+            <span>Innsendinger som pågår</span>
             <span className="s-live">
               <Dot tone="ok" />
               Sanntid
@@ -117,7 +117,7 @@ export default function DashbordSlide({ step }: SlideProps) {
         <Reveal show={step >= 1} from="right">
           <div className="s-panel">
             <div className="s-panel__head">
-              <span>Steg 3 · Forsendelse</span>
+              <span>Steg 3 · Send til mottaker</span>
               <span className="s-tag s-tag--bad">Nytt forsøk</span>
             </div>
 
@@ -125,8 +125,7 @@ export default function DashbordSlide({ step }: SlideProps) {
               <p className="s-drawer__title">Feilhistorikk</p>
               <div className="s-drawer__meta">
                 <span className="s-tag">Startet 11:04:03</span>
-                <span className="s-tag">±20 % spredning</span>
-                <span className="s-tag s-tag--ok">Neste om 42 s</span>
+                <span className="s-tag s-tag--ok">Nytt forsøk om 42 s</span>
               </div>
 
               {ERRORS.map((entry, i) => (

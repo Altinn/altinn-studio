@@ -7,7 +7,7 @@
 import { Fragment } from 'react';
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
-import { Icon } from '../components';
+import { Icon, Reveal, Slide } from '../components';
 import type { IconName } from '../components';
 
 /* ---------------------------------------------------------------
@@ -253,5 +253,95 @@ export function StepRow({
       <span>{label}</span>
       <span className={`s-steprow__state is-${tone}`}>{state}</span>
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Feature cards — the grid the section slides are built from.
+   --------------------------------------------------------------- */
+
+export interface Feature {
+  icon: IconName;
+  /** Small caps line above the title: the area, in one word. */
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+
+/**
+ * Three or four cards in a row, revealed together or one per build step.
+ * `revealFrom` is the build step the first card appears on; omit it to show
+ * them all from the start.
+ */
+export function FeatureGrid({
+  features,
+  tone = 'run',
+  step = 0,
+  revealFrom,
+}: {
+  features: readonly Feature[];
+  tone?: 'run' | 'ok';
+  step?: number;
+  revealFrom?: number;
+}) {
+  return (
+    <div className={`s-fcards s-fcards--${features.length}`}>
+      {features.map((f, i) => (
+        <Reveal
+          key={f.title}
+          show={revealFrom === undefined || step >= revealFrom + i}
+          delay={revealFrom === undefined ? i * 0.05 : 0}
+        >
+          <div className={`s-fcard s-fcard--feature is-${tone}`}>
+            <span className="s-fcard__icon">
+              <Icon name={f.icon} size={36} />
+            </span>
+            <p className="s-fcard__status">{f.eyebrow}</p>
+            <h3 className="s-fcard__title">{f.title}</h3>
+            <p className="s-fcard__body">{f.body}</p>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+/** A full-width strip for what is on its way — named plainly as not shipped yet. */
+export function ComingStrip({ show, children }: { show: boolean; children: ReactNode }) {
+  return (
+    <Reveal show={show}>
+      <div className="s-coming">
+        <span className="s-coming__tag">
+          <Icon name="rocket" size={30} />
+          Kommer
+        </span>
+        <p className="s-coming__text">{children}</p>
+      </div>
+    </Reveal>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Section divider — one per part of the talk.
+   --------------------------------------------------------------- */
+
+export function SectionSlide({
+  no,
+  title,
+  lead,
+}: {
+  no: ReactNode;
+  title: ReactNode;
+  lead: ReactNode;
+}) {
+  return (
+    <Slide variant="full">
+      <Backdrop variant="closing" />
+      <div className="s-section">
+        <p className="s-section__no">{no}</p>
+        <h1 className="s-section__title">{title}</h1>
+        <p className="s-section__lead">{lead}</p>
+      </div>
+    </Slide>
   );
 }

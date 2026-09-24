@@ -2,7 +2,7 @@ import type { SlideProps } from '../deck';
 import { Slide, Reveal } from '../components';
 import { Chain } from './_kit';
 
-/** Slide 3 — nothing is written down while the chain runs. */
+/** Nothing is written down while the chain runs. */
 export default function EnTradSlide({ step }: SlideProps) {
   return (
     <Slide

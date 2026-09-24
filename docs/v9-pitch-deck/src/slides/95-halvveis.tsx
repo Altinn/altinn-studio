@@ -55,7 +55,7 @@ const DOUBLE = {
   v9: 'Med prosessmotoren gir samme forsøk samme svar, og ingenting nytt blir opprettet.',
 };
 
-/** Slide 6 — the failure modes of a half-finished chain. */
+/** The failure modes of a half-finished chain. */
 export default function HalvveisSlide({ step }: SlideProps) {
   return (
     <Slide

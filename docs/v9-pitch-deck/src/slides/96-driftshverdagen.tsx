@@ -15,7 +15,7 @@ const LOG: { text: string; tone?: 'warn' | 'err' }[] = [
   { text: '11:05:12  warn   EventDispatcher     Could not register cloud event', tone: 'warn' },
 ];
 
-/** Slide 7 — what operations has to work with today. */
+/** What operations has to work with today. */
 export default function DriftshverdagenSlide({ step }: SlideProps) {
   return (
     <Slide

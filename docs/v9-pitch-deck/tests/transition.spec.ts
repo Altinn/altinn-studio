@@ -230,7 +230,7 @@ test('a slide change crossfades without a gap, a ghost or a flash', async ({ pag
 });
 
 test('build-step content lands without blinking out', async ({ page }) => {
-  await page.goto('/#/6'); // `halvveis` — one card revealed per build step
+  await page.goto('/#/13'); // `for-utviklere` — one card revealed per build step
   await settle(page);
   const id = (await root(page).getAttribute('data-slide-id'))!;
 
@@ -288,10 +288,11 @@ test('keyboard repeat never strands the deck on a stale slide', async ({ page })
     'data-slide-layer',
     (await root(page).getAttribute('data-slide-id'))!,
   );
-  // Slides 1-3 hold 1 + 2 + 2 build steps, so the eighth press opens slide 4.
-  // Anything short of that means presses were swallowed.
-  await expect(root(page)).toHaveAttribute('data-slide-index', '3');
-  await expect(root(page)).toHaveAttribute('data-slide-step', '0');
+  // Slides 1-4 hold 1 + 2 + 0 + 0 build steps, so the eighth press lands on
+  // slide 5's first build step. Anything short of that means presses were
+  // swallowed.
+  await expect(root(page)).toHaveAttribute('data-slide-index', '4');
+  await expect(root(page)).toHaveAttribute('data-slide-step', '1');
 });
 
 test('a build step re-renders the slide instead of remounting it', async ({ page }) => {

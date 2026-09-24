@@ -2,7 +2,7 @@ import type { SlideProps } from '../deck';
 import { Slide, Icon, Reveal } from '../components';
 import { ArrowDefs, Wire } from './_kit';
 
-/** Slide 5 — two clicks, one instance, two of everything. */
+/** Two clicks, one instance, two of everything. */
 export default function DobbeltinnsendingSlide({ step }: SlideProps) {
   return (
     <Slide
