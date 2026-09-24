@@ -39,6 +39,16 @@ export function useEvalOptionalText(
   return expr === undefined ? undefined : value;
 }
 
+/** Evaluates an optional text binding on a component whose bindings vary by type. */
+export function useEvalOptionalTrb<
+  D extends Record<string, ExpressionDescriptor<ExprVal.String>>,
+  K extends keyof D & string,
+>(config: { textResourceBindings?: object }, key: K, descriptors: D): string | undefined {
+  const bindings = config.textResourceBindings;
+  const expression = bindings && key in bindings ? (bindings as Record<string, unknown>)[key] : undefined;
+  return useEvalOptionalText(expression as ExprValToActualOrExpr<ExprVal.String> | undefined, descriptors[key]);
+}
+
 type ExpressionInputs<D extends Record<string, ExpressionDescriptor>> = {
   [K in keyof D]?: ExprValToActualOrExpr<D[K]['returnType']>;
 };
