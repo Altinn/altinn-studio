@@ -57,6 +57,7 @@ public class ProcessStateEnricherTests
         Assert.Null(result.Workflow.FailedAttempts);
         Assert.Null(result.Workflow.Progress);
         Assert.Null(result.Workflow.StartedAt);
+        Assert.Null(result.Workflow.ResumedAt);
     }
 
     [Fact]

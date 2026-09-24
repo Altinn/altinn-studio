@@ -1699,8 +1699,10 @@ public class WorkflowEngineServiceTests
         Assert.Equal("Task_2", result.TargetTask);
         Assert.True(result.Retrying);
         Assert.Equal(3, result.FailedAttempts);
-        // Resume reruns the head in place, so the current run is timed from the resume.
-        Assert.Equal(headResumedAt, result.StartedAt);
+        // Resume reruns the head in place: both times pass through unchanged, side by side.
+        Assert.Equal(headCreatedAt, result.StartedAt);
+        Assert.Equal(headResumedAt, result.ResumedAt);
+        Assert.Equal(headResumedAt, result.ToAppProcessWorkflowStatus().ResumedAt);
         Assert.Null(result.Failure);
         Assert.Equal(new WorkflowStepProgress(Completed: 7, Total: 12), result.Progress);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);

@@ -72,14 +72,23 @@ public sealed class AppProcessWorkflowStatus
     public AppProcessWorkflowProgress? Progress { get; init; }
 
     /// <summary>
-    /// When the in-flight transition was enqueued, or last resumed, on the workflow engine's clock.
-    /// Present only while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>.
-    /// Compare with <see cref="CurrentTime"/> to measure elapsed processing time across page
-    /// reloads.
+    /// When the in-flight transition was enqueued, on the workflow engine's clock. Present only
+    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>. Compare with
+    /// <see cref="CurrentTime"/> to measure elapsed processing time across page reloads.
     /// </summary>
     [JsonPropertyName("startedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? StartedAt { get; init; }
+
+    /// <summary>
+    /// When the in-flight transition was last resumed, on the workflow engine's clock. Resume reruns
+    /// the transition in place and keeps <see cref="StartedAt"/>, so a client timing the current run
+    /// starts from this when it is present. Present only while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/> and the transition has been resumed.
+    /// </summary>
+    [JsonPropertyName("resumedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ResumedAt { get; init; }
 
     /// <summary>
     /// The workflow engine clock time when its status response was assembled. Present only while

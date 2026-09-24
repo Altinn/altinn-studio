@@ -258,11 +258,15 @@ interface IProcessWorkflowProcessing {
    */
   progress?: IProcessWorkflowProgress;
   /**
-   * When the in-flight transition was enqueued, or last resumed, on the workflow engine's clock
-   * (ISO timestamp).
+   * When the in-flight transition was enqueued, on the workflow engine's clock (ISO timestamp).
    * Compare with currentTime to measure elapsed processing time across page reloads.
    */
   startedAt?: string;
+  /**
+   * When the in-flight transition was last resumed, on the workflow engine's clock (ISO timestamp).
+   * Resume reruns the transition and keeps `startedAt`. Omitted when it was never resumed.
+   */
+  resumedAt?: string;
   /** Engine clock time when the status was sampled (ISO timestamp). Omitted by older engines. */
   currentTime?: string;
 }

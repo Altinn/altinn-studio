@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// transition's engine steps execution has come. <see cref="FailedAttempts"/> (also processing-only)
 /// counts the current step's consecutive failed attempts and, unlike retrying, holds steady while a
 /// retry attempt executes. <see cref="StartedAt"/> (also processing-only) is
-/// when the transition was enqueued, or last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
+/// when the transition was enqueued, and <see cref="ResumedAt"/> when it was last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
 /// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
 /// client and server clocks.
 /// </summary>
@@ -27,7 +27,8 @@ internal sealed record WorkflowTaskStatus(
     DateTimeOffset? StartedAt = null,
     string? WaitingReason = null,
     DateTimeOffset? CurrentTime = null,
-    int FailedAttempts = 0
+    int FailedAttempts = 0,
+    DateTimeOffset? ResumedAt = null
 )
 {
     /// <summary>
@@ -47,6 +48,7 @@ internal sealed record WorkflowTaskStatus(
                 ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }
                 : null,
             StartedAt = StartedAt,
+            ResumedAt = ResumedAt,
             CurrentTime = CurrentTime,
             Failure = Failure is { } failure
                 ? new AppProcessWorkflowFailure

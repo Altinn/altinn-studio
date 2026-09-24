@@ -190,6 +190,29 @@ describe('failing transition', () => {
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
   });
 
+  it('times a resumed transition from the resume, not the original submit', async () => {
+    const resumedAt = new Date(Date.parse(startedAt) + 10 * 60_000).toISOString();
+    vi.mocked(useProcessWorkflow).mockReturnValue({
+      status: 'processing',
+      startedAt,
+      resumedAt,
+      currentTime: new Date(Date.parse(resumedAt) + 2_000).toISOString(),
+      failedAttempts: 1,
+    });
+    render(<WorkflowProcessing />);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6_000);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
+  });
+
   it('returns to the still-working notice once the failing step succeeds', () => {
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(30_000, 3));
     const { rerender } = render(<WorkflowProcessing />);

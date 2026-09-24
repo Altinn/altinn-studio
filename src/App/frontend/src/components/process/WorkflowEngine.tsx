@@ -32,14 +32,15 @@ const TROUBLE_AFTER_ONE_FAILURE_MS = 20_000;
 export function WorkflowProcessing() {
   const workflow = useProcessWorkflow();
   const isProcessing = workflow?.status === 'processing';
-  const startedAt = isProcessing ? workflow.startedAt : undefined;
+  // A resume reruns the transition and keeps startedAt, so the current run is timed from the resume.
+  const runStartedAt = isProcessing ? (workflow.resumedAt ?? workflow.startedAt) : undefined;
   const currentTime = isProcessing ? workflow.currentTime : undefined;
   const failedAttempts = isProcessing ? (workflow.failedAttempts ?? 0) : 0;
-  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(startedAt ?? '');
+  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(runStartedAt ?? '');
   // Older engines and invalid timestamps fall back to measuring from when this screen appeared.
   const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
-  const stillWorking = useHasProcessedFor(STILL_WORKING_MS, isProcessing, startedAt, elapsedMs);
-  const failingForLong = useHasProcessedFor(TROUBLE_AFTER_ONE_FAILURE_MS, failedAttempts > 0, startedAt, elapsedMs);
+  const stillWorking = useHasProcessedFor(STILL_WORKING_MS, isProcessing, runStartedAt, elapsedMs);
+  const failingForLong = useHasProcessedFor(TROUBLE_AFTER_ONE_FAILURE_MS, failedAttempts > 0, runStartedAt, elapsedMs);
   const havingTrouble = failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForLong;
 
   return (
@@ -69,9 +70,14 @@ export function WorkflowProcessing() {
 /**
  * Reports whether processing has run for at least `thresholdMs` while `active`. Starts from the
  * engine-measured `elapsedMs` and lets a browser timer cover the rest, restarting when a different
- * transition (`startedAt`) begins.
+ * run (`runStartedAt`) begins: a new transition, or a resume of this one.
  */
-function useHasProcessedFor(thresholdMs: number, active: boolean, startedAt: string | undefined, elapsedMs: number) {
+function useHasProcessedFor(
+  thresholdMs: number,
+  active: boolean,
+  runStartedAt: string | undefined,
+  elapsedMs: number,
+) {
   const [reached, setReached] = useState(false);
 
   useEffect(() => {
@@ -84,7 +90,7 @@ function useHasProcessedFor(thresholdMs: number, active: boolean, startedAt: str
     return () => {
       clearTimeout(timer);
     };
-  }, [thresholdMs, active, startedAt, elapsedMs]);
+  }, [thresholdMs, active, runStartedAt, elapsedMs]);
 
   return reached;
 }
