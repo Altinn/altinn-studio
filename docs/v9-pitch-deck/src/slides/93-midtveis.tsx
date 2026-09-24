@@ -5,7 +5,7 @@ import { Chain } from './_kit';
 const BEFORE = ['done', 'done', 'done', 'done', 'idle', 'idle', 'idle'] as const;
 const AFTER = ['done', 'done', 'done', 'done', 'ghost', 'ghost', 'ghost'] as const;
 
-/** Slide 4 — the pod dies between the side effects and the process state. */
+/** The pod dies between the side effects and the process state. */
 export default function MidtveisSlide({ step }: SlideProps) {
   const crashed = step >= 1;
 

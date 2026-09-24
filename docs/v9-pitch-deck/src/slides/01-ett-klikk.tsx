@@ -6,16 +6,16 @@ import { Backdrop, BrandMark } from './_kit';
 
 /** The ten things one «Send inn» sets off. */
 const THINGS: { label: string; icon: IconName }[] = [
-  { label: 'Lås instansen', icon: 'lock' },
-  { label: 'Valider skjemaet', icon: 'check' },
-  { label: 'Avslutt oppgaven', icon: 'flag' },
-  { label: 'Lagre skjemadata', icon: 'database' },
-  { label: 'Lås datafilene', icon: 'shield' },
+  { label: 'Hindre dobbel innsending', icon: 'lock' },
+  { label: 'Sjekk skjemaet', icon: 'check' },
+  { label: 'Avslutt steget', icon: 'flag' },
+  { label: 'Lagre svarene', icon: 'database' },
+  { label: 'Lås svarene', icon: 'shield' },
   { label: 'Lag PDF', icon: 'document' },
-  { label: 'Lagre PDF', icon: 'layers' },
-  { label: 'Send forsendelse', icon: 'send' },
-  { label: 'Registrer hendelser', icon: 'bell' },
-  { label: 'Gå til neste oppgave', icon: 'refresh' },
+  { label: 'Lagre PDF-en', icon: 'layers' },
+  { label: 'Send til mottaker', icon: 'send' },
+  { label: 'Varsle andre systemer', icon: 'bell' },
+  { label: 'Gå videre i prosessen', icon: 'refresh' },
 ];
 
 const CHIP_TOP = (i: number) => 4 + i * 70;
@@ -31,15 +31,15 @@ export default function EttKlikkSlide({ step }: SlideProps) {
 
       <div className="s-cover">
         <div className="s-cover__col">
-          <p className="s-cover__kicker">Altinn-apper · v8 → v9</p>
+          <p className="s-cover__kicker">Altinn-apper · v9</p>
           <h1 className="s-cover__title">
             Ett klikk,
             <br />
             mange ting
           </h1>
           <p className="s-cover__lead">
-            Når en bruker trykker «Send inn», skjer det ti ting. I dag må alle ti lykkes i løpet av
-            én forespørsel.
+            Når en bruker trykker «Send inn», skjer det ti ting. I v8 må alle ti lykkes mens
+            brukeren venter.
           </p>
         </div>
 

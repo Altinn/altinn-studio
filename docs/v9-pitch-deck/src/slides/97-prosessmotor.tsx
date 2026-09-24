@@ -2,7 +2,7 @@ import type { SlideProps } from '../deck';
 import { Slide, Icon, Reveal } from '../components';
 import { ArrowDefs, StepRow, Wire } from './_kit';
 
-/** Slide 8 — the engine, drawn: app <-> engine <-> steps in Postgres. */
+/** The engine, drawn: app <-> engine <-> steps in Postgres. */
 export default function ProsessmotorSlide({ step }: SlideProps) {
   return (
     <Slide

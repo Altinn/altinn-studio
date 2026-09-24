@@ -6,30 +6,30 @@ import { Backdrop, BrandMark } from './_kit';
 
 const STEPS: { icon: IconName; title: string; body: string }[] = [
   {
+    icon: 'flag',
+    title: 'Si fra',
+    body: 'Fortell oss hvilken app du vil prøve v9 med.',
+  },
+  {
     icon: 'terminal',
-    title: 'Kjør upgrade',
-    body: '«studioctl app upgrade v9» skriver om det den kan, og skriver TODO for resten.',
+    title: 'Oppgrader',
+    body: 'Verktøyet gjør det meste, og vi hjelper med resten.',
   },
   {
     icon: 'server',
-    title: 'Test i testmiljø',
-    body: 'Motoren kjører i testmiljøene. Vi hjelper til med oppsettet.',
-  },
-  {
-    icon: 'bell',
-    title: 'Si fra hva som skurrer',
-    body: 'Vi vil helst ha apper med ekte tjenesteoppgaver: PDF, forsendelse, arkiv.',
+    title: 'Test sammen med oss',
+    body: 'Vi åpner testmiljøet for deg og følger opp underveis.',
   },
 ];
 
-/** Slide 15 — the ask. */
+/** The ask. */
 export default function BliMedSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="9.0.0-preview.5"
+      kicker="v9 · lukket beta"
       title="Bli med i pilotene"
-      subtitle="v9 er i preview og motoren kjører i testmiljøene. Vi ser etter apper som vil prøve den med oss."
+      subtitle="v9 er i lukket beta, foreløpig internt. Vi åpner for flere organisasjoner etter hvert som dere melder dere."
     >
       <Backdrop variant="closing" />
       <BrandMark place="bottom" />

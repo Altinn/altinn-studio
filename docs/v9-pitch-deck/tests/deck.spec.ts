@@ -9,19 +9,20 @@ import { test, expect, type Page } from '@playwright/test';
  * a slide or a build step does, which is the failure worth hearing about.
  */
 const FIRST_ID = 'ett-klikk';
-const SECOND_ID = 'i-dag';
-const LAST_ID = 'bli-med';
-const TOTAL = 13;
+const SECOND_ID = 'tre-omrader';
+/** The last reserve slide — `End` goes past the closing slide to the reserve. */
+const LAST_ID = 'prosessmotor';
+const TOTAL = 24;
 /** Build steps on slide 1 — the first `→` must build, not navigate. */
 const FIRST_SLIDE_STEPS = 1;
 /** Build steps on the last slide, so `→` parks there fully built. */
 const LAST_SLIDE_STEPS = 3;
 /**
- * 13 slides + 55 build steps = every state a presenter clicks through. Each
+ * 24 slides + 65 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 14: six beats per version, the switch, and the
  * comparison.
  */
-const TOTAL_STATES = 68;
+const TOTAL_STATES = 89;
 
 const root = (page: Page) => page.locator('[data-deck-root]');
 

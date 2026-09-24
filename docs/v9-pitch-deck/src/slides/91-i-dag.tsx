@@ -2,7 +2,7 @@ import type { SlideProps } from '../deck';
 import { Slide, Icon, Reveal } from '../components';
 import { Chain, RequestBubble } from './_kit';
 
-/** Slide 2 — the v8 storyboard: one request does all of it. */
+/** The v8 storyboard: one request does all of it. */
 export default function IDagSlide({ step }: SlideProps) {
   return (
     <Slide
