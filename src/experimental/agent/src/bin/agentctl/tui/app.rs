@@ -129,6 +129,59 @@ const SESSION_HINTS: [Hint; 6] = [
 
 const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))];
 
+pub(crate) const HELP_HINTS: [Hint; 1] = [Hint::key("esc", "close", KeyCode::Esc)];
+
+/// A titled group of keys in the help overlay.
+pub(crate) type HelpSection = (&'static str, &'static [(&'static str, &'static str)]);
+
+/// Every key the terminal UI accepts, in the help overlay's two columns.
+pub(crate) const HELP: [&[HelpSection]; 2] = [
+    &[
+        (
+            "Fleet",
+            &[
+                ("tab", "next Session needing you"),
+                ("j / k", "move"),
+                ("enter", "fold, or attach a Session"),
+                ("z", "fold or unfold all"),
+                ("/", "filter by name or state"),
+                ("c", "create an Agent"),
+                ("F", "port forwards"),
+                ("q", "quit"),
+            ],
+        ),
+        (
+            "Views and forms",
+            &[
+                ("j / k", "scroll a detail view"),
+                ("q / esc", "back, or close a form"),
+                ("ctrl-b d", "detach from a Session"),
+            ],
+        ),
+    ],
+    &[
+        (
+            "Selected Agent",
+            &[
+                ("p", "follow provisioning"),
+                ("s / y", "describe, or show YAML"),
+                ("n", "new Session"),
+                ("e", "shell in its Sandbox"),
+                ("f", "forward a port"),
+                ("d", "delete"),
+            ],
+        ),
+        (
+            "Selected Session",
+            &[
+                ("p", "prompt without attaching"),
+                ("s / y", "describe, or show YAML"),
+                ("n", "new Session on its Agent"),
+            ],
+        ),
+    ],
+];
+
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
     pub(crate) sessions: Vec<Session>,
@@ -236,6 +289,7 @@ pub(crate) enum Modal {
     PortForward(ForwardForm),
     Filter,
     Prompt(PromptForm),
+    Help,
 }
 
 /// A prompt for a running Session, sent without attaching to it.
@@ -1274,6 +1328,7 @@ impl App {
             }
             KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
             KeyCode::Char('/') => self.modal = Some(Modal::Filter),
+            KeyCode::Char('?') => self.modal = Some(Modal::Help),
             KeyCode::Tab => self.select_next_needing_input(),
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
@@ -1294,6 +1349,7 @@ impl App {
     fn forwards_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
             KeyCode::Esc | KeyCode::Char('q' | 'F') => self.view = View::Tree,
+            KeyCode::Char('?') => self.modal = Some(Modal::Help),
             KeyCode::Down | KeyCode::Char('j') => self.move_forward_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_forward_selection(-1),
             KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
@@ -1427,6 +1483,12 @@ impl App {
 
     fn modal_key(&mut self, key: KeyEvent) -> Action {
         match self.modal.take() {
+            Some(Modal::Help) => {
+                if !matches!(key.code, KeyCode::Esc | KeyCode::Char('q' | '?')) {
+                    self.modal = Some(Modal::Help);
+                }
+                Action::None
+            }
             Some(Modal::ConfirmDelete { agent, sessions }) => match key.code {
                 KeyCode::Char('y') => Action::Delete { agent },
                 KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
@@ -1820,6 +1882,7 @@ impl App {
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
                 Modal::Filter => &FILTER_HINTS,
                 Modal::Prompt(_) => &PROMPT_HINTS,
+                Modal::Help => &HELP_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -2286,6 +2349,29 @@ mod tests {
             Some(TreeRowId::Agent("builder".into())),
             "unfolding keeps it on the Agent"
         );
+    }
+
+    #[test]
+    fn question_mark_opens_help_over_the_tree_and_the_forwards() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('?')));
+        assert!(matches!(app.modal, Some(Modal::Help)));
+        assert_eq!(app.hints(), &HELP_HINTS);
+        app.on_key(key(KeyCode::Char('j')));
+        assert!(matches!(app.modal, Some(Modal::Help)), "other keys leave it open");
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('q'))),
+            Action::None,
+            "q closes help instead of quitting"
+        );
+        assert!(app.modal.is_none());
+
+        app.on_key(key(KeyCode::Char('F')));
+        app.on_key(key(KeyCode::Char('?')));
+        assert!(matches!(app.modal, Some(Modal::Help)));
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.modal.is_none());
+        assert_eq!(app.view, View::Forwards);
     }
 
     #[test]

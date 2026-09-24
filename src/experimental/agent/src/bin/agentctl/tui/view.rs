@@ -8,9 +8,9 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, Hint, Modal, MouseAction,
-    NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SessionField, Tone, TreeRowId, View,
-    harness_label,
+    App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP, HELP_HINTS, HelpSection, Hint,
+    Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SessionField, Tone,
+    TreeRowId, View, harness_label,
 };
 
 /// Background of the selected row; without colour it is drawn reversed instead.
@@ -24,6 +24,11 @@ const NAME_WIDTH: (usize, usize) = (12, 32);
 /// Width of every form but create-Agent, whose pickers also show manifest paths.
 const FORM_WIDTH: u16 = 64;
 const CREATE_AGENT_FORM_WIDTH: u16 = 96;
+/// Width of the help overlay: two columns inside its border and padding.
+const HELP_WIDTH: u16 = 76;
+/// Width of a help column, and of the key labels in it.
+const HELP_COLUMN_WIDTH: usize = 36;
+const HELP_KEY_WIDTH: usize = 8;
 /// Label column shared by every form row.
 const FORM_LABEL_WIDTH: usize = 12;
 /// A picker's value between its arrows.
@@ -34,7 +39,9 @@ const ERROR_HINTS: [Hint; 2] = [
     Hint::key("esc", "dismiss", crossterm::event::KeyCode::Esc),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
 ];
-const GLOBAL_HINTS: [Hint; 5] = [
+const GLOBAL_HINTS: [Hint; 6] = [
+    // First, so a narrow terminal that cuts the line short still shows where the rest are.
+    Hint::key("?", "help", crossterm::event::KeyCode::Char('?')),
     Hint::key("tab", "next needing you", crossterm::event::KeyCode::Tab),
     Hint::key("/", "filter", crossterm::event::KeyCode::Char('/')),
     Hint::display("j/k", "move"),
@@ -698,9 +705,42 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
+        Modal::Help => render_help(frame, area, hit_map),
         // Typed in the footer, so the tree and the Session's turns stay in view.
         Modal::Filter | Modal::Prompt(_) => {}
     }
+}
+
+/// Every key, grouped by where it applies, in two columns over the current view.
+fn render_help(frame: &mut Frame, area: Rect, hit_map: &mut HitMap) {
+    let heading = Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD);
+    let label = Style::new().fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let column = |sections: &[HelpSection]| {
+        let mut lines = Vec::new();
+        for (index, (title, keys)) in sections.iter().enumerate() {
+            if index > 0 {
+                lines.push(vec![Span::raw("")]);
+            }
+            lines.push(vec![Span::styled(*title, heading)]);
+            for (key, description) in *keys {
+                lines.push(vec![
+                    Span::styled(format!("{key:>HELP_KEY_WIDTH$}"), label),
+                    Span::raw(format!("  {description}")),
+                ]);
+            }
+        }
+        lines
+    };
+    let [left, right] = HELP.map(column);
+    let mut form = Form::new(" keys ", Color::Cyan, &HELP_HINTS);
+    for index in 0..left.len().max(right.len()) {
+        let mut spans = left.get(index).cloned().unwrap_or_default();
+        let used = Line::from(spans.clone()).width();
+        spans.push(Span::raw(" ".repeat(HELP_COLUMN_WIDTH.saturating_sub(used))));
+        spans.extend(right.get(index).cloned().unwrap_or_default());
+        form = form.row(Line::from(spans));
+    }
+    form.render(frame, area, HELP_WIDTH, hit_map);
 }
 
 fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionForm, hit_map: &mut HitMap) {
@@ -1353,7 +1393,7 @@ mod tests {
             ));
         }
         type Open = fn(&mut App);
-        let views: [(&str, Open); 7] = [
+        let views: [(&str, Open); 8] = [
             ("tree", |_| {}),
             ("filter", |app| app.modal = Some(Modal::Filter)),
             ("new session", |app| press(app, 0, 'n')),
@@ -1361,6 +1401,7 @@ mod tests {
             ("delete", |app| press(app, 0, 'd')),
             ("describe", |app| press(app, 3, 's')),
             ("prompt", |app| press(app, 2, 'p')),
+            ("help", |app| press(app, 0, '?')),
         ];
         for width in [60, 80, 110, 160] {
             for (name, open) in views {
@@ -1383,6 +1424,32 @@ mod tests {
                     "{name} at {width} shows its hints:\n{text}"
                 );
             }
+        }
+    }
+
+    #[test]
+    fn help_lists_every_key_by_where_it_applies_and_the_footer_offers_it() {
+        let mut app = triage_app();
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(
+            text.lines().last().is_some_and(|line| line.starts_with("? help")),
+            "the footer offers help first:\n{text}"
+        );
+
+        app.modal = Some(Modal::Help);
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        for expected in [
+            "keys",
+            "Fleet",
+            "Selected Agent",
+            "Selected Session",
+            "follow provisioning",
+            "esc close",
+        ] {
+            assert!(text.contains(expected), "{expected:?} in:\n{text}");
         }
     }
 
