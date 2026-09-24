@@ -71,7 +71,7 @@ class RepositoryDiscovery:
         layout_files = []
 
         for layout_file in ui_dir.glob(LAYOUT_FILE_GLOB_PATTERN):
-            relative_path = str(layout_file.relative_to(self.repo_path))
+            relative_path = layout_file.relative_to(self.repo_path).as_posix()
             layout_files.append(relative_path)
             log.debug(f"Found layout: {relative_path}")
 
