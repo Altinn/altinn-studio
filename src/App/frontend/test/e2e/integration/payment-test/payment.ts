@@ -31,11 +31,11 @@ describe('Payment', () => {
 
       // TODO: This should be removed once we have a more realistic payment provider that pushes the process for us
       cy.findByText('Du har betalt!').should('be.visible');
+      cy.url().should('match', /\/Task_2\/payment$/);
       cy.findByRole('button', { name: /Neste/ }).click();
     });
 
     it('should redirect to the payment page, then the successpage', () => {
-      cy.url().should('match', /\/Task_2\/payment$/);
       cy.url().should('match', /\/ProcessEnd$/);
     });
     it('The PDF receipt should be visible', () => {
