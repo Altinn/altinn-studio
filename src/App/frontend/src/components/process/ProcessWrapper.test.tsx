@@ -369,6 +369,78 @@ describe('ProcessWrapper workflow state machine', () => {
     }
   });
 
+  it('PDF mode renders a non-current PDF service task instead of the wrong-task error', async () => {
+    // Previewing a later PDF service task: the URL task (Task_Pdf) differs from process.currentTask
+    // (Task_1, the data task the app developer is currently editing). PDF mode must render the PDF
+    // service task's snapshot instead of the "part of form completed" wrong-task error, and must not
+    // fall back to the default ServiceTaskWaiting view either - PdfWrapper renders the PDF component.
+    const instance = getInstanceWithProcessMock();
+    instance.process.processTasks = [
+      { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
+      { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
+    ];
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      taskId: 'Task_Pdf',
+      query: 'pdf=1&task=Task_1',
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    await waitFor(() => expect(document.getElementById('pdfView')).not.toBeNull());
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/denne delen av skjemaet er ikke tilgjengelig/i)).not.toBeInTheDocument();
+  });
+
+  it('outside PDF mode a non-current task still shows the wrong-task error', async () => {
+    // Guards against a regression where the PDF-mode carve-out in useIsWrongTask leaks outside PDF
+    // mode: a stale/foreign task id in the URL must still be treated as the wrong task.
+    // useIsNavigating() also compares against window.location (not just router state), so it must
+    // be pointed at the same URL the memory router starts on for the wrong-task state to ever settle.
+    const originalUrl = `${window.location.pathname}${window.location.search}`;
+    window.history.pushState(
+      {},
+      '',
+      '/ttd/test/instance/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/Task_Pdf/FormLayout',
+    );
+
+    try {
+      const instance = getInstanceWithProcessMock();
+      instance.process.processTasks = [
+        { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
+        { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
+      ];
+
+      await renderWithInstanceAndLayout({
+        renderer: () => (
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        ),
+        taskId: 'Task_Pdf',
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => instance,
+          },
+        },
+      });
+
+      expect(await screen.findByText(/denne delen av skjemaet er ikke tilgjengelig/i)).toBeInTheDocument();
+      expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    } finally {
+      window.history.pushState({}, '', originalUrl);
+    }
+  });
+
   it('failed is static: no polling, so recovery requires a manual refresh', async () => {
     // There is no Retry affordance and no poll: a terminal failure requires manual (ops)
     // intervention either way, so the error page stays put (and an open tab stops paying the

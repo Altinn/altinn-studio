@@ -4,6 +4,9 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +28,7 @@ public class PdfController : ControllerBase
     private readonly IAppModel _appModel;
     private readonly IDataClient _dataClient;
     private readonly IPdfService _pdfService;
+    private readonly IProcessReader _processReader;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -35,6 +39,7 @@ public class PdfController : ControllerBase
     /// <param name="appModel">The app model service</param>
     /// <param name="dataClient">The data client</param>
     /// <param name="pdfService">The PDF service</param>
+    /// <param name="processReader">The process reader</param>
     public PdfController(
         IInstanceClient instanceClient,
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -42,7 +47,8 @@ public class PdfController : ControllerBase
         IAppResources resources,
         IAppModel appModel,
         IDataClient dataClient,
-        IPdfService pdfService
+        IPdfService pdfService,
+        IProcessReader processReader
     )
     {
         _instanceClient = instanceClient;
@@ -51,11 +57,18 @@ public class PdfController : ControllerBase
         _appModel = appModel;
         _dataClient = dataClient;
         _pdfService = pdfService;
+        _processReader = processReader;
     }
 
     /// <summary>
-    /// Generate a preview of the PDF for the current task
+    /// Generate a preview of the PDF for the current task, or for another task in the process
     /// </summary>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="taskId">The task to preview, such as a PDF service task the instance has not reached yet. Defaults to the current task.</param>
+    /// <param name="dataElementId">The subform data element to preview, when previewing a subform PDF service task.</param>
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
@@ -65,7 +78,9 @@ public class PdfController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
-        [FromRoute] Guid instanceGuid
+        [FromRoute] Guid instanceGuid,
+        [FromQuery] string? taskId = null,
+        [FromQuery] Guid? dataElementId = null
     )
     {
         var instance = await _instanceClient.GetInstance(
@@ -76,19 +91,47 @@ public class PdfController : ControllerBase
             authenticationMethod: null,
             CancellationToken.None
         );
-        string? taskId = instance.Process?.CurrentTask?.ElementId;
-        if (instance == null || taskId == null)
+        string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
+        if (instance == null || currentTaskId == null)
         {
             return NotFound("Did not find instance or task");
         }
 
-        Stream pdfContent = await _pdfService.GeneratePdf(
+        if (taskId is null)
+        {
+            Stream pdfContent = await _pdfService.GeneratePdf(
+                instance,
+                currentTaskId,
+                true,
+                cancellationToken: CancellationToken.None
+            );
+            return new FileStreamResult(pdfContent, "application/pdf");
+        }
+
+        if (_processReader.GetFlowElement(taskId) is not ProcessTask task)
+        {
+            return NotFound("Did not find task");
+        }
+
+        // Render the task the same way its PDF service task would
+        AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
+        List<string>? autoGeneratePdfForTaskIds = taskExtension?.PdfConfiguration?.AutoPdfTaskIds;
+        SubformPdfContext? subformPdfContext =
+            taskExtension?.SubformPdfConfiguration is { } subformPdfConfiguration && dataElementId is not null
+                ? new SubformPdfContext(
+                    subformPdfConfiguration.Validate().SubformComponentId,
+                    dataElementId.Value.ToString()
+                )
+                : null;
+
+        Stream previewContent = await _pdfService.GeneratePreviewPdf(
             instance,
             taskId,
-            true,
-            cancellationToken: CancellationToken.None
+            autoGeneratePdfForTaskIds,
+            subformPdfContext,
+            CancellationToken.None
         );
-        return new FileStreamResult(pdfContent, "application/pdf");
+        return new FileStreamResult(previewContent, "application/pdf");
     }
 
     /// <summary>

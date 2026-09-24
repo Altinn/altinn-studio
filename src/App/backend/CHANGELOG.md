@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- The PDF preview in the app developer tools can now show what a PDF or subform PDF service task will produce before the instance reaches that task. For a subform PDF, choose which subform to preview. `GET .../pdf/preview` accepts an optional `taskId` and, for a subform PDF service task, a `dataElementId`.
+
 ### Changed
 
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
