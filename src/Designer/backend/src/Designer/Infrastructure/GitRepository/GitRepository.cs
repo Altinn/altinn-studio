@@ -139,7 +139,7 @@ public class GitRepository
 
         // Commented out ref comment below in the ReadTextByRelativePathAsync method
         // return await ReadTextAsync(absoluteFilePath)
-        return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
+        return await ReadAllTextAsync(absoluteFilePath);
     }
 
     /// <summary>
@@ -167,13 +167,13 @@ public class GitRepository
         try
         {
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
+            return await ReadAllTextAsync(absoluteFilePath, cancellationToken);
         }
         catch (IOException)
         {
             Thread.Sleep(1000);
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
-            return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
+            return await ReadAllTextAsync(absoluteFilePath, cancellationToken);
         }
     }
 
@@ -188,7 +188,7 @@ public class GitRepository
 
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-        return File.OpenRead(absoluteFilePath);
+        return OpenForReading(absoluteFilePath);
     }
 
     /// <summary>
@@ -520,15 +520,10 @@ public class GitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         byte[] encodedText = Encoding.UTF8.GetBytes(text);
-        await using FileStream sourceStream = new(
+        await ReplaceFileAsync(
             absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
+            targetStream => targetStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken)
         );
-        await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
     private static async Task WriteAsync(
@@ -537,14 +532,67 @@ public class GitRepository
         CancellationToken cancellationToken = default
     )
     {
-        await using FileStream targetStream = new(
+        await ReplaceFileAsync(
             absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
+            targetStream => new ValueTask(
+                stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken)
+            )
         );
-        await stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Opens a file for reading without blocking a concurrent <see cref="ReplaceFileAsync"/> from moving a new file
+    /// over it.
+    /// </summary>
+    private static FileStream OpenForReading(string absoluteFilePath) =>
+        new(absoluteFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+    private static async Task<string> ReadAllTextAsync(
+        string absoluteFilePath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using StreamReader reader = new(OpenForReading(absoluteFilePath), Encoding.UTF8);
+        return await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Writes the content to a temporary file next to the target and then moves it over the target, so a concurrent
+    /// reader gets either the previous or the new content, and a failed write leaves the previous content.
+    /// </summary>
+    private static async Task ReplaceFileAsync(string absoluteFilePath, Func<FileStream, ValueTask> writeContent)
+    {
+        string temporaryFilePath = Path.Combine(
+            Path.GetDirectoryName(absoluteFilePath),
+            $".{Path.GetFileName(absoluteFilePath)}.{Guid.NewGuid():N}.tmp"
+        );
+        try
+        {
+            await using (
+                FileStream temporaryStream = new(
+                    temporaryFilePath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    useAsync: true
+                )
+            )
+            {
+                await writeContent(temporaryStream);
+            }
+
+            if (!OperatingSystem.IsWindows() && File.Exists(absoluteFilePath))
+            {
+                File.SetUnixFileMode(temporaryFilePath, File.GetUnixFileMode(absoluteFilePath));
+            }
+
+            File.Move(temporaryFilePath, absoluteFilePath, overwrite: true);
+        }
+        catch
+        {
+            File.Delete(temporaryFilePath);
+            throw;
+        }
     }
 }

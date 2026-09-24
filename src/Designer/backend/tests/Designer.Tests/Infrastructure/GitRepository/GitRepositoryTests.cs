@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Designer.Tests.Utils;
 using Xunit;
@@ -139,6 +142,151 @@ public class GitRepositoryTests
         }
     }
 
+    [Fact]
+    public async Task WriteTextByRelativePathAsync_FileOpenForReading_ShouldReplaceFile()
+    {
+        var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+        var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+            "ttd",
+            TestDataHelper.GenerateTestRepoName(),
+            "testUser"
+        );
+        var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+            repositoriesRootDirectory,
+            repositoryDirectory
+        );
+        var filename = $"{Guid.NewGuid()}.txt";
+
+        try
+        {
+            await gitRepository.WriteTextByRelativePathAsync(filename, "old content");
+            await using (Stream openForReading = gitRepository.OpenStreamByRelativePath(filename))
+            {
+                await gitRepository.WriteTextByRelativePathAsync(filename, "new content");
+
+                using var reader = new StreamReader(openForReading);
+                Assert.Equal("old content", await reader.ReadToEndAsync());
+            }
+
+            Assert.Equal("new content", await gitRepository.ReadTextByRelativePathAsync(filename));
+            Assert.Equal([filename], Directory.GetFiles(repositoryDirectory).Select(Path.GetFileName));
+        }
+        finally
+        {
+            TestDataHelper.DeleteDirectory(repositoryDirectory);
+        }
+    }
+
+    [Fact]
+    public async Task WriteTextByRelativePathAsync_ExistingFile_ShouldKeepFileMode()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            // Unix file modes do not exist on Windows.
+            return;
+        }
+
+        var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+        var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+            "ttd",
+            TestDataHelper.GenerateTestRepoName(),
+            "testUser"
+        );
+        var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+            repositoriesRootDirectory,
+            repositoryDirectory
+        );
+        var filename = $"{Guid.NewGuid()}.sh";
+        const UnixFileMode Executable =
+            UnixFileMode.UserRead
+            | UnixFileMode.UserWrite
+            | UnixFileMode.UserExecute
+            | UnixFileMode.GroupRead
+            | UnixFileMode.GroupExecute;
+
+        try
+        {
+            await gitRepository.WriteTextByRelativePathAsync(filename, "old content");
+            File.SetUnixFileMode(Path.Combine(repositoryDirectory, filename), Executable);
+
+            await gitRepository.WriteTextByRelativePathAsync(filename, "new content");
+
+            Assert.Equal(Executable, File.GetUnixFileMode(Path.Combine(repositoryDirectory, filename)));
+        }
+        finally
+        {
+            TestDataHelper.DeleteDirectory(repositoryDirectory);
+        }
+    }
+
+    [Fact]
+    public async Task WriteStreamByRelativePathAsync_ReadDuringWrite_ShouldReadPreviousContent()
+    {
+        var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+        var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+            "ttd",
+            TestDataHelper.GenerateTestRepoName(),
+            "testUser"
+        );
+        var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+            repositoriesRootDirectory,
+            repositoryDirectory
+        );
+        var filename = $"{Guid.NewGuid()}.txt";
+
+        try
+        {
+            await gitRepository.WriteTextByRelativePathAsync(filename, "old content");
+            var content = new PausingStream(Encoding.UTF8.GetBytes("new "), Encoding.UTF8.GetBytes("content"));
+            Task write = gitRepository.WriteStreamByRelativePathAsync(filename, content);
+            await content.Paused;
+
+            Assert.Equal("old content", await gitRepository.ReadTextByRelativePathAsync(filename));
+
+            content.Resume();
+            await write;
+            Assert.Equal("new content", await gitRepository.ReadTextByRelativePathAsync(filename));
+        }
+        finally
+        {
+            TestDataHelper.DeleteDirectory(repositoryDirectory);
+        }
+    }
+
+    [Fact]
+    public async Task WriteStreamByRelativePathAsync_WriteFails_ShouldKeepPreviousContent()
+    {
+        var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+        var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest(
+            "ttd",
+            TestDataHelper.GenerateTestRepoName(),
+            "testUser"
+        );
+        var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(
+            repositoriesRootDirectory,
+            repositoryDirectory
+        );
+        var filename = $"{Guid.NewGuid()}.txt";
+
+        try
+        {
+            await gitRepository.WriteTextByRelativePathAsync(filename, "old content");
+            var content = new PausingStream(Encoding.UTF8.GetBytes("new "), Encoding.UTF8.GetBytes("content"));
+            Task write = gitRepository.WriteStreamByRelativePathAsync(filename, content);
+            await content.Paused;
+
+            content.Fail(new IOException("The request was aborted."));
+
+            await Assert.ThrowsAsync<IOException>(() => write);
+            Assert.Equal("old content", await gitRepository.ReadTextByRelativePathAsync(filename));
+            Assert.Equal([filename], Directory.GetFiles(repositoryDirectory).Select(Path.GetFileName));
+        }
+        finally
+        {
+            TestDataHelper.DeleteDirectory(repositoryDirectory);
+        }
+    }
+
     [Theory]
     [InlineData(@"this.dont.exists.schema.json")]
     [InlineData(@"c:/this/should/not/exist/HvemErHvem.json")]
@@ -236,5 +384,68 @@ public class GitRepositoryTests
         );
 
         return gitRepository;
+    }
+
+    /// <summary>
+    /// A readable stream that returns its first part, then waits until the test resumes or fails it.
+    /// </summary>
+    private sealed class PausingStream(byte[] firstPart, byte[] secondPart) : Stream
+    {
+        private readonly TaskCompletionSource _paused = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _resumed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _readCount;
+
+        public Task Paused => _paused.Task;
+
+        public void Resume() => _resumed.SetResult();
+
+        public void Fail(Exception exception) => _resumed.SetException(exception);
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default
+        )
+        {
+            switch (_readCount++)
+            {
+                case 0:
+                    firstPart.CopyTo(buffer);
+                    return firstPart.Length;
+                case 1:
+                    _paused.SetResult();
+                    await _resumed.Task;
+                    secondPart.CopyTo(buffer);
+                    return secondPart.Length;
+                default:
+                    return 0;
+            }
+        }
+
+        public override Task<int> ReadAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken
+        ) => ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush() { }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }
