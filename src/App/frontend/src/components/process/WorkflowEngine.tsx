@@ -72,12 +72,7 @@ export function WorkflowProcessing() {
  * engine-measured `elapsedMs` and lets a browser timer cover the rest, restarting when a different
  * run (`runStartedAt`) begins: a new transition, or a resume of this one.
  */
-function useHasProcessedFor(
-  thresholdMs: number,
-  active: boolean,
-  runStartedAt: string | undefined,
-  elapsedMs: number,
-) {
+function useHasProcessedFor(thresholdMs: number, active: boolean, runStartedAt: string | undefined, elapsedMs: number) {
   const [reached, setReached] = useState(false);
 
   useEffect(() => {
