@@ -149,8 +149,11 @@ describe('Hide row in group', () => {
     });
     cy.findByRole('button', { name: 'Rediger NOK 6' }).should('be.visible');
     cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', '');
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('5');
+    // The backend stores this field as a non-nullable integer and normalizes an empty value to zero.
+    // Let that save finish before entering the threshold, so its response cannot interrupt typing.
+    cy.waitUntilSaved();
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 0');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).type('{moveToEnd}5');
     cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 5');
 
     // Wait for the row to be hidden before testing navigation past it.
