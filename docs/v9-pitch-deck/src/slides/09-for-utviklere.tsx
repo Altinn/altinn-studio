@@ -36,7 +36,7 @@ const FEATURES: Feature[] = [
 ];
 
 /** Backend, for developers: what service tasks can do now. */
-export default function ForUtviklereSlide({ step }: SlideProps) {
+export default function ForUtviklereSlide(_: SlideProps) {
   return (
     <Slide
       variant="full"
@@ -45,7 +45,7 @@ export default function ForUtviklereSlide({ step }: SlideProps) {
       subtitle="Tjenesteoppgaver kan gjøre mer, og tåle mer."
     >
       <div className="s-fill">
-        <FeatureGrid features={FEATURES} step={step} revealFrom={0} />
+        <FeatureGrid features={FEATURES} />
       </div>
     </Slide>
   );

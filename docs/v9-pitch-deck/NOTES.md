@@ -3,7 +3,7 @@
 One page for the person holding the clicker. Structure in English, the spoken notes verbatim in
 norsk bokmål (they are the `notes` fields in `src/slides/index.ts`, which is the source of truth).
 
-**15 slides, 32 build steps, 46 presses of `→` from the opening slide to the last.**
+**15 slides, 24 build steps, 38 presses of `→` from the opening slide to the last.**
 
 Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrome, press `f`.
 
@@ -22,7 +22,8 @@ Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrom
 | `?`                    | This cheat sheet, on screen                       |
 | `Esc`                  | Close an overlay                                  |
 
-Going backwards is safe: `←` re-enters a slide fully built. Deep-link during a rehearsal with `#/12`
+Going backwards is safe: `←` re-enters a slide fully built. Tile slides need no clicks: their tiles
+enter on their own as the slide arrives. Deep-link during a rehearsal with `#/12`
 (slide 12) or `#/12/7` (slide 12, build step 7).
 
 ---
@@ -59,7 +60,7 @@ Read the left line, then the right one. The lines are short on purpose.
 
 ## Slide by slide
 
-### 1 — Hva blir bedre med v9? · 2 clicks
+### 1 — Hva blir bedre med v9? · 0 clicks
 
 > Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kommer i gang.
 
@@ -91,7 +92,7 @@ Read the left line, then the right one. The lines are short on purpose.
 
 > Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres før det gjøres, så en feil eller en omstart underveis ikke betyr at noe går tapt. Det gjelder alle overganger i prosessen, ikke bare «Send inn».
 
-### 9 — Nye muligheter for utviklere · 3 clicks
+### 9 — Nye muligheter for utviklere · 0 clicks
 
 > For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.
 
@@ -115,7 +116,7 @@ Read the left line, then the right one. The lines are short on purpose.
 
 > Prosessfilen i malen er lik i v8 og v9. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Verktøyet skriver om navn og navnerom, gjør PDF og forsendelse om til tjenesteoppgaver og legger til tilgangene appen trenger. To ting peker det ut for hånd: egen kode i prosessteg, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.
 
-### 15 — Kom i gang med v9 · 3 clicks
+### 15 — Kom i gang med v9 · 0 clicks
 
 > v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, eller med studioctl. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.
 

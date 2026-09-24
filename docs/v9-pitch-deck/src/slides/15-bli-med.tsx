@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
 import type { SlideProps } from '../deck';
-import { Slide, Icon, Reveal } from '../components';
+import { Slide, Icon } from '../components';
 import type { IconName } from '../components';
-import { Backdrop, BrandMark } from './_kit';
+import { Backdrop, BrandMark, Enter } from './_kit';
 
 const STEPS: { icon: IconName; title: string; body: string }[] = [
   {
@@ -23,7 +23,7 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
 ];
 
 /** The call to action: open beta, self-serve upgrade from Studio or studioctl. */
-export default function BliMedSlide({ step }: SlideProps) {
+export default function BliMedSlide(_: SlideProps) {
   return (
     <Slide
       variant="full"
@@ -39,11 +39,11 @@ export default function BliMedSlide({ step }: SlideProps) {
           {STEPS.map((item, i) => (
             <Fragment key={item.title}>
               {i > 0 && (
-                <Reveal show={step >= i} className="s-step__arrow">
+                <Enter index={i * 2 - 1} className="s-step__arrow">
                   →
-                </Reveal>
+                </Enter>
               )}
-              <Reveal show={step >= i} className="s-stepwrap">
+              <Enter index={i * 2} className="s-stepwrap">
                 <div className="s-step">
                   <span className="s-step__no">
                     <Icon name={item.icon} size={30} />
@@ -51,17 +51,17 @@ export default function BliMedSlide({ step }: SlideProps) {
                   <p className="s-step__title">{item.title}</p>
                   <p className="s-step__body">{item.body}</p>
                 </div>
-              </Reveal>
+              </Enter>
             </Fragment>
           ))}
         </div>
 
-        <Reveal show={step >= 3}>
+        <Enter index={STEPS.length * 2 - 1}>
           <p className="s-cta">
             <Icon name="flag" size={34} />
             Trenger dere hjelp? Ta kontakt.
           </p>
-        </Reveal>
+        </Enter>
       </div>
     </Slide>
   );

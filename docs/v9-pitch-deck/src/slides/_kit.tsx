@@ -6,7 +6,7 @@
  */
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
-import { Icon, Reveal, Slide } from '../components';
+import { Icon, Slide } from '../components';
 import type { IconName } from '../components';
 
 /* ---------------------------------------------------------------
@@ -152,29 +152,43 @@ export interface Feature {
 }
 
 /**
- * Three or four cards in a row, revealed together or one per build step.
- * `revealFrom` is the build step the first card appears on; omit it to show
- * them all from the start.
+ * Entrance for a group of tiles: each one fades and rises in as the slide
+ * arrives, `index` steps of 70 ms after the first. Not a build step — the
+ * tiles are all there without a click.
  */
+export function Enter({
+  index,
+  children,
+  className,
+}: {
+  index: number;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.12 + index * 0.07, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/** Three or four cards in a row, entering together with a short stagger. */
 export function FeatureGrid({
   features,
   tone = 'run',
-  step = 0,
-  revealFrom,
 }: {
   features: readonly Feature[];
   tone?: 'run' | 'ok';
-  step?: number;
-  revealFrom?: number;
 }) {
   return (
     <div className={`s-fcards s-fcards--${features.length}`}>
       {features.map((f, i) => (
-        <Reveal
-          key={f.title}
-          show={revealFrom === undefined || step >= revealFrom + i}
-          delay={revealFrom === undefined ? i * 0.05 : 0}
-        >
+        <Enter key={f.title} index={i}>
           <div className={`s-fcard s-fcard--feature is-${tone}`}>
             <span className="s-fcard__icon">
               <Icon name={f.icon} size={36} />
@@ -183,7 +197,7 @@ export function FeatureGrid({
             <h3 className="s-fcard__title">{f.title}</h3>
             <p className="s-fcard__body">{f.body}</p>
           </div>
-        </Reveal>
+        </Enter>
       ))}
     </div>
   );
