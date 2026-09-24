@@ -874,6 +874,17 @@
   font-size: 36px;
 }
 
+/* Optical alignment: larger text starts its ink further in (the side bearing
+   scales with size), so the title and body sit ~1px inside the small-caps
+   eyebrow above them. Pull them back to the same ink edge. */
+.s-fcard--feature .s-fcard__title {
+  margin-left: -0.02em;
+}
+
+.s-fcard--feature .s-fcard__body {
+  margin-left: -0.04em;
+}
+
 /* The fan's second click: every one of the ten things is saved. */
 .s-fan__saved {
   display: grid;
