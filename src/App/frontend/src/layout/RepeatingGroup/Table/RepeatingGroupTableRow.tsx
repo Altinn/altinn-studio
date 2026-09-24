@@ -56,13 +56,7 @@ function getEditButtonText(
   editButtonOpen: string,
   editButtonClose: string,
 ) {
-  const buttonTextKey = isEditing
-    ? editButtonClose
-      ? editButtonClose
-      : 'general.save_and_close'
-    : editButtonOpen
-      ? editButtonOpen
-      : 'general.edit_alt';
+  const buttonTextKey = isEditing ? editButtonClose || 'general.save_and_close' : editButtonOpen || 'general.edit_alt';
   return langTools.langAsString(buttonTextKey);
 }
 
