@@ -198,13 +198,14 @@ describe('Checkboxes', () => {
       renderWithAlert({ value: ['norge'], onChange });
 
       fireEvent.click(getCheckbox('Norge', true));
+      // Keep a reference while the popover is open, since cancelling hides it.
+      const confirmButton = screen.getByRole('button', { name: 'Confirm' });
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
       expect(onChange).not.toHaveBeenCalled();
 
       // The suspended change is dropped, so confirming afterwards does not apply it either.
-      // Cancelling closed the popover, so the Confirm button is still in the DOM but hidden.
-      fireEvent.click(screen.getByRole('button', { name: 'Confirm', hidden: true }));
+      fireEvent.click(confirmButton);
       expect(onChange).not.toHaveBeenCalled();
     });
 
