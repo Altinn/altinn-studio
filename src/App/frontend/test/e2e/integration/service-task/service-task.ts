@@ -78,16 +78,20 @@ describe('Service task', () => {
     });
   });
 
-  it('successful service tasks produce all three PDFs on the receipt', { retries: 0 }, () => {
-    startAppAndFillForm({ shouldFail: false });
+  it('successful service tasks produce all PDFs on the receipt, one per subform', { retries: 0 }, () => {
+    startAppAndFillForm({
+      shouldFail: false,
+      subforms: ['Lykkeønsker fra et underskjema', 'Enda en hilsen fra et underskjema'],
+    });
 
     cy.findByText('Skjemaet er sendt inn').should('be.visible');
-    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 3);
+    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 4);
     cy.findByRole('link', { name: /Autogenerert PDF av Task_Utfylling1 og Task_Utfylling2\.pdf$/ }).should(
       'be.visible',
     );
     cy.findByRole('link', { name: /PDF basert på layout-set\.pdf$/ }).should('be.visible');
     cy.findByRole('link', { name: /Subform pdf Lykkeønsker fra et underskjema\.pdf$/ }).should('be.visible');
+    cy.findByRole('link', { name: /Subform pdf Enda en hilsen fra et underskjema\.pdf$/ }).should('be.visible');
   });
 
   it('renders a PDF service task that is not the current task (preview)', { retries: 0 }, () => {
@@ -129,21 +133,29 @@ describe('Service task', () => {
   });
 });
 
-function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
+function startAppAndFillForm({
+  shouldFail,
+  subforms = ['Lykkeønsker fra et underskjema'],
+}: {
+  shouldFail: boolean;
+  subforms?: string[];
+}) {
   cy.startAppInstance(appFrontend.apps.serviceTask, { cyUser: 'manager' });
   cy.get('#finishedLoading').should('exist');
   cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).type('En hilsen fra Task_Utfylling1');
   cy.waitUntilSaved();
 
-  cy.get('#subform-Subform-z8we7d-add-button').click();
-  cy.get('#finishedLoading').should('exist');
-  cy.findByRole('textbox', { name: 'Test 1' }).type('Lykkeønsker fra et underskjema');
-  cy.findByRole('button', { name: 'Ferdig' }).click();
+  for (const subform of subforms) {
+    cy.get('#subform-Subform-z8we7d-add-button').click();
+    cy.get('#finishedLoading').should('exist');
+    cy.findByRole('textbox', { name: 'Test 1' }).type(subform);
+    cy.findByRole('button', { name: 'Ferdig' }).click();
 
-  cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).should(
-    'have.value',
-    'En hilsen fra Task_Utfylling1',
-  );
+    cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).should(
+      'have.value',
+      'En hilsen fra Task_Utfylling1',
+    );
+  }
   cy.waitUntilSaved();
   cy.findByRole('button', { name: 'Neste' }).click();
 
