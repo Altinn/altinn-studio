@@ -5,13 +5,11 @@ from __future__ import annotations
 import time
 from typing import Any
 
-LAYOUT_SCHEMA_URL = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
-
 _SCHEMA_CACHE_TTL_SECONDS = 60 * 60  # schemas change rarely; 1h is generous
 _schema_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
-def get_layout_schema(schema_url: str = LAYOUT_SCHEMA_URL) -> dict[str, Any]:
+def get_layout_schema(schema_url: str) -> dict[str, Any]:
     """Fetch (and memoize) the official layout schema.
 
     The underlying loaders refetch on every call; a verify pass over N

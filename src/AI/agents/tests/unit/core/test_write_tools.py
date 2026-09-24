@@ -11,11 +11,13 @@ the network.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from agents.altinn.app_version import V8_PROFILE
 from agents.core import (
     CommitSessionBranchTool,
     LoopContext,
@@ -97,6 +99,27 @@ class TestVerifyChanges:
         assert not result.is_error
         # Successful verify marks the file in verified_files.
         assert "App/ui/form/layouts/Page1.json" in ctx.extras["verified_files"]
+
+    async def test_layout_is_validated_against_the_schema_of_the_app_version(self, tmp_path: Path, monkeypatch):
+        layout_path = tmp_path / "App" / "ui" / "form" / "layouts" / "Page1.json"
+        layout_path.parent.mkdir(parents=True)
+        layout_path.write_text('{"data": {"layout": []}}', encoding="utf-8")
+        requested_locations: list[str] = []
+
+        def load_schema(schema_location: str) -> dict:
+            requested_locations.append(schema_location)
+            return {}
+
+        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", load_schema)
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/form/layouts/Page1.json"},
+        )
+        ctx.app_version_profile = replace(V8_PROFILE, layout_schema_location="other-version/layout.schema.v1.json")
+
+        await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert requested_locations == ["other-version/layout.schema.v1.json"]
 
     async def test_text_resource_validated_in_process(self, tmp_path: Path, monkeypatch):
         resource_path = tmp_path / "App" / "config" / "texts" / "resource.nb.json"

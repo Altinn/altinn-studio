@@ -14,8 +14,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from agents.altinn.datamodel import datamodel_sync
-from agents.altinn.layout import LAYOUT_SCHEMA_URL, get_layout_schema
-from agents.altinn.layout.properties import BINDING_CONSTRAINTS, layout_properties_tool
+from agents.altinn.layout import get_layout_schema
+from agents.altinn.layout.properties import layout_properties_tool
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 
@@ -43,15 +43,16 @@ class LayoutPropsTool(Tool):
     is_read_only = True
 
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
+        profile = ctx.app_version_profile
         try:
-            schema = get_layout_schema(LAYOUT_SCHEMA_URL)
-        except Exception as exc:  # CDN fetch / parse errors
+            schema = get_layout_schema(profile.layout_schema_location)
+        except Exception as exc:  # schema load / parse errors
             return ToolResult(content=f"Could not load component schema: {exc}", is_error=True)
         result = layout_properties_tool(
             user_goal="agentic-loop",
             component_type=args.component_type,
             schema=schema,
-            binding_constraints=BINDING_CONSTRAINTS,
+            binding_constraints=profile.binding_constraints,
         )
         is_error = isinstance(result, dict) and result.get("status") == "error"
         return ToolResult(
@@ -60,7 +61,7 @@ class LayoutPropsTool(Tool):
             metadata={
                 "source": {
                     "title": f"Layout-skjema ({args.component_type})",
-                    "url": LAYOUT_SCHEMA_URL,
+                    "url": profile.layout_schema_display_url,
                     "kind": "schema",
                 }
             },
