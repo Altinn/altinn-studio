@@ -2932,13 +2932,13 @@ namespace Altinn.App.Core.Implementation
         [System.Obsolete("Use GetLayoutsInFolder instead", true)]
         public string GetLayoutsForSet(string layoutSetId) { }
         public string GetLayoutsInFolder(string folderId) { }
-        public string GetModelJsonSchema(string modelId) { }
-        public string? GetPrefillJson(string dataModelName = "ServiceModel") { }
+        public string GetModelJsonSchema(string dataTypeId) { }
+        public string? GetPrefillJson(string dataTypeId = "ServiceModel") { }
         public byte[] GetText(string org, string app, string textResource) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language) { }
         public Altinn.App.Core.Models.UiConfiguration? GetUiConfiguration() { }
         public string? GetValidationConfiguration(string dataTypeId) { }
-        public string? GetXsdSchema(string modelId) { }
+        public string? GetXsdSchema(string dataTypeId) { }
     }
     public class DefaultAppEvents : Altinn.App.Core.Internal.App.IAppEvents
     {
@@ -3266,13 +3266,13 @@ namespace Altinn.App.Core.Internal.App
         [System.Obsolete("Use GetLayoutsInFolder instead", true)]
         string GetLayoutsForSet(string layoutSetId);
         string GetLayoutsInFolder(string folderId);
-        string GetModelJsonSchema(string modelId);
-        string? GetPrefillJson(string dataModelName = "ServiceModel");
+        string GetModelJsonSchema(string dataTypeId);
+        string? GetPrefillJson(string dataTypeId = "ServiceModel");
         byte[] GetText(string org, string app, string textResource);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
         Altinn.App.Core.Models.UiConfiguration? GetUiConfiguration();
         string? GetValidationConfiguration(string dataTypeId);
-        string? GetXsdSchema(string modelId);
+        string? GetXsdSchema(string dataTypeId);
     }
     public interface IApplicationClient
     {
