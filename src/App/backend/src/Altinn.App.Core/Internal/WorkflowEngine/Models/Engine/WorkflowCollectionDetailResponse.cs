@@ -107,4 +107,13 @@ internal sealed record CollectionHeadStatus
     [JsonPropertyName("waitingReason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WaitingReason { get; init; }
+
+    /// <summary>
+    /// Gets how many consecutive attempts of the head's current step have failed and been
+    /// scheduled for retry. Holds steady while a retry attempt executes. Null when the engine
+    /// predates the field.
+    /// </summary>
+    [JsonPropertyName("failedAttempts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedAttempts { get; init; }
 }

@@ -340,7 +340,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     : null,
                 StartedAt: activeHead.CreatedAt,
                 WaitingReason: activeHead.WaitingReason,
-                CurrentTime: collection.CurrentTime
+                CurrentTime: collection.CurrentTime,
+                FailedAttempts: activeHead.FailedAttempts ?? 0
             );
         }
 

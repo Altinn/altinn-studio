@@ -1675,6 +1675,7 @@ public class WorkflowEngineServiceTests
                             },
                             StepsCompleted = 7,
                             StepsTotal = 12,
+                            FailedAttempts = 3,
                         },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
@@ -1693,6 +1694,7 @@ public class WorkflowEngineServiceTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
         Assert.Equal("Task_2", result.TargetTask);
         Assert.True(result.Retrying);
+        Assert.Equal(3, result.FailedAttempts);
         Assert.Null(result.Failure);
         Assert.Equal(new WorkflowStepProgress(Completed: 7, Total: 12), result.Progress);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
