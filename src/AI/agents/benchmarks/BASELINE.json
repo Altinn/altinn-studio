@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "07e319515e6a",
-    "code": "3811d8c clean",
+    "actor_prompt": "9766b2fc3ce5",
+    "code": "8c363d9 clean",
     "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260922T131717Z-rename-altinity-to-assistant-10c6",
-  "label": "rename Altinity to assistant",
-  "recorded_at": "2026-09-22T13:23:31+00:00",
-  "why": "session branch prefix renamed; tool, prompt and dataset digests identical to the previous baseline"
+  "check_id": "20260924T095954Z-layout-set-discovery-c8f4",
+  "label": "layout set discovery",
+  "recorded_at": "2026-09-24T10:05:33+00:00",
+  "why": "prompt names layout-sets.json and App/ui/<layoutSetId>/layouts"
 }

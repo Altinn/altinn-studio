@@ -136,7 +136,7 @@ async def scan_repository(state: AgentState) -> AgentState:
         from pathlib import Path
         repo_path = Path(state.repo_path)
         existing_dirs = sum(1 for dir_path in [
-            repo_path / "App" / "ui" / "form" / "layouts",
+            repo_path / "App" / "ui",
             repo_path / "App" / "models", 
             repo_path / "App" / "config" / "texts"
         ] if dir_path.exists())

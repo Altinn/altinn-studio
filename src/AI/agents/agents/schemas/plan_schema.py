@@ -11,6 +11,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+# A layout page lives in the `layouts` folder of any layout set: App/ui/<layoutSetId>/layouts/<page>.json
+LAYOUT_FILE_PATH_PATTERN = r'App/ui/[^/]+/layouts/[^/]+\.json$'
+
 
 class OperationType(str, Enum):
     """Allowed file operations"""
@@ -145,8 +148,7 @@ class PlanStep(BaseModel):
             required_file_types = []
             
             # Must have one layout file
-            layout_pattern = r'App/ui/form/layouts/.*\.json$'
-            has_layout = any(re.match(layout_pattern, f) for f in v)
+            has_layout = any(re.match(LAYOUT_FILE_PATH_PATTERN, f) for f in v)
             if not has_layout:
                 required_file_types.append("layout")
             
@@ -270,7 +272,7 @@ def suggest_identifier_type(field_name: str, ui_hints: Optional[UIHints], arithm
 
 # File pattern utilities
 ALTINN_FILE_PATTERNS = {
-    'layout': r'App/ui/form/layouts/.*\.json$',
+    'layout': LAYOUT_FILE_PATH_PATTERN,
     'resource': r'App/config/texts/resource\..*\.json$',
     'model_schema': r'App/models/.*\.schema\.json$',
     'model_cs': r'App/models/.*\.cs$',
