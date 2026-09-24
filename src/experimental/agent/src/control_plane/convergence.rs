@@ -13,6 +13,10 @@ use super::{SharedAgentStore, Wakeup};
 
 /// Longest a waiter goes without rereading the stored Agent.
 const RECHECK_INTERVAL: Duration = Duration::from_secs(30);
+/// How long a waiter lets changes gather before rereading the stored Agent.
+/// Every progress event of any Agent advances the revision, so a waiter
+/// rereads once per burst instead of once per event.
+const SETTLE: Duration = Duration::from_millis(50);
 
 /// How long a request waits for the Agent it woke.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -76,7 +80,7 @@ impl Convergence {
                 }
             }
             self.changes
-                .changed_since(Some(revision), Duration::ZERO, RECHECK_INTERVAL)
+                .changed_since(Some(revision), SETTLE, RECHECK_INTERVAL)
                 .await;
         }
     }
