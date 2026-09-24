@@ -4,7 +4,7 @@ import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import {
   isVersionEqualOrGreater,
-  MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
+  MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK,
 } from '../../../../utils/processEditorUtils/processEditorUtils';
 
 /**
@@ -14,7 +14,7 @@ import {
 export const hasFixedCustomReceiptName = (appVersion?: AppVersion): boolean =>
   isVersionEqualOrGreater(
     appVersion?.backendVersion ?? '',
-    MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME,
+    MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK,
   );
 
 export const createNewCustomReceipt = (

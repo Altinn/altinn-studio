@@ -57,6 +57,24 @@ describe('ProcessEditor', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the "no bpmn found" error when the bpmn query fails', () => {
+    const queryClient = queryClientWithAppData();
+    queryClient.setQueryData([QueryKey.FetchBpmn, org, app], undefined);
+    queryClient
+      .getQueryCache()
+      .find({ queryKey: [QueryKey.FetchBpmn, org, app] })
+      ?.setState({
+        status: 'error',
+        error: new Error('Not found'),
+      });
+
+    renderProcessEditor({ bpmnXml: undefined, queryClient });
+
+    expect(
+      screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') }),
+    ).toBeInTheDocument();
+  });
+
   it('renders "no task selected" in the config panel when no bpmn details are found', () => {
     (useBpmnContext as jest.Mock).mockReturnValue({ bpmnDetails: null });
 
