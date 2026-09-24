@@ -5,5 +5,4 @@ export interface ExpressionDescriptor<V extends ExprVal = ExprVal> {
   readonly returnType: V;
   readonly defaultValue: ExprValToActual<V>;
   readonly errorIntroText: string;
-  readonly propertyPath: string;
 }
