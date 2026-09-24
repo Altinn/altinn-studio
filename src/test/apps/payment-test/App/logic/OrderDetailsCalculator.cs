@@ -1,10 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Altinn.App.Core.Features.Payment;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Internal.Data;

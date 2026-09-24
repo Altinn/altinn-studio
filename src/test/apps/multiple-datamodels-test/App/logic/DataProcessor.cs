@@ -1,10 +1,5 @@
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.App.Models.modell2;
 using Altinn.Platform.Storage.Interface.Models;

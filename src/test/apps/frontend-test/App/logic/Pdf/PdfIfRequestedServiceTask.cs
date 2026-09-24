@@ -1,6 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;

@@ -1,9 +1,5 @@
-﻿using Altinn.App.Core.Features;
-using Altinn.App.Core.Models;
+﻿using Altinn.App.Core.Models;
 using Altinn.App.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.App.logic.Pdf
 {
