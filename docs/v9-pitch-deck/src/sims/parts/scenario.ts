@@ -51,10 +51,8 @@ export interface Run {
   /** What the person is looking at before the first beat lands. */
   start: Screen;
   beats: readonly Beat[];
-  /** One sentence for the closing comparison. */
+  /** A few words for the closing comparison. */
   outcome: string;
-  /** Up to three short supporting points under the outcome in the comparison. */
-  details: readonly string[];
 }
 
 export interface Scenario {
@@ -68,7 +66,7 @@ export interface Scenario {
   frame: string;
   v8: Run;
   v9: Run;
-  /** The one closing sentence under the comparison. */
+  /** One or two sentences under the comparison: what it means, and why. */
   takeaway: string;
 }
 

@@ -40,7 +40,8 @@ const RECEIPT: Screen = { title: 'Kvittering klar', body: 'Skjemaet er levert.',
  *    an app hook sent (v8's correspondence client has no idempotency key) can
  *    go out twice. (A duplicate PDF is cleaned up, so it is not the example.)
  *  - v9 retries the step automatically, and a completed step is not run again.
- *    «Ingenting ble gjort to ganger» is said about this run — never «umulig».
+ *    The slide never promises that nothing runs twice (delivery is
+ *    at-least-once).
  */
 export const FEIL: Scenario = {
   name: 'feil',
@@ -59,15 +60,10 @@ export const FEIL: Scenario = {
         id: 'twice',
         text: 'Meldinger kan gå ut to ganger',
         status: 'fail',
-        screen: { title: 'Kvittering klar', body: 'Men noe kan ha skjedd to ganger.', tone: 'wait' },
+        screen: { title: 'Kvittering klar', body: 'Etter et nytt forsøk.', tone: 'wait' },
       },
     ],
-    outcome: 'Kari måtte prøve igjen selv, og noe kan ha skjedd to ganger.',
-    details: [
-      'Kari må sende inn på nytt selv',
-      'Alle stegene kjøres igjen fra start',
-      'Ingen kan se hvilke steg som ble fullført',
-    ],
+    outcome: 'Kari måtte prøve igjen selv.',
   },
   v9: {
     start: READY,
@@ -79,14 +75,10 @@ export const FEIL: Scenario = {
       { id: 'only', text: 'Bare det som feilet, kjøres igjen', status: 'ok' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
-    outcome: 'Kari trengte ikke å gjøre noe, og ingenting ble gjort to ganger.',
-    details: [
-      'Plattformen prøver igjen automatisk',
-      'Fullførte steg kjøres ikke på nytt',
-      'Drift ser hvert steg i dashbordet',
-    ],
+    outcome: 'Kari trengte ikke å gjøre noe.',
   },
-  takeaway: 'En kort feil gir litt ventetid, ikke en ny innsending.',
+  takeaway:
+    'En kort feil gir litt ventetid, ikke en ny innsending. Plattformen prøver igjen selv, og det som er fullført, kjøres ikke på nytt.',
 };
 
 /**
@@ -115,12 +107,7 @@ export const OMSTART: Scenario = {
       { id: 'unknown', text: 'Ingen vet hvor langt det kom', status: 'fail' },
       { id: 'retry', text: 'Kari må prøve igjen og håpe', status: 'wait' },
     ],
-    outcome: 'Halvveis utført, og ingen vet hvor langt det kom.',
-    details: [
-      'Arbeidet stopper midt i',
-      'Kari må prøve igjen og håpe det går',
-      'Noen må finne ut hva som ble gjort',
-    ],
+    outcome: 'Arbeidet stoppet halvveis.',
   },
   v9: {
     start: READY,
@@ -132,12 +119,7 @@ export const OMSTART: Scenario = {
       { id: 'resume', text: 'Arbeidet fortsetter der det slapp', status: 'running' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
-    outcome: 'Ferdig. Kari merket bare litt venting.',
-    details: [
-      'Hvert steg var lagret før omstarten',
-      'Arbeidet fortsetter når serveren er tilbake',
-      'Kari trenger ikke å gjøre noe',
-    ],
+    outcome: 'Ferdig, med litt venting.',
   },
   takeaway: 'Nye versjoner kan rulles ut midt på dagen. Innsendingene fortsetter der de slapp.',
 };
