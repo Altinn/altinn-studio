@@ -535,6 +535,15 @@ mod tests {
         }
 
         fn fail(&mut self, detail: &str) -> &mut Self {
+            // End the phase in progress at a fixed time: left to the fold, its
+            // duration is measured on the clock and differs between machines.
+            if let Some(phase) = self.progress.current().map(|current| current.phase.clone()) {
+                self.apply(&ProgressEvent::PhaseEnded {
+                    phase,
+                    outcome: Outcome::Failed,
+                    elapsed: Duration::ZERO,
+                });
+            }
             self.progress.fail(detail);
             self.status.failure = Some(FailureKind::Transient);
             self.status.conditions = vec![Condition {
