@@ -26,8 +26,8 @@ import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from '
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
-import type { AppQueries } from 'src/queries/types';
 import type * as QueriesModule from 'src/queries/queries';
+import type { AppQueries } from 'src/queries/types';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
 vi.mock('src/queries/queries', async () => {
