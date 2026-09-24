@@ -28,6 +28,9 @@ _EXIT_SUCCESS = 0
 _EXIT_UNSUPPORTED_VERSION = 2
 _EXIT_MANUAL_ACTION_REQUIRED = 3
 
+_GIT_RESET_TO_HEAD = ["git", "reset", "--hard", "HEAD"]
+_GIT_REMOVE_UNTRACKED_FILES = ["git", "clean", "-fd"]
+
 
 class _UpgradeQueue:
     """Runs one upgrade at a time and tells waiting users their place in the queue."""
@@ -84,7 +87,7 @@ class UpgradeAppToV9Tool(WriteToolMixin):
         "this before making other edits.\n\n"
         "RESULT: applies the changes on disk and stages them for commit.  "
         "Some steps can need manual follow-up — "
-        "relay those to the user."
+        "relay those to the user.  A failed upgrade discards its changes."
     )
     input_schema = UpgradeAppToV9Args
     is_concurrency_safe = False
@@ -125,6 +128,8 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
         _record_changed_files(ctx)
         return ToolResult(content=(f"Upgraded the app to v9, but some steps need manual follow-up:\n\n{summary}"))
 
+    _restore_working_tree(ctx.repo_path)
+
     if exit_code == _EXIT_UNSUPPORTED_VERSION:
         return ToolResult(
             content=(f"This app is not on version 8, so it cannot be upgraded to v9.\n\n{summary}"),
@@ -132,7 +137,7 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
         )
 
     return ToolResult(
-        content=f"The v9 upgrade failed:\n\n{result.get('error') or summary}",
+        content=(f"The v9 upgrade failed, and its changes were discarded:\n\n{result.get('error') or summary}"),
         is_error=True,
     )
 
@@ -143,6 +148,12 @@ def _summarize_steps(steps: list[dict]) -> str:
     )
     log.info("V9 upgrade steps:\n%s", summary)
     return summary
+
+
+def _restore_working_tree(repo_path: str) -> None:
+    """studioctl refuses a dirty working tree, so this discards only the upgrade's own changes."""
+    subprocess.run(_GIT_RESET_TO_HEAD, cwd=repo_path, capture_output=True, text=True)
+    subprocess.run(_GIT_REMOVE_UNTRACKED_FILES, cwd=repo_path, capture_output=True, text=True)
 
 
 def _record_changed_files(ctx: LoopContext) -> None:
