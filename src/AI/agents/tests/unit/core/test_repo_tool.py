@@ -75,10 +75,10 @@ LAYOUT_FILE_NAME = "Side1.json"
 EMPTY_LAYOUT = '{"data": {"layout": []}}'
 
 
-def _create_layout(repo_path, layout_folder: str) -> None:
+def _create_layout(repo_path, layout_folder: str, file_name: str = LAYOUT_FILE_NAME) -> None:
     layouts_dir = repo_path / layout_folder
-    layouts_dir.mkdir(parents=True)
-    (layouts_dir / LAYOUT_FILE_NAME).write_text(EMPTY_LAYOUT)
+    layouts_dir.mkdir(parents=True, exist_ok=True)
+    (layouts_dir / file_name).write_text(EMPTY_LAYOUT)
 
 
 async def _scan_layouts(repo_path) -> list[str]:
@@ -105,3 +105,16 @@ async def test_scan_repo_lists_layouts_from_every_layout_set_in_sorted_order(tmp
 
 async def test_scan_repo_lists_no_layouts_when_the_app_has_no_ui_folder(tmp_path):
     assert await _scan_layouts(tmp_path) == []
+
+
+async def test_scan_repo_lists_only_layout_pages_and_not_neighbouring_files(tmp_path):
+    _create_layout(tmp_path, "App/ui/message/layouts")
+    _create_layout(tmp_path, "App/ui/message/layouts", "Side2.json")
+    (tmp_path / "App/ui/message/layouts/notes.md").write_text("not a layout")
+    (tmp_path / "App/ui/message/Settings.json").write_text('{"pages": {"order": ["Side1", "Side2"]}}')
+    (tmp_path / "App/ui/layout-sets.json").write_text('{"sets": [{"id": "message", "tasks": ["Task_1"]}]}')
+
+    assert await _scan_layouts(tmp_path) == [
+        f"App/ui/message/layouts/{LAYOUT_FILE_NAME}",
+        "App/ui/message/layouts/Side2.json",
+    ]
